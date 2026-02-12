@@ -28,148 +28,48 @@ endif()
 
 message(STATUS "IDA installation: ${IDA_INSTALL_DIR}")
 
-# ── Build the smoke test using real IDA dylibs ──────────────────────────
-# We avoid ida_add_idalib() because it links against the SDK stub dylibs.
-# Instead we manually create the target with the same settings but link
-# against the real dylibs from the IDA installation directory.
-add_executable(idax_smoke_test smoke_test.cpp)
+# ── Helper function to reduce boilerplate ────────────────────────────────
+# Creates an integration test executable linked against real IDA dylibs,
+# registers it as a CTest with the fixture binary as argument.
+function(idax_add_integration_test TEST_NAME SOURCE_FILE)
+    set(TARGET_NAME "idax_${TEST_NAME}_test")
 
-target_link_libraries(idax_smoke_test
-    PRIVATE
-        idax
-        "${IDA_INSTALL_DIR}/libidalib.dylib"
-        "${IDA_INSTALL_DIR}/libida.dylib"
-)
+    add_executable(${TARGET_NAME} ${SOURCE_FILE})
 
-# Apply the same compile definitions as idasdk::idalib would.
-target_compile_definitions(idax_smoke_test PRIVATE __EA64__ IDALIB_IMPL)
-
-# Include SDK headers.
-target_include_directories(idax_smoke_test PRIVATE "${IDASDK}/include")
-
-# Set rpath so the real IDA dylibs are found at runtime.
-if(APPLE)
-    set_target_properties(idax_smoke_test PROPERTIES
-        BUILD_RPATH "${IDA_INSTALL_DIR}"
-        INSTALL_RPATH "${IDA_INSTALL_DIR}"
-    )
-endif()
-
-add_executable(idax_name_comment_xref_search_test
-    name_comment_xref_search_test.cpp
-)
-
-add_executable(idax_data_mutation_safety_test
-    data_mutation_safety_test.cpp
-)
-
-add_executable(idax_segment_function_edge_cases_test
-    segment_function_edge_cases_test.cpp
-)
-
-add_executable(idax_instruction_decode_behavior_test
-    instruction_decode_behavior_test.cpp
-)
-
-target_link_libraries(idax_name_comment_xref_search_test
-    PRIVATE
-        idax
-        "${IDA_INSTALL_DIR}/libidalib.dylib"
-        "${IDA_INSTALL_DIR}/libida.dylib"
-)
-
-target_link_libraries(idax_data_mutation_safety_test
-    PRIVATE
-        idax
-        "${IDA_INSTALL_DIR}/libidalib.dylib"
-        "${IDA_INSTALL_DIR}/libida.dylib"
-)
-
-target_link_libraries(idax_segment_function_edge_cases_test
-    PRIVATE
-        idax
-        "${IDA_INSTALL_DIR}/libidalib.dylib"
-        "${IDA_INSTALL_DIR}/libida.dylib"
-)
-
-target_link_libraries(idax_instruction_decode_behavior_test
-    PRIVATE
-        idax
-        "${IDA_INSTALL_DIR}/libidalib.dylib"
-        "${IDA_INSTALL_DIR}/libida.dylib"
-)
-
-target_compile_definitions(idax_name_comment_xref_search_test PRIVATE __EA64__ IDALIB_IMPL)
-target_include_directories(idax_name_comment_xref_search_test PRIVATE "${IDASDK}/include")
-
-target_compile_definitions(idax_data_mutation_safety_test PRIVATE __EA64__ IDALIB_IMPL)
-target_include_directories(idax_data_mutation_safety_test PRIVATE "${IDASDK}/include")
-
-target_compile_definitions(idax_segment_function_edge_cases_test PRIVATE __EA64__ IDALIB_IMPL)
-target_include_directories(idax_segment_function_edge_cases_test PRIVATE "${IDASDK}/include")
-
-target_compile_definitions(idax_instruction_decode_behavior_test PRIVATE __EA64__ IDALIB_IMPL)
-target_include_directories(idax_instruction_decode_behavior_test PRIVATE "${IDASDK}/include")
-
-if(APPLE)
-    set_target_properties(idax_name_comment_xref_search_test PROPERTIES
-        BUILD_RPATH "${IDA_INSTALL_DIR}"
-        INSTALL_RPATH "${IDA_INSTALL_DIR}"
+    target_link_libraries(${TARGET_NAME}
+        PRIVATE
+            idax
+            "${IDA_INSTALL_DIR}/libidalib.dylib"
+            "${IDA_INSTALL_DIR}/libida.dylib"
     )
 
-    set_target_properties(idax_data_mutation_safety_test PROPERTIES
-        BUILD_RPATH "${IDA_INSTALL_DIR}"
-        INSTALL_RPATH "${IDA_INSTALL_DIR}"
+    target_compile_definitions(${TARGET_NAME} PRIVATE __EA64__ IDALIB_IMPL)
+    target_include_directories(${TARGET_NAME} PRIVATE "${IDASDK}/include")
+
+    if(APPLE)
+        set_target_properties(${TARGET_NAME} PROPERTIES
+            BUILD_RPATH "${IDA_INSTALL_DIR}"
+            INSTALL_RPATH "${IDA_INSTALL_DIR}"
+        )
+    endif()
+
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND ${TARGET_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
     )
-
-    set_target_properties(idax_segment_function_edge_cases_test PROPERTIES
-        BUILD_RPATH "${IDA_INSTALL_DIR}"
-        INSTALL_RPATH "${IDA_INSTALL_DIR}"
+    set_tests_properties(${TEST_NAME} PROPERTIES
+        ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
     )
+endfunction()
 
-    set_target_properties(idax_instruction_decode_behavior_test PROPERTIES
-        BUILD_RPATH "${IDA_INSTALL_DIR}"
-        INSTALL_RPATH "${IDA_INSTALL_DIR}"
-    )
-endif()
+# ── Register integration tests ───────────────────────────────────────────
 
-# Register as CTest (manual execution — requires IDA license).
-add_test(
-    NAME smoke_test
-    COMMAND idax_smoke_test "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
-)
-set_tests_properties(smoke_test PROPERTIES
-    ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
-)
-
-add_test(
-    NAME name_comment_xref_search_behavior
-    COMMAND idax_name_comment_xref_search_test "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
-)
-set_tests_properties(name_comment_xref_search_behavior PROPERTIES
-    ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
-)
-
-add_test(
-    NAME data_mutation_safety
-    COMMAND idax_data_mutation_safety_test "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
-)
-set_tests_properties(data_mutation_safety PROPERTIES
-    ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
-)
-
-add_test(
-    NAME segment_function_edge_cases
-    COMMAND idax_segment_function_edge_cases_test "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
-)
-set_tests_properties(segment_function_edge_cases PROPERTIES
-    ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
-)
-
-add_test(
-    NAME instruction_decode_behavior
-    COMMAND idax_instruction_decode_behavior_test "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
-)
-set_tests_properties(instruction_decode_behavior PROPERTIES
-    ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
-)
+idax_add_integration_test(smoke                           smoke_test.cpp)
+idax_add_integration_test(name_comment_xref_search        name_comment_xref_search_test.cpp)
+idax_add_integration_test(data_mutation_safety             data_mutation_safety_test.cpp)
+idax_add_integration_test(segment_function_edge_cases      segment_function_edge_cases_test.cpp)
+idax_add_integration_test(instruction_decode_behavior      instruction_decode_behavior_test.cpp)
+idax_add_integration_test(type_roundtrip                   type_roundtrip_test.cpp)
+idax_add_integration_test(fixup_relocation                 fixup_relocation_test.cpp)
+idax_add_integration_test(operand_and_text                 operand_and_text_test.cpp)
+idax_add_integration_test(decompiler_storage_hardening     decompiler_storage_hardening_test.cpp)
