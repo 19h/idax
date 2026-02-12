@@ -13,7 +13,7 @@
 
 namespace ida {
 
-/// Effective address (mirrors SDK ea_t).
+/// Effective address (64-bit unsigned).
 using Address = std::uint64_t;
 
 /// Signed address difference.

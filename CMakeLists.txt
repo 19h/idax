@@ -90,6 +90,33 @@ install(FILES
     OPTIONAL
 )
 
+install(EXPORT idaxTargets
+    FILE idaxTargets.cmake
+    NAMESPACE idax::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/idax
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/idaxConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/idaxConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/idax
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/idaxConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/idaxConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/idaxConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/idax
+)
+
+# ── CPack ────────────────────────────────────────────────────────────────
 set(CPACK_PACKAGE_NAME "idax")
 set(CPACK_PACKAGE_VENDOR "idax")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})

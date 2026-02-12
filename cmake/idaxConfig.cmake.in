@@ -1,0 +1,17 @@
+@PACKAGE_INIT@
+
+# idaxConfig.cmake — find_package(idax) support
+#
+# Provides the imported target:
+#   idax::idax
+#
+# Consumers must also have the IDA SDK available and link against one of:
+#   idasdk::plugin, idasdk::idalib, idasdk::loader, idasdk::procmod
+#
+# Example usage in a consumer CMakeLists.txt:
+#   find_package(idax REQUIRED)
+#   target_link_libraries(my_plugin PRIVATE idax::idax idasdk::plugin)
+
+include("${CMAKE_CURRENT_LIST_DIR}/idaxTargets.cmake")
+
+check_required_components(idax)

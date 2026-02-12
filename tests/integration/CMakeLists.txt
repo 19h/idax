@@ -73,3 +73,5 @@ idax_add_integration_test(type_roundtrip                   type_roundtrip_test.c
 idax_add_integration_test(fixup_relocation                 fixup_relocation_test.cpp)
 idax_add_integration_test(operand_and_text                 operand_and_text_test.cpp)
 idax_add_integration_test(decompiler_storage_hardening     decompiler_storage_hardening_test.cpp)
+idax_add_integration_test(debugger_ui_graph_event          debugger_ui_graph_event_test.cpp)
+idax_add_integration_test(loader_processor_scenario        loader_processor_scenario_test.cpp)
