@@ -7,6 +7,7 @@
 #include <ida/error.hpp>
 #include <ida/address.hpp>
 #include <cstdint>
+#include <iterator>
 
 namespace ida::fixup {
 
@@ -19,16 +20,72 @@ enum class Type {
 };
 
 struct Descriptor {
+    Address       source{};         ///< Address of the fixup site.
     Type          type{Type::Off32};
-    std::uint32_t flags{};
     std::uint16_t selector{};
-    Address       offset{};
+    Address       offset{};         ///< Target offset.
     AddressDelta  displacement{};
 };
 
 Result<Descriptor> at(Address source);
 Status set(Address source, const Descriptor& fixup);
 Status remove(Address source);
+
+/// Check whether a fixup exists at the given address.
+bool exists(Address source);
+
+/// Check whether an address range contains any fixups.
+bool contains(Address start, AddressSize size);
+
+// ── Traversal ───────────────────────────────────────────────────────────
+
+/// First fixup address, or BadAddress if none.
+Result<Address> first();
+/// Next fixup address after \p ea, or BadAddress if none.
+Result<Address> next(Address ea);
+/// Previous fixup address before \p ea, or BadAddress if none.
+Result<Address> prev(Address ea);
+
+class FixupIterator {
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type        = Descriptor;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = const Descriptor*;
+    using reference         = Descriptor;
+
+    FixupIterator() = default;
+    explicit FixupIterator(Address ea) : ea_(ea) {}
+
+    reference operator*() const;
+    FixupIterator& operator++();
+    FixupIterator  operator++(int);
+
+    friend bool operator==(const FixupIterator& a, const FixupIterator& b) noexcept {
+        return a.ea_ == b.ea_;
+    }
+    friend bool operator!=(const FixupIterator& a, const FixupIterator& b) noexcept {
+        return !(a == b);
+    }
+
+private:
+    Address ea_{BadAddress};
+};
+
+class FixupRange {
+public:
+    FixupRange() = default;
+    explicit FixupRange(Address start, Address end_sentinel)
+        : start_(start), end_(end_sentinel) {}
+    [[nodiscard]] FixupIterator begin() const { return FixupIterator(start_); }
+    [[nodiscard]] FixupIterator end()   const { return FixupIterator(end_); }
+private:
+    Address start_{BadAddress};
+    Address end_{BadAddress};
+};
+
+/// Iterable range of all fixups.
+FixupRange all();
 
 } // namespace ida::fixup
 

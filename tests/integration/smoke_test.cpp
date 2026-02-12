@@ -348,6 +348,125 @@ static void test_type_basics() {
     if (type_str) {
         std::cout << "  int32 repr: " << *type_str << "\n";
     }
+
+    // Struct creation and member access.
+    auto st = ida::type::TypeInfo::create_struct();
+    CHECK(st.is_struct());
+
+    auto mc = st.member_count();
+    CHECK_OK(mc);
+    if (mc) {
+        CHECK(*mc == 0);
+        std::cout << "  empty struct members: " << *mc << "\n";
+    }
+
+    // Type retrieval at a function address.
+    auto f0 = ida::function::by_index(0);
+    if (f0) {
+        auto ftype = ida::type::retrieve(f0->start());
+        // May or may not have a type; either outcome is valid.
+        if (ftype)
+            std::cout << "  type at func[0]: " << ftype->to_string().value_or("?") << "\n";
+        else
+            std::cout << "  no type at func[0] (expected for this binary)\n";
+    }
+}
+
+static void test_function_callers_callees() {
+    std::cout << "--- function callers/callees ---\n";
+
+    auto main_addr = ida::name::resolve("main");
+    if (!main_addr) {
+        std::cout << "  (skipping, main not found)\n";
+        return;
+    }
+
+    auto callers = ida::function::callers(*main_addr);
+    CHECK_OK(callers);
+    if (callers) {
+        std::cout << "  callers of main: " << callers->size() << "\n";
+        for (auto ea : *callers)
+            std::cout << "    caller at 0x" << std::hex << ea << std::dec << "\n";
+    }
+
+    auto callees = ida::function::callees(*main_addr);
+    CHECK_OK(callees);
+    if (callees) {
+        std::cout << "  callees of main: " << callees->size() << "\n";
+        for (auto ea : *callees)
+            std::cout << "    callee at 0x" << std::hex << ea << std::dec << "\n";
+    }
+}
+
+static void test_operand_representation() {
+    std::cout << "--- operand representation ---\n";
+
+    // Find an instruction with an immediate operand to test with.
+    auto f0 = ida::function::by_index(0);
+    if (!f0) return;
+
+    auto insn = ida::instruction::decode(f0->start());
+    if (!insn || insn->operand_count() == 0) {
+        std::cout << "  (no operands to test)\n";
+        return;
+    }
+
+    // Try to set hex and clear representation on the first operand.
+    auto status = ida::instruction::set_op_hex(f0->start(), 0);
+    if (status) {
+        std::cout << "  set_op_hex on first operand: ok\n";
+        ++g_pass;
+    } else {
+        // This can fail if operand is not a suitable type — that's fine.
+        std::cout << "  set_op_hex: " << status.error().message << " (may be expected)\n";
+    }
+
+    auto clr = ida::instruction::clear_op_representation(f0->start(), 0);
+    if (clr) {
+        std::cout << "  clear_op_representation: ok\n";
+        ++g_pass;
+    } else {
+        std::cout << "  clear_op_representation: " << clr.error().message << "\n";
+    }
+}
+
+static void test_event_system() {
+    std::cout << "--- event subscription ---\n";
+
+    // Subscribe to renamed events, set a name, check we got called back.
+    bool callback_fired = false;
+    auto f0 = ida::function::by_index(0);
+    if (!f0) return;
+
+    auto tok = ida::event::on_renamed(
+        [&](ida::Address ea, std::string new_name, std::string old_name) {
+            callback_fired = true;
+            std::cout << "  event: renamed 0x" << std::hex << ea << std::dec
+                      << " '" << old_name << "' -> '" << new_name << "'\n";
+        });
+    CHECK_OK(tok);
+
+    if (tok) {
+        // Trigger a rename.
+        auto old_name = ida::name::get(f0->start());
+        ida::name::set(f0->start(), "__idax_test_rename__");
+
+        CHECK(callback_fired);
+        if (callback_fired)
+            std::cout << "  event callback fired: yes\n";
+        else
+            std::cout << "  event callback fired: no (unexpected)\n";
+
+        // Restore original name.
+        if (old_name)
+            ida::name::set(f0->start(), *old_name);
+        else
+            ida::name::remove(f0->start());
+
+        // Unsubscribe.
+        auto unsub = ida::event::unsubscribe(*tok);
+        CHECK_OK(unsub);
+    }
 }
 
 // ── Main ────────────────────────────────────────────────────────────────
@@ -379,14 +498,17 @@ int main(int argc, char* argv[]) {
     test_database();
     test_segments();
     test_functions();
+    test_function_callers_callees();
     test_address_predicates();
     test_data_read();
     test_instructions();
+    test_operand_representation();
     test_names();
     test_xrefs();
     test_comments();
     test_entry_points();
     test_type_basics();
+    test_event_system();
 
     // 5. Report.
     std::cout << "\n=== Results: " << g_pass << " passed, " << g_fail

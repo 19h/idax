@@ -16,6 +16,7 @@
 // Order matters: pro.h must come first.
 #include <pro.h>
 #include <ida.hpp>
+#include <idp.hpp>
 #include <auto.hpp>
 #include <bytes.hpp>
 #include <diskio.hpp>

@@ -137,6 +137,67 @@ Status set_comment(Address ea, std::string_view text, bool repeatable) {
     return ida::ok();
 }
 
+// ── Relationship helpers ────────────────────────────────────────────────
+
+Result<std::vector<Address>> callers(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+    std::vector<Address> result;
+    xrefblk_t xb;
+    for (bool ok = xb.first_to(fn->start_ea, XREF_ALL); ok; ok = xb.next_to()) {
+        if (!xb.iscode)
+            continue;
+        // Only call-type xrefs (fl_CN, fl_CF), not flow or jumps.
+        if (xb.type != fl_CN && xb.type != fl_CF)
+            continue;
+        // Resolve the caller's function start address.
+        func_t* caller = get_func(xb.from);
+        if (caller != nullptr) {
+            Address caller_ea = static_cast<Address>(caller->start_ea);
+            // Avoid duplicates.
+            if (result.empty() || result.back() != caller_ea)
+                result.push_back(caller_ea);
+        }
+    }
+    return result;
+}
+
+Result<std::vector<Address>> callees(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+    std::vector<Address> result;
+    // Scan all instructions in the function for call xrefs.
+    func_item_iterator_t fii;
+    if (fii.set(fn)) {
+        do {
+            ea_t item_ea = fii.current();
+            xrefblk_t xb;
+            for (bool ok = xb.first_from(item_ea, XREF_ALL); ok; ok = xb.next_from()) {
+                if (!xb.iscode)
+                    continue;
+                if (xb.type != fl_CN && xb.type != fl_CF)
+                    continue;
+                // Resolve target function.
+                func_t* target = get_func(xb.to);
+                if (target != nullptr) {
+                    Address target_ea = static_cast<Address>(target->start_ea);
+                    // Avoid consecutive duplicates (sorted by call site).
+                    bool found = false;
+                    for (auto a : result)
+                        if (a == target_ea) { found = true; break; }
+                    if (!found)
+                        result.push_back(target_ea);
+                }
+            }
+        } while (fii.next_code());
+    }
+    return result;
+}
+
 // ── Traversal ───────────────────────────────────────────────────────────
 
 FunctionIterator::FunctionIterator(std::size_t index, std::size_t total)

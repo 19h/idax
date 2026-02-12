@@ -94,6 +94,39 @@ Result<ProcessState> state() {
     }
 }
 
+// ── Register and pointer access ─────────────────────────────────────
+
+Result<Address> instruction_pointer() {
+    ea_t ip;
+    if (!get_ip_val(&ip))
+        return std::unexpected(Error::sdk("get_ip_val failed "
+                                          "(debugger not suspended?)"));
+    return static_cast<Address>(ip);
+}
+
+Result<Address> stack_pointer() {
+    ea_t sp;
+    if (!get_sp_val(&sp))
+        return std::unexpected(Error::sdk("get_sp_val failed "
+                                          "(debugger not suspended?)"));
+    return static_cast<Address>(sp);
+}
+
+Result<std::uint64_t> register_value(std::string_view reg_name) {
+    std::string rn(reg_name);
+    uint64 val;
+    if (!get_reg_val(rn.c_str(), &val))
+        return std::unexpected(Error::sdk("get_reg_val failed", rn));
+    return static_cast<std::uint64_t>(val);
+}
+
+Status set_register(std::string_view reg_name, std::uint64_t value) {
+    std::string rn(reg_name);
+    if (!set_reg_val(rn.c_str(), static_cast<uint64>(value)))
+        return std::unexpected(Error::sdk("set_reg_val failed", rn));
+    return ida::ok();
+}
+
 // ── Breakpoints ─────────────────────────────────────────────────────────
 
 Status add_breakpoint(Address ea) {

@@ -9,8 +9,12 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ida::type {
+
+// Forward declaration so Member can reference TypeInfo.
+class TypeInfo;
 
 /// Opaque handle wrapping the SDK's tinfo_t.
 /// This class is movable, copyable, and cheap to construct for primitives.
@@ -40,6 +44,15 @@ public:
     static TypeInfo array_of(const TypeInfo& element, std::size_t count);
     static Result<TypeInfo> from_declaration(std::string_view c_decl);
 
+    /// Create an empty struct type.
+    static TypeInfo create_struct();
+
+    /// Create an empty union type.
+    static TypeInfo create_union();
+
+    /// Lookup a named type in the local type library.
+    static Result<TypeInfo> by_name(std::string_view name);
+
     // ── Introspection ───────────────────────────────────────────────────
     [[nodiscard]] bool is_void()           const;
     [[nodiscard]] bool is_integer()        const;
@@ -54,16 +67,58 @@ public:
     [[nodiscard]] Result<std::size_t> size() const;
     [[nodiscard]] Result<std::string> to_string() const;
 
+    /// Number of struct/union members (0 for non-UDT types).
+    [[nodiscard]] Result<std::size_t> member_count() const;
+
+    // ── Struct/union member access (declared below, after Member) ───────
+
+    /// Retrieve all members of a struct/union.
+    [[nodiscard]] Result<std::vector<struct Member>> members() const;
+
+    /// Find a member by name.
+    [[nodiscard]] Result<struct Member> member_by_name(std::string_view name) const;
+
+    /// Find a member by byte offset.
+    [[nodiscard]] Result<struct Member> member_by_offset(std::size_t byte_offset) const;
+
+    /// Add a member to this struct/union type. Offset in bytes.
+    Status add_member(std::string_view name, const TypeInfo& member_type,
+                      std::size_t byte_offset = 0);
+
     // ── Application ─────────────────────────────────────────────────────
+
+    /// Apply this type at the given address.
     Status apply(Address ea) const;
+
+    /// Save this type to the local type library under the given name.
+    Status save_as(std::string_view name) const;
 
     // ── Internal (opaque pimpl) ─────────────────────────────────────────
     struct Impl;
-    Impl* impl() const { return impl_; }
 
 private:
+    friend struct TypeInfoAccess;
     Impl* impl_{nullptr};
 };
+
+/// A struct/union member descriptor (pure value, no SDK types).
+/// Defined after TypeInfo so it can hold a TypeInfo by value.
+struct Member {
+    std::string name;
+    TypeInfo    type;
+    std::size_t byte_offset{0};  ///< Offset from struct start, in bytes.
+    std::size_t bit_size{0};     ///< Total size in bits.
+    std::string comment;
+};
+
+/// Retrieve the type applied at an address.
+Result<TypeInfo> retrieve(Address ea);
+
+/// Retrieve the type of an operand at an address.
+Result<TypeInfo> retrieve_operand(Address ea, int operand_index);
+
+/// Remove type information at an address.
+Status remove_type(Address ea);
 
 } // namespace ida::type
 

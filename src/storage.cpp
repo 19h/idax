@@ -54,8 +54,14 @@ Result<Node> Node::open(std::string_view name, bool create) {
 
     if (create) {
         if (!node.impl_->nn.create(qname.c_str())) {
-            // Maybe it already exists; try to open.
-            node.impl_->nn.create(qname.c_str());
+            // Already exists; open the existing netnode.
+            node.impl_->nn = netnode(qname.c_str(), 0, false);
+            if (node.impl_->nn == BADNODE) {
+                delete node.impl_;
+                node.impl_ = nullptr;
+                return std::unexpected(Error::sdk("Failed to create or open netnode",
+                                                  std::string(name)));
+            }
         }
     } else {
         // Open existing netnode by name. The constructor takes name and
