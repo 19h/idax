@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 
-# Example sources are intentionally lightweight and primarily serve as
-# reference implementations. Build targets are opt-in.
+# Example sources demonstrate realistic idax wrapper usage patterns,
+# from minimal quick-start skeletons to comprehensive domain examples.
 
 option(IDAX_BUILD_EXAMPLE_ADDONS "Build sample IDA addon modules" OFF)
 
@@ -11,7 +11,7 @@ set(IDAX_EXAMPLE_SOURCES
     loader/minimal_loader.cpp
     procmod/minimal_procmod.cpp
 
-    # Advanced examples (comprehensive API coverage and edge cases).
+    # Advanced examples (realistic analysis tools).
     plugin/deep_analysis_plugin.cpp
     plugin/decompiler_plugin.cpp
     plugin/event_monitor_plugin.cpp
@@ -42,32 +42,32 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     # ── Advanced examples ────────────────────────────────────────────────
 
-    ida_add_plugin(idax_deep_analysis_plugin
+    ida_add_plugin(idax_audit_plugin
         SOURCES plugin/deep_analysis_plugin.cpp
         LIBRARIES idax::idax
     )
 
-    ida_add_plugin(idax_decompiler_plugin
+    ida_add_plugin(idax_complexity_plugin
         SOURCES plugin/decompiler_plugin.cpp
         LIBRARIES idax::idax
     )
 
-    ida_add_plugin(idax_event_monitor_plugin
+    ida_add_plugin(idax_change_tracker_plugin
         SOURCES plugin/event_monitor_plugin.cpp
         LIBRARIES idax::idax
     )
 
-    ida_add_plugin(idax_storage_metadata_plugin
+    ida_add_plugin(idax_fingerprint_plugin
         SOURCES plugin/storage_metadata_plugin.cpp
         LIBRARIES idax::idax
     )
 
-    ida_add_loader(idax_advanced_loader
+    ida_add_loader(idax_xbin_loader
         SOURCES loader/advanced_loader.cpp
         LIBRARIES idax::idax
     )
 
-    ida_add_procmod(idax_advanced_procmod
+    ida_add_procmod(idax_xrisc_procmod
         SOURCES procmod/advanced_procmod.cpp
         LIBRARIES idax::idax
     )
