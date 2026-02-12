@@ -197,6 +197,52 @@ Result<std::uint64_t> register_timer(int interval_ms,
 /// Unregister a timer.
 Status unregister_timer(std::uint64_t token);
 
+// ── UI event subscriptions ──────────────────────────────────────────────
+
+/// Token returned by UI event subscription functions.
+using UiToken = std::uint64_t;
+
+/// Subscribe to the "database closed" event.
+Result<UiToken> on_database_closed(std::function<void()> callback);
+
+/// Subscribe to the "ready to run" event (all UI elements initialized).
+Result<UiToken> on_ready_to_run(std::function<void()> callback);
+
+/// Subscribe to "current screen EA changed" event.
+/// Callback receives (new_ea, prev_ea).
+Result<UiToken> on_screen_ea_changed(std::function<void(Address, Address)> callback);
+
+/// Subscribe to "widget visible" event.
+/// Callback receives the title of the widget.
+Result<UiToken> on_widget_visible(std::function<void(std::string)> callback);
+
+/// Subscribe to "widget closing" event.
+/// Callback receives the title of the widget.
+Result<UiToken> on_widget_closing(std::function<void(std::string)> callback);
+
+/// Unsubscribe from a UI event.
+Status ui_unsubscribe(UiToken token);
+
+/// RAII guard that unsubscribes on destruction.
+class ScopedUiSubscription {
+public:
+    explicit ScopedUiSubscription(UiToken token) : token_(token) {}
+    ~ScopedUiSubscription() { ui_unsubscribe(token_); }
+
+    ScopedUiSubscription(const ScopedUiSubscription&) = delete;
+    ScopedUiSubscription& operator=(const ScopedUiSubscription&) = delete;
+    ScopedUiSubscription(ScopedUiSubscription&& o) noexcept : token_(o.token_) { o.token_ = 0; }
+    ScopedUiSubscription& operator=(ScopedUiSubscription&& o) noexcept {
+        if (this != &o) { ui_unsubscribe(token_); token_ = o.token_; o.token_ = 0; }
+        return *this;
+    }
+
+    [[nodiscard]] UiToken token() const noexcept { return token_; }
+
+private:
+    UiToken token_{0};
+};
+
 } // namespace ida::ui
 
 #endif // IDAX_UI_HPP

@@ -159,4 +159,58 @@ Status Node::set_hash(std::string_view key, std::string_view value, std::uint8_t
     return ida::ok();
 }
 
+// ── Blob operations ─────────────────────────────────────────────────────
+
+Result<std::size_t> Node::blob_size(Address index, std::uint8_t tag) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+    nodeidx_t idx = static_cast<nodeidx_t>(index);
+    size_t sz = impl_->nn.blobsize(idx, tag);
+    return sz;
+}
+
+Result<std::vector<std::uint8_t>> Node::blob(Address index, std::uint8_t tag) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+    nodeidx_t idx = static_cast<nodeidx_t>(index);
+
+    bytevec_t buf;
+    ssize_t sz = impl_->nn.getblob(&buf, idx, tag);
+    if (sz < 0)
+        return std::unexpected(Error::not_found("No blob at index"));
+
+    std::vector<std::uint8_t> result(buf.begin(), buf.end());
+    return result;
+}
+
+Status Node::set_blob(Address index, std::span<const std::uint8_t> data, std::uint8_t tag) {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+    nodeidx_t idx = static_cast<nodeidx_t>(index);
+    if (!impl_->nn.setblob(data.data(), data.size(), idx, tag))
+        return std::unexpected(Error::sdk("setblob failed"));
+    return ida::ok();
+}
+
+Status Node::del_blob(Address index, std::uint8_t tag) {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+    nodeidx_t idx = static_cast<nodeidx_t>(index);
+    impl_->nn.delblob(idx, tag);
+    return ida::ok();
+}
+
+Result<std::string> Node::blob_string(Address index, std::uint8_t tag) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+    nodeidx_t idx = static_cast<nodeidx_t>(index);
+
+    qstring buf;
+    ssize_t sz = impl_->nn.getblob(&buf, idx, tag);
+    if (sz < 0)
+        return std::unexpected(Error::not_found("No blob at index"));
+
+    return ida::detail::to_string(buf);
+}
+
 } // namespace ida::storage

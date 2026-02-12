@@ -29,6 +29,24 @@ public:
     Result<std::string>             hash(std::string_view key, std::uint8_t tag = 'H') const;
     Status                          set_hash(std::string_view key, std::string_view value, std::uint8_t tag = 'H');
 
+    // ── Blob operations (arbitrary binary data) ─────────────────────────
+
+    /// Get the size of a blob at the given index.
+    /// Returns 0 if no blob exists.
+    Result<std::size_t>               blob_size(Address index, std::uint8_t tag = 'B') const;
+
+    /// Read a blob from the node.
+    Result<std::vector<std::uint8_t>> blob(Address index, std::uint8_t tag = 'B') const;
+
+    /// Write a blob to the node.
+    Status                            set_blob(Address index, std::span<const std::uint8_t> data, std::uint8_t tag = 'B');
+
+    /// Delete a blob.
+    Status                            del_blob(Address index, std::uint8_t tag = 'B');
+
+    /// Read a blob as a string (null-terminated).
+    Result<std::string>               blob_string(Address index, std::uint8_t tag = 'B') const;
+
     Node() = default;
     ~Node();
     Node(const Node&);

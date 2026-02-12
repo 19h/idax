@@ -343,6 +343,106 @@ Status define_stack_variable(Address func_ea, std::string_view name,
     return ida::ok();
 }
 
+// ── Register variable operations ────────────────────────────────────────
+
+Status add_register_variable(Address func_ea,
+                             Address range_start, Address range_end,
+                             std::string_view register_name,
+                             std::string_view user_name,
+                             std::string_view cmt) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    std::string canon(register_name);
+    std::string user(user_name);
+    std::string comment(cmt);
+
+    int rc = ::add_regvar(fn,
+                          static_cast<ea_t>(range_start),
+                          static_cast<ea_t>(range_end),
+                          canon.c_str(),
+                          user.c_str(),
+                          comment.empty() ? nullptr : comment.c_str());
+    if (rc != REGVAR_ERROR_OK) {
+        std::string msg;
+        switch (rc) {
+            case REGVAR_ERROR_ARG:   msg = "Bad arguments"; break;
+            case REGVAR_ERROR_RANGE: msg = "Bad range"; break;
+            case REGVAR_ERROR_NAME:  msg = "Bad name(s)"; break;
+            default:                 msg = "Unknown error"; break;
+        }
+        return std::unexpected(Error::sdk("add_regvar failed: " + msg, canon));
+    }
+    return ida::ok();
+}
+
+Result<RegisterVariable> find_register_variable(Address func_ea,
+                                                 Address ea,
+                                                 std::string_view register_name) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    std::string canon(register_name);
+    regvar_t* rv = ::find_regvar(fn, static_cast<ea_t>(ea), canon.c_str());
+    if (rv == nullptr)
+        return std::unexpected(Error::not_found("Register variable not found", canon));
+
+    RegisterVariable result;
+    result.range_start     = static_cast<Address>(rv->start_ea);
+    result.range_end       = static_cast<Address>(rv->end_ea);
+    result.canonical_name  = rv->canon ? std::string(rv->canon) : std::string();
+    result.user_name       = rv->user ? std::string(rv->user) : std::string();
+    result.comment         = rv->cmt ? std::string(rv->cmt) : std::string();
+    return result;
+}
+
+Status delete_register_variable(Address func_ea,
+                                Address range_start, Address range_end,
+                                std::string_view register_name) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    std::string canon(register_name);
+    int rc = ::del_regvar(fn,
+                          static_cast<ea_t>(range_start),
+                          static_cast<ea_t>(range_end),
+                          canon.c_str());
+    if (rc != REGVAR_ERROR_OK)
+        return std::unexpected(Error::sdk("del_regvar failed", canon));
+    return ida::ok();
+}
+
+Status rename_register_variable(Address func_ea,
+                                Address ea,
+                                std::string_view register_name,
+                                std::string_view new_user_name) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    std::string canon(register_name);
+    regvar_t* rv = ::find_regvar(fn, static_cast<ea_t>(ea), canon.c_str());
+    if (rv == nullptr)
+        return std::unexpected(Error::not_found("Register variable not found", canon));
+
+    std::string new_name(new_user_name);
+    int rc = ::rename_regvar(fn, rv, new_name.c_str());
+    if (rc != REGVAR_ERROR_OK)
+        return std::unexpected(Error::sdk("rename_regvar failed", new_name));
+    return ida::ok();
+}
+
+Result<bool> has_register_variables(Address func_ea, Address ea) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    return ::has_regvar(fn, static_cast<ea_t>(ea));
+}
+
 // ── Traversal ───────────────────────────────────────────────────────────
 
 FunctionIterator::FunctionIterator(std::size_t index, std::size_t total)

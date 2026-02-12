@@ -120,6 +120,35 @@ Result<TypeInfo> retrieve_operand(Address ea, int operand_index);
 /// Remove type information at an address.
 Status remove_type(Address ea);
 
+// ── Type library access ─────────────────────────────────────────────────
+
+/// Load a type library (.til file) and add it to the database's type library list.
+/// IDA will also apply function prototypes for matching function names.
+/// @param til_name  Name of the .til file (without path; e.g. "mssdk_win7").
+/// @return true on success.
+Result<bool> load_type_library(std::string_view til_name);
+
+/// Remove a previously loaded type library from the database.
+Status unload_type_library(std::string_view til_name);
+
+/// Get the number of local types in the database.
+Result<std::size_t> local_type_count();
+
+/// Get the name of a local type by its ordinal number (1-based).
+Result<std::string> local_type_name(std::size_t ordinal);
+
+/// Copy a named type from a loaded type library to the local type library.
+/// @param source_til_name  Name of the source til (e.g. "mssdk_win7").
+///                         If empty, searches all loaded tils.
+/// @param type_name  Name of the type to import.
+/// @return The ordinal assigned in the local type library.
+Result<std::size_t> import_type(std::string_view source_til_name,
+                                 std::string_view type_name);
+
+/// Apply a named type from the local type library at an address.
+/// Equivalent to looking up the type by name and calling apply().
+Status apply_named_type(Address ea, std::string_view type_name);
+
 } // namespace ida::type
 
 #endif // IDAX_TYPE_HPP

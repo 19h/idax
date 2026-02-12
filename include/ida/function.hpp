@@ -184,6 +184,49 @@ Status define_stack_variable(Address func_ea, std::string_view name,
                              std::int32_t frame_offset,
                              const ida::type::TypeInfo& type);
 
+// ── Register variable operations ────────────────────────────────────────
+
+/// A register variable definition: renames a CPU register within a range.
+struct RegisterVariable {
+    Address     range_start{};    ///< Start of the range where the alias is valid.
+    Address     range_end{};      ///< End of the range (exclusive).
+    std::string canonical_name;   ///< CPU register name (e.g. "eax").
+    std::string user_name;        ///< User-defined alias (e.g. "loop_counter").
+    std::string comment;
+};
+
+/// Define a register variable in the function at \p func_ea.
+/// @param func_ea  Function entry address.
+/// @param range_start  Start address of the range where the alias applies.
+/// @param range_end  End address (exclusive).
+/// @param register_name  Canonical CPU register name (e.g. "eax").
+/// @param user_name  User-defined alias for the register.
+/// @param cmt  Optional comment.
+Status add_register_variable(Address func_ea,
+                             Address range_start, Address range_end,
+                             std::string_view register_name,
+                             std::string_view user_name,
+                             std::string_view cmt = {});
+
+/// Find a register variable at an address by canonical register name.
+Result<RegisterVariable> find_register_variable(Address func_ea,
+                                                 Address ea,
+                                                 std::string_view register_name);
+
+/// Delete a register variable definition.
+Status delete_register_variable(Address func_ea,
+                                Address range_start, Address range_end,
+                                std::string_view register_name);
+
+/// Rename an existing register variable.
+Status rename_register_variable(Address func_ea,
+                                Address ea,
+                                std::string_view register_name,
+                                std::string_view new_user_name);
+
+/// Check if there are any register variables at the given address.
+Result<bool> has_register_variables(Address func_ea, Address ea);
+
 // ── Traversal ───────────────────────────────────────────────────────────
 
 class FunctionIterator {
