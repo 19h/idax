@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <vector>
 
 namespace ida::function {
 
@@ -87,6 +88,14 @@ Status set_end(Address ea, Address new_end);
 
 Result<std::string> comment(Address ea, bool repeatable = false);
 Status set_comment(Address ea, std::string_view text, bool repeatable = false);
+
+// ── Relationship helpers ────────────────────────────────────────────────
+
+/// Addresses of all functions that call \p ea (via code xrefs to function entry).
+Result<std::vector<Address>> callers(Address ea);
+
+/// Addresses of all functions called from the function at \p ea.
+Result<std::vector<Address>> callees(Address ea);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 

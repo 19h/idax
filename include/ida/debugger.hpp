@@ -36,6 +36,18 @@ Status run_to(Address ea);
 
 Result<ProcessState> state();
 
+/// Current instruction pointer (program counter).
+Result<Address> instruction_pointer();
+
+/// Current stack pointer.
+Result<Address> stack_pointer();
+
+/// Read a CPU register by name (as uint64_t).
+Result<std::uint64_t> register_value(std::string_view reg_name);
+
+/// Write a CPU register by name.
+Status set_register(std::string_view reg_name, std::uint64_t value);
+
 Status add_breakpoint(Address ea);
 Status remove_breakpoint(Address ea);
 Result<bool> has_breakpoint(Address ea);

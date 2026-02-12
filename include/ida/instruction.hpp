@@ -96,6 +96,48 @@ Result<Instruction> create(Address ea);
 /// Get the rendered disassembly text at an address.
 Result<std::string> text(Address ea);
 
+// ── Operand representation controls ─────────────────────────────────────
+
+/// Set operand display format to hexadecimal.
+Status set_op_hex(Address ea, int n);
+
+/// Set operand display format to decimal.
+Status set_op_decimal(Address ea, int n);
+
+/// Set operand display format to octal.
+Status set_op_octal(Address ea, int n);
+
+/// Set operand display format to binary.
+Status set_op_binary(Address ea, int n);
+
+/// Set operand display format to character constant.
+Status set_op_character(Address ea, int n);
+
+/// Set operand display format to floating point.
+Status set_op_float(Address ea, int n);
+
+/// Set operand as an offset reference. \p base is the offset base (0 for auto).
+Status set_op_offset(Address ea, int n, Address base = 0);
+
+/// Set operand to display as a stack variable.
+Status set_op_stack_variable(Address ea, int n);
+
+/// Clear operand representation (reset to default/undefined).
+Status clear_op_representation(Address ea, int n);
+
+/// Set or clear forced (manual) operand text.
+/// Pass empty string to remove forced operand.
+Status set_forced_operand(Address ea, int n, std::string_view text);
+
+/// Retrieve forced (manual) operand text, if any.
+Result<std::string> get_forced_operand(Address ea, int n);
+
+/// Toggle sign inversion on operand display.
+Status toggle_op_sign(Address ea, int n);
+
+/// Toggle bitwise negation on operand display.
+Status toggle_op_negate(Address ea, int n);
+
 } // namespace ida::instruction
 
 #endif // IDAX_INSTRUCTION_HPP

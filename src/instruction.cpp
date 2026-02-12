@@ -112,4 +112,88 @@ Result<std::string> text(Address ea) {
     return ida::detail::to_string(buf);
 }
 
+// ── Operand representation controls ─────────────────────────────────────
+
+Status set_op_hex(Address ea, int n) {
+    if (!op_hex(ea, n))
+        return std::unexpected(Error::sdk("op_hex failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_decimal(Address ea, int n) {
+    if (!op_dec(ea, n))
+        return std::unexpected(Error::sdk("op_dec failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_octal(Address ea, int n) {
+    if (!op_oct(ea, n))
+        return std::unexpected(Error::sdk("op_oct failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_binary(Address ea, int n) {
+    if (!op_bin(ea, n))
+        return std::unexpected(Error::sdk("op_bin failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_character(Address ea, int n) {
+    if (!op_chr(ea, n))
+        return std::unexpected(Error::sdk("op_chr failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_float(Address ea, int n) {
+    if (!op_flt(ea, n))
+        return std::unexpected(Error::sdk("op_flt failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_offset(Address ea, int n, Address base) {
+    if (!op_plain_offset(ea, n, base))
+        return std::unexpected(Error::sdk("op_plain_offset failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_op_stack_variable(Address ea, int n) {
+    if (!op_stkvar(ea, n))
+        return std::unexpected(Error::sdk("op_stkvar failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status clear_op_representation(Address ea, int n) {
+    if (!clr_op_type(ea, n))
+        return std::unexpected(Error::sdk("clr_op_type failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_forced_operand(Address ea, int n, std::string_view txt) {
+    std::string s(txt);
+    if (!::set_forced_operand(ea, n, s.empty() ? "" : s.c_str()))
+        return std::unexpected(Error::sdk("set_forced_operand failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Result<std::string> get_forced_operand(Address ea, int n) {
+    qstring buf;
+    ssize_t sz = ::get_forced_operand(&buf, ea, n);
+    if (sz < 0)
+        return std::unexpected(Error::not_found("No forced operand",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    return ida::detail::to_string(buf);
+}
+
+Status toggle_op_sign(Address ea, int n) {
+    if (!::toggle_sign(ea, n))
+        return std::unexpected(Error::sdk("toggle_sign failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status toggle_op_negate(Address ea, int n) {
+    if (!::toggle_bnot(ea, n))
+        return std::unexpected(Error::sdk("toggle_bnot failed", std::to_string(ea)));
+    return ida::ok();
+}
+
 } // namespace ida::instruction
