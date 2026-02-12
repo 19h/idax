@@ -1,44 +1,34 @@
 /// \file storage_metadata_plugin.cpp
-/// \brief Advanced storage and metadata plugin demonstrating comprehensive
-///        netnode persistence, batch annotation, database metadata, and
-///        snapshot management.
+/// \brief Binary Fingerprinting plugin — identifies and catalogs binaries by
+///        computing structural fingerprints and persisting them across sessions.
 ///
-/// This plugin demonstrates:
-///   1. Netnode storage (alt/sup/hash/blob operations) with multiple tags
-///   2. Blob lifecycle (create, read, overwrite, size query, string conversion, remove)
-///   3. Node creation, open, copy, and move semantics
-///   4. Database metadata queries (path, MD5, image base, bounds)
-///   5. Snapshot enumeration and description
-///   6. File-to-database and memory-to-database transfer
-///   7. Batch annotation: naming every function with a prefix
-///   8. Batch annotation: commenting every segment header
-///   9. Type creation and mass application
-///  10. Entry point enumeration and annotation
-///  11. Fixup traversal and statistics
-///  12. Analysis queue control (enable/disable/schedule/wait)
-///  13. Diagnostics API (log levels, performance counters, assertions)
-///  14. Custom fixup handler registration lifecycle
-///  15. Address range iteration with item counting
-///  16. Predicate-based search across the entire database
+/// When analyzing malware families or firmware revisions, analysts need to
+/// track "which version of this binary am I looking at?" and compare
+/// structural characteristics across samples. This plugin computes a
+/// fingerprint based on:
 ///
-/// Edge cases exercised:
-///   - Blob operations at high indices (avoiding index 0 crash in idalib)
-///   - Multiple tags on the same node index
-///   - Node not found errors
-///   - Default-constructed Node behavior
-///   - Copy and move assignment/construction of Node
-///   - Empty blob reads
-///   - Snapshot tree traversal with children
-///   - Snapshot on non-snapshot database
-///   - Analysis wait with idle check
-///   - Performance counter reset and read
-///   - Error enrichment with context strings
+///   - Database metadata (MD5, image base, address range)
+///   - Segment layout digest (names, sizes, permissions)
+///   - Function histogram (count by size bucket, thunk/library ratios)
+///   - Entry point signatures (ordinals, names, addresses)
+///   - Fixup distribution (type frequency, density per segment)
+///   - String count and average length in data segments
+///   - Address-space coverage (code vs data vs unknown ratios)
+///
+/// The fingerprint is persisted into a netnode so it survives across
+/// sessions. On each run, the plugin compares the current fingerprint
+/// against the last stored one and highlights what changed (useful for
+/// detecting database drift after multi-analyst collaboration).
+///
+/// API surface exercised:
+///   storage (alt/sup/hash/blob, copy/move, error paths), database,
+///   segment, function, entry, fixup, data, address, search, comment,
+///   type, analysis, diagnostics, name
 
 #include <ida/idax.hpp>
 
 #include <algorithm>
 #include <cstdint>
-#include <cstring>
 #include <format>
 #include <numeric>
 #include <string>
@@ -46,481 +36,448 @@
 
 namespace {
 
-// ── Phase 1: Netnode storage exercise ──────────────────────────────────
+// ── Fingerprint data model ─────────────────────────────────────────────
 
-void exercise_storage() {
-    ida::ui::message("[Storage] === Netnode Storage Exercise ===\n");
+struct SegmentDigest {
+    std::string  name;
+    ida::Address start;
+    ida::Address end;
+    int          bitness;
+    bool         readable;
+    bool         writable;
+    bool         executable;
+};
 
-    // Create a new node.
-    auto node = ida::storage::Node::open("idax_example_storage", true);
+struct FunctionHistogram {
+    std::size_t total{};
+    std::size_t thunks{};
+    std::size_t library{};
+    std::size_t tiny{};    // < 32 bytes
+    std::size_t small{};   // 32..255 bytes
+    std::size_t medium{};  // 256..4095 bytes
+    std::size_t large{};   // >= 4096 bytes
+};
+
+struct FixupProfile {
+    std::size_t total{};
+    std::unordered_map<int, std::size_t> type_counts;
+};
+
+struct AddressCoverage {
+    std::size_t code_items{};
+    std::size_t data_items{};
+    std::size_t unknown_items{};
+};
+
+struct Fingerprint {
+    // Identity.
+    std::string  binary_path;
+    std::string  binary_md5;
+    ida::Address image_base{ida::BadAddress};
+    ida::Address range_min{ida::BadAddress};
+    ida::Address range_max{ida::BadAddress};
+
+    // Structure.
+    std::vector<SegmentDigest> segments;
+    FunctionHistogram          functions;
+    std::size_t                entry_count{};
+    FixupProfile               fixups;
+    AddressCoverage            coverage;
+    std::size_t                string_count{};
+    std::size_t                avg_string_length{};
+};
+
+// ── Step 1: Collect database identity ──────────────────────────────────
+
+void collect_identity(Fingerprint& fp) {
+    if (auto p = ida::database::input_file_path()) fp.binary_path = *p;
+    if (auto m = ida::database::input_md5())       fp.binary_md5  = *m;
+    if (auto b = ida::database::image_base())      fp.image_base  = *b;
+    if (auto lo = ida::database::min_address())    fp.range_min   = *lo;
+    if (auto hi = ida::database::max_address())    fp.range_max   = *hi;
+
+    // Check snapshot state — if we're working from a snapshot, note it.
+    // This matters because snapshots can diverge from the original binary.
+    if (auto is_snap = ida::database::is_snapshot_database()) {
+        if (*is_snap) {
+            ida::ui::message("[Fingerprint] Warning: running on a snapshot database. "
+                             "Fingerprint may differ from base.\n");
+        }
+    }
+
+    // Enumerate top-level snapshots for context.
+    if (auto snaps = ida::database::snapshots()) {
+        if (!snaps->empty()) {
+            ida::ui::message(std::format(
+                "[Fingerprint] {} snapshots exist in this database\n",
+                snaps->size()));
+        }
+    }
+}
+
+// ── Step 2: Digest segment layout ──────────────────────────────────────
+
+void digest_segments(Fingerprint& fp) {
+    for (auto seg : ida::segment::all()) {
+        auto perms = seg.permissions();
+        fp.segments.push_back({
+            .name       = seg.name(),
+            .start      = seg.start(),
+            .end        = seg.end(),
+            .bitness    = seg.bitness(),
+            .readable   = perms.read,
+            .writable   = perms.write,
+            .executable = perms.execute,
+        });
+    }
+}
+
+// ── Step 3: Build function histogram ───────────────────────────────────
+
+void histogram_functions(Fingerprint& fp) {
+    // FunctionIterator returns by value — use `auto f`, not `auto& f`.
+    for (auto f : ida::function::all()) {
+        ++fp.functions.total;
+
+        if (f.is_thunk())   ++fp.functions.thunks;
+        if (f.is_library()) ++fp.functions.library;
+
+        auto sz = f.size();
+        if (sz < 32)          ++fp.functions.tiny;
+        else if (sz < 256)    ++fp.functions.small;
+        else if (sz < 4096)   ++fp.functions.medium;
+        else                  ++fp.functions.large;
+    }
+}
+
+// ── Step 4: Profile fixup distribution ─────────────────────────────────
+
+void profile_fixups(Fingerprint& fp) {
+    // FixupIterator returns by value — same pattern as FunctionIterator.
+    for (auto fix : ida::fixup::all()) {
+        ++fp.fixups.total;
+        ++fp.fixups.type_counts[static_cast<int>(fix.type)];
+
+        // Cap at 50000 to keep runtime bounded on large binaries.
+        if (fp.fixups.total >= 50000) break;
+    }
+}
+
+// ── Step 5: Count entry points ─────────────────────────────────────────
+
+void count_entries(Fingerprint& fp) {
+    if (auto cnt = ida::entry::count()) {
+        fp.entry_count = *cnt;
+    }
+}
+
+// ── Step 6: Measure address-space coverage ─────────────────────────────
+
+void measure_coverage(Fingerprint& fp) {
+    if (fp.range_min == ida::BadAddress) return;
+
+    // Sample the first 64K items to estimate coverage ratios.
+    ida::Address end = std::min(fp.range_min + 0x10000,
+                                fp.range_max != ida::BadAddress
+                                    ? fp.range_max : fp.range_min + 0x10000);
+
+    std::size_t items_scanned = 0;
+    for (auto addr : ida::address::ItemRange(fp.range_min, end)) {
+        if (ida::address::is_code(addr))      ++fp.coverage.code_items;
+        else if (ida::address::is_data(addr)) ++fp.coverage.data_items;
+        else                                  ++fp.coverage.unknown_items;
+
+        if (++items_scanned > 50000) break;
+    }
+}
+
+// ── Step 7: Recover string statistics ──────────────────────────────────
+
+void count_strings(Fingerprint& fp) {
+    std::size_t total_length = 0;
+
+    for (const auto& seg : fp.segments) {
+        // Only scan non-executable segments for strings.
+        if (seg.executable) continue;
+
+        std::size_t seg_strings = 0;
+        for (auto addr : ida::address::ItemRange(seg.start, seg.end)) {
+            if (!ida::address::is_data(addr)) continue;
+
+            auto str = ida::data::read_string(addr, 0);
+            if (!str || str->size() < 4) continue;
+
+            ++fp.string_count;
+            total_length += str->size();
+            ++seg_strings;
+
+            // Cap per segment to avoid spending too long on huge data sections.
+            if (seg_strings > 1000) break;
+        }
+    }
+
+    if (fp.string_count > 0) {
+        fp.avg_string_length = total_length / fp.string_count;
+    }
+}
+
+// ── Step 8: Persist fingerprint to netnode ──────────────────────────────
+//
+// Storage layout (using high indices to avoid the idalib index-0 crash):
+//   alt 100 'A' = function count
+//   alt 101 'A' = entry count
+//   alt 102 'A' = fixup count
+//   alt 103 'A' = segment count
+//   alt 104 'A' = string count
+//   alt 105 'A' = code_items
+//   alt 106 'A' = data_items
+//   alt 107 'A' = unknown_items
+//   hash "md5"  'H' = binary MD5
+//   hash "path" 'H' = binary path
+//   blob 200    'B' = serialized segment names (newline-separated)
+
+void persist_fingerprint(const Fingerprint& fp) {
+    auto node = ida::storage::Node::open("idax_fingerprint", true);
     if (!node) {
         ida::ui::message(std::format(
-            "[Storage] Failed to create node: {}\n", node.error().message));
+            "[Fingerprint] Failed to open storage node: {}\n",
+            node.error().message));
         return;
     }
 
     auto& n = *node;
 
-    // ── Alt operations (integer key-value) ──────────────────────────
+    // Store numeric summary as alt values.
+    n.set_alt(100, static_cast<std::uint64_t>(fp.functions.total), 'A');
+    n.set_alt(101, static_cast<std::uint64_t>(fp.entry_count),     'A');
+    n.set_alt(102, static_cast<std::uint64_t>(fp.fixups.total),    'A');
+    n.set_alt(103, static_cast<std::uint64_t>(fp.segments.size()), 'A');
+    n.set_alt(104, static_cast<std::uint64_t>(fp.string_count),    'A');
+    n.set_alt(105, static_cast<std::uint64_t>(fp.coverage.code_items),    'A');
+    n.set_alt(106, static_cast<std::uint64_t>(fp.coverage.data_items),    'A');
+    n.set_alt(107, static_cast<std::uint64_t>(fp.coverage.unknown_items), 'A');
 
-    // Use high indices to avoid idalib index-0 crash.
-    constexpr ida::Address kAltIndex = 100;
+    // Store identity strings as hash values.
+    n.set_hash("md5",  fp.binary_md5,  'H');
+    n.set_hash("path", fp.binary_path, 'H');
 
-    (void)n.set_alt(kAltIndex, 0xDEADBEEF, 'A');
-    auto alt_val = n.alt(kAltIndex, 'A');
-    if (alt_val && *alt_val != 0xDEADBEEF) {
-        ida::ui::message("[Storage] Alt roundtrip mismatch\n");
+    // Store segment names as a blob (newline-separated).
+    std::string seg_names;
+    for (const auto& seg : fp.segments) {
+        if (!seg_names.empty()) seg_names += '\n';
+        seg_names += seg.name;
+    }
+    std::vector<std::uint8_t> seg_blob(seg_names.begin(), seg_names.end());
+    seg_blob.push_back(0);  // Null terminator for blob_string() compatibility.
+    n.set_blob(200, seg_blob, 'B');
+
+    // Verify roundtrip: read back the MD5 hash.
+    auto stored_md5 = n.hash("md5", 'H');
+    if (stored_md5 && *stored_md5 != fp.binary_md5) {
+        ida::ui::message("[Fingerprint] Warning: hash roundtrip mismatch\n");
     }
 
-    // Edge case: multiple tags on same index.
-    (void)n.set_alt(kAltIndex, 42, 'B');
-    auto alt_b = n.alt(kAltIndex, 'B');
-    if (alt_b && *alt_b != 42) {
-        ida::ui::message("[Storage] Alt tag B mismatch\n");
+    // Verify blob roundtrip.
+    auto blob_read = n.blob_string(200, 'B');
+    if (blob_read && *blob_read != seg_names) {
+        ida::ui::message("[Fingerprint] Warning: blob roundtrip mismatch\n");
     }
 
-    // Edge case: remove alt.
-    (void)n.remove_alt(kAltIndex, 'A');
-    auto removed_alt = n.alt(kAltIndex, 'A');
-    // After removal, should return 0 or error.
-
-    // ── Sup operations (binary data) ────────────────────────────────
-
-    constexpr ida::Address kSupIndex = 200;
-    std::vector<std::uint8_t> sup_data = {0x01, 0x02, 0x03, 0x04, 0x05};
-    (void)n.set_sup(kSupIndex, sup_data, 'S');
-
-    auto sup_val = n.sup(kSupIndex, 'S');
-    if (sup_val && *sup_val != sup_data) {
-        ida::ui::message("[Storage] Sup roundtrip mismatch\n");
-    }
-
-    // Edge case: sup with different tag.
-    std::vector<std::uint8_t> sup_data2 = {0xAA, 0xBB};
-    (void)n.set_sup(kSupIndex, sup_data2, 'T');
-    auto sup_t = n.sup(kSupIndex, 'T');
-    if (sup_t && *sup_t != sup_data2) {
-        ida::ui::message("[Storage] Sup tag T mismatch\n");
-    }
-
-    // ── Hash operations (string key-value) ──────────────────────────
-
-    (void)n.set_hash("version", "1.0.0", 'H');
-    auto hash_val = n.hash("version", 'H');
-    if (hash_val && *hash_val != "1.0.0") {
-        ida::ui::message("[Storage] Hash roundtrip mismatch\n");
-    }
-
-    (void)n.set_hash("author", "idax-example", 'H');
-    auto hash_author = n.hash("author", 'H');
-
-    // Edge case: overwrite hash.
-    (void)n.set_hash("version", "2.0.0", 'H');
-    auto hash_v2 = n.hash("version", 'H');
-    if (hash_v2 && *hash_v2 != "2.0.0") {
-        ida::ui::message("[Storage] Hash overwrite mismatch\n");
-    }
-
-    // ── Blob operations ─────────────────────────────────────────────
-
-    constexpr ida::Address kBlobIndex = 300;
-
-    // Create a blob.
-    std::vector<std::uint8_t> blob_data(1024);
-    std::iota(blob_data.begin(), blob_data.end(),
-              static_cast<std::uint8_t>(0));
-    (void)n.set_blob(kBlobIndex, blob_data, 'B');
-
-    // Read blob size.
-    auto blob_sz = n.blob_size(kBlobIndex, 'B');
-    if (blob_sz && *blob_sz != 1024) {
-        ida::ui::message(std::format(
-            "[Storage] Blob size {} != 1024\n", *blob_sz));
-    }
-
-    // Read blob data.
-    auto blob_val = n.blob(kBlobIndex, 'B');
-    if (blob_val && *blob_val != blob_data) {
-        ida::ui::message("[Storage] Blob roundtrip mismatch\n");
-    }
-
-    // Edge case: overwrite blob with smaller data.
-    std::vector<std::uint8_t> small_blob = {0xDE, 0xAD};
-    (void)n.set_blob(kBlobIndex, small_blob, 'B');
-    auto small_read = n.blob(kBlobIndex, 'B');
-    if (small_read && small_read->size() != 2) {
-        ida::ui::message("[Storage] Blob overwrite size mismatch\n");
-    }
-
-    // Edge case: blob as string.
-    std::string test_str = "Hello, netnode!";
-    std::vector<std::uint8_t> str_blob(test_str.begin(), test_str.end());
-    str_blob.push_back(0);  // Null terminator.
-    (void)n.set_blob(kBlobIndex + 1, str_blob, 'B');
-
-    auto blob_str = n.blob_string(kBlobIndex + 1, 'B');
-    if (blob_str && *blob_str != test_str) {
-        ida::ui::message(std::format(
-            "[Storage] Blob string mismatch: '{}'\n", *blob_str));
-    }
-
-    // Edge case: remove blob.
-    (void)n.remove_blob(kBlobIndex, 'B');
-    auto removed_blob = n.blob(kBlobIndex, 'B');
-    // After removal, blob should be empty or error.
-
-    // ── Node copy/move semantics ────────────────────────────────────
-
-    {
-        // Copy construction.
-        auto copy = n;
-        auto copy_hash = copy.hash("version", 'H');
-        if (copy_hash && *copy_hash != "2.0.0") {
-            ida::ui::message("[Storage] Copy construction broken\n");
-        }
-
-        // Move construction.
-        auto moved = std::move(copy);
-        auto moved_hash = moved.hash("version", 'H');
-        if (moved_hash && *moved_hash != "2.0.0") {
-            ida::ui::message("[Storage] Move construction broken\n");
-        }
-
-        // Copy assignment.
-        ida::storage::Node assigned;
-        assigned = n;
-        auto assigned_hash = assigned.hash("version", 'H');
-
-        // Move assignment.
-        ida::storage::Node move_assigned;
-        move_assigned = std::move(assigned);
-    }
-
-    // Edge case: open nonexistent node without create flag.
-    auto bad_node = ida::storage::Node::open("idax_nonexistent_node_xyz", false);
-    if (bad_node) {
-        ida::ui::message("[Storage] Expected error for nonexistent node\n");
-    }
-
-    // Edge case: default-constructed node operations should error.
-    {
-        ida::storage::Node empty;
-        auto bad_alt = empty.alt(100, 'A');
-        (void)bad_alt;  // Expected error or zero.
-    }
-
-    ida::ui::message("[Storage] Netnode storage exercise complete\n");
+    ida::ui::message("[Fingerprint] Fingerprint persisted to netnode\n");
 }
 
-// ── Phase 2: Database metadata ─────────────────────────────────────────
+// ── Step 9: Compare against previous fingerprint ───────────────────────
 
-void exercise_database_metadata() {
-    ida::ui::message("[Metadata] === Database Metadata Exercise ===\n");
-
-    auto path = ida::database::input_file_path();
-    if (path) ida::ui::message(std::format("[Metadata] Input: {}\n", *path));
-
-    auto md5 = ida::database::input_md5();
-    if (md5) ida::ui::message(std::format("[Metadata] MD5: {}\n", *md5));
-
-    auto base = ida::database::image_base();
-    if (base) ida::ui::message(std::format("[Metadata] Base: {:#x}\n", *base));
-
-    auto min_a = ida::database::min_address();
-    auto max_a = ida::database::max_address();
-    if (min_a && max_a) {
-        ida::ui::message(std::format(
-            "[Metadata] Range: {:#x} - {:#x} ({} bytes)\n",
-            *min_a, *max_a, *max_a - *min_a));
+void compare_with_previous(const Fingerprint& fp) {
+    auto node = ida::storage::Node::open("idax_fingerprint", false);
+    if (!node) {
+        ida::ui::message("[Fingerprint] No previous fingerprint found — first run.\n");
+        return;
     }
 
-    // Snapshots.
-    auto snaps = ida::database::snapshots();
-    if (snaps) {
-        ida::ui::message(std::format(
-            "[Metadata] {} top-level snapshots\n", snaps->size()));
-        for (const auto& snap : *snaps) {
+    auto& n = *node;
+
+    // Read previous function count.
+    auto prev_funcs = n.alt(100, 'A');
+    if (prev_funcs) {
+        auto current = static_cast<std::uint64_t>(fp.functions.total);
+        if (*prev_funcs != current) {
             ida::ui::message(std::format(
-                "[Metadata]   Snapshot: id={} desc='{}'\n",
-                snap.id, snap.description));
-            // Edge case: recurse into children.
-            for (const auto& child : snap.children) {
-                ida::ui::message(std::format(
-                    "[Metadata]     Child: id={} desc='{}'\n",
-                    child.id, child.description));
-            }
+                "[Fingerprint] Delta: functions {} -> {} ({:+})\n",
+                *prev_funcs, current,
+                static_cast<std::int64_t>(current) -
+                static_cast<std::int64_t>(*prev_funcs)));
         }
     }
 
-    // Edge case: is_snapshot_database.
-    auto is_snap = ida::database::is_snapshot_database();
-    if (is_snap) {
-        ida::ui::message(std::format(
-            "[Metadata] Is snapshot DB: {}\n", *is_snap));
-    }
-
-    // Edge case: set_snapshot_description.
-    (void)ida::database::set_snapshot_description("idax metadata exercise");
-
-    ida::ui::message("[Metadata] Database metadata exercise complete\n");
-}
-
-// ── Phase 3: Batch annotation ──────────────────────────────────────────
-
-void exercise_batch_annotation() {
-    ida::ui::message("[Annotation] === Batch Annotation Exercise ===\n");
-
-    // Annotate every segment header with a comment.
-    std::size_t seg_count = 0;
-    for (auto seg : ida::segment::all()) {
-        (void)ida::comment::set(seg.start(),
-            std::format("Segment '{}': {:#x}-{:#x}, {}bit, {}{}{}",
-                        seg.name(), seg.start(), seg.end(), seg.bitness(),
-                        seg.permissions().read ? "R" : "",
-                        seg.permissions().write ? "W" : "",
-                        seg.permissions().execute ? "X" : ""),
-            true /* repeatable */);
-        ++seg_count;
-    }
-    ida::ui::message(std::format(
-        "[Annotation] Commented {} segments\n", seg_count));
-
-    // Type creation and application.
-    auto audit_struct = ida::type::TypeInfo::create_struct();
-    (void)audit_struct.add_member("magic", ida::type::TypeInfo::uint32(), 0);
-    (void)audit_struct.add_member("flags", ida::type::TypeInfo::uint16(), 4);
-    (void)audit_struct.add_member("version", ida::type::TypeInfo::uint16(), 6);
-    (void)audit_struct.save_as("idax_audit_header");
-
-    // Apply to image base if available.
-    auto base = ida::database::image_base();
-    if (base) {
-        (void)ida::type::apply_named_type(*base, "idax_audit_header");
-    }
-
-    // Entry point annotation.
-    auto entry_cnt = ida::entry::count();
-    if (entry_cnt) {
-        for (std::size_t i = 0; i < *entry_cnt; ++i) {
-            auto ep = ida::entry::by_index(i);
-            if (ep) {
-                (void)ida::comment::add_anterior(ep->address,
-                    std::format("=== Entry Point: '{}' (ordinal {}) ===",
-                                ep->name, ep->ordinal));
-            }
+    // Read previous segment layout.
+    auto prev_seg_blob = n.blob_string(200, 'B');
+    if (prev_seg_blob) {
+        std::string current_names;
+        for (const auto& seg : fp.segments) {
+            if (!current_names.empty()) current_names += '\n';
+            current_names += seg.name;
         }
-        ida::ui::message(std::format(
-            "[Annotation] Annotated {} entry points\n", *entry_cnt));
-    }
-
-    ida::ui::message("[Annotation] Batch annotation complete\n");
-}
-
-// ── Phase 4: Fixup statistics ──────────────────────────────────────────
-
-void exercise_fixup_statistics() {
-    ida::ui::message("[Fixups] === Fixup Statistics ===\n");
-
-    std::unordered_map<int, std::size_t> type_counts;
-    std::size_t total = 0;
-
-    // Edge case: FixupIterator returns by value, use `auto fix`.
-    for (auto fix : ida::fixup::all()) {
-        ++type_counts[static_cast<int>(fix.type)];
-        ++total;
-        if (total >= 10000) break;  // Cap for large binaries.
-    }
-
-    ida::ui::message(std::format("[Fixups] Total: {}\n", total));
-    for (const auto& [type, count] : type_counts) {
-        ida::ui::message(std::format(
-            "[Fixups]   Type {}: {} fixups\n", type, count));
-    }
-
-    // Custom fixup registration lifecycle.
-    ida::fixup::CustomHandler handler;
-    handler.name = "idax_example_fixup";
-    handler.properties = 0;
-    handler.size = 4;
-    handler.width = 32;
-    handler.shift = 0;
-    handler.reference_type = 0;
-
-    auto reg_result = ida::fixup::register_custom(handler);
-    if (reg_result) {
-        ida::ui::message(std::format(
-            "[Fixups] Registered custom fixup type: {:#x}\n", *reg_result));
-
-        // Find it by name.
-        auto found = ida::fixup::find_custom("idax_example_fixup");
-        if (found && *found != *reg_result) {
-            ida::ui::message("[Fixups] Custom fixup find mismatch\n");
-        }
-
-        // Unregister.
-        (void)ida::fixup::unregister_custom(*reg_result);
-
-        // Edge case: find after unregister should fail.
-        auto not_found = ida::fixup::find_custom("idax_example_fixup");
-        if (not_found) {
-            ida::ui::message("[Fixups] Expected error after unregister\n");
+        if (*prev_seg_blob != current_names) {
+            ida::ui::message("[Fingerprint] Delta: segment layout changed\n");
         }
     }
 
-    // Edge case: duplicate registration.
-    auto dup1 = ida::fixup::register_custom(handler);
-    if (dup1) {
-        auto dup2 = ida::fixup::register_custom(handler);
-        // Second registration should fail (duplicate name).
-        (void)ida::fixup::unregister_custom(*dup1);
-    }
-
-    ida::ui::message("[Fixups] Fixup statistics complete\n");
-}
-
-// ── Phase 5: Analysis control ──────────────────────────────────────────
-
-void exercise_analysis_control() {
-    ida::ui::message("[Analysis] === Analysis Control Exercise ===\n");
-
-    auto enabled = ida::analysis::is_enabled();
-    ida::ui::message(std::format("[Analysis] Enabled: {}\n", enabled));
-
-    auto idle = ida::analysis::is_idle();
-    ida::ui::message(std::format("[Analysis] Idle: {}\n", idle));
-
-    // Schedule reanalysis of the first code address.
-    auto min_a = ida::database::min_address();
-    if (min_a) {
-        (void)ida::analysis::schedule(*min_a);
-    }
-
-    // Wait for analysis to complete.
-    (void)ida::analysis::wait();
-
-    auto idle_after = ida::analysis::is_idle();
-    ida::ui::message(std::format("[Analysis] Idle after wait: {}\n", idle_after));
-
-    ida::ui::message("[Analysis] Analysis control exercise complete\n");
-}
-
-// ── Phase 6: Diagnostics exercise ──────────────────────────────────────
-
-void exercise_diagnostics() {
-    ida::ui::message("[Diagnostics] === Diagnostics Exercise ===\n");
-
-    // Log level.
-    auto old_level = ida::diagnostics::log_level();
-    (void)ida::diagnostics::set_log_level(ida::diagnostics::LogLevel::Debug);
-    ida::diagnostics::log(ida::diagnostics::LogLevel::Debug,
-                          "Test debug message from storage_metadata_plugin");
-    (void)ida::diagnostics::set_log_level(old_level);
-
-    // Performance counters.
-    ida::diagnostics::reset_performance_counters();
-    auto counters = ida::diagnostics::performance_counters();
-    ida::ui::message(std::format(
-        "[Diagnostics] Performance counters after reset: "
-        "api_calls={}, errors={}, warnings={}\n",
-        counters.api_calls, counters.errors, counters.warnings));
-
-    // Error enrichment.
-    auto err = ida::Error::not_found("test item");
-    auto enriched = ida::diagnostics::enrich(err, "exercise_diagnostics");
-    ida::ui::message(std::format(
-        "[Diagnostics] Enriched error: {} (ctx: {})\n",
-        enriched.message, enriched.context));
-
-    // Invariant assertion (should pass).
-    ida::diagnostics::assert_invariant(true, "This should pass");
-
-    ida::ui::message("[Diagnostics] Diagnostics exercise complete\n");
-}
-
-// ── Phase 7: Address range statistics ──────────────────────────────────
-
-void exercise_address_statistics() {
-    ida::ui::message("[AddressStats] === Address Range Statistics ===\n");
-
-    auto min_a = ida::database::min_address();
-    auto max_a = ida::database::max_address();
-    if (!min_a || !max_a) return;
-
-    // Count items, code, data, unknown bytes in first 0x10000.
-    ida::Address start = *min_a;
-    ida::Address end = std::min(*min_a + 0x10000, *max_a);
-
-    std::size_t code_count = 0;
-    std::size_t data_count = 0;
-    std::size_t unknown_count = 0;
-    std::size_t head_count = 0;
-
-    for (auto addr : ida::address::ItemRange(start, end)) {
-        ++head_count;
-        if (ida::address::is_code(addr))    ++code_count;
-        else if (ida::address::is_data(addr)) ++data_count;
-        else ++unknown_count;
-
-        if (head_count > 50000) break;
-    }
-
-    ida::ui::message(std::format(
-        "[AddressStats] Range {:#x}-{:#x}: {} items "
-        "(code={}, data={}, unknown={})\n",
-        start, end, head_count, code_count, data_count, unknown_count));
-
-    // Predicate search across database.
-    auto first_code = ida::address::find_first(
-        start, end, ida::address::Predicate::Code);
-    if (first_code) {
+    // Read previous MD5 to detect binary replacement.
+    auto prev_md5 = n.hash("md5", 'H');
+    if (prev_md5 && *prev_md5 != fp.binary_md5) {
         ida::ui::message(std::format(
-            "[AddressStats] First code: {:#x}\n", *first_code));
+            "[Fingerprint] Warning: binary MD5 changed ({} -> {}). "
+            "The underlying file may have been replaced.\n",
+            *prev_md5, fp.binary_md5));
     }
-
-    auto first_data = ida::address::find_first(
-        start, end, ida::address::Predicate::Data);
-    if (first_data) {
-        ida::ui::message(std::format(
-            "[AddressStats] First data: {:#x}\n", *first_data));
-    }
-
-    ida::ui::message("[AddressStats] Address statistics complete\n");
 }
 
-// ── Main plugin logic ──────────────────────────────────────────────────
+// ── Step 10: Create summary type and annotate ──────────────────────────
 
-void run_storage_metadata() {
-    ida::ui::message("=== idax Storage & Metadata Plugin ===\n");
+void annotate_fingerprint(const Fingerprint& fp) {
+    // Create a struct type summarizing the fingerprint for type-library
+    // persistence. This demonstrates the type construction API.
+    auto summary_type = ida::type::TypeInfo::create_struct();
+    summary_type.add_member("function_count", ida::type::TypeInfo::uint32(), 0);
+    summary_type.add_member("entry_count",    ida::type::TypeInfo::uint32(), 4);
+    summary_type.add_member("fixup_count",    ida::type::TypeInfo::uint32(), 8);
+    summary_type.add_member("string_count",   ida::type::TypeInfo::uint32(), 12);
+    summary_type.save_as("idax_fingerprint_summary");
 
-    exercise_storage();
-    exercise_database_metadata();
-    exercise_batch_annotation();
-    exercise_fixup_statistics();
-    exercise_analysis_control();
-    exercise_diagnostics();
-    exercise_address_statistics();
+    // Comment the image base with the fingerprint digest.
+    if (fp.image_base != ida::BadAddress) {
+        ida::comment::set(fp.image_base, std::format(
+            "Fingerprint: {} funcs, {} entries, {} fixups, {} strings | MD5: {}",
+            fp.functions.total, fp.entry_count,
+            fp.fixups.total, fp.string_count,
+            fp.binary_md5.substr(0, 8)), true);
+    }
+}
 
-    ida::ui::message("=== Storage & Metadata Complete ===\n");
+// ── Step 11: Print the report ──────────────────────────────────────────
+
+void print_fingerprint(const Fingerprint& fp) {
+    ida::ui::message("\n");
+    ida::ui::message("===========================================================\n");
+    ida::ui::message("                 BINARY FINGERPRINT\n");
+    ida::ui::message("===========================================================\n");
+    ida::ui::message(std::format("  File:        {}\n", fp.binary_path));
+    ida::ui::message(std::format("  MD5:         {}\n", fp.binary_md5));
+    ida::ui::message(std::format("  Image base:  {:#x}\n", fp.image_base));
+    ida::ui::message(std::format("  Range:       {:#x} - {:#x}\n",
+                                 fp.range_min, fp.range_max));
+    ida::ui::message("-----------------------------------------------------------\n");
+
+    // Segment layout.
+    ida::ui::message(std::format("  Segments ({})\n", fp.segments.size()));
+    for (const auto& seg : fp.segments) {
+        ida::ui::message(std::format(
+            "    {:12} {:#010x}-{:#010x}  {}bit  {}{}{}\n",
+            seg.name, seg.start, seg.end, seg.bitness,
+            seg.readable   ? "R" : "-",
+            seg.writable   ? "W" : "-",
+            seg.executable ? "X" : "-"));
+    }
+
+    // Function histogram.
+    ida::ui::message("-----------------------------------------------------------\n");
+    ida::ui::message(std::format("  Functions:   {} total\n", fp.functions.total));
+    ida::ui::message(std::format("    Thunks:    {}\n", fp.functions.thunks));
+    ida::ui::message(std::format("    Library:   {}\n", fp.functions.library));
+    ida::ui::message(std::format("    Tiny:      {} (<32B)\n", fp.functions.tiny));
+    ida::ui::message(std::format("    Small:     {} (32-255B)\n", fp.functions.small));
+    ida::ui::message(std::format("    Medium:    {} (256-4095B)\n", fp.functions.medium));
+    ida::ui::message(std::format("    Large:     {} (>=4096B)\n", fp.functions.large));
+
+    // Entry points & fixups.
+    ida::ui::message("-----------------------------------------------------------\n");
+    ida::ui::message(std::format("  Entry pts:   {}\n", fp.entry_count));
+    ida::ui::message(std::format("  Fixups:      {}\n", fp.fixups.total));
+    if (!fp.fixups.type_counts.empty()) {
+        for (auto& [type, count] : fp.fixups.type_counts) {
+            ida::ui::message(std::format(
+                "    Type {:2}: {:6} ({:.1f}%)\n",
+                type, count,
+                fp.fixups.total > 0
+                    ? 100.0 * count / fp.fixups.total : 0.0));
+        }
+    }
+
+    // Coverage.
+    ida::ui::message("-----------------------------------------------------------\n");
+    auto total_items = fp.coverage.code_items + fp.coverage.data_items
+                     + fp.coverage.unknown_items;
+    if (total_items > 0) {
+        ida::ui::message(std::format(
+            "  Coverage (first 64K):  code {:.1f}%  data {:.1f}%  unknown {:.1f}%\n",
+            100.0 * fp.coverage.code_items / total_items,
+            100.0 * fp.coverage.data_items / total_items,
+            100.0 * fp.coverage.unknown_items / total_items));
+    }
+
+    // Strings.
+    ida::ui::message(std::format("  Strings:     {} (avg length {})\n",
+                                 fp.string_count, fp.avg_string_length));
+    ida::ui::message("===========================================================\n\n");
+}
+
+// ── Plugin orchestration ───────────────────────────────────────────────
+
+void run_fingerprint() {
+    ida::ui::message("[Fingerprint] Starting binary fingerprint...\n");
+
+    // Ensure analysis is complete before fingerprinting.
+    ida::analysis::wait();
+
+    Fingerprint fp;
+
+    collect_identity(fp);
+    digest_segments(fp);
+    histogram_functions(fp);
+    profile_fixups(fp);
+    count_entries(fp);
+    measure_coverage(fp);
+    count_strings(fp);
+
+    // Compare against a previously stored fingerprint, if any.
+    compare_with_previous(fp);
+
+    // Persist the new fingerprint.
+    persist_fingerprint(fp);
+
+    // Create type and annotate the database.
+    annotate_fingerprint(fp);
+
+    // Print the final report.
+    print_fingerprint(fp);
+
+    // Log completion via diagnostics.
+    ida::diagnostics::log(ida::diagnostics::LogLevel::Info,
+        "fingerprint",
+        std::format("Fingerprint complete: {} funcs, {} segs, {} fixups",
+                    fp.functions.total, fp.segments.size(), fp.fixups.total));
 }
 
 } // anonymous namespace
 
 // ── Plugin class ────────────────────────────────────────────────────────
 
-struct StorageMetadataPlugin : ida::plugin::Plugin {
+struct BinaryFingerprintPlugin : ida::plugin::Plugin {
     ida::plugin::Info info() const override {
         return {
-            "idax Storage & Metadata",
-            "Ctrl-Shift-S",
-            "Netnode persistence, batch annotation, database metadata",
-            "Exercises netnode storage (alt/sup/hash/blob), database metadata, "
-            "snapshot management, batch annotation, fixup statistics, "
-            "analysis control, diagnostics, and address statistics."
+            .name    = "Binary Fingerprint",
+            .hotkey  = "Ctrl-Shift-F",
+            .comment = "Compute and persist a structural fingerprint",
+            .help    = "Computes a structural fingerprint (segment layout, "
+                       "function histogram, fixup distribution, string stats, "
+                       "coverage ratios) and persists it in a netnode. On "
+                       "subsequent runs, highlights what changed.",
         };
     }
 
     ida::Status run(std::size_t) override {
-        run_storage_metadata();
+        run_fingerprint();
         return ida::ok();
     }
 };

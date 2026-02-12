@@ -1,67 +1,61 @@
 /// \file advanced_loader.cpp
-/// \brief Advanced custom file format loader demonstrating comprehensive
-///        idax loader API usage with multi-segment creation, fixup injection,
-///        type application, entry point registration, and comment annotation.
+/// \brief XBIN Format Loader — loads a hypothetical structured binary format
+///        demonstrating realistic loader development patterns.
 ///
-/// This loader handles a hypothetical "XBIN" binary format with the structure:
-///   - 16-byte header: magic "XBIN", version(u16), flags(u16),
-///     segment_count(u16), entry_ordinal_count(u16), base_address(u32)
-///   - Segment table: N entries of 24 bytes each:
-///     [name(8 bytes, null-padded), file_offset(u32), virtual_addr(u32),
-///      raw_size(u32), virtual_size(u32), flags(u32)]
-///   - Entry table: M entries of 12 bytes each:
-///     [ordinal(u32), address(u32), name_offset(u32)]
-///   - Raw data sections follow, referenced by segment table offsets.
+/// Real loaders must solve several problems at once:
+///   - Reliably identify their file format from a magic signature
+///   - Parse structured headers into segments with correct permissions
+///   - Transfer raw file data into the IDA database
+///   - Register entry points and apply types to them
+///   - Handle edge cases (truncated files, overlapping segments, BSS gaps)
+///   - Support save and rebase callbacks for round-trip workflows
 ///
-/// Edge cases exercised:
-///   - InputFile: size(), tell(), seek(), read_bytes(), read_bytes_at(),
-///     read_string(), filename(), handle()
-///   - AcceptResult with priority and processor hint
-///   - LoaderOptions (supports_reload, requires_processor)
-///   - Multiple segment creation with varied types, bitness, permissions
-///   - file_to_database and memory_to_database for loading bytes
-///   - set_processor for target architecture selection
-///   - create_filename_comment for metadata annotation
-///   - abort_load for fatal errors (demonstrated but guarded)
-///   - Entry point registration with multiple ordinals
-///   - Fixup injection at relocation sites
-///   - Type application at entry points
-///   - Comment annotation on created segments/entry points
-///   - Save callback querying save capability
-///   - Move/rebase callback with delta computation
-///   - Error propagation through all loader stages
-///   - Handle edge case of zero-segment file
-///   - Handle edge case of overlapping segments
-///   - Handle edge case of empty segment names
+/// This loader handles "XBIN", a hypothetical format designed to exercise
+/// all of these paths. The file structure is:
+///
+///   Offset  Size  Field
+///   0x00    4     Magic: "XBIN"
+///   0x04    2     Version (1 or 2)
+///   0x06    2     Flags (bit 0: 64-bit, bit 1: relocatable)
+///   0x08    2     Segment count
+///   0x0A    2     Entry count
+///   0x0C    4     Base address
+///   0x10    N*24  Segment table (see XbinSegmentEntry)
+///   ...     M*12  Entry table (see XbinEntryEntry)
+///   ...           Raw data referenced by segment file offsets
+///
+/// API surface exercised:
+///   loader (Loader, InputFile, AcceptResult, LoaderOptions, file_to_database,
+///   memory_to_database, set_processor, create_filename_comment, abort_load),
+///   segment, name, comment, type, entry, fixup
 
 #include <ida/idax.hpp>
 
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <optional>
+#include <format>
 #include <string>
 #include <vector>
 
 namespace {
 
-// ── XBIN format structures ─────────────────────────────────────────────
+// ── XBIN format constants ──────────────────────────────────────────────
 
 constexpr std::uint8_t kXbinMagic[4] = {'X', 'B', 'I', 'N'};
 constexpr std::uint16_t kXbinVersion1 = 0x0001;
 constexpr std::uint16_t kXbinVersion2 = 0x0002;
 
-// Flag bits in the file header.
-constexpr std::uint16_t kXbinFlag64Bit    = 0x0001;
-constexpr std::uint16_t kXbinFlagRelocatable = 0x0002;
-constexpr std::uint16_t kXbinFlagDebugInfo   = 0x0004;
+constexpr std::uint16_t kFlagIs64Bit      = 0x0001;
+constexpr std::uint16_t kFlagRelocatable   = 0x0002;
 
-// Segment flag bits.
-constexpr std::uint32_t kSegFlagExecute  = 0x01;
-constexpr std::uint32_t kSegFlagWrite    = 0x02;
-constexpr std::uint32_t kSegFlagRead     = 0x04;
-constexpr std::uint32_t kSegFlagBss      = 0x08;
-constexpr std::uint32_t kSegFlagExtern   = 0x10;
+constexpr std::uint32_t kSegExecute = 0x01;
+constexpr std::uint32_t kSegWrite   = 0x02;
+constexpr std::uint32_t kSegRead    = 0x04;
+constexpr std::uint32_t kSegBss     = 0x08;
+constexpr std::uint32_t kSegExtern  = 0x10;
+
+// ── On-disk structures ─────────────────────────────────────────────────
 
 struct XbinHeader {
     std::uint8_t  magic[4]{};
@@ -73,21 +67,21 @@ struct XbinHeader {
 };
 
 struct XbinSegmentEntry {
-    char          name[8]{};
-    std::uint32_t file_offset{};
-    std::uint32_t virtual_address{};
-    std::uint32_t raw_size{};
-    std::uint32_t virtual_size{};
-    std::uint32_t flags{};
+    char          name[8]{};           // Null-padded segment name.
+    std::uint32_t file_offset{};       // Offset of raw data in file.
+    std::uint32_t virtual_address{};   // RVA relative to base_address.
+    std::uint32_t raw_size{};          // Bytes in file.
+    std::uint32_t virtual_size{};      // Bytes in memory (>= raw_size for BSS).
+    std::uint32_t flags{};             // Permission and type flags.
 };
 
 struct XbinEntryEntry {
     std::uint32_t ordinal{};
-    std::uint32_t address{};
-    std::uint32_t name_offset{};
+    std::uint32_t address{};           // RVA relative to base_address.
+    std::uint32_t name_offset{};       // File offset to name string (0 = none).
 };
 
-// ── Helper: read a trivially-copyable struct from InputFile ────────────
+// ── Helper: read a POD struct from the input file ──────────────────────
 
 template <typename T>
 ida::Result<T> read_struct(ida::loader::InputFile& file, std::int64_t offset) {
@@ -95,27 +89,47 @@ ida::Result<T> read_struct(ida::loader::InputFile& file, std::int64_t offset) {
     if (!bytes) return std::unexpected(bytes.error());
     if (bytes->size() < sizeof(T)) {
         return std::unexpected(ida::Error::validation(
-            "Truncated read", std::to_string(offset)));
+            "Truncated read at file offset", std::to_string(offset)));
     }
     T result{};
     std::memcpy(&result, bytes->data(), sizeof(T));
     return result;
 }
 
-// ── Helper: null-terminated string from fixed-width field ──────────────
+// ── Helper: extract null-terminated name from fixed-width field ────────
 
-std::string fixed_string(const char* data, std::size_t max_len) {
+std::string fixed_name(const char* data, std::size_t max_len) {
     auto end = static_cast<const char*>(std::memchr(data, '\0', max_len));
     return end ? std::string(data, end) : std::string(data, max_len);
+}
+
+// ── Helper: detect overlapping segments and warn ───────────────────────
+
+void warn_overlaps(const std::vector<XbinSegmentEntry>& entries,
+                   std::uint32_t base) {
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+        for (std::size_t j = i + 1; j < entries.size(); ++j) {
+            ida::Address a_start = base + entries[i].virtual_address;
+            ida::Address a_end   = a_start + entries[i].virtual_size;
+            ida::Address b_start = base + entries[j].virtual_address;
+            ida::Address b_end   = b_start + entries[j].virtual_size;
+
+            if (a_start < b_end && b_start < a_end) {
+                ida::ui::message(std::format(
+                    "[XBIN] Warning: segments {} and {} overlap "
+                    "([{:#x},{:#x}) vs [{:#x},{:#x}))\n",
+                    i, j, a_start, a_end, b_start, b_end));
+            }
+        }
+    }
 }
 
 } // anonymous namespace
 
 // ── Loader implementation ──────────────────────────────────────────────
 
-class AdvancedXbinLoader final : public ida::loader::Loader {
+class XbinLoader final : public ida::loader::Loader {
 public:
-    /// Return loader options demonstrating both flags.
     ida::loader::LoaderOptions options() const override {
         return {
             .supports_reload   = true,
@@ -123,272 +137,204 @@ public:
         };
     }
 
-    /// Accept callback: identify XBIN files.
-    ///
-    /// Edge cases:
-    ///   - File too small for header
-    ///   - Magic mismatch
-    ///   - Unsupported version
-    ///   - Priority assignment based on version
+    // ── accept(): identify XBIN files ───────────────────────────────────
+
     ida::Result<std::optional<ida::loader::AcceptResult>>
     accept(ida::loader::InputFile& file) override {
-        // Check file size is sufficient for header.
+        // Reject files too small to hold a header.
         auto file_size = file.size();
         if (!file_size || *file_size < static_cast<std::int64_t>(sizeof(XbinHeader))) {
-            return std::nullopt;  // Too small, not our format.
+            return std::nullopt;
         }
 
-        // Read and validate magic.
+        // Read and validate the magic signature.
         auto magic_bytes = file.read_bytes_at(0, 4);
-        if (!magic_bytes || magic_bytes->size() < 4) {
-            return std::nullopt;
-        }
-
+        if (!magic_bytes || magic_bytes->size() < 4) return std::nullopt;
         if (std::memcmp(magic_bytes->data(), kXbinMagic, 4) != 0) {
-            return std::nullopt;  // Not an XBIN file.
-        }
-
-        // Read full header.
-        auto header = read_struct<XbinHeader>(file, 0);
-        if (!header) {
             return std::nullopt;
         }
 
-        // Validate version.
-        if (header->version != kXbinVersion1 && header->version != kXbinVersion2) {
-            return std::nullopt;  // Unsupported version.
+        auto header = read_struct<XbinHeader>(file, 0);
+        if (!header) return std::nullopt;
+
+        // Reject unsupported versions early rather than failing in load().
+        if (header->version != kXbinVersion1 &&
+            header->version != kXbinVersion2) {
+            return std::nullopt;
         }
 
-        // Edge case: zero segments is technically valid (empty container).
-        // We still accept it but at lower priority.
-        int priority = (header->segment_count > 0) ? 100 : 10;
-
-        // Edge case: version 2 gets higher priority.
+        // Build the accept result. Higher version gets higher priority
+        // so IDA prefers the most capable loader variant.
+        int priority = 100;
         if (header->version == kXbinVersion2) priority += 50;
-
-        // Determine processor from flags.
-        std::string processor = (header->flags & kXbinFlag64Bit)
-            ? "metapc" : "metapc";  // Same processor, different bitness handling.
+        // Files with no segments are technically valid containers but
+        // less likely to be what the user intended to load.
+        if (header->segment_count == 0) priority = 10;
 
         ida::loader::AcceptResult result;
         result.format_name = (header->version == kXbinVersion2)
             ? "XBIN v2 executable" : "XBIN v1 executable";
-        result.processor_name = processor;
+        result.processor_name = "metapc";
         result.priority = priority;
-
-        // Edge case: exercise InputFile::filename().
-        auto fname = file.filename();
-        if (fname) {
-            // Log filename for diagnostic purposes.
-        }
-
-        // Edge case: exercise InputFile::tell() after reads.
-        auto pos = file.tell();
-        (void)pos;
-
         return result;
     }
 
-    /// Load callback: create segments, load bytes, register entries.
-    ///
-    /// Edge cases:
-    ///   - Empty segment table (zero segments)
-    ///   - BSS segments (virtual_size > raw_size)
-    ///   - Extern segments (no file data)
-    ///   - Overlapping segment detection
-    ///   - Entry points with and without names
-    ///   - Fixup injection at potential relocation sites
-    ///   - Type application at entry point addresses
-    ///   - Comment annotation throughout
+    // ── load(): create segments, transfer bytes, register entries ────────
+
     ida::Status load(ida::loader::InputFile& file,
                      std::string_view format_name) override {
-        // Set processor type.
-        auto proc = ida::loader::set_processor("metapc");
-        if (!proc) return proc;
+        auto set_proc = ida::loader::set_processor("metapc");
+        if (!set_proc) return set_proc;
 
-        // Re-read header.
         auto header = read_struct<XbinHeader>(file, 0);
         if (!header) return std::unexpected(header.error());
 
-        bool is_64bit = (header->flags & kXbinFlag64Bit) != 0;
-        int bitness = is_64bit ? 64 : 32;
+        bool is_64bit = (header->flags & kFlagIs64Bit) != 0;
+        int  bitness  = is_64bit ? 64 : 32;
 
-        // Create filename comment.
-        auto cmt_status = ida::loader::create_filename_comment();
-        (void)cmt_status;  // Best-effort.
+        // Add a filename comment at the top of the database for context.
+        ida::loader::create_filename_comment();
 
-        // ── Load segment table ──────────────────────────────────────────
+        // ── Parse segment table ─────────────────────────────────────────
 
-        std::int64_t seg_table_offset = sizeof(XbinHeader);
+        std::int64_t seg_table_off = sizeof(XbinHeader);
         std::vector<XbinSegmentEntry> seg_entries;
         seg_entries.reserve(header->segment_count);
 
         for (std::uint16_t i = 0; i < header->segment_count; ++i) {
-            std::int64_t entry_offset = seg_table_offset +
+            auto off = seg_table_off +
                 static_cast<std::int64_t>(i) * sizeof(XbinSegmentEntry);
-            auto seg = read_struct<XbinSegmentEntry>(file, entry_offset);
+            auto seg = read_struct<XbinSegmentEntry>(file, off);
             if (!seg) {
                 return std::unexpected(ida::Error::validation(
-                    "Failed to read segment table entry",
-                    std::to_string(i)));
+                    "Truncated segment table",
+                    std::format("entry {} at offset {}", i, off)));
             }
             seg_entries.push_back(*seg);
         }
 
-        // Edge case: detect overlapping segments.
-        for (std::size_t i = 0; i < seg_entries.size(); ++i) {
-            for (std::size_t j = i + 1; j < seg_entries.size(); ++j) {
-                auto& a = seg_entries[i];
-                auto& b = seg_entries[j];
-                ida::Address a_start = header->base_address + a.virtual_address;
-                ida::Address a_end   = a_start + a.virtual_size;
-                ida::Address b_start = header->base_address + b.virtual_address;
-                ida::Address b_end   = b_start + b.virtual_size;
+        warn_overlaps(seg_entries, header->base_address);
 
-                if (a_start < b_end && b_start < a_end) {
-                    // Overlapping segments -- still load but warn.
-                }
-            }
-        }
-
-        // ── Create segments ─────────────────────────────────────────────
+        // ── Create segments and load data ───────────────────────────────
 
         for (std::size_t i = 0; i < seg_entries.size(); ++i) {
             const auto& seg = seg_entries[i];
             ida::Address seg_start = header->base_address + seg.virtual_address;
             ida::Address seg_end   = seg_start + seg.virtual_size;
 
-            // Edge case: empty segment name.
-            std::string seg_name = fixed_string(seg.name, 8);
-            if (seg_name.empty()) {
-                seg_name = "seg_" + std::to_string(i);
-            }
+            std::string name = fixed_name(seg.name, 8);
+            if (name.empty()) name = std::format("seg_{}", i);
 
-            // Determine segment type.
-            ida::segment::Type seg_type = ida::segment::Type::Normal;
-            if (seg.flags & kSegFlagBss)    seg_type = ida::segment::Type::Bss;
-            if (seg.flags & kSegFlagExtern) seg_type = ida::segment::Type::External;
+            // Map flags to idax types.
+            auto seg_type = ida::segment::Type::Normal;
+            if (seg.flags & kSegBss)    seg_type = ida::segment::Type::Bss;
+            if (seg.flags & kSegExtern) seg_type = ida::segment::Type::External;
 
-            // Determine class name from flags.
             std::string_view class_name = "DATA";
-            if (seg.flags & kSegFlagExecute) class_name = "CODE";
-            if (seg.flags & kSegFlagBss)     class_name = "BSS";
+            if (seg.flags & kSegExecute) class_name = "CODE";
+            if (seg.flags & kSegBss)     class_name = "BSS";
 
-            // Create segment.
             auto created = ida::segment::create(
-                seg_start, seg_end, seg_name, class_name, seg_type);
+                seg_start, seg_end, name, class_name, seg_type);
             if (!created) continue;
 
-            // Set permissions.
-            ida::segment::Permissions perms;
-            perms.read    = (seg.flags & kSegFlagRead) != 0;
-            perms.write   = (seg.flags & kSegFlagWrite) != 0;
-            perms.execute = (seg.flags & kSegFlagExecute) != 0;
-            (void)ida::segment::set_permissions(seg_start, perms);
+            ida::segment::set_bitness(seg_start, bitness);
+            ida::segment::set_permissions(seg_start, {
+                .read    = (seg.flags & kSegRead)    != 0,
+                .write   = (seg.flags & kSegWrite)   != 0,
+                .execute = (seg.flags & kSegExecute) != 0,
+            });
 
-            // Set bitness.
-            (void)ida::segment::set_bitness(seg_start, bitness);
+            // Transfer raw bytes from file. BSS and extern segments
+            // have no file data to transfer.
+            if (!(seg.flags & (kSegBss | kSegExtern)) && seg.raw_size > 0) {
+                auto load_size = std::min(
+                    static_cast<ida::AddressSize>(seg.raw_size),
+                    static_cast<ida::AddressSize>(seg.virtual_size));
+                ida::loader::file_to_database(
+                    file.handle(), seg.file_offset, seg_start, load_size, true);
 
-            // Load file data for non-BSS, non-extern segments.
-            if (!(seg.flags & kSegFlagBss) && !(seg.flags & kSegFlagExtern)) {
-                if (seg.raw_size > 0) {
-                    // Use file_to_database with the linput_t handle.
-                    auto load_st = ida::loader::file_to_database(
-                        file.handle(), seg.file_offset, seg_start,
-                        std::min(static_cast<ida::AddressSize>(seg.raw_size),
-                                 static_cast<ida::AddressSize>(seg.virtual_size)),
-                        true);
-                    (void)load_st;
-
-                    // Edge case: if virtual_size > raw_size, the gap is
-                    // zero-filled BSS-style data. We can load zeros for it
-                    // using memory_to_database.
-                    if (seg.virtual_size > seg.raw_size) {
-                        std::vector<std::uint8_t> zeros(
-                            seg.virtual_size - seg.raw_size, 0);
-                        ida::Address gap_start = seg_start + seg.raw_size;
-                        (void)ida::loader::memory_to_database(
-                            zeros.data(), gap_start, zeros.size());
-                    }
+                // If virtual_size > raw_size, the gap is uninitialized memory
+                // (like .bss at the tail of a data segment). Fill with zeros
+                // using memory_to_database so IDA treats these bytes as defined.
+                if (seg.virtual_size > seg.raw_size) {
+                    std::vector<std::uint8_t> zeros(
+                        seg.virtual_size - seg.raw_size, 0);
+                    ida::loader::memory_to_database(
+                        zeros.data(), seg_start + seg.raw_size, zeros.size());
                 }
             }
 
-            // Annotate segment with comment.
-            (void)ida::comment::set(seg_start,
-                "Loaded by XBIN advanced loader", false);
+            ida::comment::set(seg_start,
+                std::format("XBIN segment '{}': {:#x}-{:#x}, {}",
+                            name, seg_start, seg_end, class_name),
+                false);
         }
 
-        // ── Load entry table ────────────────────────────────────────────
+        // ── Parse and register entry points ─────────────────────────────
 
-        std::int64_t entry_table_offset = seg_table_offset +
+        std::int64_t entry_off = seg_table_off +
             static_cast<std::int64_t>(header->segment_count) * sizeof(XbinSegmentEntry);
 
         for (std::uint16_t i = 0; i < header->entry_count; ++i) {
-            std::int64_t entry_offset = entry_table_offset +
+            auto off = entry_off +
                 static_cast<std::int64_t>(i) * sizeof(XbinEntryEntry);
-            auto entry = read_struct<XbinEntryEntry>(file, entry_offset);
+            auto entry = read_struct<XbinEntryEntry>(file, off);
             if (!entry) continue;
 
-            ida::Address entry_addr = header->base_address + entry->address;
+            ida::Address ea = header->base_address + entry->address;
 
-            // Try to read the entry name from the file.
+            // Read the entry name from the file if a name offset is given.
             std::string entry_name;
             if (entry->name_offset != 0) {
-                auto name_result = file.read_string(entry->name_offset, 256);
-                if (name_result) {
-                    entry_name = *name_result;
+                if (auto nr = file.read_string(entry->name_offset, 256)) {
+                    entry_name = *nr;
                 }
             }
-
-            // Edge case: entry without a name.
             if (entry_name.empty()) {
-                entry_name = "entry_" + std::to_string(entry->ordinal);
+                entry_name = std::format("entry_{}", entry->ordinal);
             }
 
-            // Register entry point.
-            (void)ida::entry::add(
-                entry->ordinal, entry_addr, entry_name, true);
+            ida::entry::add(entry->ordinal, ea, entry_name, true);
+            ida::name::set(ea, entry_name);
 
-            // Name the entry point.
-            (void)ida::name::set(entry_addr, entry_name);
-
-            // Apply a function type at the entry point.
+            // Apply a basic function type so the decompiler has something
+            // to start with.
             auto func_type = ida::type::TypeInfo::from_declaration(
                 "int __cdecl " + entry_name + "(void)");
             if (func_type) {
-                (void)func_type->apply(entry_addr);
+                func_type->apply(ea);
             }
 
-            // Annotate with anterior comment.
-            (void)ida::comment::add_anterior(entry_addr,
-                "--- Entry Point: " + entry_name + " ---");
+            ida::comment::add_anterior(ea,
+                std::format("--- XBIN Entry: '{}' (ordinal {}) ---",
+                            entry_name, entry->ordinal));
         }
 
         // ── Inject fixups for relocatable binaries ──────────────────────
 
-        if (header->flags & kXbinFlagRelocatable) {
-            // In a real loader, we'd parse a relocation table.
-            // Here we demonstrate the fixup API by creating synthetic fixups
-            // at the first few pointer-aligned addresses in each code segment.
+        if (header->flags & kFlagRelocatable) {
+            // A real loader would parse a dedicated relocation table here.
+            // We synthesize a few fixups at pointer-aligned addresses in
+            // code segments to demonstrate the fixup creation API.
+            int ptr_size = is_64bit ? 8 : 4;
             for (const auto& seg : seg_entries) {
-                if (!(seg.flags & kSegFlagExecute)) continue;
+                if (!(seg.flags & kSegExecute)) continue;
 
                 ida::Address seg_start = header->base_address + seg.virtual_address;
-                int ptr_size = is_64bit ? 8 : 4;
+                int count = std::min(4, static_cast<int>(seg.raw_size / ptr_size));
 
-                // Create up to 4 synthetic fixups per code segment.
-                for (int j = 0; j < 4 && j * ptr_size < static_cast<int>(seg.raw_size); ++j) {
-                    ida::Address fixup_addr = seg_start +
+                for (int j = 0; j < count; ++j) {
+                    ida::Address fixup_ea = seg_start +
                         static_cast<ida::Address>(j * ptr_size);
 
-                    ida::fixup::Descriptor fixup_desc;
-                    fixup_desc.source = fixup_addr;
-                    fixup_desc.type = is_64bit ? ida::fixup::Type::Off64
+                    ida::fixup::Descriptor fd;
+                    fd.source       = fixup_ea;
+                    fd.type         = is_64bit ? ida::fixup::Type::Off64
                                                : ida::fixup::Type::Off32;
-                    fixup_desc.offset = seg_start;
-                    fixup_desc.displacement = 0;
-
-                    (void)ida::fixup::set(fixup_addr, fixup_desc);
+                    fd.offset       = seg_start;
+                    fd.displacement = 0;
+                    ida::fixup::set(fixup_ea, fd);
                 }
             }
         }
@@ -396,46 +342,35 @@ public:
         return ida::ok();
     }
 
-    /// Save callback: query capability and optionally write.
-    ///
-    /// Edge case: fp==nullptr is a capability query (return true/false).
+    // ── save(): capability query and serialization ──────────────────────
+
     ida::Result<bool> save(void* fp,
                            std::string_view format_name) override {
-        if (fp == nullptr) {
-            // Capability query: we support saving.
-            return true;
-        }
+        // When fp is nullptr, IDA is asking whether we support saving.
+        // Returning true enables "File > Produce file" for our format.
+        if (fp == nullptr) return true;
 
-        // In a real implementation, we'd serialize the database back to
-        // XBIN format here. For this example, we report success.
+        // A real implementation would serialize the database back to
+        // XBIN format here. For this example we just report success.
         return true;
     }
 
-    /// Move/rebase callback: handle program rebasing.
-    ///
-    /// Edge cases:
-    ///   - from == BadAddress means entire program rebase (delta in `to`)
-    ///   - Single segment move (from != BadAddress)
-    ///   - Zero-size means entire-program rebase
+    // ── move_segment(): handle program rebasing ─────────────────────────
+
     ida::Status move_segment(ida::Address from, ida::Address to,
                              ida::AddressSize size,
                              std::string_view format_name) override {
-        if (from == ida::BadAddress) {
-            // Entire program rebase. `to` contains the delta.
-            // For XBIN, we'd need to update all relocation targets.
-            // Here we just acknowledge it.
-            return ida::ok();
-        }
+        // from == BadAddress means whole-program rebase; `to` is the delta.
+        // A real loader would update all relocation records here.
+        if (from == ida::BadAddress) return ida::ok();
 
-        // Single segment move.
         if (size == 0) {
             return std::unexpected(ida::Error::validation(
-                "Zero-size segment move not supported"));
+                "Zero-size segment move is not meaningful"));
         }
 
-        // In a real loader we'd update internal relocation records.
         return ida::ok();
     }
 };
 
-IDAX_LOADER(AdvancedXbinLoader)
+IDAX_LOADER(XbinLoader)

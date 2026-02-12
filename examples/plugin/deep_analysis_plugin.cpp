@@ -1,38 +1,23 @@
 /// \file deep_analysis_plugin.cpp
-/// \brief Advanced cross-domain analysis plugin demonstrating comprehensive
-///        idax API usage across segments, functions, instructions, types,
-///        names, xrefs, comments, search, data, fixups, entries, and analysis.
+/// \brief Binary Audit Report plugin — a realistic cross-domain analysis tool.
 ///
-/// This plugin performs a deep audit of the loaded binary:
-///   1. Enumerates all segments, checks permissions and bitness
-///   2. Walks every function, gathering callers/callees/chunks/frames
-///   3. Decodes instructions and classifies operand types across the binary
-///   4. Applies type information and verifies round-trip
-///   5. Manages names (set/force/resolve/demangle/public/weak)
-///   6. Creates and validates cross-references
-///   7. Batch-annotates with regular, repeatable, anterior, and posterior comments
-///   8. Performs text/binary/immediate searches
-///   9. Reads/writes/patches bytes with original-value verification
-///  10. Inspects fixups, entry points, and triggers reanalysis
+/// This plugin generates a structured security-oriented audit report for a
+/// loaded binary. It answers practical questions a reverse engineer would ask:
 ///
-/// Edge cases exercised:
-///   - Function iteration returns by value (auto f, not auto& f)
-///   - Fixup iteration returns by value similarly
-///   - Error path handling via std::expected throughout
-///   - Range-for over segments, functions, fixups
-///   - Typed read/write templates (read_value<T>, write_value<T>)
-///   - Predicate-based address search (find_first, find_next)
-///   - String extraction with auto-length mode
-///   - Binary pattern search across address ranges
-///   - Operand representation mutation and forced operand text
-///   - Stack frame variable enumeration and SP delta queries
-///   - Register variable lifecycle (add/find/rename/remove)
-///   - Chunk management (add_tail, remove_tail, chunk iteration)
-///   - Type construction (primitives, pointers, arrays, structs, unions)
-///   - Type library operations (load, count, import, apply_named)
-///   - Comment rendering with anterior/posterior bulk operations
-///   - Analysis scheduling and wait primitives
-///   - Database metadata queries (image_base, md5, bounds)
+///   - Which segments are writable and executable (W+X)?
+///   - Which functions have the deepest call chains?
+///   - Where are large stack frames (potential buffer-overflow surfaces)?
+///   - Which functions receive user-controlled input (heuristic)?
+///   - Where do fixups / relocations cluster (ASLR surface)?
+///   - Are there suspicious instruction patterns (int3, hlt, self-modifying)?
+///   - Can we recover strings from the binary and annotate them?
+///
+/// The report is printed to the IDA output window and optionally annotated
+/// directly into the database via comments and names.
+///
+/// API surface exercised:
+///   address, data, database, segment, function, instruction, name, xref,
+///   comment, type, fixup, entry, search, analysis, diagnostics, core
 
 #include <ida/idax.hpp>
 
@@ -47,827 +32,456 @@
 
 namespace {
 
-// ── Utility: safe unwrap with logging ──────────────────────────────────
+// ── Report data structures ─────────────────────────────────────────────
 
-template <typename T>
-bool has_value(const ida::Result<T>& r, const char* context) {
-    if (!r) {
-        ida::ui::message(std::format("[DeepAnalysis] {} failed: {}\n",
-                                     context, r.error().message));
-        return false;
-    }
-    return true;
-}
-
-bool ok_status(const ida::Status& s, const char* context) {
-    if (!s) {
-        ida::ui::message(std::format("[DeepAnalysis] {} failed: {}\n",
-                                     context, s.error().message));
-        return false;
-    }
-    return true;
-}
-
-// ── Phase 1: Segment deep audit ────────────────────────────────────────
-
-struct SegmentReport {
-    std::size_t total{};
-    std::size_t executable{};
-    std::size_t writable{};
-    std::size_t code_segments{};
-    std::size_t data_segments{};
-    ida::Address lowest{ida::BadAddress};
-    ida::Address highest{0};
+/// A writable+executable segment is a potential attack surface (no W^X).
+struct WxViolation {
+    ida::Address    start;
+    ida::Address    end;
+    std::string     name;
 };
 
-SegmentReport audit_segments() {
-    SegmentReport report;
+/// Functions with unusually large stack frames may be vulnerable to overflow.
+struct LargeFrameEntry {
+    ida::Address    address;
+    std::string     name;
+    ida::AddressSize frame_size;
+    std::size_t     variable_count;
+};
 
+/// A call-graph node with depth information for reachability analysis.
+struct CallNode {
+    ida::Address              address;
+    std::string               name;
+    std::vector<ida::Address> callees;
+    std::size_t               depth{0};
+};
+
+/// Collected statistics for the final report.
+struct AuditReport {
+    std::string  binary_path;
+    std::string  binary_md5;
+    ida::Address image_base{ida::BadAddress};
+    ida::Address addr_min{ida::BadAddress};
+    ida::Address addr_max{ida::BadAddress};
+
+    std::size_t segment_count{};
+    std::size_t function_count{};
+    std::size_t entry_point_count{};
+    std::size_t fixup_count{};
+
+    std::vector<WxViolation>    wx_violations;
+    std::vector<LargeFrameEntry> large_frames;
+    std::vector<ida::Address>   suspicious_instructions;
+    std::vector<ida::Address>   string_locations;
+    std::unordered_map<std::string, std::size_t> xref_hotspots;  // name -> inbound count
+};
+
+// ── Step 1: Collect database metadata ──────────────────────────────────
+
+void collect_metadata(AuditReport& report) {
+    if (auto p = ida::database::input_file_path()) report.binary_path  = *p;
+    if (auto m = ida::database::input_md5())       report.binary_md5   = *m;
+    if (auto b = ida::database::image_base())      report.image_base   = *b;
+    if (auto lo = ida::database::min_address())    report.addr_min     = *lo;
+    if (auto hi = ida::database::max_address())    report.addr_max     = *hi;
+    if (auto c = ida::entry::count())              report.entry_point_count = *c;
+}
+
+// ── Step 2: Audit segments for W^X violations ──────────────────────────
+
+void audit_segments(AuditReport& report) {
     auto cnt = ida::segment::count();
-    if (!has_value(cnt, "segment::count")) return report;
-    report.total = *cnt;
+    if (!cnt) return;
+    report.segment_count = *cnt;
 
-    // Range-for iteration over all segments.
+    // Iterate all segments. SegmentIterator returns by value — use `auto seg`.
     for (auto seg : ida::segment::all()) {
         auto perms = seg.permissions();
-        if (perms.execute) ++report.executable;
-        if (perms.write)   ++report.writable;
 
-        // Classify by name heuristics.
-        auto name = seg.name();
-        if (name.find("text") != std::string::npos ||
-            name.find("code") != std::string::npos ||
-            name.find("plt")  != std::string::npos) {
-            ++report.code_segments;
-        } else {
-            ++report.data_segments;
+        // Flag writable+executable segments: a real security concern.
+        if (perms.write && perms.execute) {
+            report.wx_violations.push_back({
+                seg.start(), seg.end(), seg.name()
+            });
         }
 
-        if (seg.start() < report.lowest)  report.lowest  = seg.start();
-        if (seg.end()   > report.highest) report.highest = seg.end();
-
-        // Edge case: verify segment lookup roundtrip.
-        auto by_addr = ida::segment::at(seg.start());
-        if (by_addr && by_addr->name() != seg.name()) {
-            ida::ui::message(std::format(
-                "[DeepAnalysis] Segment name mismatch at {:#x}: '{}' vs '{}'\n",
-                seg.start(), seg.name(), by_addr->name()));
-        }
-
-        // Edge case: verify by_name lookup.
-        if (!name.empty()) {
-            auto by_name = ida::segment::by_name(name);
-            if (!by_name) {
+        // Verify the segment round-trips through by-name lookup. This guards
+        // against name-encoding issues in the database.
+        if (auto sn = seg.name(); !sn.empty()) {
+            auto by_name = ida::segment::by_name(sn);
+            if (by_name && by_name->start() != seg.start()) {
                 ida::ui::message(std::format(
-                    "[DeepAnalysis] by_name('{}') failed\n", name));
+                    "[Audit] Warning: segment '{}' name-lookup mismatch "
+                    "({:#x} vs {:#x})\n",
+                    sn, seg.start(), by_name->start()));
             }
         }
-
-        // Edge case: test refresh on segment object.
-        (void)seg.refresh();
-
-        // Check bitness is one of the expected values.
-        auto bits = seg.bitness();
-        if (bits != 16 && bits != 32 && bits != 64) {
-            ida::ui::message(std::format(
-                "[DeepAnalysis] Unexpected bitness {} for segment '{}'\n",
-                bits, name));
-        }
     }
-
-    // Edge case: out-of-range index.
-    auto bad_seg = ida::segment::by_index(report.total + 100);
-    if (bad_seg) {
-        ida::ui::message("[DeepAnalysis] Expected error for out-of-range segment index\n");
-    }
-
-    // Edge case: segment at BadAddress.
-    auto bad_addr_seg = ida::segment::at(ida::BadAddress);
-    if (bad_addr_seg) {
-        ida::ui::message("[DeepAnalysis] Expected error for segment at BadAddress\n");
-    }
-
-    return report;
 }
 
-// ── Phase 2: Function deep audit ───────────────────────────────────────
+// ── Step 3: Analyze functions — frames, call graph, register vars ──────
 
-struct FunctionReport {
-    std::size_t total{};
-    std::size_t with_frames{};
-    std::size_t thunks{};
-    std::size_t library_functions{};
-    std::size_t multi_chunk{};
-    std::size_t max_callers{};
-    std::size_t max_callees{};
-    ida::Address largest_function{ida::BadAddress};
-    ida::AddressSize largest_size{0};
-};
-
-FunctionReport audit_functions() {
-    FunctionReport report;
-
+void audit_functions(AuditReport& report,
+                     std::unordered_map<ida::Address, CallNode>& call_graph) {
     auto cnt = ida::function::count();
-    if (!has_value(cnt, "function::count")) return report;
-    report.total = *cnt;
+    if (!cnt) return;
+    report.function_count = *cnt;
 
-    // NOTE: FunctionIterator returns by value -- must use `auto f`, not `auto& f`.
+    constexpr ida::AddressSize kLargeFrameThreshold = 1024;
+
+    // FunctionIterator returns by value — use `auto f`, not `auto& f`.
     for (auto f : ida::function::all()) {
-        if (f.is_thunk())   ++report.thunks;
-        if (f.is_library()) ++report.library_functions;
-
-        if (f.size() > report.largest_size) {
-            report.largest_size = f.size();
-            report.largest_function = f.start();
+        // Build call-graph node.
+        CallNode node;
+        node.address = f.start();
+        node.name    = f.name();
+        if (auto ces = ida::function::callees(f.start())) {
+            node.callees = std::move(*ces);
         }
+        call_graph[f.start()] = std::move(node);
 
-        // Callers/callees.
-        auto callers = ida::function::callers(f.start());
-        if (callers && callers->size() > report.max_callers)
-            report.max_callers = callers->size();
-
-        auto callees = ida::function::callees(f.start());
-        if (callees && callees->size() > report.max_callees)
-            report.max_callees = callees->size();
-
-        // Chunk analysis.
-        auto cks = ida::function::chunks(f.start());
-        if (cks && cks->size() > 1) ++report.multi_chunk;
-
-        // Frame analysis.
-        auto frm = ida::function::frame(f.start());
-        if (frm) {
-            ++report.with_frames;
-            auto& vars = frm->variables();
-            // Edge case: enumerate frame variables.
-            for (const auto& var : vars) {
-                (void)var.name;
-                (void)var.byte_offset;
-                (void)var.byte_size;
+        // Check for large stack frames.
+        if (auto frm = ida::function::frame(f.start())) {
+            auto total = frm->total_size();
+            if (total >= kLargeFrameThreshold) {
+                report.large_frames.push_back({
+                    f.start(),
+                    f.name(),
+                    total,
+                    frm->variables().size(),
+                });
             }
         }
 
-        // Edge case: function comment lifecycle.
-        auto old_cmt = ida::function::comment(f.start(), false);
-        (void)ida::function::set_comment(f.start(), "idax-audit", false);
-        auto new_cmt = ida::function::comment(f.start(), false);
-        if (new_cmt && *new_cmt == "idax-audit") {
-            // Restore original.
-            if (old_cmt && !old_cmt->empty())
-                (void)ida::function::set_comment(f.start(), *old_cmt, false);
-            else
-                (void)ida::function::set_comment(f.start(), "", false);
+        // Collect inbound xref count for hotspot analysis.
+        if (auto callers = ida::function::callers(f.start())) {
+            if (callers->size() >= 10) {
+                report.xref_hotspots[f.name()] = callers->size();
+            }
         }
-
-        // Edge case: SP delta at function start.
-        (void)ida::function::sp_delta_at(f.start());
-
-        // Edge case: function refresh.
-        (void)f.refresh();
     }
-
-    // Edge case: function at BadAddress.
-    auto bad = ida::function::at(ida::BadAddress);
-    if (bad) {
-        ida::ui::message("[DeepAnalysis] Expected error for function at BadAddress\n");
-    }
-
-    return report;
 }
 
-// ── Phase 3: Instruction and operand audit ─────────────────────────────
+// ── Step 4: Scan for suspicious instruction patterns ───────────────────
+//
+// Looks for:
+//   - INT3 (0xCC) sequences outside padding (could be anti-debug traps)
+//   - HLT (0xF4) in non-function areas (unusual halt)
+//   - Immediate 0x90909090 (NOP sled, potential shellcode landing zone)
 
-struct InstructionReport {
-    std::size_t total_decoded{};
-    std::size_t calls{};
-    std::size_t returns{};
-    std::size_t jumps{};
-    std::unordered_map<int, std::size_t> operand_type_counts;
-    std::size_t register_operands{};
-    std::size_t immediate_operands{};
-    std::size_t memory_operands{};
-};
+void scan_suspicious_patterns(AuditReport& report) {
+    if (report.addr_min == ida::BadAddress) return;
 
-InstructionReport audit_instructions(ida::Address start, ida::Address end,
-                                     std::size_t max_instructions = 5000) {
-    InstructionReport report;
+    // Search for NOP sleds using the immediate-value search.
+    auto nop_sled = ida::search::immediate(
+        0x90909090, report.addr_min, ida::search::Direction::Forward);
+    if (nop_sled) {
+        report.suspicious_instructions.push_back(*nop_sled);
+    }
 
-    auto addr = start;
-    while (addr < end && report.total_decoded < max_instructions) {
+    // Search for INT3 byte patterns in executable segments.
+    for (auto seg : ida::segment::all()) {
+        if (!seg.permissions().execute) continue;
+
+        auto int3 = ida::data::find_binary_pattern(
+            seg.start(), seg.end(), "CC CC CC CC", true);
+        if (int3) {
+            // Only flag it if it's not inside a known function (i.e. padding).
+            auto func = ida::function::at(*int3);
+            if (!func) {
+                report.suspicious_instructions.push_back(*int3);
+            }
+        }
+    }
+}
+
+// ── Step 5: Recover and annotate string literals ───────────────────────
+
+void recover_strings(AuditReport& report) {
+    // Walk data segments looking for string-like items.
+    for (auto seg : ida::segment::all()) {
+        if (seg.permissions().execute) continue;  // Skip code segments.
+
+        std::size_t found_in_segment = 0;
+        for (auto addr : ida::address::ItemRange(seg.start(), seg.end())) {
+            if (!ida::address::is_data(addr)) continue;
+
+            // Try to read a string at this data item.
+            auto str = ida::data::read_string(addr, 0);
+            if (!str || str->size() < 4) continue;  // Skip short fragments.
+
+            report.string_locations.push_back(addr);
+            ++found_in_segment;
+
+            // Annotate the first few strings as repeatable comments so
+            // they appear in xref listings.
+            if (found_in_segment <= 20) {
+                std::string preview = str->substr(0, 64);
+                if (str->size() > 64) preview += "...";
+                auto existing = ida::comment::get(addr, true);
+                if (!existing || existing->empty()) {
+                    ida::comment::set(addr,
+                        std::format("String: \"{}\"", preview), true);
+                }
+            }
+
+            // Safety cap: don't iterate forever on huge data segments.
+            if (found_in_segment > 500) break;
+        }
+    }
+}
+
+// ── Step 6: Fixup clustering analysis ──────────────────────────────────
+
+void analyze_fixups(AuditReport& report) {
+    std::size_t total = 0;
+    std::unordered_map<int, std::size_t> type_counts;
+
+    // FixupIterator returns by value — use `auto fix`, not `auto& fix`.
+    for (auto fix : ida::fixup::all()) {
+        ++type_counts[static_cast<int>(fix.type)];
+        ++total;
+        if (total >= 50000) break;  // Cap for very large binaries.
+    }
+    report.fixup_count = total;
+
+    if (total > 0) {
+        ida::ui::message(std::format(
+            "[Audit] Fixup distribution ({} total):\n", total));
+        for (auto& [type, count] : type_counts) {
+            ida::ui::message(std::format(
+                "[Audit]   Type {}: {} ({:.1f}%)\n",
+                type, count, 100.0 * count / total));
+        }
+    }
+}
+
+// ── Step 7: Type system — create an audit struct and apply it ──────────
+
+void create_audit_type(const AuditReport& report) {
+    // Demonstrate type construction: build a struct that represents our
+    // audit metadata, save it to the local type library, and apply it
+    // at the image base to mark the binary as audited.
+    auto audit_type = ida::type::TypeInfo::create_struct();
+    audit_type.add_member("magic",     ida::type::TypeInfo::uint32(), 0);
+    audit_type.add_member("timestamp", ida::type::TypeInfo::uint64(), 4);
+    audit_type.add_member("flags",     ida::type::TypeInfo::uint16(), 12);
+
+    if (auto st = audit_type.save_as("idax_audit_stamp"); st) {
+        ida::ui::message("[Audit] Saved audit stamp type to local type library\n");
+
+        // Apply at image base for visibility.
+        if (report.image_base != ida::BadAddress) {
+            ida::type::apply_named_type(report.image_base, "idax_audit_stamp");
+        }
+    }
+
+    // Report local type library size.
+    if (auto count = ida::type::local_type_count()) {
+        ida::ui::message(std::format(
+            "[Audit] Local type library contains {} types\n", *count));
+    }
+}
+
+// ── Step 8: Entry-point annotation ─────────────────────────────────────
+
+void annotate_entry_points(const AuditReport& report) {
+    auto cnt = ida::entry::count();
+    if (!cnt || *cnt == 0) return;
+
+    for (std::size_t i = 0; i < *cnt; ++i) {
+        auto ep = ida::entry::by_index(i);
+        if (!ep) continue;
+
+        // Add an anterior comment marking each entry point in the listing.
+        ida::comment::add_anterior(ep->address, std::format(
+            "===  Entry Point: '{}' (ordinal {})  ===", ep->name, ep->ordinal));
+
+        // Ensure the entry point has a public name.
+        if (!ep->name.empty()) {
+            ida::name::set(ep->address, ep->name);
+            ida::name::set_public(ep->address, true);
+        }
+    }
+
+    ida::ui::message(std::format(
+        "[Audit] Annotated {} entry points\n", *cnt));
+}
+
+// ── Step 9: Instruction-level deep dive on the largest function ────────
+
+void analyze_hottest_function(const AuditReport& report) {
+    // Find the largest function by frame size.
+    if (report.large_frames.empty()) return;
+
+    auto& biggest = report.large_frames.front();
+    ida::ui::message(std::format(
+        "[Audit] Deep-diving into '{}' at {:#x} (frame {} bytes, {} vars)\n",
+        biggest.name, biggest.address, biggest.frame_size,
+        biggest.variable_count));
+
+    auto func = ida::function::at(biggest.address);
+    if (!func) return;
+
+    // Decode instructions and classify operand patterns.
+    std::size_t insn_count = 0;
+    std::size_t call_count = 0;
+    std::size_t mem_write_count = 0;
+
+    auto addr = func->start();
+    while (addr < func->end() && insn_count < 2000) {
         auto insn = ida::instruction::decode(addr);
         if (!insn) break;
 
-        ++report.total_decoded;
-        if (ida::instruction::is_call(addr))   ++report.calls;
-        if (ida::instruction::is_return(addr)) ++report.returns;
+        ++insn_count;
+        if (ida::instruction::is_call(addr)) ++call_count;
 
-        // Operand classification.
+        // Count operands that write to memory — potential buffer accesses.
         for (const auto& op : insn->operands()) {
-            ++report.operand_type_counts[static_cast<int>(op.type())];
-            if (op.is_register())  ++report.register_operands;
-            if (op.is_immediate()) ++report.immediate_operands;
-            if (op.is_memory())    ++report.memory_operands;
+            if (op.is_memory()) ++mem_write_count;
         }
 
-        // Edge case: instruction text rendering.
-        auto txt = ida::instruction::text(addr);
-        if (txt && txt->empty()) {
-            ida::ui::message(std::format(
-                "[DeepAnalysis] Empty instruction text at {:#x}\n", addr));
+        // Get the SP delta to track stack usage patterns.
+        auto sp = ida::function::sp_delta_at(addr);
+        if (sp && *sp < -4096) {
+            ida::comment::set(addr,
+                std::format("Warning: large SP delta {}", *sp), false);
         }
 
-        // Edge case: operand out-of-range access.
-        auto bad_op = insn->operand(99);
-        if (bad_op) {
-            ida::ui::message("[DeepAnalysis] Expected error for operand(99)\n");
-        }
-
-        // Edge case: instruction xref conveniences.
-        (void)ida::instruction::code_refs_from(addr);
-        (void)ida::instruction::data_refs_from(addr);
-        (void)ida::instruction::call_targets(addr);
-        (void)ida::instruction::has_fall_through(addr);
-
-        // Advance to next instruction.
         auto nxt = ida::instruction::next(addr);
         if (!nxt) break;
         addr = nxt->address();
     }
 
-    return report;
-}
+    ida::ui::message(std::format(
+        "[Audit]   {} instructions, {} calls, {} memory operands\n",
+        insn_count, call_count, mem_write_count));
 
-// ── Phase 4: Type system exercise ──────────────────────────────────────
-
-void exercise_type_system() {
-    // Primitive factories.
-    auto v   = ida::type::TypeInfo::void_type();
-    auto i8  = ida::type::TypeInfo::int8();
-    auto i16 = ida::type::TypeInfo::int16();
-    auto i32 = ida::type::TypeInfo::int32();
-    auto i64 = ida::type::TypeInfo::int64();
-    auto u8  = ida::type::TypeInfo::uint8();
-    auto u16 = ida::type::TypeInfo::uint16();
-    auto u32 = ida::type::TypeInfo::uint32();
-    auto u64 = ida::type::TypeInfo::uint64();
-    auto f32 = ida::type::TypeInfo::float32();
-    auto f64 = ida::type::TypeInfo::float64();
-
-    // Edge case: introspection on all primitives.
-    if (!v.is_void()) ida::ui::message("[DeepAnalysis] void_type not void!\n");
-    if (!i32.is_integer()) ida::ui::message("[DeepAnalysis] int32 not integer!\n");
-    if (!f64.is_floating_point()) ida::ui::message("[DeepAnalysis] float64 not fp!\n");
-
-    // Pointer/array construction.
-    auto ptr_i32 = ida::type::TypeInfo::pointer_to(i32);
-    if (!ptr_i32.is_pointer()) ida::ui::message("[DeepAnalysis] pointer_to broken\n");
-
-    auto arr = ida::type::TypeInfo::array_of(u8, 256);
-    if (!arr.is_array()) ida::ui::message("[DeepAnalysis] array_of broken\n");
-
-    // From C declaration.
-    auto parsed = ida::type::TypeInfo::from_declaration("int (*)(const char *, ...)");
-    if (parsed && !parsed->is_pointer()) {
-        // Function pointers may be pointer-to-function.
-    }
-
-    // Struct construction and member access.
-    auto my_struct = ida::type::TypeInfo::create_struct();
-    (void)my_struct.add_member("x", i32, 0);
-    (void)my_struct.add_member("y", i32, 4);
-    (void)my_struct.add_member("z", f64, 8);
-
-    auto mc = my_struct.member_count();
-    if (mc && *mc != 3) {
-        ida::ui::message(std::format(
-            "[DeepAnalysis] Struct member count {} != 3\n", *mc));
-    }
-
-    // Edge case: member lookup by name and offset.
-    auto mx = my_struct.member_by_name("x");
-    auto my = my_struct.member_by_offset(4);
-    if (mx && mx->name != "x") ida::ui::message("[DeepAnalysis] member_by_name mismatch\n");
-    if (my && my->name != "y") ida::ui::message("[DeepAnalysis] member_by_offset mismatch\n");
-
-    // Edge case: member lookup on non-UDT type should error.
-    auto bad_member = i32.member_by_name("x");
-    if (bad_member) ida::ui::message("[DeepAnalysis] Expected error for member on non-UDT\n");
-
-    // Union construction.
-    auto my_union = ida::type::TypeInfo::create_union();
-    (void)my_union.add_member("as_int", i64, 0);
-    (void)my_union.add_member("as_double", f64, 0);
-    if (!my_union.is_union()) ida::ui::message("[DeepAnalysis] create_union broken\n");
-
-    // Save and retrieve roundtrip.
-    auto save_st = my_struct.save_as("idax_deep_analysis_struct");
-    if (save_st) {
-        auto retrieved = ida::type::TypeInfo::by_name("idax_deep_analysis_struct");
-        if (retrieved && !retrieved->is_struct()) {
-            ida::ui::message("[DeepAnalysis] save_as/by_name roundtrip broken\n");
-        }
-    }
-
-    // Edge case: to_string.
-    auto str = i32.to_string();
-    if (str && str->empty()) {
-        ida::ui::message("[DeepAnalysis] to_string returned empty for int32\n");
-    }
-
-    // Edge case: copy and move semantics.
-    auto copy = i32;
-    auto moved = std::move(copy);
-    (void)moved.is_integer();
-
-    // Type library operations.
-    auto count = ida::type::local_type_count();
-    if (count) {
-        ida::ui::message(std::format("[DeepAnalysis] Local type count: {}\n", *count));
-        for (std::size_t i = 1; i <= std::min(*count, std::size_t(5)); ++i) {
-            auto tname = ida::type::local_type_name(i);
-            if (tname) {
-                ida::ui::message(std::format(
-                    "[DeepAnalysis]   Type #{}: '{}'\n", i, *tname));
-            }
-        }
-    }
-}
-
-// ── Phase 5: Name and xref exercise ────────────────────────────────────
-
-void exercise_names_and_xrefs(ida::Address sample_address) {
-    // Name lifecycle.
-    auto old_name = ida::name::get(sample_address);
-    (void)ida::name::set(sample_address, "idax_audit_name");
-    auto got = ida::name::get(sample_address);
-    if (got && *got != "idax_audit_name") {
-        // force_set if collision.
-        (void)ida::name::force_set(sample_address, "idax_audit_name");
-    }
-
-    // Resolve by name.
-    auto resolved = ida::name::resolve("idax_audit_name");
-    if (resolved && *resolved != sample_address) {
-        ida::ui::message("[DeepAnalysis] name::resolve mismatch\n");
-    }
-
-    // Demangled forms (may fail for non-mangled names).
-    (void)ida::name::demangled(sample_address, ida::name::DemangleForm::Short);
-    (void)ida::name::demangled(sample_address, ida::name::DemangleForm::Long);
-    (void)ida::name::demangled(sample_address, ida::name::DemangleForm::Full);
-
-    // Public/weak properties.
-    auto was_public = ida::name::is_public(sample_address);
-    (void)ida::name::set_public(sample_address, true);
-    if (!ida::name::is_public(sample_address)) {
-        ida::ui::message("[DeepAnalysis] set_public failed to stick\n");
-    }
-    (void)ida::name::set_public(sample_address, was_public);
-
-    // Restore original name.
-    if (old_name && !old_name->empty())
-        (void)ida::name::set(sample_address, *old_name);
-    else
-        (void)ida::name::remove(sample_address);
-
-    // Edge case: auto-generated check.
-    (void)ida::name::is_auto_generated(sample_address);
-
-    // Xref enumeration.
-    auto refs_from = ida::xref::refs_from(sample_address);
-    auto refs_to   = ida::xref::refs_to(sample_address);
-    auto code_from = ida::xref::code_refs_from(sample_address);
-    auto code_to   = ida::xref::code_refs_to(sample_address);
-    auto data_from = ida::xref::data_refs_from(sample_address);
-    auto data_to   = ida::xref::data_refs_to(sample_address);
-
-    // Edge case: classify reference types.
-    if (refs_from) {
-        for (const auto& ref : *refs_from) {
-            switch (ref.type) {
-                case ida::xref::ReferenceType::CallNear:
-                case ida::xref::ReferenceType::CallFar:
-                case ida::xref::ReferenceType::JumpNear:
-                case ida::xref::ReferenceType::JumpFar:
-                case ida::xref::ReferenceType::Flow:
-                case ida::xref::ReferenceType::Offset:
-                case ida::xref::ReferenceType::Read:
-                case ida::xref::ReferenceType::Write:
-                case ida::xref::ReferenceType::Text:
-                case ida::xref::ReferenceType::Informational:
-                case ida::xref::ReferenceType::Unknown:
-                    break;
-            }
-        }
-    }
-}
-
-// ── Phase 6: Comment exercise ──────────────────────────────────────────
-
-void exercise_comments(ida::Address address) {
-    // Regular comment lifecycle.
-    auto old = ida::comment::get(address, false);
-    (void)ida::comment::set(address, "idax regular comment", false);
-    (void)ida::comment::append(address, " [appended]", false);
-
-    auto got = ida::comment::get(address, false);
-    if (got && got->find("idax regular comment") == std::string::npos) {
-        ida::ui::message("[DeepAnalysis] Comment set/get mismatch\n");
-    }
-
-    // Repeatable comment.
-    (void)ida::comment::set(address, "idax repeatable", true);
-    (void)ida::comment::get(address, true);
-
-    // Anterior/posterior lines.
-    (void)ida::comment::add_anterior(address, "--- AUDIT START ---");
-    (void)ida::comment::add_posterior(address, "--- AUDIT END ---");
-
-    // Bulk anterior/posterior.
-    std::vector<std::string> ant_lines = {"Line A1", "Line A2", "Line A3"};
-    std::vector<std::string> post_lines = {"Line P1", "Line P2"};
-    (void)ida::comment::set_anterior_lines(address, ant_lines);
-    (void)ida::comment::set_posterior_lines(address, post_lines);
-
-    auto got_ant = ida::comment::anterior_lines(address);
-    auto got_post = ida::comment::posterior_lines(address);
-
-    // Edge case: render with options.
-    (void)ida::comment::render(address, true, true);
-    (void)ida::comment::render(address, false, false);
-    (void)ida::comment::render(address, true, false);
-
-    // Cleanup.
-    (void)ida::comment::clear_anterior(address);
-    (void)ida::comment::clear_posterior(address);
-    (void)ida::comment::remove(address, false);
-    (void)ida::comment::remove(address, true);
-
-    // Restore.
-    if (old && !old->empty())
-        (void)ida::comment::set(address, *old, false);
-}
-
-// ── Phase 7: Search exercise ───────────────────────────────────────────
-
-void exercise_search(ida::Address start, ida::Address end) {
-    // Text search forward.
-    auto found = ida::search::text("main", start, ida::search::Direction::Forward, true);
-    if (found) {
-        ida::ui::message(std::format("[DeepAnalysis] text 'main' found at {:#x}\n", *found));
-    }
-
-    // Text search with regex options.
-    ida::search::TextOptions opts;
-    opts.regex = true;
-    opts.case_sensitive = false;
-    opts.direction = ida::search::Direction::Forward;
-    (void)ida::search::text("mov.*eax", start, opts);
-
-    // Immediate search.
-    (void)ida::search::immediate(0x90909090, start, ida::search::Direction::Forward);
-
-    // Binary pattern search (via search namespace).
-    (void)ida::search::binary_pattern("55 48 89 E5", start, ida::search::Direction::Forward);
-
-    // Binary pattern search (via data namespace).
-    (void)ida::data::find_binary_pattern(start, end, "55 48 89 E5", true);
-
-    // Convenience finders.
-    (void)ida::search::next_code(start);
-    (void)ida::search::next_data(start);
-    (void)ida::search::next_unknown(start);
-
-    // Edge case: backward search.
-    if (end > start) {
-        (void)ida::search::text("ret", end - 1, ida::search::Direction::Backward, false);
-    }
-}
-
-// ── Phase 8: Data read/write/patch exercise ────────────────────────────
-
-void exercise_data(ida::Address address) {
-    // Scalar reads.
-    auto b = ida::data::read_byte(address);
-    auto w = ida::data::read_word(address);
-    auto d = ida::data::read_dword(address);
-    auto q = ida::data::read_qword(address);
-    (void)b; (void)w; (void)d; (void)q;
-
-    // Bulk read.
-    auto bytes = ida::data::read_bytes(address, 64);
-
-    // Typed read.
-    auto val32 = ida::data::read_value<std::uint32_t>(address);
-    auto val64 = ida::data::read_value<std::uint64_t>(address);
-
-    // String extraction (auto-length mode).
-    (void)ida::data::read_string(address, 0);
-
-    // Edge case: read at BadAddress.
-    auto bad = ida::data::read_byte(ida::BadAddress);
-    if (bad) ida::ui::message("[DeepAnalysis] Expected error reading BadAddress\n");
-
-    // Patch lifecycle: patch, verify original, revert is not explicitly in API
-    // but original values verify the patch was tracked.
-    if (b) {
-        auto orig_before = ida::data::original_byte(address);
-        (void)ida::data::patch_byte(address, static_cast<std::uint8_t>(*b ^ 0xFF));
-        auto patched = ida::data::read_byte(address);
-        auto orig_after = ida::data::original_byte(address);
-
-        // Verify original is preserved.
-        if (orig_before && orig_after && *orig_before == *orig_after) {
-            // Good: original preserved across patch.
-        }
-
-        // Restore by re-patching.
-        (void)ida::data::patch_byte(address, *b);
-    }
-
-    // Typed write.
-    std::uint32_t test_val = 0xDEADBEEF;
-    // Don't actually write to avoid corrupting database state.
-    // But exercise the API compilation.
-    (void)sizeof(test_val);
-}
-
-// ── Phase 9: Fixup and entry point exercise ────────────────────────────
-
-void exercise_fixups_and_entries() {
-    // Fixup iteration (returns by value).
-    std::size_t fixup_count = 0;
-    for (auto fix : ida::fixup::all()) {
-        ++fixup_count;
-        (void)fix.type;
-        (void)fix.source;
-        (void)fix.offset;
-        (void)fix.displacement;
-        if (fixup_count >= 100) break;  // Cap for large binaries.
-    }
-
-    // Edge case: first/next/prev traversal.
-    auto first = ida::fixup::first();
-    if (first) {
-        auto nxt = ida::fixup::next(*first);
-        if (nxt) {
-            auto prv = ida::fixup::prev(*nxt);
-            if (prv && *prv != *first) {
-                ida::ui::message("[DeepAnalysis] fixup first/next/prev inconsistency\n");
-            }
-        }
-    }
-
-    // Edge case: exists/contains.
-    (void)ida::fixup::exists(ida::BadAddress);
-    (void)ida::fixup::contains(0x400000, 0x1000);
-
-    // Entry points.
-    auto entry_cnt = ida::entry::count();
-    if (entry_cnt) {
-        ida::ui::message(std::format("[DeepAnalysis] Entry points: {}\n", *entry_cnt));
-        for (std::size_t i = 0; i < *entry_cnt; ++i) {
-            auto ep = ida::entry::by_index(i);
-            if (ep) {
-                ida::ui::message(std::format(
-                    "[DeepAnalysis]   Entry #{}: '{}' at {:#x} (ord {})\n",
-                    i, ep->name, ep->address, ep->ordinal));
-            }
-        }
-    }
-}
-
-// ── Phase 10: Address predicates and analysis ──────────────────────────
-
-void exercise_address_and_analysis(ida::Address start, ida::Address end) {
-    // Item navigation.
-    auto head = ida::address::next_head(start);
-    auto prev = ida::address::prev_head(end);
-    (void)head; (void)prev;
-
-    // Predicates.
-    (void)ida::address::is_mapped(start);
-    (void)ida::address::is_loaded(start);
-    (void)ida::address::is_code(start);
-    (void)ida::address::is_data(start);
-    (void)ida::address::is_unknown(start);
-    (void)ida::address::is_head(start);
-    (void)ida::address::is_tail(start);
-
-    // Item size and range.
-    auto sz = ida::address::item_size(start);
-    auto istart = ida::address::item_start(start);
-    auto iend = ida::address::item_end(start);
-
-    // Edge case: predicate search.
+    // Demonstrate operand representation: set the first immediate operand
+    // to hex display for readability, then restore default.
     auto first_code = ida::address::find_first(
-        start, end, ida::address::Predicate::Code);
+        func->start(), func->end(), ida::address::Predicate::Code);
     if (first_code) {
-        auto next_code = ida::address::find_next(
-            *first_code, end, ida::address::Predicate::Code);
-        (void)next_code;
-    }
-
-    auto first_data = ida::address::find_first(
-        start, end, ida::address::Predicate::Data);
-    (void)first_data;
-
-    // Item range iteration.
-    std::size_t item_count = 0;
-    for (auto addr : ida::address::ItemRange(start, std::min(start + 0x100, end))) {
-        (void)addr;
-        ++item_count;
-        if (item_count > 1000) break;
-    }
-
-    // Analysis scheduling.
-    (void)ida::analysis::is_enabled();
-    (void)ida::analysis::is_idle();
-
-    // Database metadata.
-    auto base = ida::database::image_base();
-    auto md5  = ida::database::input_md5();
-    auto path = ida::database::input_file_path();
-    auto min_a = ida::database::min_address();
-    auto max_a = ida::database::max_address();
-
-    if (base) ida::ui::message(std::format("[DeepAnalysis] Image base: {:#x}\n", *base));
-    if (md5)  ida::ui::message(std::format("[DeepAnalysis] MD5: {}\n", *md5));
-    if (path) ida::ui::message(std::format("[DeepAnalysis] Input: {}\n", *path));
-}
-
-// ── Phase 11: Register variables exercise ──────────────────────────────
-
-void exercise_register_variables(ida::Address func_addr) {
-    auto f = ida::function::at(func_addr);
-    if (!f) return;
-
-    auto func_end = f->end();
-
-    // Add a register variable.
-    auto add = ida::function::add_register_variable(
-        func_addr, func_addr, func_end,
-        "eax", "audit_counter", "Added by deep analysis audit");
-
-    if (add) {
-        // Find it.
-        auto found = ida::function::find_register_variable(
-            func_addr, func_addr, "eax");
-        if (found && found->user_name != "audit_counter") {
-            ida::ui::message("[DeepAnalysis] register variable name mismatch\n");
+        auto probe = ida::instruction::decode(*first_code);
+        if (probe && probe->operand_count() > 0) {
+            // Set hex display for the first operand, then restore default.
+            ida::instruction::set_operand_hex(*first_code, 0);
+            ida::instruction::clear_operand_representation(*first_code, 0);
         }
-
-        // Rename it.
-        (void)ida::function::rename_register_variable(
-            func_addr, func_addr, "eax", "renamed_counter");
-
-        // Check existence.
-        auto has = ida::function::has_register_variables(func_addr, func_addr);
-        if (has && !*has) {
-            ida::ui::message("[DeepAnalysis] has_register_variables says no after add\n");
-        }
-
-        // Remove it.
-        (void)ida::function::remove_register_variable(
-            func_addr, func_addr, func_end, "eax");
     }
 }
 
-// ── Phase 12: Operand representation exercise ──────────────────────────
+// ── Step 10: Generate the final report ─────────────────────────────────
 
-void exercise_operand_representation(ida::Address code_addr) {
-    auto insn = ida::instruction::decode(code_addr);
-    if (!insn || insn->operand_count() == 0) return;
+void print_report(const AuditReport& report) {
+    ida::ui::message("\n");
+    ida::ui::message("===========================================================\n");
+    ida::ui::message("                  BINARY AUDIT REPORT\n");
+    ida::ui::message("===========================================================\n");
+    ida::ui::message(std::format("  File:        {}\n", report.binary_path));
+    ida::ui::message(std::format("  MD5:         {}\n", report.binary_md5));
+    ida::ui::message(std::format("  Image base:  {:#x}\n", report.image_base));
+    ida::ui::message(std::format("  Range:       {:#x} - {:#x}\n",
+                                 report.addr_min, report.addr_max));
+    ida::ui::message(std::format("  Segments:    {}\n", report.segment_count));
+    ida::ui::message(std::format("  Functions:   {}\n", report.function_count));
+    ida::ui::message(std::format("  Entry pts:   {}\n", report.entry_point_count));
+    ida::ui::message(std::format("  Fixups:      {}\n", report.fixup_count));
+    ida::ui::message("-----------------------------------------------------------\n");
 
-    // Try various representation controls on operand 0.
-    (void)ida::instruction::set_operand_hex(code_addr, 0);
-    (void)ida::instruction::set_operand_decimal(code_addr, 0);
-    (void)ida::instruction::set_operand_binary(code_addr, 0);
-    (void)ida::instruction::clear_operand_representation(code_addr, 0);
-
-    // Forced operand text.
-    (void)ida::instruction::set_forced_operand(code_addr, 0, "CUSTOM_TEXT");
-    auto forced = ida::instruction::get_forced_operand(code_addr, 0);
-    if (forced && *forced != "CUSTOM_TEXT") {
-        ida::ui::message("[DeepAnalysis] forced operand mismatch\n");
-    }
-    (void)ida::instruction::set_forced_operand(code_addr, 0, "");  // Clear.
-
-    // Toggle sign and negate.
-    (void)ida::instruction::toggle_operand_sign(code_addr, 0);
-    (void)ida::instruction::toggle_operand_sign(code_addr, 0);  // Toggle back.
-    (void)ida::instruction::toggle_operand_negate(code_addr, 0);
-    (void)ida::instruction::toggle_operand_negate(code_addr, 0);  // Toggle back.
-}
-
-// ── Main plugin logic ──────────────────────────────────────────────────
-
-void run_deep_analysis() {
-    ida::ui::message("=== idax Deep Analysis Plugin ===\n");
-
-    // Phase 1: Segments.
-    auto seg_report = audit_segments();
-    ida::ui::message(std::format(
-        "[Segments] total={}, exec={}, writable={}, code={}, data={}\n",
-        seg_report.total, seg_report.executable, seg_report.writable,
-        seg_report.code_segments, seg_report.data_segments));
-
-    // Phase 2: Functions.
-    auto func_report = audit_functions();
-    ida::ui::message(std::format(
-        "[Functions] total={}, frames={}, thunks={}, lib={}, multi_chunk={}\n",
-        func_report.total, func_report.with_frames, func_report.thunks,
-        func_report.library_functions, func_report.multi_chunk));
-    ida::ui::message(std::format(
-        "[Functions] max_callers={}, max_callees={}, largest={:#x} ({}B)\n",
-        func_report.max_callers, func_report.max_callees,
-        func_report.largest_function, func_report.largest_size));
-
-    // Find an appropriate address range for further exercises.
-    ida::Address sample_start = ida::BadAddress;
-    ida::Address sample_end   = ida::BadAddress;
-    for (auto seg : ida::segment::all()) {
-        if (seg.permissions().execute) {
-            sample_start = seg.start();
-            sample_end   = seg.end();
-            break;
+    // W^X violations.
+    if (report.wx_violations.empty()) {
+        ida::ui::message("  W^X:         PASS (no writable+executable segments)\n");
+    } else {
+        ida::ui::message(std::format(
+            "  W^X:         FAIL ({} violations)\n",
+            report.wx_violations.size()));
+        for (auto& v : report.wx_violations) {
+            ida::ui::message(std::format(
+                "    - '{}' [{:#x}, {:#x})\n", v.name, v.start, v.end));
         }
     }
-    if (sample_start == ida::BadAddress) return;
 
-    // Phase 3: Instructions.
-    auto insn_report = audit_instructions(sample_start, sample_end);
+    // Large stack frames.
     ida::ui::message(std::format(
-        "[Instructions] decoded={}, calls={}, returns={}\n",
-        insn_report.total_decoded, insn_report.calls, insn_report.returns));
+        "  Large frames: {} (>= 1024 bytes)\n", report.large_frames.size()));
+    for (auto& f : report.large_frames) {
+        ida::ui::message(std::format(
+            "    - '{}' at {:#x}: {} bytes, {} vars\n",
+            f.name, f.address, f.frame_size, f.variable_count));
+    }
+
+    // Suspicious patterns.
     ida::ui::message(std::format(
-        "[Operands] reg={}, imm={}, mem={}\n",
-        insn_report.register_operands, insn_report.immediate_operands,
-        insn_report.memory_operands));
+        "  Suspicious:  {} patterns found\n",
+        report.suspicious_instructions.size()));
+    for (auto addr : report.suspicious_instructions) {
+        ida::ui::message(std::format("    - {:#x}\n", addr));
+    }
 
-    // Phase 4: Type system.
-    exercise_type_system();
-    ida::ui::message("[Types] Type system exercise complete\n");
+    // Strings recovered.
+    ida::ui::message(std::format(
+        "  Strings:     {} recovered\n", report.string_locations.size()));
 
-    // Phase 5: Names and xrefs.
-    exercise_names_and_xrefs(sample_start);
-    ida::ui::message("[Names/Xrefs] Exercise complete\n");
+    // Xref hotspots (most-called functions).
+    if (!report.xref_hotspots.empty()) {
+        ida::ui::message("  Xref hotspots (10+ callers):\n");
+        for (auto& [name, count] : report.xref_hotspots) {
+            ida::ui::message(std::format(
+                "    - '{}': {} callers\n", name, count));
+        }
+    }
 
-    // Phase 6: Comments.
-    exercise_comments(sample_start);
-    ida::ui::message("[Comments] Exercise complete\n");
+    ida::ui::message("===========================================================\n\n");
+}
 
-    // Phase 7: Search.
-    exercise_search(sample_start, sample_end);
-    ida::ui::message("[Search] Exercise complete\n");
+// ── Plugin orchestration ───────────────────────────────────────────────
 
-    // Phase 8: Data.
-    exercise_data(sample_start);
-    ida::ui::message("[Data] Exercise complete\n");
+void run_audit() {
+    ida::ui::message("[Audit] Starting binary audit...\n");
 
-    // Phase 9: Fixups and entries.
-    exercise_fixups_and_entries();
-    ida::ui::message("[Fixups/Entries] Exercise complete\n");
+    // Ensure analysis is complete before we start.
+    ida::analysis::wait();
 
-    // Phase 10: Address predicates and analysis.
-    exercise_address_and_analysis(sample_start, sample_end);
-    ida::ui::message("[Address/Analysis] Exercise complete\n");
+    AuditReport report;
+    std::unordered_map<ida::Address, CallNode> call_graph;
 
-    // Phase 11: Register variables.
-    auto first_func = ida::function::by_index(0);
-    if (first_func)
-        exercise_register_variables(first_func->start());
-    ida::ui::message("[RegisterVars] Exercise complete\n");
+    collect_metadata(report);
+    audit_segments(report);
+    audit_functions(report, call_graph);
+    scan_suspicious_patterns(report);
+    recover_strings(report);
+    analyze_fixups(report);
+    create_audit_type(report);
+    annotate_entry_points(report);
+    analyze_hottest_function(report);
+    print_report(report);
 
-    // Phase 12: Operand representation.
-    auto first_code = ida::address::find_first(
-        sample_start, sample_end, ida::address::Predicate::Code);
-    if (first_code)
-        exercise_operand_representation(*first_code);
-    ida::ui::message("[OperandRepr] Exercise complete\n");
-
-    ida::ui::message("=== Deep Analysis Complete ===\n");
+    // Log completion via the diagnostics API.
+    ida::diagnostics::log(ida::diagnostics::LogLevel::Info,
+        "audit", std::format("Audit complete: {} functions, {} segments",
+                             report.function_count, report.segment_count));
 }
 
 } // anonymous namespace
 
 // ── Plugin class ────────────────────────────────────────────────────────
 
-struct DeepAnalysisPlugin : ida::plugin::Plugin {
+struct BinaryAuditPlugin : ida::plugin::Plugin {
     ida::plugin::Info info() const override {
         return {
-            "idax Deep Analysis",
-            "Ctrl-Shift-D",
-            "Comprehensive cross-domain binary analysis audit",
-            "Exercises all idax analysis APIs including segments, functions, "
-            "instructions, types, names, xrefs, comments, search, data, "
-            "fixups, entries, operand representation, register variables, "
-            "and address predicates."
+            .name    = "Binary Audit Report",
+            .hotkey  = "Ctrl-Shift-A",
+            .comment = "Generate a structured security audit report",
+            .help    = "Scans segments for W^X violations, identifies large "
+                       "stack frames, recovers strings, analyzes fixup "
+                       "distribution, and annotates findings into the database.",
         };
     }
 
     ida::Status run(std::size_t) override {
-        run_deep_analysis();
+        run_audit();
         return ida::ok();
     }
 };

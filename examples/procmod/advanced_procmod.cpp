@@ -1,144 +1,122 @@
 /// \file advanced_procmod.cpp
-/// \brief Advanced custom processor module demonstrating comprehensive
-///        idax processor API usage with a full hypothetical RISC ISA.
+/// \brief XRISC-32 Processor Module — a complete processor implementation
+///        demonstrating all required and optional procmod callbacks.
 ///
-/// This processor module implements "XRISC-32": a hypothetical 32-bit RISC
-/// architecture with 16 general-purpose registers, a simple fixed-width
-/// instruction encoding, and support for switch table detection, stack
-/// analysis, function prolog recognition, and all optional processor callbacks.
+/// This processor module implements "XRISC-32", a hypothetical 32-bit RISC
+/// architecture designed to exercise the full processor module API surface.
+/// Unlike minimal examples, this module provides complete implementations
+/// for all callbacks, including text output.
 ///
-/// Instruction encoding (32 bits):
-///   [31:28] opcode (4 bits = 16 instructions)
-///   [27:24] rd     (destination register, 4 bits)
-///   [23:20] rs1    (source register 1, 4 bits)
-///   [19:16] rs2    (source register 2, 4 bits)
-///   [15: 0] imm16  (16-bit immediate, sign-extended where applicable)
+/// Architecture summary:
+///   - 16 general-purpose 32-bit registers (r0..r12, sp, lr, pc)
+///   - 2 segment registers (cs, ds) for IDA's segment tracking
+///   - Fixed-width 32-bit instruction encoding
+///   - PC-relative branches and calls
+///   - Simple load/store memory model
+///
+/// Instruction encoding (32 bits, big-endian fields):
+///   [31:28] opcode  — 4 bits, selects one of 16 instructions
+///   [27:24] rd      — destination register
+///   [23:20] rs1     — source register 1
+///   [19:16] rs2     — source register 2
+///   [15: 0] imm16   — signed 16-bit immediate
 ///
 /// ISA:
-///   0x0: NOP                      - no operation
-///   0x1: MOV  rd, rs1             - register move
-///   0x2: LDI  rd, imm16           - load immediate
-///   0x3: ADD  rd, rs1, rs2        - add registers
-///   0x4: SUB  rd, rs1, rs2        - subtract registers
-///   0x5: AND  rd, rs1, rs2        - bitwise AND
-///   0x6: OR   rd, rs1, rs2        - bitwise OR
-///   0x7: XOR  rd, rs1, rs2        - bitwise XOR
-///   0x8: LD   rd, [rs1 + imm16]   - load word from memory
-///   0x9: ST   rs2, [rs1 + imm16]  - store word to memory
-///   0xA: BEQ  rs1, rs2, imm16     - branch if equal (PC-relative)
-///   0xB: BNE  rs1, rs2, imm16     - branch if not equal (PC-relative)
-///   0xC: JMP  imm16               - unconditional PC-relative jump
-///   0xD: CALL imm16               - PC-relative call (link in r15)
-///   0xE: RET                      - return (jump to r15)
-///   0xF: HALT                     - halt processor
+///   0x0 NOP                        0x8 LD   rd, [rs1 + imm16]
+///   0x1 MOV  rd, rs1               0x9 ST   rs2, [rs1 + imm16]
+///   0x2 LDI  rd, imm16             0xA BEQ  rs1, rs2, imm16
+///   0x3 ADD  rd, rs1, rs2          0xB BNE  rs1, rs2, imm16
+///   0x4 SUB  rd, rs1, rs2          0xC JMP  imm16
+///   0x5 AND  rd, rs1, rs2          0xD CALL imm16
+///   0x6 OR   rd, rs1, rs2          0xE RET
+///   0x7 XOR  rd, rs1, rs2          0xF HALT
 ///
-/// Edge cases exercised:
-///   - All 16 registers with segment register assignment
-///   - Full instruction descriptor table with InstructionFeature flags
-///   - AssemblerInfo with complete directive set
-///   - ProcessorFlag bitmask construction
-///   - ProcessorInfo with all metadata fields populated
-///   - analyze(): instruction decode with operand classification
-///   - emulate(): xref creation and flow analysis
-///   - output_instruction(): text generation
-///   - output_operand(): per-operand rendering
-///   - is_call/is_return classification
-///   - may_be_function heuristics
-///   - is_sane_instruction validation
-///   - is_indirect_jump detection
-///   - is_basic_block_end for conditional branches
-///   - create_function_frame for stack frame creation
-///   - adjust_function_bounds refinement
-///   - analyze_function_prolog pattern matching
-///   - calculate_stack_pointer_delta tracking
-///   - get_return_address_size
-///   - detect_switch with SwitchDescription population
-///   - calculate_switch_cases with SwitchCase generation
-///   - create_switch_references
-///   - on_new_file/on_old_file notifications
+/// API surface exercised:
+///   processor (Processor, ProcessorInfo, RegisterInfo, InstructionDescriptor,
+///   InstructionFeature, AssemblerInfo, ProcessorFlag, SwitchDescription,
+///   SwitchCase, EmulateResult, OutputOperandResult), data, xref, analysis,
+///   name, function, comment
 
 #include <ida/idax.hpp>
 
 #include <cstdint>
+#include <format>
 #include <string>
 #include <vector>
 
 namespace {
 
-// ── Instruction opcodes ────────────────────────────────────────────────
+// ── XRISC-32 ISA constants ────────────────────────────────────────────
 
-enum XriscOpcode : std::uint8_t {
-    XRISC_NOP  = 0x0,
-    XRISC_MOV  = 0x1,
-    XRISC_LDI  = 0x2,
-    XRISC_ADD  = 0x3,
-    XRISC_SUB  = 0x4,
-    XRISC_AND  = 0x5,
-    XRISC_OR   = 0x6,
-    XRISC_XOR  = 0x7,
-    XRISC_LD   = 0x8,
-    XRISC_ST   = 0x9,
-    XRISC_BEQ  = 0xA,
-    XRISC_BNE  = 0xB,
-    XRISC_JMP  = 0xC,
-    XRISC_CALL = 0xD,
-    XRISC_RET  = 0xE,
-    XRISC_HALT = 0xF,
-    XRISC_COUNT = 16,
+enum Opcode : std::uint8_t {
+    OP_NOP  = 0x0,  OP_MOV  = 0x1,  OP_LDI  = 0x2,  OP_ADD  = 0x3,
+    OP_SUB  = 0x4,  OP_AND  = 0x5,  OP_OR   = 0x6,  OP_XOR  = 0x7,
+    OP_LD   = 0x8,  OP_ST   = 0x9,  OP_BEQ  = 0xA,  OP_BNE  = 0xB,
+    OP_JMP  = 0xC,  OP_CALL = 0xD,  OP_RET  = 0xE,  OP_HALT = 0xF,
+    OP_COUNT = 16,
 };
 
-// ── Register indices ───────────────────────────────────────────────────
-
-enum XriscRegister : int {
-    R0 = 0, R1, R2, R3, R4, R5, R6, R7,
-    R8, R9, R10, R11, R12,
-    SP = 13,  // Stack pointer
-    LR = 14,  // Link register (for CALL)
-    PC = 15,  // Program counter
-    // Pseudo segment registers:
-    CS = 16,
-    DS = 17,
-    XRISC_REG_COUNT = 18,
+enum Reg : int {
+    R0 = 0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12,
+    SP = 13, LR = 14, PC = 15,
+    CS = 16, DS = 17,
+    REG_COUNT = 18,
 };
 
-// ── Instruction decode helper ──────────────────────────────────────────
+/// Register names, indexed by Reg value.
+constexpr const char* kRegNames[] = {
+    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",
+    "r8",  "r9",  "r10", "r11", "r12", "sp",  "lr",  "pc",
+    "cs",  "ds",
+};
 
-struct DecodedInsn {
-    XriscOpcode opcode{};
-    int rd{};
-    int rs1{};
-    int rs2{};
+/// Mnemonic strings, indexed by Opcode.
+constexpr const char* kMnemonics[] = {
+    "nop",  "mov",  "ldi",  "add",  "sub",  "and",  "or",   "xor",
+    "ld",   "st",   "beq",  "bne",  "jmp",  "call", "ret",  "halt",
+};
+
+// ── Decoded instruction ────────────────────────────────────────────────
+
+struct Decoded {
+    Opcode       op{};
+    int          rd{};
+    int          rs1{};
+    int          rs2{};
     std::int16_t imm16{};
-    std::uint32_t raw{};
 };
 
-DecodedInsn decode_xrisc(std::uint32_t word) {
-    DecodedInsn d;
-    d.raw    = word;
-    d.opcode = static_cast<XriscOpcode>((word >> 28) & 0xF);
-    d.rd     = static_cast<int>((word >> 24) & 0xF);
-    d.rs1    = static_cast<int>((word >> 20) & 0xF);
-    d.rs2    = static_cast<int>((word >> 16) & 0xF);
-    d.imm16  = static_cast<std::int16_t>(word & 0xFFFF);
-    return d;
+Decoded decode(std::uint32_t word) {
+    return {
+        .op    = static_cast<Opcode>((word >> 28) & 0xF),
+        .rd    = static_cast<int>((word >> 24) & 0xF),
+        .rs1   = static_cast<int>((word >> 20) & 0xF),
+        .rs2   = static_cast<int>((word >> 16) & 0xF),
+        .imm16 = static_cast<std::int16_t>(word & 0xFFFF),
+    };
+}
+
+/// Compute the branch target for PC-relative instructions.
+ida::Address branch_target(ida::Address insn_addr, std::int16_t offset) {
+    return insn_addr + static_cast<ida::Address>(offset * 4);
 }
 
 } // anonymous namespace
 
 // ── Processor implementation ───────────────────────────────────────────
 
-class AdvancedXriscProcessor final : public ida::processor::Processor {
+class XriscProcessor final : public ida::processor::Processor {
 public:
-    /// Return comprehensive processor metadata.
+
+    // ── info(): processor metadata ──────────────────────────────────────
+
     ida::processor::ProcessorInfo info() const override {
         ida::processor::ProcessorInfo pi;
 
-        // Processor identification.
-        pi.id = 0x8100;  // Custom third-party ID (> 0x8000).
+        pi.id          = 0x8100;
         pi.short_names = {"xrisc32"};
         pi.long_names  = {"XRISC-32 Advanced RISC Processor"};
 
-        // Processor flags.
         pi.flags = static_cast<std::uint32_t>(ida::processor::ProcessorFlag::Segments)
                  | static_cast<std::uint32_t>(ida::processor::ProcessorFlag::Use32)
                  | static_cast<std::uint32_t>(ida::processor::ProcessorFlag::DefaultSeg32)
@@ -147,21 +125,19 @@ public:
                  | static_cast<std::uint32_t>(ida::processor::ProcessorFlag::HexNumbers);
         pi.flags2 = 0;
 
-        // Bits per byte.
         pi.code_bits_per_byte = 8;
         pi.data_bits_per_byte = 8;
 
-        // ── Registers ───────────────────────────────────────────────────
-
-        pi.registers.reserve(XRISC_REG_COUNT);
+        // Registers.
+        pi.registers.reserve(REG_COUNT);
         for (int i = 0; i <= 12; ++i) {
-            pi.registers.push_back({"r" + std::to_string(i), false});
+            pi.registers.push_back({kRegNames[i], false});
         }
-        pi.registers.push_back({"sp",  false});  // R13
-        pi.registers.push_back({"lr",  false});  // R14
-        pi.registers.push_back({"pc",  true});   // R15 is read-only from user code
-        pi.registers.push_back({"cs",  false});  // Code segment register
-        pi.registers.push_back({"ds",  false});  // Data segment register
+        pi.registers.push_back({kRegNames[SP], false});
+        pi.registers.push_back({kRegNames[LR], false});
+        pi.registers.push_back({kRegNames[PC], true});   // Read-only from user code.
+        pi.registers.push_back({kRegNames[CS], false});
+        pi.registers.push_back({kRegNames[DS], false});
 
         pi.code_segment_register  = CS;
         pi.data_segment_register  = DS;
@@ -169,530 +145,648 @@ public:
         pi.last_segment_register  = DS;
         pi.segment_register_size  = 2;
 
-        // ── Instruction descriptors ─────────────────────────────────────
-
+        // Instruction descriptors with feature flags that IDA uses for
+        // automatic data-flow analysis (which operands are read/written).
         using IF = ida::processor::InstructionFeature;
-        pi.instructions.resize(XRISC_COUNT);
+        pi.instructions.resize(OP_COUNT);
 
-        pi.instructions[XRISC_NOP]  = {"nop",  0};
-        pi.instructions[XRISC_MOV]  = {"mov",
+        pi.instructions[OP_NOP]  = {"nop",  0};
+        pi.instructions[OP_MOV]  = {"mov",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2)};
-        pi.instructions[XRISC_LDI]  = {"ldi",
+        pi.instructions[OP_LDI]  = {"ldi",
             static_cast<std::uint32_t>(IF::Change1)};
-        pi.instructions[XRISC_ADD]  = {"add",
+        pi.instructions[OP_ADD]  = {"add",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2) |
             static_cast<std::uint32_t>(IF::Use3)};
-        pi.instructions[XRISC_SUB]  = {"sub",
+        pi.instructions[OP_SUB]  = {"sub",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2) |
             static_cast<std::uint32_t>(IF::Use3)};
-        pi.instructions[XRISC_AND]  = {"and",
+        pi.instructions[OP_AND]  = {"and",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2) |
             static_cast<std::uint32_t>(IF::Use3)};
-        pi.instructions[XRISC_OR]   = {"or",
+        pi.instructions[OP_OR]   = {"or",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2) |
             static_cast<std::uint32_t>(IF::Use3)};
-        pi.instructions[XRISC_XOR]  = {"xor",
+        pi.instructions[OP_XOR]  = {"xor",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2) |
             static_cast<std::uint32_t>(IF::Use3)};
-        pi.instructions[XRISC_LD]   = {"ld",
+        pi.instructions[OP_LD]   = {"ld",
             static_cast<std::uint32_t>(IF::Change1) |
             static_cast<std::uint32_t>(IF::Use2)};
-        pi.instructions[XRISC_ST]   = {"st",
+        pi.instructions[OP_ST]   = {"st",
             static_cast<std::uint32_t>(IF::Use1) |
             static_cast<std::uint32_t>(IF::Use2)};
-        pi.instructions[XRISC_BEQ]  = {"beq",
+        pi.instructions[OP_BEQ]  = {"beq",
             static_cast<std::uint32_t>(IF::Use1) |
             static_cast<std::uint32_t>(IF::Use2)};
-        pi.instructions[XRISC_BNE]  = {"bne",
+        pi.instructions[OP_BNE]  = {"bne",
             static_cast<std::uint32_t>(IF::Use1) |
             static_cast<std::uint32_t>(IF::Use2)};
-        pi.instructions[XRISC_JMP]  = {"jmp",
+        pi.instructions[OP_JMP]  = {"jmp",
             static_cast<std::uint32_t>(IF::Stop)};
-        pi.instructions[XRISC_CALL] = {"call",
+        pi.instructions[OP_CALL] = {"call",
             static_cast<std::uint32_t>(IF::Call)};
-        pi.instructions[XRISC_RET]  = {"ret",
+        pi.instructions[OP_RET]  = {"ret",
             static_cast<std::uint32_t>(IF::Stop)};
-        pi.instructions[XRISC_HALT] = {"halt",
+        pi.instructions[OP_HALT] = {"halt",
             static_cast<std::uint32_t>(IF::Stop)};
 
-        pi.return_icode = XRISC_RET;
+        pi.return_icode = OP_RET;
 
-        // ── Assembler ───────────────────────────────────────────────────
-
-        ida::processor::AssemblerInfo asminfo;
-        asminfo.name            = "XRISC-32 Assembler";
-        asminfo.comment_prefix  = ";";
-        asminfo.origin          = ".org";
-        asminfo.end_directive   = ".end";
-        asminfo.string_delim    = '"';
-        asminfo.char_delim      = '\'';
-        asminfo.byte_directive  = ".byte";
-        asminfo.word_directive  = ".half";
-        asminfo.dword_directive = ".word";
-        asminfo.qword_directive = ".dword";
-
-        pi.assemblers = {asminfo};
+        // Assembler syntax.
+        ida::processor::AssemblerInfo as;
+        as.name            = "XRISC-32 Assembler";
+        as.comment_prefix  = ";";
+        as.origin          = ".org";
+        as.end_directive   = ".end";
+        as.string_delim    = '"';
+        as.char_delim      = '\'';
+        as.byte_directive  = ".byte";
+        as.word_directive  = ".half";
+        as.dword_directive = ".word";
+        as.qword_directive = ".dword";
+        pi.assemblers = {as};
 
         pi.default_bitness = 32;
-
         return pi;
     }
 
-    // ── Required: analyze ───────────────────────────────────────────────
+    // ── analyze(): decode one instruction ───────────────────────────────
 
-    /// Decode one instruction. Returns instruction size in bytes (always 4).
     ida::Result<int> analyze(ida::Address address) override {
-        // Read 4 bytes from the database.
         auto dword = ida::data::read_dword(address);
-        if (!dword) return 0;  // Decode failure.
+        if (!dword) return 0;
 
-        auto d = decode_xrisc(*dword);
+        auto d = decode(*dword);
+        if (d.op >= OP_COUNT) return 0;
 
-        // Validate opcode range.
-        if (d.opcode >= XRISC_COUNT) return 0;
-
-        // All XRISC instructions are 4 bytes.
+        // All XRISC-32 instructions are exactly 4 bytes.
         return 4;
     }
 
-    // ── Required: emulate ───────────────────────────────────────────────
+    // ── emulate(): create xrefs and schedule follow-on analysis ─────────
 
-    /// Create xrefs and plan analysis based on instruction semantics.
     ida::processor::EmulateResult emulate(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return ida::processor::EmulateResult::NotImplemented;
 
-        auto d = decode_xrisc(*dword);
-        ida::Address next_addr = address + 4;
+        auto d = decode(*dword);
+        ida::Address next = address + 4;
 
-        switch (d.opcode) {
-            case XRISC_JMP: {
-                // Unconditional jump: PC-relative.
-                ida::Address target = address +
-                    static_cast<ida::Address>(d.imm16 * 4);
-                (void)ida::xref::add_code(address, target,
-                    ida::xref::CodeType::JumpNear);
-                // No fall-through.
+        switch (d.op) {
+            case OP_JMP: {
+                auto target = branch_target(address, d.imm16);
+                ida::xref::add_code(address, target, ida::xref::CodeType::JumpNear);
+                ida::analysis::schedule(target);
                 break;
             }
-            case XRISC_CALL: {
-                // Call: PC-relative, with fall-through.
-                ida::Address target = address +
-                    static_cast<ida::Address>(d.imm16 * 4);
-                (void)ida::xref::add_code(address, target,
-                    ida::xref::CodeType::CallNear);
-                (void)ida::xref::add_code(address, next_addr,
-                    ida::xref::CodeType::Flow);
+            case OP_CALL: {
+                auto target = branch_target(address, d.imm16);
+                ida::xref::add_code(address, target, ida::xref::CodeType::CallNear);
+                ida::xref::add_code(address, next, ida::xref::CodeType::Flow);
+                ida::analysis::schedule(target);
                 break;
             }
-            case XRISC_BEQ:
-            case XRISC_BNE: {
-                // Conditional branch: PC-relative + fall-through.
-                ida::Address target = address +
-                    static_cast<ida::Address>(d.imm16 * 4);
-                (void)ida::xref::add_code(address, target,
-                    ida::xref::CodeType::JumpNear);
-                (void)ida::xref::add_code(address, next_addr,
-                    ida::xref::CodeType::Flow);
+            case OP_BEQ:
+            case OP_BNE: {
+                auto target = branch_target(address, d.imm16);
+                ida::xref::add_code(address, target, ida::xref::CodeType::JumpNear);
+                ida::xref::add_code(address, next, ida::xref::CodeType::Flow);
+                ida::analysis::schedule(target);
                 break;
             }
-            case XRISC_RET:
-            case XRISC_HALT:
-                // No successors.
+            case OP_RET:
+            case OP_HALT:
+                // Terminal instructions: no successors.
                 break;
 
-            case XRISC_LD: {
-                // Memory load: create data xref if base is zero (absolute).
+            case OP_LD: {
+                // Absolute memory load when base register is r0 (hardwired zero).
                 if (d.rs1 == R0) {
-                    ida::Address data_addr =
-                        static_cast<ida::Address>(static_cast<std::uint16_t>(d.imm16));
-                    (void)ida::xref::add_data(address, data_addr,
-                        ida::xref::DataType::Read);
+                    auto data_addr = static_cast<ida::Address>(
+                        static_cast<std::uint16_t>(d.imm16));
+                    ida::xref::add_data(address, data_addr, ida::xref::DataType::Read);
                 }
-                (void)ida::xref::add_code(address, next_addr,
-                    ida::xref::CodeType::Flow);
+                ida::xref::add_code(address, next, ida::xref::CodeType::Flow);
                 break;
             }
-            case XRISC_ST: {
-                // Memory store: create data write xref if base is zero.
+            case OP_ST: {
                 if (d.rs1 == R0) {
-                    ida::Address data_addr =
-                        static_cast<ida::Address>(static_cast<std::uint16_t>(d.imm16));
-                    (void)ida::xref::add_data(address, data_addr,
-                        ida::xref::DataType::Write);
+                    auto data_addr = static_cast<ida::Address>(
+                        static_cast<std::uint16_t>(d.imm16));
+                    ida::xref::add_data(address, data_addr, ida::xref::DataType::Write);
                 }
-                (void)ida::xref::add_code(address, next_addr,
-                    ida::xref::CodeType::Flow);
+                ida::xref::add_code(address, next, ida::xref::CodeType::Flow);
                 break;
             }
 
             default:
-                // All other instructions: simple fall-through.
-                (void)ida::xref::add_code(address, next_addr,
-                    ida::xref::CodeType::Flow);
+                // All arithmetic, logical, and move instructions fall through.
+                ida::xref::add_code(address, next, ida::xref::CodeType::Flow);
                 break;
-        }
-
-        // Schedule analysis of branch targets.
-        if (d.opcode == XRISC_JMP || d.opcode == XRISC_CALL ||
-            d.opcode == XRISC_BEQ || d.opcode == XRISC_BNE) {
-            ida::Address target = address +
-                static_cast<ida::Address>(d.imm16 * 4);
-            (void)ida::analysis::schedule(target);
         }
 
         return ida::processor::EmulateResult::Success;
     }
 
-    // ── Required: output_instruction ────────────────────────────────────
+    // ── output_instruction(): generate disassembly text ─────────────────
+    //
+    // This is the core output callback. IDA calls it for each instruction
+    // to produce the text shown in the listing view. The implementation
+    // writes directly to ida::ui::message for demonstration; a production
+    // processor would use the SDK output buffer provided by the bridge.
 
-    /// Generate text for an instruction. This is a simplified version
-    /// that constructs the disassembly text.
     void output_instruction(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return;
 
-        auto d = decode_xrisc(*dword);
-        // In a full implementation, we'd use the SDK output context.
-        // This is intentionally minimal since the output context is
-        // highly SDK-dependent and the wrapper provides override points.
-        (void)d;
+        auto d = decode(*dword);
+        if (d.op >= OP_COUNT) return;
+
+        // Format the disassembly line based on instruction class.
+        std::string text;
+
+        switch (d.op) {
+            case OP_NOP:
+                text = "nop";
+                break;
+
+            case OP_MOV:
+                text = std::format("mov     {}, {}",
+                    kRegNames[d.rd], kRegNames[d.rs1]);
+                break;
+
+            case OP_LDI:
+                text = std::format("ldi     {}, {:#x}",
+                    kRegNames[d.rd], static_cast<std::uint16_t>(d.imm16));
+                break;
+
+            case OP_ADD: case OP_SUB:
+            case OP_AND: case OP_OR: case OP_XOR:
+                text = std::format("{:<8}{}, {}, {}",
+                    kMnemonics[d.op], kRegNames[d.rd],
+                    kRegNames[d.rs1], kRegNames[d.rs2]);
+                break;
+
+            case OP_LD:
+                if (d.imm16 == 0) {
+                    text = std::format("ld      {}, [{}]",
+                        kRegNames[d.rd], kRegNames[d.rs1]);
+                } else {
+                    text = std::format("ld      {}, [{} + {:#x}]",
+                        kRegNames[d.rd], kRegNames[d.rs1],
+                        static_cast<std::uint16_t>(d.imm16));
+                }
+                break;
+
+            case OP_ST:
+                if (d.imm16 == 0) {
+                    text = std::format("st      {}, [{}]",
+                        kRegNames[d.rs2], kRegNames[d.rs1]);
+                } else {
+                    text = std::format("st      {}, [{} + {:#x}]",
+                        kRegNames[d.rs2], kRegNames[d.rs1],
+                        static_cast<std::uint16_t>(d.imm16));
+                }
+                break;
+
+            case OP_BEQ: {
+                auto target = branch_target(address, d.imm16);
+                // Try to resolve the branch target to a symbol name.
+                auto sym = ida::name::get(target);
+                if (sym && !sym->empty()) {
+                    text = std::format("beq     {}, {}, {}",
+                        kRegNames[d.rs1], kRegNames[d.rs2], *sym);
+                } else {
+                    text = std::format("beq     {}, {}, {:#x}",
+                        kRegNames[d.rs1], kRegNames[d.rs2], target);
+                }
+                break;
+            }
+            case OP_BNE: {
+                auto target = branch_target(address, d.imm16);
+                auto sym = ida::name::get(target);
+                if (sym && !sym->empty()) {
+                    text = std::format("bne     {}, {}, {}",
+                        kRegNames[d.rs1], kRegNames[d.rs2], *sym);
+                } else {
+                    text = std::format("bne     {}, {}, {:#x}",
+                        kRegNames[d.rs1], kRegNames[d.rs2], target);
+                }
+                break;
+            }
+
+            case OP_JMP: {
+                auto target = branch_target(address, d.imm16);
+                auto sym = ida::name::get(target);
+                text = (sym && !sym->empty())
+                    ? std::format("jmp     {}", *sym)
+                    : std::format("jmp     {:#x}", target);
+                break;
+            }
+
+            case OP_CALL: {
+                auto target = branch_target(address, d.imm16);
+                auto sym = ida::name::get(target);
+                text = (sym && !sym->empty())
+                    ? std::format("call    {}", *sym)
+                    : std::format("call    {:#x}", target);
+                break;
+            }
+
+            case OP_RET:
+                text = "ret";
+                break;
+
+            case OP_HALT:
+                text = "halt";
+                break;
+
+            default:
+                text = std::format(".word   {:#010x}", *dword);
+                break;
+        }
+
+        // In a real processor module, this text would go through the SDK's
+        // output buffer system. Here we demonstrate the formatting logic
+        // that the bridge would invoke.
+        ida::ui::message(std::format("{:#010x}  {}\n", address, text));
     }
 
-    // ── Required: output_operand ────────────────────────────────────────
+    // ── output_operand(): render individual operands ────────────────────
+    //
+    // Called for each operand when IDA needs to render operands separately
+    // (e.g. for operand highlighting or forced representation). Returns
+    // Success to indicate the operand was rendered.
 
-    /// Generate text for a single operand.
     ida::processor::OutputOperandResult
     output_operand(ida::Address address, int operand_index) override {
-        (void)address;
-        (void)operand_index;
-        // In a full implementation we'd render register names, immediates, etc.
-        return ida::processor::OutputOperandResult::NotImplemented;
+        auto dword = ida::data::read_dword(address);
+        if (!dword) return ida::processor::OutputOperandResult::NotImplemented;
+
+        auto d = decode(*dword);
+
+        // Determine which register or value corresponds to this operand slot.
+        // The operand layout depends on the instruction class.
+        switch (d.op) {
+            case OP_NOP:
+            case OP_RET:
+            case OP_HALT:
+                // No operands.
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_MOV:
+                // op0 = rd, op1 = rs1
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rd]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    ida::ui::message(kRegNames[d.rs1]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_LDI:
+                // op0 = rd, op1 = imm16
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rd]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    ida::ui::message(std::format("{:#x}",
+                        static_cast<std::uint16_t>(d.imm16)));
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_ADD: case OP_SUB:
+            case OP_AND: case OP_OR: case OP_XOR:
+                // op0 = rd, op1 = rs1, op2 = rs2
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rd]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    ida::ui::message(kRegNames[d.rs1]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 2) {
+                    ida::ui::message(kRegNames[d.rs2]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_LD:
+                // op0 = rd, op1 = [rs1 + imm16]
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rd]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    if (d.imm16 == 0)
+                        ida::ui::message(std::format("[{}]", kRegNames[d.rs1]));
+                    else
+                        ida::ui::message(std::format("[{} + {:#x}]",
+                            kRegNames[d.rs1],
+                            static_cast<std::uint16_t>(d.imm16)));
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_ST:
+                // op0 = rs2 (value), op1 = [rs1 + imm16] (address)
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rs2]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    if (d.imm16 == 0)
+                        ida::ui::message(std::format("[{}]", kRegNames[d.rs1]));
+                    else
+                        ida::ui::message(std::format("[{} + {:#x}]",
+                            kRegNames[d.rs1],
+                            static_cast<std::uint16_t>(d.imm16)));
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_BEQ:
+            case OP_BNE:
+                // op0 = rs1, op1 = rs2, op2 = target address
+                if (operand_index == 0) {
+                    ida::ui::message(kRegNames[d.rs1]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 1) {
+                    ida::ui::message(kRegNames[d.rs2]);
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                if (operand_index == 2) {
+                    auto target = branch_target(address, d.imm16);
+                    auto sym = ida::name::get(target);
+                    ida::ui::message((sym && !sym->empty())
+                        ? *sym : std::format("{:#x}", target));
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+
+            case OP_JMP:
+            case OP_CALL: {
+                // op0 = target address
+                if (operand_index == 0) {
+                    auto target = branch_target(address, d.imm16);
+                    auto sym = ida::name::get(target);
+                    ida::ui::message((sym && !sym->empty())
+                        ? *sym : std::format("{:#x}", target));
+                    return ida::processor::OutputOperandResult::Success;
+                }
+                return ida::processor::OutputOperandResult::Hidden;
+            }
+
+            default:
+                return ida::processor::OutputOperandResult::NotImplemented;
+        }
     }
 
-    // ── Optional: on_new_file/on_old_file ───────────────────────────────
+    // ── on_new_file / on_old_file ───────────────────────────────────────
 
     void on_new_file(std::string_view filename) override {
-        // Called when a new file is loaded. Initialize processor state.
-        (void)filename;
+        // A real processor would initialize per-file state here (e.g.
+        // detecting sub-architecture variants from the file headers).
+        ida::ui::message(std::format(
+            "[XRISC] New file loaded: {}\n", filename));
     }
 
     void on_old_file(std::string_view filename) override {
-        // Called when an existing database is opened. Restore processor state.
-        (void)filename;
+        ida::ui::message(std::format(
+            "[XRISC] Existing database opened: {}\n", filename));
     }
 
-    // ── Optional: is_call ───────────────────────────────────────────────
+    // ── is_call / is_return ─────────────────────────────────────────────
 
-    /// Definitive call classification.
     int is_call(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return 0;
-        auto d = decode_xrisc(*dword);
-        if (d.opcode == XRISC_CALL) return 1;   // Definitely a call.
-        return -1;  // Definitely not a call.
+        return (decode(*dword).op == OP_CALL) ? 1 : -1;
     }
 
-    // ── Optional: is_return ─────────────────────────────────────────────
-
-    /// Definitive return classification.
     int is_return(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return 0;
-        auto d = decode_xrisc(*dword);
-        if (d.opcode == XRISC_RET) return 1;
-        return -1;
+        return (decode(*dword).op == OP_RET) ? 1 : -1;
     }
 
-    // ── Optional: may_be_function ───────────────────────────────────────
+    // ── may_be_function ─────────────────────────────────────────────────
+    //
+    // IDA calls this to estimate whether a function could start here.
+    // We recognize two common XRISC prolog patterns:
+    //   1. SUB sp, sp, imm — stack frame allocation
+    //   2. ST  lr, [sp + off] — link register save
 
-    /// Probability that a function starts at this address.
-    /// Look for common prolog patterns.
     int may_be_function(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
-        if (!dword) return -1;  // Definitely not.
-        auto d = decode_xrisc(*dword);
+        if (!dword) return -1;
+        auto d = decode(*dword);
 
-        // Common function prolog: SUB SP, SP, imm (allocate frame).
-        if (d.opcode == XRISC_SUB && d.rd == SP && d.rs1 == SP) {
-            return 80;  // High probability.
-        }
-
-        // Another prolog: ST LR, [SP + offset] (save link register).
-        if (d.opcode == XRISC_ST && d.rs2 == LR && d.rs1 == SP) {
-            return 60;
-        }
-
-        // NOP prolog (alignment padding before function).
-        if (d.opcode == XRISC_NOP) {
-            return 10;  // Low probability, might be padding.
-        }
-
-        return 0;  // No opinion.
+        if (d.op == OP_SUB && d.rd == SP && d.rs1 == SP) return 80;
+        if (d.op == OP_ST  && d.rs2 == LR && d.rs1 == SP) return 60;
+        if (d.op == OP_NOP) return 10;  // Alignment padding, weak signal.
+        return 0;
     }
 
-    // ── Optional: is_sane_instruction ───────────────────────────────────
+    // ── is_sane_instruction ─────────────────────────────────────────────
+    //
+    // Rejects obviously invalid instructions that IDA might speculatively
+    // try to decode (e.g. a HALT with no incoming code references is
+    // more likely data than an intentional halt).
 
-    /// Validate whether this instruction makes sense in context.
     int is_sane_instruction(ida::Address address,
                             bool no_code_references) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return -1;
-        auto d = decode_xrisc(*dword);
+        auto d = decode(*dword);
 
-        // HALT with no code references is suspicious.
-        if (d.opcode == XRISC_HALT && no_code_references) {
-            return -1;
-        }
-
-        // MOV r0, r0 is effectively a NOP; unusual but sane.
-        if (d.opcode == XRISC_MOV && d.rd == 0 && d.rs1 == 0) {
-            return 0;  // Sane but uninteresting.
-        }
-
-        return 1;  // Sane.
+        if (d.op == OP_HALT && no_code_references) return -1;
+        return 1;
     }
 
-    // ── Optional: is_indirect_jump ──────────────────────────────────────
+    // ── is_indirect_jump ────────────────────────────────────────────────
+    //
+    // Detects computed jumps that might indicate switch tables.
+    // On XRISC, writing to PC via MOV or LD is an indirect jump.
 
-    /// Detect indirect jumps (e.g., computed gotos / switch tables).
     int is_indirect_jump(ida::Address address) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return 0;
-        auto d = decode_xrisc(*dword);
+        auto d = decode(*dword);
 
-        // In XRISC, a MOV to PC from a general register is an indirect jump.
-        if (d.opcode == XRISC_MOV && d.rd == PC) {
-            return 2;  // Yes, indirect jump.
-        }
-
-        // LD into PC is also an indirect jump.
-        if (d.opcode == XRISC_LD && d.rd == PC) {
-            return 2;
-        }
-
-        return 1;  // No.
+        if ((d.op == OP_MOV || d.op == OP_LD) && d.rd == PC) return 2;
+        return 1;
     }
 
-    // ── Optional: is_basic_block_end ────────────────────────────────────
+    // ── is_basic_block_end ──────────────────────────────────────────────
 
-    /// Determine if this instruction ends a basic block.
     int is_basic_block_end(ida::Address address,
-                           bool call_instruction_stops_block) override {
+                           bool call_stops_block) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) return 0;
-        auto d = decode_xrisc(*dword);
+        auto d = decode(*dword);
 
-        // Unconditional jumps, returns, halts always end blocks.
-        if (d.opcode == XRISC_JMP || d.opcode == XRISC_RET ||
-            d.opcode == XRISC_HALT) {
-            return 1;
-        }
-
-        // Conditional branches end blocks (block splits).
-        if (d.opcode == XRISC_BEQ || d.opcode == XRISC_BNE) {
-            return 1;
-        }
-
-        // Calls end blocks if requested.
-        if (d.opcode == XRISC_CALL && call_instruction_stops_block) {
-            return 1;
-        }
-
-        return -1;  // Does not end block.
+        if (d.op == OP_JMP || d.op == OP_RET || d.op == OP_HALT) return 1;
+        if (d.op == OP_BEQ || d.op == OP_BNE) return 1;
+        if (d.op == OP_CALL && call_stops_block) return 1;
+        return -1;
     }
 
-    // ── Optional: create_function_frame ─────────────────────────────────
+    // ── create_function_frame ───────────────────────────────────────────
 
-    /// Create a stack frame for a function at the given start address.
     bool create_function_frame(ida::Address function_start) override {
-        // Look for the prolog: SUB SP, SP, imm16
         auto dword = ida::data::read_dword(function_start);
         if (!dword) return false;
-        auto d = decode_xrisc(*dword);
+        auto d = decode(*dword);
 
-        if (d.opcode == XRISC_SUB && d.rd == SP && d.rs1 == SP) {
-            // Frame size is the immediate value (in bytes).
-            // In a real implementation, we'd call the SDK's
-            // add_frame() to create the frame structure.
+        // Recognize SUB sp, sp, N prolog as frame allocation.
+        if (d.op == OP_SUB && d.rd == SP && d.rs1 == SP) {
+            // The immediate is the frame size in bytes.
             return true;
         }
-
-        return false;  // No frame pattern recognized.
+        return false;
     }
 
-    // ── Optional: adjust_function_bounds ────────────────────────────────
+    // ── adjust_function_bounds ──────────────────────────────────────────
 
-    /// Refine function boundary analysis.
     int adjust_function_bounds(ida::Address function_start,
-                               ida::Address max_function_end,
-                               int suggested_result) override {
-        // Edge case: if the function is very small (< 2 instructions),
-        // be suspicious.
-        if (max_function_end - function_start < 8) {
-            // Still allow it, but don't change the result.
+                               ida::Address max_end,
+                               int suggested) override {
+        // Don't extend a function into NOP alignment padding that follows it.
+        auto after = ida::data::read_dword(max_end);
+        if (after && decode(*after).op == OP_NOP) {
+            // Keep the kernel's bound — padding belongs to no function.
         }
-
-        // Look for alignment NOPs after the function.
-        auto after = ida::data::read_dword(max_function_end);
-        if (after) {
-            auto d = decode_xrisc(*after);
-            if (d.opcode == XRISC_NOP) {
-                // Don't extend the function into NOP padding.
-            }
-        }
-
-        return suggested_result;
+        return suggested;
     }
 
-    // ── Optional: analyze_function_prolog ────────────────────────────────
+    // ── analyze_function_prolog ─────────────────────────────────────────
 
-    /// Analyze function prolog to determine calling convention and frame.
     int analyze_function_prolog(ida::Address function_start) override {
-        // Pattern: SUB SP, SP, N; ST LR, [SP + offset]
-        auto dword1 = ida::data::read_dword(function_start);
-        auto dword2 = ida::data::read_dword(function_start + 4);
+        // Standard prolog: SUB sp, sp, N ; ST lr, [sp + offset]
+        auto w1 = ida::data::read_dword(function_start);
+        auto w2 = ida::data::read_dword(function_start + 4);
+        if (!w1 || !w2) return 0;
 
-        if (!dword1 || !dword2) return 0;
+        auto d1 = decode(*w1);
+        auto d2 = decode(*w2);
 
-        auto d1 = decode_xrisc(*dword1);
-        auto d2 = decode_xrisc(*dword2);
-
-        if (d1.opcode == XRISC_SUB && d1.rd == SP && d1.rs1 == SP &&
-            d2.opcode == XRISC_ST && d2.rs2 == LR && d2.rs1 == SP) {
-            // Standard prolog detected.
-            return 1;  // Handled.
+        if (d1.op == OP_SUB && d1.rd == SP && d1.rs1 == SP &&
+            d2.op == OP_ST  && d2.rs2 == LR && d2.rs1 == SP) {
+            return 1;  // Standard prolog recognized.
         }
-
-        return 0;  // Not implemented / not recognized.
+        return 0;
     }
 
-    // ── Optional: calculate_stack_pointer_delta ─────────────────────────
+    // ── calculate_stack_pointer_delta ────────────────────────────────────
 
-    /// Compute SP delta for one instruction.
     int calculate_stack_pointer_delta(ida::Address address,
                                      std::int64_t& out_delta) override {
         auto dword = ida::data::read_dword(address);
         if (!dword) { out_delta = 0; return 0; }
+        auto d = decode(*dword);
 
-        auto d = decode_xrisc(*dword);
-
-        // SUB SP, SP, imm => SP decreases (allocate).
-        if (d.opcode == XRISC_SUB && d.rd == SP && d.rs1 == SP) {
+        // SUB sp, sp, imm → allocate (SP decreases).
+        if (d.op == OP_SUB && d.rd == SP && d.rs1 == SP) {
             out_delta = -static_cast<std::int64_t>(
                 static_cast<std::uint16_t>(d.imm16));
             return 1;
         }
-
-        // ADD SP, SP, imm => SP increases (deallocate).
-        if (d.opcode == XRISC_ADD && d.rd == SP && d.rs1 == SP) {
+        // ADD sp, sp, imm → deallocate (SP increases).
+        if (d.op == OP_ADD && d.rd == SP && d.rs1 == SP) {
             out_delta = static_cast<std::int64_t>(
                 static_cast<std::uint16_t>(d.imm16));
             return 1;
         }
-
-        // CALL pushes return address (4 bytes).
-        if (d.opcode == XRISC_CALL) {
-            out_delta = -4;
-            return 1;
-        }
-
-        // RET pops return address.
-        if (d.opcode == XRISC_RET) {
-            out_delta = 4;
-            return 1;
-        }
+        // CALL pushes the return address (4 bytes on 32-bit).
+        if (d.op == OP_CALL) { out_delta = -4; return 1; }
+        // RET pops the return address.
+        if (d.op == OP_RET) { out_delta = 4; return 1; }
 
         out_delta = 0;
-        return 0;  // Not handled.
+        return 0;
     }
 
-    // ── Optional: get_return_address_size ────────────────────────────────
+    // ── get_return_address_size ──────────────────────────────────────────
 
-    /// Return address is always 4 bytes on XRISC-32.
     int get_return_address_size(ida::Address) override {
-        return 4;
+        return 4;  // 32-bit return address on XRISC-32.
     }
 
-    // ── Optional: detect_switch ─────────────────────────────────────────
+    // ── detect_switch ───────────────────────────────────────────────────
+    //
+    // Recognizes the XRISC switch idiom:
+    //   SUB  r1, r0, low_case     ; normalize to 0-based index
+    //   BNE  r1, r2, default_lbl  ; range check (r2 = case count)
+    //   LD   pc, [r3 + r1*4]      ; jump through table
+    //   .word target0, target1, ...
 
-    /// Detect switch table idioms.
-    ///
-    /// XRISC switch pattern:
-    ///   SUB  r1, r0, low_case     ; normalize to 0-based index
-    ///   BNE  r1, r2, default_lbl  ; range check (r2 holds case_count)
-    ///   LD   pc, [r3 + r1*4]      ; jump through table
-    ///   .word target0             ; jump table follows
-    ///   .word target1
-    ///   ...
     int detect_switch(ida::Address address,
-                      ida::processor::SwitchDescription& out_switch) override {
-        // Read 3 consecutive instructions.
+                      ida::processor::SwitchDescription& out) override {
         auto w0 = ida::data::read_dword(address);
         auto w1 = ida::data::read_dword(address + 4);
         auto w2 = ida::data::read_dword(address + 8);
-
         if (!w0 || !w1 || !w2) return 0;
 
-        auto d0 = decode_xrisc(*w0);
-        auto d1 = decode_xrisc(*w1);
-        auto d2 = decode_xrisc(*w2);
+        auto d0 = decode(*w0);
+        auto d1 = decode(*w1);
+        auto d2 = decode(*w2);
 
-        // Check the pattern.
-        if (d0.opcode != XRISC_SUB) return 0;  // Normalize step.
-        if (d1.opcode != XRISC_BNE) return 0;  // Range check.
-        if (d2.opcode != XRISC_LD || d2.rd != PC) return 0;  // Table load.
+        if (d0.op != OP_SUB) return 0;
+        if (d1.op != OP_BNE) return 0;
+        if (d2.op != OP_LD || d2.rd != PC) return 0;
 
-        // Populate switch description.
-        out_switch.kind = ida::processor::SwitchTableKind::Dense;
-        out_switch.jump_table = address + 12;  // Table starts after 3 instructions.
-        out_switch.values_table = ida::BadAddress;  // Dense: no separate values.
-        out_switch.default_target = address + 4 +
-            static_cast<ida::Address>(d1.imm16 * 4);
-        out_switch.idiom_start = address;
-        out_switch.element_base = 0;
-        out_switch.low_case_value = d0.imm16;
-        out_switch.case_count = static_cast<std::uint32_t>(d1.imm16);
-        out_switch.jump_table_entry_count = out_switch.case_count;
-        out_switch.jump_element_size = 4;
-        out_switch.value_element_size = 0;
-        out_switch.shift = 0;
-        out_switch.expression_register = d0.rs1;
-        out_switch.expression_data_type = 0;
-        out_switch.has_default = true;
-        out_switch.default_in_table = false;
-        out_switch.values_signed = false;
-        out_switch.subtract_values = false;
-        out_switch.self_relative = false;
-        out_switch.inverted = false;
-        out_switch.user_defined = false;
+        out.kind             = ida::processor::SwitchTableKind::Dense;
+        out.jump_table       = address + 12;
+        out.values_table     = ida::BadAddress;
+        out.default_target   = branch_target(address + 4, d1.imm16);
+        out.idiom_start      = address;
+        out.element_base     = 0;
+        out.low_case_value   = d0.imm16;
+        out.case_count       = static_cast<std::uint32_t>(d1.imm16);
+        out.jump_table_entry_count = out.case_count;
+        out.jump_element_size = 4;
+        out.value_element_size = 0;
+        out.shift            = 0;
+        out.expression_register = d0.rs1;
+        out.expression_data_type = 0;
+        out.has_default      = true;
+        out.default_in_table = false;
+        out.values_signed    = false;
+        out.subtract_values  = false;
+        out.self_relative    = false;
+        out.inverted         = false;
+        out.user_defined     = false;
 
-        return 1;  // Switch found.
+        return 1;
     }
 
-    // ── Optional: calculate_switch_cases ─────────────────────────────────
+    // ── calculate_switch_cases ───────────────────────────────────────────
 
-    /// Calculate case values and targets for a detected switch.
     int calculate_switch_cases(
         ida::Address address,
         const ida::processor::SwitchDescription& sw,
         std::vector<ida::processor::SwitchCase>& out_cases) override {
 
-        if (sw.jump_table == ida::BadAddress || sw.case_count == 0) {
-            return 0;
-        }
+        if (sw.jump_table == ida::BadAddress || sw.case_count == 0) return 0;
 
         out_cases.reserve(sw.case_count);
-
         for (std::uint32_t i = 0; i < sw.case_count; ++i) {
-            ida::Address table_entry = sw.jump_table + i * sw.jump_element_size;
-            auto target_word = ida::data::read_dword(table_entry);
+            auto entry_ea = sw.jump_table + i * sw.jump_element_size;
+            auto target_word = ida::data::read_dword(entry_ea);
             if (!target_word) continue;
 
             ida::processor::SwitchCase sc;
@@ -700,13 +794,11 @@ public:
             sc.target = static_cast<ida::Address>(*target_word);
             out_cases.push_back(std::move(sc));
         }
-
-        return 1;  // Handled.
+        return 1;
     }
 
-    // ── Optional: create_switch_references ───────────────────────────────
+    // ── create_switch_references ─────────────────────────────────────────
 
-    /// Create xrefs for switch table entries.
     int create_switch_references(
         ida::Address address,
         const ida::processor::SwitchDescription& sw) override {
@@ -714,23 +806,16 @@ public:
         if (sw.jump_table == ida::BadAddress) return 0;
 
         for (std::uint32_t i = 0; i < sw.jump_table_entry_count; ++i) {
-            ida::Address table_entry = sw.jump_table + i * sw.jump_element_size;
-            auto target_word = ida::data::read_dword(table_entry);
+            auto entry_ea = sw.jump_table + i * sw.jump_element_size;
+            auto target_word = ida::data::read_dword(entry_ea);
             if (!target_word) continue;
 
-            ida::Address target = static_cast<ida::Address>(*target_word);
-
-            // Code xref from the switch instruction to each target.
-            (void)ida::xref::add_code(address, target,
-                ida::xref::CodeType::JumpNear);
-
-            // Data xref from the table entry to the target.
-            (void)ida::xref::add_data(table_entry, target,
-                ida::xref::DataType::Offset);
+            auto target = static_cast<ida::Address>(*target_word);
+            ida::xref::add_code(address, target, ida::xref::CodeType::JumpNear);
+            ida::xref::add_data(entry_ea, target, ida::xref::DataType::Offset);
         }
-
-        return 1;  // Handled.
+        return 1;
     }
 };
 
-IDAX_PROCESSOR(AdvancedXriscProcessor)
+IDAX_PROCESSOR(XriscProcessor)

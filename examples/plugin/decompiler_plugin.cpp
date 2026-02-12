@@ -1,46 +1,22 @@
 /// \file decompiler_plugin.cpp
-/// \brief Advanced decompiler integration plugin demonstrating comprehensive
-///        Hex-Rays ctree traversal, variable management, comment injection,
-///        address mapping, and pseudocode analysis.
+/// \brief Complexity Metrics plugin — cyclomatic complexity and code-quality
+///        analysis using the Hex-Rays decompiler.
 ///
-/// This plugin demonstrates:
-///   1. Decompiler availability checking
-///   2. Function decompilation with move-only DecompiledFunction handling
-///   3. Pseudocode and line extraction
-///   4. Function declaration retrieval
-///   5. Variable enumeration and rename
-///   6. Custom CtreeVisitor with all visit modes:
-///      - Pre-order expression visits
-///      - Pre-order statement visits
-///      - Post-order (leave_expression, leave_statement)
-///      - Expressions-only mode
-///      - Early stop via VisitAction::Stop
-///      - Child skipping via VisitAction::SkipChildren
-///   7. Functional-style visitors (for_each_expression, for_each_item)
-///   8. Expression view accessor edge cases:
-///      - number_value on ExprNumber
-///      - object_address on ExprObject
-///      - variable_index on ExprVariable
-///      - string_value on ExprString
-///      - call_argument_count on ExprCall
-///      - member_offset on ExprMemberRef/ExprMemberPtr
-///      - to_string on any expression
-///      - Wrong-type access (number_value on a non-number) should error
-///   9. Statement view accessors:
-///      - goto_target_label on StmtGoto
-///      - Wrong-type access should error
-///  10. User comment management:
-///      - set_comment / get_comment at specific addresses
-///      - CommentPosition variants (Default, Semicolon, OpenBrace, etc.)
-///      - save_comments to persist
-///      - Empty string to remove a comment
-///  11. Pseudocode refresh after modifications
-///  12. Address mapping:
-///      - entry_address
-///      - line_to_address with valid and out-of-range lines
-///      - address_map for bulk mapping
-///  13. Graph-based flow chart of decompiled functions
-///  14. Interaction with ida::function for callers/callees of decompiled targets
+/// This plugin computes McCabe cyclomatic complexity for every decompilable
+/// function, identifies the most complex ones, and generates a ranked report.
+/// It also demonstrates practical use of the ctree visitor API for tasks
+/// a real reverse engineer would perform:
+///
+///   - Measuring function complexity to prioritize review effort
+///   - Counting and classifying expression patterns (calls, assignments,
+///     comparisons, member accesses) for code-quality heuristics
+///   - Finding functions with deep nesting (many nested if/for/while)
+///   - Annotating decompiled code with user comments at key locations
+///   - Mapping pseudocode lines back to binary addresses for correlation
+///   - Renaming obfuscated local variables to improve readability
+///
+/// API surface exercised:
+///   decompiler (full), function, graph (flowchart), name, comment, ui
 
 #include <ida/idax.hpp>
 
@@ -48,115 +24,109 @@
 #include <cstdint>
 #include <format>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace {
 
-// ── Ctree statistics visitor ───────────────────────────────────────────
+// ── Complexity metrics per function ────────────────────────────────────
 
-/// Visitor that collects comprehensive statistics about the ctree.
-/// Exercises all visitor callbacks and expression/statement accessors.
-class CtreeStatisticsVisitor : public ida::decompiler::CtreeVisitor {
+struct FunctionMetrics {
+    ida::Address address{ida::BadAddress};
+    std::string  name;
+    std::size_t  line_count{};
+    std::size_t  variable_count{};
+
+    // McCabe cyclomatic complexity = (decision points) + 1.
+    std::size_t  decision_points{};
+    std::size_t  cyclomatic_complexity{};
+
+    // Expression pattern counts.
+    std::size_t  calls{};
+    std::size_t  assignments{};
+    std::size_t  comparisons{};
+    std::size_t  member_accesses{};
+    std::size_t  numeric_constants{};
+    std::size_t  string_literals{};
+
+    // Nesting depth (statement-level).
+    std::size_t  max_nesting_depth{};
+};
+
+// ── Cyclomatic complexity visitor ──────────────────────────────────────
+//
+// McCabe cyclomatic complexity counts each decision point:
+//   if, for, while, do-while, switch (each case), ternary (?:),
+//   logical AND (&&), logical OR (||).
+// The final metric is (decision_points + 1).
+
+class ComplexityVisitor : public ida::decompiler::CtreeVisitor {
 public:
-    // Counters for expression types.
-    std::unordered_map<int, std::size_t> expr_type_counts;
-    std::unordered_map<int, std::size_t> stmt_type_counts;
-    std::size_t total_expressions{0};
-    std::size_t total_statements{0};
+    std::size_t decision_points{0};
+    std::size_t calls{0};
+    std::size_t assignments{0};
+    std::size_t comparisons{0};
+    std::size_t member_accesses{0};
     std::size_t numeric_constants{0};
     std::size_t string_literals{0};
-    std::size_t function_calls{0};
-    std::size_t variable_references{0};
-    std::size_t assignments{0};
-    std::size_t conditionals{0};
-    std::size_t loops{0};
-    std::size_t post_order_expressions{0};
-    std::size_t post_order_statements{0};
-    std::size_t member_accesses{0};
-    std::vector<std::uint64_t> collected_numbers;
-    std::vector<std::size_t>   call_arg_counts;
+    std::size_t nesting_depth{0};
+    std::size_t max_nesting_depth{0};
 
     ida::decompiler::VisitAction
     visit_expression(ida::decompiler::ExpressionView expr) override {
-        ++total_expressions;
-        auto t = expr.type();
-        ++expr_type_counts[static_cast<int>(t)];
-
         using IT = ida::decompiler::ItemType;
+        auto t = expr.type();
 
         switch (t) {
-            case IT::ExprNumber: {
-                ++numeric_constants;
-                auto val = expr.number_value();
-                if (val) collected_numbers.push_back(*val);
-                break;
-            }
-            case IT::ExprString: {
-                ++string_literals;
-                auto sv = expr.string_value();
-                (void)sv;
-                break;
-            }
+            // Decision points in expressions.
+            case IT::ExprTernary:    ++decision_points; break;
+            case IT::ExprLogicalAnd: ++decision_points; break;
+            case IT::ExprLogicalOr:  ++decision_points; break;
+
+            // Calls.
             case IT::ExprCall: {
-                ++function_calls;
+                ++calls;
+                // For call expressions, we can inspect argument count to
+                // identify variadic functions (potential format-string vulns).
                 auto argc = expr.call_argument_count();
-                if (argc) call_arg_counts.push_back(*argc);
+                if (argc && *argc > 6) {
+                    // Flag functions with many arguments — often complex APIs.
+                }
                 break;
             }
-            case IT::ExprVariable: {
-                ++variable_references;
-                auto idx = expr.variable_index();
-                (void)idx;
-                break;
-            }
+
+            // Assignments (including compound forms).
             case IT::ExprAssign:
-            case IT::ExprAssignAdd:
-            case IT::ExprAssignSub:
-            case IT::ExprAssignMul:
-            case IT::ExprAssignBitOr:
-            case IT::ExprAssignBitAnd:
-            case IT::ExprAssignXor:
+            case IT::ExprAssignAdd:  case IT::ExprAssignSub:
+            case IT::ExprAssignMul:  case IT::ExprAssignBitOr:
+            case IT::ExprAssignBitAnd: case IT::ExprAssignXor:
             case IT::ExprAssignShiftLeft:
             case IT::ExprAssignShiftRightSigned:
             case IT::ExprAssignShiftRightUnsigned:
-            case IT::ExprAssignDivSigned:
-            case IT::ExprAssignDivUnsigned:
-            case IT::ExprAssignModSigned:
-            case IT::ExprAssignModUnsigned:
+            case IT::ExprAssignDivSigned:  case IT::ExprAssignDivUnsigned:
+            case IT::ExprAssignModSigned:  case IT::ExprAssignModUnsigned:
                 ++assignments;
                 break;
 
+            // Comparisons.
+            case IT::ExprEqual:   case IT::ExprNotEqual:
+            case IT::ExprSignedGE: case IT::ExprUnsignedGE:
+            case IT::ExprSignedLE: case IT::ExprUnsignedLE:
+            case IT::ExprSignedGT: case IT::ExprUnsignedGT:
+            case IT::ExprSignedLT: case IT::ExprUnsignedLT:
+                ++comparisons;
+                break;
+
+            // Member accesses (struct field reads — common in protocol parsing).
             case IT::ExprMemberRef:
-            case IT::ExprMemberPtr: {
+            case IT::ExprMemberPtr:
                 ++member_accesses;
-                auto off = expr.member_offset();
-                (void)off;
                 break;
-            }
 
-            case IT::ExprObject: {
-                auto addr = expr.object_address();
-                (void)addr;
-                break;
-            }
+            // Constants.
+            case IT::ExprNumber: ++numeric_constants; break;
+            case IT::ExprString: ++string_literals;   break;
 
-            default:
-                break;
-        }
-
-        // Edge case: to_string on every expression.
-        auto text = expr.to_string();
-        (void)text;
-
-        // Edge case: wrong-type access should error.
-        if (t != IT::ExprNumber) {
-            auto bad = expr.number_value();
-            (void)bad;  // Expected error.
-        }
-        if (t != IT::ExprCall) {
-            auto bad = expr.call_argument_count();
-            (void)bad;  // Expected error.
+            default: break;
         }
 
         return ida::decompiler::VisitAction::Continue;
@@ -164,409 +134,273 @@ public:
 
     ida::decompiler::VisitAction
     visit_statement(ida::decompiler::StatementView stmt) override {
-        ++total_statements;
-        auto t = stmt.type();
-        ++stmt_type_counts[static_cast<int>(t)];
-
         using IT = ida::decompiler::ItemType;
+        auto t = stmt.type();
 
+        // Count decision points in control-flow statements.
         switch (t) {
             case IT::StmtIf:
-                ++conditionals;
-                break;
             case IT::StmtFor:
             case IT::StmtWhile:
             case IT::StmtDo:
-                ++loops;
+            case IT::StmtSwitch:
+                ++decision_points;
                 break;
-            case IT::StmtGoto: {
-                auto label = stmt.goto_target_label();
-                (void)label;
-                break;
-            }
             default:
                 break;
         }
 
-        // Edge case: wrong-type access.
-        if (t != IT::StmtGoto) {
-            auto bad = stmt.goto_target_label();
-            (void)bad;
-        }
-
-        return ida::decompiler::VisitAction::Continue;
-    }
-
-    ida::decompiler::VisitAction
-    leave_expression(ida::decompiler::ExpressionView) override {
-        ++post_order_expressions;
-        return ida::decompiler::VisitAction::Continue;
-    }
-
-    ida::decompiler::VisitAction
-    leave_statement(ida::decompiler::StatementView) override {
-        ++post_order_statements;
-        return ida::decompiler::VisitAction::Continue;
-    }
-};
-
-/// Visitor that stops after finding N call expressions.
-class CallLimitVisitor : public ida::decompiler::CtreeVisitor {
-public:
-    explicit CallLimitVisitor(std::size_t limit) : limit_(limit) {}
-
-    std::size_t calls_found{0};
-
-    ida::decompiler::VisitAction
-    visit_expression(ida::decompiler::ExpressionView expr) override {
-        if (expr.type() == ida::decompiler::ItemType::ExprCall) {
-            ++calls_found;
-            if (calls_found >= limit_) {
-                return ida::decompiler::VisitAction::Stop;
+        // Track nesting: blocks introduce a new scope level.
+        if (t == IT::StmtBlock) {
+            ++nesting_depth;
+            if (nesting_depth > max_nesting_depth) {
+                max_nesting_depth = nesting_depth;
             }
         }
+
         return ida::decompiler::VisitAction::Continue;
     }
 
     ida::decompiler::VisitAction
-    visit_statement(ida::decompiler::StatementView) override {
-        return ida::decompiler::VisitAction::Continue;
-    }
-
-private:
-    std::size_t limit_;
-};
-
-/// Visitor that skips children of if-statement conditions.
-class SkipIfConditionVisitor : public ida::decompiler::CtreeVisitor {
-public:
-    std::size_t skipped_ifs{0};
-
-    ida::decompiler::VisitAction
-    visit_expression(ida::decompiler::ExpressionView) override {
-        return ida::decompiler::VisitAction::Continue;
-    }
-
-    ida::decompiler::VisitAction
-    visit_statement(ida::decompiler::StatementView stmt) override {
-        if (stmt.type() == ida::decompiler::ItemType::StmtIf) {
-            ++skipped_ifs;
-            return ida::decompiler::VisitAction::SkipChildren;
+    leave_statement(ida::decompiler::StatementView stmt) override {
+        if (stmt.type() == ida::decompiler::ItemType::StmtBlock) {
+            if (nesting_depth > 0) --nesting_depth;
         }
         return ida::decompiler::VisitAction::Continue;
     }
 };
 
-// ── Decompile and analyze a single function ────────────────────────────
+// ── Analyze a single function ──────────────────────────────────────────
 
-void analyze_decompiled_function(ida::Address func_addr) {
-    // Decompile the function (move-only result).
+bool analyze_function(ida::Address func_addr, FunctionMetrics& out) {
+    // Decompile. DecompiledFunction is move-only — extract from Result.
     auto result = ida::decompiler::decompile(func_addr);
-    if (!result) {
-        ida::ui::message(std::format(
-            "[Decompiler] Failed to decompile {:#x}: {}\n",
-            func_addr, result.error().message));
-        return;
-    }
-
-    // NOTE: DecompiledFunction is move-only. We must move it out.
+    if (!result) return false;
     auto dfunc = std::move(*result);
 
-    // ── Pseudocode access ───────────────────────────────────────────
+    out.address = func_addr;
+    if (auto n = ida::function::name_at(func_addr)) out.name = *n;
 
-    auto pseudo = dfunc.pseudocode();
-    if (pseudo) {
-        ida::ui::message(std::format(
-            "[Decompiler] Pseudocode for {:#x}: {} chars\n",
-            func_addr, pseudo->size()));
-    }
+    // Line and variable counts.
+    if (auto lines = dfunc.lines())  out.line_count     = lines->size();
+    if (auto vc = dfunc.variable_count()) out.variable_count = *vc;
 
-    auto lines = dfunc.lines();
-    if (lines) {
-        ida::ui::message(std::format(
-            "[Decompiler] {} pseudocode lines\n", lines->size()));
-    }
+    // Run the complexity visitor with post-order enabled (for nesting tracking).
+    ComplexityVisitor visitor;
+    ida::decompiler::VisitOptions opts;
+    opts.post_order = true;  // We need leave_statement for nesting depth.
 
-    auto decl = dfunc.declaration();
-    if (decl) {
-        ida::ui::message(std::format(
-            "[Decompiler] Declaration: {}\n", *decl));
-    }
+    auto visited = dfunc.visit(visitor, opts);
+    if (!visited) return false;
 
-    // ── Variable management ─────────────────────────────────────────
+    out.decision_points     = visitor.decision_points;
+    out.cyclomatic_complexity = visitor.decision_points + 1;
+    out.calls               = visitor.calls;
+    out.assignments         = visitor.assignments;
+    out.comparisons         = visitor.comparisons;
+    out.member_accesses     = visitor.member_accesses;
+    out.numeric_constants   = visitor.numeric_constants;
+    out.string_literals     = visitor.string_literals;
+    out.max_nesting_depth   = visitor.max_nesting_depth;
 
-    auto var_count = dfunc.variable_count();
-    if (var_count) {
-        ida::ui::message(std::format(
-            "[Decompiler] {} variables\n", *var_count));
-    }
+    return true;
+}
 
-    auto vars = dfunc.variables();
-    if (vars) {
+// ── Annotate the most complex function ─────────────────────────────────
+//
+// For the highest-complexity function, we demonstrate:
+//   - Adding user comments to the pseudocode
+//   - Variable renaming for obfuscated locals
+//   - Address mapping from pseudocode lines to binary addresses
+
+void annotate_complex_function(const FunctionMetrics& metrics) {
+    auto result = ida::decompiler::decompile(metrics.address);
+    if (!result) return;
+    auto dfunc = std::move(*result);
+
+    // Add a header comment noting the complexity score.
+    auto entry = dfunc.entry_address();
+    dfunc.set_comment(entry, std::format(
+        "Cyclomatic complexity: {} | Lines: {} | Calls: {} | Nesting: {}",
+        metrics.cyclomatic_complexity, metrics.line_count,
+        metrics.calls, metrics.max_nesting_depth));
+    dfunc.save_comments();
+
+    // Rename any single-letter non-argument variables to more descriptive
+    // names. This is a common cleanup pass for obfuscated binaries.
+    if (auto vars = dfunc.variables()) {
+        int renamed = 0;
         for (const auto& v : *vars) {
-            ida::ui::message(std::format(
-                "[Decompiler]   var: '{}' type='{}' arg={} width={}\n",
-                v.name, v.type_name, v.is_argument, v.width));
-        }
+            if (v.is_argument) continue;
+            if (v.name.size() != 1) continue;  // Only single-letter names.
 
-        // Edge case: rename a non-argument variable (if any exists).
-        for (const auto& v : *vars) {
-            if (!v.is_argument && !v.name.empty()) {
-                auto rename_st = dfunc.rename_variable(
-                    v.name, v.name + "_renamed");
-                if (rename_st) {
-                    // Rename back to avoid side effects.
-                    (void)dfunc.rename_variable(
-                        v.name + "_renamed", v.name);
-                }
-                break;  // Only rename one.
+            // Generate a descriptive name based on type.
+            std::string new_name;
+            if (v.type_name.find("int") != std::string::npos)
+                new_name = std::format("local_int_{}", renamed);
+            else if (v.type_name.find("char") != std::string::npos)
+                new_name = std::format("local_str_{}", renamed);
+            else
+                new_name = std::format("local_{}", renamed);
+
+            if (auto st = dfunc.rename_variable(v.name, new_name); st) {
+                ++renamed;
+                // Only rename a few to demonstrate without being disruptive.
+                if (renamed >= 3) break;
             }
         }
     }
 
-    // ── Ctree traversal: full statistics ────────────────────────────
-
-    {
-        CtreeStatisticsVisitor stats;
-        ida::decompiler::VisitOptions opts;
-        opts.post_order = true;       // Enable leave_* callbacks.
-        opts.expressions_only = false; // Visit both expressions and statements.
-
-        auto visited = dfunc.visit(stats, opts);
-        if (visited) {
-            ida::ui::message(std::format(
-                "[Decompiler] Visited {} items: {} exprs + {} stmts\n",
-                *visited, stats.total_expressions, stats.total_statements));
-            ida::ui::message(std::format(
-                "[Decompiler] Post-order: {} exprs + {} stmts\n",
-                stats.post_order_expressions, stats.post_order_statements));
-            ida::ui::message(std::format(
-                "[Decompiler] {} calls, {} assigns, {} conditionals, {} loops\n",
-                stats.function_calls, stats.assignments,
-                stats.conditionals, stats.loops));
-            ida::ui::message(std::format(
-                "[Decompiler] {} numbers, {} strings, {} var refs, {} member accesses\n",
-                stats.numeric_constants, stats.string_literals,
-                stats.variable_references, stats.member_accesses));
-        }
-    }
-
-    // ── Ctree traversal: expressions only ───────────────────────────
-
-    {
-        CtreeStatisticsVisitor expr_only;
-        auto visited = dfunc.visit_expressions(expr_only, false);
-        if (visited) {
-            ida::ui::message(std::format(
-                "[Decompiler] Expressions-only: {} items, {} stmts (should be 0)\n",
-                *visited, expr_only.total_statements));
-        }
-    }
-
-    // ── Ctree traversal: early stop ─────────────────────────────────
-
-    {
-        CallLimitVisitor limit_vis(3);
-        auto visited = dfunc.visit(limit_vis);
+    // Map pseudocode lines to binary addresses for the first few lines.
+    // This is useful for setting breakpoints from decompiler context.
+    if (auto lines = dfunc.lines(); lines && !lines->empty()) {
         ida::ui::message(std::format(
-            "[Decompiler] Call-limited visit found {} calls (limit 3)\n",
-            limit_vis.calls_found));
-    }
-
-    // ── Ctree traversal: skip children ──────────────────────────────
-
-    {
-        SkipIfConditionVisitor skip_vis;
-        auto visited = dfunc.visit(skip_vis);
-        ida::ui::message(std::format(
-            "[Decompiler] Skipped {} if-statement subtrees\n",
-            skip_vis.skipped_ifs));
-    }
-
-    // ── Functional-style visitors ───────────────────────────────────
-
-    {
-        std::size_t expr_count = 0;
-        auto r = ida::decompiler::for_each_expression(
-            dfunc,
-            [&](ida::decompiler::ExpressionView) {
-                ++expr_count;
-                return ida::decompiler::VisitAction::Continue;
-            });
-        ida::ui::message(std::format(
-            "[Decompiler] for_each_expression: {} expressions\n", expr_count));
-    }
-
-    {
-        std::size_t expr_count = 0;
-        std::size_t stmt_count = 0;
-        auto r = ida::decompiler::for_each_item(
-            dfunc,
-            [&](ida::decompiler::ExpressionView) {
-                ++expr_count;
-                return ida::decompiler::VisitAction::Continue;
-            },
-            [&](ida::decompiler::StatementView) {
-                ++stmt_count;
-                return ida::decompiler::VisitAction::Continue;
-            });
-        ida::ui::message(std::format(
-            "[Decompiler] for_each_item: {} exprs + {} stmts\n",
-            expr_count, stmt_count));
-    }
-
-    // ── User comments ───────────────────────────────────────────────
-
-    {
-        // Set a comment at the function entry.
-        auto entry = dfunc.entry_address();
-        auto set_st = dfunc.set_comment(entry, "Analyzed by idax decompiler plugin");
-        if (set_st) {
-            auto got = dfunc.get_comment(entry);
-            if (got && got->find("idax") != std::string::npos) {
-                ida::ui::message("[Decompiler] Comment roundtrip OK\n");
-            }
-
-            // Save comments to database.
-            (void)dfunc.save_comments();
-
-            // Remove the comment.
-            (void)dfunc.set_comment(entry, "");
-            (void)dfunc.save_comments();
-        }
-
-        // Edge case: comment at different positions.
-        (void)dfunc.set_comment(entry, "semicolon pos",
-            ida::decompiler::CommentPosition::Semicolon);
-        (void)dfunc.get_comment(entry,
-            ida::decompiler::CommentPosition::Semicolon);
-        (void)dfunc.set_comment(entry, "",
-            ida::decompiler::CommentPosition::Semicolon);
-
-        (void)dfunc.set_comment(entry, "open brace",
-            ida::decompiler::CommentPosition::OpenBrace);
-        (void)dfunc.get_comment(entry,
-            ida::decompiler::CommentPosition::OpenBrace);
-        (void)dfunc.set_comment(entry, "",
-            ida::decompiler::CommentPosition::OpenBrace);
-    }
-
-    // ── Refresh pseudocode ──────────────────────────────────────────
-
-    (void)dfunc.refresh();
-
-    // ── Address mapping ─────────────────────────────────────────────
-
-    {
-        auto entry = dfunc.entry_address();
-        ida::ui::message(std::format(
-            "[Decompiler] Entry address: {:#x}\n", entry));
-
-        // Map specific lines to addresses.
-        if (lines) {
-            for (int i = 0; i < static_cast<int>(lines->size()) && i < 10; ++i) {
-                auto addr = dfunc.line_to_address(i);
-                if (addr) {
-                    ida::ui::message(std::format(
-                        "[Decompiler] Line {} -> {:#x}\n", i, *addr));
-                }
-            }
-
-            // Edge case: out-of-range line.
-            auto bad_line = dfunc.line_to_address(99999);
-            if (bad_line) {
-                ida::ui::message("[Decompiler] Expected error for line 99999\n");
+            "[Complexity] Address mapping for '{}' (first 5 lines):\n",
+            metrics.name));
+        for (int i = 0; i < std::min(5, static_cast<int>(lines->size())); ++i) {
+            auto addr = dfunc.line_to_address(i);
+            if (addr) {
+                ida::ui::message(std::format(
+                    "  Line {}: {:#x}  |  {}\n", i, *addr,
+                    (*lines)[i].substr(0, 60)));
             }
         }
-
-        // Bulk address map.
-        auto amap = dfunc.address_map();
-        if (amap) {
-            ida::ui::message(std::format(
-                "[Decompiler] Address map has {} entries\n", amap->size()));
-        }
     }
+
+    // Bulk address map — useful for building coverage overlays.
+    if (auto amap = dfunc.address_map()) {
+        ida::ui::message(std::format(
+            "[Complexity] Total address mappings: {}\n", amap->size()));
+    }
+}
+
+// ── Build a flow-chart summary for the top function ────────────────────
+//
+// Flow charts give an alternative view of complexity: the number of basic
+// blocks and edges directly relates to cyclomatic complexity.
+
+void report_flowchart(ida::Address func_addr, const std::string& name) {
+    auto fc = ida::graph::flowchart(func_addr);
+    if (!fc) return;
+
+    std::size_t total_edges = 0;
+    for (const auto& block : *fc) {
+        total_edges += block.successors.size();
+    }
+
+    // McCabe's formula: M = E - N + 2 (edges - nodes + 2).
+    auto nodes = fc->size();
+    auto mccabe = total_edges - nodes + 2;
+
+    ida::ui::message(std::format(
+        "[Complexity] Flowchart for '{}': {} blocks, {} edges, "
+        "graph-based complexity = {}\n",
+        name, nodes, total_edges, mccabe));
 }
 
 // ── Main plugin logic ──────────────────────────────────────────────────
 
-void run_decompiler_analysis() {
-    ida::ui::message("=== idax Decompiler Analysis Plugin ===\n");
+void run_complexity_analysis() {
+    ida::ui::message("=== Complexity Metrics Analysis ===\n");
 
-    // Step 1: Check decompiler availability.
+    // Verify decompiler availability.
     auto avail = ida::decompiler::available();
     if (!avail || !*avail) {
-        ida::ui::message("[Decompiler] Hex-Rays decompiler is not available\n");
+        ida::ui::message("[Complexity] Hex-Rays decompiler is not available.\n");
+        ida::ui::message("[Complexity] Install the decompiler to use this plugin.\n");
         return;
     }
-    ida::ui::message("[Decompiler] Decompiler is available\n");
 
-    // Step 2: Decompile multiple functions.
-    std::size_t func_count_val = 0;
-    auto fc = ida::function::count();
-    if (fc) func_count_val = *fc;
-
-    std::size_t analyzed = 0;
-    constexpr std::size_t kMaxAnalyze = 10;
+    // Analyze all non-trivial functions.
+    std::vector<FunctionMetrics> all_metrics;
+    std::size_t skipped = 0;
 
     for (auto f : ida::function::all()) {
-        if (analyzed >= kMaxAnalyze) break;
+        // Skip tiny functions (thunks, stubs) and library code.
+        if (f.size() < 32 || f.is_library() || f.is_thunk()) {
+            ++skipped;
+            continue;
+        }
 
-        // Skip tiny functions (likely thunks/stubs).
-        if (f.size() < 16) continue;
-        // Skip library functions.
-        if (f.is_library()) continue;
-
-        analyze_decompiled_function(f.start());
-        ++analyzed;
-    }
-
-    // Step 3: Edge case: decompile at BadAddress.
-    auto bad = ida::decompiler::decompile(ida::BadAddress);
-    if (bad) {
-        ida::ui::message("[Decompiler] Expected error decompiling BadAddress\n");
-    }
-
-    // Step 4: Flow chart of a decompiled function.
-    auto first_func = ida::function::by_index(0);
-    if (first_func) {
-        auto fc_result = ida::graph::flowchart(first_func->start());
-        if (fc_result) {
-            ida::ui::message(std::format(
-                "[Decompiler] Flowchart for first function: {} blocks\n",
-                fc_result->size()));
-            for (const auto& block : *fc_result) {
-                ida::ui::message(std::format(
-                    "[Decompiler]   Block {:#x}-{:#x}: {} succs, {} preds\n",
-                    block.start, block.end,
-                    block.successors.size(), block.predecessors.size()));
-            }
+        FunctionMetrics m;
+        if (analyze_function(f.start(), m)) {
+            all_metrics.push_back(std::move(m));
         }
     }
 
     ida::ui::message(std::format(
-        "[Decompiler] Analyzed {} functions\n", analyzed));
-    ida::ui::message("=== Decompiler Analysis Complete ===\n");
+        "[Complexity] Analyzed {} functions ({} skipped)\n",
+        all_metrics.size(), skipped));
+
+    if (all_metrics.empty()) return;
+
+    // Sort by cyclomatic complexity, descending.
+    std::sort(all_metrics.begin(), all_metrics.end(),
+        [](const FunctionMetrics& a, const FunctionMetrics& b) {
+            return a.cyclomatic_complexity > b.cyclomatic_complexity;
+        });
+
+    // Print the top-20 most complex functions.
+    ida::ui::message("\n");
+    ida::ui::message("  Rank | Complexity | Lines | Calls | Nesting | Function\n");
+    ida::ui::message("  -----+------------+-------+-------+---------+---------\n");
+
+    auto top = std::min(all_metrics.size(), std::size_t(20));
+    for (std::size_t i = 0; i < top; ++i) {
+        auto& m = all_metrics[i];
+        ida::ui::message(std::format(
+            "  {:4} | {:10} | {:5} | {:5} | {:7} | {} ({:#x})\n",
+            i + 1, m.cyclomatic_complexity, m.line_count,
+            m.calls, m.max_nesting_depth, m.name, m.address));
+    }
+
+    // Compute aggregate statistics.
+    double avg_complexity = 0;
+    std::size_t max_complexity = 0;
+    for (auto& m : all_metrics) {
+        avg_complexity += m.cyclomatic_complexity;
+        if (m.cyclomatic_complexity > max_complexity)
+            max_complexity = m.cyclomatic_complexity;
+    }
+    avg_complexity /= all_metrics.size();
+
+    ida::ui::message(std::format(
+        "\n[Complexity] Average: {:.1f}, Max: {}, Total functions: {}\n",
+        avg_complexity, max_complexity, all_metrics.size()));
+
+    // Annotate the most complex function with comments and variable renames.
+    auto& top_func = all_metrics.front();
+    annotate_complex_function(top_func);
+
+    // Flow-chart analysis of the top function.
+    report_flowchart(top_func.address, top_func.name);
+
+    // Add a repeatable comment at the function entry in the disassembly.
+    ida::comment::set(top_func.address, std::format(
+        "Highest complexity: {} (review priority #1)",
+        top_func.cyclomatic_complexity), true);
+
+    ida::ui::message("=== Complexity Analysis Complete ===\n");
 }
 
 } // anonymous namespace
 
 // ── Plugin class ────────────────────────────────────────────────────────
 
-struct DecompilerPlugin : ida::plugin::Plugin {
+struct ComplexityMetricsPlugin : ida::plugin::Plugin {
     ida::plugin::Info info() const override {
         return {
-            "idax Decompiler Analysis",
-            "Ctrl-Shift-H",
-            "Deep Hex-Rays decompiler integration exercise",
-            "Exercises all decompiler APIs including ctree traversal, "
-            "variable management, comment injection, address mapping, "
-            "and pseudocode analysis."
+            .name    = "Complexity Metrics",
+            .hotkey  = "Ctrl-Shift-C",
+            .comment = "Compute cyclomatic complexity for all functions",
+            .help    = "Uses the Hex-Rays decompiler to compute McCabe "
+                       "cyclomatic complexity, count expression patterns, "
+                       "and identify the most complex functions for review.",
         };
     }
 
     ida::Status run(std::size_t) override {
-        run_decompiler_analysis();
+        run_complexity_analysis();
         return ida::ok();
     }
 };
