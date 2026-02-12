@@ -21,9 +21,28 @@ int direction_flags(Direction dir) {
 
 Result<Address> text(std::string_view query, Address start,
                      Direction dir, bool case_sensitive) {
-    int flags = direction_flags(dir);
-    if (case_sensitive)
+    TextOptions options;
+    options.direction = dir;
+    options.case_sensitive = case_sensitive;
+    return text(query, start, options);
+}
+
+Result<Address> text(std::string_view query,
+                     Address start,
+                     const TextOptions& options) {
+    int flags = direction_flags(options.direction);
+    if (options.case_sensitive)
         flags |= SEARCH_CASE;
+    if (options.regex)
+        flags |= SEARCH_REGEX;
+    if (options.identifier)
+        flags |= SEARCH_IDENT;
+    if (options.skip_start)
+        flags |= SEARCH_NEXT;
+    if (options.no_break)
+        flags |= SEARCH_NOBRK;
+    if (options.no_show)
+        flags |= SEARCH_NOSHOW;
 
     qstring qquery = ida::detail::to_qstring(query);
     ea_t result = find_text(start, 0, 0, qquery.c_str(), flags);

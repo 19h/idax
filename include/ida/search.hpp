@@ -16,10 +16,26 @@ enum class Direction {
     Backward,
 };
 
+/// Text-search options.
+struct TextOptions {
+    Direction direction{Direction::Forward};
+    bool case_sensitive{true};
+    bool regex{false};
+    bool identifier{false};
+    bool skip_start{false};
+    bool no_break{true};
+    bool no_show{true};
+};
+
 /// Search for a text string in the disassembly listing.
 Result<Address> text(std::string_view query, Address start,
                      Direction dir = Direction::Forward,
                      bool case_sensitive = true);
+
+/// Search for text with explicit option flags (regex/identifier/skip-start/etc.).
+Result<Address> text(std::string_view query,
+                     Address start,
+                     const TextOptions& options);
 
 /// Search for an immediate value in instruction operands.
 Result<Address> immediate(std::uint64_t value, Address start,

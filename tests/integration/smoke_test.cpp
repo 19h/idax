@@ -358,6 +358,36 @@ static void test_comments() {
     CHECK_OK(rm);
 }
 
+static void test_search() {
+    std::cout << "--- search ---\n";
+
+    auto lo = ida::database::min_address();
+    if (!lo) return;
+
+    // Basic text search.
+    auto plain = ida::search::text("main", *lo,
+                                   ida::search::Direction::Forward,
+                                   false);
+    CHECK_OK(plain);
+    if (plain)
+        std::cout << "  text search found at 0x" << std::hex << *plain
+                  << std::dec << "\n";
+
+    // Regex/option wrapper path.
+    ida::search::TextOptions opts;
+    opts.direction = ida::search::Direction::Forward;
+    opts.case_sensitive = false;
+    opts.regex = true;
+    opts.no_break = true;
+    opts.no_show = true;
+
+    auto regex = ida::search::text("main", *lo, opts);
+    CHECK_OK(regex);
+    if (regex)
+        std::cout << "  regex search found at 0x" << std::hex << *regex
+                  << std::dec << "\n";
+}
+
 static void test_entry_points() {
     std::cout << "--- entries ---\n";
 
@@ -1319,6 +1349,7 @@ int main(int argc, char* argv[]) {
     test_names();
     test_xrefs();
     test_comments();
+    test_search();
     test_entry_points();
     test_type_basics();
     test_decompiler();
