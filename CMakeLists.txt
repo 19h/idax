@@ -16,6 +16,21 @@ file(GLOB_RECURSE IDAX_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
+# ── SDK headers-only target for compilation ──────────────────────────────
+# idax needs the SDK headers and __EA64__ to compile, but does NOT
+# propagate a specific link target (plugin/loader/idalib) to consumers.
+# Consumers must link their own idasdk::plugin, idasdk::idalib, etc.
+if(NOT TARGET idasdk_headers)
+    add_library(idasdk_headers INTERFACE IMPORTED)
+    set_target_properties(idasdk_headers PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${IDASDK}/include"
+    )
+    target_compile_definitions(idasdk_headers INTERFACE __EA64__)
+    target_link_libraries(idasdk_headers INTERFACE
+        ida_platform_settings
+        ida_compiler_settings)
+endif()
+
 # ── idax static library ─────────────────────────────────────────────────
 # Built as a static library that IDA addons link against alongside idasdk::*
 add_library(idax STATIC ${IDAX_SOURCES})
@@ -29,8 +44,9 @@ target_include_directories(idax
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# idax needs the SDK headers and definitions
-target_link_libraries(idax PUBLIC idasdk::plugin)
+# idax compiles against SDK headers but does NOT force a link target.
+# Consumers bring their own idasdk::plugin / idasdk::idalib / etc.
+target_link_libraries(idax PUBLIC idasdk_headers)
 
 # C++23 for idax consumers
 target_compile_features(idax PUBLIC cxx_std_23)
