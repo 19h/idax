@@ -4,11 +4,22 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/fixup.hpp>
 
+#include <map>
+#include <memory>
+#include <string>
+
 namespace ida::fixup {
 
 // ── Internal helpers ────────────────────────────────────────────────────
 
 namespace {
+
+struct RegisteredCustomHandler {
+    std::string name;
+    fixup_handler_t sdk{};
+};
+
+std::map<fixup_type_t, std::unique_ptr<RegisteredCustomHandler>> g_custom_handlers;
 
 /// Map SDK fixup type to our Type enum.
 Type map_fixup_type(fixup_type_t ft) {
@@ -141,6 +152,55 @@ FixupRange all() {
     Address start = (first_ea == BADADDR) ? BadAddress
                                           : static_cast<Address>(first_ea);
     return FixupRange(start, BadAddress);
+}
+
+Result<std::uint16_t> register_custom(const CustomHandler& handler) {
+    if (handler.name.empty())
+        return std::unexpected(Error::validation("Custom fixup handler name cannot be empty"));
+
+    auto owned = std::make_unique<RegisteredCustomHandler>();
+    owned->name = handler.name;
+
+    owned->sdk.cbsize = sizeof(fixup_handler_t);
+    owned->sdk.name = owned->name.c_str();
+    owned->sdk.props = static_cast<uint32>(handler.properties);
+    owned->sdk.size = handler.size;
+    owned->sdk.width = handler.width;
+    owned->sdk.shift = handler.shift;
+    owned->sdk.rsrv4 = 0;
+    owned->sdk.reftype = static_cast<uint32>(handler.reference_type);
+    owned->sdk.apply = nullptr;
+    owned->sdk.get_value = nullptr;
+    owned->sdk.patch_value = nullptr;
+
+    fixup_type_t id = ::register_custom_fixup(&owned->sdk);
+    if (id == 0) {
+        return std::unexpected(Error::conflict("register_custom_fixup failed",
+                                               handler.name));
+    }
+
+    g_custom_handlers[id] = std::move(owned);
+    return static_cast<std::uint16_t>(id);
+}
+
+Status unregister_custom(std::uint16_t custom_type) {
+    fixup_type_t type = static_cast<fixup_type_t>(custom_type);
+    if (!::unregister_custom_fixup(type)) {
+        return std::unexpected(Error::not_found("Custom fixup type not registered",
+                                                std::to_string(custom_type)));
+    }
+    g_custom_handlers.erase(type);
+    return ida::ok();
+}
+
+Result<std::uint16_t> find_custom(std::string_view name) {
+    if (name.empty())
+        return std::unexpected(Error::validation("Custom fixup name cannot be empty"));
+    std::string n(name);
+    fixup_type_t id = ::find_custom_fixup(n.c_str());
+    if (id == 0)
+        return std::unexpected(Error::not_found("Custom fixup not found", n));
+    return static_cast<std::uint16_t>(id);
 }
 
 } // namespace ida::fixup

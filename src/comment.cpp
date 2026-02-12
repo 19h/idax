@@ -4,7 +4,36 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/comment.hpp>
 
+#include <string>
+#include <vector>
+
 namespace ida::comment {
+
+namespace {
+
+Result<std::vector<std::string>> collect_extra_lines(Address ea, int base_idx) {
+    std::vector<std::string> out;
+    qstring line;
+    for (int i = 0;; ++i) {
+        if (get_extra_cmt(&line, ea, base_idx + i) <= 0)
+            break;
+        out.push_back(ida::detail::to_string(line));
+    }
+    return out;
+}
+
+Status set_extra_lines(Address ea, int base_idx, const std::vector<std::string>& lines) {
+    delete_extra_cmts(ea, base_idx);
+    for (size_t i = 0; i < lines.size(); ++i) {
+        if (!update_extra_cmt(ea, base_idx + static_cast<int>(i), lines[i].c_str())) {
+            return std::unexpected(Error::sdk("update_extra_cmt failed",
+                                              std::to_string(ea)));
+        }
+    }
+    return ida::ok();
+}
+
+} // namespace
 
 // ── Regular comments ────────────────────────────────────────────────────
 
@@ -77,6 +106,72 @@ Result<std::string> get_posterior(Address ea, int line_index) {
         return std::unexpected(Error::not_found("No posterior line at index",
                                                 std::to_string(line_index)));
     return ida::detail::to_string(qbuf);
+}
+
+Status set_anterior_lines(Address ea, const std::vector<std::string>& lines) {
+    return set_extra_lines(ea, E_PREV, lines);
+}
+
+Status set_posterior_lines(Address ea, const std::vector<std::string>& lines) {
+    return set_extra_lines(ea, E_NEXT, lines);
+}
+
+Status clear_anterior(Address ea) {
+    delete_extra_cmts(ea, E_PREV);
+    return ida::ok();
+}
+
+Status clear_posterior(Address ea) {
+    delete_extra_cmts(ea, E_NEXT);
+    return ida::ok();
+}
+
+Result<std::vector<std::string>> anterior_lines(Address ea) {
+    return collect_extra_lines(ea, E_PREV);
+}
+
+Result<std::vector<std::string>> posterior_lines(Address ea) {
+    return collect_extra_lines(ea, E_NEXT);
+}
+
+Result<std::string> render(Address ea,
+                           bool include_repeatable,
+                           bool include_extra_lines) {
+    std::string out;
+
+    auto regular = get(ea, false);
+    if (regular)
+        out += *regular;
+
+    if (include_repeatable) {
+        auto rep = get(ea, true);
+        if (rep && (out.empty() || *rep != out)) {
+            if (!out.empty()) out += "\n";
+            out += *rep;
+        }
+    }
+
+    if (include_extra_lines) {
+        auto ant = anterior_lines(ea);
+        if (ant) {
+            for (const auto& line : *ant) {
+                if (!out.empty()) out += "\n";
+                out += line;
+            }
+        }
+        auto post = posterior_lines(ea);
+        if (post) {
+            for (const auto& line : *post) {
+                if (!out.empty()) out += "\n";
+                out += line;
+            }
+        }
+    }
+
+    if (out.empty())
+        return std::unexpected(Error::not_found("No comments at address",
+                                                std::to_string(ea)));
+    return out;
 }
 
 } // namespace ida::comment

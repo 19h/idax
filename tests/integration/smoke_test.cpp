@@ -87,6 +87,30 @@ static void test_database() {
         std::cout << "  range: [0x" << std::hex << *lo << ", 0x" << *hi << ")\n"
                   << std::dec;
     }
+
+    auto snaps = ida::database::snapshots();
+    CHECK_OK(snaps);
+    if (snaps)
+        std::cout << "  snapshots: " << snaps->size() << "\n";
+
+    auto issnap = ida::database::is_snapshot_database();
+    CHECK_OK(issnap);
+    if (issnap)
+        std::cout << "  is_snapshot: " << (*issnap ? "yes" : "no") << "\n";
+
+    // File/memory-to-database helpers: round-trip the first 4 bytes back
+    // to the same address using both paths.
+    if (path && lo) {
+        auto first4 = ida::data::read_bytes(*lo, 4);
+        CHECK_OK(first4);
+        if (first4 && first4->size() == 4) {
+            auto mem = ida::database::memory_to_database(*first4, *lo, 0);
+            CHECK_OK(mem);
+
+            auto file = ida::database::file_to_database(*path, 0, *lo, 4, true, false);
+            CHECK_OK(file);
+        }
+    }
 }
 
 static void test_segments() {
@@ -185,6 +209,22 @@ static void test_address_predicates() {
             CHECK(!ida::address::is_tail(ea));
             CHECK(ida::address::is_head(ea));
             break;
+        }
+    }
+
+    auto hi = ida::database::max_address();
+    CHECK_OK(hi);
+    if (hi) {
+        auto first_code = ida::address::find_first(*lo, *hi, ida::address::Predicate::Code);
+        CHECK_OK(first_code);
+        if (first_code) {
+            CHECK(ida::address::is_code(*first_code));
+            auto next_head = ida::address::find_next(*first_code,
+                                                     ida::address::Predicate::Head,
+                                                     *hi);
+            CHECK_OK(next_head);
+            if (next_head)
+                CHECK(*next_head > *first_code);
         }
     }
 }
@@ -356,6 +396,51 @@ static void test_comments() {
 
     auto rm = ida::comment::remove(f0->start());
     CHECK_OK(rm);
+
+    // Bulk anterior/posterior operations.
+    std::vector<std::string> ant_lines = {
+        "idax anterior line 1",
+        "idax anterior line 2",
+    };
+    auto sa = ida::comment::set_anterior_lines(f0->start(), ant_lines);
+    CHECK_OK(sa);
+
+    std::vector<std::string> post_lines = {
+        "idax posterior line 1",
+    };
+    auto sp = ida::comment::set_posterior_lines(f0->start(), post_lines);
+    CHECK_OK(sp);
+
+    auto got_ant = ida::comment::anterior_lines(f0->start());
+    CHECK_OK(got_ant);
+    if (got_ant) {
+        CHECK(got_ant->size() == ant_lines.size());
+    }
+
+    auto got_post = ida::comment::posterior_lines(f0->start());
+    CHECK_OK(got_post);
+    if (got_post) {
+        CHECK(got_post->size() == post_lines.size());
+    }
+
+    // Rendering helper.
+    auto set_regular = ida::comment::set(f0->start(), "idax render base");
+    CHECK_OK(set_regular);
+    auto rendered = ida::comment::render(f0->start(), true, true);
+    CHECK_OK(rendered);
+    if (rendered) {
+        CHECK(rendered->find("idax render base") != std::string::npos);
+        CHECK(rendered->find("idax anterior line 1") != std::string::npos);
+        CHECK(rendered->find("idax posterior line 1") != std::string::npos);
+    }
+
+    auto ca = ida::comment::clear_anterior(f0->start());
+    CHECK_OK(ca);
+    auto cp = ida::comment::clear_posterior(f0->start());
+    CHECK_OK(cp);
+
+    auto rm2 = ida::comment::remove(f0->start());
+    CHECK_OK(rm2);
 }
 
 static void test_search() {
@@ -386,6 +471,36 @@ static void test_search() {
     if (regex)
         std::cout << "  regex search found at 0x" << std::hex << *regex
                   << std::dec << "\n";
+}
+
+static void test_fixups() {
+    std::cout << "--- fixups ---\n";
+
+    // Custom fixup registration lifecycle.
+    ida::fixup::CustomHandler handler;
+    handler.name = "idax_test_custom_fixup";
+    handler.properties = static_cast<std::uint32_t>(ida::fixup::HandlerProperty::Verify);
+    handler.size = 4;
+    handler.width = 32;
+    handler.shift = 0;
+    handler.reference_type = 0;
+
+    auto reg = ida::fixup::register_custom(handler);
+    CHECK_OK(reg);
+    if (reg) {
+        auto found = ida::fixup::find_custom(handler.name);
+        CHECK_OK(found);
+        if (found)
+            CHECK(*found == *reg);
+
+        auto unreg = ida::fixup::unregister_custom(*reg);
+        CHECK_OK(unreg);
+
+        auto found_after = ida::fixup::find_custom(handler.name);
+        CHECK(!found_after.has_value());
+    }
+
+    std::cout << "  custom fixup register/find/unregister: ok\n";
 }
 
 static void test_entry_points() {
@@ -1350,6 +1465,7 @@ int main(int argc, char* argv[]) {
     test_xrefs();
     test_comments();
     test_search();
+    test_fixups();
     test_entry_points();
     test_type_basics();
     test_decompiler();

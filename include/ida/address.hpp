@@ -95,6 +95,25 @@ bool is_head(Address ea);
 /// Is the address a tail byte (continuation of an item)?
 bool is_tail(Address ea);
 
+// ── Search predicate helpers ─────────────────────────────────────────────
+
+enum class Predicate {
+    Mapped,
+    Loaded,
+    Code,
+    Data,
+    Unknown,
+    Head,
+    Tail,
+};
+
+/// Find first address in [start, end) matching a predicate.
+Result<Address> find_first(Address start, Address end, Predicate predicate);
+
+/// Find next address after `ea` matching a predicate.
+/// If end is BadAddress, search to the end of address space.
+Result<Address> find_next(Address ea, Predicate predicate, Address end = BadAddress);
+
 // ── Item-range iterator ─────────────────────────────────────────────────
 
 /// Forward iterator over item head addresses in a range.

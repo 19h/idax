@@ -4,6 +4,8 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/address.hpp>
 
+#include <limits>
+
 namespace ida::address {
 
 // ── Navigation ──────────────────────────────────────────────────────────
@@ -108,6 +110,46 @@ bool is_head(Address ea) {
 bool is_tail(Address ea) {
     flags64_t f = get_flags(ea);
     return f != 0 && ::is_tail(f);
+}
+
+namespace {
+
+bool matches_predicate(Address ea, Predicate p) {
+    switch (p) {
+        case Predicate::Mapped:  return is_mapped(ea);
+        case Predicate::Loaded:  return is_loaded(ea);
+        case Predicate::Code:    return is_code(ea);
+        case Predicate::Data:    return is_data(ea);
+        case Predicate::Unknown: return is_unknown(ea);
+        case Predicate::Head:    return is_head(ea);
+        case Predicate::Tail:    return is_tail(ea);
+    }
+    return false;
+}
+
+} // namespace
+
+Result<Address> find_first(Address start, Address end, Predicate predicate) {
+    if (start >= end)
+        return std::unexpected(Error::validation("Invalid search range"));
+
+    for (Address ea = start; ea < end; ++ea) {
+        if (matches_predicate(ea, predicate))
+            return ea;
+    }
+    return std::unexpected(Error::not_found("No matching address in range"));
+}
+
+Result<Address> find_next(Address ea, Predicate predicate, Address end) {
+    Address limit = (end == BadAddress) ? std::numeric_limits<Address>::max() : end;
+    if (ea >= limit)
+        return std::unexpected(Error::validation("Search start at/after limit"));
+
+    for (Address cur = ea + 1; cur < limit; ++cur) {
+        if (matches_predicate(cur, predicate))
+            return cur;
+    }
+    return std::unexpected(Error::not_found("No next matching address"));
 }
 
 // ── ItemIterator ────────────────────────────────────────────────────────
