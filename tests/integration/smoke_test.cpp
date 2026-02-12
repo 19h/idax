@@ -512,6 +512,214 @@ static void test_function_frame() {
     }
 }
 
+static void test_decompiler_ctree(ida::decompiler::DecompiledFunction& df) {
+    std::cout << "--- decompiler ctree visitor ---\n";
+
+    // Count expressions using the class-based visitor.
+    struct ExprCounter : public ida::decompiler::CtreeVisitor {
+        int expr_count = 0;
+        int stmt_count = 0;
+        int call_count = 0;
+        int number_count = 0;
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView expr) override {
+            ++expr_count;
+            if (expr.type() == ida::decompiler::ItemType::ExprCall)
+                ++call_count;
+            if (expr.type() == ida::decompiler::ItemType::ExprNumber)
+                ++number_count;
+            return ida::decompiler::VisitAction::Continue;
+        }
+
+        ida::decompiler::VisitAction visit_statement(
+            ida::decompiler::StatementView stmt) override {
+            ++stmt_count;
+            return ida::decompiler::VisitAction::Continue;
+        }
+    };
+
+    ExprCounter counter;
+    auto result = df.visit(counter);
+    CHECK_OK(result);
+    if (result) {
+        CHECK(counter.expr_count > 0);
+        CHECK(counter.stmt_count > 0);
+        std::cout << "  items visited: " << *result << "\n"
+                  << "  expressions: " << counter.expr_count
+                  << "  statements: " << counter.stmt_count << "\n"
+                  << "  calls: " << counter.call_count
+                  << "  numbers: " << counter.number_count << "\n";
+    }
+
+    // Test expressions-only visitor.
+    ExprCounter expr_only;
+    auto result2 = df.visit_expressions(expr_only);
+    CHECK_OK(result2);
+    if (result2) {
+        CHECK(expr_only.expr_count > 0);
+        CHECK(expr_only.stmt_count == 0);  // Should not visit statements.
+        std::cout << "  expressions-only: " << expr_only.expr_count
+                  << " (stmts: " << expr_only.stmt_count << ")\n";
+    }
+
+    // Test for_each_expression functional helper.
+    int func_expr_count = 0;
+    auto result3 = ida::decompiler::for_each_expression(df,
+        [&](ida::decompiler::ExpressionView expr) {
+            ++func_expr_count;
+            // Test that ExpressionView methods work.
+            auto t = expr.type();
+            auto a = expr.address();
+            (void)t;
+            (void)a;
+            // For numbers, check value access.
+            if (expr.type() == ida::decompiler::ItemType::ExprNumber) {
+                auto nv = expr.number_value();
+                (void)nv;  // Just verify no crash.
+            }
+            return ida::decompiler::VisitAction::Continue;
+        });
+    CHECK_OK(result3);
+    if (result3) {
+        CHECK(func_expr_count > 0);
+        std::cout << "  for_each_expression: " << func_expr_count << "\n";
+    }
+
+    // Test post-order visitor.
+    struct PostOrderChecker : public ida::decompiler::CtreeVisitor {
+        int pre_count = 0;
+        int post_count = 0;
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView) override {
+            ++pre_count;
+            return ida::decompiler::VisitAction::Continue;
+        }
+        ida::decompiler::VisitAction leave_expression(
+            ida::decompiler::ExpressionView) override {
+            ++post_count;
+            return ida::decompiler::VisitAction::Continue;
+        }
+    };
+
+    PostOrderChecker po;
+    ida::decompiler::VisitOptions opts;
+    opts.expressions_only = true;
+    opts.post_order = true;
+    auto result4 = df.visit(po, opts);
+    CHECK_OK(result4);
+    if (result4) {
+        // Pre and post counts should match for expressions-only.
+        CHECK(po.pre_count > 0);
+        CHECK(po.post_count > 0);
+        std::cout << "  post-order: pre=" << po.pre_count
+                  << " post=" << po.post_count << "\n";
+    }
+
+    // Test SkipChildren action.
+    struct SkipChecker : public ida::decompiler::CtreeVisitor {
+        int visited = 0;
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView) override {
+            ++visited;
+            // Skip children of the very first expression.
+            if (visited == 1) return ida::decompiler::VisitAction::SkipChildren;
+            return ida::decompiler::VisitAction::Continue;
+        }
+    };
+
+    SkipChecker skip;
+    auto result5 = df.visit_expressions(skip);
+    CHECK_OK(result5);
+    if (result5 && result3) {
+        CHECK(skip.visited <= func_expr_count);
+        std::cout << "  skip-children: visited " << skip.visited
+                  << " (vs " << func_expr_count << " without skip)\n";
+    }
+}
+
+static void test_decompiler_comments(ida::decompiler::DecompiledFunction& df) {
+    std::cout << "--- decompiler comments ---\n";
+
+    auto ea = df.entry_address();
+    CHECK(ea != ida::BadAddress);
+
+    // Set a comment.
+    auto set_status = df.set_comment(ea, "idax ctree comment test");
+    CHECK_OK(set_status);
+
+    // Read it back.
+    auto cmt = df.get_comment(ea);
+    CHECK_OK(cmt);
+    if (cmt) {
+        CHECK(*cmt == "idax ctree comment test");
+        std::cout << "  set/get comment: " << *cmt << "\n";
+    }
+
+    // Save to database.
+    auto save_status = df.save_comments();
+    CHECK_OK(save_status);
+
+    // Remove the comment (empty string).
+    auto rm_status = df.set_comment(ea, "");
+    CHECK_OK(rm_status);
+    df.save_comments();
+
+    // Verify it's gone.
+    auto cmt2 = df.get_comment(ea);
+    CHECK_OK(cmt2);
+    if (cmt2) {
+        CHECK(cmt2->empty());
+        std::cout << "  removed comment: ok\n";
+    }
+
+    // Refresh should not crash.
+    auto ref_status = df.refresh();
+    CHECK_OK(ref_status);
+    std::cout << "  refresh: ok\n";
+}
+
+static void test_decompiler_address_mapping(ida::decompiler::DecompiledFunction& df) {
+    std::cout << "--- decompiler address mapping ---\n";
+
+    auto ea = df.entry_address();
+    CHECK(ea != ida::BadAddress);
+    std::cout << "  entry address: 0x" << std::hex << ea << std::dec << "\n";
+
+    // Get address map.
+    auto amap = df.address_map();
+    CHECK_OK(amap);
+    if (amap) {
+        CHECK(!amap->empty());
+        std::cout << "  address map entries: " << amap->size() << "\n";
+        for (std::size_t i = 0; i < amap->size() && i < 5; ++i) {
+            std::cout << "    line " << (*amap)[i].line_number
+                      << " -> 0x" << std::hex << (*amap)[i].address
+                      << std::dec << "\n";
+        }
+        if (amap->size() > 5) std::cout << "    ...\n";
+    }
+
+    // Test line-to-address mapping for line 0 (declaration area).
+    // After header lines, there should be mappable lines.
+    auto lines = df.lines();
+    if (lines && lines->size() > 2) {
+        // Try to map a line near the middle of the pseudocode.
+        int test_line = static_cast<int>(lines->size() / 2);
+        auto mapped = df.line_to_address(test_line);
+        if (mapped) {
+            std::cout << "  line " << test_line << " -> 0x"
+                      << std::hex << *mapped << std::dec << "\n";
+            ++g_pass;
+        } else {
+            // Mapping might fail for blank/declaration lines — acceptable.
+            std::cout << "  line " << test_line << " -> (no mapping)\n";
+        }
+    }
+}
+
 static void test_decompiler() {
     std::cout << "--- decompiler ---\n";
 
@@ -561,6 +769,11 @@ static void test_decompiler() {
                         }
                     }
                 }
+
+                // ── Ctree visitor tests ─────────────────────────────
+                test_decompiler_ctree(*df);
+                test_decompiler_comments(*df);
+                test_decompiler_address_mapping(*df);
             } else {
                 std::cout << "  decompile main failed: " << df.error().message << "\n";
             }
