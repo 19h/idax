@@ -43,10 +43,10 @@ bool contains(Address start, AddressSize size);
 
 /// First fixup address, or BadAddress if none.
 Result<Address> first();
-/// Next fixup address after \p ea, or BadAddress if none.
-Result<Address> next(Address ea);
-/// Previous fixup address before \p ea, or BadAddress if none.
-Result<Address> prev(Address ea);
+/// Next fixup address after \p address, or BadAddress if none.
+Result<Address> next(Address address);
+/// Previous fixup address before \p address, or BadAddress if none.
+Result<Address> prev(Address address);
 
 class FixupIterator {
 public:
@@ -57,7 +57,7 @@ public:
     using reference         = Descriptor;
 
     FixupIterator() = default;
-    explicit FixupIterator(Address ea) : ea_(ea) {}
+    explicit FixupIterator(Address address) : ea_(address) {}
 
     reference operator*() const;
     FixupIterator& operator++();

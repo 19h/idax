@@ -534,7 +534,7 @@ void test_alt_roundtrip() {
     if (val_check) CHECK(*val_check == 12345);
 
     // Delete
-    CHECK_OK(node->del_alt(idx0));
+    CHECK_OK(node->remove_alt(idx0));
 
     // After delete, altval returns 0 (indistinguishable from "value is 0")
     auto after_del = node->alt(idx0);
@@ -542,7 +542,7 @@ void test_alt_roundtrip() {
     if (after_del) CHECK(*after_del == 0);
 
     // Clean up index 1
-    CHECK_OK(node->del_alt(idx1));
+    CHECK_OK(node->remove_alt(idx1));
 }
 
 // ---------------------------------------------------------------------------
@@ -643,8 +643,8 @@ void test_blob_overwrite() {
     if (str) CHECK(*str == "hello");
 
     // Clean up
-    CHECK_OK(node->del_blob(idx));
-    CHECK_OK(node->del_blob(idx2));
+    CHECK_OK(node->remove_blob(idx));
+    CHECK_OK(node->remove_blob(idx2));
 }
 
 // ---------------------------------------------------------------------------
@@ -672,12 +672,12 @@ void test_multi_tag() {
     if (valX) CHECK(*valX == 200);
 
     // They should be independent
-    CHECK_OK(node->del_alt(idx, 'A'));
+    CHECK_OK(node->remove_alt(idx, 'A'));
     auto after_del = node->alt(idx, 'X');
     CHECK_OK(after_del);
     if (after_del) CHECK(*after_del == 200);  // X should still be there
 
-    CHECK_OK(node->del_alt(idx, 'X'));
+    CHECK_OK(node->remove_alt(idx, 'X'));
 }
 
 // ---------------------------------------------------------------------------
@@ -740,7 +740,7 @@ void test_node_copy_move() {
     if (av) CHECK(*av == 777);
 
     // Clean up
-    CHECK_OK(node->del_alt(idx));
+    CHECK_OK(node->remove_alt(idx));
 }
 
 } // namespace

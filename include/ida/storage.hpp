@@ -21,7 +21,7 @@ public:
 
     Result<std::uint64_t>           alt(Address index, std::uint8_t tag = 'A') const;
     Status                          set_alt(Address index, std::uint64_t value, std::uint8_t tag = 'A');
-    Status                          del_alt(Address index, std::uint8_t tag = 'A');
+    Status                          remove_alt(Address index, std::uint8_t tag = 'A');
 
     Result<std::vector<std::uint8_t>> sup(Address index, std::uint8_t tag = 'S') const;
     Status                            set_sup(Address index, std::span<const std::uint8_t> data, std::uint8_t tag = 'S');
@@ -41,8 +41,8 @@ public:
     /// Write a blob to the node.
     Status                            set_blob(Address index, std::span<const std::uint8_t> data, std::uint8_t tag = 'B');
 
-    /// Delete a blob.
-    Status                            del_blob(Address index, std::uint8_t tag = 'B');
+    /// Remove a blob.
+    Status                            remove_blob(Address index, std::uint8_t tag = 'B');
 
     /// Read a blob as a string (null-terminated).
     Result<std::string>               blob_string(Address index, std::uint8_t tag = 'B') const;

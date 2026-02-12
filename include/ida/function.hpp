@@ -84,7 +84,7 @@ public:
     [[nodiscard]] bool returns()    const noexcept { return returns_; }
     [[nodiscard]] bool is_library() const noexcept { return library_; }
     [[nodiscard]] bool is_thunk()   const noexcept { return thunk_; }
-    [[nodiscard]] bool is_hidden()  const noexcept { return hidden_; }
+    [[nodiscard]] bool is_visible() const noexcept { return !hidden_; }
 
     /// Size of local variables in the stack frame.
     [[nodiscard]] AddressSize frame_local_size()  const noexcept { return frsize_; }
@@ -117,70 +117,70 @@ private:
 /// Create a function. If \p end is BadAddress, IDA determines the bounds.
 Result<Function> create(Address start, Address end = BadAddress);
 
-/// Delete the function containing \p ea.
-Status remove(Address ea);
+/// Delete the function containing \p address.
+Status remove(Address address);
 
 // ── Lookup ──────────────────────────────────────────────────────────────
 
 /// Function containing the given address (entry or tail chunk).
-Result<Function> at(Address ea);
+Result<Function> at(Address address);
 
 /// Function by positional index (0-based).
-Result<Function> by_index(std::size_t idx);
+Result<Function> by_index(std::size_t index);
 
 /// Total number of functions.
 Result<std::size_t> count();
 
-/// Get the name of the function containing \p ea.
-Result<std::string> name_at(Address ea);
+/// Get the name of the function containing \p address.
+Result<std::string> name_at(Address address);
 
 // ── Boundary mutation ───────────────────────────────────────────────────
 
-Status set_start(Address ea, Address new_start);
-Status set_end(Address ea, Address new_end);
+Status set_start(Address address, Address new_start);
+Status set_end(Address address, Address new_end);
 
 // ── Comment access ──────────────────────────────────────────────────────
 
-Result<std::string> comment(Address ea, bool repeatable = false);
-Status set_comment(Address ea, std::string_view text, bool repeatable = false);
+Result<std::string> comment(Address address, bool repeatable = false);
+Status set_comment(Address address, std::string_view text, bool repeatable = false);
 
 // ── Relationship helpers ────────────────────────────────────────────────
 
-/// Addresses of all functions that call \p ea (via code xrefs to function entry).
-Result<std::vector<Address>> callers(Address ea);
+/// Addresses of all functions that call \p address (via code xrefs to function entry).
+Result<std::vector<Address>> callers(Address address);
 
-/// Addresses of all functions called from the function at \p ea.
-Result<std::vector<Address>> callees(Address ea);
+/// Addresses of all functions called from the function at \p address.
+Result<std::vector<Address>> callees(Address address);
 
 // ── Chunk operations ────────────────────────────────────────────────────
 
-/// Get all chunks (entry + tails) for the function containing \p ea.
+/// Get all chunks (entry + tails) for the function containing \p address.
 /// The entry chunk is always first in the returned vector.
-Result<std::vector<Chunk>> chunks(Address ea);
+Result<std::vector<Chunk>> chunks(Address address);
 
-/// Get only tail chunks for the function containing \p ea.
-Result<std::vector<Chunk>> tail_chunks(Address ea);
+/// Get only tail chunks for the function containing \p address.
+Result<std::vector<Chunk>> tail_chunks(Address address);
 
-/// Number of chunks (entry + tails) for the function at \p ea.
-Result<std::size_t> chunk_count(Address ea);
+/// Number of chunks (entry + tails) for the function at \p address.
+Result<std::size_t> chunk_count(Address address);
 
-/// Append a tail chunk to the function at \p func_ea.
-Status add_tail(Address func_ea, Address tail_start, Address tail_end);
+/// Append a tail chunk to the function at \p function_address.
+Status add_tail(Address function_address, Address tail_start, Address tail_end);
 
-/// Remove a tail chunk starting at \p tail_ea from the function at \p func_ea.
-Status remove_tail(Address func_ea, Address tail_ea);
+/// Remove a tail chunk starting at \p tail_address from the function at \p function_address.
+Status remove_tail(Address function_address, Address tail_address);
 
 // ── Frame operations ────────────────────────────────────────────────────
 
-/// Retrieve a snapshot of the stack frame for the function at \p ea.
-Result<StackFrame> frame(Address ea);
+/// Retrieve a snapshot of the stack frame for the function at \p address.
+Result<StackFrame> frame(Address address);
 
-/// Get the cumulative SP delta before the instruction at \p ea.
+/// Get the cumulative SP delta before the instruction at \p address.
 /// The delta is relative to the function's initial stack pointer.
-Result<AddressDelta> sp_delta_at(Address ea);
+Result<AddressDelta> sp_delta_at(Address address);
 
 /// Define a stack variable in the function's frame.
-Status define_stack_variable(Address func_ea, std::string_view name,
+Status define_stack_variable(Address function_address, std::string_view name,
                              std::int32_t frame_offset,
                              const ida::type::TypeInfo& type);
 
@@ -195,37 +195,37 @@ struct RegisterVariable {
     std::string comment;
 };
 
-/// Define a register variable in the function at \p func_ea.
-/// @param func_ea  Function entry address.
+/// Define a register variable in the function at \p function_address.
+/// @param function_address  Function entry address.
 /// @param range_start  Start address of the range where the alias applies.
 /// @param range_end  End address (exclusive).
 /// @param register_name  Canonical CPU register name (e.g. "eax").
 /// @param user_name  User-defined alias for the register.
-/// @param cmt  Optional comment.
-Status add_register_variable(Address func_ea,
+/// @param comment  Optional comment.
+Status add_register_variable(Address function_address,
                              Address range_start, Address range_end,
                              std::string_view register_name,
                              std::string_view user_name,
-                             std::string_view cmt = {});
+                             std::string_view comment = {});
 
 /// Find a register variable at an address by canonical register name.
-Result<RegisterVariable> find_register_variable(Address func_ea,
-                                                 Address ea,
+Result<RegisterVariable> find_register_variable(Address function_address,
+                                                 Address address,
                                                  std::string_view register_name);
 
-/// Delete a register variable definition.
-Status delete_register_variable(Address func_ea,
+/// Remove a register variable definition.
+Status remove_register_variable(Address function_address,
                                 Address range_start, Address range_end,
                                 std::string_view register_name);
 
 /// Rename an existing register variable.
-Status rename_register_variable(Address func_ea,
-                                Address ea,
+Status rename_register_variable(Address function_address,
+                                Address address,
                                 std::string_view register_name,
                                 std::string_view new_user_name);
 
 /// Check if there are any register variables at the given address.
-Result<bool> has_register_variables(Address func_ea, Address ea);
+Result<bool> has_register_variables(Address function_address, Address address);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 

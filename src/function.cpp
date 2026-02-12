@@ -107,12 +107,12 @@ Result<Function> at(Address ea) {
     return FunctionAccess::populate(fn);
 }
 
-Result<Function> by_index(std::size_t idx) {
+Result<Function> by_index(std::size_t index) {
     std::size_t total = get_func_qty();
-    if (idx >= total)
+    if (index >= total)
         return std::unexpected(Error::validation("Function index out of range",
-                                                 std::to_string(idx)));
-    func_t* fn = getn_func(idx);
+                                                 std::to_string(index)));
+    func_t* fn = getn_func(index);
     if (fn == nullptr)
         return std::unexpected(Error::internal("getn_func returned null for valid index"));
     return FunctionAccess::populate(fn);
@@ -349,21 +349,21 @@ Status add_register_variable(Address func_ea,
                              Address range_start, Address range_end,
                              std::string_view register_name,
                              std::string_view user_name,
-                             std::string_view cmt) {
+                             std::string_view comment) {
     func_t* fn = get_func(func_ea);
     if (fn == nullptr)
         return std::unexpected(Error::not_found("No function at address",
                                                 std::to_string(func_ea)));
     std::string canon(register_name);
     std::string user(user_name);
-    std::string comment(cmt);
+    std::string cmt_str(comment);
 
     int rc = ::add_regvar(fn,
                           static_cast<ea_t>(range_start),
                           static_cast<ea_t>(range_end),
                           canon.c_str(),
                           user.c_str(),
-                          comment.empty() ? nullptr : comment.c_str());
+                          cmt_str.empty() ? nullptr : cmt_str.c_str());
     if (rc != REGVAR_ERROR_OK) {
         std::string msg;
         switch (rc) {
@@ -398,7 +398,7 @@ Result<RegisterVariable> find_register_variable(Address func_ea,
     return result;
 }
 
-Status delete_register_variable(Address func_ea,
+Status remove_register_variable(Address func_ea,
                                 Address range_start, Address range_end,
                                 std::string_view register_name) {
     func_t* fn = get_func(func_ea);

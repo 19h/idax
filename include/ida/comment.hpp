@@ -14,32 +14,32 @@ namespace ida::comment {
 
 // ── Regular comments ────────────────────────────────────────────────────
 
-Result<std::string> get(Address ea, bool repeatable = false);
-Status set(Address ea, std::string_view text, bool repeatable = false);
-Status append(Address ea, std::string_view text, bool repeatable = false);
-Status remove(Address ea, bool repeatable = false);
+Result<std::string> get(Address address, bool repeatable = false);
+Status set(Address address, std::string_view text, bool repeatable = false);
+Status append(Address address, std::string_view text, bool repeatable = false);
+Status remove(Address address, bool repeatable = false);
 
 // ── Anterior / posterior lines ──────────────────────────────────────────
 
-Status add_anterior(Address ea, std::string_view text);
-Status add_posterior(Address ea, std::string_view text);
-Result<std::string> get_anterior(Address ea, int line_index);
-Result<std::string> get_posterior(Address ea, int line_index);
+Status add_anterior(Address address, std::string_view text);
+Status add_posterior(Address address, std::string_view text);
+Result<std::string> get_anterior(Address address, int line_index);
+Result<std::string> get_posterior(Address address, int line_index);
 
 // ── Bulk operations ──────────────────────────────────────────────────────
 
-Status set_anterior_lines(Address ea, const std::vector<std::string>& lines);
-Status set_posterior_lines(Address ea, const std::vector<std::string>& lines);
-Status clear_anterior(Address ea);
-Status clear_posterior(Address ea);
+Status set_anterior_lines(Address address, const std::vector<std::string>& lines);
+Status set_posterior_lines(Address address, const std::vector<std::string>& lines);
+Status clear_anterior(Address address);
+Status clear_posterior(Address address);
 
-Result<std::vector<std::string>> anterior_lines(Address ea);
-Result<std::vector<std::string>> posterior_lines(Address ea);
+Result<std::vector<std::string>> anterior_lines(Address address);
+Result<std::vector<std::string>> posterior_lines(Address address);
 
 // ── Rendering helpers ────────────────────────────────────────────────────
 
 /// Render comments at an address into one normalized text block.
-Result<std::string> render(Address ea,
+Result<std::string> render(Address address,
                            bool include_repeatable = true,
                            bool include_extra_lines = true);
 

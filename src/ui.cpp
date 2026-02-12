@@ -31,7 +31,7 @@ Result<bool> ask_yn(std::string_view question, bool default_yes) {
     int deflt = default_yes ? ASKBTN_YES : ASKBTN_NO;
     int result = ::ask_yn(deflt, "%s", qtxt.c_str());
     if (result == ASKBTN_CANCEL)
-        return std::unexpected(Error::sdk("User cancelled dialog"));
+        return std::unexpected(Error::validation("User cancelled dialog"));
     return result == ASKBTN_YES;
 }
 
@@ -40,7 +40,7 @@ Result<std::string> ask_string(std::string_view prompt,
     qstring buf = ida::detail::to_qstring(default_value);
     qstring qprompt = ida::detail::to_qstring(prompt);
     if (!::ask_str(&buf, HIST_IDENT, "%s", qprompt.c_str()))
-        return std::unexpected(Error::sdk("User cancelled input"));
+        return std::unexpected(Error::validation("User cancelled input"));
     return ida::detail::to_string(buf);
 }
 
@@ -54,7 +54,7 @@ Result<std::string> ask_file(bool for_saving,
                                      "%s",
                                      qpr.empty() ? "Choose file" : qpr.c_str());
     if (result == nullptr)
-        return std::unexpected(Error::sdk("User cancelled file dialog"));
+        return std::unexpected(Error::validation("User cancelled file dialog"));
     return std::string(result);
 }
 
@@ -62,7 +62,7 @@ Result<Address> ask_address(std::string_view prompt, Address default_value) {
     ea_t ea = static_cast<ea_t>(default_value);
     qstring qpr = ida::detail::to_qstring(prompt);
     if (!::ask_addr(&ea, "%s", qpr.c_str()))
-        return std::unexpected(Error::sdk("User cancelled address input"));
+        return std::unexpected(Error::validation("User cancelled address input"));
     return static_cast<Address>(ea);
 }
 
@@ -70,7 +70,7 @@ Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_valu
     sval_t val = static_cast<sval_t>(default_value);
     qstring qpr = ida::detail::to_qstring(prompt);
     if (!::ask_long(&val, "%s", qpr.c_str()))
-        return std::unexpected(Error::sdk("User cancelled number input"));
+        return std::unexpected(Error::validation("User cancelled number input"));
     return static_cast<std::int64_t>(val);
 }
 
@@ -201,8 +201,8 @@ struct Chooser::Impl {
 };
 
 Chooser::Chooser(ChooserOptions options)
-    : options_(std::move(options))
-    , impl_(new Impl)
+    : impl_(new Impl)
+    , options_(std::move(options))
 {
     auto& cols = options_.columns;
 
@@ -328,7 +328,7 @@ namespace {
 class UiListener : public event_listener_t {
 public:
     struct Subscription {
-        UiToken token;
+        Token token;
         int notification_code;
         std::function<void(va_list)> handler;
     };
@@ -338,15 +338,15 @@ public:
         return inst;
     }
 
-    UiToken subscribe(int code, std::function<void(va_list)> handler) {
+    Token subscribe(int code, std::function<void(va_list)> handler) {
         std::lock_guard<std::mutex> lock(mutex_);
         ensure_hooked();
-        UiToken token = ++next_token_;
+        Token token = ++next_token_;
         subs_.push_back({token, code, std::move(handler)});
         return token;
     }
 
-    bool unsubscribe(UiToken token) {
+    bool unsubscribe(Token token) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto it = subs_.begin(); it != subs_.end(); ++it) {
             if (it->token == token) {
@@ -397,13 +397,13 @@ private:
 
     std::mutex mutex_;
     std::vector<Subscription> subs_;
-    UiToken next_token_{0};
+    Token next_token_{0};
     bool hooked_{false};
 };
 
 } // anonymous namespace
 
-Result<UiToken> on_database_closed(std::function<void()> callback) {
+Result<Token> on_database_closed(std::function<void()> callback) {
     auto token = UiListener::instance().subscribe(
         ui_database_closed,
         [cb = std::move(callback)](va_list) { cb(); }
@@ -411,7 +411,7 @@ Result<UiToken> on_database_closed(std::function<void()> callback) {
     return token;
 }
 
-Result<UiToken> on_ready_to_run(std::function<void()> callback) {
+Result<Token> on_ready_to_run(std::function<void()> callback) {
     auto token = UiListener::instance().subscribe(
         ui_ready_to_run,
         [cb = std::move(callback)](va_list) { cb(); }
@@ -419,7 +419,7 @@ Result<UiToken> on_ready_to_run(std::function<void()> callback) {
     return token;
 }
 
-Result<UiToken> on_screen_ea_changed(std::function<void(Address, Address)> callback) {
+Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callback) {
     auto token = UiListener::instance().subscribe(
         ui_screen_ea_changed,
         [cb = std::move(callback)](va_list va) {
@@ -431,7 +431,7 @@ Result<UiToken> on_screen_ea_changed(std::function<void(Address, Address)> callb
     return token;
 }
 
-Result<UiToken> on_widget_visible(std::function<void(std::string)> callback) {
+Result<Token> on_widget_visible(std::function<void(std::string)> callback) {
     auto token = UiListener::instance().subscribe(
         ui_widget_visible,
         [cb = std::move(callback)](va_list va) {
@@ -444,7 +444,7 @@ Result<UiToken> on_widget_visible(std::function<void(std::string)> callback) {
     return token;
 }
 
-Result<UiToken> on_widget_closing(std::function<void(std::string)> callback) {
+Result<Token> on_widget_closing(std::function<void(std::string)> callback) {
     auto token = UiListener::instance().subscribe(
         ui_widget_closing,
         [cb = std::move(callback)](va_list va) {
@@ -457,9 +457,10 @@ Result<UiToken> on_widget_closing(std::function<void(std::string)> callback) {
     return token;
 }
 
-Status ui_unsubscribe(UiToken token) {
+Status unsubscribe(Token token) {
     if (!UiListener::instance().unsubscribe(token))
-        return std::unexpected(Error::not_found("UI subscription not found"));
+        return std::unexpected(Error::not_found("UI subscription not found",
+                                                std::to_string(token)));
     return ida::ok();
 }
 

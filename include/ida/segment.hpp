@@ -53,7 +53,7 @@ public:
     [[nodiscard]] std::string name()       const { return name_; }
     [[nodiscard]] std::string class_name() const { return class_; }
 
-    [[nodiscard]] bool visible() const noexcept { return visible_; }
+    [[nodiscard]] bool is_visible() const noexcept { return visible_; }
 
     /// Re-read this segment from the database to pick up any changes.
     Status refresh();
@@ -78,28 +78,28 @@ Result<Segment> create(Address start, Address end,
                        std::string_view class_name = {},
                        Type type = Type::Normal);
 
-Status remove(Address ea);
+Status remove(Address address);
 
 // ── Lookup ──────────────────────────────────────────────────────────────
 
 /// Segment containing the given address.
-Result<Segment> at(Address ea);
+Result<Segment> at(Address address);
 
 /// Segment with the given name.
 Result<Segment> by_name(std::string_view name);
 
 /// Segment by its positional index (0-based).
-Result<Segment> by_index(std::size_t idx);
+Result<Segment> by_index(std::size_t index);
 
 /// Total number of segments.
 Result<std::size_t> count();
 
 // ── Property mutation ───────────────────────────────────────────────────
 
-Status set_name(Address ea, std::string_view name);
-Status set_class(Address ea, std::string_view class_name);
-Status set_permissions(Address ea, Permissions perm);
-Status set_bitness(Address ea, int bits);
+Status set_name(Address address, std::string_view name);
+Status set_class(Address address, std::string_view class_name);
+Status set_permissions(Address address, Permissions perm);
+Status set_bitness(Address address, int bits);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 

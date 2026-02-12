@@ -34,13 +34,36 @@ dref_t map_data_type(DataType t) {
     return dr_O; // fallback
 }
 
+/// Map SDK xref type code to our typed enum.
+ReferenceType classify_ref(bool is_code, uchar sdk_type) {
+    if (is_code) {
+        switch (static_cast<cref_t>(sdk_type)) {
+            case fl_F:  return ReferenceType::Flow;
+            case fl_CN: return ReferenceType::CallNear;
+            case fl_CF: return ReferenceType::CallFar;
+            case fl_JN: return ReferenceType::JumpNear;
+            case fl_JF: return ReferenceType::JumpFar;
+            default:    return ReferenceType::Unknown;
+        }
+    } else {
+        switch (static_cast<dref_t>(sdk_type)) {
+            case dr_O: return ReferenceType::Offset;
+            case dr_R: return ReferenceType::Read;
+            case dr_W: return ReferenceType::Write;
+            case dr_T: return ReferenceType::Text;
+            case dr_I: return ReferenceType::Informational;
+            default:   return ReferenceType::Unknown;
+        }
+    }
+}
+
 /// Build a Reference from an xrefblk_t.
 Reference make_ref(const xrefblk_t& xb) {
     Reference r;
     r.from         = static_cast<Address>(xb.from);
     r.to           = static_cast<Address>(xb.to);
     r.is_code      = (xb.iscode != 0);
-    r.raw_type     = static_cast<int>(xb.type);
+    r.type         = classify_ref(r.is_code, xb.type);
     r.user_defined = (xb.user != 0);
     return r;
 }
@@ -51,13 +74,15 @@ Reference make_ref(const xrefblk_t& xb) {
 
 Status add_code(Address from, Address to, CodeType type) {
     if (!::add_cref(from, to, map_code_type(type)))
-        return std::unexpected(Error::sdk("add_cref failed"));
+        return std::unexpected(Error::sdk("add_cref failed",
+                                          std::to_string(from) + " -> " + std::to_string(to)));
     return ida::ok();
 }
 
 Status add_data(Address from, Address to, DataType type) {
     if (!::add_dref(from, to, map_data_type(type)))
-        return std::unexpected(Error::sdk("add_dref failed"));
+        return std::unexpected(Error::sdk("add_dref failed",
+                                          std::to_string(from) + " -> " + std::to_string(to)));
     return ida::ok();
 }
 
