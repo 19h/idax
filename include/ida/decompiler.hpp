@@ -1,5 +1,6 @@
 /// \file decompiler.hpp
-/// \brief Decompiler facade: availability, decompilation, pseudocode access.
+/// \brief Decompiler facade: availability, decompilation, pseudocode access,
+///        ctree traversal, and user comment management.
 ///
 /// The decompiler wraps the Hex-Rays SDK. All decompiler functions return
 /// errors if the decompiler is not available (not installed or not licensed).
@@ -9,6 +10,8 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -25,6 +28,236 @@ struct LocalVariable {
     std::string type_name;   ///< Type as a C declaration string.
     bool        is_argument{false};
     int         width{0};    ///< Size in bytes.
+};
+
+// ── Ctree item types ────────────────────────────────────────────────────
+
+/// Ctree item type — expression and statement opcodes.
+///
+/// Expression opcodes (`Expr*`) and statement opcodes (`Stmt*`) correspond
+/// to the SDK's `cot_*` and `cit_*` constants respectively.
+enum class ItemType : int {
+    // ── Expressions ────────────────────────────────────────────────────
+    ExprEmpty           = 0,
+    ExprComma           = 1,    ///< x, y
+    ExprAssign          = 2,    ///< x = y
+    ExprAssignBitOr     = 3,    ///< x |= y
+    ExprAssignXor       = 4,    ///< x ^= y
+    ExprAssignBitAnd    = 5,    ///< x &= y
+    ExprAssignAdd       = 6,    ///< x += y
+    ExprAssignSub       = 7,    ///< x -= y
+    ExprAssignMul       = 8,    ///< x *= y
+    ExprAssignShiftRightSigned  = 9,   ///< x >>= y (signed)
+    ExprAssignShiftRightUnsigned = 10, ///< x >>= y (unsigned)
+    ExprAssignShiftLeft = 11,   ///< x <<= y
+    ExprAssignDivSigned = 12,   ///< x /= y (signed)
+    ExprAssignDivUnsigned = 13, ///< x /= y (unsigned)
+    ExprAssignModSigned = 14,   ///< x %= y (signed)
+    ExprAssignModUnsigned = 15, ///< x %= y (unsigned)
+    ExprTernary         = 16,   ///< x ? y : z
+    ExprLogicalOr       = 17,   ///< x || y
+    ExprLogicalAnd      = 18,   ///< x && y
+    ExprBitOr           = 19,   ///< x | y
+    ExprXor             = 20,   ///< x ^ y
+    ExprBitAnd          = 21,   ///< x & y
+    ExprEqual           = 22,   ///< x == y
+    ExprNotEqual        = 23,   ///< x != y
+    ExprSignedGE        = 24,   ///< x >= y (signed)
+    ExprUnsignedGE      = 25,   ///< x >= y (unsigned)
+    ExprSignedLE        = 26,   ///< x <= y (signed)
+    ExprUnsignedLE      = 27,   ///< x <= y (unsigned)
+    ExprSignedGT        = 28,   ///< x >  y (signed)
+    ExprUnsignedGT      = 29,   ///< x >  y (unsigned)
+    ExprSignedLT        = 30,   ///< x <  y (signed)
+    ExprUnsignedLT      = 31,   ///< x <  y (unsigned)
+    ExprShiftRightSigned   = 32,///< x >> y (signed)
+    ExprShiftRightUnsigned = 33,///< x >> y (unsigned)
+    ExprShiftLeft       = 34,   ///< x << y
+    ExprAdd             = 35,   ///< x + y
+    ExprSub             = 36,   ///< x - y
+    ExprMul             = 37,   ///< x * y
+    ExprDivSigned       = 38,   ///< x / y (signed)
+    ExprDivUnsigned     = 39,   ///< x / y (unsigned)
+    ExprModSigned       = 40,   ///< x % y (signed)
+    ExprModUnsigned     = 41,   ///< x % y (unsigned)
+    ExprFloatAdd        = 42,   ///< x + y (fp)
+    ExprFloatSub        = 43,   ///< x - y (fp)
+    ExprFloatMul        = 44,   ///< x * y (fp)
+    ExprFloatDiv        = 45,   ///< x / y (fp)
+    ExprFloatNeg        = 46,   ///< -x (fp)
+    ExprNeg             = 47,   ///< -x
+    ExprCast            = 48,   ///< (type)x
+    ExprLogicalNot      = 49,   ///< !x
+    ExprBitNot          = 50,   ///< ~x
+    ExprDeref           = 51,   ///< *x
+    ExprRef             = 52,   ///< &x
+    ExprPostInc         = 53,   ///< x++
+    ExprPostDec         = 54,   ///< x--
+    ExprPreInc          = 55,   ///< ++x
+    ExprPreDec          = 56,   ///< --x
+    ExprCall            = 57,   ///< x(...)
+    ExprIndex           = 58,   ///< x[y]
+    ExprMemberRef       = 59,   ///< x.m
+    ExprMemberPtr       = 60,   ///< x->m
+    ExprNumber          = 61,   ///< numeric constant
+    ExprFloatNumber     = 62,   ///< floating-point constant
+    ExprString          = 63,   ///< string literal
+    ExprObject          = 64,   ///< global object reference
+    ExprVariable        = 65,   ///< local variable
+    ExprInsn            = 66,   ///< embedded statement (internal)
+    ExprSizeof          = 67,   ///< sizeof(x)
+    ExprHelper          = 68,   ///< arbitrary helper name
+    ExprType            = 69,   ///< arbitrary type
+    ExprLast            = 69,
+
+    // ── Statements ─────────────────────────────────────────────────────
+    StmtEmpty           = 70,
+    StmtBlock           = 71,   ///< { ... }
+    StmtExpr            = 72,   ///< expr;
+    StmtIf              = 73,   ///< if
+    StmtFor             = 74,   ///< for
+    StmtWhile           = 75,   ///< while
+    StmtDo              = 76,   ///< do
+    StmtSwitch          = 77,   ///< switch
+    StmtBreak           = 78,   ///< break
+    StmtContinue        = 79,   ///< continue
+    StmtReturn          = 80,   ///< return
+    StmtGoto            = 81,   ///< goto
+    StmtAsm             = 82,   ///< __asm
+    StmtTry             = 83,   ///< try
+    StmtThrow           = 84,   ///< throw
+};
+
+/// Return true if the item type is an expression.
+[[nodiscard]] inline bool is_expression(ItemType t) noexcept {
+    return static_cast<int>(t) <= static_cast<int>(ItemType::ExprLast);
+}
+
+/// Return true if the item type is a statement.
+[[nodiscard]] inline bool is_statement(ItemType t) noexcept {
+    return static_cast<int>(t) > static_cast<int>(ItemType::ExprLast);
+}
+
+// ── Opaque ctree item views ─────────────────────────────────────────────
+
+/// Read-only view of a ctree expression.
+///
+/// Lightweight non-owning handle. Valid only during visitor callbacks.
+class ExpressionView {
+public:
+    /// Item type (always an expression opcode).
+    [[nodiscard]] ItemType type() const noexcept;
+
+    /// Address associated with this expression (may be BadAddress).
+    [[nodiscard]] Address address() const noexcept;
+
+    /// For ExprNumber: return the numeric value. Error otherwise.
+    [[nodiscard]] Result<std::uint64_t> number_value() const;
+
+    /// For ExprObject: return the referenced address. Error otherwise.
+    [[nodiscard]] Result<Address> object_address() const;
+
+    /// For ExprVariable: return the local variable index. Error otherwise.
+    [[nodiscard]] Result<int> variable_index() const;
+
+    /// For ExprString: return the string constant. Error otherwise.
+    [[nodiscard]] Result<std::string> string_value() const;
+
+    /// For ExprCall: return the number of arguments. Error otherwise.
+    [[nodiscard]] Result<std::size_t> call_argument_count() const;
+
+    /// For ExprMemberRef/ExprMemberPtr: return the member offset. Error otherwise.
+    [[nodiscard]] Result<std::uint32_t> member_offset() const;
+
+    /// Get a C-like text representation of the expression.
+    [[nodiscard]] Result<std::string> to_string() const;
+
+    // ── Internal ────────────────────────────────────────────────────────
+    struct Tag {};
+    explicit ExpressionView(Tag, void* raw) noexcept : raw_(raw) {}
+
+private:
+    void* raw_{nullptr};
+};
+
+/// Read-only view of a ctree statement.
+///
+/// Lightweight non-owning handle. Valid only during visitor callbacks.
+class StatementView {
+public:
+    /// Item type (always a statement opcode).
+    [[nodiscard]] ItemType type() const noexcept;
+
+    /// Address associated with this statement (may be BadAddress).
+    [[nodiscard]] Address address() const noexcept;
+
+    /// For StmtGoto: return the target label number. Error otherwise.
+    [[nodiscard]] Result<int> goto_target_label() const;
+
+    // ── Internal ────────────────────────────────────────────────────────
+    struct Tag {};
+    explicit StatementView(Tag, void* raw) noexcept : raw_(raw) {}
+
+private:
+    void* raw_{nullptr};
+};
+
+// ── Visitor ─────────────────────────────────────────────────────────────
+
+/// Result returned from visitor callbacks to control traversal.
+enum class VisitAction : int {
+    Continue     = 0,   ///< Continue traversal normally.
+    Stop         = 1,   ///< Stop traversal immediately.
+    SkipChildren = 2,   ///< Skip children of current item.
+};
+
+/// Callback-based ctree visitor.
+///
+/// Derive from this class and override expression/statement visitors.
+/// Call `visit()` or `visit_expressions()` to start traversal.
+class CtreeVisitor {
+public:
+    virtual ~CtreeVisitor() = default;
+
+    /// Called for each expression (pre-order).
+    virtual VisitAction visit_expression(ExpressionView expr);
+
+    /// Called for each statement (pre-order).
+    virtual VisitAction visit_statement(StatementView stmt);
+
+    /// Called for each expression after children (post-order).
+    /// Only called if post-order mode was requested in visit().
+    virtual VisitAction leave_expression(ExpressionView expr);
+
+    /// Called for each statement after children (post-order).
+    /// Only called if post-order mode was requested in visit().
+    virtual VisitAction leave_statement(StatementView stmt);
+};
+
+/// Traversal options for ctree visiting.
+struct VisitOptions {
+    bool post_order{false};     ///< Also call leave_* callbacks.
+    bool track_parents{false};  ///< Maintain parent chain (unused in current API).
+    bool expressions_only{false}; ///< Only visit expressions, skip statements.
+};
+
+// ── User comment position ───────────────────────────────────────────────
+
+/// Where a user comment attaches relative to a ctree item.
+enum class CommentPosition : int {
+    Default     = 0,    ///< End-of-line comment at the item's address.
+    Semicolon   = 259,  ///< Comment at the semicolon.
+    OpenBrace   = 260,  ///< Comment at the opening brace.
+    CloseBrace  = 261,  ///< Comment at the closing brace.
+    ElseLine    = 258,  ///< Comment at the else line.
+};
+
+// ── Address mapping entry ───────────────────────────────────────────────
+
+/// Maps between binary addresses and pseudocode line numbers.
+struct AddressMapping {
+    Address address;
+    int     line_number;   ///< 0-based pseudocode line index.
 };
 
 /// Decompiled-function handle.
@@ -51,6 +284,50 @@ public:
     /// Rename a local variable (persistent — saved to database).
     Status rename_variable(std::string_view old_name, std::string_view new_name);
 
+    // ── Ctree traversal ─────────────────────────────────────────────────
+
+    /// Traverse the function's ctree with a visitor.
+    /// Returns the number of items visited, or an error.
+    Result<int> visit(CtreeVisitor& visitor,
+                      const VisitOptions& options = {}) const;
+
+    /// Traverse only expressions in the function's ctree.
+    /// Convenience: equivalent to visit() with expressions_only=true.
+    Result<int> visit_expressions(CtreeVisitor& visitor,
+                                  bool post_order = false) const;
+
+    // ── User comments ───────────────────────────────────────────────────
+
+    /// Set a user-defined comment at a specific address in the pseudocode.
+    /// Pass an empty string to remove the comment.
+    /// Call save_comments() afterward to persist to the database.
+    Status set_comment(Address ea, std::string_view text,
+                       CommentPosition pos = CommentPosition::Default);
+
+    /// Get the user-defined comment at a specific address.
+    /// Returns empty string if no comment is set.
+    Result<std::string> get_comment(Address ea,
+                                    CommentPosition pos = CommentPosition::Default) const;
+
+    /// Save all user-defined comments to the database.
+    Status save_comments() const;
+
+    /// Refresh the pseudocode text (invalidates cached text/lines).
+    /// Useful after modifying comments, variable names, or types.
+    Status refresh() const;
+
+    // ── Address mapping ─────────────────────────────────────────────────
+
+    /// Get the entry address of the decompiled function.
+    [[nodiscard]] Address entry_address() const;
+
+    /// Map a pseudocode line number (0-based) to the best-match binary address.
+    /// Returns BadAddress if no mapping is available for the given line.
+    [[nodiscard]] Result<Address> line_to_address(int line_number) const;
+
+    /// Get all address-to-line mappings for the function.
+    [[nodiscard]] Result<std::vector<AddressMapping>> address_map() const;
+
     // ── Lifecycle ───────────────────────────────────────────────────────
     struct Impl;
     explicit DecompiledFunction(Impl* p) : impl_(p) {}
@@ -68,6 +345,20 @@ private:
 /// Decompile the function at \p ea.
 /// The decompiler must be available (call available() first or handle the error).
 Result<DecompiledFunction> decompile(Address ea);
+
+// ── Functional-style visitor helpers ────────────────────────────────────
+
+/// Visit all expressions in a decompiled function using a callback.
+/// The callback receives each ExpressionView and returns a VisitAction.
+Result<int> for_each_expression(
+    const DecompiledFunction& func,
+    std::function<VisitAction(ExpressionView)> callback);
+
+/// Visit all ctree items (expressions + statements) using callbacks.
+Result<int> for_each_item(
+    const DecompiledFunction& func,
+    std::function<VisitAction(ExpressionView)> on_expr,
+    std::function<VisitAction(StatementView)> on_stmt);
 
 } // namespace ida::decompiler
 
