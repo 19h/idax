@@ -80,7 +80,8 @@ Status step_out() {
 
 Status run_to(Address ea) {
     if (!::run_to(static_cast<ea_t>(ea)))
-        return std::unexpected(Error::sdk("run_to failed"));
+        return std::unexpected(Error::sdk("run_to failed",
+                                          std::to_string(ea)));
     return ida::ok();
 }
 
@@ -133,13 +134,15 @@ Status set_register(std::string_view reg_name, std::uint64_t value) {
 
 Status add_breakpoint(Address ea) {
     if (!add_bpt(static_cast<ea_t>(ea)))
-        return std::unexpected(Error::sdk("add_bpt failed"));
+        return std::unexpected(Error::sdk("add_bpt failed",
+                                          std::to_string(ea)));
     return ida::ok();
 }
 
 Status remove_breakpoint(Address ea) {
     if (!del_bpt(static_cast<ea_t>(ea)))
-        return std::unexpected(Error::not_found("No breakpoint at address"));
+        return std::unexpected(Error::not_found("No breakpoint at address",
+                                                std::to_string(ea)));
     return ida::ok();
 }
 
@@ -153,7 +156,8 @@ Result<std::vector<std::uint8_t>> read_memory(Address ea, AddressSize size) {
     std::vector<std::uint8_t> buf(static_cast<size_t>(size));
     ssize_t n = read_dbg_memory(static_cast<ea_t>(ea), buf.data(), buf.size());
     if (n < 0)
-        return std::unexpected(Error::sdk("read_dbg_memory failed"));
+        return std::unexpected(Error::sdk("read_dbg_memory failed",
+                                          std::to_string(ea)));
     buf.resize(static_cast<size_t>(n));
     return buf;
 }
@@ -161,7 +165,8 @@ Result<std::vector<std::uint8_t>> read_memory(Address ea, AddressSize size) {
 Status write_memory(Address ea, std::span<const std::uint8_t> bytes) {
     ssize_t n = write_dbg_memory(static_cast<ea_t>(ea), bytes.data(), bytes.size());
     if (n < 0 || static_cast<size_t>(n) != bytes.size())
-        return std::unexpected(Error::sdk("write_dbg_memory failed"));
+        return std::unexpected(Error::sdk("write_dbg_memory failed",
+                                          std::to_string(ea)));
     return ida::ok();
 }
 
@@ -173,7 +178,7 @@ namespace {
 class DbgListener : public event_listener_t {
 public:
     struct Subscription {
-        DebuggerToken token;
+        Token token;
         int notification_code;
         // handler returns ssize_t: 0 = pass through, non-zero = consume
         std::function<ssize_t(va_list)> handler;
@@ -184,15 +189,15 @@ public:
         return inst;
     }
 
-    DebuggerToken subscribe(int code, std::function<ssize_t(va_list)> handler) {
+    Token subscribe(int code, std::function<ssize_t(va_list)> handler) {
         std::lock_guard<std::mutex> lock(mutex_);
         ensure_hooked();
-        DebuggerToken token = ++next_token_;
+        Token token = ++next_token_;
         subs_.push_back({token, code, std::move(handler)});
         return token;
     }
 
-    bool unsubscribe(DebuggerToken token) {
+    bool unsubscribe(Token token) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto it = subs_.begin(); it != subs_.end(); ++it) {
             if (it->token == token) {
@@ -241,7 +246,7 @@ private:
 
     std::mutex mutex_;
     std::vector<Subscription> subs_;
-    DebuggerToken next_token_{0};
+    Token next_token_{0};
     bool hooked_{false};
 };
 
@@ -249,7 +254,7 @@ private:
 
 // ── Tier 1 ──────────────────────────────────────────────────────────────
 
-Result<DebuggerToken> on_process_started(
+Result<Token> on_process_started(
     std::function<void(const ModuleInfo&)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_process_start,
@@ -267,7 +272,7 @@ Result<DebuggerToken> on_process_started(
     return token;
 }
 
-Result<DebuggerToken> on_process_exited(
+Result<Token> on_process_exited(
     std::function<void(int exit_code)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_process_exit,
@@ -279,7 +284,7 @@ Result<DebuggerToken> on_process_exited(
     return token;
 }
 
-Result<DebuggerToken> on_process_suspended(
+Result<Token> on_process_suspended(
     std::function<void(Address ea)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_suspend_process,
@@ -291,7 +296,7 @@ Result<DebuggerToken> on_process_suspended(
     return token;
 }
 
-Result<DebuggerToken> on_breakpoint_hit(
+Result<Token> on_breakpoint_hit(
     std::function<void(int thread_id, Address ea)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_bpt,
@@ -305,7 +310,7 @@ Result<DebuggerToken> on_breakpoint_hit(
     return token;
 }
 
-Result<DebuggerToken> on_trace(
+Result<Token> on_trace(
     std::function<bool(int thread_id, Address ip)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_trace,
@@ -318,7 +323,7 @@ Result<DebuggerToken> on_trace(
     return token;
 }
 
-Result<DebuggerToken> on_exception(
+Result<Token> on_exception(
     std::function<void(const ExceptionInfo&)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_exception,
@@ -339,7 +344,7 @@ Result<DebuggerToken> on_exception(
 
 // ── Tier 2 ──────────────────────────────────────────────────────────────
 
-Result<DebuggerToken> on_thread_started(
+Result<Token> on_thread_started(
     std::function<void(int thread_id, std::string name)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_thread_start,
@@ -352,7 +357,7 @@ Result<DebuggerToken> on_thread_started(
     return token;
 }
 
-Result<DebuggerToken> on_thread_exited(
+Result<Token> on_thread_exited(
     std::function<void(int thread_id, int exit_code)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_thread_exit,
@@ -364,7 +369,7 @@ Result<DebuggerToken> on_thread_exited(
     return token;
 }
 
-Result<DebuggerToken> on_library_loaded(
+Result<Token> on_library_loaded(
     std::function<void(const ModuleInfo&)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_library_load,
@@ -381,7 +386,7 @@ Result<DebuggerToken> on_library_loaded(
     return token;
 }
 
-Result<DebuggerToken> on_library_unloaded(
+Result<Token> on_library_unloaded(
     std::function<void(std::string name)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_library_unload,
@@ -395,7 +400,7 @@ Result<DebuggerToken> on_library_unloaded(
 
 // ── Tier 3 ──────────────────────────────────────────────────────────────
 
-Result<DebuggerToken> on_breakpoint_changed(
+Result<Token> on_breakpoint_changed(
     std::function<void(BreakpointChange change, Address ea)> callback) {
     auto token = DbgListener::instance().subscribe(
         dbg_bpt_changed,
@@ -417,9 +422,10 @@ Result<DebuggerToken> on_breakpoint_changed(
 
 // ── Unsubscribe ─────────────────────────────────────────────────────────
 
-Status debugger_unsubscribe(DebuggerToken token) {
+Status unsubscribe(Token token) {
     if (!DbgListener::instance().unsubscribe(token))
-        return std::unexpected(Error::not_found("Debugger subscription not found"));
+        return std::unexpected(Error::not_found("Debugger subscription not found",
+                                                std::to_string(token)));
     return ida::ok();
 }
 

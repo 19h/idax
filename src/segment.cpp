@@ -64,12 +64,14 @@ Result<Segment> create(Address start, Address end,
     seg.perm     = SEGPERM_READ | SEGPERM_WRITE | SEGPERM_EXEC;
 
     if (!add_segm_ex(&seg, qname.c_str(), qclass.c_str(), ADDSEG_OR_DIE))
-        return std::unexpected(Error::sdk("add_segm_ex failed"));
+        return std::unexpected(Error::sdk("add_segm_ex failed",
+                                          std::to_string(start) + "-" + std::to_string(end)));
 
     // Re-read the newly created segment.
     segment_t* created = getseg(start);
     if (created == nullptr)
-        return std::unexpected(Error::internal("Segment created but not retrievable"));
+        return std::unexpected(Error::internal("Segment created but not retrievable",
+                                               std::to_string(start)));
     return SegmentAccess::populate(created);
 }
 
@@ -98,14 +100,15 @@ Result<Segment> by_name(std::string_view name) {
     return SegmentAccess::populate(seg);
 }
 
-Result<Segment> by_index(std::size_t idx) {
+Result<Segment> by_index(std::size_t index) {
     int total = get_segm_qty();
-    if (static_cast<int>(idx) >= total)
+    if (static_cast<int>(index) >= total)
         return std::unexpected(Error::validation("Segment index out of range",
-                                                 std::to_string(idx)));
-    segment_t* seg = getnseg(static_cast<int>(idx));
+                                                 std::to_string(index)));
+    segment_t* seg = getnseg(static_cast<int>(index));
     if (seg == nullptr)
-        return std::unexpected(Error::internal("getnseg returned null for valid index"));
+        return std::unexpected(Error::internal("getnseg returned null for valid index",
+                                               std::to_string(index)));
     return SegmentAccess::populate(seg);
 }
 
@@ -118,22 +121,26 @@ Result<std::size_t> count() {
 Status set_name(Address ea, std::string_view name) {
     segment_t* seg = getseg(ea);
     if (seg == nullptr)
-        return std::unexpected(Error::not_found("No segment at address"));
+        return std::unexpected(Error::not_found("No segment at address",
+                                                std::to_string(ea)));
     qstring qname = ida::detail::to_qstring(name);
     int rc = set_segm_name(seg, qname.c_str());
     if (rc == 0)
-        return std::unexpected(Error::sdk("set_segm_name failed"));
+        return std::unexpected(Error::sdk("set_segm_name failed",
+                                          std::to_string(ea)));
     return ida::ok();
 }
 
 Status set_class(Address ea, std::string_view class_name) {
     segment_t* seg = getseg(ea);
     if (seg == nullptr)
-        return std::unexpected(Error::not_found("No segment at address"));
+        return std::unexpected(Error::not_found("No segment at address",
+                                                std::to_string(ea)));
     qstring qclass = ida::detail::to_qstring(class_name);
     int rc = set_segm_class(seg, qclass.c_str());
     if (rc == 0)
-        return std::unexpected(Error::sdk("set_segm_class failed"));
+        return std::unexpected(Error::sdk("set_segm_class failed",
+                                          std::to_string(ea)));
     return ida::ok();
 }
 
@@ -154,10 +161,12 @@ Status set_permissions(Address ea, Permissions perm) {
 Status set_bitness(Address ea, int bits) {
     segment_t* seg = getseg(ea);
     if (seg == nullptr)
-        return std::unexpected(Error::not_found("No segment at address"));
+        return std::unexpected(Error::not_found("No segment at address",
+                                                std::to_string(ea)));
     int sdk_bitness = ida::detail::bits_to_bitness(bits);
     if (sdk_bitness < 0)
-        return std::unexpected(Error::validation("Invalid bitness value (must be 16/32/64)"));
+        return std::unexpected(Error::validation("Invalid bitness value (must be 16/32/64)",
+                                                  std::to_string(bits)));
     set_segm_addressing(seg, sdk_bitness);
     return ida::ok();
 }

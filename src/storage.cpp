@@ -98,7 +98,7 @@ Status Node::set_alt(Address index, std::uint64_t value, std::uint8_t tag) {
     return ida::ok();
 }
 
-Status Node::del_alt(Address index, std::uint8_t tag) {
+Status Node::remove_alt(Address index, std::uint8_t tag) {
     if (!impl_)
         return std::unexpected(Error::internal("Node has null impl"));
     nodeidx_t idx = static_cast<nodeidx_t>(index);
@@ -192,7 +192,7 @@ Status Node::set_blob(Address index, std::span<const std::uint8_t> data, std::ui
     return ida::ok();
 }
 
-Status Node::del_blob(Address index, std::uint8_t tag) {
+Status Node::remove_blob(Address index, std::uint8_t tag) {
     if (!impl_)
         return std::unexpected(Error::internal("Node has null impl"));
     nodeidx_t idx = static_cast<nodeidx_t>(index);

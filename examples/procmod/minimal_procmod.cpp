@@ -27,21 +27,21 @@ public:
         return pi;
     }
 
-    int analyze(ida::Address) override {
+    ida::Result<int> analyze(ida::Address) override {
         // Demo-only: decode one-byte NOP.
         return 1;
     }
 
-    int emulate(ida::Address) override {
-        return 1;
+    ida::processor::EmulateResult emulate(ida::Address) override {
+        return ida::processor::EmulateResult::Success;
     }
 
     void output_instruction(ida::Address) override {
         // Demo skeleton; output helpers are SDK-context dependent.
     }
 
-    int output_operand(ida::Address, int) override {
-        return 0;
+    ida::processor::OutputOperandResult output_operand(ida::Address, int) override {
+        return ida::processor::OutputOperandResult::NotImplemented;
     }
 };
 

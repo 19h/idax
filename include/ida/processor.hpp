@@ -106,8 +106,8 @@ struct ProcessorInfo {
     std::uint32_t flags{0};          ///< PR_* flags (or-ed ProcessorFlag values).
     std::uint32_t flags2{0};         ///< PR2_* flags.
 
-    int cnbits{8};                   ///< Bits per byte in CODE segments.
-    int dnbits{8};                   ///< Bits per byte in DATA segments.
+    int code_bits_per_byte{8};       ///< Bits per byte in CODE segments.
+    int data_bits_per_byte{8};       ///< Bits per byte in DATA segments.
 
     std::vector<RegisterInfo> registers;     ///< All processor registers.
     int code_segment_register{0};            ///< Index of CS register.
@@ -172,6 +172,22 @@ struct SwitchCase {
     Address target{BadAddress};
 };
 
+// ── Analysis/output result types ────────────────────────────────────────
+
+/// Result of emulate() callback.
+enum class EmulateResult : int {
+    NotImplemented =  0,  ///< Use default kernel emulation.
+    Success        =  1,  ///< Emulation successful.
+    DeleteInsn     = -1,  ///< Delete this instruction.
+};
+
+/// Result of output_operand() callback.
+enum class OutputOperandResult : int {
+    NotImplemented =  0,  ///< Use default kernel output.
+    Success        =  1,  ///< Operand rendered successfully.
+    Hidden         = -1,  ///< Operand should be hidden.
+};
+
 // ── Processor base class ────────────────────────────────────────────────
 
 /// Base class for custom processor modules.
@@ -195,16 +211,13 @@ public:
     // ── Required analysis callbacks ─────────────────────────────────────
 
     /// Analyze one instruction at the current position.
-    /// @param out_mnemonic  Set to the mnemonic index.
-    /// @param out_size  Set to the instruction size in bytes.
     /// @param address  The address being analyzed.
     /// @return Instruction size in bytes, or 0 on decode failure.
-    virtual int analyze(Address address) = 0;
+    virtual Result<int> analyze(Address address) = 0;
 
     /// Emulate an instruction (create xrefs, plan analysis, etc.).
     /// @param address  The address of the instruction.
-    /// @return 1 on success, -1 to delete instruction, 0 for not implemented.
-    virtual int emulate(Address address) = 0;
+    virtual EmulateResult emulate(Address address) = 0;
 
     // ── Required output callbacks ───────────────────────────────────────
 
@@ -216,8 +229,7 @@ public:
     /// Generate text for a single operand.
     /// @param address  The instruction address.
     /// @param operand_index  The operand number (0-based).
-    /// @return 1 = ok, -1 = hidden operand, 0 = not implemented.
-    virtual int output_operand(Address address, int operand_index) = 0;
+    virtual OutputOperandResult output_operand(Address address, int operand_index) = 0;
 
     // ── Optional analysis callbacks ─────────────────────────────────────
 

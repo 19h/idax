@@ -263,7 +263,7 @@ found_imm:
     }
 
     // Set to hex
-    auto hex_res = ida::instruction::set_op_hex(imm_ea, imm_n);
+    auto hex_res = ida::instruction::set_operand_hex(imm_ea, imm_n);
     CHECK_OK(hex_res);
 
     auto hex_text = ida::instruction::text(imm_ea);
@@ -274,7 +274,7 @@ found_imm:
     }
 
     // Set to decimal
-    auto dec_res = ida::instruction::set_op_decimal(imm_ea, imm_n);
+    auto dec_res = ida::instruction::set_operand_decimal(imm_ea, imm_n);
     CHECK_OK(dec_res);
 
     auto dec_text = ida::instruction::text(imm_ea);
@@ -285,7 +285,7 @@ found_imm:
     }
 
     // Set to binary
-    auto bin_res = ida::instruction::set_op_binary(imm_ea, imm_n);
+    auto bin_res = ida::instruction::set_operand_binary(imm_ea, imm_n);
     CHECK_OK(bin_res);
 
     auto bin_text = ida::instruction::text(imm_ea);
@@ -296,7 +296,7 @@ found_imm:
     }
 
     // Clear representation (reset)
-    auto clear_res = ida::instruction::clear_op_representation(imm_ea, imm_n);
+    auto clear_res = ida::instruction::clear_operand_representation(imm_ea, imm_n);
     CHECK_OK(clear_res);
 }
 

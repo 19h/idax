@@ -55,6 +55,9 @@ enum class Layout {
     RadialTree,
 };
 
+// Forward declaration for friend access.
+class GraphCallback;
+
 // ── Graph object ────────────────────────────────────────────────────────
 
 /// Opaque handle to an interactive graph.
@@ -155,10 +158,13 @@ public:
 
     // ── Internal ────────────────────────────────────────────────────────
     struct Impl;
-    Impl* impl() const { return impl_; }
 
 private:
     Impl* impl_{nullptr};
+    Impl* impl() const { return impl_; }
+
+    friend Status show_graph(std::string_view title, Graph& graph,
+                             GraphCallback* callback);
 };
 
 // ── Graph viewer ────────────────────────────────────────────────────────

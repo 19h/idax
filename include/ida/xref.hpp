@@ -29,13 +29,28 @@ enum class DataType {
     Informational,
 };
 
+/// High-level classification of a cross-reference.
+enum class ReferenceType {
+    Unknown,        ///< Unrecognized or unmapped type.
+    Flow,           ///< Normal execution flow to next instruction.
+    CallNear,       ///< Near (intra-segment) call.
+    CallFar,        ///< Far (inter-segment) call.
+    JumpNear,       ///< Near (intra-segment) jump.
+    JumpFar,        ///< Far (inter-segment) jump.
+    Offset,         ///< Data reference: offset/pointer.
+    Read,           ///< Data reference: read access.
+    Write,          ///< Data reference: write access.
+    Text,           ///< Data reference: text/string.
+    Informational,  ///< Data reference: informational only.
+};
+
 /// Unified cross-reference descriptor.
 struct Reference {
-    Address from{};
-    Address to{};
-    bool    is_code{false};
-    int     raw_type{0};    ///< SDK cref_t or dref_t value.
-    bool    user_defined{false};
+    Address       from{};
+    Address       to{};
+    bool          is_code{false};
+    ReferenceType type{ReferenceType::Unknown};  ///< Typed reference classification.
+    bool          user_defined{false};
 };
 
 // ── Mutation ────────────────────────────────────────────────────────────
@@ -47,23 +62,23 @@ Status remove_data(Address from, Address to);
 
 // ── Enumeration ─────────────────────────────────────────────────────────
 
-/// All references originating from \p ea.
-Result<std::vector<Reference>> refs_from(Address ea);
+/// All references originating from \p address.
+Result<std::vector<Reference>> refs_from(Address address);
 
-/// All references targeting \p ea.
-Result<std::vector<Reference>> refs_to(Address ea);
+/// All references targeting \p address.
+Result<std::vector<Reference>> refs_to(Address address);
 
-/// Only code references from \p ea.
-Result<std::vector<Reference>> code_refs_from(Address ea);
+/// Only code references from \p address.
+Result<std::vector<Reference>> code_refs_from(Address address);
 
-/// Only code references to \p ea.
-Result<std::vector<Reference>> code_refs_to(Address ea);
+/// Only code references to \p address.
+Result<std::vector<Reference>> code_refs_to(Address address);
 
-/// Only data references from \p ea.
-Result<std::vector<Reference>> data_refs_from(Address ea);
+/// Only data references from \p address.
+Result<std::vector<Reference>> data_refs_from(Address address);
 
-/// Only data references to \p ea.
-Result<std::vector<Reference>> data_refs_to(Address ea);
+/// Only data references to \p address.
+Result<std::vector<Reference>> data_refs_to(Address address);
 
 } // namespace ida::xref
 

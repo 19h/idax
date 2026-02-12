@@ -464,7 +464,8 @@ Result<Address> DecompiledFunction::line_to_address(int line_number) const {
         }
     }
 
-    return BadAddress;
+    return std::unexpected(Error::not_found("No address mapping for line",
+                                             std::to_string(line_number)));
 }
 
 Result<std::vector<AddressMapping>> DecompiledFunction::address_map() const {

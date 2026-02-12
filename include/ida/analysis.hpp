@@ -24,8 +24,8 @@ Status wait();
 /// Block until the auto-analyser finishes work in [start, end).
 Status wait_range(Address start, Address end);
 
-/// Schedule reanalysis of the byte at \p ea.
-Status schedule(Address ea);
+/// Schedule reanalysis of the byte at \p address.
+Status schedule(Address address);
 
 /// Schedule reanalysis of the range [start, end).
 Status schedule_range(Address start, Address end);

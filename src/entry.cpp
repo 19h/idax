@@ -56,14 +56,16 @@ Status add(std::uint64_t ordinal, Address ea, std::string_view name,
            bool make_code) {
     qstring qname = ida::detail::to_qstring(name);
     if (!::add_entry(static_cast<uval_t>(ordinal), ea, qname.c_str(), make_code))
-        return std::unexpected(Error::sdk("add_entry failed"));
+        return std::unexpected(Error::sdk("add_entry failed",
+                                          "ordinal=" + std::to_string(ordinal)));
     return ida::ok();
 }
 
 Status rename(std::uint64_t ordinal, std::string_view name) {
     qstring qname = ida::detail::to_qstring(name);
     if (!::rename_entry(static_cast<uval_t>(ordinal), qname.c_str()))
-        return std::unexpected(Error::sdk("rename_entry failed"));
+        return std::unexpected(Error::sdk("rename_entry failed",
+                                          "ordinal=" + std::to_string(ordinal)));
     return ida::ok();
 }
 

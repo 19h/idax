@@ -65,11 +65,11 @@ struct InstructionAccess {
 
 // ── Instruction::operand ────────────────────────────────────────────────
 
-Result<Operand> Instruction::operand(std::size_t idx) const {
-    if (idx >= operands_.size())
+Result<Operand> Instruction::operand(std::size_t index) const {
+    if (index >= operands_.size())
         return std::unexpected(Error::validation("Operand index out of range",
-                                                 std::to_string(idx)));
-    return operands_[idx];
+                                                 std::to_string(index)));
+    return operands_[index];
 }
 
 // ── Decode / create ─────────────────────────────────────────────────────
@@ -114,55 +114,55 @@ Result<std::string> text(Address ea) {
 
 // ── Operand representation controls ─────────────────────────────────────
 
-Status set_op_hex(Address ea, int n) {
+Status set_operand_hex(Address ea, int n) {
     if (!op_hex(ea, n))
         return std::unexpected(Error::sdk("op_hex failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_decimal(Address ea, int n) {
+Status set_operand_decimal(Address ea, int n) {
     if (!op_dec(ea, n))
         return std::unexpected(Error::sdk("op_dec failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_octal(Address ea, int n) {
+Status set_operand_octal(Address ea, int n) {
     if (!op_oct(ea, n))
         return std::unexpected(Error::sdk("op_oct failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_binary(Address ea, int n) {
+Status set_operand_binary(Address ea, int n) {
     if (!op_bin(ea, n))
         return std::unexpected(Error::sdk("op_bin failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_character(Address ea, int n) {
+Status set_operand_character(Address ea, int n) {
     if (!op_chr(ea, n))
         return std::unexpected(Error::sdk("op_chr failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_float(Address ea, int n) {
+Status set_operand_float(Address ea, int n) {
     if (!op_flt(ea, n))
         return std::unexpected(Error::sdk("op_flt failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_offset(Address ea, int n, Address base) {
+Status set_operand_offset(Address ea, int n, Address base) {
     if (!op_plain_offset(ea, n, base))
         return std::unexpected(Error::sdk("op_plain_offset failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status set_op_stack_variable(Address ea, int n) {
+Status set_operand_stack_variable(Address ea, int n) {
     if (!op_stkvar(ea, n))
         return std::unexpected(Error::sdk("op_stkvar failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status clear_op_representation(Address ea, int n) {
+Status clear_operand_representation(Address ea, int n) {
     if (!clr_op_type(ea, n))
         return std::unexpected(Error::sdk("clr_op_type failed", std::to_string(ea)));
     return ida::ok();
@@ -184,13 +184,13 @@ Result<std::string> get_forced_operand(Address ea, int n) {
     return ida::detail::to_string(buf);
 }
 
-Status toggle_op_sign(Address ea, int n) {
+Status toggle_operand_sign(Address ea, int n) {
     if (!::toggle_sign(ea, n))
         return std::unexpected(Error::sdk("toggle_sign failed", std::to_string(ea)));
     return ida::ok();
 }
 
-Status toggle_op_negate(Address ea, int n) {
+Status toggle_operand_negate(Address ea, int n) {
     if (!::toggle_bnot(ea, n))
         return std::unexpected(Error::sdk("toggle_bnot failed", std::to_string(ea)));
     return ida::ok();

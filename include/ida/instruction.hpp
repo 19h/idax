@@ -71,7 +71,7 @@ public:
     [[nodiscard]] std::string   mnemonic()     const { return mnemonic_; }
 
     [[nodiscard]] std::size_t operand_count()  const noexcept { return operands_.size(); }
-    [[nodiscard]] Result<Operand> operand(std::size_t idx) const;
+    [[nodiscard]] Result<Operand> operand(std::size_t index) const;
 
     [[nodiscard]] const std::vector<Operand>& operands() const noexcept { return operands_; }
 
@@ -88,86 +88,86 @@ private:
 // ── Decode / create ─────────────────────────────────────────────────────
 
 /// Decode an instruction without modifying the database.
-Result<Instruction> decode(Address ea);
+Result<Instruction> decode(Address address);
 
 /// Create an instruction in the database (marks bytes as code).
-Result<Instruction> create(Address ea);
+Result<Instruction> create(Address address);
 
 /// Get the rendered disassembly text at an address.
-Result<std::string> text(Address ea);
+Result<std::string> text(Address address);
 
 // ── Operand representation controls ─────────────────────────────────────
 
 /// Set operand display format to hexadecimal.
-Status set_op_hex(Address ea, int n);
+Status set_operand_hex(Address address, int n);
 
 /// Set operand display format to decimal.
-Status set_op_decimal(Address ea, int n);
+Status set_operand_decimal(Address address, int n);
 
 /// Set operand display format to octal.
-Status set_op_octal(Address ea, int n);
+Status set_operand_octal(Address address, int n);
 
 /// Set operand display format to binary.
-Status set_op_binary(Address ea, int n);
+Status set_operand_binary(Address address, int n);
 
 /// Set operand display format to character constant.
-Status set_op_character(Address ea, int n);
+Status set_operand_character(Address address, int n);
 
 /// Set operand display format to floating point.
-Status set_op_float(Address ea, int n);
+Status set_operand_float(Address address, int n);
 
 /// Set operand as an offset reference. \p base is the offset base (0 for auto).
-Status set_op_offset(Address ea, int n, Address base = 0);
+Status set_operand_offset(Address address, int n, Address base = 0);
 
 /// Set operand to display as a stack variable.
-Status set_op_stack_variable(Address ea, int n);
+Status set_operand_stack_variable(Address address, int n);
 
 /// Clear operand representation (reset to default/undefined).
-Status clear_op_representation(Address ea, int n);
+Status clear_operand_representation(Address address, int n);
 
 /// Set or clear forced (manual) operand text.
 /// Pass empty string to remove forced operand.
-Status set_forced_operand(Address ea, int n, std::string_view text);
+Status set_forced_operand(Address address, int n, std::string_view text);
 
 /// Retrieve forced (manual) operand text, if any.
-Result<std::string> get_forced_operand(Address ea, int n);
+Result<std::string> get_forced_operand(Address address, int n);
 
 /// Toggle sign inversion on operand display.
-Status toggle_op_sign(Address ea, int n);
+Status toggle_operand_sign(Address address, int n);
 
 /// Toggle bitwise negation on operand display.
-Status toggle_op_negate(Address ea, int n);
+Status toggle_operand_negate(Address address, int n);
 
 // ── Instruction-level xref conveniences ─────────────────────────────────
 
-/// Code cross-references originating from the instruction at \p ea.
+/// Code cross-references originating from the instruction at \p address.
 /// Returns target addresses of call/jump/flow references.
-Result<std::vector<Address>> code_refs_from(Address ea);
+Result<std::vector<Address>> code_refs_from(Address address);
 
-/// Data cross-references originating from the instruction at \p ea.
+/// Data cross-references originating from the instruction at \p address.
 /// Returns target addresses of data reads/writes/offsets.
-Result<std::vector<Address>> data_refs_from(Address ea);
+Result<std::vector<Address>> data_refs_from(Address address);
 
-/// All call targets from the instruction at \p ea (fl_CN/fl_CF only).
-Result<std::vector<Address>> call_targets(Address ea);
+/// All call targets from the instruction at \p address (fl_CN/fl_CF only).
+Result<std::vector<Address>> call_targets(Address address);
 
-/// All jump targets from the instruction at \p ea (fl_JN/fl_JF only).
-Result<std::vector<Address>> jump_targets(Address ea);
+/// All jump targets from the instruction at \p address (fl_JN/fl_JF only).
+Result<std::vector<Address>> jump_targets(Address address);
 
-/// Does the instruction at \p ea have fall-through to the next instruction?
-bool has_fall_through(Address ea);
+/// Does the instruction at \p address have fall-through to the next instruction?
+bool has_fall_through(Address address);
 
-/// Is the instruction at \p ea a call instruction?
-bool is_call(Address ea);
+/// Is the instruction at \p address a call instruction?
+bool is_call(Address address);
 
-/// Is the instruction at \p ea a return instruction?
-bool is_return(Address ea);
+/// Is the instruction at \p address a return instruction?
+bool is_return(Address address);
 
-/// Decode the next instruction sequentially after \p ea.
-Result<Instruction> next(Address ea);
+/// Decode the next instruction sequentially after \p address.
+Result<Instruction> next(Address address);
 
-/// Decode the previous instruction before \p ea.
-Result<Instruction> prev(Address ea);
+/// Decode the previous instruction before \p address.
+Result<Instruction> prev(Address address);
 
 } // namespace ida::instruction
 

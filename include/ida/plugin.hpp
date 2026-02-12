@@ -35,9 +35,9 @@ struct Info {
 ///     Info info() const override {
 ///         return { "MyPlugin", "Ctrl-F9", "Does something", "Help text" };
 ///     }
-///     bool run(std::size_t arg) override {
+///     Status run(std::size_t arg) override {
 ///         ida::ui::message("Hello from MyPlugin!\n");
-///         return true;
+///         return ida::ok();
 ///     }
 /// };
 /// ```
@@ -54,8 +54,8 @@ public:
 
     /// Called when the user invokes the plugin.
     /// @param arg  user argument (typically 0)
-    /// @return true if the plugin did useful work
-    virtual bool run(std::size_t arg) = 0;
+    /// @return Status indicating success or failure
+    virtual Status run(std::size_t arg) = 0;
 };
 
 // ── Action registration ─────────────────────────────────────────────────

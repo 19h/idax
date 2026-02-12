@@ -21,32 +21,32 @@ enum class DemangleForm {
 
 // ── Core naming ─────────────────────────────────────────────────────────
 
-/// Set or replace the name at \p ea.
-Status set(Address ea, std::string_view name);
+/// Set or replace the name at \p address.
+Status set(Address address, std::string_view name);
 
-/// Force-set a name at \p ea, appending a numeric suffix if the name is taken.
-Status force_set(Address ea, std::string_view name);
+/// Force-set a name at \p address, appending a numeric suffix if the name is taken.
+Status force_set(Address address, std::string_view name);
 
-/// Remove the name at \p ea.
-Status remove(Address ea);
+/// Remove the name at \p address.
+Status remove(Address address);
 
-/// Get the name at \p ea.
-Result<std::string> get(Address ea);
+/// Get the name at \p address.
+Result<std::string> get(Address address);
 
-/// Get the demangled name at \p ea.
-Result<std::string> demangled(Address ea, DemangleForm form = DemangleForm::Short);
+/// Get the demangled name at \p address.
+Result<std::string> demangled(Address address, DemangleForm form = DemangleForm::Short);
 
 /// Resolve a name to an address.
 Result<Address> resolve(std::string_view name, Address context = BadAddress);
 
 // ── Name properties ─────────────────────────────────────────────────────
 
-bool is_public(Address ea);
-bool is_weak(Address ea);
-bool is_auto_generated(Address ea);
+bool is_public(Address address);
+bool is_weak(Address address);
+bool is_auto_generated(Address address);
 
-Status set_public(Address ea, bool value = true);
-Status set_weak(Address ea, bool value = true);
+Status set_public(Address address, bool value = true);
+Status set_weak(Address address, bool value = true);
 
 } // namespace ida::name
 

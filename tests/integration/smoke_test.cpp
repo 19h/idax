@@ -610,21 +610,21 @@ static void test_operand_representation() {
     }
 
     // Try to set hex and clear representation on the first operand.
-    auto status = ida::instruction::set_op_hex(f0->start(), 0);
+    auto status = ida::instruction::set_operand_hex(f0->start(), 0);
     if (status) {
-        std::cout << "  set_op_hex on first operand: ok\n";
+        std::cout << "  set_operand_hex on first operand: ok\n";
         ++g_pass;
     } else {
         // This can fail if operand is not a suitable type — that's fine.
-        std::cout << "  set_op_hex: " << status.error().message << " (may be expected)\n";
+        std::cout << "  set_operand_hex: " << status.error().message << " (may be expected)\n";
     }
 
-    auto clr = ida::instruction::clear_op_representation(f0->start(), 0);
+    auto clr = ida::instruction::clear_operand_representation(f0->start(), 0);
     if (clr) {
-        std::cout << "  clear_op_representation: ok\n";
+        std::cout << "  clear_operand_representation: ok\n";
         ++g_pass;
     } else {
-        std::cout << "  clear_op_representation: " << clr.error().message << "\n";
+        std::cout << "  clear_operand_representation: " << clr.error().message << "\n";
     }
 }
 
@@ -1112,7 +1112,7 @@ static void test_storage_blobs() {
     }
 
     // Delete blob.
-    auto del = node->del_blob(0);
+    auto del = node->remove_blob(0);
     CHECK_OK(del);
 
     auto sz2 = node->blob_size(0);
@@ -1120,7 +1120,7 @@ static void test_storage_blobs() {
     CHECK(*sz2 == 0);
 
     // Cleanup blob at index 1.
-    node->del_blob(1);
+    node->remove_blob(1);
 
     std::cout << "  storage blob operations: ok\n";
 }
@@ -1215,7 +1215,7 @@ static void test_register_variables() {
     }
 
     // Delete it.
-    auto del = ida::function::delete_register_variable(start, start, end, "rax");
+    auto del = ida::function::remove_register_variable(start, start, end, "rax");
     CHECK_OK(del);
 
     // Verify deletion — find should fail.
@@ -1251,15 +1251,15 @@ static void test_ui_events() {
 
     // Unsubscribe all.
     if (tok1) {
-        auto u1 = ida::ui::ui_unsubscribe(*tok1);
+        auto u1 = ida::ui::unsubscribe(*tok1);
         CHECK_OK(u1);
     }
     if (tok2) {
-        auto u2 = ida::ui::ui_unsubscribe(*tok2);
+        auto u2 = ida::ui::unsubscribe(*tok2);
         CHECK_OK(u2);
     }
     if (tok3) {
-        auto u3 = ida::ui::ui_unsubscribe(*tok3);
+        auto u3 = ida::ui::unsubscribe(*tok3);
         CHECK_OK(u3);
     }
 
@@ -1268,7 +1268,7 @@ static void test_ui_events() {
         auto tok4 = ida::ui::on_database_closed([]() {});
         CHECK_OK(tok4);
         if (tok4) {
-            ida::ui::ScopedUiSubscription scoped(*tok4);
+            ida::ui::ScopedSubscription scoped(*tok4);
             CHECK(scoped.token() != 0);
         }
         // Destructor should unsubscribe — no crash.
@@ -1329,24 +1329,24 @@ static void test_debugger_events() {
     CHECK_OK(tok11);
 
     // Unsubscribe all.
-    if (tok1) { auto u = ida::debugger::debugger_unsubscribe(*tok1); CHECK_OK(u); }
-    if (tok2) { auto u = ida::debugger::debugger_unsubscribe(*tok2); CHECK_OK(u); }
-    if (tok3) { auto u = ida::debugger::debugger_unsubscribe(*tok3); CHECK_OK(u); }
-    if (tok4) { auto u = ida::debugger::debugger_unsubscribe(*tok4); CHECK_OK(u); }
-    if (tok5) { auto u = ida::debugger::debugger_unsubscribe(*tok5); CHECK_OK(u); }
-    if (tok6) { auto u = ida::debugger::debugger_unsubscribe(*tok6); CHECK_OK(u); }
-    if (tok7) { auto u = ida::debugger::debugger_unsubscribe(*tok7); CHECK_OK(u); }
-    if (tok8) { auto u = ida::debugger::debugger_unsubscribe(*tok8); CHECK_OK(u); }
-    if (tok9) { auto u = ida::debugger::debugger_unsubscribe(*tok9); CHECK_OK(u); }
-    if (tok10) { auto u = ida::debugger::debugger_unsubscribe(*tok10); CHECK_OK(u); }
-    if (tok11) { auto u = ida::debugger::debugger_unsubscribe(*tok11); CHECK_OK(u); }
+    if (tok1) { auto u = ida::debugger::unsubscribe(*tok1); CHECK_OK(u); }
+    if (tok2) { auto u = ida::debugger::unsubscribe(*tok2); CHECK_OK(u); }
+    if (tok3) { auto u = ida::debugger::unsubscribe(*tok3); CHECK_OK(u); }
+    if (tok4) { auto u = ida::debugger::unsubscribe(*tok4); CHECK_OK(u); }
+    if (tok5) { auto u = ida::debugger::unsubscribe(*tok5); CHECK_OK(u); }
+    if (tok6) { auto u = ida::debugger::unsubscribe(*tok6); CHECK_OK(u); }
+    if (tok7) { auto u = ida::debugger::unsubscribe(*tok7); CHECK_OK(u); }
+    if (tok8) { auto u = ida::debugger::unsubscribe(*tok8); CHECK_OK(u); }
+    if (tok9) { auto u = ida::debugger::unsubscribe(*tok9); CHECK_OK(u); }
+    if (tok10) { auto u = ida::debugger::unsubscribe(*tok10); CHECK_OK(u); }
+    if (tok11) { auto u = ida::debugger::unsubscribe(*tok11); CHECK_OK(u); }
 
     // ScopedDebuggerSubscription RAII test.
     {
         auto stok = ida::debugger::on_process_exited([](int) {});
         CHECK_OK(stok);
         if (stok) {
-            ida::debugger::ScopedDebuggerSubscription scoped(*stok);
+            ida::debugger::ScopedSubscription scoped(*stok);
             CHECK(scoped.token() != 0);
         }
     }

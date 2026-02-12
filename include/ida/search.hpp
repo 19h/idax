@@ -47,13 +47,13 @@ Result<Address> binary_pattern(std::string_view hex_pattern,
                                Direction dir = Direction::Forward);
 
 /// Find the next address containing code.
-Result<Address> next_code(Address ea);
+Result<Address> next_code(Address address);
 
 /// Find the next address containing data.
-Result<Address> next_data(Address ea);
+Result<Address> next_data(Address address);
 
 /// Find the next unexplored (unknown) byte.
-Result<Address> next_unknown(Address ea);
+Result<Address> next_unknown(Address address);
 
 } // namespace ida::search
 
