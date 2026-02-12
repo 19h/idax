@@ -18,6 +18,30 @@ namespace ida::event {
 /// Opaque subscription handle.
 using Token = std::uint64_t;
 
+/// Event kind used by generic event routing callbacks.
+enum class EventKind {
+    SegmentAdded,
+    SegmentDeleted,
+    FunctionAdded,
+    FunctionDeleted,
+    Renamed,
+    BytePatched,
+    CommentChanged,
+};
+
+/// Generic IDB event payload for filtering/routing helpers.
+struct Event {
+    EventKind kind{};
+    Address address{BadAddress};
+    Address secondary_address{BadAddress};
+
+    std::string new_name;
+    std::string old_name;
+
+    std::uint32_t old_value{0};
+    bool repeatable{false};
+};
+
 /// Unsubscribe a previously registered callback.
 Status unsubscribe(Token token);
 
@@ -46,6 +70,16 @@ Result<Token> on_byte_patched(std::function<void(Address ea, std::uint32_t old_v
 
 /// Called after a comment is changed.  Receives the address and whether it is repeatable.
 Result<Token> on_comment_changed(std::function<void(Address ea, bool repeatable)> callback);
+
+// ── Generic filtering/routing helpers ───────────────────────────────────
+
+/// Subscribe to all supported IDB events through one callback.
+Result<Token> on_event(std::function<void(const Event&)> callback);
+
+/// Subscribe to all supported IDB events with a predicate filter.
+/// Callback is invoked only when `filter(event)` is true.
+Result<Token> on_event_filtered(std::function<bool(const Event&)> filter,
+                                std::function<void(const Event&)> callback);
 
 // ── RAII subscription guard ─────────────────────────────────────────────
 

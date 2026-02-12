@@ -214,6 +214,59 @@ static void test_data_read() {
     auto b = ida::data::read_byte(*lo);
     CHECK_OK(b);
     if (b) CHECK(*b == 0x7f);
+
+    // Typed value helper.
+    auto sig = ida::data::read_value<std::uint32_t>(*lo);
+    CHECK_OK(sig);
+    if (sig)
+        CHECK(*sig == 0x464C457Fu);  // little-endian "\x7FELF"
+
+    // Binary pattern search wrapper.
+    auto hi = ida::database::max_address();
+    CHECK_OK(hi);
+    if (hi) {
+        auto found = ida::data::find_binary_pattern(
+            *lo, *hi, "7F 45 4C 46", true, false, true);
+        CHECK_OK(found);
+        if (found)
+            CHECK(*found == *lo);
+    }
+
+    // String extraction helper: find one printable NUL-terminated sample
+    // in .rodata and read it via data::read_string().
+    ida::Address ro_start = ida::BadAddress;
+    for (auto seg : ida::segment::all()) {
+        if (seg.name() == ".rodata") {
+            ro_start = seg.start();
+            break;
+        }
+    }
+    if (ro_start != ida::BadAddress) {
+        auto ro = ida::data::read_bytes(ro_start, 256);
+        CHECK_OK(ro);
+        if (ro) {
+            size_t candidate = static_cast<size_t>(-1);
+            for (size_t i = 0; i < ro->size(); ++i) {
+                size_t j = i;
+                while (j < ro->size() && (*ro)[j] >= 0x20 && (*ro)[j] <= 0x7E)
+                    ++j;
+                if (j > i + 3 && j < ro->size() && (*ro)[j] == 0) {
+                    candidate = i;
+                    break;
+                }
+            }
+            if (candidate != static_cast<size_t>(-1)) {
+                auto s = ida::data::read_string(ro_start + candidate);
+                CHECK_OK(s);
+                if (s) {
+                    CHECK(!s->empty());
+                    std::cout << "  sample string: " << *s << "\n";
+                }
+            } else {
+                std::cout << "  (no printable .rodata sample found)\n";
+            }
+        }
+    }
 }
 
 static void test_instructions() {
@@ -1162,6 +1215,8 @@ static void test_event_system() {
 
     // Subscribe to renamed events, set a name, check we got called back.
     bool callback_fired = false;
+    bool routed_fired = false;
+    bool filtered_fired = false;
     auto f0 = ida::function::by_index(0);
     if (!f0) return;
 
@@ -1173,26 +1228,55 @@ static void test_event_system() {
         });
     CHECK_OK(tok);
 
-    if (tok) {
+    auto routed = ida::event::on_event(
+        [&](const ida::event::Event& ev) {
+            if (ev.kind == ida::event::EventKind::Renamed)
+                routed_fired = true;
+        });
+    CHECK_OK(routed);
+
+    auto filtered = ida::event::on_event_filtered(
+        [&](const ida::event::Event& ev) {
+            return ev.kind == ida::event::EventKind::Renamed
+                && ev.address == f0->start()
+                && ev.new_name == "__idax_test_rename__";
+        },
+        [&](const ida::event::Event&) {
+            filtered_fired = true;
+        });
+    CHECK_OK(filtered);
+
+    if (tok && routed && filtered) {
         // Trigger a rename.
         auto old_name = ida::name::get(f0->start());
         ida::name::set(f0->start(), "__idax_test_rename__");
 
         CHECK(callback_fired);
+        CHECK(routed_fired);
+        CHECK(filtered_fired);
         if (callback_fired)
             std::cout << "  event callback fired: yes\n";
         else
             std::cout << "  event callback fired: no (unexpected)\n";
+
+        if (routed_fired)
+            std::cout << "  generic route fired: yes\n";
+        if (filtered_fired)
+            std::cout << "  filtered route fired: yes\n";
+
+        // Unsubscribe before restoring to avoid extra callback churn.
+        auto unsub = ida::event::unsubscribe(*tok);
+        CHECK_OK(unsub);
+        auto unsub_routed = ida::event::unsubscribe(*routed);
+        CHECK_OK(unsub_routed);
+        auto unsub_filtered = ida::event::unsubscribe(*filtered);
+        CHECK_OK(unsub_filtered);
 
         // Restore original name.
         if (old_name)
             ida::name::set(f0->start(), *old_name);
         else
             ida::name::remove(f0->start());
-
-        // Unsubscribe.
-        auto unsub = ida::event::unsubscribe(*tok);
-        CHECK_OK(unsub);
     }
 }
 

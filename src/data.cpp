@@ -4,6 +4,8 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/data.hpp>
 
+#include <search.hpp>
+
 namespace ida::data {
 
 // ── Read family ─────────────────────────────────────────────────────────
@@ -41,6 +43,24 @@ Result<std::vector<std::uint8_t>> read_bytes(Address ea, AddressSize count) {
         return std::unexpected(Error::sdk("get_bytes failed", std::to_string(ea)));
     buf.resize(static_cast<std::size_t>(got));
     return buf;
+}
+
+Result<std::string> read_string(Address ea,
+                                AddressSize max_length,
+                                std::int32_t string_type,
+                                int conversion_flags) {
+    if (!is_loaded(ea))
+        return std::unexpected(Error::not_found("Address not loaded", std::to_string(ea)));
+
+    qstring out;
+    size_t len = max_length == 0
+               ? size_t(-1)
+               : static_cast<size_t>(max_length);
+    ssize_t got = get_strlit_contents(&out, ea, len, static_cast<int32>(string_type),
+                                      nullptr, conversion_flags);
+    if (got < 0)
+        return std::unexpected(Error::not_found("String literal not found", std::to_string(ea)));
+    return ida::detail::to_string(out);
 }
 
 // ── Write family ────────────────────────────────────────────────────────
@@ -167,6 +187,30 @@ Status undefine(Address ea, AddressSize count) {
     if (!del_items(ea, DELIT_SIMPLE, static_cast<asize_t>(count)))
         return std::unexpected(Error::sdk("del_items failed", std::to_string(ea)));
     return ida::ok();
+}
+
+Result<Address> find_binary_pattern(Address start,
+                                    Address end,
+                                    std::string_view pattern,
+                                    bool forward,
+                                    bool skip_start,
+                                    bool case_sensitive,
+                                    int radix,
+                                    int strlits_encoding) {
+    if (pattern.empty())
+        return std::unexpected(Error::validation("Binary pattern cannot be empty"));
+
+    int sflag = forward ? SEARCH_DOWN : SEARCH_UP;
+    if (skip_start)
+        sflag |= SEARCH_NEXT;
+    if (case_sensitive)
+        sflag |= SEARCH_CASE;
+
+    std::string pat(pattern);
+    ea_t found = find_binary(start, end, pat.c_str(), radix, sflag, strlits_encoding);
+    if (found == BADADDR)
+        return std::unexpected(Error::not_found("Binary pattern not found", pat));
+    return static_cast<Address>(found);
 }
 
 } // namespace ida::data
