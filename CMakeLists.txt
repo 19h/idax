@@ -70,3 +70,29 @@ if(IDAX_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+# ── Install / packaging ──────────────────────────────────────────────────
+include(GNUInstallDirs)
+
+install(TARGETS idax
+    EXPORT idaxTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(FILES
+    docs/api_reference.md
+    docs/tutorial/first_contact.md
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/idax/docs
+    OPTIONAL
+)
+
+set(CPACK_PACKAGE_NAME "idax")
+set(CPACK_PACKAGE_VENDOR "idax")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_FILE_NAME "idax-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+set(CPACK_GENERATOR "TGZ")
+include(CPack)

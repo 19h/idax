@@ -8,6 +8,8 @@
 #include <ida/address.hpp>
 #include <cstdint>
 #include <iterator>
+#include <string>
+#include <string_view>
 
 namespace ida::fixup {
 
@@ -86,6 +88,36 @@ private:
 
 /// Iterable range of all fixups.
 FixupRange all();
+
+// ── Custom fixup registration ────────────────────────────────────────────
+
+/// Properties for custom fixup handlers.
+enum class HandlerProperty : std::uint32_t {
+    Verify     = 0x0001,
+    Code       = 0x0002,
+    ForceCode  = 0x0004,
+    AbsoluteOp = 0x0008,
+    SignedOp   = 0x0010,
+};
+
+/// Configuration for registering a custom fixup handler.
+struct CustomHandler {
+    std::string name;
+    std::uint32_t properties{0};
+    std::uint8_t size{4};
+    std::uint8_t width{32};
+    std::uint8_t shift{0};
+    std::uint32_t reference_type{0};
+};
+
+/// Register a custom fixup handler and return its fixup type id (FIXUP_CUSTOM|N).
+Result<std::uint16_t> register_custom(const CustomHandler& handler);
+
+/// Unregister a previously registered custom fixup handler.
+Status unregister_custom(std::uint16_t custom_type);
+
+/// Resolve a custom fixup handler name to its type id.
+Result<std::uint16_t> find_custom(std::string_view name);
 
 } // namespace ida::fixup
 

@@ -8,6 +8,8 @@
 #define IDAX_IDAX_HPP
 
 #include <ida/error.hpp>
+#include <ida/core.hpp>
+#include <ida/diagnostics.hpp>
 #include <ida/address.hpp>
 #include <ida/data.hpp>
 #include <ida/database.hpp>

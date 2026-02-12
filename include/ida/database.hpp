@@ -9,8 +9,11 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstdint>
+#include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ida::database {
 
@@ -34,6 +37,19 @@ Status save();
 /// Wraps close_database().
 Status close(bool save = false);
 
+/// Load a file range into the database at [ea, ea+size).
+Status file_to_database(std::string_view file_path,
+                        std::int64_t file_offset,
+                        Address ea,
+                        AddressSize size,
+                        bool patchable = true,
+                        bool remote = false);
+
+/// Load bytes from memory into the database at [ea, ea+bytes.size()).
+Status memory_to_database(std::span<const std::uint8_t> bytes,
+                          Address ea,
+                          std::int64_t file_offset = -1);
+
 // ── Metadata ────────────────────────────────────────────────────────────
 
 /// Path of the original input file.
@@ -50,6 +66,27 @@ Result<Address> min_address();
 
 /// Highest mapped address in the database.
 Result<Address> max_address();
+
+// ── Snapshot wrappers ────────────────────────────────────────────────────
+
+/// Snapshot metadata and hierarchy node.
+struct Snapshot {
+    std::int64_t id{0};
+    std::uint16_t flags{0};
+    std::string description;
+    std::string filename;
+    std::vector<Snapshot> children;
+};
+
+/// Build and return the database snapshot tree.
+/// The returned vector contains root-level snapshots.
+Result<std::vector<Snapshot>> snapshots();
+
+/// Update the current database snapshot description.
+Status set_snapshot_description(std::string_view description);
+
+/// Whether the current database is marked as a snapshot.
+Result<bool> is_snapshot_database();
 
 } // namespace ida::database
 
