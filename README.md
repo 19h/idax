@@ -1,5 +1,6 @@
 <p align="center">
-  <strong>idax</strong><br>
+    <img width="128" height="auto" src="./docs/ida.png" /><br>
+    <strong>idax</strong><br>
   <em>The IDA SDK, redesigned for humans.</em>
 </p>
 
