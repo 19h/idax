@@ -1080,6 +1080,83 @@ static void test_ui_events() {
     std::cout << "  ui event subscribe/unsubscribe: ok\n";
 }
 
+static void test_debugger_events() {
+    std::cout << "--- debugger events ---\n";
+
+    // In headless idalib mode, no debugger is active, so events won't fire.
+    // We verify subscribe/unsubscribe lifecycle works without crashing.
+
+    // Tier 1 events.
+    auto tok1 = ida::debugger::on_process_started(
+        [](const ida::debugger::ModuleInfo&) {});
+    CHECK_OK(tok1);
+
+    auto tok2 = ida::debugger::on_process_exited([](int) {});
+    CHECK_OK(tok2);
+
+    auto tok3 = ida::debugger::on_process_suspended([](ida::Address) {});
+    CHECK_OK(tok3);
+
+    auto tok4 = ida::debugger::on_breakpoint_hit(
+        [](int, ida::Address) {});
+    CHECK_OK(tok4);
+
+    auto tok5 = ida::debugger::on_trace(
+        [](int, ida::Address) -> bool { return false; });
+    CHECK_OK(tok5);
+
+    auto tok6 = ida::debugger::on_exception(
+        [](const ida::debugger::ExceptionInfo&) {});
+    CHECK_OK(tok6);
+
+    // Tier 2 events.
+    auto tok7 = ida::debugger::on_thread_started(
+        [](int, std::string) {});
+    CHECK_OK(tok7);
+
+    auto tok8 = ida::debugger::on_thread_exited([](int, int) {});
+    CHECK_OK(tok8);
+
+    auto tok9 = ida::debugger::on_library_loaded(
+        [](const ida::debugger::ModuleInfo&) {});
+    CHECK_OK(tok9);
+
+    auto tok10 = ida::debugger::on_library_unloaded(
+        [](std::string) {});
+    CHECK_OK(tok10);
+
+    // Tier 3.
+    auto tok11 = ida::debugger::on_breakpoint_changed(
+        [](ida::debugger::BreakpointChange, ida::Address) {});
+    CHECK_OK(tok11);
+
+    // Unsubscribe all.
+    if (tok1) { auto u = ida::debugger::debugger_unsubscribe(*tok1); CHECK_OK(u); }
+    if (tok2) { auto u = ida::debugger::debugger_unsubscribe(*tok2); CHECK_OK(u); }
+    if (tok3) { auto u = ida::debugger::debugger_unsubscribe(*tok3); CHECK_OK(u); }
+    if (tok4) { auto u = ida::debugger::debugger_unsubscribe(*tok4); CHECK_OK(u); }
+    if (tok5) { auto u = ida::debugger::debugger_unsubscribe(*tok5); CHECK_OK(u); }
+    if (tok6) { auto u = ida::debugger::debugger_unsubscribe(*tok6); CHECK_OK(u); }
+    if (tok7) { auto u = ida::debugger::debugger_unsubscribe(*tok7); CHECK_OK(u); }
+    if (tok8) { auto u = ida::debugger::debugger_unsubscribe(*tok8); CHECK_OK(u); }
+    if (tok9) { auto u = ida::debugger::debugger_unsubscribe(*tok9); CHECK_OK(u); }
+    if (tok10) { auto u = ida::debugger::debugger_unsubscribe(*tok10); CHECK_OK(u); }
+    if (tok11) { auto u = ida::debugger::debugger_unsubscribe(*tok11); CHECK_OK(u); }
+
+    // ScopedDebuggerSubscription RAII test.
+    {
+        auto stok = ida::debugger::on_process_exited([](int) {});
+        CHECK_OK(stok);
+        if (stok) {
+            ida::debugger::ScopedDebuggerSubscription scoped(*stok);
+            CHECK(scoped.token() != 0);
+        }
+    }
+    ++g_pass;  // Survived scoped destructor.
+
+    std::cout << "  debugger event subscribe/unsubscribe: ok\n";
+}
+
 static void test_event_system() {
     std::cout << "--- event subscription ---\n";
 
@@ -1167,6 +1244,7 @@ int main(int argc, char* argv[]) {
     test_type_library();
     test_register_variables();
     test_ui_events();
+    test_debugger_events();
     test_event_system();
 
     // 5. Report.
