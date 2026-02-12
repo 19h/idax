@@ -868,6 +868,218 @@ static void test_graph_object() {
     std::cout << "  graph object operations: ok\n";
 }
 
+static void test_storage_blobs() {
+    std::cout << "--- storage blobs ---\n";
+
+    // Create a test node.
+    auto node = ida::storage::Node::open("$idax_blob_test", true);
+    CHECK_OK(node);
+    if (!node) return;
+
+    // Initially no blob.
+    auto sz0 = node->blob_size(0);
+    CHECK_OK(sz0);
+    CHECK(*sz0 == 0);
+
+    // Write a blob.
+    std::vector<uint8_t> data = {0xDE, 0xAD, 0xBE, 0xEF, 0x42};
+    auto ws = node->set_blob(0, data);
+    CHECK_OK(ws);
+
+    // Read back size.
+    auto sz1 = node->blob_size(0);
+    CHECK_OK(sz1);
+    CHECK(*sz1 == 5);
+
+    // Read back data.
+    auto rd = node->blob(0);
+    CHECK_OK(rd);
+    if (rd) {
+        CHECK(rd->size() == 5);
+        CHECK((*rd)[0] == 0xDE && (*rd)[4] == 0x42);
+    }
+
+    // Write a string blob and read back.
+    std::string str = "hello blob";
+    std::vector<uint8_t> str_data(str.begin(), str.end());
+    str_data.push_back(0);  // null terminator
+    auto ws2 = node->set_blob(1, str_data);
+    CHECK_OK(ws2);
+
+    auto bs = node->blob_string(1);
+    CHECK_OK(bs);
+    if (bs) {
+        CHECK(*bs == "hello blob");
+        std::cout << "  blob_string: " << *bs << "\n";
+    }
+
+    // Delete blob.
+    auto del = node->del_blob(0);
+    CHECK_OK(del);
+
+    auto sz2 = node->blob_size(0);
+    CHECK_OK(sz2);
+    CHECK(*sz2 == 0);
+
+    // Cleanup blob at index 1.
+    node->del_blob(1);
+
+    std::cout << "  storage blob operations: ok\n";
+}
+
+static void test_type_library() {
+    std::cout << "--- type library ---\n";
+
+    // Local type count should be non-negative (may be 0 for simple binaries).
+    auto count = ida::type::local_type_count();
+    CHECK_OK(count);
+    if (count) {
+        std::cout << "  local type count: " << *count << "\n";
+
+        // If there are local types, try to get the first one's name.
+        if (*count > 0) {
+            auto name = ida::type::local_type_name(1);  // 1-based
+            CHECK_OK(name);
+            if (name)
+                std::cout << "  local type 1: " << *name << "\n";
+        }
+    }
+
+    // Create a struct type and save it to the local type library, then verify
+    // the count increased.
+    auto initial_count = ida::type::local_type_count();
+    CHECK_OK(initial_count);
+
+    auto st = ida::type::TypeInfo::create_struct();
+    // Add a member so it's non-trivial.
+    st.add_member("field_a", ida::type::TypeInfo::int32());
+    auto saved = st.save_as("idax_test_struct_lib");
+    CHECK_OK(saved);
+    if (saved) {
+        auto new_count = ida::type::local_type_count();
+        CHECK_OK(new_count);
+        if (initial_count && new_count)
+            CHECK(*new_count > *initial_count);
+    }
+
+    std::cout << "  type library operations: ok\n";
+}
+
+static void test_register_variables() {
+    std::cout << "--- register variables ---\n";
+
+    // Find a function to test with.
+    auto main_addr = ida::name::resolve("main");
+    if (!main_addr) {
+        std::cout << "  (skipping, main not found)\n";
+        return;
+    }
+
+    auto func = ida::function::at(*main_addr);
+    if (!func) {
+        std::cout << "  (skipping, function not found)\n";
+        return;
+    }
+
+    ida::Address start = func->start();
+    ida::Address end = func->end();
+
+    // Add a register variable.
+    auto add_res = ida::function::add_register_variable(
+        start, start, end, "rax", "my_counter", "test regvar");
+    CHECK_OK(add_res);
+
+    // Find it back.
+    auto found = ida::function::find_register_variable(start, start, "rax");
+    CHECK_OK(found);
+    if (found) {
+        CHECK(found->canonical_name == "rax");
+        CHECK(found->user_name == "my_counter");
+        std::cout << "  found regvar: " << found->canonical_name
+                  << " -> " << found->user_name << "\n";
+    }
+
+    // has_register_variables
+    auto has = ida::function::has_register_variables(start, start);
+    CHECK_OK(has);
+    if (has) CHECK(*has == true);
+
+    // Rename it.
+    auto ren = ida::function::rename_register_variable(
+        start, start, "rax", "renamed_counter");
+    CHECK_OK(ren);
+
+    // Verify rename.
+    auto found2 = ida::function::find_register_variable(start, start, "rax");
+    CHECK_OK(found2);
+    if (found2) {
+        CHECK(found2->user_name == "renamed_counter");
+    }
+
+    // Delete it.
+    auto del = ida::function::delete_register_variable(start, start, end, "rax");
+    CHECK_OK(del);
+
+    // Verify deletion — find should fail.
+    auto found3 = ida::function::find_register_variable(start, start, "rax");
+    CHECK(!found3.has_value());
+
+    std::cout << "  register variable operations: ok\n";
+}
+
+static void test_ui_events() {
+    std::cout << "--- ui events ---\n";
+
+    // Test that we can subscribe and unsubscribe without crashing.
+    // In headless (idalib) mode, UI events may not fire, but the
+    // subscription/unsubscription path itself must work.
+
+    bool closed_fired = false;
+    auto tok1 = ida::ui::on_database_closed([&]() {
+        closed_fired = true;
+    });
+    CHECK_OK(tok1);
+
+    bool ready_fired = false;
+    auto tok2 = ida::ui::on_ready_to_run([&]() {
+        ready_fired = true;
+    });
+    CHECK_OK(tok2);
+
+    bool ea_changed_fired = false;
+    auto tok3 = ida::ui::on_screen_ea_changed(
+        [&](ida::Address, ida::Address) { ea_changed_fired = true; });
+    CHECK_OK(tok3);
+
+    // Unsubscribe all.
+    if (tok1) {
+        auto u1 = ida::ui::ui_unsubscribe(*tok1);
+        CHECK_OK(u1);
+    }
+    if (tok2) {
+        auto u2 = ida::ui::ui_unsubscribe(*tok2);
+        CHECK_OK(u2);
+    }
+    if (tok3) {
+        auto u3 = ida::ui::ui_unsubscribe(*tok3);
+        CHECK_OK(u3);
+    }
+
+    // ScopedUiSubscription RAII test.
+    {
+        auto tok4 = ida::ui::on_database_closed([]() {});
+        CHECK_OK(tok4);
+        if (tok4) {
+            ida::ui::ScopedUiSubscription scoped(*tok4);
+            CHECK(scoped.token() != 0);
+        }
+        // Destructor should unsubscribe — no crash.
+    }
+    ++g_pass;  // Survived scoped subscription destruction.
+
+    std::cout << "  ui event subscribe/unsubscribe: ok\n";
+}
+
 static void test_event_system() {
     std::cout << "--- event subscription ---\n";
 
@@ -951,6 +1163,10 @@ int main(int argc, char* argv[]) {
     test_decompiler();
     test_graph_flowchart();
     test_graph_object();
+    test_storage_blobs();
+    test_type_library();
+    test_register_variables();
+    test_ui_events();
     test_event_system();
 
     // 5. Report.

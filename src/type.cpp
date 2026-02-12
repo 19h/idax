@@ -284,4 +284,78 @@ Status remove_type(Address ea) {
     return ida::ok();
 }
 
+// ── Type library access ─────────────────────────────────────────────────
+
+Result<bool> load_type_library(std::string_view til_name) {
+    std::string name_str(til_name);
+    int rc = ::add_til(name_str.c_str(), ADDTIL_DEFAULT);
+    if (rc == ADDTIL_FAILED)
+        return std::unexpected(Error::sdk("Failed to load type library", name_str));
+    if (rc == ADDTIL_ABORTED)
+        return std::unexpected(Error::sdk("Type library loading aborted", name_str));
+    // ADDTIL_OK or ADDTIL_COMP
+    return true;
+}
+
+Status unload_type_library(std::string_view til_name) {
+    std::string name_str(til_name);
+    if (!::del_til(name_str.c_str()))
+        return std::unexpected(Error::sdk("Failed to unload type library", name_str));
+    return ida::ok();
+}
+
+Result<std::size_t> local_type_count() {
+    uint32 count = get_ordinal_count(nullptr);
+    return static_cast<std::size_t>(count);
+}
+
+Result<std::string> local_type_name(std::size_t ordinal) {
+    const char* name = get_numbered_type_name(get_idati(),
+                                               static_cast<uint32>(ordinal));
+    if (name == nullptr)
+        return std::unexpected(Error::not_found("No type at ordinal",
+                                                 std::to_string(ordinal)));
+    return std::string(name);
+}
+
+Result<std::size_t> import_type(std::string_view source_til_name,
+                                 std::string_view type_name) {
+    std::string src_name(source_til_name);
+    std::string tname(type_name);
+
+    til_t* src = nullptr;
+    if (!src_name.empty()) {
+        // Try to find the til among bases of idati.
+        src = get_idati()->find_base(src_name.c_str());
+        if (src == nullptr) {
+            // Try loading it.
+            qstring errbuf;
+            src = load_til(src_name.c_str(), &errbuf, nullptr);
+            if (src == nullptr)
+                return std::unexpected(Error::not_found(
+                    "Source type library not found: " + ida::detail::to_string(errbuf),
+                    src_name));
+        }
+    }
+
+    // If no source specified, use idati itself (search local types).
+    if (src == nullptr) {
+        // copy_named_type searches through base tils of the destination.
+        src = get_idati();
+    }
+
+    uint32 ordinal = copy_named_type(get_idati(), src, tname.c_str());
+    if (ordinal == 0)
+        return std::unexpected(Error::not_found("Type not found in source library",
+                                                 tname));
+    return static_cast<std::size_t>(ordinal);
+}
+
+Status apply_named_type(Address ea, std::string_view type_name) {
+    std::string name_str(type_name);
+    if (!::apply_named_type(ea, name_str.c_str()))
+        return std::unexpected(Error::sdk("apply_named_type failed", name_str));
+    return ida::ok();
+}
+
 } // namespace ida::type

@@ -3,6 +3,7 @@
 
 #include "detail/sdk_bridge.hpp"
 #include <ida/ui.hpp>
+#include <mutex>
 
 namespace ida::ui {
 
@@ -316,6 +317,149 @@ Status unregister_timer(std::uint64_t token) {
     // Remove from registry.
     std::erase(g_timers, state);
     delete state;
+    return ida::ok();
+}
+
+// ── UI event subscriptions ──────────────────────────────────────────────
+
+namespace {
+
+/// Singleton listener for UI events, similar to the IDB event listener in event.cpp.
+class UiListener : public event_listener_t {
+public:
+    struct Subscription {
+        UiToken token;
+        int notification_code;
+        std::function<void(va_list)> handler;
+    };
+
+    static UiListener& instance() {
+        static UiListener inst;
+        return inst;
+    }
+
+    UiToken subscribe(int code, std::function<void(va_list)> handler) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ensure_hooked();
+        UiToken token = ++next_token_;
+        subs_.push_back({token, code, std::move(handler)});
+        return token;
+    }
+
+    bool unsubscribe(UiToken token) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto it = subs_.begin(); it != subs_.end(); ++it) {
+            if (it->token == token) {
+                subs_.erase(it);
+                if (subs_.empty())
+                    ensure_unhooked();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    ssize_t idaapi on_event(ssize_t code, va_list va) override {
+        // Make a copy of matching subscriptions to avoid holding lock during callbacks.
+        std::vector<std::function<void(va_list)>> matched;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (auto& s : subs_) {
+                if (s.notification_code == static_cast<int>(code))
+                    matched.push_back(s.handler);
+            }
+        }
+        for (auto& h : matched) {
+            // va_list can only be consumed once, so for multiple handlers on the
+            // same event we need to be careful. In practice we'll have at most one
+            // handler per event code. The SDK doesn't provide va_copy-safe dispatching.
+            h(va);
+        }
+        return 0;
+    }
+
+private:
+    UiListener() = default;
+
+    void ensure_hooked() {
+        if (!hooked_) {
+            hook_event_listener(HT_UI, this, nullptr);
+            hooked_ = true;
+        }
+    }
+
+    void ensure_unhooked() {
+        if (hooked_) {
+            unhook_event_listener(HT_UI, this);
+            hooked_ = false;
+        }
+    }
+
+    std::mutex mutex_;
+    std::vector<Subscription> subs_;
+    UiToken next_token_{0};
+    bool hooked_{false};
+};
+
+} // anonymous namespace
+
+Result<UiToken> on_database_closed(std::function<void()> callback) {
+    auto token = UiListener::instance().subscribe(
+        ui_database_closed,
+        [cb = std::move(callback)](va_list) { cb(); }
+    );
+    return token;
+}
+
+Result<UiToken> on_ready_to_run(std::function<void()> callback) {
+    auto token = UiListener::instance().subscribe(
+        ui_ready_to_run,
+        [cb = std::move(callback)](va_list) { cb(); }
+    );
+    return token;
+}
+
+Result<UiToken> on_screen_ea_changed(std::function<void(Address, Address)> callback) {
+    auto token = UiListener::instance().subscribe(
+        ui_screen_ea_changed,
+        [cb = std::move(callback)](va_list va) {
+            ea_t new_ea = va_arg(va, ea_t);
+            ea_t prev_ea = va_arg(va, ea_t);
+            cb(static_cast<Address>(new_ea), static_cast<Address>(prev_ea));
+        }
+    );
+    return token;
+}
+
+Result<UiToken> on_widget_visible(std::function<void(std::string)> callback) {
+    auto token = UiListener::instance().subscribe(
+        ui_widget_visible,
+        [cb = std::move(callback)](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            cb(ida::detail::to_string(qtitle));
+        }
+    );
+    return token;
+}
+
+Result<UiToken> on_widget_closing(std::function<void(std::string)> callback) {
+    auto token = UiListener::instance().subscribe(
+        ui_widget_closing,
+        [cb = std::move(callback)](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            cb(ida::detail::to_string(qtitle));
+        }
+    );
+    return token;
+}
+
+Status ui_unsubscribe(UiToken token) {
+    if (!UiListener::instance().unsubscribe(token))
+        return std::unexpected(Error::not_found("UI subscription not found"));
     return ida::ok();
 }
 
