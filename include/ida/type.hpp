@@ -16,7 +16,7 @@ namespace ida::type {
 // Forward declaration so Member can reference TypeInfo.
 class TypeInfo;
 
-/// Opaque handle wrapping the SDK's tinfo_t.
+/// Opaque handle representing a type in the IDA database.
 /// This class is movable, copyable, and cheap to construct for primitives.
 class TypeInfo {
 public:

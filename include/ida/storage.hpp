@@ -1,5 +1,5 @@
 /// \file storage.hpp
-/// \brief Low-level netnode-backed storage (advanced).
+/// \brief Low-level persistent key-value storage (advanced).
 
 #ifndef IDAX_STORAGE_HPP
 #define IDAX_STORAGE_HPP
@@ -14,7 +14,7 @@
 
 namespace ida::storage {
 
-/// Opaque node abstraction over the SDK's netnode.
+/// Opaque node abstraction for persistent database storage.
 class Node {
 public:
     static Result<Node> open(std::string_view name, bool create = false);

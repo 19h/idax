@@ -2,7 +2,7 @@
 /// \brief Segment operations: creation, query, traversal, properties.
 ///
 /// Every segment is represented by an opaque Segment value object.
-/// No SDK segment_t pointers leak into the public interface.
+/// No internal pointers leak into the public interface.
 
 #ifndef IDAX_SEGMENT_HPP
 #define IDAX_SEGMENT_HPP
