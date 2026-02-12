@@ -37,6 +37,8 @@
 #include <typeinf.hpp>
 #include <ua.hpp>
 #include <xref.hpp>
+#include <graph.hpp>
+#include <gdl.hpp>
 
 // ── idax public types (so we can convert to/from them) ──────────────────
 #include <ida/error.hpp>

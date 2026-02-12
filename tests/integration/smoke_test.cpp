@@ -430,6 +430,231 @@ static void test_operand_representation() {
     }
 }
 
+static void test_function_chunks() {
+    std::cout << "--- function chunks ---\n";
+
+    auto main_addr = ida::name::resolve("main");
+    if (!main_addr) {
+        std::cout << "  (skipping, main not found)\n";
+        return;
+    }
+
+    // Get all chunks for main.
+    auto cks = ida::function::chunks(*main_addr);
+    CHECK_OK(cks);
+    if (cks) {
+        CHECK(cks->size() >= 1);  // At least the entry chunk.
+        std::cout << "  main() chunk count: " << cks->size() << "\n";
+        for (std::size_t i = 0; i < cks->size(); ++i) {
+            auto& c = (*cks)[i];
+            std::cout << "    chunk[" << i << "] 0x" << std::hex << c.start
+                      << "-0x" << c.end << std::dec
+                      << " tail=" << c.is_tail
+                      << " size=" << c.size() << "\n";
+        }
+        // The first chunk must be the entry (not a tail).
+        CHECK(!(*cks)[0].is_tail);
+    }
+
+    // chunk_count should match.
+    auto cc = ida::function::chunk_count(*main_addr);
+    CHECK_OK(cc);
+    if (cc && cks) {
+        CHECK(*cc == cks->size());
+    }
+
+    // Tail-only view.
+    auto tails = ida::function::tail_chunks(*main_addr);
+    CHECK_OK(tails);
+    if (tails && cks) {
+        CHECK(tails->size() == cks->size() - 1);
+        std::cout << "  main() tail chunks: " << tails->size() << "\n";
+    }
+}
+
+static void test_function_frame() {
+    std::cout << "--- function frame ---\n";
+
+    auto main_addr = ida::name::resolve("main");
+    if (!main_addr) {
+        std::cout << "  (skipping, main not found)\n";
+        return;
+    }
+
+    auto sf = ida::function::frame(*main_addr);
+    if (sf) {
+        std::cout << "  frame total_size: " << sf->total_size() << "\n";
+        std::cout << "  local_vars: " << sf->local_variables_size()
+                  << "  saved_regs: " << sf->saved_registers_size()
+                  << "  args: " << sf->arguments_size() << "\n";
+
+        auto& vars = sf->variables();
+        std::cout << "  frame variables: " << vars.size() << "\n";
+        for (auto& v : vars) {
+            std::cout << "    " << v.name
+                      << "  off=" << v.byte_offset
+                      << "  size=" << v.byte_size
+                      << (v.is_special ? " [special]" : "")
+                      << "\n";
+        }
+        CHECK(sf->total_size() > 0);
+        ++g_pass;  // Frame successfully retrieved.
+    } else {
+        // Some functions may not have frames — that's acceptable.
+        std::cout << "  main() has no frame: " << sf.error().message << "\n";
+    }
+
+    // SP delta at main's entry should be well-defined.
+    auto spd = ida::function::sp_delta_at(*main_addr);
+    CHECK_OK(spd);
+    if (spd) {
+        std::cout << "  sp_delta at main entry: " << *spd << "\n";
+    }
+}
+
+static void test_decompiler() {
+    std::cout << "--- decompiler ---\n";
+
+    auto avail = ida::decompiler::available();
+    CHECK_OK(avail);
+    if (avail && *avail) {
+        std::cout << "  decompiler: available\n";
+
+        // Try to decompile main.
+        auto main_addr = ida::name::resolve("main");
+        if (main_addr) {
+            auto df = ida::decompiler::decompile(*main_addr);
+            if (df) {
+                auto pc = df->pseudocode();
+                CHECK_OK(pc);
+                if (pc) {
+                    CHECK(!pc->empty());
+                    std::cout << "  pseudocode (" << pc->size() << " chars):\n";
+                    // Print first 5 lines.
+                    auto ln = df->lines();
+                    if (ln) {
+                        int n = 0;
+                        for (auto& l : *ln) {
+                            std::cout << "    " << l << "\n";
+                            if (++n >= 5) { std::cout << "    ...\n"; break; }
+                        }
+                    }
+                }
+
+                auto decl = df->declaration();
+                if (decl) {
+                    std::cout << "  declaration: " << *decl << "\n";
+                    ++g_pass;
+                }
+
+                auto vc = df->variable_count();
+                CHECK_OK(vc);
+                if (vc) {
+                    std::cout << "  variables: " << *vc << "\n";
+                    auto vars = df->variables();
+                    if (vars) {
+                        for (auto& v : *vars) {
+                            std::cout << "    " << v.name
+                                      << " : " << v.type_name
+                                      << (v.is_argument ? " [arg]" : "")
+                                      << " width=" << v.width << "\n";
+                        }
+                    }
+                }
+            } else {
+                std::cout << "  decompile main failed: " << df.error().message << "\n";
+            }
+        }
+    } else {
+        std::cout << "  decompiler: not available (expected in headless mode)\n";
+    }
+}
+
+static void test_graph_flowchart() {
+    std::cout << "--- graph flowchart ---\n";
+
+    auto main_addr = ida::name::resolve("main");
+    if (!main_addr) {
+        std::cout << "  (skipping, main not found)\n";
+        return;
+    }
+
+    auto fc = ida::graph::flowchart(*main_addr);
+    CHECK_OK(fc);
+    if (fc) {
+        CHECK(fc->size() > 0);
+        std::cout << "  flowchart blocks: " << fc->size() << "\n";
+        for (std::size_t i = 0; i < fc->size() && i < 5; ++i) {
+            auto& bb = (*fc)[i];
+            std::cout << "    block[" << i << "] 0x" << std::hex
+                      << bb.start << "-0x" << bb.end << std::dec
+                      << " succs=" << bb.successors.size()
+                      << " preds=" << bb.predecessors.size()
+                      << "\n";
+        }
+        if (fc->size() > 5) std::cout << "    ...\n";
+    }
+}
+
+static void test_graph_object() {
+    std::cout << "--- graph object ---\n";
+
+    // Create a graph and manipulate nodes/edges.
+    ida::graph::Graph g;
+    auto n0 = g.add_node();
+    auto n1 = g.add_node();
+    auto n2 = g.add_node();
+    CHECK(n0 >= 0);
+    CHECK(n1 >= 0);
+    CHECK(n2 >= 0);
+    CHECK(g.total_node_count() == 3);
+    CHECK(g.visible_node_count() == 3);
+
+    // Add edges.
+    auto e1 = g.add_edge(n0, n1);
+    CHECK_OK(e1);
+    auto e2 = g.add_edge(n1, n2);
+    CHECK_OK(e2);
+
+    // Check successors/predecessors.
+    auto succs = g.successors(n0);
+    CHECK_OK(succs);
+    if (succs) {
+        CHECK(succs->size() == 1);
+        if (!succs->empty()) CHECK((*succs)[0] == n1);
+    }
+
+    auto preds = g.predecessors(n2);
+    CHECK_OK(preds);
+    if (preds) {
+        CHECK(preds->size() == 1);
+        if (!preds->empty()) CHECK((*preds)[0] == n1);
+    }
+
+    // Check path exists.
+    CHECK(g.path_exists(n0, n2));
+    CHECK(!g.path_exists(n2, n0));
+
+    // Get all edges.
+    auto edges = g.edges();
+    CHECK(edges.size() == 2);
+
+    // Remove an edge.
+    auto re = g.remove_edge(n0, n1);
+    CHECK_OK(re);
+    CHECK(!g.path_exists(n0, n2));
+
+    // Remove a node.
+    auto rn = g.remove_node(n1);
+    CHECK_OK(rn);
+
+    // Clear.
+    g.clear();
+    CHECK(g.total_node_count() == 0);
+
+    std::cout << "  graph object operations: ok\n";
+}
+
 static void test_event_system() {
     std::cout << "--- event subscription ---\n";
 
@@ -499,6 +724,8 @@ int main(int argc, char* argv[]) {
     test_segments();
     test_functions();
     test_function_callers_callees();
+    test_function_chunks();
+    test_function_frame();
     test_address_predicates();
     test_data_read();
     test_instructions();
@@ -508,6 +735,9 @@ int main(int argc, char* argv[]) {
     test_comments();
     test_entry_points();
     test_type_basics();
+    test_decompiler();
+    test_graph_flowchart();
+    test_graph_object();
     test_event_system();
 
     // 5. Report.

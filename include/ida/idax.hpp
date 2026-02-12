@@ -29,6 +29,7 @@
 #include <ida/debugger.hpp>
 #include <ida/decompiler.hpp>
 #include <ida/storage.hpp>
+#include <ida/graph.hpp>
 #include <ida/ui.hpp>
 
 #endif // IDAX_IDAX_HPP

@@ -1,12 +1,13 @@
 /// \file function.cpp
-/// \brief Implementation of ida::function — function CRUD, lookup, traversal.
+/// \brief Implementation of ida::function — CRUD, lookup, traversal, chunks, frames.
 
 #include "detail/sdk_bridge.hpp"
+#include "detail/type_impl.hpp"
 #include <ida/function.hpp>
 
 namespace ida::function {
 
-// ── Internal access helper ──────────────────────────────────────────────
+// ── Internal access helpers ─────────────────────────────────────────────
 
 struct FunctionAccess {
     static Function populate(func_t* fn) {
@@ -34,6 +35,35 @@ struct FunctionAccess {
         f.argsize_ = static_cast<AddressSize>(fn->argsize);
 
         return f;
+    }
+};
+
+struct StackFrameAccess {
+    static StackFrame populate(func_t* fn) {
+        StackFrame sf;
+        sf.local_size_ = static_cast<AddressSize>(fn->frsize);
+        sf.regs_size_  = static_cast<AddressSize>(fn->frregs);
+        sf.args_size_  = static_cast<AddressSize>(fn->argsize);
+        sf.total_size_ = static_cast<AddressSize>(get_frame_size(fn));
+
+        // Extract frame variables via tinfo_t + get_udt_details.
+        tinfo_t frame_type;
+        if (get_func_frame(&frame_type, fn)) {
+            udt_type_data_t udt;
+            if (frame_type.get_udt_details(&udt)) {
+                for (std::size_t i = 0; i < udt.size(); ++i) {
+                    const udm_t& m = udt[i];
+                    FrameVariable fv;
+                    fv.name        = ida::detail::to_string(m.name);
+                    fv.byte_offset = static_cast<std::size_t>(m.offset / 8);
+                    fv.byte_size   = static_cast<std::size_t>(m.size / 8);
+                    fv.comment     = ida::detail::to_string(m.cmt);
+                    fv.is_special  = m.is_special_member();
+                    sf.vars_.push_back(std::move(fv));
+                }
+            }
+        }
+        return sf;
     }
 };
 
@@ -196,6 +226,121 @@ Result<std::vector<Address>> callees(Address ea) {
         } while (fii.next_code());
     }
     return result;
+}
+
+// ── Chunk operations ────────────────────────────────────────────────────
+
+Result<std::vector<Chunk>> chunks(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+
+    std::vector<Chunk> result;
+    func_tail_iterator_t fti(fn);
+    // Iterate all chunks: entry first (via main()), then tails via next().
+    for (bool ok = fti.main(); ok; ok = fti.next()) {
+        const range_t& r = fti.chunk();
+        Chunk c;
+        c.start   = static_cast<Address>(r.start_ea);
+        c.end     = static_cast<Address>(r.end_ea);
+        c.is_tail = !result.empty();  // First chunk is entry, rest are tails.
+        c.owner   = static_cast<Address>(fn->start_ea);
+        result.push_back(c);
+    }
+    return result;
+}
+
+Result<std::vector<Chunk>> tail_chunks(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+
+    std::vector<Chunk> result;
+    func_tail_iterator_t fti(fn);
+    // Iterate only tail chunks (excludes entry).
+    for (bool ok = fti.first(); ok; ok = fti.next()) {
+        const range_t& r = fti.chunk();
+        Chunk c;
+        c.start   = static_cast<Address>(r.start_ea);
+        c.end     = static_cast<Address>(r.end_ea);
+        c.is_tail = true;
+        c.owner   = static_cast<Address>(fn->start_ea);
+        result.push_back(c);
+    }
+    return result;
+}
+
+Result<std::size_t> chunk_count(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+    // 1 for entry chunk + tailqty tail chunks.
+    return static_cast<std::size_t>(1 + fn->tailqty);
+}
+
+Status add_tail(Address func_ea, Address tail_start, Address tail_end) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    if (!append_func_tail(fn, tail_start, tail_end))
+        return std::unexpected(Error::sdk("append_func_tail failed",
+                                          std::to_string(tail_start)));
+    return ida::ok();
+}
+
+Status remove_tail(Address func_ea, Address tail_ea) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+    if (!remove_func_tail(fn, tail_ea))
+        return std::unexpected(Error::sdk("remove_func_tail failed",
+                                          std::to_string(tail_ea)));
+    return ida::ok();
+}
+
+// ── Frame operations ────────────────────────────────────────────────────
+
+Result<StackFrame> frame(Address ea) {
+    func_t* fn = get_func(ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(ea)));
+    // Check if a frame exists (frame netnode id != 0 means frame present).
+    tinfo_t frame_type;
+    if (!get_func_frame(&frame_type, fn))
+        return std::unexpected(Error::not_found("Function has no stack frame",
+                                                std::to_string(ea)));
+    return StackFrameAccess::populate(fn);
+}
+
+Result<AddressDelta> sp_delta_at(Address ea) {
+    // get_spd accepts nullptr for pfn — it finds the function automatically.
+    sval_t spd = get_spd(nullptr, ea);
+    return static_cast<AddressDelta>(spd);
+}
+
+Status define_stack_variable(Address func_ea, std::string_view name,
+                             std::int32_t frame_offset,
+                             const ida::type::TypeInfo& type) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+
+    auto* impl = ida::type::TypeInfoAccess::get(type);
+    if (impl == nullptr)
+        return std::unexpected(Error::internal("TypeInfo has null implementation"));
+
+    qstring qname = ida::detail::to_qstring(name);
+    if (!define_stkvar(fn, qname.c_str(), static_cast<sval_t>(frame_offset), impl->ti))
+        return std::unexpected(Error::sdk("define_stkvar failed",
+                                          std::to_string(frame_offset)));
+    return ida::ok();
 }
 
 // ── Traversal ───────────────────────────────────────────────────────────

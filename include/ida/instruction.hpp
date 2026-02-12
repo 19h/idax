@@ -138,6 +138,37 @@ Status toggle_op_sign(Address ea, int n);
 /// Toggle bitwise negation on operand display.
 Status toggle_op_negate(Address ea, int n);
 
+// ── Instruction-level xref conveniences ─────────────────────────────────
+
+/// Code cross-references originating from the instruction at \p ea.
+/// Returns target addresses of call/jump/flow references.
+Result<std::vector<Address>> code_refs_from(Address ea);
+
+/// Data cross-references originating from the instruction at \p ea.
+/// Returns target addresses of data reads/writes/offsets.
+Result<std::vector<Address>> data_refs_from(Address ea);
+
+/// All call targets from the instruction at \p ea (fl_CN/fl_CF only).
+Result<std::vector<Address>> call_targets(Address ea);
+
+/// All jump targets from the instruction at \p ea (fl_JN/fl_JF only).
+Result<std::vector<Address>> jump_targets(Address ea);
+
+/// Does the instruction at \p ea have fall-through to the next instruction?
+bool has_fall_through(Address ea);
+
+/// Is the instruction at \p ea a call instruction?
+bool is_call(Address ea);
+
+/// Is the instruction at \p ea a return instruction?
+bool is_return(Address ea);
+
+/// Decode the next instruction sequentially after \p ea.
+Result<Instruction> next(Address ea);
+
+/// Decode the previous instruction before \p ea.
+Result<Instruction> prev(Address ea);
+
 } // namespace ida::instruction
 
 #endif // IDAX_INSTRUCTION_HPP
