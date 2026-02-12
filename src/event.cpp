@@ -29,6 +29,7 @@ enum class CallbackKind {
     Renamed,
     BytePatched,
     CommentChanged,
+    Generic,
 };
 
 /// A registered subscription.
@@ -39,10 +40,22 @@ struct Subscription {
     std::function<void(Address, std::string, std::string)>     on_renamed;
     std::function<void(Address, std::uint32_t)>                on_patched;
     std::function<void(Address, bool)>                         on_comment;
+    std::function<bool(const Event&)>                          filter;
+    std::function<void(const Event&)>                          on_event;
 };
 
 /// Registry of all active subscriptions.
 std::map<Token, Subscription> g_subscriptions;
+
+void dispatch_generic(const Event& event) {
+    for (auto& [t, sub] : g_subscriptions) {
+        if (sub.kind != CallbackKind::Generic || !sub.on_event)
+            continue;
+        if (sub.filter && !sub.filter(event))
+            continue;
+        sub.on_event(event);
+    }
+}
 
 /// The single IDB event listener shared by all subscriptions.
 /// va_list can only be consumed once, so we extract event data first,
@@ -57,6 +70,11 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::SegmentAdded && sub.on_addr)
                         sub.on_addr(start);
+
+                Event event;
+                event.kind = EventKind::SegmentAdded;
+                event.address = start;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::segm_deleted: {
@@ -67,6 +85,12 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::SegmentDeleted && sub.on_addr2)
                         sub.on_addr2(start, end);
+
+                Event event;
+                event.kind = EventKind::SegmentDeleted;
+                event.address = start;
+                event.secondary_address = end;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::func_added: {
@@ -75,6 +99,11 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::FunctionAdded && sub.on_addr)
                         sub.on_addr(entry);
+
+                Event event;
+                event.kind = EventKind::FunctionAdded;
+                event.address = entry;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::func_deleted: {
@@ -83,6 +112,11 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::FunctionDeleted && sub.on_addr)
                         sub.on_addr(entry);
+
+                Event event;
+                event.kind = EventKind::FunctionDeleted;
+                event.address = entry;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::renamed: {
@@ -96,6 +130,13 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::Renamed && sub.on_renamed)
                         sub.on_renamed(addr, new_nm, old_nm);
+
+                Event event;
+                event.kind = EventKind::Renamed;
+                event.address = addr;
+                event.new_name = new_nm;
+                event.old_name = old_nm;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::byte_patched: {
@@ -106,6 +147,12 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::BytePatched && sub.on_patched)
                         sub.on_patched(addr, oldv);
+
+                Event event;
+                event.kind = EventKind::BytePatched;
+                event.address = addr;
+                event.old_value = oldv;
+                dispatch_generic(event);
                 break;
             }
             case idb_event::cmt_changed: {
@@ -115,6 +162,12 @@ struct IdbListener : public event_listener_t {
                 for (auto& [t, sub] : g_subscriptions)
                     if (sub.kind == CallbackKind::CommentChanged && sub.on_comment)
                         sub.on_comment(addr, repeatable);
+
+                Event event;
+                event.kind = EventKind::CommentChanged;
+                event.address = addr;
+                event.repeatable = repeatable;
+                dispatch_generic(event);
                 break;
             }
             default:
@@ -221,6 +274,28 @@ Result<Token> on_comment_changed(std::function<void(Address, bool)> callback) {
     Subscription sub;
     sub.kind = CallbackKind::CommentChanged;
     sub.on_comment = std::move(callback);
+    g_subscriptions[t] = std::move(sub);
+    return t;
+}
+
+Result<Token> on_event(std::function<void(const Event&)> callback) {
+    ensure_listener();
+    Token t = g_next_token++;
+    Subscription sub;
+    sub.kind = CallbackKind::Generic;
+    sub.on_event = std::move(callback);
+    g_subscriptions[t] = std::move(sub);
+    return t;
+}
+
+Result<Token> on_event_filtered(std::function<bool(const Event&)> filter,
+                                std::function<void(const Event&)> callback) {
+    ensure_listener();
+    Token t = g_next_token++;
+    Subscription sub;
+    sub.kind = CallbackKind::Generic;
+    sub.filter = std::move(filter);
+    sub.on_event = std::move(callback);
     g_subscriptions[t] = std::move(sub);
     return t;
 }

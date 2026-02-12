@@ -124,6 +124,54 @@ struct ProcessorInfo {
     int default_bitness{32};                 ///< Default bitness (16/32/64).
 };
 
+// ── Switch detection descriptors ────────────────────────────────────────
+
+/// High-level switch table shape.
+enum class SwitchTableKind {
+    Dense,     ///< Case values form a contiguous range.
+    Sparse,    ///< Explicit values table is present.
+    Indirect,  ///< Values table contains indexes into the jump table.
+    Custom,    ///< Processor-specific custom table handling.
+};
+
+/// Opaque, SDK-free description of a detected switch idiom.
+struct SwitchDescription {
+    SwitchTableKind kind{SwitchTableKind::Dense};
+
+    Address jump_table{BadAddress};
+    Address values_table{BadAddress};
+    Address default_target{BadAddress};
+    Address idiom_start{BadAddress};
+    Address element_base{0};
+
+    std::int64_t low_case_value{0};
+    std::int64_t indirect_low_case_value{0};
+
+    std::uint32_t case_count{0};
+    std::uint32_t jump_table_entry_count{0};
+
+    std::uint8_t jump_element_size{0};
+    std::uint8_t value_element_size{0};
+    std::uint8_t shift{0};
+
+    int expression_register{-1};
+    std::uint8_t expression_data_type{0};
+
+    bool has_default{false};
+    bool default_in_table{false};
+    bool values_signed{false};
+    bool subtract_values{false};
+    bool self_relative{false};
+    bool inverted{false};
+    bool user_defined{false};
+};
+
+/// One switch destination and all case values mapping to it.
+struct SwitchCase {
+    std::vector<std::int64_t> values;
+    Address target{BadAddress};
+};
+
 // ── Processor base class ────────────────────────────────────────────────
 
 /// Base class for custom processor modules.
@@ -189,6 +237,28 @@ public:
     /// @return Probability 0..100, or -1 for "definitely not".
     virtual int may_be_function(Address address) { (void)address; return 0; }
 
+    /// Is this instruction sane for this file type?
+    /// @param no_code_references  true when no code refs point to this instruction.
+    /// @return >=0 = sane, <0 = unlikely/invalid in this context.
+    virtual int is_sane_instruction(Address address, bool no_code_references) {
+        (void)address;
+        (void)no_code_references;
+        return 0;
+    }
+
+    /// Is this instruction an indirect jump?
+    /// @return 0 = use default flag-based logic, 1 = no, 2 = yes.
+    virtual int is_indirect_jump(Address address) { (void)address; return 0; }
+
+    /// Is this instruction a basic-block terminator?
+    /// Useful for architectures with delay slots.
+    /// @return 0 = unknown, -1 = no, 1 = yes.
+    virtual int is_basic_block_end(Address address, bool call_instruction_stops_block) {
+        (void)address;
+        (void)call_instruction_stops_block;
+        return 0;
+    }
+
     /// Create a function frame (stack frame layout).
     /// @return true if frame was created.
     virtual bool create_function_frame(Address function_start) {
@@ -196,10 +266,68 @@ public:
         return false;
     }
 
+    /// Final chance to adjust function-boundary analysis result.
+    /// @param function_start  Candidate function start.
+    /// @param max_function_end  Maximum kernel-computed end bound.
+    /// @param suggested_result  Kernel suggestion (0=undef, 1=ok, 2=exists).
+    /// @return Updated result code (typically pass through suggested_result).
+    virtual int adjust_function_bounds(Address function_start,
+                                       Address max_function_end,
+                                       int suggested_result) {
+        (void)function_start;
+        (void)max_function_end;
+        return suggested_result;
+    }
+
+    /// Analyze function prolog/epilog and adjust attributes/purge.
+    /// @return 1 = handled, 0 = not implemented.
+    virtual int analyze_function_prolog(Address function_start) {
+        (void)function_start;
+        return 0;
+    }
+
+    /// Compute stack-pointer delta for one instruction.
+    /// @param out_delta  Receives SP change when handled.
+    /// @return 1 = handled, 0 = not implemented.
+    virtual int calculate_stack_pointer_delta(Address address,
+                                              std::int64_t& out_delta) {
+        (void)address;
+        out_delta = 0;
+        return 0;
+    }
+
     /// Get the return address size for a function.
     /// @return Size in bytes, or 0 if not implemented.
     virtual int get_return_address_size(Address function_start) {
         (void)function_start;
+        return 0;
+    }
+
+    /// Detect and describe a switch/jump-table idiom.
+    /// @return 1 = switch found, -1 = definitely not a switch, 0 = not implemented.
+    virtual int detect_switch(Address address, SwitchDescription& out_switch) {
+        (void)address;
+        (void)out_switch;
+        return 0;
+    }
+
+    /// Calculate switch case values and corresponding targets for custom switches.
+    /// @return 1 = handled, 0 = not implemented.
+    virtual int calculate_switch_cases(Address address,
+                                       const SwitchDescription& switch_description,
+                                       std::vector<SwitchCase>& out_cases) {
+        (void)address;
+        (void)switch_description;
+        (void)out_cases;
+        return 0;
+    }
+
+    /// Create xrefs for a custom switch table.
+    /// @return 1 = handled, 0 = not implemented.
+    virtual int create_switch_references(Address address,
+                                         const SwitchDescription& switch_description) {
+        (void)address;
+        (void)switch_description;
         return 0;
     }
 };
