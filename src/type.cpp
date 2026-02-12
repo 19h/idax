@@ -1,19 +1,12 @@
 /// \file type.cpp
 /// \brief Implementation of ida::type — type system pimpl wrapping tinfo_t.
 
-#include "detail/sdk_bridge.hpp"
-#include <ida/type.hpp>
+#include "detail/type_impl.hpp"
 
 namespace ida::type {
 
-// ── Pimpl definition ────────────────────────────────────────────────────
-
-struct TypeInfo::Impl {
-    tinfo_t ti;
-
-    Impl() = default;
-    explicit Impl(const tinfo_t& t) : ti(t) {}
-};
+// NOTE: TypeInfo::Impl and TypeInfoAccess are defined in detail/type_impl.hpp
+// so they can be shared with other idax implementation files (e.g. function.cpp).
 
 // ── Lifecycle ───────────────────────────────────────────────────────────
 
@@ -45,13 +38,6 @@ TypeInfo& TypeInfo::operator=(TypeInfo&& other) noexcept {
     }
     return *this;
 }
-
-// ── Internal accessor ───────────────────────────────────────────────────
-
-struct TypeInfoAccess {
-    static TypeInfo::Impl* get(TypeInfo& ti) { return ti.impl_; }
-    static const TypeInfo::Impl* get(const TypeInfo& ti) { return ti.impl_; }
-};
 
 namespace {
 

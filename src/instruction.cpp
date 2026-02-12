@@ -196,4 +196,97 @@ Status toggle_op_negate(Address ea, int n) {
     return ida::ok();
 }
 
+// ── Instruction-level xref conveniences ─────────────────────────────────
+
+Result<std::vector<Address>> code_refs_from(Address ea) {
+    std::vector<Address> result;
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode)
+            result.push_back(static_cast<Address>(xb.to));
+    }
+    return result;
+}
+
+Result<std::vector<Address>> data_refs_from(Address ea) {
+    std::vector<Address> result;
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (!xb.iscode)
+            result.push_back(static_cast<Address>(xb.to));
+    }
+    return result;
+}
+
+Result<std::vector<Address>> call_targets(Address ea) {
+    std::vector<Address> result;
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode && (xb.type == fl_CN || xb.type == fl_CF))
+            result.push_back(static_cast<Address>(xb.to));
+    }
+    return result;
+}
+
+Result<std::vector<Address>> jump_targets(Address ea) {
+    std::vector<Address> result;
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode && (xb.type == fl_JN || xb.type == fl_JF))
+            result.push_back(static_cast<Address>(xb.to));
+    }
+    return result;
+}
+
+bool has_fall_through(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return false;
+    // An instruction has fall-through if it doesn't unconditionally transfer control.
+    // Check if there is a flow xref (fl_F) from this instruction.
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode && xb.type == fl_F)
+            return true;
+    }
+    return false;
+}
+
+bool is_call(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return false;
+    // Check for call xrefs from this instruction.
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode && (xb.type == fl_CN || xb.type == fl_CF))
+            return true;
+    }
+    return false;
+}
+
+bool is_return(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return false;
+    // A return instruction has no code xrefs from it at all (except possibly flow to next
+    // for conditional returns). The SDK way: check if is_ret_insn returns true.
+    return is_ret_insn(raw);
+}
+
+Result<Instruction> next(Address ea) {
+    // Find the next head (instruction or data) after ea.
+    ea_t next_ea = next_head(ea, BADADDR);
+    if (next_ea == BADADDR)
+        return std::unexpected(Error::not_found("No next instruction"));
+    return decode(next_ea);
+}
+
+Result<Instruction> prev(Address ea) {
+    ea_t prev_ea = prev_head(ea, 0);
+    if (prev_ea == BADADDR)
+        return std::unexpected(Error::not_found("No previous instruction"));
+    return decode(prev_ea);
+}
+
 } // namespace ida::instruction

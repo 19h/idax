@@ -1,8 +1,9 @@
 /// \file function.hpp
-/// \brief Function operations: creation, query, traversal, frame access.
+/// \brief Function operations: creation, query, traversal, chunks, frames.
 ///
 /// All functions are represented by opaque Function value objects.
-/// Chunk/tail complexity is hidden behind the public surface.
+/// Chunk/tail complexity is exposed through the Chunk abstraction.
+/// Stack frames are accessed through the StackFrame and FrameVariable types.
 
 #ifndef IDAX_FUNCTION_HPP
 #define IDAX_FUNCTION_HPP
@@ -14,7 +15,61 @@
 #include <string>
 #include <vector>
 
+// Forward-declare TypeInfo to avoid circular include.
+namespace ida::type { class TypeInfo; }
+
 namespace ida::function {
+
+// ── Chunk value object ──────────────────────────────────────────────────
+
+/// A contiguous address range belonging to a function.
+/// A function has one entry chunk and zero or more tail chunks.
+struct Chunk {
+    Address     start{};
+    Address     end{};
+    bool        is_tail{false};   ///< True if this is a tail chunk (not the entry).
+    Address     owner{};          ///< Entry address of owning function (valid for tails).
+
+    [[nodiscard]] AddressSize size() const noexcept { return end - start; }
+};
+
+// ── Frame variable ──────────────────────────────────────────────────────
+
+/// Describes a single stack variable in a function's frame.
+struct FrameVariable {
+    std::string name;
+    std::size_t byte_offset{0};   ///< Offset from frame base, in bytes.
+    std::size_t byte_size{0};     ///< Size of the variable in bytes.
+    std::string comment;
+    bool        is_special{false}; ///< True for __return_address / __saved_registers.
+};
+
+// ── Stack frame value object ────────────────────────────────────────────
+
+/// Snapshot of a function's stack frame layout.
+class StackFrame {
+public:
+    /// Size of local variables area (bytes).
+    [[nodiscard]] AddressSize local_variables_size() const noexcept { return local_size_; }
+    /// Size of saved-registers area (bytes).
+    [[nodiscard]] AddressSize saved_registers_size() const noexcept { return regs_size_; }
+    /// Size of arguments area (bytes).
+    [[nodiscard]] AddressSize arguments_size()       const noexcept { return args_size_; }
+    /// Total frame size (locals + regs + retaddr + args).
+    [[nodiscard]] AddressSize total_size()           const noexcept { return total_size_; }
+
+    /// All frame variables (local vars, arguments, gaps; excludes specials by default).
+    [[nodiscard]] const std::vector<FrameVariable>& variables() const noexcept { return vars_; }
+
+private:
+    friend struct StackFrameAccess;
+
+    AddressSize local_size_{};
+    AddressSize regs_size_{};
+    AddressSize args_size_{};
+    AddressSize total_size_{};
+    std::vector<FrameVariable> vars_;
+};
 
 // ── Function value object ───────────────────────────────────────────────
 
@@ -96,6 +151,38 @@ Result<std::vector<Address>> callers(Address ea);
 
 /// Addresses of all functions called from the function at \p ea.
 Result<std::vector<Address>> callees(Address ea);
+
+// ── Chunk operations ────────────────────────────────────────────────────
+
+/// Get all chunks (entry + tails) for the function containing \p ea.
+/// The entry chunk is always first in the returned vector.
+Result<std::vector<Chunk>> chunks(Address ea);
+
+/// Get only tail chunks for the function containing \p ea.
+Result<std::vector<Chunk>> tail_chunks(Address ea);
+
+/// Number of chunks (entry + tails) for the function at \p ea.
+Result<std::size_t> chunk_count(Address ea);
+
+/// Append a tail chunk to the function at \p func_ea.
+Status add_tail(Address func_ea, Address tail_start, Address tail_end);
+
+/// Remove a tail chunk starting at \p tail_ea from the function at \p func_ea.
+Status remove_tail(Address func_ea, Address tail_ea);
+
+// ── Frame operations ────────────────────────────────────────────────────
+
+/// Retrieve a snapshot of the stack frame for the function at \p ea.
+Result<StackFrame> frame(Address ea);
+
+/// Get the cumulative SP delta before the instruction at \p ea.
+/// The delta is relative to the function's initial stack pointer.
+Result<AddressDelta> sp_delta_at(Address ea);
+
+/// Define a stack variable in the function's frame.
+Status define_stack_variable(Address func_ea, std::string_view name,
+                             std::int32_t frame_offset,
+                             const ida::type::TypeInfo& type);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 
