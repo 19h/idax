@@ -137,6 +137,8 @@ void check_segment_surface() {
     using SegmentSetCommentFn = ida::Status(*)(ida::Address, std::string_view, bool);
     using SegmentResizeFn = ida::Status(*)(ida::Address, ida::Address, ida::Address);
     using SegmentMoveFn = ida::Status(*)(ida::Address, ida::Address);
+    using SegmentSetDefaultRegisterFn = ida::Status(*)(ida::Address, int, std::uint64_t);
+    using SegmentSetDefaultRegisterAllFn = ida::Status(*)(int, std::uint64_t);
     using SegmentFirstFn = ida::Result<ida::segment::Segment>(*)();
     using SegmentLastFn = ida::Result<ida::segment::Segment>(*)();
     using SegmentNextFn = ida::Result<ida::segment::Segment>(*)(ida::Address);
@@ -146,6 +148,8 @@ void check_segment_surface() {
     (void)static_cast<SegmentSetCommentFn>(&ida::segment::set_comment);
     (void)static_cast<SegmentResizeFn>(&ida::segment::resize);
     (void)static_cast<SegmentMoveFn>(&ida::segment::move);
+    (void)static_cast<SegmentSetDefaultRegisterFn>(&ida::segment::set_default_segment_register);
+    (void)static_cast<SegmentSetDefaultRegisterAllFn>(&ida::segment::set_default_segment_register_for_all);
     (void)static_cast<SegmentFirstFn>(&ida::segment::first);
     (void)static_cast<SegmentLastFn>(&ida::segment::last);
     (void)static_cast<SegmentNextFn>(&ida::segment::next);
@@ -527,6 +531,8 @@ void check_processor_surface() {
     (void)ida::processor::EmulateResult::Success;
     (void)ida::processor::OutputInstructionResult::Success;
     (void)ida::processor::OutputOperandResult::Success;
+    (void)ida::processor::AnalyzeOperandKind::Immediate;
+    (void)ida::processor::OutputTokenKind::Mnemonic;
 
     (void)ida::processor::SwitchTableKind::Dense;
     (void)ida::processor::SwitchTableKind::Sparse;
@@ -562,14 +568,44 @@ void check_processor_surface() {
     ida::processor::SwitchDescription sd;
     (void)sd.kind; (void)sd.case_count;
 
-    ida::processor::OutputContext out;
-    out.mnemonic("mov").space().register_name("r0").comma().space().immediate(1);
-    (void)out.text();
+    ida::processor::AnalyzeOperand analyzed_operand;
+    (void)analyzed_operand.kind;
+    (void)analyzed_operand.processor_flags;
 
+    ida::processor::AnalyzeDetails analyze_details;
+    (void)analyze_details.size;
+    (void)analyze_details.operands;
+
+    ida::processor::OutputToken output_token;
+    (void)output_token.kind;
+    (void)output_token.text;
+
+    ida::processor::OutputContext out;
+    out.mnemonic("mov")
+       .space()
+       .register_name("r0")
+       .comma()
+       .space()
+       .immediate(1)
+       .space()
+       .symbol("label")
+       .space()
+       .comment("; note");
+    (void)out.text();
+    (void)out.tokens();
+
+    using AnalyzeWithDetailsFn = ida::Result<ida::processor::AnalyzeDetails>(
+        ida::processor::Processor::*)(ida::Address);
+    using OutputMnemonicWithContextFn = ida::processor::OutputInstructionResult(
+        ida::processor::Processor::*)(ida::Address, ida::processor::OutputContext&);
     using OutputInstructionWithContextFn = ida::processor::OutputInstructionResult(
         ida::processor::Processor::*)(ida::Address, ida::processor::OutputContext&);
     using OutputOperandWithContextFn = ida::processor::OutputOperandResult(
         ida::processor::Processor::*)(ida::Address, int, ida::processor::OutputContext&);
+    (void)static_cast<AnalyzeWithDetailsFn>(
+        &ida::processor::Processor::analyze_with_details);
+    (void)static_cast<OutputMnemonicWithContextFn>(
+        &ida::processor::Processor::output_mnemonic_with_context);
     (void)static_cast<OutputInstructionWithContextFn>(
         &ida::processor::Processor::output_instruction_with_context);
     (void)static_cast<OutputOperandWithContextFn>(

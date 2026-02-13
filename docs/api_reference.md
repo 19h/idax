@@ -11,7 +11,7 @@ Public headers:
 | `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
 | `include/ida/database.hpp` | Open/save/close, metadata, snapshots, file/memory transfer |
-| `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration |
+| `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees |
 | `include/ida/instruction.hpp` | Decode/create, operand access, representation controls, xref conveniences |
 | `include/ida/name.hpp` | Set/get/force/remove names, demangling, resolution, properties |
@@ -24,7 +24,7 @@ Public headers:
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
 | `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar attachment |
 | `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
-| `include/ida/processor.hpp` | Processor base class, register/instruction descriptors, switch detection |
+| `include/ida/processor.hpp` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | `include/ida/debugger.hpp` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
 | `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |

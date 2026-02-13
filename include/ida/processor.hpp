@@ -216,73 +216,217 @@ enum class OutputInstructionResult : int {
     Success = 1,
 };
 
+/// Normalized operand categories for typed analysis details.
+enum class AnalyzeOperandKind {
+    None,
+    Register,
+    Immediate,
+    NearAddress,
+    FarAddress,
+    DirectMemory,
+    IndirectMemory,
+    Displacement,
+    ProcessorSpecific0,
+    ProcessorSpecific1,
+    ProcessorSpecific2,
+    ProcessorSpecific3,
+    ProcessorSpecific4,
+    ProcessorSpecific5,
+};
+
+/// One operand in a typed analysis result.
+struct AnalyzeOperand {
+    std::size_t index{0};
+    AnalyzeOperandKind kind{AnalyzeOperandKind::None};
+
+    bool has_register{false};
+    int register_index{-1};
+
+    bool has_immediate{false};
+    std::uint64_t immediate_value{0};
+
+    bool has_target_address{false};
+    Address target_address{BadAddress};
+
+    bool has_displacement{false};
+    std::int64_t displacement{0};
+
+    std::uint32_t data_type_code{0};
+    std::uint32_t processor_flags{0};
+};
+
+/// Optional typed result of analyze() with normalized operand metadata.
+struct AnalyzeDetails {
+    int size{0};
+    std::vector<AnalyzeOperand> operands;
+};
+
+/// Token categories emitted by OutputContext.
+enum class OutputTokenKind {
+    PlainText,
+    Mnemonic,
+    Register,
+    Immediate,
+    Address,
+    Symbol,
+    Comment,
+    Keyword,
+    StringLiteral,
+    Number,
+    OperatorSymbol,
+    Punctuation,
+    Whitespace,
+};
+
+/// One emitted output token with kind + text payload.
+struct OutputToken {
+    OutputTokenKind kind{OutputTokenKind::PlainText};
+    std::string text;
+};
+
 /// SDK-opaque output builder for processor text rendering callbacks.
 class OutputContext {
 public:
+    OutputContext& token(OutputTokenKind kind, std::string_view text) {
+        return append_token(kind, text);
+    }
+
     OutputContext& append(std::string_view text) {
-        buffer_.append(text.data(), text.size());
+        return token(OutputTokenKind::PlainText, text);
+    }
+
+    OutputContext& mnemonic(std::string_view text) {
+        return token(OutputTokenKind::Mnemonic, text);
+    }
+
+    OutputContext& register_name(std::string_view text) {
+        return token(OutputTokenKind::Register, text);
+    }
+
+    OutputContext& symbol(std::string_view text) {
+        return token(OutputTokenKind::Symbol, text);
+    }
+
+    OutputContext& keyword(std::string_view text) {
+        return token(OutputTokenKind::Keyword, text);
+    }
+
+    OutputContext& comment(std::string_view text) {
+        return token(OutputTokenKind::Comment, text);
+    }
+
+    OutputContext& number(std::string_view text) {
+        return token(OutputTokenKind::Number, text);
+    }
+
+    OutputContext& operator_symbol(std::string_view text) {
+        return token(OutputTokenKind::OperatorSymbol, text);
+    }
+
+    OutputContext& punctuation(std::string_view text) {
+        return token(OutputTokenKind::Punctuation, text);
+    }
+
+    OutputContext& whitespace(std::string_view text = " ") {
+        return token(OutputTokenKind::Whitespace, text);
+    }
+
+    OutputContext& string_literal(std::string_view text, char quote = '"') {
+        const char q[2] = {quote, 0};
+        punctuation(std::string_view(q, 1));
+        token(OutputTokenKind::StringLiteral, text);
+        punctuation(std::string_view(q, 1));
         return *this;
     }
 
-    OutputContext& mnemonic(std::string_view text) { return append(text); }
-    OutputContext& register_name(std::string_view text) { return append(text); }
-
     OutputContext& immediate(std::int64_t value, int radix = 16) {
+        std::string rendered;
+
         if (radix == 10) {
             char buf[64];
             std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(value));
-            return append(buf);
+            rendered = buf;
+            return token(OutputTokenKind::Immediate, rendered);
         }
         if (radix == 8) {
             char buf[64];
             std::snprintf(buf, sizeof(buf), "0%llo", static_cast<unsigned long long>(value));
-            return append(buf);
+            rendered = buf;
+            return token(OutputTokenKind::Immediate, rendered);
         }
         if (radix == 2) {
-            append("0b");
+            rendered = "0b";
             bool started = false;
             std::uint64_t bits = static_cast<std::uint64_t>(value);
             for (int i = 63; i >= 0; --i) {
                 bool bit = ((bits >> i) & 1U) != 0;
                 if (bit) started = true;
                 if (started || i == 0)
-                    append(bit ? "1" : "0");
+                    rendered.push_back(bit ? '1' : '0');
             }
-            return *this;
+            return token(OutputTokenKind::Immediate, rendered);
         }
 
         char buf[64];
         std::snprintf(buf, sizeof(buf), "0x%llx", static_cast<unsigned long long>(value));
-        return append(buf);
+        rendered = buf;
+        return token(OutputTokenKind::Immediate, rendered);
     }
 
     OutputContext& address(Address address) {
         char buf[64];
         std::snprintf(buf, sizeof(buf), "0x%llx", static_cast<unsigned long long>(address));
-        return append(buf);
+        return token(OutputTokenKind::Address, buf);
     }
 
     OutputContext& character(char ch) {
-        buffer_.push_back(ch);
-        return *this;
+        const char text[2] = {ch, 0};
+        if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
+            return token(OutputTokenKind::Whitespace, std::string_view(text, 1));
+        if (ch == ',' || ch == ':' || ch == ';'
+            || ch == '(' || ch == ')' || ch == '[' || ch == ']'
+            || ch == '{' || ch == '}') {
+            return token(OutputTokenKind::Punctuation, std::string_view(text, 1));
+        }
+        return token(OutputTokenKind::PlainText, std::string_view(text, 1));
     }
 
-    OutputContext& space() { return character(' '); }
-    OutputContext& comma() { return character(','); }
+    OutputContext& space() { return whitespace(" "); }
+    OutputContext& comma() { return punctuation(","); }
 
-    void clear() { buffer_.clear(); }
+    void clear() {
+        buffer_.clear();
+        tokens_.clear();
+    }
 
     [[nodiscard]] bool empty() const { return buffer_.empty(); }
     [[nodiscard]] const std::string& text() const { return buffer_; }
+    [[nodiscard]] const std::vector<OutputToken>& tokens() const { return tokens_; }
 
     [[nodiscard]] std::string take() {
         std::string out = std::move(buffer_);
         buffer_.clear();
+        tokens_.clear();
+        return out;
+    }
+
+    [[nodiscard]] std::vector<OutputToken> take_tokens() {
+        std::vector<OutputToken> out = std::move(tokens_);
+        tokens_.clear();
         return out;
     }
 
 private:
+    OutputContext& append_token(OutputTokenKind kind, std::string_view text) {
+        if (text.empty())
+            return *this;
+        buffer_.append(text.data(), text.size());
+        tokens_.push_back(OutputToken{kind, std::string(text)});
+        return *this;
+    }
+
     std::string buffer_;
+    std::vector<OutputToken> tokens_;
 };
 
 // ── Processor base class ────────────────────────────────────────────────
@@ -312,6 +456,18 @@ public:
     /// @return Instruction size in bytes, or 0 on decode failure.
     virtual Result<int> analyze(Address address) = 0;
 
+    /// Optional typed analysis details including normalized operand metadata.
+    ///
+    /// Default behavior delegates to analyze(address) and returns only size.
+    virtual Result<AnalyzeDetails> analyze_with_details(Address address) {
+        auto size = analyze(address);
+        if (!size)
+            return std::unexpected(size.error());
+        AnalyzeDetails details;
+        details.size = *size;
+        return details;
+    }
+
     /// Emulate an instruction (create xrefs, plan analysis, etc.).
     /// @param address  The address of the instruction.
     virtual EmulateResult emulate(Address address) = 0;
@@ -330,12 +486,29 @@ public:
 
     /// Optional context-driven instruction formatter.
     ///
+    /// Default behavior first attempts `output_mnemonic_with_context` and then
+    /// falls back to `output_instruction(address)`.
+    ///
+    /// If a subclass returns `OutputInstructionResult::Success` from
+    /// `output_mnemonic_with_context`, that status is propagated.
+    virtual OutputInstructionResult output_mnemonic_with_context(
+            Address address,
+            OutputContext& output) {
+        (void)address;
+        (void)output;
+        return OutputInstructionResult::NotImplemented;
+    }
+
+    /// Optional context-driven full instruction formatter.
+    ///
     /// Default behavior falls back to `output_instruction(address)` and returns
     /// `OutputInstructionResult::NotImplemented`.
     virtual OutputInstructionResult output_instruction_with_context(
             Address address,
             OutputContext& output) {
-        (void)output;
+        auto mnemonic_result = output_mnemonic_with_context(address, output);
+        if (mnemonic_result == OutputInstructionResult::Success)
+            return mnemonic_result;
         output_instruction(address);
         return OutputInstructionResult::NotImplemented;
     }

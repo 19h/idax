@@ -29,9 +29,11 @@ IDAX_PROCESSOR(MyProcessor)
 
 Optional virtual hooks cover:
 
+- typed operand analysis (`analyze_with_details`)
 - function boundary heuristics (`may_be_function`, `adjust_function_bounds`)
 - stack behavior (`calculate_stack_pointer_delta`)
 - switch idioms (`detect_switch`, `calculate_switch_cases`, `create_switch_references`)
+- mnemonic-specific output (`output_mnemonic_with_context`)
 
 ## Output context abstraction
 
@@ -42,6 +44,13 @@ ida::processor::OutputInstructionResult
 output_instruction_with_context(ida::Address address,
                                 ida::processor::OutputContext& out) override {
   out.mnemonic("mov").space().register_name("r0").comma().space().immediate(1);
+  return ida::processor::OutputInstructionResult::Success;
+}
+
+ida::processor::OutputInstructionResult
+output_mnemonic_with_context(ida::Address address,
+                             ida::processor::OutputContext& out) override {
+  out.mnemonic("mov");
   return ida::processor::OutputInstructionResult::Success;
 }
 
@@ -57,4 +66,19 @@ output_operand_with_context(ida::Address address,
 }
 ```
 
-See `examples/procmod/minimal_procmod.cpp`.
+`OutputContext` also exposes tokenized channels (`token`, `tokens`,
+`symbol`, `keyword`, `comment`, `punctuation`, `whitespace`) so advanced
+procmods can retain richer formatting intent while remaining SDK-opaque.
+
+## Segment-register defaults
+
+For processors that need per-segment default register values (SDK
+`set_default_sreg_value` workflows), use segment helpers:
+
+```cpp
+ida::segment::set_default_segment_register_for_all(kRegisterCs, 0);
+ida::segment::set_default_segment_register_for_all(kRegisterDs, 0);
+```
+
+See `examples/procmod/minimal_procmod.cpp` and
+`examples/procmod/jbc_full_procmod.cpp`.

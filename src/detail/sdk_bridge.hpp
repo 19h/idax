@@ -36,6 +36,7 @@
 #include <netnode.hpp>
 #include <offset.hpp>
 #include <search.hpp>
+#include <segregs.hpp>
 #include <segment.hpp>
 #include <typeinf.hpp>
 #include <ua.hpp>

@@ -17,6 +17,8 @@ using idax::examples::jbc::kMinimumHeaderSize;
 using idax::examples::jbc::kSegmentCode;
 using idax::examples::jbc::kSegmentData;
 using idax::examples::jbc::kSegmentStrings;
+using idax::examples::jbc::kRegisterCs;
+using idax::examples::jbc::kRegisterDs;
 using idax::examples::jbc::kStateCodeBaseIndex;
 using idax::examples::jbc::kStateNodeName;
 using idax::examples::jbc::kStateStringBaseIndex;
@@ -305,6 +307,23 @@ public:
                 return load_status;
 
             current = end;
+        }
+
+        // Seed default CS/DS register values across all loaded segments.
+        // This mirrors the raw SDK pattern (`set_default_sreg_value`) used by
+        // existing JBC processor modules.
+        auto cs_seed = ida::segment::set_default_segment_register_for_all(kRegisterCs, 0);
+        if (!cs_seed) {
+            ida::ui::message(fmt(
+                "[JBC full loader] warning: failed to seed CS default (%s)\n",
+                cs_seed.error().message.c_str()));
+        }
+
+        auto ds_seed = ida::segment::set_default_segment_register_for_all(kRegisterDs, 0);
+        if (!ds_seed) {
+            ida::ui::message(fmt(
+                "[JBC full loader] warning: failed to seed DS default (%s)\n",
+                ds_seed.error().message.c_str()));
         }
 
         if (code_base != ida::BadAddress &&

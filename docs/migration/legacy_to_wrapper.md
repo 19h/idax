@@ -72,13 +72,19 @@ IDAX_LOADER(MyLoader)
 class MyProc : public ida::processor::Processor {
     ProcessorInfo info() const override { ... }
     Result<int> analyze(Address ea) override { ... }
+    Result<AnalyzeDetails> analyze_with_details(Address ea) override { ... }
     EmulateResult emulate(Address ea) override { ... }
     void output_instruction(Address ea) override { ... }
     OutputOperandResult output_operand(Address ea, int idx) override { ... }
+    OutputInstructionResult output_mnemonic_with_context(Address ea, OutputContext& out) override { ... }
     OutputInstructionResult output_instruction_with_context(Address ea, OutputContext& out) override { ... }
     OutputOperandResult output_operand_with_context(Address ea, int idx, OutputContext& out) override { ... }
 };
 IDAX_PROCESSOR(MyProc)
+
+// Segment-register default seeding (SDK set_default_sreg_value equivalent)
+ida::segment::set_default_segment_register_for_all(/*cs index*/ 3, 0);
+ida::segment::set_default_segment_register_for_all(/*ds index*/ 4, 0);
 ```
 
 ---
