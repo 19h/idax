@@ -2,7 +2,7 @@
 /// \brief P4.7.d — Structural parity validation test.
 ///
 /// Verifies that every public namespace documented in the architecture
-/// blueprint (CLAUDE.md Section 22) is actually present and exports the
+/// blueprint (agents.md Section 22) is actually present and exports the
 /// expected surface. This is a compile-time + runtime API surface check.
 ///
 /// Does NOT require IDA runtime — pure compile-time inclusion verification
