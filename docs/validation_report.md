@@ -21,6 +21,7 @@ Date: 2026-02-13 (updated)
 - Event stress: pass
 - Performance benchmark: pass
 - Matrix automation script: `full`, `unit`, and `compile-only` profiles pass on macOS arm64
+- Matrix full+packaging profile: pass (`build-matrix-full/idax-0.1.0-Darwin.tar.gz`)
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
