@@ -22,21 +22,18 @@ using idax::examples::jbc::argument_count;
 using idax::examples::jbc::has_flag;
 using idax::examples::jbc::instruction_size;
 using idax::examples::jbc::jtag_state_name;
+using idax::examples::jbc::kRegisterAcc;
+using idax::examples::jbc::kRegisterCount;
+using idax::examples::jbc::kRegisterCs;
+using idax::examples::jbc::kRegisterDs;
+using idax::examples::jbc::kRegisterPc;
+using idax::examples::jbc::kRegisterSp;
 using idax::examples::jbc::kStateCodeBaseIndex;
 using idax::examples::jbc::kStateNodeName;
 using idax::examples::jbc::kStateStringBaseIndex;
 using idax::examples::jbc::lookup_instruction;
 using idax::examples::jbc::operand_kind;
 using idax::examples::jbc::read_big_endian_u32;
-
-enum RegisterIndex : int {
-    kRegisterSp = 0,
-    kRegisterPc = 1,
-    kRegisterAcc = 2,
-    kRegisterCs = 3,
-    kRegisterDs = 4,
-    kRegisterCount = 5,
-};
 
 std::string unknown_mnemonic(std::uint8_t opcode) {
     char buffer[16];
@@ -173,14 +170,22 @@ public:
     }
 
     ida::Result<int> analyze(ida::Address address) override {
-        auto decoded = decode_instruction(address);
-        if (!decoded)
+        auto details = analyze_with_details(address);
+        if (!details)
             return 0;
-        return decoded->size;
+        return details->size;
+    }
+
+    ida::Result<ida::processor::AnalyzeDetails>
+    analyze_with_details(ida::Address address) override {
+        auto decoded = decode_with_cache(address);
+        if (!decoded)
+            return std::unexpected(decoded.error());
+        return build_analyze_details(*decoded);
     }
 
     ida::processor::EmulateResult emulate(ida::Address address) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded)
             return ida::processor::EmulateResult::NotImplemented;
 
@@ -255,15 +260,15 @@ public:
     ida::processor::OutputInstructionResult
     output_instruction_with_context(ida::Address address,
                                     ida::processor::OutputContext& output) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded)
             return ida::processor::OutputInstructionResult::NotImplemented;
 
         const auto& instruction = *decoded;
-        const std::string mnemonic = instruction.definition
-            ? std::string(instruction.definition->mnemonic)
-            : unknown_mnemonic(instruction.opcode);
-        output.mnemonic(mnemonic);
+
+        auto mnemonic_result = output_mnemonic_with_context(address, output);
+        if (mnemonic_result != ida::processor::OutputInstructionResult::Success)
+            return mnemonic_result;
 
         for (int index = 0; index < instruction.argument_count; ++index) {
             if (index == 0) {
@@ -278,10 +283,26 @@ public:
             && has_flag(instruction.definition->flags, FlagJtag)
             && operand_kind(instruction.definition, 0) == OperandKind::State
             && instruction.argument_count >= 1) {
-            output.space().character(';').space();
-            output.append(jtag_state_name(static_cast<std::uint8_t>(instruction.arguments[0])));
+            std::string note = "; ";
+            note += std::string(jtag_state_name(
+                static_cast<std::uint8_t>(instruction.arguments[0])));
+            output.space().comment(note);
         }
 
+        return ida::processor::OutputInstructionResult::Success;
+    }
+
+    ida::processor::OutputInstructionResult
+    output_mnemonic_with_context(ida::Address address,
+                                 ida::processor::OutputContext& output) override {
+        auto decoded = decode_with_cache(address);
+        if (!decoded)
+            return ida::processor::OutputInstructionResult::NotImplemented;
+
+        const std::string mnemonic = decoded->definition
+            ? std::string(decoded->definition->mnemonic)
+            : unknown_mnemonic(decoded->opcode);
+        output.mnemonic(mnemonic);
         return ida::processor::OutputInstructionResult::Success;
     }
 
@@ -289,7 +310,7 @@ public:
     output_operand_with_context(ida::Address address,
                                 int operand_index,
                                 ida::processor::OutputContext& output) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded)
             return ida::processor::OutputOperandResult::NotImplemented;
         if (operand_index < 0 || operand_index >= decoded->argument_count)
@@ -310,21 +331,21 @@ public:
     }
 
     int is_call(ida::Address address) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded || decoded->definition == nullptr)
             return 0;
         return has_flag(decoded->definition->flags, FlagCall) ? 1 : -1;
     }
 
     int is_return(ida::Address address) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded || decoded->definition == nullptr)
             return 0;
         return has_flag(decoded->definition->flags, FlagReturn) ? 1 : -1;
     }
 
     int may_be_function(ida::Address address) override {
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded)
             return 0;
         if (decoded->opcode == 0x43)
@@ -336,7 +357,7 @@ public:
                            bool call_instruction_stops_block) override {
         (void)call_instruction_stops_block;
 
-        auto decoded = decode_instruction(address);
+        auto decoded = decode_with_cache(address);
         if (!decoded || decoded->definition == nullptr)
             return 0;
 
@@ -354,10 +375,99 @@ public:
 private:
     ida::Address code_base_{0};
     ida::Address string_base_{0};
+    ida::Address cached_decode_address_{ida::BadAddress};
+    bool has_cached_decode_{false};
+    DecodedInstruction cached_decode_{};
+
+    static ida::processor::AnalyzeOperandKind
+    to_operand_kind(OperandKind kind) {
+        switch (kind) {
+        case OperandKind::Address:
+            return ida::processor::AnalyzeOperandKind::NearAddress;
+        case OperandKind::StringOffset:
+            return ida::processor::AnalyzeOperandKind::DirectMemory;
+        case OperandKind::Variable:
+            return ida::processor::AnalyzeOperandKind::ProcessorSpecific0;
+        case OperandKind::State:
+        case OperandKind::Count:
+        case OperandKind::Immediate32:
+            return ida::processor::AnalyzeOperandKind::Immediate;
+        case OperandKind::None:
+            return ida::processor::AnalyzeOperandKind::None;
+        }
+        return ida::processor::AnalyzeOperandKind::None;
+    }
+
+    ida::Result<DecodedInstruction> decode_with_cache(ida::Address address) {
+        if (has_cached_decode_ && cached_decode_address_ == address)
+            return cached_decode_;
+
+        auto decoded = decode_instruction(address);
+        if (!decoded)
+            return std::unexpected(decoded.error());
+
+        cached_decode_address_ = address;
+        cached_decode_ = *decoded;
+        has_cached_decode_ = true;
+        return cached_decode_;
+    }
+
+    ida::processor::AnalyzeDetails
+    build_analyze_details(const DecodedInstruction& instruction) const {
+        ida::processor::AnalyzeDetails details;
+        details.size = instruction.size;
+        details.operands.reserve(static_cast<std::size_t>(instruction.argument_count));
+
+        for (int operand_index = 0; operand_index < instruction.argument_count; ++operand_index) {
+            const auto value = instruction.arguments[operand_index];
+            const auto operand_kind_value = operand_kind(instruction.definition, operand_index);
+
+            ida::processor::AnalyzeOperand operand;
+            operand.index = static_cast<std::size_t>(operand_index);
+            operand.kind = to_operand_kind(operand_kind_value);
+            operand.processor_flags = instruction.definition != nullptr
+                ? instruction.definition->flags
+                : 0;
+
+            switch (operand_kind_value) {
+            case OperandKind::Address:
+                operand.has_target_address = true;
+                operand.target_address = code_base_ + static_cast<ida::Address>(value);
+                break;
+
+            case OperandKind::StringOffset:
+                operand.has_target_address = true;
+                operand.target_address = string_base_ + static_cast<ida::Address>(value);
+                break;
+
+            case OperandKind::Variable:
+            case OperandKind::State:
+            case OperandKind::Count:
+            case OperandKind::Immediate32:
+                operand.has_immediate = true;
+                operand.immediate_value = value;
+                break;
+
+            case OperandKind::None:
+                break;
+            }
+
+            details.operands.push_back(std::move(operand));
+        }
+
+        return details;
+    }
+
+    void clear_decode_cache() {
+        cached_decode_address_ = ida::BadAddress;
+        cached_decode_ = DecodedInstruction{};
+        has_cached_decode_ = false;
+    }
 
     void reload_state() {
         code_base_ = 0;
         string_base_ = 0;
+        clear_decode_cache();
 
         auto node = ida::storage::Node::open(kStateNodeName);
         if (!node)
@@ -383,7 +493,7 @@ private:
             ida::Address target = code_base_ + static_cast<ida::Address>(value);
             auto symbol = ida::name::get(target);
             if (symbol && !symbol->empty()) {
-                output.append(*symbol);
+                output.symbol(*symbol);
             } else {
                 output.address(target);
             }
@@ -391,15 +501,15 @@ private:
         }
 
         case OperandKind::Variable:
-            output.append("var_").immediate(value, 10);
+            output.keyword("var_").immediate(value, 10);
             break;
 
         case OperandKind::StringOffset: {
             ida::Address target = string_base_ + static_cast<ida::Address>(value);
-            output.append("str:");
+            output.keyword("str").punctuation(":");
             auto symbol = ida::name::get(target);
             if (symbol && !symbol->empty()) {
-                output.append(*symbol);
+                output.symbol(*symbol);
             } else {
                 output.address(target);
             }
@@ -407,7 +517,7 @@ private:
         }
 
         case OperandKind::State:
-            output.append(jtag_state_name(static_cast<std::uint8_t>(value)));
+            output.keyword(jtag_state_name(static_cast<std::uint8_t>(value)));
             break;
 
         case OperandKind::Count:

@@ -4,6 +4,8 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/segment.hpp>
 
+#include <limits>
+
 namespace ida::segment {
 
 // ── Internal access helper ──────────────────────────────────────────────
@@ -238,6 +240,56 @@ Status set_bitness(Address ea, int bits) {
         return std::unexpected(Error::validation("Invalid bitness value (must be 16/32/64)",
                                                   std::to_string(bits)));
     set_segm_addressing(seg, sdk_bitness);
+    return ida::ok();
+}
+
+Status set_default_segment_register(Address address,
+                                    int register_index,
+                                    std::uint64_t value) {
+    if (register_index < 0) {
+        return std::unexpected(Error::validation("Segment register index must be non-negative",
+                                                 std::to_string(register_index)));
+    }
+
+    if (value > static_cast<std::uint64_t>(std::numeric_limits<sel_t>::max())) {
+        return std::unexpected(Error::validation("Segment register default value out of range",
+                                                 std::to_string(value)));
+    }
+
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+
+    if (!set_default_sreg_value(*seg,
+                                register_index,
+                                static_cast<sel_t>(value))) {
+        return std::unexpected(Error::sdk("set_default_sreg_value failed",
+                                          std::to_string(address) + ":" +
+                                          std::to_string(register_index)));
+    }
+
+    return ida::ok();
+}
+
+Status set_default_segment_register_for_all(int register_index,
+                                            std::uint64_t value) {
+    if (register_index < 0) {
+        return std::unexpected(Error::validation("Segment register index must be non-negative",
+                                                 std::to_string(register_index)));
+    }
+
+    if (value > static_cast<std::uint64_t>(std::numeric_limits<sel_t>::max())) {
+        return std::unexpected(Error::validation("Segment register default value out of range",
+                                                 std::to_string(value)));
+    }
+
+    if (!set_default_sreg_value(nullptr,
+                                register_index,
+                                static_cast<sel_t>(value))) {
+        return std::unexpected(Error::sdk("set_default_sreg_value failed for all segments",
+                                          std::to_string(register_index)));
+    }
+
     return ida::ok();
 }
 

@@ -107,6 +107,16 @@ Status set_type(Address address, Type type);
 Status set_permissions(Address address, Permissions perm);
 Status set_bitness(Address address, int bits);
 
+/// Seed default value of one segment register for the segment containing
+/// \p address. This maps to SDK `set_default_sreg_value(seg, reg, value)`.
+Status set_default_segment_register(Address address,
+                                    int register_index,
+                                    std::uint64_t value);
+
+/// Seed default value of one segment register for all segments.
+Status set_default_segment_register_for_all(int register_index,
+                                            std::uint64_t value);
+
 /// Set segment comment text at the segment containing \p address.
 Result<std::string> comment(Address address, bool repeatable = false);
 Status set_comment(Address address, std::string_view text, bool repeatable = false);

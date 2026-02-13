@@ -11,7 +11,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::data           Read/write/patch/define bytes, patterns         [~30 free fns, 2 templates]
  |-- ida::database       Open/save/close, metadata, snapshots            [1 struct, ~13 free fns]
  |
- |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~11 free fns]
+ |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
  |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~25 free fns]
  |-- ida::instruction    Decode/create, operands, representation         [1 enum, 2 classes, ~25 free fns]
  |
@@ -29,7 +29,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::event          Typed IDB subscriptions, generic routing        [1 enum, 1 struct, 1 class, ~10 free fns]
  |-- ida::plugin         Plugin base, actions, menu/toolbar              [2 structs, 1 class, ~4 free fns]
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
- |-- ida::processor      Processor base, descriptors, switch detection   [5 enums, 6 structs, 1 class, IDAX_PROCESSOR]
+ |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, request queue, events    [2 enums, 4 structs, 1 class, ~40 free fns]
 |-- ida::decompiler     Decompile, pseudocode, ctree, variable retype/comments [3 enums, 3 structs, 4 classes, ~4 free fns]
@@ -68,7 +68,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::address` | Navigation and predicates | `Range`, `ItemRange`, `Predicate` |
 | `ida::data` | Byte-level access | (free functions only) |
 | `ida::database` | Database lifecycle | `Snapshot` |
-| `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` |
+| `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding | `Instruction`, `Operand`, `OperandType` |
 
@@ -96,7 +96,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::plugin` | Plugin development | `Plugin`, `Action`, `Info` |
 | `ida::loader` | Loader development | `Loader`, `InputFile`, `AcceptResult` |
-| `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `SwitchDescription` |
+| `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `AnalyzeDetails`, `OutputContext` |
 
 ### Interactive and Advanced
 

@@ -20,6 +20,13 @@ constexpr const char* kStateNodeName = "$ JBC";
 constexpr std::uint64_t kStateCodeBaseIndex = 1;
 constexpr std::uint64_t kStateStringBaseIndex = 2;
 
+constexpr int kRegisterSp = 0;
+constexpr int kRegisterPc = 1;
+constexpr int kRegisterAcc = 2;
+constexpr int kRegisterCs = 3;
+constexpr int kRegisterDs = 4;
+constexpr int kRegisterCount = 5;
+
 enum class OperandKind : std::uint8_t {
     None = 0,
     Immediate32,

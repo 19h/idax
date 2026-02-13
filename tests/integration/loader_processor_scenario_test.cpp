@@ -246,6 +246,13 @@ void test_processor_base_class() {
     auto ores = proc.output_operand_with_context(0x1000, 0, out);
     CHECK(ores == ida::processor::OutputOperandResult::Success,
           "default output_operand_with_context delegates to output_operand");
+
+    auto details = proc.analyze_with_details(0x1000);
+    CHECK(details.has_value(), "default analyze_with_details delegates to analyze");
+    if (details) {
+        CHECK(details->size == 2, "default analyze_with_details preserves size");
+        CHECK(details->operands.empty(), "default analyze_with_details has empty operands");
+    }
 }
 
 void test_processor_switch_types() {
@@ -294,6 +301,34 @@ public:
     }
 };
 
+class MnemonicHookProcessor : public TestProcessor {
+public:
+    ida::processor::OutputInstructionResult
+    output_mnemonic_with_context(ida::Address,
+                                 ida::processor::OutputContext& output) override {
+        output.mnemonic("hooked");
+        return ida::processor::OutputInstructionResult::Success;
+    }
+};
+
+class DetailedAnalyzeProcessor : public TestProcessor {
+public:
+    ida::Result<ida::processor::AnalyzeDetails>
+    analyze_with_details(ida::Address) override {
+        ida::processor::AnalyzeDetails details;
+        details.size = 4;
+
+        ida::processor::AnalyzeOperand operand;
+        operand.index = 0;
+        operand.kind = ida::processor::AnalyzeOperandKind::Immediate;
+        operand.has_immediate = true;
+        operand.immediate_value = 0x42;
+        details.operands.push_back(operand);
+
+        return details;
+    }
+};
+
 } // anonymous namespace
 
 void test_processor_output_context() {
@@ -309,6 +344,11 @@ void test_processor_output_context() {
           "context instruction formatter emitted mnemonic");
     CHECK(out.text().find("r0") != std::string::npos,
           "context instruction formatter emitted register");
+    CHECK(!out.tokens().empty(), "context instruction formatter emitted tokens");
+    if (!out.tokens().empty()) {
+        CHECK(out.tokens().front().kind == ida::processor::OutputTokenKind::Mnemonic,
+              "first token kind is mnemonic");
+    }
 
     out.clear();
     auto op0_res = proc.output_operand_with_context(0x1000, 0, out);
@@ -325,6 +365,33 @@ void test_processor_output_context() {
     out.immediate(42, 10).space().address(0x401000).space().character('#');
     CHECK(out.text().find("42") != std::string::npos, "decimal immediate formatting");
     CHECK(out.text().find("0x401000") != std::string::npos, "address formatting");
+
+    MnemonicHookProcessor mnemonic_proc;
+    ida::processor::OutputContext mnemonic_out;
+    auto mnemonic_res = mnemonic_proc.output_instruction_with_context(0x1000, mnemonic_out);
+    CHECK(mnemonic_res == ida::processor::OutputInstructionResult::Success,
+          "default instruction formatter uses mnemonic hook when provided");
+    CHECK(mnemonic_out.text() == "hooked",
+          "mnemonic hook text is returned");
+}
+
+void test_processor_analyze_details() {
+    std::printf("[section] processor: typed analyze details\n");
+
+    DetailedAnalyzeProcessor proc;
+    auto details = proc.analyze_with_details(0x1000);
+    CHECK(details.has_value(), "typed analyze_with_details returns value");
+    if (!details)
+        return;
+
+    CHECK(details->size == 4, "typed analyze details include size");
+    CHECK(details->operands.size() == 1, "typed analyze details include operand");
+
+    const auto& operand = details->operands.front();
+    CHECK(operand.kind == ida::processor::AnalyzeOperandKind::Immediate,
+          "typed operand kind preserved");
+    CHECK(operand.has_immediate, "typed operand immediate presence");
+    CHECK(operand.immediate_value == 0x42, "typed operand immediate value");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -874,6 +941,7 @@ int main(int argc, char** argv) {
     test_processor_base_class();
     test_processor_switch_types();
     test_processor_output_context();
+    test_processor_analyze_details();
     test_plugin_action_types();
     test_plugin_detach_helpers();
     test_processor_optional_callback_defaults();

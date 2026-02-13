@@ -68,6 +68,25 @@ void test_segment_edge_cases() {
     if (!invalid_bitness)
         CHECK(invalid_bitness.error().category == ida::ErrorCategory::Validation);
 
+    auto invalid_default_register =
+        ida::segment::set_default_segment_register(seg0->start(), -1, 0);
+    CHECK(!invalid_default_register.has_value());
+    if (!invalid_default_register) {
+        CHECK(invalid_default_register.error().category == ida::ErrorCategory::Validation);
+    }
+
+    auto invalid_default_register_all =
+        ida::segment::set_default_segment_register_for_all(-1, 0);
+    CHECK(!invalid_default_register_all.has_value());
+    if (!invalid_default_register_all) {
+        CHECK(invalid_default_register_all.error().category == ida::ErrorCategory::Validation);
+    }
+
+    auto seed_defaults = ida::segment::set_default_segment_register_for_all(0, 0);
+    CHECK(seed_defaults.has_value()
+          || seed_defaults.error().category == ida::ErrorCategory::SdkFailure
+          || seed_defaults.error().category == ida::ErrorCategory::Validation);
+
     // Permission round-trip to ensure property mutation/refresh paths are stable.
     auto original_perm = seg0->permissions();
     ida::segment::Permissions toggled = original_perm;
