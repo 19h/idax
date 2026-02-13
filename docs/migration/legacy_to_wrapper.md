@@ -200,6 +200,17 @@ auto node = ida::storage::Node::open("my_plugin_data", true);
 if (!node) { /* handle error */ }
 ```
 
+### Node identity helpers (id/open-by-id)
+
+```cpp
+auto node = ida::storage::Node::open("$my_plugin_data", true);
+if (!node) return;
+
+auto id = node->id();                            // -> Result<uint64_t>
+auto reopened = ida::storage::Node::open_by_id(*id);
+auto name = reopened->name();                    // -> Result<string>
+```
+
 ### Alt values (integer key-value at Address indices)
 
 ```cpp

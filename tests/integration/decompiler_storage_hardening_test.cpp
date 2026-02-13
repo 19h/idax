@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -705,6 +706,52 @@ void test_node_error_paths() {
 
     auto blob_err = empty_node.blob(0);
     CHECK(!blob_err.has_value());
+
+    auto id_err = empty_node.id();
+    CHECK(!id_err.has_value());
+
+    auto name_err = empty_node.name();
+    CHECK(!name_err.has_value());
+}
+
+// ---------------------------------------------------------------------------
+// P10.7.e: node metadata helpers (id/open-by-id)
+// ---------------------------------------------------------------------------
+void test_node_id_helpers() {
+    std::cout << "--- storage node id/open-by-id ---\n";
+
+    auto node = ida::storage::Node::open("$idax_node_id_test", true);
+    CHECK_OK(node);
+    if (!node) return;
+
+    auto node_id = node->id();
+    CHECK_OK(node_id);
+    if (!node_id) return;
+
+    auto node_name = node->name();
+    CHECK_OK(node_name);
+
+    auto by_id = ida::storage::Node::open_by_id(*node_id);
+    CHECK_OK(by_id);
+    if (!by_id) return;
+
+    auto by_id_name = by_id->name();
+    CHECK_OK(by_id_name);
+    if (node_name && by_id_name)
+        CHECK(*node_name == *by_id_name);
+
+    const ida::Address idx = 450;
+    CHECK_OK(by_id->set_alt(idx, 0xBEEF));
+    auto roundtrip = node->alt(idx);
+    CHECK_OK(roundtrip);
+    if (roundtrip)
+        CHECK(*roundtrip == 0xBEEF);
+    CHECK_OK(node->remove_alt(idx));
+
+    auto invalid = ida::storage::Node::open_by_id(std::numeric_limits<std::uint64_t>::max());
+    CHECK(!invalid.has_value());
+    if (!invalid)
+        CHECK(invalid.error().category == ida::ErrorCategory::Validation);
 }
 
 // ---------------------------------------------------------------------------
@@ -800,6 +847,7 @@ int main(int argc, char* argv[]) {
     test_blob_overwrite();
     test_multi_tag();
     test_node_error_paths();
+    test_node_id_helpers();
     test_node_copy_move();
 
     CHECK_OK(ida::database::close(false));

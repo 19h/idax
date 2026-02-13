@@ -48,7 +48,7 @@ Tracking rules:
 | `ida::ui` | `partial` | dialogs, `jump_to`, `Widget` lifecycle APIs, `widget_host`/`with_widget_host`, chooser, timer, typed and generic UI/VIEW events | UI + view notifications (`kernwin.hpp`, `HT_UI`, `HT_VIEW`) | Add additional forms/custom-viewer coverage and broaden generic event mapping | `debugger_ui_graph_event_test`, UI behavior integration tests |
 | `ida::graph` | `partial` | `Graph` node/edge/group/layout APIs, `show_graph`, `flowchart`, `flowchart_for_ranges` | Graph/viewer + CFG (`graph.hpp`, `gdl.hpp`) | Add viewer lifecycle/query parity helpers and layout behavior matrix validation | `debugger_ui_graph_event_test`, graph-specific parity tests |
 | `ida::decompiler` | `partial` | `available`, `decompile`, `DecompiledFunction`, ctree visitors, comments, mapping APIs | Hex-Rays facade (`hexrays.hpp`) | Add variable retype and broader ctree/comment workflow parity | `decompiler_storage_hardening_test`, `decompiler_edge_cases_test` |
-| `ida::storage` | `partial` | `Node::open`, `alt/sup/hash/blob` families | Netnode storage (`netnode.hpp`) | Add node-id/open-by-id metadata helpers and safe-index guidance | `decompiler_storage_hardening_test`, storage docs updates |
+| `ida::storage` | `covered` | `Node::open`, `Node::open_by_id`, `Node::id`, `Node::name`, `alt/sup/hash/blob` families | Netnode storage (`netnode.hpp`) | Closed in P10.7.e (node-id/open-by-id metadata helpers + safe blob index guidance) | `decompiler_storage_hardening_test`, `tests/unit/api_surface_parity_test.cpp`, storage docs updates |
 
 ## B) SDK Capability Family Matrix (one row per major capability family)
 
@@ -80,7 +80,7 @@ Tracking rules:
 | UI/dialog/widget/view lifecycle | `kernwin.hpp` | `ida::ui` | `partial` | Add forms/custom-viewer parity and broaden event mapping | UI integration tests |
 | Graph object/viewer/flowchart | `graph.hpp`, `gdl.hpp` | `ida::graph` | `partial` | Add viewer lifecycle/query parity and layout matrix validation | Graph integration tests |
 | Decompiler pseudocode/ctree/comment workflows | `hexrays.hpp` | `ida::decompiler` | `partial` | Add variable retype + broader workflow parity | Decompiler hardening/edge-case tests |
-| Persistent storage (netnode) | `netnode.hpp` | `ida::storage` | `partial` | Add node-id/open-by-id metadata helpers + safe-index guidance | Storage hardening tests + docs |
+| Persistent storage (netnode) | `netnode.hpp` | `ida::storage` | `covered` | Closed in P10.7.e (node-id/open-by-id helpers + safe-index guidance) | `decompiler_storage_hardening_test`, compile-only parity checks, storage docs |
 
 ## C) Execution notes for Phase 10
 

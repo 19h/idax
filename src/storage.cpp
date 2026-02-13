@@ -77,6 +77,48 @@ Result<Node> Node::open(std::string_view name, bool create) {
     return node;
 }
 
+Result<Node> Node::open_by_id(std::uint64_t node_id) {
+    if (node_id == static_cast<std::uint64_t>(BADNODE))
+        return std::unexpected(Error::validation("Invalid netnode id",
+                                                 std::to_string(node_id)));
+
+    nodeidx_t sdk_id = static_cast<nodeidx_t>(node_id);
+    if (static_cast<std::uint64_t>(sdk_id) != node_id)
+        return std::unexpected(Error::validation("Netnode id out of range",
+                                                 std::to_string(node_id)));
+
+    Node node;
+    node.impl_ = new Impl(netnode(sdk_id));
+    if (node.impl_->nn == BADNODE || !exist(node.impl_->nn)) {
+        delete node.impl_;
+        node.impl_ = nullptr;
+        return std::unexpected(Error::not_found("Netnode not found",
+                                                std::to_string(node_id)));
+    }
+    return node;
+}
+
+Result<std::uint64_t> Node::id() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+
+    nodeidx_t id = static_cast<nodeidx_t>(impl_->nn);
+    if (id == BADNODE)
+        return std::unexpected(Error::not_found("Node has invalid id"));
+    return static_cast<std::uint64_t>(id);
+}
+
+Result<std::string> Node::name() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("Node has null impl"));
+
+    qstring qname;
+    ssize_t n = impl_->nn.get_name(&qname);
+    if (n < 0)
+        return std::unexpected(Error::not_found("Node is unnamed"));
+    return ida::detail::to_string(qname);
+}
+
 // ── Alt values ──────────────────────────────────────────────────────────
 
 Result<std::uint64_t> Node::alt(Address index, std::uint8_t tag) const {
