@@ -78,6 +78,27 @@ This pair is intentionally "full" rather than minimal: it mirrors a real
 porting workflow and surfaces where SDK-level procmod hooks still exceed the
 current idax abstraction.
 
+### `plugin/qtform_renderer_plugin.cpp` + `plugin/qtform_renderer_widget.cpp` — ida-qtform Port
+
+Port of `/Users/int/dev/ida-qtform` to idax plugin and UI surfaces. It uses
+`ida::ui::create_widget()` + `ida::ui::with_widget_host()` to mount a Qt
+renderer widget in a dock panel and parse IDA form markup into live controls.
+The original "Test in ask_form" flow is wired as a callback and currently
+reported as an idax API gap (`ask_form` wrapper not yet exposed).
+
+### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
+
+Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
+database open/analysis wait, function traversal/filtering, assembly dump, and
+pseudocode dump. The source intentionally records parity gaps (microcode output,
+plugin-load control flags, and richer decompile-failure detail surfaces).
+
+### `tools/idalib_lumina_port.cpp` — ida_lumina Port Scaffold
+
+Headless idax session scaffold for the `ida_lumina` flow that reports the
+remaining Lumina API gap explicitly. This keeps the migration pressure visible
+without relying on private reverse-engineered SDK entry points.
+
 ## Building
 
 By default, examples are listed as source-only targets. To build addon binaries:
@@ -85,4 +106,11 @@ By default, examples are listed as source-only targets. To build addon binaries:
 ```bash
 cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON
 cmake --build build
+```
+
+To build the idalib tool port example as an executable:
+
+```bash
+cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_TOOLS=ON
+cmake --build build --target idax_idalib_dump_port idax_idalib_lumina_port
 ```
