@@ -8,6 +8,7 @@ BUILD_DIR="${2:-$ROOT/build-matrix-${PROFILE}}"
 BUILD_TYPE="${3:-RelWithDebInfo}"
 
 BUILD_EXAMPLES="${IDAX_BUILD_EXAMPLES:-ON}"
+BUILD_EXAMPLE_ADDONS="${IDAX_BUILD_EXAMPLE_ADDONS:-OFF}"
 RUN_PACKAGING="${RUN_PACKAGING:-0}"
 
 case "$PROFILE" in
@@ -44,11 +45,13 @@ echo "[idax] build dir: $BUILD_DIR"
 echo "[idax] build type: $BUILD_TYPE"
 echo "[idax] build tests: $BUILD_TESTS"
 echo "[idax] build examples: $BUILD_EXAMPLES"
+echo "[idax] build example addons: $BUILD_EXAMPLE_ADDONS"
 
 cmake -S "$ROOT" -B "$BUILD_DIR" \
   -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
   -DIDAX_BUILD_TESTS="$BUILD_TESTS" \
-  -DIDAX_BUILD_EXAMPLES="$BUILD_EXAMPLES"
+  -DIDAX_BUILD_EXAMPLES="$BUILD_EXAMPLES" \
+  -DIDAX_BUILD_EXAMPLE_ADDONS="$BUILD_EXAMPLE_ADDONS"
 
 cmake --build "$BUILD_DIR" --config "$BUILD_TYPE"
 

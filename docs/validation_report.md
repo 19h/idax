@@ -21,6 +21,7 @@ Date: 2026-02-13 (updated after Linux Docker matrix reruns)
 - Event stress: pass
 - Performance benchmark: pass
 - Matrix automation script: `full`, `unit`, and `compile-only` profiles pass on macOS arm64
+- Matrix example addon compile coverage: `IDAX_BUILD_EXAMPLES=ON` + `IDAX_BUILD_EXAMPLE_ADDONS=ON` validated locally for `compile-only` and `unit`
 - Matrix full+packaging profile: pass (`build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz`)
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
