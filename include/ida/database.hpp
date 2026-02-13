@@ -30,9 +30,36 @@ enum class LoadIntent {
     NonBinary,
 };
 
+/// Headless user-plugin loading policy applied at init time.
+///
+/// Built-in IDA plugins from IDADIR remain available. This policy only affects
+/// discovery of user plugins from IDAUSR. `allowlist_patterns` uses simple
+/// wildcard matching (`*` and `?`) against plugin file names.
+///
+/// Semantics:
+/// - `disable_user_plugins=false`, empty allowlist: load all user plugins.
+/// - `disable_user_plugins=true`,  empty allowlist: load no user plugins.
+/// - non-empty allowlist: load only matching user plugins.
+struct PluginLoadPolicy {
+    bool disable_user_plugins{false};
+    std::vector<std::string> allowlist_patterns;
+};
+
+/// Runtime/session options for idalib initialization.
+struct RuntimeOptions {
+    bool quiet{false};
+    PluginLoadPolicy plugin_policy{};
+};
+
 /// Initialise the IDA library (call once, before any other idax call).
 /// Wraps init_library().
 Status init(int argc = 0, char* argv[] = nullptr);
+
+/// Initialise the IDA library with explicit runtime options.
+Status init(int argc, char* argv[], const RuntimeOptions& options);
+
+/// Initialise the IDA library with runtime options and no argv forwarding.
+Status init(const RuntimeOptions& options);
 
 /// Open (or create) a database for the given input file.
 /// If \p auto_analysis is true the auto-analyser runs to completion.

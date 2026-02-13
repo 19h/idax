@@ -90,8 +90,8 @@ The original "Test in ask_form" flow now uses markup-only
 
 Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
 database open/analysis wait, function traversal/filtering, assembly dump, and
-pseudocode/microcode dump. The source intentionally records remaining parity
-gaps (plugin-load control flags).
+pseudocode/microcode dump, plus headless plugin policy controls
+(`--no-plugins`, `--plugin <pattern>`) through `ida::database::RuntimeOptions`.
 
 ### `tools/idalib_lumina_port.cpp` — ida_lumina Port Scaffold
 
