@@ -18,30 +18,20 @@ surfaces:
 
 ## Confirmed migration gaps
 
-1. Decompiler microcode output surface is missing
-   - Impact: `idalib-dump` `--mc` parity cannot be delivered through idax today.
-   - Suggested API: `ida::decompiler::microcode(...)` facade with line/block
-     serialization helpers.
-
-2. Headless plugin-load control surface is missing
+1. Headless plugin-load control surface is missing
    - Impact: `--no-plugins` / `--plugin <pattern>` compatibility cannot be
      implemented through idax wrappers (currently requires environment and SDK
      internals in external tools).
    - Suggested API: database/session open options for plugin policy and plugin
      allowlist patterns.
 
-3. Rich decompilation failure details are limited
-   - Impact: external tools cannot report failure address details equivalent to
-     raw `hexrays_failure_t` (`errea`, detailed descriptors).
-   - Suggested API: structured decompile error payload in `ida::decompiler`.
-
-4. Lumina push API is missing
+2. Lumina push API is missing
    - Impact: `idalib-dump` `ida_lumina` cannot be ported to pure idax APIs
      without private SDK reverse-engineering patterns.
    - Suggested API: explicit `ida::lumina` namespace with safe push/query flows,
      or intentional non-goal documentation if this remains out of scope.
 
-5. Additional binary metadata parity helpers are still useful
+3. Additional binary metadata parity helpers are still useful
    - Impact: wrapper consumers still need raw SDK for file-format name,
      compiler metadata, and loaded-module inspection parity used by advanced
      diagnostics tools.
@@ -54,4 +44,8 @@ surfaces:
   exposure.
 - A markup-only `ida::ui::ask_form(std::string_view)` wrapper is now available
   for direct form-preview/test flows without vararg SDK calls.
+- Decompiler microcode emission is now exposed through
+  `DecompiledFunction::microcode()` and `DecompiledFunction::microcode_lines()`.
+- Structured decompile failure details are now available through
+  `ida::decompiler::DecompileFailure` + `decompile(address, &failure)`.
 - Telegram-bot paths were intentionally excluded per request.

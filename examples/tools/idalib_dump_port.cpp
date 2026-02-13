@@ -75,8 +75,10 @@ struct FunctionNames {
 struct DecompileAttempt {
     bool attempted{false};
     bool success{false};
-    std::vector<std::string> lines;
+    std::vector<std::string> pseudocode_lines;
+    std::vector<std::string> microcode_lines;
     std::string error;
+    std::string microcode_error;
 };
 
 Options g_options;
@@ -273,10 +275,10 @@ void print_usage(const char* program) {
     std::cout << "Output selection:\n";
     std::cout << "  --asm             include assembly output\n";
     std::cout << "  --pseudo          include pseudocode output\n";
-    std::cout << "  --mc              request microcode output (reported as unsupported)\n";
+    std::cout << "  --mc              include microcode output\n";
     std::cout << "  --asm-only        show only assembly\n";
     std::cout << "  --pseudo-only     show only pseudocode\n";
-    std::cout << "  --mc-only         microcode-only mode (unsupported)\n\n";
+    std::cout << "  --mc-only         show only microcode\n\n";
     std::cout << "Filtering:\n";
     std::cout << "  -f, --filter <pattern>   regex/substring function-name filter\n";
     std::cout << "  -F, --functions <list>   comma/pipe-separated names/addresses\n";
@@ -474,7 +476,9 @@ void dump_assembly(const ida::function::Function& function) {
 }
 
 DecompileAttempt try_decompile(const ida::function::Function& function,
-                               bool decompiler_available) {
+                               bool decompiler_available,
+                               bool need_pseudocode,
+                               bool need_microcode) {
     DecompileAttempt attempt;
     if (!decompiler_available) {
         attempt.error = "Hex-Rays decompiler unavailable";
@@ -483,25 +487,50 @@ DecompileAttempt try_decompile(const ida::function::Function& function,
 
     attempt.attempted = true;
 
-    auto decompiled = ida::decompiler::decompile(function.start());
+    ida::decompiler::DecompileFailure failure;
+    auto decompiled = ida::decompiler::decompile(function.start(), &failure);
     if (!decompiled) {
         attempt.error = error_text(decompiled.error());
+        if (!failure.description.empty()) {
+            attempt.error += fmt(" [failure_ea=%#llx: %s]",
+                                 static_cast<unsigned long long>(failure.failure_address),
+                                 failure.description.c_str());
+        }
         return attempt;
     }
 
-    auto lines = decompiled->lines();
-    if (!lines) {
-        attempt.error = error_text(lines.error());
-        return attempt;
+    if (need_pseudocode) {
+        auto lines = decompiled->lines();
+        if (!lines) {
+            attempt.error = error_text(lines.error());
+            return attempt;
+        }
+        attempt.pseudocode_lines = std::move(*lines);
+    }
+
+    if (need_microcode) {
+        auto mc_lines = decompiled->microcode_lines();
+        if (mc_lines) {
+            attempt.microcode_lines = std::move(*mc_lines);
+        } else {
+            attempt.microcode_error = error_text(mc_lines.error());
+        }
     }
 
     attempt.success = true;
-    attempt.lines = std::move(*lines);
     return attempt;
 }
 
 void dump_pseudocode_lines(const std::vector<std::string>& lines) {
     *g_output << "-- Pseudocode " << std::string(65, '-') << "\n";
+    for (const auto& line : lines) {
+        *g_output << line << "\n";
+    }
+    *g_output << "\n";
+}
+
+void dump_microcode_lines(const std::vector<std::string>& lines) {
+    *g_output << "-- Microcode " << std::string(66, '-') << "\n";
     for (const auto& line : lines) {
         *g_output << line << "\n";
     }
@@ -563,16 +592,6 @@ int run_port() {
         g_output = &g_output_file;
     }
 
-    if (g_options.show_microcode) {
-        std::cerr
-            << "[gap] microcode output is not available in ida::decompiler yet; "
-            << "continuing without microcode\n";
-        if (!g_options.show_assembly && !g_options.show_pseudocode && !g_options.list_only) {
-            std::cerr << "[gap] --mc-only cannot run until microcode APIs are exposed\n";
-            return EXIT_FAILURE;
-        }
-    }
-
     if (g_options.no_plugins_requested) {
         std::cerr
             << "[gap] --no-plugins/--plugin accepted for compatibility, but idax "
@@ -593,10 +612,11 @@ int run_port() {
         decompiler_available = true;
     }
 
-    if ((g_options.show_pseudocode || g_options.errors_only) && !decompiler_available) {
-        std::cerr << "[warning] decompiler unavailable; pseudocode/error filtering disabled\n";
+    if ((g_options.show_pseudocode || g_options.show_microcode || g_options.errors_only)
+        && !decompiler_available) {
+        std::cerr << "[warning] decompiler unavailable; pseudocode/microcode/error filtering disabled\n";
         if (g_options.errors_only) {
-            std::cerr << "[gap] --errors requires decompilation failure details\n";
+            std::cerr << "[error] --errors requires decompiler availability\n";
             return EXIT_FAILURE;
         }
     }
@@ -632,8 +652,11 @@ int run_port() {
         }
 
         DecompileAttempt decompile;
-        if (g_options.show_pseudocode || g_options.errors_only) {
-            decompile = try_decompile(function, decompiler_available);
+        if (g_options.show_pseudocode || g_options.show_microcode || g_options.errors_only) {
+            decompile = try_decompile(function,
+                                      decompiler_available,
+                                      g_options.show_pseudocode,
+                                      g_options.show_microcode);
         }
 
         if (g_options.errors_only) {
@@ -660,12 +683,25 @@ int run_port() {
 
         if (g_options.show_pseudocode) {
             if (decompile.attempted && decompile.success) {
-                dump_pseudocode_lines(decompile.lines);
+                dump_pseudocode_lines(decompile.pseudocode_lines);
             } else {
                 *g_output << "-- Pseudocode " << std::string(65, '-') << "\n";
                 *g_output << "  [unavailable] "
                           << (decompile.error.empty() ? "decompilation unavailable" : decompile.error)
                           << "\n\n";
+            }
+        }
+
+        if (g_options.show_microcode) {
+            if (decompile.attempted && decompile.success
+                && !decompile.microcode_lines.empty()) {
+                dump_microcode_lines(decompile.microcode_lines);
+            } else {
+                *g_output << "-- Microcode " << std::string(66, '-') << "\n";
+                const std::string reason = decompile.microcode_error.empty()
+                    ? (decompile.error.empty() ? "microcode unavailable" : decompile.error)
+                    : decompile.microcode_error;
+                *g_output << "  [unavailable] " << reason << "\n\n";
             }
         }
     }

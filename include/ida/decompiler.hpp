@@ -26,6 +26,13 @@ namespace ida::decompiler {
 /// Returns true if the decompiler was initialized successfully.
 Result<bool> available();
 
+/// Structured details for a failed decompilation attempt.
+struct DecompileFailure {
+    Address     request_address{BadAddress};
+    Address     failure_address{BadAddress};
+    std::string description;
+};
+
 /// A local variable in a decompiled function.
 struct LocalVariable {
     std::string name;
@@ -273,8 +280,14 @@ public:
     /// Get the full pseudocode as a single string.
     [[nodiscard]] Result<std::string> pseudocode() const;
 
+    /// Get decompiler microcode as a single string.
+    [[nodiscard]] Result<std::string> microcode() const;
+
     /// Get the pseudocode as individual lines (stripped of color codes).
     [[nodiscard]] Result<std::vector<std::string>> lines() const;
+
+    /// Get decompiler microcode as individual lines.
+    [[nodiscard]] Result<std::vector<std::string>> microcode_lines() const;
 
     /// Get the function prototype/declaration line.
     [[nodiscard]] Result<std::string> declaration() const;
@@ -362,6 +375,13 @@ public:
 private:
     Impl* impl_{nullptr};
 };
+
+/// Decompile the function at \p ea.
+/// The decompiler must be available (call available() first or handle the error).
+///
+/// If `failure` is non-null and decompilation fails, it is populated with
+/// failure details (including failure_address when provided by Hex-Rays).
+Result<DecompiledFunction> decompile(Address ea, DecompileFailure* failure);
 
 /// Decompile the function at \p ea.
 /// The decompiler must be available (call available() first or handle the error).

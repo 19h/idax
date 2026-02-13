@@ -97,4 +97,4 @@ Tracking rules:
 
 - `ida::core` / `ida::diagnostics`: intentionally compact cross-cutting helpers; not intended to mirror SDK-internal flag/counter breadth.
 - `ida::event`: intentionally curated typed IDB events + generic filtered routing; not intended to exhaustively mirror every raw IDB notification.
-- Real-world port audit follow-up (`docs/port_gap_audit_ida_qtform_idalib_dump.md`): additional candidate expansion areas identified (decompiler microcode + richer failure payloads, headless plugin-load policy controls, Lumina push/query facade, extra binary/runtime metadata helpers). These remain additive backlog items and do not change current Phase 10 closure status.
+- Real-world port audit follow-up (`docs/port_gap_audit_ida_qtform_idalib_dump.md`): additional candidate expansion areas identified (headless plugin-load policy controls, Lumina push/query facade, extra binary/runtime metadata helpers). These remain additive backlog items and do not change current Phase 10 closure status.
