@@ -31,7 +31,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
  |-- ida::processor      Processor base, descriptors, switch detection   [5 enums, 6 structs, 1 class, IDAX_PROCESSOR]
  |
- |-- ida::debugger       Process lifecycle, breakpoints, events          [2 enums, 2 structs, 1 class, ~23 free fns]
+ |-- ida::debugger       Process/thread control, request queue, events    [2 enums, 4 structs, 1 class, ~40 free fns]
  |-- ida::decompiler     Decompile, pseudocode, ctree, comments          [3 enums, 3 structs, 4 classes, ~4 free fns]
  |-- ida::ui             Messages, dialogs, choosers, timers             [1 enum, 4 structs, 2 classes, ~16 free fns]
  |-- ida::graph          Graph objects, flow charts, basic blocks        [2 enums, 4 structs, 2 classes, ~4 free fns]
@@ -102,7 +102,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
-| `ida::debugger` | Debugging | `ProcessState`, `ModuleInfo`, `ScopedSubscription` |
+| `ida::debugger` | Debugging | `ProcessState`, `ThreadInfo`, `RegisterInfo`, `ScopedSubscription` |
 | `ida::decompiler` | Decompilation | `DecompiledFunction`, `CtreeVisitor`, `ExpressionView` |
 | `ida::ui` | User interface | `Chooser`, `ChooserOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |

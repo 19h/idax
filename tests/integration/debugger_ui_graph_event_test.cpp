@@ -293,6 +293,98 @@ void test_debugger_scoped_subscription() {
     CHECK(true, "debugger ScopedSubscription RAII cleanup ok");
 }
 
+void test_debugger_request_and_introspection() {
+    std::printf("[section] debugger: request queue + introspection\n");
+
+    CHECK(!ida::debugger::request_run_to(ida::BadAddress).has_value(),
+          "request_run_to rejects BadAddress");
+
+    auto bad_select = ida::debugger::select_thread(0);
+    CHECK(!bad_select.has_value(), "select_thread(0) fails validation");
+    if (!bad_select)
+        CHECK(bad_select.error().category == ida::ErrorCategory::Validation,
+              "select_thread(0) => Validation");
+
+    auto bad_req_select = ida::debugger::request_select_thread(0);
+    CHECK(!bad_req_select.has_value(), "request_select_thread(0) fails validation");
+
+    auto bad_suspend = ida::debugger::suspend_thread(0);
+    CHECK(!bad_suspend.has_value(), "suspend_thread(0) fails validation");
+
+    auto bad_req_suspend = ida::debugger::request_suspend_thread(0);
+    CHECK(!bad_req_suspend.has_value(), "request_suspend_thread(0) fails validation");
+
+    auto bad_resume = ida::debugger::resume_thread(0);
+    CHECK(!bad_resume.has_value(), "resume_thread(0) fails validation");
+
+    auto bad_req_resume = ida::debugger::request_resume_thread(0);
+    CHECK(!bad_req_resume.has_value(), "request_resume_thread(0) fails validation");
+
+    auto tc = ida::debugger::thread_count();
+    CHECK(tc.has_value(), "thread_count query ok");
+    if (tc) {
+        auto all = ida::debugger::threads();
+        CHECK(all.has_value(), "threads() query ok");
+
+        auto out_of_range_id = ida::debugger::thread_id_at(*tc);
+        CHECK(!out_of_range_id.has_value(), "thread_id_at(count) is out of range");
+        if (!out_of_range_id)
+            CHECK(out_of_range_id.error().category == ida::ErrorCategory::NotFound,
+                  "thread_id_at(count) => NotFound");
+
+        auto out_of_range_name = ida::debugger::thread_name_at(*tc);
+        CHECK(!out_of_range_name.has_value(), "thread_name_at(count) is out of range");
+    }
+
+    auto current = ida::debugger::current_thread_id();
+    CHECK(current.has_value() || (!current && current.error().category == ida::ErrorCategory::NotFound),
+          "current_thread_id returns id or NotFound");
+
+    auto bad_reg = ida::debugger::register_info("");
+    CHECK(!bad_reg.has_value(), "register_info(empty) fails validation");
+    if (!bad_reg)
+        CHECK(bad_reg.error().category == ida::ErrorCategory::Validation,
+              "register_info(empty) => Validation");
+
+    auto missing_reg = ida::debugger::register_info("__idax_missing_reg__");
+    CHECK(!missing_reg.has_value(), "register_info(missing) fails");
+
+    auto bad_is_int = ida::debugger::is_integer_register("");
+    CHECK(!bad_is_int.has_value(), "is_integer_register(empty) fails validation");
+
+    auto bad_is_float = ida::debugger::is_floating_register("");
+    CHECK(!bad_is_float.has_value(), "is_floating_register(empty) fails validation");
+
+    auto bad_is_custom = ida::debugger::is_custom_register("");
+    CHECK(!bad_is_custom.has_value(), "is_custom_register(empty) fails validation");
+
+    CHECK(true, ida::debugger::is_request_running() ? "request currently running" : "request queue idle");
+
+    auto req_suspend = ida::debugger::request_suspend();
+    CHECK(req_suspend.has_value() || (!req_suspend && req_suspend.error().category == ida::ErrorCategory::SdkFailure),
+          "request_suspend returns success or SdkFailure");
+
+    auto req_resume = ida::debugger::request_resume();
+    CHECK(req_resume.has_value() || (!req_resume && req_resume.error().category == ida::ErrorCategory::SdkFailure),
+          "request_resume returns success or SdkFailure");
+
+    auto req_step_in = ida::debugger::request_step_into();
+    CHECK(req_step_in.has_value() || (!req_step_in && req_step_in.error().category == ida::ErrorCategory::SdkFailure),
+          "request_step_into returns success or SdkFailure");
+
+    auto req_step_over = ida::debugger::request_step_over();
+    CHECK(req_step_over.has_value() || (!req_step_over && req_step_over.error().category == ida::ErrorCategory::SdkFailure),
+          "request_step_over returns success or SdkFailure");
+
+    auto req_step_out = ida::debugger::request_step_out();
+    CHECK(req_step_out.has_value() || (!req_step_out && req_step_out.error().category == ida::ErrorCategory::SdkFailure),
+          "request_step_out returns success or SdkFailure");
+
+    auto run_req = ida::debugger::run_requests();
+    CHECK(run_req.has_value() || (!run_req && run_req.error().category == ida::ErrorCategory::SdkFailure),
+          "run_requests returns success or SdkFailure");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // UI — headless-safe checks
 // ═══════════════════════════════════════════════════════════════════════════
@@ -447,6 +539,7 @@ int main(int argc, char** argv) {
     // ── Debugger subscription tests ─────────────────────────────────────
     test_debugger_event_lifecycle();
     test_debugger_scoped_subscription();
+    test_debugger_request_and_introspection();
 
     // ── UI subscription tests ───────────────────────────────────────────
     test_ui_subscriptions();
