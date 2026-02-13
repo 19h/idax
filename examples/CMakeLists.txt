@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.27)
 # from minimal quick-start skeletons to comprehensive domain examples.
 
 option(IDAX_BUILD_EXAMPLE_ADDONS "Build sample IDA addon modules" OFF)
+option(IDAX_BUILD_EXAMPLE_TOOLS "Build sample idalib-based tools" OFF)
 
 set(IDAX_EXAMPLE_SOURCES
     # Minimal examples (quick-start reference).
@@ -16,6 +17,9 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/decompiler_plugin.cpp
     plugin/event_monitor_plugin.cpp
     plugin/storage_metadata_plugin.cpp
+    plugin/qtform_renderer_plugin.cpp
+    plugin/qtform_renderer_widget.hpp
+    plugin/qtform_renderer_widget.cpp
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
 
@@ -23,6 +27,10 @@ set(IDAX_EXAMPLE_SOURCES
     full/jbc_common.hpp
     loader/jbc_full_loader.cpp
     procmod/jbc_full_procmod.cpp
+
+    # idalib tool port examples.
+    tools/idalib_dump_port.cpp
+    tools/idalib_lumina_port.cpp
 )
 
 add_custom_target(idax_examples SOURCES ${IDAX_EXAMPLE_SOURCES})
@@ -86,4 +94,22 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
         SOURCES procmod/jbc_full_procmod.cpp
         LIBRARIES idax::idax
     )
+endif()
+
+if(IDAX_BUILD_EXAMPLE_TOOLS)
+    if(COMMAND ida_add_idalib)
+        ida_add_idalib(idax_idalib_dump_port
+            TYPE EXECUTABLE
+            SOURCES tools/idalib_dump_port.cpp
+            LIBRARIES idax::idax
+        )
+
+        ida_add_idalib(idax_idalib_lumina_port
+            TYPE EXECUTABLE
+            SOURCES tools/idalib_lumina_port.cpp
+            LIBRARIES idax::idax
+        )
+    else()
+        message(WARNING "ida_add_idalib() is unavailable; skipping idalib tool examples")
+    endif()
 endif()

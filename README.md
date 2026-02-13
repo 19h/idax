@@ -499,6 +499,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/compatibility_matrix.md`](docs/compatibility_matrix.md) | OS/compiler validation coverage |
 | [`docs/namespace_topology.md`](docs/namespace_topology.md) | Namespace map and type inventory |
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
+| [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md) | Real-world port gap findings (ida-qtform + idalib-dump) |
 
 ---
 
