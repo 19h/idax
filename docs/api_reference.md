@@ -10,7 +10,7 @@ Public headers:
 | `include/ida/diagnostics.hpp` | Logging levels, counters, diagnostic message helpers |
 | `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
-| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata, snapshots, file/memory transfer |
+| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (file type/compiler/imports), snapshots, file/memory transfer |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees |
 | `include/ida/instruction.hpp` | Decode/create, operand access, representation controls, xref conveniences |
@@ -19,6 +19,7 @@ Public headers:
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
+| `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
 | `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |

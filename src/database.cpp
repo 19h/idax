@@ -15,8 +15,29 @@ namespace {
 
 namespace fs = std::filesystem;
 
+struct ImportCollectionContext {
+    std::vector<ImportSymbol>* symbols{nullptr};
+};
+
 bool should_auto_analysis(OpenMode mode) {
     return mode == OpenMode::Analyze;
+}
+
+int idaapi collect_import_symbol(ea_t address,
+                                 const char* name,
+                                 uval_t ordinal,
+                                 void* user_data) {
+    auto* context = static_cast<ImportCollectionContext*>(user_data);
+    if (context == nullptr || context->symbols == nullptr)
+        return 0;
+
+    ImportSymbol symbol;
+    symbol.address = static_cast<Address>(address);
+    if (name != nullptr)
+        symbol.name = std::string(name);
+    symbol.ordinal = static_cast<std::uint64_t>(ordinal);
+    context->symbols->push_back(std::move(symbol));
+    return 1;
 }
 
 bool wildcard_match(std::string_view text, std::string_view pattern) {
@@ -342,6 +363,20 @@ Result<std::string> input_file_path() {
     return std::string(buf);
 }
 
+Result<std::string> file_type_name() {
+    char buf[256] = {0};
+    if (get_file_type_name(buf, sizeof(buf)) == 0 || buf[0] == '\0')
+        return std::unexpected(Error::not_found("No file type name available"));
+    return std::string(buf);
+}
+
+Result<std::string> loader_format_name() {
+    qstring out;
+    if (get_loader_format_name(&out) <= 0 || out.empty())
+        return std::unexpected(Error::not_found("No loader format name available"));
+    return ida::detail::to_string(out);
+}
+
 Result<std::string> input_md5() {
     uchar hash[16];
     if (!retrieve_input_file_md5(hash))
@@ -355,6 +390,60 @@ Result<std::string> input_md5() {
         hex.push_back(digits[hash[i] & 0xF]);
     }
     return hex;
+}
+
+Result<CompilerInfo> compiler_info() {
+    const comp_t raw_id = inf_get_cc_id();
+    const comp_t normalized_id = get_comp(raw_id);
+
+    CompilerInfo out;
+    out.id = static_cast<std::uint32_t>(normalized_id);
+    out.uncertain = is_comp_unsure(raw_id) != 0;
+
+    if (const char* full = get_compiler_name(normalized_id); full != nullptr)
+        out.name = std::string(full);
+    if (const char* abbr = get_compiler_abbr(normalized_id); abbr != nullptr)
+        out.abbreviation = std::string(abbr);
+
+    if (out.name.empty() && out.abbreviation.empty()) {
+        out.name = "Unknown";
+    }
+
+    return out;
+}
+
+Result<std::vector<ImportModule>> import_modules() {
+    const uint module_count = get_import_module_qty();
+    std::vector<ImportModule> modules;
+    modules.reserve(module_count);
+
+    for (uint index = 0; index < module_count; ++index) {
+        qstring module_name;
+        if (!get_import_module_name(&module_name, static_cast<int>(index))) {
+            return std::unexpected(
+                Error::sdk("get_import_module_name failed", std::to_string(index)));
+        }
+
+        ImportModule module;
+        module.index = static_cast<std::size_t>(index);
+        module.name = ida::detail::to_string(module_name);
+
+        ImportCollectionContext context{&module.symbols};
+        const int rc = enum_import_names(static_cast<int>(index), collect_import_symbol, &context);
+        if (rc == -1) {
+            return std::unexpected(
+                Error::sdk("enum_import_names failed", module.name));
+        }
+        if (rc != 1) {
+            return std::unexpected(Error::sdk(
+                "enum_import_names aborted",
+                module.name + " (callback return code: " + std::to_string(rc) + ")"));
+        }
+
+        modules.push_back(std::move(module));
+    }
+
+    return modules;
 }
 
 Result<Address> image_base() {

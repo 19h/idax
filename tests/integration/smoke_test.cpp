@@ -67,6 +67,18 @@ static void test_database() {
     CHECK_OK(path);
     if (path) std::cout << "  input: " << *path << "\n";
 
+    auto file_type = ida::database::file_type_name();
+    CHECK_OK(file_type);
+    if (file_type)
+        std::cout << "  file_type: " << *file_type << "\n";
+
+    auto loader_format = ida::database::loader_format_name();
+    if (loader_format) {
+        std::cout << "  loader_format: " << *loader_format << "\n";
+    } else {
+        CHECK(loader_format.error().category == ida::ErrorCategory::NotFound);
+    }
+
     auto md5 = ida::database::input_md5();
     CHECK_OK(md5);
     if (md5) {
@@ -77,6 +89,27 @@ static void test_database() {
     auto base = ida::database::image_base();
     CHECK_OK(base);
     if (base) std::cout << "  image_base: 0x" << std::hex << *base << std::dec << "\n";
+
+    auto compiler = ida::database::compiler_info();
+    CHECK_OK(compiler);
+    if (compiler) {
+        std::cout << "  compiler: " << compiler->name;
+        if (!compiler->abbreviation.empty())
+            std::cout << " (" << compiler->abbreviation << ")";
+        if (compiler->uncertain)
+            std::cout << " [uncertain]";
+        std::cout << "\n";
+    }
+
+    auto modules = ida::database::import_modules();
+    CHECK_OK(modules);
+    if (modules) {
+        std::size_t symbol_count = 0;
+        for (const auto& module : *modules)
+            symbol_count += module.symbols.size();
+        std::cout << "  import_modules: " << modules->size()
+                  << "  import_symbols: " << symbol_count << "\n";
+    }
 
     auto lo = ida::database::min_address();
     auto hi = ida::database::max_address();
@@ -123,6 +156,37 @@ static void test_database() {
             CHECK_OK(file);
         }
     }
+}
+
+static void test_lumina() {
+    std::cout << "--- lumina ---\n";
+
+    auto has_connection = ida::lumina::has_connection();
+    CHECK_OK(has_connection);
+    if (has_connection) {
+        std::cout << "  has_connection: " << (*has_connection ? "yes" : "no") << "\n";
+    }
+
+    auto close_one = ida::lumina::close_connection();
+    CHECK(!close_one.has_value());
+    if (!close_one)
+        CHECK(close_one.error().category == ida::ErrorCategory::Unsupported);
+
+    auto close_all = ida::lumina::close_all_connections();
+    CHECK(!close_all.has_value());
+    if (!close_all)
+        CHECK(close_all.error().category == ida::ErrorCategory::Unsupported);
+
+    std::vector<ida::Address> empty;
+    auto pull_empty = ida::lumina::pull(std::span<const ida::Address>(empty));
+    CHECK(!pull_empty.has_value());
+    if (!pull_empty)
+        CHECK(pull_empty.error().category == ida::ErrorCategory::Validation);
+
+    auto push_bad = ida::lumina::push(ida::BadAddress);
+    CHECK(!push_bad.has_value());
+    if (!push_bad)
+        CHECK(push_bad.error().category == ida::ErrorCategory::Validation);
 }
 
 static void test_segments() {
@@ -1507,6 +1571,7 @@ int main(int argc, char* argv[]) {
 
     // 4. Run tests.
     test_database();
+    test_lumina();
     test_segments();
     test_functions();
     test_function_callers_callees();

@@ -92,12 +92,14 @@ Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
 database open/analysis wait, function traversal/filtering, assembly dump, and
 pseudocode/microcode dump, plus headless plugin policy controls
 (`--no-plugins`, `--plugin <pattern>`) through `ida::database::RuntimeOptions`.
+It also demonstrates database metadata helpers (`file_type_name`,
+`loader_format_name`, `compiler_info`, `import_modules`).
 
 ### `tools/idalib_lumina_port.cpp` — ida_lumina Port Scaffold
 
-Headless idax session scaffold for the `ida_lumina` flow that reports the
-remaining Lumina API gap explicitly. This keeps the migration pressure visible
-without relying on private reverse-engineered SDK entry points.
+Headless idax session scaffold for `ida_lumina`-style workflows using
+`ida::lumina::pull()` and `ida::lumina::push()` against a resolved function
+address.
 
 ## Building
 

@@ -51,6 +51,28 @@ struct RuntimeOptions {
     PluginLoadPolicy plugin_policy{};
 };
 
+/// Normalized target-compiler metadata for the current database.
+struct CompilerInfo {
+    std::uint32_t id{0};
+    bool uncertain{false};
+    std::string name;
+    std::string abbreviation;
+};
+
+/// Imported symbol metadata inside an import module.
+struct ImportSymbol {
+    Address address{BadAddress};
+    std::string name;
+    std::uint64_t ordinal{0};
+};
+
+/// Imported module metadata.
+struct ImportModule {
+    std::size_t index{0};
+    std::string name;
+    std::vector<ImportSymbol> symbols;
+};
+
 /// Initialise the IDA library (call once, before any other idax call).
 /// Wraps init_library().
 Status init(int argc = 0, char* argv[] = nullptr);
@@ -107,8 +129,20 @@ Status memory_to_database(std::span<const std::uint8_t> bytes,
 /// Path of the original input file.
 Result<std::string> input_file_path();
 
+/// Human-readable input file type name (for example: "Portable executable").
+Result<std::string> file_type_name();
+
+/// Loader-reported format name when provided by the active loader.
+Result<std::string> loader_format_name();
+
 /// MD5 hash of the original input file (hex string).
 Result<std::string> input_md5();
+
+/// Target compiler metadata inferred/configured for this database.
+Result<CompilerInfo> compiler_info();
+
+/// Import-module inventory with per-symbol names/ordinals/addresses.
+Result<std::vector<ImportModule>> import_modules();
 
 /// Image base address of the loaded binary.
 Result<Address> image_base();

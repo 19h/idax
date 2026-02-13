@@ -18,17 +18,7 @@ surfaces:
 
 ## Confirmed migration gaps
 
-1. Lumina push API is missing
-   - Impact: `idalib-dump` `ida_lumina` cannot be ported to pure idax APIs
-     without private SDK reverse-engineering patterns.
-   - Suggested API: explicit `ida::lumina` namespace with safe push/query flows,
-     or intentional non-goal documentation if this remains out of scope.
-
-2. Additional binary metadata parity helpers are still useful
-   - Impact: wrapper consumers still need raw SDK for file-format name,
-     compiler metadata, and loaded-module inspection parity used by advanced
-     diagnostics tools.
-   - Suggested API: additive helpers under `ida::database` or `ida::diagnostics`.
+- No open high-severity parity gaps remain for the audited non-Telegram paths.
 
 ## Notes
 
@@ -44,4 +34,9 @@ surfaces:
 - Headless plugin-load controls are now available in `ida::database` via
   `RuntimeOptions` + `PluginLoadPolicy`, including `--no-plugins` and
   allowlist-pattern flows used by `idalib_dump_port`.
+- Additional binary/runtime metadata parity helpers are now available in
+  `ida::database`: `file_type_name`, `loader_format_name`, `compiler_info`, and
+  `import_modules`.
+- Lumina pull/push wrappers are now available in `ida::lumina` and exercised by
+  `examples/tools/idalib_lumina_port.cpp`.
 - Telegram-bot paths were intentionally excluded per request.

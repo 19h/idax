@@ -549,8 +549,32 @@ void print_startup_metadata() {
     if (auto path = ida::database::input_file_path()) {
         *g_output << "  Input: " << *path << "\n";
     }
+    if (auto file_type = ida::database::file_type_name()) {
+        *g_output << "  File type: " << *file_type << "\n";
+    }
+    if (auto loader_format = ida::database::loader_format_name()) {
+        *g_output << "  Loader format: " << *loader_format << "\n";
+    }
     if (auto md5 = ida::database::input_md5()) {
         *g_output << "  MD5:   " << *md5 << "\n";
+    }
+    if (auto compiler = ida::database::compiler_info()) {
+        *g_output << "  Compiler: " << compiler->name;
+        if (!compiler->abbreviation.empty()) {
+            *g_output << " (" << compiler->abbreviation << ")";
+        }
+        if (compiler->uncertain) {
+            *g_output << " [uncertain]";
+        }
+        *g_output << "\n";
+    }
+    if (auto modules = ida::database::import_modules()) {
+        std::size_t symbol_count = 0;
+        for (const auto& module : *modules) {
+            symbol_count += module.symbols.size();
+        }
+        *g_output << "  Import modules: " << modules->size()
+                  << " (symbols: " << symbol_count << ")\n";
     }
     if (auto min = ida::database::min_address(); min) {
         if (auto max = ida::database::max_address(); max) {

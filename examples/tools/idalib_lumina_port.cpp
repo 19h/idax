@@ -1,9 +1,5 @@
 /// \file idalib_lumina_port.cpp
-/// \brief idax-first scaffold for `idalib-dump` `ida_lumina` parity.
-///
-/// The original `ida_lumina` utility depends on Lumina client calls that do not
-/// yet exist in the public idax API surface. This scaffold keeps the headless
-/// session setup in idax style and reports the missing capability explicitly.
+/// \brief idax-first scaffold for `idalib-dump` `ida_lumina` workflows.
 
 #include <ida/idax.hpp>
 
@@ -62,7 +58,32 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    std::cout << "[gap] idax does not yet expose Lumina push/query APIs.\n";
-    std::cout << "      Porting ida_lumina requires a public ida::lumina facade.\n";
-    return EXIT_FAILURE;
+    auto main_address = ida::name::resolve("main");
+    if (!main_address) {
+        std::cerr << "could not resolve function address for 'main': "
+                  << error_text(main_address.error()) << "\n";
+        return EXIT_FAILURE;
+    }
+
+    auto pull_result = ida::lumina::pull(*main_address);
+    if (!pull_result) {
+        std::cerr << "Lumina pull failed: "
+                  << error_text(pull_result.error()) << "\n";
+        return EXIT_FAILURE;
+    }
+
+    auto push_result = ida::lumina::push(*main_address);
+    if (!push_result) {
+        std::cerr << "Lumina push failed: "
+                  << error_text(push_result.error()) << "\n";
+        return EXIT_FAILURE;
+    }
+
+    std::cout << "pull: requested=" << pull_result->requested
+              << " succeeded=" << pull_result->succeeded
+              << " failed=" << pull_result->failed << "\n";
+    std::cout << "push: requested=" << push_result->requested
+              << " succeeded=" << push_result->succeeded
+              << " failed=" << push_result->failed << "\n";
+    return EXIT_SUCCESS;
 }
