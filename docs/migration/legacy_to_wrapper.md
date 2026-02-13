@@ -339,6 +339,11 @@ if (vars) {
     }
 }
 df.rename_variable("old_name", "new_name");
+
+// Retype by name or index:
+df.retype_variable("new_name", ida::type::TypeInfo::int32());
+df.retype_variable(0, ida::type::TypeInfo::int32());
+df.refresh();
 ```
 
 ### Ctree traversal with visitor
@@ -387,6 +392,11 @@ df.save_comments();
 
 auto cmt = df.get_comment(ea);  // -> Result<string>
 df.set_comment(ea, "");         // remove
+df.save_comments();
+
+// Orphan comment cleanup workflow:
+auto has_orphans = df.has_orphan_comments();     // -> Result<bool>
+auto removed = df.remove_orphan_comments();      // -> Result<int>
 df.save_comments();
 ```
 

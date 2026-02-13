@@ -29,7 +29,7 @@ Public headers:
 | `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| `include/ida/decompiler.hpp` | Decompile, pseudocode, variables, ctree visitor, comments, address mapping |
+| `include/ida/decompiler.hpp` | Decompile, pseudocode, variable rename/retype, ctree visitor, comment/orphan workflows, address mapping |
 | `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
 See also:

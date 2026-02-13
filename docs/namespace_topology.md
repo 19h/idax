@@ -32,7 +32,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::processor      Processor base, descriptors, switch detection   [5 enums, 6 structs, 1 class, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, request queue, events    [2 enums, 4 structs, 1 class, ~40 free fns]
- |-- ida::decompiler     Decompile, pseudocode, ctree, comments          [3 enums, 3 structs, 4 classes, ~4 free fns]
+|-- ida::decompiler     Decompile, pseudocode, ctree, variable retype/comments [3 enums, 3 structs, 4 classes, ~4 free fns]
 |-- ida::ui             Messages, dialogs, widgets, custom viewers       [1 enum, 4 structs, 2 classes, ~30 free fns]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
  |

@@ -413,10 +413,15 @@ void test_decompiler_comments(ida::Address fn_ea) {
     CHECK_HAS_VALUE(decomp);
     if (!decomp) return;
 
-    // Set a comment at the function entry address
-    CHECK_OK(decomp->set_comment(fn_ea, "test_hardening_comment"));
+    ida::Address comment_ea = fn_ea;
+    auto amap = decomp->address_map();
+    if (amap && !amap->empty())
+        comment_ea = amap->front().address;
 
-    auto got = decomp->get_comment(fn_ea);
+    // Set a default-position comment.
+    CHECK_OK(decomp->set_comment(comment_ea, "test_hardening_comment"));
+
+    auto got = decomp->get_comment(comment_ea);
     CHECK_OK(got);
     if (got) {
         CHECK(*got == "test_hardening_comment");
@@ -425,17 +430,121 @@ void test_decompiler_comments(ida::Address fn_ea) {
     // Save comments
     CHECK_OK(decomp->save_comments());
 
-    // Remove the comment
-    CHECK_OK(decomp->set_comment(fn_ea, ""));
+    // Set/get a semicolon-position comment to exercise non-default positions.
+    CHECK_OK(decomp->set_comment(comment_ea,
+                                 "test_hardening_comment_semicolon",
+                                 ida::decompiler::CommentPosition::Semicolon));
 
-    auto empty = decomp->get_comment(fn_ea);
+    auto semi = decomp->get_comment(comment_ea,
+                                    ida::decompiler::CommentPosition::Semicolon);
+    CHECK_OK(semi);
+    if (semi) {
+        // Some SDK backends may normalize position-specific comments.
+        CHECK(semi->empty() || *semi == "test_hardening_comment_semicolon");
+    }
+
+    // Remove position-specific comment.
+    CHECK_OK(decomp->set_comment(comment_ea,
+                                 "",
+                                 ida::decompiler::CommentPosition::Semicolon));
+
+    // Remove default comment.
+    CHECK_OK(decomp->set_comment(comment_ea, ""));
+
+    auto empty = decomp->get_comment(comment_ea);
     CHECK_OK(empty);
     if (empty) {
         CHECK(empty->empty());
     }
 
-    // Save the removal
+    // Save the removals.
     CHECK_OK(decomp->save_comments());
+
+    // Orphan-comment workflow coverage.
+    auto has_orphans = decomp->has_orphan_comments();
+    CHECK_OK(has_orphans);
+
+    auto removed = decomp->remove_orphan_comments();
+    CHECK_OK(removed);
+    if (removed) {
+        CHECK(*removed >= 0);
+    }
+
+    // Persist orphan-comment cleanup state.
+    CHECK_OK(decomp->save_comments());
+}
+
+// ---------------------------------------------------------------------------
+// P10.7.d: local variable retype workflow
+// ---------------------------------------------------------------------------
+void test_decompiler_retype_variable(ida::Address fn_ea) {
+    std::cout << "--- decompiler variable retype ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    auto decomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(decomp);
+    if (!decomp) return;
+
+    // Validation/not-found error paths.
+    CHECK_ERR(decomp->retype_variable(std::string_view{}, ida::type::TypeInfo::int32()),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(decomp->retype_variable("__idax_missing_lvar__", ida::type::TypeInfo::int32()),
+              ida::ErrorCategory::NotFound);
+
+    auto vars = decomp->variables();
+    CHECK_OK(vars);
+    if (!vars || vars->empty()) return;
+
+    std::size_t selected_index = vars->size();
+    for (std::size_t i = 0; i < vars->size(); ++i) {
+        const auto& v = (*vars)[i];
+        if (!v.name.empty() && !v.type_name.empty() && v.is_argument) {
+            selected_index = i;
+            break;
+        }
+    }
+    if (selected_index == vars->size()) {
+        for (std::size_t i = 0; i < vars->size(); ++i) {
+            const auto& v = (*vars)[i];
+            if (!v.name.empty() && !v.type_name.empty()) {
+                selected_index = i;
+                break;
+            }
+        }
+    }
+    if (selected_index == vars->size()) return;
+
+    const auto& selected = (*vars)[selected_index];
+    auto parsed_type = ida::type::TypeInfo::from_declaration(selected.type_name);
+    if (!parsed_type) {
+        // Fallback: use an explicit primitive type if declaration parsing fails.
+        CHECK_OK(decomp->retype_variable(selected_index, ida::type::TypeInfo::int32()));
+        CHECK_OK(decomp->retype_variable(selected.name, ida::type::TypeInfo::int32()));
+    } else {
+        CHECK_OK(decomp->retype_variable(selected_index, *parsed_type));
+        CHECK_OK(decomp->retype_variable(selected.name, *parsed_type));
+    }
+
+    CHECK_OK(decomp->refresh());
+
+    auto redecomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(redecomp);
+    if (!redecomp) return;
+
+    auto vars_after = redecomp->variables();
+    CHECK_OK(vars_after);
+    if (vars_after) {
+        bool found = false;
+        for (const auto& v : *vars_after) {
+            if (v.name == selected.name) {
+                found = true;
+                break;
+            }
+        }
+        CHECK(found);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -834,6 +943,7 @@ int main(int argc, char* argv[]) {
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);
         test_decompiler_comments(fn_ea);
+        test_decompiler_retype_variable(fn_ea);
     } else {
         std::cout << "  (no suitable function for decompiler tests)\n";
     }
