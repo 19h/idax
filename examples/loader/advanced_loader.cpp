@@ -33,12 +33,20 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
-#include <format>
 #include <string>
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── XBIN format constants ──────────────────────────────────────────────
 
@@ -115,10 +123,13 @@ void warn_overlaps(const std::vector<XbinSegmentEntry>& entries,
             ida::Address b_end   = b_start + entries[j].virtual_size;
 
             if (a_start < b_end && b_start < a_end) {
-                ida::ui::message(std::format(
-                    "[XBIN] Warning: segments {} and {} overlap "
-                    "([{:#x},{:#x}) vs [{:#x},{:#x}))\n",
-                    i, j, a_start, a_end, b_start, b_end));
+                ida::ui::message(fmt(
+                    "[XBIN] Warning: segments %zu and %zu overlap "
+                    "([%#llx,%#llx) vs [%#llx,%#llx))\n",
+                    i, j, (unsigned long long)a_start,
+                    (unsigned long long)a_end,
+                    (unsigned long long)b_start,
+                    (unsigned long long)b_end));
             }
         }
     }
@@ -208,7 +219,7 @@ public:
             if (!seg) {
                 return std::unexpected(ida::Error::validation(
                     "Truncated segment table",
-                    std::format("entry {} at offset {}", i, off)));
+                    fmt("entry %u at offset %lld", (unsigned)i, (long long)off)));
             }
             seg_entries.push_back(*seg);
         }
@@ -223,7 +234,7 @@ public:
             ida::Address seg_end   = seg_start + seg.virtual_size;
 
             std::string name = fixed_name(seg.name, 8);
-            if (name.empty()) name = std::format("seg_{}", i);
+            if (name.empty()) name = fmt("seg_%zu", i);
 
             // Map flags to idax types.
             auto seg_type = ida::segment::Type::Normal;
@@ -266,8 +277,10 @@ public:
             }
 
             ida::comment::set(seg_start,
-                std::format("XBIN segment '{}': {:#x}-{:#x}, {}",
-                            name, seg_start, seg_end, class_name),
+                fmt("XBIN segment '%s': %#llx-%#llx, %s",
+                    name.c_str(), (unsigned long long)seg_start,
+                    (unsigned long long)seg_end,
+                    std::string(class_name).c_str()),
                 false);
         }
 
@@ -292,7 +305,7 @@ public:
                 }
             }
             if (entry_name.empty()) {
-                entry_name = std::format("entry_{}", entry->ordinal);
+                entry_name = fmt("entry_%u", entry->ordinal);
             }
 
             ida::entry::add(entry->ordinal, ea, entry_name, true);
@@ -307,8 +320,8 @@ public:
             }
 
             ida::comment::add_anterior(ea,
-                std::format("--- XBIN Entry: '{}' (ordinal {}) ---",
-                            entry_name, entry->ordinal));
+                fmt("--- XBIN Entry: '%s' (ordinal %u) ---",
+                    entry_name.c_str(), entry->ordinal));
         }
 
         // ── Inject fixups for relocatable binaries ──────────────────────

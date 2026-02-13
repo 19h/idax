@@ -23,7 +23,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <numeric>
 #include <string>
 #include <unordered_map>
@@ -31,6 +31,14 @@
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── Report data structures ─────────────────────────────────────────────
 
@@ -111,10 +119,11 @@ void audit_segments(AuditReport& report) {
         if (auto sn = seg.name(); !sn.empty()) {
             auto by_name = ida::segment::by_name(sn);
             if (by_name && by_name->start() != seg.start()) {
-                ida::ui::message(std::format(
-                    "[Audit] Warning: segment '{}' name-lookup mismatch "
-                    "({:#x} vs {:#x})\n",
-                    sn, seg.start(), by_name->start()));
+                ida::ui::message(fmt(
+                    "[Audit] Warning: segment '%s' name-lookup mismatch "
+                    "(%#llx vs %#llx)\n",
+                    sn.c_str(), (unsigned long long)seg.start(),
+                    (unsigned long long)by_name->start()));
             }
         }
     }
@@ -222,7 +231,7 @@ void recover_strings(AuditReport& report) {
                 auto existing = ida::comment::get(addr, true);
                 if (!existing || existing->empty()) {
                     ida::comment::set(addr,
-                        std::format("String: \"{}\"", preview), true);
+                        fmt("String: \"%s\"", preview.c_str()), true);
                 }
             }
 
@@ -247,12 +256,15 @@ void analyze_fixups(AuditReport& report) {
     report.fixup_count = total;
 
     if (total > 0) {
-        ida::ui::message(std::format(
-            "[Audit] Fixup distribution ({} total):\n", total));
+        ida::ui::message(fmt(
+            "[Audit] Fixup distribution (%zu total):\n", total));
         for (auto& [type, count] : type_counts) {
-            ida::ui::message(std::format(
-                "[Audit]   Type {}: {} ({:.1f}%)\n",
-                type, count, 100.0 * count / total));
+            // Compute percentage as integer tenths to avoid std::format
+            // floating-point (unavailable on older macOS deployment targets).
+            auto pct_x10 = total > 0 ? count * 1000 / total : 0;
+            ida::ui::message(fmt(
+                "[Audit]   Type %d: %zu (%zu.%zu%%)\n",
+                type, count, pct_x10 / 10, pct_x10 % 10));
         }
     }
 }
@@ -279,8 +291,8 @@ void create_audit_type(const AuditReport& report) {
 
     // Report local type library size.
     if (auto count = ida::type::local_type_count()) {
-        ida::ui::message(std::format(
-            "[Audit] Local type library contains {} types\n", *count));
+        ida::ui::message(fmt(
+            "[Audit] Local type library contains %zu types\n", *count));
     }
 }
 
@@ -295,8 +307,9 @@ void annotate_entry_points(const AuditReport& report) {
         if (!ep) continue;
 
         // Add an anterior comment marking each entry point in the listing.
-        ida::comment::add_anterior(ep->address, std::format(
-            "===  Entry Point: '{}' (ordinal {})  ===", ep->name, ep->ordinal));
+        ida::comment::add_anterior(ep->address, fmt(
+            "===  Entry Point: '%s' (ordinal %llu)  ===",
+            ep->name.c_str(), (unsigned long long)ep->ordinal));
 
         // Ensure the entry point has a public name.
         if (!ep->name.empty()) {
@@ -305,8 +318,8 @@ void annotate_entry_points(const AuditReport& report) {
         }
     }
 
-    ida::ui::message(std::format(
-        "[Audit] Annotated {} entry points\n", *cnt));
+    ida::ui::message(fmt(
+        "[Audit] Annotated %zu entry points\n", *cnt));
 }
 
 // ── Step 9: Instruction-level deep dive on the largest function ────────
@@ -316,9 +329,10 @@ void analyze_hottest_function(const AuditReport& report) {
     if (report.large_frames.empty()) return;
 
     auto& biggest = report.large_frames.front();
-    ida::ui::message(std::format(
-        "[Audit] Deep-diving into '{}' at {:#x} (frame {} bytes, {} vars)\n",
-        biggest.name, biggest.address, biggest.frame_size,
+    ida::ui::message(fmt(
+        "[Audit] Deep-diving into '%s' at %#llx (frame %llu bytes, %zu vars)\n",
+        biggest.name.c_str(), (unsigned long long)biggest.address,
+        (unsigned long long)biggest.frame_size,
         biggest.variable_count));
 
     auto func = ida::function::at(biggest.address);
@@ -346,7 +360,7 @@ void analyze_hottest_function(const AuditReport& report) {
         auto sp = ida::function::sp_delta_at(addr);
         if (sp && *sp < -4096) {
             ida::comment::set(addr,
-                std::format("Warning: large SP delta {}", *sp), false);
+                fmt("Warning: large SP delta %lld", (long long)*sp), false);
         }
 
         auto nxt = ida::instruction::next(addr);
@@ -354,8 +368,8 @@ void analyze_hottest_function(const AuditReport& report) {
         addr = nxt->address();
     }
 
-    ida::ui::message(std::format(
-        "[Audit]   {} instructions, {} calls, {} memory operands\n",
+    ida::ui::message(fmt(
+        "[Audit]   %zu instructions, %zu calls, %zu memory operands\n",
         insn_count, call_count, mem_write_count));
 
     // Demonstrate operand representation: set the first immediate operand
@@ -379,57 +393,60 @@ void print_report(const AuditReport& report) {
     ida::ui::message("===========================================================\n");
     ida::ui::message("                  BINARY AUDIT REPORT\n");
     ida::ui::message("===========================================================\n");
-    ida::ui::message(std::format("  File:        {}\n", report.binary_path));
-    ida::ui::message(std::format("  MD5:         {}\n", report.binary_md5));
-    ida::ui::message(std::format("  Image base:  {:#x}\n", report.image_base));
-    ida::ui::message(std::format("  Range:       {:#x} - {:#x}\n",
-                                 report.addr_min, report.addr_max));
-    ida::ui::message(std::format("  Segments:    {}\n", report.segment_count));
-    ida::ui::message(std::format("  Functions:   {}\n", report.function_count));
-    ida::ui::message(std::format("  Entry pts:   {}\n", report.entry_point_count));
-    ida::ui::message(std::format("  Fixups:      {}\n", report.fixup_count));
+    ida::ui::message(fmt("  File:        %s\n", report.binary_path.c_str()));
+    ida::ui::message(fmt("  MD5:         %s\n", report.binary_md5.c_str()));
+    ida::ui::message(fmt("  Image base:  %#llx\n", (unsigned long long)report.image_base));
+    ida::ui::message(fmt("  Range:       %#llx - %#llx\n",
+                                 (unsigned long long)report.addr_min,
+                                 (unsigned long long)report.addr_max));
+    ida::ui::message(fmt("  Segments:    %zu\n", report.segment_count));
+    ida::ui::message(fmt("  Functions:   %zu\n", report.function_count));
+    ida::ui::message(fmt("  Entry pts:   %zu\n", report.entry_point_count));
+    ida::ui::message(fmt("  Fixups:      %zu\n", report.fixup_count));
     ida::ui::message("-----------------------------------------------------------\n");
 
     // W^X violations.
     if (report.wx_violations.empty()) {
         ida::ui::message("  W^X:         PASS (no writable+executable segments)\n");
     } else {
-        ida::ui::message(std::format(
-            "  W^X:         FAIL ({} violations)\n",
+        ida::ui::message(fmt(
+            "  W^X:         FAIL (%zu violations)\n",
             report.wx_violations.size()));
         for (auto& v : report.wx_violations) {
-            ida::ui::message(std::format(
-                "    - '{}' [{:#x}, {:#x})\n", v.name, v.start, v.end));
+            ida::ui::message(fmt(
+                "    - '%s' [%#llx, %#llx)\n", v.name.c_str(),
+                (unsigned long long)v.start, (unsigned long long)v.end));
         }
     }
 
     // Large stack frames.
-    ida::ui::message(std::format(
-        "  Large frames: {} (>= 1024 bytes)\n", report.large_frames.size()));
+    ida::ui::message(fmt(
+        "  Large frames: %zu (>= 1024 bytes)\n", report.large_frames.size()));
     for (auto& f : report.large_frames) {
-        ida::ui::message(std::format(
-            "    - '{}' at {:#x}: {} bytes, {} vars\n",
-            f.name, f.address, f.frame_size, f.variable_count));
+        ida::ui::message(fmt(
+            "    - '%s' at %#llx: %llu bytes, %zu vars\n",
+            f.name.c_str(), (unsigned long long)f.address,
+            (unsigned long long)f.frame_size, f.variable_count));
     }
 
     // Suspicious patterns.
-    ida::ui::message(std::format(
-        "  Suspicious:  {} patterns found\n",
+    ida::ui::message(fmt(
+        "  Suspicious:  %zu patterns found\n",
         report.suspicious_instructions.size()));
     for (auto addr : report.suspicious_instructions) {
-        ida::ui::message(std::format("    - {:#x}\n", addr));
+        ida::ui::message(fmt("    - %#llx\n", (unsigned long long)addr));
     }
 
     // Strings recovered.
-    ida::ui::message(std::format(
-        "  Strings:     {} recovered\n", report.string_locations.size()));
+    ida::ui::message(fmt(
+        "  Strings:     %zu recovered\n", report.string_locations.size()));
 
     // Xref hotspots (most-called functions).
     if (!report.xref_hotspots.empty()) {
         ida::ui::message("  Xref hotspots (10+ callers):\n");
         for (auto& [name, count] : report.xref_hotspots) {
-            ida::ui::message(std::format(
-                "    - '{}': {} callers\n", name, count));
+            ida::ui::message(fmt(
+                "    - '%s': %zu callers\n", name.c_str(), count));
         }
     }
 
@@ -460,7 +477,7 @@ void run_audit() {
 
     // Log completion via the diagnostics API.
     ida::diagnostics::log(ida::diagnostics::LogLevel::Info,
-        "audit", std::format("Audit complete: {} functions, {} segments",
+        "audit", fmt("Audit complete: %zu functions, %zu segments",
                              report.function_count, report.segment_count));
 }
 

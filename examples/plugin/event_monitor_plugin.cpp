@@ -25,13 +25,21 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── Change record ──────────────────────────────────────────────────────
 
@@ -114,7 +122,7 @@ public:
             r.kind,
             r.description,
             (r.address != ida::BadAddress)
-                ? std::format("{:#x}", r.address) : "-",
+                ? fmt("%#llx", (unsigned long long)r.address) : "-",
         }};
     }
 
@@ -126,9 +134,10 @@ public:
         // Navigate to the address when the user presses Enter.
         auto r = g_log.at(index);
         if (r.address != ida::BadAddress) {
-            ida::ui::message(std::format(
-                "[ChangeTracker] Jump to {:#x}: {} {}\n",
-                r.address, r.kind, r.description));
+            ida::ui::message(fmt(
+                "[ChangeTracker] Jump to %#llx: %s %s\n",
+                (unsigned long long)r.address, r.kind.c_str(),
+                r.description.c_str()));
         }
     }
 
@@ -161,7 +170,7 @@ public:
 
     std::string on_hint(ida::graph::NodeId node) override {
         if (node >= 0 && static_cast<std::size_t>(node) < node_labels.size())
-            return std::format("Node {}: {}", node, node_labels[node]);
+            return fmt("Node %d: %s", node, node_labels[node].c_str());
         return {};
     }
 };
@@ -187,11 +196,11 @@ void build_change_graph(ChangeGraphCallback& cb) {
             // Try to classify as function or segment.
             std::string label;
             if (auto f = ida::function::at(r.address)) {
-                label = std::format("func: {}", f->name());
+                label = fmt("func: %s", f->name().c_str());
             } else if (auto s = ida::segment::at(r.address)) {
-                label = std::format("seg: {}", s->name());
+                label = fmt("seg: %s", s->name().c_str());
             } else {
-                label = std::format("{:#x}", r.address);
+                label = fmt("%#llx", (unsigned long long)r.address);
             }
             entities.emplace_back(std::move(label), r.address);
 
@@ -264,43 +273,47 @@ void start_tracking() {
 
     sub(ida::event::on_segment_added([](ida::Address start) {
         g_log.add("IDB", "segment_add",
-                  std::format("New segment at {:#x}", start), start);
+                  fmt("New segment at %#llx", (unsigned long long)start), start);
     }), g_state.idb_subs);
 
     sub(ida::event::on_segment_deleted([](ida::Address start, ida::Address end) {
         g_log.add("IDB", "segment_del",
-                  std::format("Removed {:#x}-{:#x}", start, end), start);
+                  fmt("Removed %#llx-%#llx", (unsigned long long)start,
+                      (unsigned long long)end), start);
     }), g_state.idb_subs);
 
     sub(ida::event::on_function_added([](ida::Address entry) {
         g_log.add("IDB", "func_add",
-                  std::format("New function at {:#x}", entry), entry);
+                  fmt("New function at %#llx", (unsigned long long)entry), entry);
     }), g_state.idb_subs);
 
     sub(ida::event::on_function_deleted([](ida::Address entry) {
         g_log.add("IDB", "func_del",
-                  std::format("Removed function at {:#x}", entry), entry);
+                  fmt("Removed function at %#llx", (unsigned long long)entry), entry);
     }), g_state.idb_subs);
 
     sub(ida::event::on_renamed(
         [](ida::Address addr, std::string new_name, std::string old_name) {
         g_log.add("IDB", "rename",
-                  std::format("'{}' -> '{}' at {:#x}", old_name, new_name, addr),
+                  fmt("'%s' -> '%s' at %#llx", old_name.c_str(),
+                      new_name.c_str(), (unsigned long long)addr),
                   addr);
     }), g_state.idb_subs);
 
     sub(ida::event::on_byte_patched(
         [](ida::Address addr, std::uint32_t old_val) {
         g_log.add("IDB", "patch",
-                  std::format("byte {:#x} patched (was {:#x})", addr, old_val),
+                  fmt("byte %#llx patched (was %#x)",
+                      (unsigned long long)addr, old_val),
                   addr);
     }), g_state.idb_subs);
 
     sub(ida::event::on_comment_changed(
         [](ida::Address addr, bool repeatable) {
         g_log.add("IDB", "comment",
-                  std::format("{} comment at {:#x}",
-                              repeatable ? "Repeatable" : "Regular", addr),
+                  fmt("%s comment at %#llx",
+                      repeatable ? "Repeatable" : "Regular",
+                      (unsigned long long)addr),
                   addr);
     }), g_state.idb_subs);
 
@@ -335,7 +348,7 @@ void start_tracking() {
     }), g_state.ui_subs);
 
     sub(ida::ui::on_widget_visible([](std::string title) {
-        g_log.add("UI", "widget_open", std::format("'{}'", title));
+        g_log.add("UI", "widget_open", fmt("'%s'", title.c_str()));
     }), g_state.ui_subs);
 
     // ── Debugger events: track debugging activity ───────────────────
@@ -343,24 +356,27 @@ void start_tracking() {
     sub(ida::debugger::on_process_started(
         [](const ida::debugger::ModuleInfo& mod) {
         g_log.add("DBG", "proc_start",
-                  std::format("'{}' at {:#x}", mod.name, mod.base));
+                  fmt("'%s' at %#llx", mod.name.c_str(),
+                      (unsigned long long)mod.base));
     }), g_state.dbg_subs);
 
     sub(ida::debugger::on_process_exited([](int code) {
-        g_log.add("DBG", "proc_exit", std::format("exit code {}", code));
+        g_log.add("DBG", "proc_exit", fmt("exit code %d", code));
     }), g_state.dbg_subs);
 
     sub(ida::debugger::on_breakpoint_hit(
         [](int tid, ida::Address addr) {
         g_log.add("DBG", "bp_hit",
-                  std::format("thread {} at {:#x}", tid, addr), addr);
+                  fmt("thread %d at %#llx", tid,
+                      (unsigned long long)addr), addr);
     }), g_state.dbg_subs);
 
     sub(ida::debugger::on_exception(
         [](const ida::debugger::ExceptionInfo& ex) {
         g_log.add("DBG", "exception",
-                  std::format("code {:#x}: '{}' at {:#x}",
-                              ex.code, ex.message, ex.ea), ex.ea);
+                  fmt("code %#x: '%s' at %#llx",
+                      ex.code, ex.message.c_str(),
+                      (unsigned long long)ex.ea), ex.ea);
     }), g_state.dbg_subs);
 
     sub(ida::debugger::on_breakpoint_changed(
@@ -369,14 +385,15 @@ void start_tracking() {
         if (change == ida::debugger::BreakpointChange::Added)   kind = "added";
         if (change == ida::debugger::BreakpointChange::Removed) kind = "removed";
         g_log.add("DBG", "bp_change",
-                  std::format("Breakpoint {} at {:#x}", kind, addr), addr);
+                  fmt("Breakpoint %s at %#llx", kind,
+                      (unsigned long long)addr), addr);
     }), g_state.dbg_subs);
 
     // ── Timer: periodic status summary ──────────────────────────────
 
     auto timer = ida::ui::register_timer(10000, []() -> int {
-        ida::ui::message(std::format(
-            "[ChangeTracker] {} changes recorded so far.\n", g_log.size()));
+        ida::ui::message(fmt(
+            "[ChangeTracker] %zu changes recorded so far.\n", g_log.size()));
         return 0;  // Return 0 to keep the timer running.
     });
     if (timer) g_state.timer_token = *timer;
@@ -389,7 +406,7 @@ void start_tracking() {
     // Note the current screen address for the log.
     if (auto scr = ida::ui::screen_address()) {
         g_log.add("UI", "session_start",
-                  std::format("Initial EA: {:#x}", *scr), *scr);
+                  fmt("Initial EA: %#llx", (unsigned long long)*scr), *scr);
     }
 
     ida::ui::message("[ChangeTracker] Tracking active. Run again to stop.\n");
@@ -400,8 +417,8 @@ void start_tracking() {
 void stop_tracking() {
     if (!g_state.active) return;
 
-    ida::ui::message(std::format(
-        "[ChangeTracker] Stopping. {} total changes recorded.\n",
+    ida::ui::message(fmt(
+        "[ChangeTracker] Stopping. %zu total changes recorded.\n",
         g_log.size()));
 
     // Build and display the change impact graph.

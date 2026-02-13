@@ -22,11 +22,19 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <string>
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── Complexity metrics per function ────────────────────────────────────
 
@@ -220,8 +228,8 @@ void annotate_complex_function(const FunctionMetrics& metrics) {
 
     // Add a header comment noting the complexity score.
     auto entry = dfunc.entry_address();
-    dfunc.set_comment(entry, std::format(
-        "Cyclomatic complexity: {} | Lines: {} | Calls: {} | Nesting: {}",
+    dfunc.set_comment(entry, fmt(
+        "Cyclomatic complexity: %zu | Lines: %zu | Calls: %zu | Nesting: %zu",
         metrics.cyclomatic_complexity, metrics.line_count,
         metrics.calls, metrics.max_nesting_depth));
     dfunc.save_comments();
@@ -237,11 +245,11 @@ void annotate_complex_function(const FunctionMetrics& metrics) {
             // Generate a descriptive name based on type.
             std::string new_name;
             if (v.type_name.find("int") != std::string::npos)
-                new_name = std::format("local_int_{}", renamed);
+                new_name = fmt("local_int_%d", renamed);
             else if (v.type_name.find("char") != std::string::npos)
-                new_name = std::format("local_str_{}", renamed);
+                new_name = fmt("local_str_%d", renamed);
             else
-                new_name = std::format("local_{}", renamed);
+                new_name = fmt("local_%d", renamed);
 
             if (auto st = dfunc.rename_variable(v.name, new_name); st) {
                 ++renamed;
@@ -254,23 +262,24 @@ void annotate_complex_function(const FunctionMetrics& metrics) {
     // Map pseudocode lines to binary addresses for the first few lines.
     // This is useful for setting breakpoints from decompiler context.
     if (auto lines = dfunc.lines(); lines && !lines->empty()) {
-        ida::ui::message(std::format(
-            "[Complexity] Address mapping for '{}' (first 5 lines):\n",
-            metrics.name));
+        ida::ui::message(fmt(
+            "[Complexity] Address mapping for '%s' (first 5 lines):\n",
+            metrics.name.c_str()));
         for (int i = 0; i < std::min(5, static_cast<int>(lines->size())); ++i) {
             auto addr = dfunc.line_to_address(i);
             if (addr) {
-                ida::ui::message(std::format(
-                    "  Line {}: {:#x}  |  {}\n", i, *addr,
-                    (*lines)[i].substr(0, 60)));
+                ida::ui::message(fmt(
+                    "  Line %d: %#llx  |  %s\n", i,
+                    (unsigned long long)*addr,
+                    (*lines)[i].substr(0, 60).c_str()));
             }
         }
     }
 
     // Bulk address map — useful for building coverage overlays.
     if (auto amap = dfunc.address_map()) {
-        ida::ui::message(std::format(
-            "[Complexity] Total address mappings: {}\n", amap->size()));
+        ida::ui::message(fmt(
+            "[Complexity] Total address mappings: %zu\n", amap->size()));
     }
 }
 
@@ -292,10 +301,10 @@ void report_flowchart(ida::Address func_addr, const std::string& name) {
     auto nodes = fc->size();
     auto mccabe = total_edges - nodes + 2;
 
-    ida::ui::message(std::format(
-        "[Complexity] Flowchart for '{}': {} blocks, {} edges, "
-        "graph-based complexity = {}\n",
-        name, nodes, total_edges, mccabe));
+    ida::ui::message(fmt(
+        "[Complexity] Flowchart for '%s': %zu blocks, %zu edges, "
+        "graph-based complexity = %zu\n",
+        name.c_str(), nodes, total_edges, mccabe));
 }
 
 // ── Main plugin logic ──────────────────────────────────────────────────
@@ -328,8 +337,8 @@ void run_complexity_analysis() {
         }
     }
 
-    ida::ui::message(std::format(
-        "[Complexity] Analyzed {} functions ({} skipped)\n",
+    ida::ui::message(fmt(
+        "[Complexity] Analyzed %zu functions (%zu skipped)\n",
         all_metrics.size(), skipped));
 
     if (all_metrics.empty()) return;
@@ -348,10 +357,11 @@ void run_complexity_analysis() {
     auto top = std::min(all_metrics.size(), std::size_t(20));
     for (std::size_t i = 0; i < top; ++i) {
         auto& m = all_metrics[i];
-        ida::ui::message(std::format(
-            "  {:4} | {:10} | {:5} | {:5} | {:7} | {} ({:#x})\n",
+        ida::ui::message(fmt(
+            "  %4zu | %10zu | %5zu | %5zu | %7zu | %s (%#llx)\n",
             i + 1, m.cyclomatic_complexity, m.line_count,
-            m.calls, m.max_nesting_depth, m.name, m.address));
+            m.calls, m.max_nesting_depth, m.name.c_str(),
+            (unsigned long long)m.address));
     }
 
     // Compute aggregate statistics.
@@ -364,9 +374,13 @@ void run_complexity_analysis() {
     }
     avg_complexity /= all_metrics.size();
 
-    ida::ui::message(std::format(
-        "\n[Complexity] Average: {:.1f}, Max: {}, Total functions: {}\n",
-        avg_complexity, max_complexity, all_metrics.size()));
+    // Express average as integer tenths to avoid std::format floating-point
+    // (unavailable on older macOS deployment targets).
+    auto avg_x10 = all_metrics.empty() ? 0
+        : static_cast<std::size_t>(avg_complexity * 10);
+    ida::ui::message(fmt(
+        "\n[Complexity] Average: %zu.%zu, Max: %zu, Total functions: %zu\n",
+        avg_x10 / 10, avg_x10 % 10, max_complexity, all_metrics.size()));
 
     // Annotate the most complex function with comments and variable renames.
     auto& top_func = all_metrics.front();
@@ -376,8 +390,8 @@ void run_complexity_analysis() {
     report_flowchart(top_func.address, top_func.name);
 
     // Add a repeatable comment at the function entry in the disassembly.
-    ida::comment::set(top_func.address, std::format(
-        "Highest complexity: {} (review priority #1)",
+    ida::comment::set(top_func.address, fmt(
+        "Highest complexity: %zu (review priority #1)",
         top_func.cyclomatic_complexity), true);
 
     ida::ui::message("=== Complexity Analysis Complete ===\n");

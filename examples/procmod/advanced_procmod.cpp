@@ -40,11 +40,19 @@
 #include <ida/idax.hpp>
 
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <string>
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── XRISC-32 ISA constants ────────────────────────────────────────────
 
@@ -318,41 +326,44 @@ public:
                 break;
 
             case OP_MOV:
-                text = std::format("mov     {}, {}",
+                text = fmt("mov     %s, %s",
                     kRegNames[d.rd], kRegNames[d.rs1]);
                 break;
 
             case OP_LDI:
-                text = std::format("ldi     {}, {:#x}",
-                    kRegNames[d.rd], static_cast<std::uint16_t>(d.imm16));
+                text = fmt("ldi     %s, 0x%x",
+                    kRegNames[d.rd], static_cast<unsigned>(
+                        static_cast<std::uint16_t>(d.imm16)));
                 break;
 
             case OP_ADD: case OP_SUB:
             case OP_AND: case OP_OR: case OP_XOR:
-                text = std::format("{:<8}{}, {}, {}",
+                text = fmt("%-8s%s, %s, %s",
                     kMnemonics[d.op], kRegNames[d.rd],
                     kRegNames[d.rs1], kRegNames[d.rs2]);
                 break;
 
             case OP_LD:
                 if (d.imm16 == 0) {
-                    text = std::format("ld      {}, [{}]",
+                    text = fmt("ld      %s, [%s]",
                         kRegNames[d.rd], kRegNames[d.rs1]);
                 } else {
-                    text = std::format("ld      {}, [{} + {:#x}]",
+                    text = fmt("ld      %s, [%s + 0x%x]",
                         kRegNames[d.rd], kRegNames[d.rs1],
-                        static_cast<std::uint16_t>(d.imm16));
+                        static_cast<unsigned>(
+                            static_cast<std::uint16_t>(d.imm16)));
                 }
                 break;
 
             case OP_ST:
                 if (d.imm16 == 0) {
-                    text = std::format("st      {}, [{}]",
+                    text = fmt("st      %s, [%s]",
                         kRegNames[d.rs2], kRegNames[d.rs1]);
                 } else {
-                    text = std::format("st      {}, [{} + {:#x}]",
+                    text = fmt("st      %s, [%s + 0x%x]",
                         kRegNames[d.rs2], kRegNames[d.rs1],
-                        static_cast<std::uint16_t>(d.imm16));
+                        static_cast<unsigned>(
+                            static_cast<std::uint16_t>(d.imm16)));
                 }
                 break;
 
@@ -361,11 +372,12 @@ public:
                 // Try to resolve the branch target to a symbol name.
                 auto sym = ida::name::get(target);
                 if (sym && !sym->empty()) {
-                    text = std::format("beq     {}, {}, {}",
-                        kRegNames[d.rs1], kRegNames[d.rs2], *sym);
+                    text = fmt("beq     %s, %s, %s",
+                        kRegNames[d.rs1], kRegNames[d.rs2], sym->c_str());
                 } else {
-                    text = std::format("beq     {}, {}, {:#x}",
-                        kRegNames[d.rs1], kRegNames[d.rs2], target);
+                    text = fmt("beq     %s, %s, 0x%llx",
+                        kRegNames[d.rs1], kRegNames[d.rs2],
+                        (unsigned long long)target);
                 }
                 break;
             }
@@ -373,11 +385,12 @@ public:
                 auto target = branch_target(address, d.imm16);
                 auto sym = ida::name::get(target);
                 if (sym && !sym->empty()) {
-                    text = std::format("bne     {}, {}, {}",
-                        kRegNames[d.rs1], kRegNames[d.rs2], *sym);
+                    text = fmt("bne     %s, %s, %s",
+                        kRegNames[d.rs1], kRegNames[d.rs2], sym->c_str());
                 } else {
-                    text = std::format("bne     {}, {}, {:#x}",
-                        kRegNames[d.rs1], kRegNames[d.rs2], target);
+                    text = fmt("bne     %s, %s, 0x%llx",
+                        kRegNames[d.rs1], kRegNames[d.rs2],
+                        (unsigned long long)target);
                 }
                 break;
             }
@@ -386,8 +399,8 @@ public:
                 auto target = branch_target(address, d.imm16);
                 auto sym = ida::name::get(target);
                 text = (sym && !sym->empty())
-                    ? std::format("jmp     {}", *sym)
-                    : std::format("jmp     {:#x}", target);
+                    ? fmt("jmp     %s", sym->c_str())
+                    : fmt("jmp     0x%llx", (unsigned long long)target);
                 break;
             }
 
@@ -395,8 +408,8 @@ public:
                 auto target = branch_target(address, d.imm16);
                 auto sym = ida::name::get(target);
                 text = (sym && !sym->empty())
-                    ? std::format("call    {}", *sym)
-                    : std::format("call    {:#x}", target);
+                    ? fmt("call    %s", sym->c_str())
+                    : fmt("call    0x%llx", (unsigned long long)target);
                 break;
             }
 
@@ -409,14 +422,15 @@ public:
                 break;
 
             default:
-                text = std::format(".word   {:#010x}", *dword);
+                text = fmt(".word   0x%08x", *dword);
                 break;
         }
 
         // In a real processor module, this text would go through the SDK's
         // output buffer system. Here we demonstrate the formatting logic
         // that the bridge would invoke.
-        ida::ui::message(std::format("{:#010x}  {}\n", address, text));
+        ida::ui::message(fmt("0x%08llx  %s\n",
+            (unsigned long long)address, text.c_str()));
     }
 
     // ── output_operand(): render individual operands ────────────────────
@@ -460,8 +474,9 @@ public:
                     return ida::processor::OutputOperandResult::Success;
                 }
                 if (operand_index == 1) {
-                    ida::ui::message(std::format("{:#x}",
-                        static_cast<std::uint16_t>(d.imm16)));
+                    ida::ui::message(fmt("0x%x",
+                        static_cast<unsigned>(
+                            static_cast<std::uint16_t>(d.imm16))));
                     return ida::processor::OutputOperandResult::Success;
                 }
                 return ida::processor::OutputOperandResult::Hidden;
@@ -491,11 +506,12 @@ public:
                 }
                 if (operand_index == 1) {
                     if (d.imm16 == 0)
-                        ida::ui::message(std::format("[{}]", kRegNames[d.rs1]));
+                        ida::ui::message(fmt("[%s]", kRegNames[d.rs1]));
                     else
-                        ida::ui::message(std::format("[{} + {:#x}]",
+                        ida::ui::message(fmt("[%s + 0x%x]",
                             kRegNames[d.rs1],
-                            static_cast<std::uint16_t>(d.imm16)));
+                            static_cast<unsigned>(
+                                static_cast<std::uint16_t>(d.imm16))));
                     return ida::processor::OutputOperandResult::Success;
                 }
                 return ida::processor::OutputOperandResult::Hidden;
@@ -508,11 +524,12 @@ public:
                 }
                 if (operand_index == 1) {
                     if (d.imm16 == 0)
-                        ida::ui::message(std::format("[{}]", kRegNames[d.rs1]));
+                        ida::ui::message(fmt("[%s]", kRegNames[d.rs1]));
                     else
-                        ida::ui::message(std::format("[{} + {:#x}]",
+                        ida::ui::message(fmt("[%s + 0x%x]",
                             kRegNames[d.rs1],
-                            static_cast<std::uint16_t>(d.imm16)));
+                            static_cast<unsigned>(
+                                static_cast<std::uint16_t>(d.imm16))));
                     return ida::processor::OutputOperandResult::Success;
                 }
                 return ida::processor::OutputOperandResult::Hidden;
@@ -532,7 +549,7 @@ public:
                     auto target = branch_target(address, d.imm16);
                     auto sym = ida::name::get(target);
                     ida::ui::message((sym && !sym->empty())
-                        ? *sym : std::format("{:#x}", target));
+                        ? *sym : fmt("0x%llx", (unsigned long long)target));
                     return ida::processor::OutputOperandResult::Success;
                 }
                 return ida::processor::OutputOperandResult::Hidden;
@@ -544,7 +561,7 @@ public:
                     auto target = branch_target(address, d.imm16);
                     auto sym = ida::name::get(target);
                     ida::ui::message((sym && !sym->empty())
-                        ? *sym : std::format("{:#x}", target));
+                        ? *sym : fmt("0x%llx", (unsigned long long)target));
                     return ida::processor::OutputOperandResult::Success;
                 }
                 return ida::processor::OutputOperandResult::Hidden;
@@ -560,13 +577,13 @@ public:
     void on_new_file(std::string_view filename) override {
         // A real processor would initialize per-file state here (e.g.
         // detecting sub-architecture variants from the file headers).
-        ida::ui::message(std::format(
-            "[XRISC] New file loaded: {}\n", filename));
+        ida::ui::message(fmt("[XRISC] New file loaded: %.*s\n",
+            static_cast<int>(filename.size()), filename.data()));
     }
 
     void on_old_file(std::string_view filename) override {
-        ida::ui::message(std::format(
-            "[XRISC] Existing database opened: {}\n", filename));
+        ida::ui::message(fmt("[XRISC] Existing database opened: %.*s\n",
+            static_cast<int>(filename.size()), filename.data()));
     }
 
     // ── is_call / is_return ─────────────────────────────────────────────

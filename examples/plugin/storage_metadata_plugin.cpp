@@ -29,12 +29,20 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <numeric>
 #include <string>
 #include <vector>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 // ── Fingerprint data model ─────────────────────────────────────────────
 
@@ -108,8 +116,8 @@ void collect_identity(Fingerprint& fp) {
     // Enumerate top-level snapshots for context.
     if (auto snaps = ida::database::snapshots()) {
         if (!snaps->empty()) {
-            ida::ui::message(std::format(
-                "[Fingerprint] {} snapshots exist in this database\n",
+            ida::ui::message(fmt(
+                "[Fingerprint] %zu snapshots exist in this database\n",
                 snaps->size()));
         }
     }
@@ -239,9 +247,9 @@ void count_strings(Fingerprint& fp) {
 void persist_fingerprint(const Fingerprint& fp) {
     auto node = ida::storage::Node::open("idax_fingerprint", true);
     if (!node) {
-        ida::ui::message(std::format(
-            "[Fingerprint] Failed to open storage node: {}\n",
-            node.error().message));
+        ida::ui::message(fmt(
+            "[Fingerprint] Failed to open storage node: %s\n",
+            node.error().message.c_str()));
         return;
     }
 
@@ -302,11 +310,12 @@ void compare_with_previous(const Fingerprint& fp) {
     if (prev_funcs) {
         auto current = static_cast<std::uint64_t>(fp.functions.total);
         if (*prev_funcs != current) {
-            ida::ui::message(std::format(
-                "[Fingerprint] Delta: functions {} -> {} ({:+})\n",
-                *prev_funcs, current,
-                static_cast<std::int64_t>(current) -
-                static_cast<std::int64_t>(*prev_funcs)));
+            ida::ui::message(fmt(
+                "[Fingerprint] Delta: functions %llu -> %llu (%+lld)\n",
+                (unsigned long long)*prev_funcs,
+                (unsigned long long)current,
+                (long long)(static_cast<std::int64_t>(current) -
+                static_cast<std::int64_t>(*prev_funcs))));
         }
     }
 
@@ -326,10 +335,10 @@ void compare_with_previous(const Fingerprint& fp) {
     // Read previous MD5 to detect binary replacement.
     auto prev_md5 = n.hash("md5", 'H');
     if (prev_md5 && *prev_md5 != fp.binary_md5) {
-        ida::ui::message(std::format(
-            "[Fingerprint] Warning: binary MD5 changed ({} -> {}). "
+        ida::ui::message(fmt(
+            "[Fingerprint] Warning: binary MD5 changed (%s -> %s). "
             "The underlying file may have been replaced.\n",
-            *prev_md5, fp.binary_md5));
+            prev_md5->c_str(), fp.binary_md5.c_str()));
     }
 }
 
@@ -347,11 +356,11 @@ void annotate_fingerprint(const Fingerprint& fp) {
 
     // Comment the image base with the fingerprint digest.
     if (fp.image_base != ida::BadAddress) {
-        ida::comment::set(fp.image_base, std::format(
-            "Fingerprint: {} funcs, {} entries, {} fixups, {} strings | MD5: {}",
+        ida::comment::set(fp.image_base, fmt(
+            "Fingerprint: %zu funcs, %zu entries, %zu fixups, %zu strings | MD5: %s",
             fp.functions.total, fp.entry_count,
             fp.fixups.total, fp.string_count,
-            fp.binary_md5.substr(0, 8)), true);
+            fp.binary_md5.substr(0, 8).c_str()), true);
     }
 }
 
@@ -362,19 +371,21 @@ void print_fingerprint(const Fingerprint& fp) {
     ida::ui::message("===========================================================\n");
     ida::ui::message("                 BINARY FINGERPRINT\n");
     ida::ui::message("===========================================================\n");
-    ida::ui::message(std::format("  File:        {}\n", fp.binary_path));
-    ida::ui::message(std::format("  MD5:         {}\n", fp.binary_md5));
-    ida::ui::message(std::format("  Image base:  {:#x}\n", fp.image_base));
-    ida::ui::message(std::format("  Range:       {:#x} - {:#x}\n",
-                                 fp.range_min, fp.range_max));
+    ida::ui::message(fmt("  File:        %s\n", fp.binary_path.c_str()));
+    ida::ui::message(fmt("  MD5:         %s\n", fp.binary_md5.c_str()));
+    ida::ui::message(fmt("  Image base:  %#llx\n", (unsigned long long)fp.image_base));
+    ida::ui::message(fmt("  Range:       %#llx - %#llx\n",
+                                 (unsigned long long)fp.range_min,
+                                 (unsigned long long)fp.range_max));
     ida::ui::message("-----------------------------------------------------------\n");
 
     // Segment layout.
-    ida::ui::message(std::format("  Segments ({})\n", fp.segments.size()));
+    ida::ui::message(fmt("  Segments (%zu)\n", fp.segments.size()));
     for (const auto& seg : fp.segments) {
-        ida::ui::message(std::format(
-            "    {:12} {:#010x}-{:#010x}  {}bit  {}{}{}\n",
-            seg.name, seg.start, seg.end, seg.bitness,
+        ida::ui::message(fmt(
+            "    %-12s %#010llx-%#010llx  %dbit  %s%s%s\n",
+            seg.name.c_str(), (unsigned long long)seg.start,
+            (unsigned long long)seg.end, seg.bitness,
             seg.readable   ? "R" : "-",
             seg.writable   ? "W" : "-",
             seg.executable ? "X" : "-"));
@@ -382,25 +393,25 @@ void print_fingerprint(const Fingerprint& fp) {
 
     // Function histogram.
     ida::ui::message("-----------------------------------------------------------\n");
-    ida::ui::message(std::format("  Functions:   {} total\n", fp.functions.total));
-    ida::ui::message(std::format("    Thunks:    {}\n", fp.functions.thunks));
-    ida::ui::message(std::format("    Library:   {}\n", fp.functions.library));
-    ida::ui::message(std::format("    Tiny:      {} (<32B)\n", fp.functions.tiny));
-    ida::ui::message(std::format("    Small:     {} (32-255B)\n", fp.functions.small));
-    ida::ui::message(std::format("    Medium:    {} (256-4095B)\n", fp.functions.medium));
-    ida::ui::message(std::format("    Large:     {} (>=4096B)\n", fp.functions.large));
+    ida::ui::message(fmt("  Functions:   %zu total\n", fp.functions.total));
+    ida::ui::message(fmt("    Thunks:    %zu\n", fp.functions.thunks));
+    ida::ui::message(fmt("    Library:   %zu\n", fp.functions.library));
+    ida::ui::message(fmt("    Tiny:      %zu (<32B)\n", fp.functions.tiny));
+    ida::ui::message(fmt("    Small:     %zu (32-255B)\n", fp.functions.small));
+    ida::ui::message(fmt("    Medium:    %zu (256-4095B)\n", fp.functions.medium));
+    ida::ui::message(fmt("    Large:     %zu (>=4096B)\n", fp.functions.large));
 
     // Entry points & fixups.
     ida::ui::message("-----------------------------------------------------------\n");
-    ida::ui::message(std::format("  Entry pts:   {}\n", fp.entry_count));
-    ida::ui::message(std::format("  Fixups:      {}\n", fp.fixups.total));
+    ida::ui::message(fmt("  Entry pts:   %zu\n", fp.entry_count));
+    ida::ui::message(fmt("  Fixups:      %zu\n", fp.fixups.total));
     if (!fp.fixups.type_counts.empty()) {
         for (auto& [type, count] : fp.fixups.type_counts) {
-            ida::ui::message(std::format(
-                "    Type {:2}: {:6} ({:.1f}%)\n",
-                type, count,
-                fp.fixups.total > 0
-                    ? 100.0 * count / fp.fixups.total : 0.0));
+            auto pct_x10 = fp.fixups.total > 0
+                ? count * 1000 / fp.fixups.total : std::size_t(0);
+            ida::ui::message(fmt(
+                "    Type %2d: %6zu (%zu.%zu%%)\n",
+                type, count, pct_x10 / 10, pct_x10 % 10));
         }
     }
 
@@ -409,15 +420,18 @@ void print_fingerprint(const Fingerprint& fp) {
     auto total_items = fp.coverage.code_items + fp.coverage.data_items
                      + fp.coverage.unknown_items;
     if (total_items > 0) {
-        ida::ui::message(std::format(
-            "  Coverage (first 64K):  code {:.1f}%  data {:.1f}%  unknown {:.1f}%\n",
-            100.0 * fp.coverage.code_items / total_items,
-            100.0 * fp.coverage.data_items / total_items,
-            100.0 * fp.coverage.unknown_items / total_items));
+        auto code_pct  = fp.coverage.code_items * 1000 / total_items;
+        auto data_pct  = fp.coverage.data_items * 1000 / total_items;
+        auto unk_pct   = fp.coverage.unknown_items * 1000 / total_items;
+        ida::ui::message(fmt(
+            "  Coverage (first 64K):  code %zu.%zu%%  data %zu.%zu%%  unknown %zu.%zu%%\n",
+            code_pct / 10, code_pct % 10,
+            data_pct / 10, data_pct % 10,
+            unk_pct / 10, unk_pct % 10));
     }
 
     // Strings.
-    ida::ui::message(std::format("  Strings:     {} (avg length {})\n",
+    ida::ui::message(fmt("  Strings:     %zu (avg length %zu)\n",
                                  fp.string_count, fp.avg_string_length));
     ida::ui::message("===========================================================\n\n");
 }
@@ -455,7 +469,7 @@ void run_fingerprint() {
     // Log completion via diagnostics.
     ida::diagnostics::log(ida::diagnostics::LogLevel::Info,
         "fingerprint",
-        std::format("Fingerprint complete: {} funcs, {} segs, {} fixups",
+        fmt("Fingerprint complete: %zu funcs, %zu segs, %zu fixups",
                     fp.functions.total, fp.segments.size(), fp.fixups.total));
 }
 
