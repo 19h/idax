@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // Forward-declare TypeInfo to avoid circular include.
@@ -139,6 +140,12 @@ Result<std::string> name_at(Address address);
 Status set_start(Address address, Address new_start);
 Status set_end(Address address, Address new_end);
 
+/// Persist the current function metadata after direct property changes.
+Status update(Address address);
+
+/// Schedule reanalysis for all items in the function containing \p address.
+Status reanalyze(Address address);
+
 // ── Comment access ──────────────────────────────────────────────────────
 
 Result<std::string> comment(Address address, bool repeatable = false);
@@ -178,6 +185,12 @@ Result<StackFrame> frame(Address address);
 /// Get the cumulative SP delta before the instruction at \p address.
 /// The delta is relative to the function's initial stack pointer.
 Result<AddressDelta> sp_delta_at(Address address);
+
+/// Find a frame variable by name in the function containing \p address.
+Result<FrameVariable> frame_variable_by_name(Address address, std::string_view name);
+
+/// Find a frame variable by byte offset in the function containing \p address.
+Result<FrameVariable> frame_variable_by_offset(Address address, std::size_t byte_offset);
 
 /// Define a stack variable in the function's frame.
 Status define_stack_variable(Address function_address, std::string_view name,
@@ -226,6 +239,15 @@ Status rename_register_variable(Address function_address,
 
 /// Check if there are any register variables at the given address.
 Result<bool> has_register_variables(Address function_address, Address address);
+
+/// List all register variables defined for a function.
+Result<std::vector<RegisterVariable>> register_variables(Address function_address);
+
+/// Enumerate all item head addresses in the function body.
+Result<std::vector<Address>> item_addresses(Address address);
+
+/// Enumerate only code item addresses in the function body.
+Result<std::vector<Address>> code_addresses(Address address);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 

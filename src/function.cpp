@@ -3,6 +3,7 @@
 
 #include "detail/sdk_bridge.hpp"
 #include "detail/type_impl.hpp"
+#include <ida/analysis.hpp>
 #include <ida/function.hpp>
 
 namespace ida::function {
@@ -143,6 +144,26 @@ Status set_start(Address ea, Address new_start) {
 Status set_end(Address ea, Address new_end) {
     if (!::set_func_end(ea, new_end))
         return std::unexpected(Error::sdk("set_func_end failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status update(Address address) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+    if (!update_func(fn))
+        return std::unexpected(Error::sdk("update_func failed",
+                                          std::to_string(address)));
+    return ida::ok();
+}
+
+Status reanalyze(Address address) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+    auto_mark_range(fn->start_ea, fn->end_ea, AU_CODE);
     return ida::ok();
 }
 
@@ -324,6 +345,32 @@ Result<AddressDelta> sp_delta_at(Address ea) {
     return static_cast<AddressDelta>(spd);
 }
 
+Result<FrameVariable> frame_variable_by_name(Address address, std::string_view name) {
+    auto sf = frame(address);
+    if (!sf)
+        return std::unexpected(sf.error());
+
+    for (const auto& variable : sf->variables()) {
+        if (variable.name == name)
+            return variable;
+    }
+    return std::unexpected(Error::not_found("Frame variable not found",
+                                            std::string(name)));
+}
+
+Result<FrameVariable> frame_variable_by_offset(Address address, std::size_t byte_offset) {
+    auto sf = frame(address);
+    if (!sf)
+        return std::unexpected(sf.error());
+
+    for (const auto& variable : sf->variables()) {
+        if (variable.byte_offset == byte_offset)
+            return variable;
+    }
+    return std::unexpected(Error::not_found("Frame variable offset not found",
+                                            std::to_string(byte_offset)));
+}
+
 Status define_stack_variable(Address func_ea, std::string_view name,
                              std::int32_t frame_offset,
                              const ida::type::TypeInfo& type) {
@@ -441,6 +488,65 @@ Result<bool> has_register_variables(Address func_ea, Address ea) {
         return std::unexpected(Error::not_found("No function at address",
                                                 std::to_string(func_ea)));
     return ::has_regvar(fn, static_cast<ea_t>(ea));
+}
+
+Result<std::vector<RegisterVariable>> register_variables(Address function_address) {
+    func_t* fn = get_func(function_address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(function_address)));
+
+    std::vector<RegisterVariable> result;
+    if (fn->regvars == nullptr || fn->regvarqty <= 0)
+        return result;
+
+    for (int index = 0; index < fn->regvarqty; ++index) {
+        const regvar_t& rv = fn->regvars[index];
+        RegisterVariable out;
+        out.range_start = static_cast<Address>(rv.start_ea);
+        out.range_end = static_cast<Address>(rv.end_ea);
+        out.canonical_name = rv.canon != nullptr ? std::string(rv.canon) : std::string();
+        out.user_name = rv.user != nullptr ? std::string(rv.user) : std::string();
+        out.comment = rv.cmt != nullptr ? std::string(rv.cmt) : std::string();
+        result.push_back(std::move(out));
+    }
+    return result;
+}
+
+Result<std::vector<Address>> item_addresses(Address address) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+
+    std::vector<Address> result;
+    func_item_iterator_t iterator;
+    if (!iterator.set(fn))
+        return result;
+
+    do {
+        result.push_back(static_cast<Address>(iterator.current()));
+    } while (iterator.next_addr());
+    return result;
+}
+
+Result<std::vector<Address>> code_addresses(Address address) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+
+    std::vector<Address> result;
+    func_item_iterator_t iterator;
+    if (!iterator.set(fn))
+        return result;
+
+    do {
+        const ea_t ea = iterator.current();
+        if (is_code(get_flags(ea)))
+            result.push_back(static_cast<Address>(ea));
+    } while (iterator.next_addr());
+    return result;
 }
 
 // ── Traversal ───────────────────────────────────────────────────────────

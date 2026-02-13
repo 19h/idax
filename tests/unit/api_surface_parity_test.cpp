@@ -132,6 +132,24 @@ void check_segment_surface() {
 
     ida::segment::Permissions p{};
     (void)p.read; (void)p.write; (void)p.execute;
+
+    using SegmentCommentFn = ida::Result<std::string>(*)(ida::Address, bool);
+    using SegmentSetCommentFn = ida::Status(*)(ida::Address, std::string_view, bool);
+    using SegmentResizeFn = ida::Status(*)(ida::Address, ida::Address, ida::Address);
+    using SegmentMoveFn = ida::Status(*)(ida::Address, ida::Address);
+    using SegmentFirstFn = ida::Result<ida::segment::Segment>(*)();
+    using SegmentLastFn = ida::Result<ida::segment::Segment>(*)();
+    using SegmentNextFn = ida::Result<ida::segment::Segment>(*)(ida::Address);
+    using SegmentPrevFn = ida::Result<ida::segment::Segment>(*)(ida::Address);
+
+    (void)static_cast<SegmentCommentFn>(&ida::segment::comment);
+    (void)static_cast<SegmentSetCommentFn>(&ida::segment::set_comment);
+    (void)static_cast<SegmentResizeFn>(&ida::segment::resize);
+    (void)static_cast<SegmentMoveFn>(&ida::segment::move);
+    (void)static_cast<SegmentFirstFn>(&ida::segment::first);
+    (void)static_cast<SegmentLastFn>(&ida::segment::last);
+    (void)static_cast<SegmentNextFn>(&ida::segment::next);
+    (void)static_cast<SegmentPrevFn>(&ida::segment::prev);
 }
 
 // ─── ida::function ──────────────────────────────────────────────────────
@@ -139,6 +157,24 @@ void check_segment_surface() {
 void check_function_surface() {
     // Function value object traits
     static_assert(std::is_copy_constructible_v<ida::function::Function>);
+
+    using FunctionUpdateFn = ida::Status(*)(ida::Address);
+    using FunctionReanalyzeFn = ida::Status(*)(ida::Address);
+    using FunctionFrameByNameFn = ida::Result<ida::function::FrameVariable>(*)(ida::Address,
+                                                                               std::string_view);
+    using FunctionFrameByOffsetFn = ida::Result<ida::function::FrameVariable>(*)(ida::Address,
+                                                                                 std::size_t);
+    using FunctionRegisterVarsFn = ida::Result<std::vector<ida::function::RegisterVariable>>(*)(ida::Address);
+    using FunctionItemAddressesFn = ida::Result<std::vector<ida::Address>>(*)(ida::Address);
+    using FunctionCodeAddressesFn = ida::Result<std::vector<ida::Address>>(*)(ida::Address);
+
+    (void)static_cast<FunctionUpdateFn>(&ida::function::update);
+    (void)static_cast<FunctionReanalyzeFn>(&ida::function::reanalyze);
+    (void)static_cast<FunctionFrameByNameFn>(&ida::function::frame_variable_by_name);
+    (void)static_cast<FunctionFrameByOffsetFn>(&ida::function::frame_variable_by_offset);
+    (void)static_cast<FunctionRegisterVarsFn>(&ida::function::register_variables);
+    (void)static_cast<FunctionItemAddressesFn>(&ida::function::item_addresses);
+    (void)static_cast<FunctionCodeAddressesFn>(&ida::function::code_addresses);
 }
 
 // ─── ida::instruction ───────────────────────────────────────────────────
@@ -148,6 +184,20 @@ void check_instruction_surface() {
     (void)ida::instruction::OperandType::Register;
     (void)ida::instruction::OperandType::Immediate;
     (void)ida::instruction::OperandType::MemoryDirect;
+    (void)ida::instruction::OperandFormat::Default;
+    (void)ida::instruction::OperandFormat::Hex;
+
+    using InstructionSetOperandFormatFn = ida::Status(*)(ida::Address,
+                                                         int,
+                                                         ida::instruction::OperandFormat,
+                                                         ida::Address);
+    using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
+    using InstructionPredicateFn = bool(*)(ida::Address);
+
+    (void)static_cast<InstructionSetOperandFormatFn>(&ida::instruction::set_operand_format);
+    (void)static_cast<InstructionOperandTextFn>(&ida::instruction::operand_text);
+    (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_jump);
+    (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_conditional_jump);
 }
 
 // ─── ida::name ──────────────────────────────────────────────────────────

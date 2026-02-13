@@ -31,6 +31,18 @@ enum class OperandType {
     ProcessorSpecific5,
 };
 
+enum class OperandFormat {
+    Default,
+    Hex,
+    Decimal,
+    Octal,
+    Binary,
+    Character,
+    Float,
+    Offset,
+    StackVariable,
+};
+
 // ── Operand value object ────────────────────────────────────────────────
 
 class Operand {
@@ -116,6 +128,9 @@ Status set_operand_character(Address address, int n);
 /// Set operand display format to floating point.
 Status set_operand_float(Address address, int n);
 
+/// Generic operand format setter.
+Status set_operand_format(Address address, int n, OperandFormat format, Address base = 0);
+
 /// Set operand as an offset reference. \p base is the offset base (0 for auto).
 Status set_operand_offset(Address address, int n, Address base = 0);
 
@@ -131,6 +146,9 @@ Status set_forced_operand(Address address, int n, std::string_view text);
 
 /// Retrieve forced (manual) operand text, if any.
 Result<std::string> get_forced_operand(Address address, int n);
+
+/// Render only the operand text for operand index \p n.
+Result<std::string> operand_text(Address address, int n);
 
 /// Toggle sign inversion on operand display.
 Status toggle_operand_sign(Address address, int n);
@@ -162,6 +180,12 @@ bool is_call(Address address);
 
 /// Is the instruction at \p address a return instruction?
 bool is_return(Address address);
+
+/// Is the instruction at \p address any jump instruction?
+bool is_jump(Address address);
+
+/// Is the instruction at \p address a conditional jump instruction?
+bool is_conditional_jump(Address address);
 
 /// Decode the next instruction sequentially after \p address.
 Result<Instruction> next(Address address);

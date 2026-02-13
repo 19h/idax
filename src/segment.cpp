@@ -46,6 +46,24 @@ uchar type_to_sdk_type(Type type) {
     }
 }
 
+int find_segment_index_by_start(ea_t start) {
+    const int total = get_segm_qty();
+    for (int i = 0; i < total; ++i) {
+        segment_t* seg = getnseg(i);
+        if (seg != nullptr && seg->start_ea == start)
+            return i;
+    }
+    return -1;
+}
+
+Result<segment_t*> segment_at(Address address) {
+    segment_t* seg = getseg(address);
+    if (seg == nullptr)
+        return std::unexpected(Error::not_found("No segment at address",
+                                                std::to_string(address)));
+    return seg;
+}
+
 } // anonymous namespace
 
 struct SegmentAccess {
@@ -223,6 +241,70 @@ Status set_bitness(Address ea, int bits) {
     return ida::ok();
 }
 
+Result<std::string> comment(Address address, bool repeatable) {
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+    segment_t* raw = *seg;
+
+    qstring text;
+    if (get_segment_cmt(&text, raw, repeatable) <= 0)
+        return std::unexpected(Error::not_found("No segment comment",
+                                                std::to_string(raw->start_ea)));
+    return ida::detail::to_string(text);
+}
+
+Status set_comment(Address address, std::string_view text, bool repeatable) {
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+    segment_t* raw = *seg;
+
+    qstring qtext = ida::detail::to_qstring(text);
+    set_segment_cmt(raw, qtext.c_str(), repeatable);
+    return ida::ok();
+}
+
+Status resize(Address address, Address new_start, Address new_end) {
+    if (new_start == BadAddress || new_end == BadAddress)
+        return std::unexpected(Error::validation("Invalid resize bounds",
+                                                 std::to_string(new_start) + ":" + std::to_string(new_end)));
+    if (new_start >= new_end)
+        return std::unexpected(Error::validation("Segment start must be < end",
+                                                 std::to_string(new_start) + ":" + std::to_string(new_end)));
+
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+    segment_t* raw = *seg;
+
+    if (!set_segm_start(raw->start_ea, static_cast<ea_t>(new_start), SEGMOD_KEEP))
+        return std::unexpected(Error::sdk("set_segm_start failed",
+                                          std::to_string(raw->start_ea)));
+
+    const ea_t anchor = static_cast<ea_t>(new_start);
+    if (!set_segm_end(anchor, static_cast<ea_t>(new_end), SEGMOD_KEEP))
+        return std::unexpected(Error::sdk("set_segm_end failed",
+                                          std::to_string(anchor)));
+    return ida::ok();
+}
+
+Status move(Address address, Address new_start) {
+    if (new_start == BadAddress)
+        return std::unexpected(Error::validation("Invalid segment move start",
+                                                 std::to_string(new_start)));
+
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+
+    int rc = move_segm(seg.value(), static_cast<ea_t>(new_start), MSF_FIXONCE);
+    if (rc != MOVE_SEGM_OK)
+        return std::unexpected(Error::sdk("move_segm failed",
+                                          std::to_string(rc)));
+    return ida::ok();
+}
+
 // ── Traversal ───────────────────────────────────────────────────────────
 
 SegmentIterator::SegmentIterator(std::size_t index, std::size_t total)
@@ -262,6 +344,46 @@ SegmentIterator SegmentRange::end() const {
 
 SegmentRange all() {
     return SegmentRange();
+}
+
+Result<Segment> first() {
+    auto qty = count();
+    if (!qty)
+        return std::unexpected(qty.error());
+    if (*qty == 0)
+        return std::unexpected(Error::not_found("No segments"));
+    return by_index(0);
+}
+
+Result<Segment> last() {
+    auto qty = count();
+    if (!qty)
+        return std::unexpected(qty.error());
+    if (*qty == 0)
+        return std::unexpected(Error::not_found("No segments"));
+    return by_index(*qty - 1);
+}
+
+Result<Segment> next(Address address) {
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+    int index = find_segment_index_by_start(seg.value()->start_ea);
+    if (index < 0)
+        return std::unexpected(Error::internal("Current segment index not found",
+                                               std::to_string(seg.value()->start_ea)));
+    return by_index(static_cast<std::size_t>(index + 1));
+}
+
+Result<Segment> prev(Address address) {
+    auto seg = segment_at(address);
+    if (!seg)
+        return std::unexpected(seg.error());
+    int index = find_segment_index_by_start(seg.value()->start_ea);
+    if (index <= 0)
+        return std::unexpected(Error::not_found("No previous segment",
+                                                std::to_string(address)));
+    return by_index(static_cast<std::size_t>(index - 1));
 }
 
 } // namespace ida::segment

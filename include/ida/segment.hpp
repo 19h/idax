@@ -107,6 +107,16 @@ Status set_type(Address address, Type type);
 Status set_permissions(Address address, Permissions perm);
 Status set_bitness(Address address, int bits);
 
+/// Set segment comment text at the segment containing \p address.
+Result<std::string> comment(Address address, bool repeatable = false);
+Status set_comment(Address address, std::string_view text, bool repeatable = false);
+
+/// Resize the segment containing \p address to [new_start, new_end).
+Status resize(Address address, Address new_start, Address new_end);
+
+/// Move the segment containing \p address so it starts at \p new_start.
+Status move(Address address, Address new_start);
+
 // ── Traversal ───────────────────────────────────────────────────────────
 
 /// Forward iterator over all segments.
@@ -148,6 +158,18 @@ private:
 
 /// Iterable range of all segments.
 SegmentRange all();
+
+/// First segment in database order.
+Result<Segment> first();
+
+/// Last segment in database order.
+Result<Segment> last();
+
+/// Segment immediately after the one containing \p address.
+Result<Segment> next(Address address);
+
+/// Segment immediately before the one containing \p address.
+Result<Segment> prev(Address address);
 
 } // namespace ida::segment
 

@@ -150,6 +150,30 @@ Status set_operand_float(Address ea, int n) {
     return ida::ok();
 }
 
+Status set_operand_format(Address ea, int n, OperandFormat format, Address base) {
+    switch (format) {
+    case OperandFormat::Default:
+        return clear_operand_representation(ea, n);
+    case OperandFormat::Hex:
+        return set_operand_hex(ea, n);
+    case OperandFormat::Decimal:
+        return set_operand_decimal(ea, n);
+    case OperandFormat::Octal:
+        return set_operand_octal(ea, n);
+    case OperandFormat::Binary:
+        return set_operand_binary(ea, n);
+    case OperandFormat::Character:
+        return set_operand_character(ea, n);
+    case OperandFormat::Float:
+        return set_operand_float(ea, n);
+    case OperandFormat::Offset:
+        return set_operand_offset(ea, n, base);
+    case OperandFormat::StackVariable:
+        return set_operand_stack_variable(ea, n);
+    }
+    return std::unexpected(Error::validation("Unknown operand format"));
+}
+
 Status set_operand_offset(Address ea, int n, Address base) {
     if (!op_plain_offset(ea, n, base))
         return std::unexpected(Error::sdk("op_plain_offset failed", std::to_string(ea)));
@@ -182,6 +206,14 @@ Result<std::string> get_forced_operand(Address ea, int n) {
         return std::unexpected(Error::not_found("No forced operand",
                                                 std::to_string(ea) + ":" + std::to_string(n)));
     return ida::detail::to_string(buf);
+}
+
+Result<std::string> operand_text(Address ea, int n) {
+    qstring text;
+    if (!print_operand(&text, ea, n))
+        return std::unexpected(Error::sdk("print_operand failed",
+                                          std::to_string(ea) + ":" + std::to_string(n)));
+    return ida::detail::to_string(text);
 }
 
 Status toggle_operand_sign(Address ea, int n) {
@@ -272,6 +304,36 @@ bool is_return(Address ea) {
     // A return instruction has no code xrefs from it at all (except possibly flow to next
     // for conditional returns). The SDK way: check if is_ret_insn returns true.
     return is_ret_insn(raw);
+}
+
+bool is_jump(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return false;
+    xrefblk_t xb;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (xb.iscode && (xb.type == fl_JN || xb.type == fl_JF))
+            return true;
+    }
+    return false;
+}
+
+bool is_conditional_jump(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return false;
+    xrefblk_t xb;
+    bool has_jump = false;
+    bool has_fallthrough = false;
+    for (bool ok = xb.first_from(ea, XREF_ALL); ok; ok = xb.next_from()) {
+        if (!xb.iscode)
+            continue;
+        if (xb.type == fl_JN || xb.type == fl_JF)
+            has_jump = true;
+        if (xb.type == fl_F)
+            has_fallthrough = true;
+    }
+    return has_jump && has_fallthrough;
 }
 
 Result<Instruction> next(Address ea) {

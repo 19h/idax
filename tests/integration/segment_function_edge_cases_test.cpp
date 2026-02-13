@@ -84,6 +84,34 @@ void test_segment_edge_cases() {
     CHECK_OK(restored);
     if (restored)
         CHECK(restored->permissions().execute == original_perm.execute);
+
+    auto first = ida::segment::first();
+    auto last = ida::segment::last();
+    CHECK_OK(first);
+    CHECK_OK(last);
+    if (first && last) {
+        CHECK(first->start() <= last->start());
+        auto maybe_next = ida::segment::next(first->start());
+        if (maybe_next)
+            CHECK(maybe_next->start() >= first->start());
+    }
+
+    CHECK_OK(ida::segment::set_comment(seg0->start(), "idax segment edge comment"));
+    auto seg_comment = ida::segment::comment(seg0->start());
+    CHECK_OK(seg_comment);
+    if (seg_comment)
+        CHECK(seg_comment->find("idax segment edge comment") != std::string::npos);
+    CHECK_OK(ida::segment::set_comment(seg0->start(), ""));
+
+    auto invalid_resize = ida::segment::resize(seg0->start(), seg0->end(), seg0->start());
+    CHECK(!invalid_resize.has_value());
+    if (!invalid_resize)
+        CHECK(invalid_resize.error().category == ida::ErrorCategory::Validation);
+
+    auto invalid_move = ida::segment::move(seg0->start(), ida::BadAddress);
+    CHECK(!invalid_move.has_value());
+    if (!invalid_move)
+        CHECK(invalid_move.error().category == ida::ErrorCategory::Validation);
 }
 
 void test_function_edge_cases() {
@@ -129,6 +157,30 @@ void test_function_edge_cases() {
         CHECK(!chunks->empty());
         CHECK(*chunk_count == chunks->size());
         CHECK(tails->size() <= chunks->size());
+    }
+
+    CHECK_OK(ida::function::update(fn0->start()));
+    CHECK_OK(ida::function::reanalyze(fn0->start()));
+
+    auto items = ida::function::item_addresses(fn0->start());
+    auto codes = ida::function::code_addresses(fn0->start());
+    CHECK_OK(items);
+    CHECK_OK(codes);
+    if (items && codes) {
+        CHECK(!items->empty());
+        CHECK(codes->size() <= items->size());
+    }
+
+    auto regvars = ida::function::register_variables(fn0->start());
+    CHECK_OK(regvars);
+
+    auto frame = ida::function::frame(fn0->start());
+    if (frame && !frame->variables().empty()) {
+        const auto& v = frame->variables().front();
+        auto by_name = ida::function::frame_variable_by_name(fn0->start(), v.name);
+        auto by_offset = ida::function::frame_variable_by_offset(fn0->start(), v.byte_offset);
+        CHECK_OK(by_name);
+        CHECK_OK(by_offset);
     }
 
     // Comment lifecycle should cleanly round-trip on valid function addresses.
