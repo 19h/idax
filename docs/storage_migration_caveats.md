@@ -21,3 +21,9 @@
 5. **Error handling**
    - Treat missing nodes/keys as recoverable `not_found` cases.
    - Reserve `sdk_failure` for actual SDK operation failures.
+
+6. **Index 0 crashes in idalib mode**
+   - Netnode blob operations at index 0 can trigger crashes when running under idalib.
+   - Always use indices >= 100 for blob/alt/sup operations.
+
+See also: [Storage / netnode migration examples](migration/legacy_to_wrapper.md#storage--netnode-migration) for complete code snippets.

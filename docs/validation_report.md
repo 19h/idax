@@ -17,10 +17,13 @@ Date: 2026-02-13 (updated)
 - Fixup relocation: pass
 - Operand and text: pass
 - Decompiler/storage hardening: pass
+- Decompiler edge cases: pass
+- Event stress: pass
+- Performance benchmark: pass
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
-**Total: 13/13 CTest targets pass**
+**Total: 16/16 CTest targets pass**
 
 ## Scenario coverage highlights
 
@@ -38,7 +41,10 @@ Date: 2026-02-13 (updated)
 - Flowchart generation from function addresses
 - Event typed subscriptions + generic routing + filtered routing
 - Decompiler pseudocode/ctree/comment/address mapping scenarios
+- Decompiler edge cases: multi-function, variable classification, ctree diversity, rename roundtrip
 - Storage alt/sup/hash/blob operations
+- Event stress: concurrent subscribers, rapid sub/unsub, multi-event fan-out
+- Performance benchmarks: decode throughput, function iteration, pattern search, decompile latency
 
 ## Platform/compiler matrix (current pass)
 

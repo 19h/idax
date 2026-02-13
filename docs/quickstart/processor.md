@@ -16,10 +16,10 @@ Create a processor module by subclassing `ida::processor::Processor`.
 class MyProcessor : public ida::processor::Processor {
 public:
   ida::processor::ProcessorInfo info() const override;
-  int analyze(ida::Address ea) override;
-  int emulate(ida::Address ea) override;
-  void output_instruction(ida::Address ea) override;
-  int output_operand(ida::Address ea, int op) override;
+  ida::Result<int> analyze(ida::Address address) override;
+  ida::processor::EmulateResult emulate(ida::Address address) override;
+  void output_instruction(ida::Address address) override;
+  ida::processor::OutputOperandResult output_operand(ida::Address address, int operand) override;
 };
 
 IDAX_PROCESSOR(MyProcessor)

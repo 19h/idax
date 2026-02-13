@@ -113,17 +113,16 @@ auto arr = ida::type::TypeInfo::array_of(ida::type::TypeInfo::uint8(), 256);
 // add_struc_member(s, "field_b", 4, qword_flag(), nullptr, 8);
 
 // idax:
-auto st = ida::type::TypeInfo::create_struct("my_struct");
-if (st) {
-    st->add_member("field_a", ida::type::TypeInfo::int32());
-    st->add_member("field_b", ida::type::TypeInfo::int64());
+auto st = ida::type::TypeInfo::create_struct();
+st.add_member("field_a", ida::type::TypeInfo::int32());
+st.add_member("field_b", ida::type::TypeInfo::int64());
+st.save_as("my_struct");
 
-    // Access members:
-    auto count = st->member_count();  // -> 2
-    auto members = st->members();     // -> vector<MemberInfo>
-    auto by_name = st->member_by_name("field_a");
-    auto by_off  = st->member_by_offset(4);  // field_b
-}
+// Access members:
+auto count = st.member_count();  // -> 2
+auto members = st.members();     // -> vector<MemberInfo>
+auto by_name = st.member_by_name("field_a");
+auto by_off  = st.member_by_offset(4);  // field_b
 ```
 
 ### Applying types to addresses
@@ -149,7 +148,7 @@ ida::type::apply_named_type(ea, "my_struct");
 
 // idax:
 ida::type::load_type_library("ntapi");
-ida::type::import_type("HANDLE");
+ida::type::import_type("ntapi", "HANDLE");
 
 auto count = ida::type::local_type_count();
 auto name  = ida::type::local_type_name(1);
@@ -243,8 +242,10 @@ auto sz = node->blob_size(100);  // -> Result<size_t>
 auto rd = node->blob(100);       // -> Result<vector<uint8_t>>
 node->remove_blob(100);
 
-// String convenience:
-node->set_blob_string(101, "hello world");
+// String convenience (read-only helper; write via set_blob with byte conversion):
+std::string text = "hello world";
+std::vector<std::uint8_t> bytes(text.begin(), text.end());
+node->set_blob(101, bytes);
 auto s = node->blob_string(101);  // -> Result<string>
 ```
 

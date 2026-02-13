@@ -41,6 +41,6 @@ if (lo && hi) {
 ## Queue analysis and wait
 
 ```cpp
-ida::analysis::schedule_reanalysis(ea);
+ida::analysis::schedule(ea);
 ida::analysis::wait();
 ```

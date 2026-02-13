@@ -2,32 +2,40 @@
 
 Public headers:
 
-- `include/ida/address.hpp`
-- `include/ida/data.hpp`
-- `include/ida/database.hpp`
-- `include/ida/segment.hpp`
-- `include/ida/function.hpp`
-- `include/ida/instruction.hpp`
-- `include/ida/name.hpp`
-- `include/ida/xref.hpp`
-- `include/ida/comment.hpp`
-- `include/ida/search.hpp`
-- `include/ida/analysis.hpp`
-- `include/ida/type.hpp`
-- `include/ida/entry.hpp`
-- `include/ida/fixup.hpp`
-- `include/ida/plugin.hpp`
-- `include/ida/loader.hpp`
-- `include/ida/processor.hpp`
-- `include/ida/debugger.hpp`
-- `include/ida/ui.hpp`
-- `include/ida/graph.hpp`
-- `include/ida/event.hpp`
-- `include/ida/decompiler.hpp`
-- `include/ida/storage.hpp`
+| Header | Description |
+|--------|-------------|
+| `include/ida/idax.hpp` | Master include — pulls in all domain headers |
+| `include/ida/error.hpp` | Error model: `Result<T>`, `Status`, `Error`, `ErrorCategory` |
+| `include/ida/core.hpp` | Shared option structs and cross-cutting type aliases |
+| `include/ida/diagnostics.hpp` | Logging levels, counters, diagnostic message helpers |
+| `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
+| `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
+| `include/ida/database.hpp` | Open/save/close, metadata, snapshots, file/memory transfer |
+| `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration |
+| `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees |
+| `include/ida/instruction.hpp` | Decode/create, operand access, representation controls, xref conveniences |
+| `include/ida/name.hpp` | Set/get/force/remove names, demangling, resolution, properties |
+| `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
+| `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
+| `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
+| `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
+| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries |
+| `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
+| `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
+| `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar attachment |
+| `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
+| `include/ida/processor.hpp` | Processor base class, register/instruction descriptors, switch detection |
+| `include/ida/debugger.hpp` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
+| `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
+| `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
+| `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
+| `include/ida/decompiler.hpp` | Decompile, pseudocode, variables, ctree visitor, comments, address mapping |
+| `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
 See also:
 
-- `docs/quickstart/`
-- `docs/cookbook/`
-- `docs/migration/`
+- `docs/quickstart/` — Plugin, loader, processor module skeletons
+- `docs/cookbook/` — Common task recipes and disassembly workflows
+- `docs/migration/` — Legacy SDK to idax migration map and snippets
+- `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
+- `docs/storage_migration_caveats.md` — Netnode migration safety notes

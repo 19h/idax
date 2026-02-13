@@ -23,8 +23,7 @@ ida::database::open("firmware.i64", /*auto_analysis=*/true);
 ida::analysis::wait();
 
 for (auto fn : ida::function::all()) {
-    auto insn = ida::instruction::decode(fn.start());
-    if (insn && insn->is_call())
+    if (ida::instruction::is_call(fn.start()))
         ida::comment::set(fn.start(), "entry is a call instruction");
 }
 
@@ -154,10 +153,11 @@ for (auto seg : ida::segment::all()) {
 
 // Find a function, inspect its frame
 auto fn = ida::function::at(0x401000);
-if (fn && fn->has_frame()) {
-    auto frame = fn->frame();
-    std::cout << "locals: " << frame->local_variables_size()
-              << " args: "  << frame->arguments_size() << "\n";
+if (fn) {
+    auto frame = ida::function::frame(fn->start());
+    if (frame)
+        std::cout << "locals: " << frame->local_variables_size()
+                  << " args: "  << frame->arguments_size() << "\n";
 }
 ```
 
@@ -190,12 +190,12 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
 
         // Enumerate local variables
         for (auto& var : *df->variables())
-            std::cout << var.name << " : " << var.type_string << "\n";
+            std::cout << var.name << " : " << var.type_name << "\n";
 
         // Walk the ctree
         ida::decompiler::for_each_expression(*df,
             [](const ida::decompiler::ExpressionView& expr) {
-                if (expr.type() == ida::decompiler::ItemType::Call)
+                if (expr.type() == ida::decompiler::ItemType::ExprCall)
                     std::cout << "call found\n";
                 return ida::decompiler::VisitAction::Continue;
             });
@@ -209,7 +209,7 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
 // Subscribe to rename events -- automatically unsubscribes when guard goes out of scope
 auto token = ida::event::on_renamed(
     [](ida::Address addr, std::string new_name, std::string old_name) {
-        ida::ui::message("renamed: %s -> %s\n", old_name.c_str(), new_name.c_str());
+        ida::ui::message("renamed: " + old_name + " -> " + new_name + "\n");
     });
 
 ida::event::ScopedSubscription guard(*token);  // RAII: unsubscribes in destructor
@@ -433,7 +433,7 @@ Tests require a real IDA installation (the idalib runtime). Set `IDADIR` to your
 ctest --test-dir build --output-on-failure
 ```
 
-The test suite includes 13 targets: 2 unit tests (pure logic + API surface parity) and 11 integration tests covering every namespace with a real ELF64 fixture binary.
+The test suite includes 16 targets: 2 unit tests (pure logic + API surface parity) and 14 integration tests covering every namespace with a real ELF64 fixture binary.
 
 ### Install
 
@@ -476,7 +476,7 @@ idax is validated through layered testing:
 | **Domain integration** | Dedicated suites: types, fixups, operands, decompiler, events, etc. | idalib + fixture |
 | **Scenario tests** | Loader/processor module lifecycle and callback wiring | idalib + fixture |
 
-Current status: **13/13 test targets passing** (232 smoke checks + 12 dedicated suites).
+Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated suites).
 
 ---
 
