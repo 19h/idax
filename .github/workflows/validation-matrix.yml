@@ -1,0 +1,141 @@
+name: Validation Matrix
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IDA_SDK_REPO: HexRaysSA/ida-sdk
+  BUILD_TYPE: RelWithDebInfo
+  IDAX_BUILD_EXAMPLES: OFF
+
+jobs:
+  validation:
+    name: ${{ matrix.profile }} - ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux-x86_64
+            profile: compile-only
+            build_dir: build-matrix-linux-gha-compile
+            cc: gcc
+            cxx: g++
+
+          - os: ubuntu-latest
+            name: linux-x86_64
+            profile: unit
+            build_dir: build-matrix-linux-gha-unit
+            cc: gcc
+            cxx: g++
+
+          - os: macos-14
+            name: macos-arm64
+            profile: compile-only
+            build_dir: build-matrix-macos14-gha-compile
+
+          - os: macos-14
+            name: macos-arm64
+            profile: unit
+            build_dir: build-matrix-macos14-gha-unit
+
+          - os: windows-latest
+            name: windows-x64
+            profile: compile-only
+            build_dir: build-matrix-windows-gha-compile
+            msvc_arch: x64
+
+          - os: windows-latest
+            name: windows-x64
+            profile: unit
+            build_dir: build-matrix-windows-gha-unit
+            msvc_arch: x64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout IDA SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          path: ida-sdk
+          submodules: recursive
+
+      - name: Resolve IDASDK path
+        shell: bash
+        run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK bootstrap.cmake in SDK checkout"
+            echo "checked:"
+            echo "  ${SDK_ROOT}/ida-cmake/bootstrap.cmake"
+            echo "  ${SDK_ROOT}/cmake/bootstrap.cmake"
+            echo "  ${SDK_ROOT}/src/ida-cmake/bootstrap.cmake"
+            echo "  ${SDK_ROOT}/src/cmake/bootstrap.cmake"
+            echo "note: if SDK uses submodule-backed src/cmake, ensure submodules are checked out"
+            ls -la "${SDK_ROOT}" || true
+            ls -la "${SDK_ROOT}/src" || true
+            ls -la "${SDK_ROOT}/src/cmake" || true
+            exit 1
+          fi
+
+      - name: Show resolved IDASDK
+        shell: bash
+        run: |
+          echo "IDASDK=${IDASDK}"
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Select GCC toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "CC=${{ matrix.cc }}" >> "$GITHUB_ENV"
+          echo "CXX=${{ matrix.cxx }}" >> "$GITHUB_ENV"
+
+      - name: Run validation profile
+        shell: bash
+        env:
+          IDAX_BUILD_EXAMPLES: ${{ env.IDAX_BUILD_EXAMPLES }}
+        run: |
+          chmod +x scripts/run_validation_matrix.sh
+          scripts/run_validation_matrix.sh "${{ matrix.profile }}" "${{ matrix.build_dir }}" "${{ env.BUILD_TYPE }}"
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.profile }}-${{ matrix.name }}
+          path: |
+            ${{ matrix.build_dir }}/CMakeCache.txt
+            ${{ matrix.build_dir }}/CMakeFiles/CMakeOutput.log
+            ${{ matrix.build_dir }}/CMakeFiles/CMakeError.log
+          if-no-files-found: ignore

@@ -50,13 +50,13 @@ cmake -S "$ROOT" -B "$BUILD_DIR" \
   -DIDAX_BUILD_TESTS="$BUILD_TESTS" \
   -DIDAX_BUILD_EXAMPLES="$BUILD_EXAMPLES"
 
-cmake --build "$BUILD_DIR"
+cmake --build "$BUILD_DIR" --config "$BUILD_TYPE"
 
 if [[ "$RUN_TESTS" == "1" ]]; then
   if [[ -n "$TEST_REGEX" ]]; then
-    ctest --test-dir "$BUILD_DIR" --output-on-failure -R "$TEST_REGEX"
+    ctest --test-dir "$BUILD_DIR" --output-on-failure -C "$BUILD_TYPE" -R "$TEST_REGEX"
   else
-    ctest --test-dir "$BUILD_DIR" --output-on-failure
+    ctest --test-dir "$BUILD_DIR" --output-on-failure -C "$BUILD_TYPE"
   fi
 fi
 
