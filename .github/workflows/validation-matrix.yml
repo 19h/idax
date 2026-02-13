@@ -13,7 +13,8 @@ permissions:
 env:
   IDA_SDK_REPO: HexRaysSA/ida-sdk
   BUILD_TYPE: RelWithDebInfo
-  IDAX_BUILD_EXAMPLES: OFF
+  IDAX_BUILD_EXAMPLES: ON
+  IDAX_BUILD_EXAMPLE_ADDONS: ON
 
 jobs:
   validation:
@@ -125,6 +126,7 @@ jobs:
         shell: bash
         env:
           IDAX_BUILD_EXAMPLES: ${{ env.IDAX_BUILD_EXAMPLES }}
+          IDAX_BUILD_EXAMPLE_ADDONS: ${{ env.IDAX_BUILD_EXAMPLE_ADDONS }}
         run: |
           chmod +x scripts/run_validation_matrix.sh
           scripts/run_validation_matrix.sh "${{ matrix.profile }}" "${{ matrix.build_dir }}" "${{ env.BUILD_TYPE }}"
