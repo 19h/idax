@@ -125,6 +125,33 @@ Status attach_to_popup(std::string_view widget_title, std::string_view action_id
     return ida::ok();
 }
 
+Status detach_from_menu(std::string_view menu_path, std::string_view action_id) {
+    std::string mp(menu_path), aid(action_id);
+    if (!::detach_action_from_menu(mp.c_str(), aid.c_str()))
+        return std::unexpected(Error::not_found("Action is not attached to menu",
+                                                std::string(action_id)));
+    return ida::ok();
+}
+
+Status detach_from_toolbar(std::string_view toolbar, std::string_view action_id) {
+    std::string tb(toolbar), aid(action_id);
+    if (!::detach_action_from_toolbar(tb.c_str(), aid.c_str()))
+        return std::unexpected(Error::not_found("Action is not attached to toolbar",
+                                                std::string(action_id)));
+    return ida::ok();
+}
+
+Status detach_from_popup(std::string_view widget_title, std::string_view action_id) {
+    std::string wt(widget_title), aid(action_id);
+    TWidget* tw = ::find_widget(wt.c_str());
+    if (tw == nullptr)
+        return std::unexpected(Error::not_found("Widget not found", wt));
+    if (!::detach_action_from_popup(tw, aid.c_str()))
+        return std::unexpected(Error::not_found("Action is not attached to widget popup",
+                                                std::string(action_id)));
+    return ida::ok();
+}
+
 // ── Plugin export bridge (IDAX_PLUGIN macro support) ────────────────────
 //
 // The IDAX_PLUGIN(ClassName) macro generates a factory function and calls

@@ -90,6 +90,42 @@ Result<std::string> InputFile::filename() const {
         "Filename not available from InputFile; use the loader callback parameter"));
 }
 
+LoadFlags decode_load_flags(std::uint16_t raw_flags) {
+    LoadFlags out;
+    out.create_segments = (raw_flags & NEF_SEGS) != 0;
+    out.load_resources = (raw_flags & NEF_RSCS) != 0;
+    out.rename_entries = (raw_flags & NEF_NAME) != 0;
+    out.manual_load = (raw_flags & NEF_MAN) != 0;
+    out.fill_gaps = (raw_flags & NEF_FILL) != 0;
+    out.create_import_segment = (raw_flags & NEF_IMPS) != 0;
+    out.first_file = (raw_flags & NEF_FIRST) != 0;
+    out.binary_code_segment = (raw_flags & NEF_CODE) != 0;
+    out.reload = (raw_flags & NEF_RELOAD) != 0;
+    out.auto_flat_group = (raw_flags & NEF_FLAT) != 0;
+    out.mini_database = (raw_flags & NEF_MINI) != 0;
+    out.loader_options_dialog = (raw_flags & NEF_LOPT) != 0;
+    out.load_all_segments = (raw_flags & NEF_LALL) != 0;
+    return out;
+}
+
+std::uint16_t encode_load_flags(const LoadFlags& flags) {
+    std::uint16_t raw = 0;
+    if (flags.create_segments) raw |= static_cast<std::uint16_t>(NEF_SEGS);
+    if (flags.load_resources) raw |= static_cast<std::uint16_t>(NEF_RSCS);
+    if (flags.rename_entries) raw |= static_cast<std::uint16_t>(NEF_NAME);
+    if (flags.manual_load) raw |= static_cast<std::uint16_t>(NEF_MAN);
+    if (flags.fill_gaps) raw |= static_cast<std::uint16_t>(NEF_FILL);
+    if (flags.create_import_segment) raw |= static_cast<std::uint16_t>(NEF_IMPS);
+    if (flags.first_file) raw |= static_cast<std::uint16_t>(NEF_FIRST);
+    if (flags.binary_code_segment) raw |= static_cast<std::uint16_t>(NEF_CODE);
+    if (flags.reload) raw |= static_cast<std::uint16_t>(NEF_RELOAD);
+    if (flags.auto_flat_group) raw |= static_cast<std::uint16_t>(NEF_FLAT);
+    if (flags.mini_database) raw |= static_cast<std::uint16_t>(NEF_MINI);
+    if (flags.loader_options_dialog) raw |= static_cast<std::uint16_t>(NEF_LOPT);
+    if (flags.load_all_segments) raw |= static_cast<std::uint16_t>(NEF_LALL);
+    return raw;
+}
+
 // ── Loader helper functions ─────────────────────────────────────────────
 
 Status file_to_database(void* li_handle, std::int64_t file_offset,

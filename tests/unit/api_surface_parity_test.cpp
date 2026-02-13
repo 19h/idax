@@ -454,7 +454,13 @@ void check_plugin_surface() {
     (void)action.enabled_with_context;
 
     using AttachPopupFn = ida::Status(*)(std::string_view, std::string_view);
+    using DetachMenuFn = ida::Status(*)(std::string_view, std::string_view);
+    using DetachToolbarFn = ida::Status(*)(std::string_view, std::string_view);
+    using DetachPopupFn = ida::Status(*)(std::string_view, std::string_view);
     (void)static_cast<AttachPopupFn>(&ida::plugin::attach_to_popup);
+    (void)static_cast<DetachMenuFn>(&ida::plugin::detach_from_menu);
+    (void)static_cast<DetachToolbarFn>(&ida::plugin::detach_from_toolbar);
+    (void)static_cast<DetachPopupFn>(&ida::plugin::detach_from_popup);
 }
 
 // ─── ida::loader ────────────────────────────────────────────────────────
@@ -464,10 +470,43 @@ void check_loader_surface() {
                   "Loader should be abstract base class");
 
     ida::loader::AcceptResult ar;
-    (void)ar.format_name; (void)ar.processor_name; (void)ar.priority;
+    (void)ar.format_name;
+    (void)ar.processor_name;
+    (void)ar.priority;
+    (void)ar.archive_loader;
+    (void)ar.continue_probe;
+    (void)ar.prefer_first;
 
     ida::loader::LoaderOptions opts;
     (void)opts.supports_reload; (void)opts.requires_processor;
+
+    ida::loader::LoadFlags flags;
+    (void)flags.create_segments;
+    (void)flags.reload;
+    (void)flags.load_all_segments;
+
+    ida::loader::LoadRequest load_request;
+    (void)load_request.format_name;
+    (void)load_request.archive_name;
+    (void)load_request.archive_member_name;
+
+    ida::loader::SaveRequest save_request;
+    (void)save_request.format_name;
+    (void)save_request.capability_query;
+
+    ida::loader::MoveSegmentRequest move_request;
+    (void)move_request.whole_program_rebase;
+
+    ida::loader::ArchiveMemberRequest archive_request;
+    (void)archive_request.default_member;
+
+    ida::loader::ArchiveMemberResult archive_result;
+    (void)archive_result.extracted_file;
+
+    using DecodeLoadFlagsFn = ida::loader::LoadFlags(*)(std::uint16_t);
+    using EncodeLoadFlagsFn = std::uint16_t(*)(const ida::loader::LoadFlags&);
+    (void)static_cast<DecodeLoadFlagsFn>(&ida::loader::decode_load_flags);
+    (void)static_cast<EncodeLoadFlagsFn>(&ida::loader::encode_load_flags);
 }
 
 // ─── ida::processor ─────────────────────────────────────────────────────
@@ -486,6 +525,7 @@ void check_processor_surface() {
     (void)ida::processor::InstructionFeature::Call;
 
     (void)ida::processor::EmulateResult::Success;
+    (void)ida::processor::OutputInstructionResult::Success;
     (void)ida::processor::OutputOperandResult::Success;
 
     (void)ida::processor::SwitchTableKind::Dense;
@@ -494,8 +534,46 @@ void check_processor_surface() {
     ida::processor::RegisterInfo ri;
     (void)ri.name; (void)ri.read_only;
 
+    ida::processor::InstructionDescriptor id;
+    (void)id.mnemonic;
+    (void)id.feature_flags;
+    (void)id.operand_count;
+    (void)id.description;
+    (void)id.privileged;
+
+    ida::processor::AssemblerInfo ai;
+    (void)ai.name;
+    (void)ai.comment_prefix;
+    (void)ai.oword_directive;
+    (void)ai.float_directive;
+    (void)ai.double_directive;
+    (void)ai.tbyte_directive;
+    (void)ai.align_directive;
+    (void)ai.include_directive;
+    (void)ai.public_directive;
+    (void)ai.weak_directive;
+    (void)ai.external_directive;
+    (void)ai.current_ip_symbol;
+    (void)ai.uppercase_mnemonics;
+    (void)ai.uppercase_registers;
+    (void)ai.requires_colon_after_labels;
+    (void)ai.supports_quoted_names;
+
     ida::processor::SwitchDescription sd;
     (void)sd.kind; (void)sd.case_count;
+
+    ida::processor::OutputContext out;
+    out.mnemonic("mov").space().register_name("r0").comma().space().immediate(1);
+    (void)out.text();
+
+    using OutputInstructionWithContextFn = ida::processor::OutputInstructionResult(
+        ida::processor::Processor::*)(ida::Address, ida::processor::OutputContext&);
+    using OutputOperandWithContextFn = ida::processor::OutputOperandResult(
+        ida::processor::Processor::*)(ida::Address, int, ida::processor::OutputContext&);
+    (void)static_cast<OutputInstructionWithContextFn>(
+        &ida::processor::Processor::output_instruction_with_context);
+    (void)static_cast<OutputOperandWithContextFn>(
+        &ida::processor::Processor::output_operand_with_context);
 }
 
 // ─── ida::debugger ──────────────────────────────────────────────────────

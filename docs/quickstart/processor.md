@@ -33,4 +33,28 @@ Optional virtual hooks cover:
 - stack behavior (`calculate_stack_pointer_delta`)
 - switch idioms (`detect_switch`, `calculate_switch_cases`, `create_switch_references`)
 
+## Output context abstraction
+
+For SDK-opaque text rendering, use `ida::processor::OutputContext`:
+
+```cpp
+ida::processor::OutputInstructionResult
+output_instruction_with_context(ida::Address address,
+                                ida::processor::OutputContext& out) override {
+  out.mnemonic("mov").space().register_name("r0").comma().space().immediate(1);
+  return ida::processor::OutputInstructionResult::Success;
+}
+
+ida::processor::OutputOperandResult
+output_operand_with_context(ida::Address address,
+                            int operand_index,
+                            ida::processor::OutputContext& out) override {
+  if (operand_index == 0) {
+    out.register_name("r0");
+    return ida::processor::OutputOperandResult::Success;
+  }
+  return ida::processor::OutputOperandResult::Hidden;
+}
+```
+
 See `examples/procmod/minimal_procmod.cpp`.
