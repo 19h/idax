@@ -17,7 +17,7 @@ Tracking rules:
 
 - Every row must include concrete symbol references.
 - Every `partial`/`missing` row must define closure criteria and required evidence.
-- Any row status changes must also update `claude.md` TODO state + Progress Ledger + Findings/Decision logs as applicable.
+- Any row status changes must also update `agents.md` TODO state + Progress Ledger + Findings/Decision logs as applicable.
 
 ## A) Domain Coverage Matrix (one row per public domain)
 
@@ -86,9 +86,9 @@ Tracking rules:
 
 1. This matrix is the canonical closure artifact for `P10.0`.
 2. Status updates must happen in lockstep with:
-   - `claude.md` TODO checkboxes,
-   - `claude.md` Progress Ledger,
-   - `claude.md` Findings/Decision/Blockers sections when applicable.
+   - `agents.md` TODO checkboxes,
+   - `agents.md` Progress Ledger,
+   - `agents.md` Findings/Decision/Blockers sections when applicable.
 3. No row transitions to `covered` without both:
    - passing tests in changed profiles (`full`, `unit`, `compile-only`), and
    - docs evidence updates (`docs/migration/*`, `docs/namespace_topology.md`, API reference).
