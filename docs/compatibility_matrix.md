@@ -31,6 +31,7 @@ Environment requirements:
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-compile/`) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests (`build-matrix-unit/`) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, via script) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
 | Linux | x86_64 | GCC 13+ | RelWithDebInfo | compile-only | none | pending | queued |
 | Linux | x86_64 | Clang 17+ | RelWithDebInfo | compile-only | none | pending | queued |
@@ -44,6 +45,9 @@ Environment requirements:
 # Full validation (with IDA runtime available)
 scripts/run_validation_matrix.sh full build-matrix-full RelWithDebInfo
 
+# Full validation + package generation
+RUN_PACKAGING=1 scripts/run_validation_matrix.sh full build-matrix-full RelWithDebInfo
+
 # Compiler/OS smoke validation without runtime integration tests
 scripts/run_validation_matrix.sh compile-only build-matrix-compile RelWithDebInfo
 
@@ -55,5 +59,33 @@ scripts/run_validation_matrix.sh unit build-matrix-unit RelWithDebInfo
 
 - On macOS, linking against IDA 9.3 dylibs can emit deployment-target warnings
   (`built for newer version 12.0`). Current runs are stable and all tests pass.
+- Packaging output is pinned to the selected build dir via `cpack -B <build-dir>`
+  in the matrix script.
 - Full multi-OS completion requires Linux and Windows hosts with licensed IDA
   runtime installations available to the test harness.
+
+## Host execution checklist
+
+Linux host (GCC/Clang):
+
+```bash
+export IDASDK=/path/to/ida-sdk
+export IDADIR=/path/to/ida
+
+# compile-only row(s)
+scripts/run_validation_matrix.sh compile-only build-matrix-linux-gcc RelWithDebInfo
+
+# full row(s)
+scripts/run_validation_matrix.sh full build-matrix-linux-gcc-full RelWithDebInfo
+```
+
+Windows host (MSVC):
+
+```powershell
+$env:IDASDK = "C:\path\to\ida-sdk"
+$env:IDADIR = "C:\path\to\IDA"
+
+# from a shell with CMake + MSVC toolchain configured
+bash scripts/run_validation_matrix.sh compile-only build-matrix-win-msvc RelWithDebInfo
+bash scripts/run_validation_matrix.sh full build-matrix-win-msvc-full RelWithDebInfo
+```

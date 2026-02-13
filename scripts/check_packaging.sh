@@ -11,12 +11,16 @@ fi
 echo "[idax] packaging check in $BUILD_DIR"
 
 cmake --build "$BUILD_DIR"
-cpack --config "$BUILD_DIR/CPackConfig.cmake"
+cpack --config "$BUILD_DIR/CPackConfig.cmake" -B "$BUILD_DIR"
 
-PKG=$(ls "$BUILD_DIR"/*.tar.gz 2>/dev/null | head -n 1 || true)
-if [[ -z "$PKG" ]]; then
-  PKG=$(ls ./*.tar.gz 2>/dev/null | head -n 1 || true)
-fi
+PKG=""
+for candidate in "$BUILD_DIR"/*.tar.gz; do
+  if [[ -f "$candidate" ]]; then
+    PKG="$candidate"
+    break
+  fi
+done
+
 if [[ -z "$PKG" ]]; then
   echo "error: no TGZ package produced"
   exit 1

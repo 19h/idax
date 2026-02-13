@@ -61,7 +61,7 @@ if [[ "$RUN_TESTS" == "1" ]]; then
 fi
 
 if [[ "$RUN_PACKAGING" == "1" ]]; then
-  cpack --config "$BUILD_DIR/CPackConfig.cmake"
+  cpack --config "$BUILD_DIR/CPackConfig.cmake" -B "$BUILD_DIR"
 fi
 
 echo "[idax] validation profile '$PROFILE' complete"
