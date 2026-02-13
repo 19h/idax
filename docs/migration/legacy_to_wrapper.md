@@ -20,9 +20,12 @@
 | `set_name(ea, n, SN_NOWARN)` | `ida::name::set(ea, n)` |
 | `force_name(ea, n)` | `ida::name::force_set(ea, n)` |
 | `set_cmt(ea, txt, rpt)` | `ida::comment::set(ea, txt, rpt)` |
+| `add_extra_cmt(ea, true, line)` | `ida::comment::set_anterior_lines(ea, lines)` |
+| `add_extra_cmt(ea, false, line)` | `ida::comment::set_posterior_lines(ea, lines)` |
 | `add_cref(from, to, fl_CN)` | `ida::xref::add_code(from, to, CodeType::CallNear)` |
 | `add_dref(from, to, dr_R)` | `ida::xref::add_data(from, to, DataType::Read)` |
 | `find_text(...)` | `ida::search::text(query, start, options)` |
+| `find_text(..., SEARCH_REGEX)` | `ida::search::text(query, start, TextOptions{.regex=true})` |
 | `auto_wait()` | `ida::analysis::wait()` |
 | `plan_ea(ea)` | `ida::analysis::schedule(ea)` |
 | `open_linput(path, false)` | `ida::loader::InputFile` (provided in callbacks) |
@@ -120,7 +123,7 @@ st.save_as("my_struct");
 
 // Access members:
 auto count = st.member_count();  // -> 2
-auto members = st.members();     // -> vector<MemberInfo>
+auto members = st.members();     // -> Result<vector<Member>>
 auto by_name = st.member_by_name("field_a");
 auto by_off  = st.member_by_offset(4);  // field_b
 ```
