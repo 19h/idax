@@ -3,7 +3,7 @@
 ## High Priority
 
 - ~~Add richer fixture corpus for loader/procmod/decompiler/debugger edge cases.~~ DONE: decompiler_edge_cases_test (837 lines, 7 test sections), expanded loader_processor_scenario_test (+7 sections covering all optional callbacks, switch edge cases, feature flags, assembler validation, accept rejection)
-- Expand compatibility validation matrix (Linux/Windows, compiler variants).
+- Expand compatibility validation matrix (Linux/Windows, compiler variants). IN PROGRESS: matrix profiles + automation script added (`docs/compatibility_matrix.md`, `scripts/run_validation_matrix.sh`); Linux/Windows execution rows still pending.
 - ~~Add deeper performance benchmarks for decode/search/decompiler-heavy paths.~~ DONE: performance_benchmark_test (537 lines, 10 benchmarks covering decode throughput, function iteration, pattern search, item scan, xref enumeration, name resolution, decompile latency, data read, comment I/O, type creation)
 
 ## Medium Priority
@@ -13,4 +13,4 @@
 
 ## Low Priority
 
-- Polish docs formatting and add visual diagrams for namespace topology.
+- ~~Polish docs formatting and add visual diagrams for namespace topology.~~ DONE: added `docs/namespace_topology.md` and linked from README/docs index.
