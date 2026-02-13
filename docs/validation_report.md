@@ -20,6 +20,7 @@ Date: 2026-02-13 (updated)
 - Decompiler edge cases: pass
 - Event stress: pass
 - Performance benchmark: pass
+- Matrix automation script: `full`, `unit`, and `compile-only` profiles pass on macOS arm64
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
@@ -48,6 +49,9 @@ Date: 2026-02-13 (updated)
 
 ## Platform/compiler matrix (current pass)
 
-- macOS arm64, Clang, C++23: pass
+- macOS arm64, AppleClang 17, default profile: pass (16/16)
+- macOS arm64, AppleClang 17, RelWithDebInfo profile: pass (16/16)
+- macOS arm64, AppleClang 17, Release profile: pass (16/16)
 
-Follow-up matrix expansion remains recommended for Linux/Windows toolchains.
+Planned Linux/Windows compiler rows and command profiles are tracked in
+`docs/compatibility_matrix.md`.

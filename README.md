@@ -427,13 +427,17 @@ cmake --build build
 
 ### Test
 
-Tests require a real IDA installation (the idalib runtime). Set `IDADIR` to your IDA install path, or let CMake auto-discover it:
+Full integration coverage requires a real IDA installation (the idalib runtime).
+Set `IDADIR` to your IDA install path, or let CMake auto-discover it:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
 The test suite includes 16 targets: 2 unit tests (pure logic + API surface parity) and 14 integration tests covering every namespace with a real ELF64 fixture binary.
+
+For repeatable OS/compiler/profile runs, use `scripts/run_validation_matrix.sh` and
+track evidence in `docs/compatibility_matrix.md`.
 
 ### Install
 
@@ -492,6 +496,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/cookbook/disassembly_workflows.md`](docs/cookbook/disassembly_workflows.md) | Decode, operand, xref recipes |
 | [`docs/migration/legacy_to_wrapper.md`](docs/migration/legacy_to_wrapper.md) | SDK-to-idax function mapping |
 | [`docs/api_reference.md`](docs/api_reference.md) | Complete header index |
+| [`docs/compatibility_matrix.md`](docs/compatibility_matrix.md) | OS/compiler validation coverage |
 | [`docs/namespace_topology.md`](docs/namespace_topology.md) | Namespace map and type inventory |
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
 

@@ -8,6 +8,8 @@
 - [x] Disassembly workflow cookbook
 - [x] Storage migration caveats
 - [x] API reference index
+- [x] Namespace topology map
+- [x] Compatibility validation matrix
 - [x] First-time tutorial path
 
 Validation pass:
