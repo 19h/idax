@@ -284,6 +284,38 @@ void test_plugin_action_types() {
     auto r = action.handler();
     CHECK(r.has_value(), "handler returns ok");
     CHECK(action.enabled(), "enabled returns true");
+
+    ida::plugin::ActionContext context{
+        .action_id = action.id,
+        .widget_title = "Functions",
+        .widget_type = 3,
+        .current_address = 0x401000,
+        .current_value = 0x1234,
+        .has_selection = true,
+        .is_external_address = false,
+        .register_name = "rax",
+    };
+
+    bool context_handler_called = false;
+    action.handler_with_context = [&](const ida::plugin::ActionContext& ctx) {
+        context_handler_called = true;
+        CHECK(ctx.action_id == "test:my_action", "context action id");
+        CHECK(ctx.current_address == 0x401000, "context current address");
+        CHECK(ctx.register_name == "rax", "context register name");
+        return ida::ok();
+    };
+
+    bool context_enabled_called = false;
+    action.enabled_with_context = [&](const ida::plugin::ActionContext& ctx) {
+        context_enabled_called = true;
+        return ctx.has_selection;
+    };
+
+    auto rc = action.handler_with_context(context);
+    CHECK(rc.has_value(), "context handler returns ok");
+    CHECK(context_handler_called, "context handler invoked");
+    CHECK(action.enabled_with_context(context), "context enabled returns true");
+    CHECK(context_enabled_called, "context enabled invoked");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -6,6 +6,7 @@
 #include <ida/ui.hpp>
 #include <mutex>
 #include <atomic>
+#include <unordered_map>
 
 namespace ida::ui {
 
@@ -508,8 +509,12 @@ public:
                     matched.push_back(s.handler);
             }
         }
-        for (auto& h : matched)
-            h(va);
+        for (auto& h : matched) {
+            va_list copy;
+            va_copy(copy, va);
+            h(copy);
+            va_end(copy);
+        }
         return 0;
     }
 
@@ -549,6 +554,22 @@ EventListener& view_listener() {
 // Token range partitioning: UI tokens in [1, 1<<62), VIEW tokens in [1<<62, 2<<62).
 // This lets unsubscribe() route to the correct listener.
 constexpr Token VIEW_TOKEN_BASE = Token{1} << 62;
+constexpr Token GENERIC_TOKEN_BASE = Token{1} << 63;
+
+std::mutex g_generic_routes_mutex;
+std::unordered_map<Token, std::vector<Token>> g_generic_routes;
+Token g_next_generic_token{0};
+
+Token make_generic_token() {
+    ++g_next_generic_token;
+    return GENERIC_TOKEN_BASE + g_next_generic_token;
+}
+
+bool unsubscribe_single(Token token) {
+    if (token >= VIEW_TOKEN_BASE && token < GENERIC_TOKEN_BASE)
+        return view_listener().unsubscribe(token - VIEW_TOKEN_BASE);
+    return ui_listener().unsubscribe(token);
+}
 
 } // anonymous namespace
 
@@ -699,18 +720,141 @@ Result<Token> on_cursor_changed(std::function<void(Address)> callback) {
     return raw_token + VIEW_TOKEN_BASE;
 }
 
+Result<Token> on_event(std::function<void(const Event&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Event callback is empty"));
+
+    std::vector<Token> inner_tokens;
+    inner_tokens.reserve(7);
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_database_closed,
+        [cb = callback](va_list) {
+            Event ev;
+            ev.kind = EventKind::DatabaseClosed;
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_ready_to_run,
+        [cb = callback](va_list) {
+            Event ev;
+            ev.kind = EventKind::ReadyToRun;
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_screen_ea_changed,
+        [cb = callback](va_list va) {
+            ea_t new_ea = va_arg(va, ea_t);
+            ea_t prev_ea = va_arg(va, ea_t);
+            Event ev;
+            ev.kind = EventKind::ScreenAddressChanged;
+            ev.address = static_cast<Address>(new_ea);
+            ev.previous_address = static_cast<Address>(prev_ea);
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_widget_visible,
+        [cb = callback](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::WidgetVisible;
+            ev.widget = WidgetAccess::wrap(widget);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            ev.widget_title = ida::detail::to_string(qtitle);
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_widget_invisible,
+        [cb = callback](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::WidgetInvisible;
+            ev.widget = WidgetAccess::wrap(widget);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            ev.widget_title = ida::detail::to_string(qtitle);
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_widget_closing,
+        [cb = callback](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::WidgetClosing;
+            ev.widget = WidgetAccess::wrap(widget);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            ev.widget_title = ida::detail::to_string(qtitle);
+            cb(ev);
+        }));
+
+    Token view_token = view_listener().subscribe(
+        static_cast<int>(view_curpos),
+        [cb = callback](va_list) {
+            Event ev;
+            ev.kind = EventKind::CursorChanged;
+            ea_t ea = get_screen_ea();
+            if (ea != BADADDR)
+                ev.address = static_cast<Address>(ea);
+            cb(ev);
+        });
+    inner_tokens.push_back(view_token + VIEW_TOKEN_BASE);
+
+    Token outer_token = make_generic_token();
+    {
+        std::lock_guard<std::mutex> lock(g_generic_routes_mutex);
+        g_generic_routes.emplace(outer_token, std::move(inner_tokens));
+    }
+
+    return outer_token;
+}
+
+Result<Token> on_event_filtered(std::function<bool(const Event&)> filter,
+                                std::function<void(const Event&)> callback) {
+    if (!filter)
+        return std::unexpected(Error::validation("Event filter is empty"));
+    if (!callback)
+        return std::unexpected(Error::validation("Event callback is empty"));
+
+    return on_event(
+        [flt = std::move(filter), cb = std::move(callback)](const Event& ev) {
+            if (flt(ev))
+                cb(ev);
+        });
+}
+
 // ── Unified unsubscribe ─────────────────────────────────────────────────
 
 Status unsubscribe(Token token) {
     if (token == 0)
         return std::unexpected(Error::validation("Invalid subscription token (0)"));
 
-    bool removed = false;
-    if (token >= VIEW_TOKEN_BASE) {
-        removed = view_listener().unsubscribe(token - VIEW_TOKEN_BASE);
-    } else {
-        removed = ui_listener().unsubscribe(token);
+    if (token >= GENERIC_TOKEN_BASE) {
+        std::vector<Token> inner_tokens;
+        {
+            std::lock_guard<std::mutex> lock(g_generic_routes_mutex);
+            auto it = g_generic_routes.find(token);
+            if (it == g_generic_routes.end()) {
+                return std::unexpected(Error::not_found("UI/view subscription not found",
+                                                        std::to_string(token)));
+            }
+            inner_tokens = std::move(it->second);
+            g_generic_routes.erase(it);
+        }
+
+        for (Token inner : inner_tokens)
+            unsubscribe_single(inner);
+
+        return ida::ok();
     }
+
+    bool removed = unsubscribe_single(token);
 
     if (!removed)
         return std::unexpected(Error::not_found("UI/view subscription not found",

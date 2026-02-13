@@ -34,7 +34,9 @@
 #define IDAX_PLUGIN_HPP
 
 #include <ida/error.hpp>
+#include <ida/address.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -98,6 +100,24 @@ void* make_plugin_export(PluginFactory factory,
 
 // ── Action registration ─────────────────────────────────────────────────
 
+/// Activation/update context provided to action callbacks.
+///
+/// This is a normalized, SDK-opaque snapshot of key fields from
+/// `action_activation_ctx_t` / `action_update_ctx_t`.
+struct ActionContext {
+    std::string action_id;
+    std::string widget_title;
+    int         widget_type{-1};
+
+    Address     current_address{BadAddress};
+    std::uint64_t current_value{0};
+
+    bool has_selection{false};
+    bool is_external_address{false};
+
+    std::string register_name;
+};
+
 /// Descriptor for a UI action (toolbar/menu/popup).
 struct Action {
     std::string id;           ///< Unique action identifier.
@@ -106,7 +126,9 @@ struct Action {
     std::string tooltip;      ///< Tooltip text.
     int         icon{-1};     ///< Icon index (-1 = default IDA icon).
     std::function<Status()> handler;  ///< Called when the action is triggered.
+    std::function<Status(const ActionContext&)> handler_with_context; ///< Context-aware activation callback.
     std::function<bool()>   enabled;  ///< Returns true when the action is available.
+    std::function<bool(const ActionContext&)> enabled_with_context; ///< Context-aware availability callback.
 };
 
 /// Register a UI action with IDA.

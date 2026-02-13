@@ -307,6 +307,32 @@ Status unregister_timer(std::uint64_t token);
 /// Token returned by UI event subscription functions.
 using Token = std::uint64_t;
 
+/// Generic UI/view event kind for broad routing subscriptions.
+enum class EventKind {
+    DatabaseClosed,
+    ReadyToRun,
+    ScreenAddressChanged,
+    WidgetVisible,
+    WidgetInvisible,
+    WidgetClosing,
+    CursorChanged,
+};
+
+/// Normalized UI/view event payload for generic subscriptions.
+struct Event {
+    EventKind kind{};
+
+    /// Address payload (for cursor/screen-address events).
+    Address address{BadAddress};
+
+    /// Previous address for ScreenAddressChanged.
+    Address previous_address{BadAddress};
+
+    /// Widget payload (for widget visibility/lifecycle events).
+    Widget widget{};
+    std::string widget_title;
+};
+
 /// Subscribe to the "database closed" event.
 Result<Token> on_database_closed(std::function<void()> callback);
 
@@ -354,6 +380,14 @@ Result<Token> on_widget_closing(const Widget& widget,
 /// Subscribe to "cursor position changed" in any view.
 /// Callback receives the address the cursor moved to.
 Result<Token> on_cursor_changed(std::function<void(Address)> callback);
+
+/// Subscribe to all supported UI/view events through one callback.
+Result<Token> on_event(std::function<void(const Event&)> callback);
+
+/// Subscribe to all supported UI/view events with a predicate filter.
+/// Callback is invoked only when `filter(event)` returns true.
+Result<Token> on_event_filtered(std::function<bool(const Event&)> filter,
+                                std::function<void(const Event&)> callback);
 
 /// Unsubscribe from a UI or view event.
 Status unsubscribe(Token token);
