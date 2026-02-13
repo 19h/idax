@@ -10,7 +10,7 @@
 
 ---
 
-**idax** is a complete, opaque, domain-driven C++23 wrapper over the IDA Pro SDK. It replaces the SDK's raw C-heritage API surface with a consistent, self-documenting interface designed to be understood on first contact, without sacrificing any of the power that makes IDA the industry standard.
+**idax** is a comprehensive, opaque, domain-driven C++23 wrapper over the IDA Pro SDK. It replaces the SDK's raw C-heritage API surface with a consistent, self-documenting interface designed to be understood on first contact, without sacrificing any of the power that makes IDA the industry standard.
 
 ```cpp
 #include <ida/idax.hpp>
@@ -27,10 +27,16 @@ for (auto fn : ida::function::all()) {
         ida::comment::set(fn.start(), "entry is a call instruction");
 }
 
-auto df = ida::decompiler::decompile(*ida::name::resolve("main"));
-if (df) {
-    for (auto& line : *df->lines())
-        std::cout << line << "\n";
+auto main_address = ida::name::resolve("main");
+if (main_address) {
+    auto df = ida::decompiler::decompile(*main_address);
+    if (df) {
+        auto lines = df->lines();
+        if (lines) {
+            for (const auto& line : *lines)
+                std::cout << line << "\n";
+        }
+    }
 }
 
 ida::database::save();
@@ -65,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the full SDK surface --- not just the easy parts. 24 public headers across 23 domain namespaces:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 28 public headers across 23 domain namespaces plus cross-cutting core headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -79,21 +85,23 @@ idax spans the full SDK surface --- not just the easy parts. 24 public headers a
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, type libraries |
-| **Entries** | `ida::entry` | Entry point enumeration, add/rename |
+| **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar attachment |
-| **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, registration macro |
-| **Processors** | `ida::processor` | Processor base class, register/instruction descriptors, switch detection |
+| **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar/popup attach+detach, context callbacks |
+| **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
+| **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
 | **Decompiler** | `ida::decompiler` | Decompile, pseudocode, variables, ctree visitor, user comments, address mapping |
-| **UI** | `ida::ui` | Messages, dialogs, choosers, timers, UI event subscriptions |
+| **UI** | `ida::ui` | Messages, dialogs/forms, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
 
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
+
+Known additive gaps from real-world ports (headless plugin-load policy controls and Lumina APIs) are tracked in [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md).
 
 ---
 
@@ -189,8 +197,11 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
         std::cout << *df->pseudocode() << "\n";
 
         // Enumerate local variables
-        for (auto& var : *df->variables())
-            std::cout << var.name << " : " << var.type_name << "\n";
+        auto variables = df->variables();
+        if (variables) {
+            for (const auto& var : *variables)
+                std::cout << var.name << " : " << var.type_name << "\n";
+        }
 
         // Walk the ctree
         ida::decompiler::for_each_expression(*df,
@@ -393,6 +404,8 @@ examples/
     plugin/             # Action registration example
     loader/             # Custom ELF loader example
     procmod/            # Custom processor module example
+    full/               # Real-world full ports (e.g. JBC)
+    tools/              # idalib-style tool ports and scaffolds
 ```
 
 **Key architectural decisions:**
@@ -462,7 +475,7 @@ target_link_libraries(my_tool PRIVATE idax::idax idasdk::idalib)
 ### Package
 
 ```bash
-cd build && cpack
+cpack --config build/CPackConfig.cmake -B build
 # Produces idax-0.1.0-Darwin.tar.gz (or equivalent for your platform)
 ```
 
