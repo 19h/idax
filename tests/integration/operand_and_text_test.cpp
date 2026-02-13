@@ -263,7 +263,8 @@ found_imm:
     }
 
     // Set to hex
-    auto hex_res = ida::instruction::set_operand_hex(imm_ea, imm_n);
+    auto hex_res = ida::instruction::set_operand_format(
+        imm_ea, imm_n, ida::instruction::OperandFormat::Hex);
     CHECK_OK(hex_res);
 
     auto hex_text = ida::instruction::text(imm_ea);
@@ -274,7 +275,8 @@ found_imm:
     }
 
     // Set to decimal
-    auto dec_res = ida::instruction::set_operand_decimal(imm_ea, imm_n);
+    auto dec_res = ida::instruction::set_operand_format(
+        imm_ea, imm_n, ida::instruction::OperandFormat::Decimal);
     CHECK_OK(dec_res);
 
     auto dec_text = ida::instruction::text(imm_ea);
@@ -285,7 +287,8 @@ found_imm:
     }
 
     // Set to binary
-    auto bin_res = ida::instruction::set_operand_binary(imm_ea, imm_n);
+    auto bin_res = ida::instruction::set_operand_format(
+        imm_ea, imm_n, ida::instruction::OperandFormat::Binary);
     CHECK_OK(bin_res);
 
     auto bin_text = ida::instruction::text(imm_ea);
@@ -296,8 +299,14 @@ found_imm:
     }
 
     // Clear representation (reset)
-    auto clear_res = ida::instruction::clear_operand_representation(imm_ea, imm_n);
+    auto clear_res = ida::instruction::set_operand_format(
+        imm_ea, imm_n, ida::instruction::OperandFormat::Default);
     CHECK_OK(clear_res);
+
+    auto operand_rendered = ida::instruction::operand_text(imm_ea, imm_n);
+    CHECK_OK(operand_rendered);
+    if (operand_rendered)
+        CHECK(!operand_rendered->empty());
 }
 
 // ---------------------------------------------------------------------------
@@ -361,6 +370,7 @@ void test_xref_conveniences(ida::Address fn_start) {
     auto call_ea = find_call_instruction(fn_start);
     if (call_ea != ida::BadAddress) {
         CHECK(ida::instruction::is_call(call_ea));
+        CHECK(!ida::instruction::is_conditional_jump(call_ea));
         CHECK(!ida::instruction::is_return(call_ea));
 
         auto targets = ida::instruction::call_targets(call_ea);
@@ -381,6 +391,7 @@ void test_xref_conveniences(ida::Address fn_start) {
     auto ret_ea = find_return_instruction(fn_start);
     if (ret_ea != ida::BadAddress) {
         CHECK(ida::instruction::is_return(ret_ea));
+        CHECK(!ida::instruction::is_jump(ret_ea));
         CHECK(!ida::instruction::is_call(ret_ea));
 
         // Return instructions typically don't have fall-through

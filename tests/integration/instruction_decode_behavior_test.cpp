@@ -58,9 +58,20 @@ void test_decode_basics() {
     if (disasm)
         CHECK(!disasm->empty());
 
+    CHECK(!ida::instruction::is_conditional_jump(start) || ida::instruction::is_jump(start));
+
     if (insn->operand_count() > 0) {
         auto op0 = insn->operand(0);
         CHECK_OK(op0);
+
+        auto op_text = ida::instruction::operand_text(start, 0);
+        CHECK_OK(op_text);
+        if (op_text)
+            CHECK(!op_text->empty());
+
+        CHECK_OK(ida::instruction::set_operand_format(start,
+                                                      0,
+                                                      ida::instruction::OperandFormat::Default));
     }
 
     auto bad_operand = insn->operand(insn->operand_count() + 1);
@@ -94,6 +105,7 @@ void test_navigation() {
         return;
 
     CHECK(next->address() > start);
+    CHECK(ida::instruction::is_jump(next->address()) || !ida::instruction::is_conditional_jump(next->address()));
 
     auto prev = ida::instruction::prev(next->address());
     CHECK_OK(prev);
