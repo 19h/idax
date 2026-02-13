@@ -18,10 +18,18 @@
 #include <ida/idax.hpp>
 
 #include <cstdint>
-#include <format>
+#include <cstdio>
 #include <string>
 
 namespace {
+
+// Portable formatting helper (std::format requires macOS 13.3+ deployment target).
+template <typename... Args>
+std::string fmt(const char* pattern, Args&&... args) {
+    char buf[2048];
+    std::snprintf(buf, sizeof(buf), pattern, std::forward<Args>(args)...);
+    return buf;
+}
 
 constexpr const char* kMarkReviewed   = "idax:annotator:mark_reviewed";
 constexpr const char* kAddBookmark    = "idax:annotator:add_bookmark";
@@ -40,8 +48,9 @@ ida::Status mark_reviewed() {
 
     auto existing = ida::comment::get(*ea, true);
     if (existing && existing->find("[REVIEWED]") != std::string::npos) {
-        ida::ui::message(std::format(
-            "[Annotator] {:#x} is already marked as reviewed.\n", *ea));
+        ida::ui::message(fmt(
+            "[Annotator] %#llx is already marked as reviewed.\n",
+            (unsigned long long)*ea));
         return ida::ok();
     }
 
@@ -54,8 +63,9 @@ ida::Status mark_reviewed() {
 
     auto st = ida::comment::set(*ea, tag, true);
     if (st) {
-        ida::ui::message(std::format(
-            "[Annotator] Marked {:#x} as reviewed.\n", *ea));
+        ida::ui::message(fmt(
+            "[Annotator] Marked %#llx as reviewed.\n",
+            (unsigned long long)*ea));
     }
     return ida::ok();
 }
@@ -69,13 +79,14 @@ ida::Status add_bookmark() {
     }
 
     ++g_bookmark_counter;
-    std::string bookmark = std::format("[BM#{}]", g_bookmark_counter);
+    std::string bookmark = fmt("[BM#%d]", g_bookmark_counter);
 
     // Append the bookmark to any existing non-repeatable comment.
     auto st = ida::comment::append(*ea, bookmark, false);
     if (st) {
-        ida::ui::message(std::format(
-            "[Annotator] Added {} at {:#x}\n", bookmark, *ea));
+        ida::ui::message(fmt(
+            "[Annotator] Added %s at %#llx\n", bookmark.c_str(),
+            (unsigned long long)*ea));
     }
     return ida::ok();
 }
@@ -131,9 +142,9 @@ ida::Status clear_marks() {
         }
     }
 
-    ida::ui::message(std::format(
-        "[Annotator] Cleared {} annotations in [{:#x}, {:#x})\n",
-        cleared, start, end));
+    ida::ui::message(fmt(
+        "[Annotator] Cleared %zu annotations in [%#llx, %#llx)\n",
+        cleared, (unsigned long long)start, (unsigned long long)end));
     return ida::ok();
 }
 
@@ -186,6 +197,15 @@ void unregister_actions() {
 // ── Plugin class ────────────────────────────────────────────────────────
 
 struct QuickAnnotatorPlugin : ida::plugin::Plugin {
+
+    QuickAnnotatorPlugin() {
+        register_actions();
+        g_bookmark_counter = 0;
+        ida::ui::message("[Annotator] Quick Annotator loaded. "
+                         "Ctrl-Alt-R=review, Ctrl-Alt-B=bookmark, "
+                         "Ctrl-Alt-Shift-R=clear\n");
+    }
+
     ida::plugin::Info info() const override {
         return {
             .name    = "Quick Annotator",
@@ -195,15 +215,6 @@ struct QuickAnnotatorPlugin : ida::plugin::Plugin {
                        "add numbered bookmarks, and clear annotations from "
                        "the current function.",
         };
-    }
-
-    bool init() override {
-        register_actions();
-        g_bookmark_counter = 0;
-        ida::ui::message("[Annotator] Quick Annotator loaded. "
-                         "Ctrl-Alt-R=review, Ctrl-Alt-B=bookmark, "
-                         "Ctrl-Alt-Shift-R=clear\n");
-        return true;
     }
 
     void term() override {
