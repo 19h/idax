@@ -848,6 +848,12 @@ void check_event_surface() {
 // ─── ida::decompiler ────────────────────────────────────────────────────
 
 void check_decompiler_surface() {
+    using DecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(ida::Address);
+    using DecompileWithFailureFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(
+        ida::Address,
+        ida::decompiler::DecompileFailure*);
+    using MicrocodeFn = ida::Result<std::string>(ida::decompiler::DecompiledFunction::*)() const;
+    using MicrocodeLinesFn = ida::Result<std::vector<std::string>>(ida::decompiler::DecompiledFunction::*)() const;
     using RetypeByNameFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
         std::string_view, const ida::type::TypeInfo&);
     using RetypeByIndexFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
@@ -855,8 +861,16 @@ void check_decompiler_surface() {
     using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
     using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
 
+    ida::decompiler::DecompileFailure failure;
+    (void)failure.request_address;
+    (void)failure.failure_address;
+    (void)failure.description;
+
     (void)&ida::decompiler::available;
-    (void)&ida::decompiler::decompile;
+    (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
+    (void)static_cast<DecompileWithFailureFn>(&ida::decompiler::decompile);
+    (void)static_cast<MicrocodeFn>(&ida::decompiler::DecompiledFunction::microcode);
+    (void)static_cast<MicrocodeLinesFn>(&ida::decompiler::DecompiledFunction::microcode_lines);
     (void)static_cast<RetypeByNameFn>(&ida::decompiler::DecompiledFunction::retype_variable);
     (void)static_cast<RetypeByIndexFn>(&ida::decompiler::DecompiledFunction::retype_variable);
     (void)static_cast<HasOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::has_orphan_comments);

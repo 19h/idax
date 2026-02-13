@@ -83,15 +83,15 @@ current idax abstraction.
 Port of `/Users/int/dev/ida-qtform` to idax plugin and UI surfaces. It uses
 `ida::ui::create_widget()` + `ida::ui::with_widget_host()` to mount a Qt
 renderer widget in a dock panel and parse IDA form markup into live controls.
-The original "Test in ask_form" flow is wired as a callback and currently
-reported as an idax API gap (`ask_form` wrapper not yet exposed).
+The original "Test in ask_form" flow now uses markup-only
+`ida::ui::ask_form(std::string_view)`.
 
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
 
 Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
 database open/analysis wait, function traversal/filtering, assembly dump, and
-pseudocode dump. The source intentionally records parity gaps (microcode output,
-plugin-load control flags, and richer decompile-failure detail surfaces).
+pseudocode/microcode dump. The source intentionally records remaining parity
+gaps (plugin-load control flags).
 
 ### `tools/idalib_lumina_port.cpp` — ida_lumina Port Scaffold
 

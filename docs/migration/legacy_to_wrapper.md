@@ -325,7 +325,16 @@ auto& df = *result;
 
 auto code = df.pseudocode();       // -> Result<string>
 auto lines = df.lines();           // -> Result<vector<string>>
+auto mc = df.microcode();          // -> Result<string>
+auto mc_lines = df.microcode_lines(); // -> Result<vector<string>>
 auto decl = df.declaration();      // -> Result<string>
+
+// Optional structured failure details:
+ida::decompiler::DecompileFailure failure;
+auto detailed = ida::decompiler::decompile(func_ea, &failure);
+if (!detailed) {
+    // failure.request_address, failure.failure_address, failure.description
+}
 ```
 
 ### Local variable inspection and renaming

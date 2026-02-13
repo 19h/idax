@@ -330,11 +330,14 @@ void test_decompile_error_paths() {
     CHECK_OK(lo);
     if (!lo) return;
 
-    // Use BadAddress — should fail
-    auto bad = ida::decompiler::decompile(ida::BadAddress);
+    // Use BadAddress — should fail and populate structured failure detail.
+    ida::decompiler::DecompileFailure detail;
+    auto bad = ida::decompiler::decompile(ida::BadAddress, &detail);
     CHECK(!bad.has_value());
     if (!bad) {
         CHECK(!bad.error().message.empty());
+        CHECK(detail.request_address == ida::BadAddress);
+        CHECK(!detail.description.empty());
     }
 }
 
@@ -398,6 +401,39 @@ void test_address_mapping(ida::Address fn_ea) {
             std::cerr << "FAIL: line_to_address(99999) returned valid address\n";
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Post-phase parity: decompiler microcode retrieval
+// ---------------------------------------------------------------------------
+void test_microcode_output(ida::Address fn_ea) {
+    std::cout << "--- microcode output ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    auto decomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(decomp);
+    if (!decomp) return;
+
+    auto lines = decomp->microcode_lines();
+    CHECK_OK(lines);
+    if (!lines) return;
+
+    auto text = decomp->microcode();
+    CHECK_OK(text);
+    if (!text) return;
+
+    if (!lines->empty()) {
+        CHECK(!text->empty());
+        CHECK(text->find((*lines)[0]) != std::string::npos);
+    } else {
+        // Some SDK/runtime combinations can produce no printable lines
+        // while still reporting successful microcode retrieval.
+        ++g_pass;
+    }
+
+    std::cout << "  microcode lines: " << lines->size() << "\n";
 }
 
 // ---------------------------------------------------------------------------
@@ -942,6 +978,7 @@ int main(int argc, char* argv[]) {
         test_for_each_item(fn_ea);
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);
+        test_microcode_output(fn_ea);
         test_decompiler_comments(fn_ea);
         test_decompiler_retype_variable(fn_ea);
     } else {

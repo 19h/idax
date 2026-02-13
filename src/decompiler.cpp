@@ -14,6 +14,7 @@
 #include <hexrays.hpp>
 
 #include <algorithm>
+#include <cstdarg>
 
 namespace ida::decompiler {
 
@@ -180,6 +181,35 @@ VisitAction CtreeVisitor::leave_statement(StatementView) {
 
 namespace {
 
+class MicrocodePrinter : public vd_printer_t {
+public:
+    AS_PRINTF(3, 4) int print(int indent, const char* format, ...) override {
+        qstring line;
+        if (indent > 0)
+            line.fill(0, ' ', indent);
+
+        va_list va;
+        va_start(va, format);
+        line.cat_vsprnt(format, va);
+        va_end(va);
+
+        tag_remove(&line);
+        line.trim2();
+        if (line.empty())
+            return 0;
+
+        lines_.emplace_back(line.c_str());
+        return static_cast<int>(line.length());
+    }
+
+    [[nodiscard]] const std::vector<std::string>& lines() const {
+        return lines_;
+    }
+
+private:
+    std::vector<std::string> lines_;
+};
+
 /// Adapter that bridges the SDK's ctree_visitor_t to our CtreeVisitor.
 class SdkVisitorAdapter : public ctree_visitor_t {
 public:
@@ -274,6 +304,20 @@ Result<std::string> DecompiledFunction::pseudocode() const {
     return result;
 }
 
+Result<std::string> DecompiledFunction::microcode() const {
+    auto mc_lines = microcode_lines();
+    if (!mc_lines)
+        return std::unexpected(mc_lines.error());
+
+    std::string result;
+    for (std::size_t i = 0; i < mc_lines->size(); ++i) {
+        if (i > 0)
+            result.push_back('\n');
+        result += (*mc_lines)[i];
+    }
+    return result;
+}
+
 Result<std::vector<std::string>> DecompiledFunction::lines() const {
     CHECK_IMPL();
 
@@ -286,6 +330,21 @@ Result<std::vector<std::string>> DecompiledFunction::lines() const {
         result.push_back(ida::detail::to_string(buf));
     }
     return result;
+}
+
+Result<std::vector<std::string>> DecompiledFunction::microcode_lines() const {
+    CHECK_IMPL();
+
+    mba_t* mba = impl_->cfunc->mba;
+    if (mba == nullptr) {
+        return std::unexpected(Error::unsupported(
+            "Microcode is not available for this decompiled function",
+            std::to_string(impl_->func_ea)));
+    }
+
+    MicrocodePrinter printer;
+    mba->print(printer);
+    return printer.lines();
 }
 
 Result<std::string> DecompiledFunction::declaration() const {
@@ -563,25 +622,44 @@ Result<std::vector<AddressMapping>> DecompiledFunction::address_map() const {
 
 // ── Decompile ───────────────────────────────────────────────────────────
 
-Result<DecompiledFunction> decompile(Address ea) {
+Result<DecompiledFunction> decompile(Address ea, DecompileFailure* failure) {
+    if (failure != nullptr)
+        *failure = DecompileFailure{};
+
     auto st = ensure_hexrays();
     if (!st) return std::unexpected(st.error());
 
     func_t* pfn = get_func(ea);
-    if (pfn == nullptr)
+    if (pfn == nullptr) {
+        if (failure != nullptr) {
+            failure->request_address = ea;
+            failure->failure_address = ea;
+            failure->description = "No function at address";
+        }
         return std::unexpected(Error::not_found("No function at address",
                                                 std::to_string(ea)));
+    }
 
     hexrays_failure_t hf;
     cfuncptr_t cfunc = decompile_func(pfn, &hf, 0);
     if (cfunc == nullptr) {
         std::string desc = ida::detail::to_string(hf.desc());
+        if (failure != nullptr) {
+            failure->request_address = ea;
+            failure->failure_address = hf.errea;
+            failure->description = desc;
+        }
         return std::unexpected(Error::sdk("Decompilation failed: " + desc,
-                                          std::to_string(ea)));
+                                          "request=" + std::to_string(ea)
+                                              + ", failure=" + std::to_string(hf.errea)));
     }
 
     auto* impl = new DecompiledFunction::Impl(std::move(cfunc), pfn->start_ea);
     return DecompiledFunction(impl);
+}
+
+Result<DecompiledFunction> decompile(Address ea) {
+    return decompile(ea, nullptr);
 }
 
 // ── Functional-style visitor helpers ────────────────────────────────────
