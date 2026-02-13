@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-02-13 (updated)
+Date: 2026-02-13 (updated after Linux Docker matrix reruns)
 
 ## Test suite summary
 
@@ -21,7 +21,7 @@ Date: 2026-02-13 (updated)
 - Event stress: pass
 - Performance benchmark: pass
 - Matrix automation script: `full`, `unit`, and `compile-only` profiles pass on macOS arm64
-- Matrix full+packaging profile: pass (`build-matrix-full/idax-0.1.0-Darwin.tar.gz`)
+- Matrix full+packaging profile: pass (`build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz`)
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
@@ -53,6 +53,8 @@ Date: 2026-02-13 (updated)
 - macOS arm64, AppleClang 17, default profile: pass (16/16)
 - macOS arm64, AppleClang 17, RelWithDebInfo profile: pass (16/16)
 - macOS arm64, AppleClang 17, Release profile: pass (16/16)
+- Linux x86_64, GCC 13.3.0, RelWithDebInfo compile-only: pass (`build-matrix-linux-gcc-docker/`)
+- Linux x86_64, Clang 18.1.3, RelWithDebInfo compile-only: fail (default toolchain misses `std::expected` in current container setup, and libc++ retry fails on SDK `snprintf` macro clash; see `build-matrix-linux-clang-docker/` and `build-matrix-linux-clang-libcpp/`)
 
 Planned Linux/Windows compiler rows and command profiles are tracked in
 `docs/compatibility_matrix.md`.
