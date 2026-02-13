@@ -25,6 +25,7 @@ struct Graph::Impl {
 
     std::vector<NodeData>                  nodes;
     std::vector<std::pair<NodeId, NodeId>> edge_list;
+    Layout                                 layout{Layout::Digraph};
 
     int add_node() {
         int id = static_cast<int>(nodes.size());
@@ -310,10 +311,17 @@ Result<std::vector<NodeId>> Graph::group_members(NodeId group) const {
 
 // ── Layout ──────────────────────────────────────────────────────────────
 
-Status Graph::set_layout(Layout /*layout*/) {
-    // Layout is meaningful only when displayed via show_graph().
-    // For the programmatic API, just record the setting.
+Status Graph::set_layout(Layout layout) {
+    if (!impl_)
+        return std::unexpected(Error::validation("Graph not initialized"));
+    impl_->layout = layout;
     return ida::ok();
+}
+
+Layout Graph::current_layout() const {
+    if (!impl_)
+        return Layout::Digraph;
+    return impl_->layout;
 }
 
 Status Graph::redo_layout() {
@@ -437,11 +445,60 @@ Status show_graph(std::string_view title, Graph& graph,
 
 Status refresh_graph(std::string_view title) {
     std::string t(title);
+    if (t.empty())
+        return std::unexpected(Error::validation("Graph title cannot be empty"));
+
     TWidget* w = find_widget(t.c_str());
     if (w == nullptr)
         return std::unexpected(Error::not_found("Graph viewer not found", t));
     auto* gv = reinterpret_cast<graph_viewer_t*>(w);
     refresh_viewer(gv);
+    return ida::ok();
+}
+
+Result<bool> has_graph_viewer(std::string_view title) {
+    std::string t(title);
+    if (t.empty())
+        return std::unexpected(Error::validation("Graph title cannot be empty"));
+    return find_widget(t.c_str()) != nullptr;
+}
+
+Result<bool> is_graph_viewer_visible(std::string_view title) {
+    std::string t(title);
+    if (t.empty())
+        return std::unexpected(Error::validation("Graph title cannot be empty"));
+
+    TWidget* w = find_widget(t.c_str());
+    if (w == nullptr)
+        return std::unexpected(Error::not_found("Graph viewer not found", t));
+
+    qstring qtitle;
+    get_widget_title(&qtitle, w);
+    TWidget* found = find_widget(qtitle.c_str());
+    return found == w;
+}
+
+Status activate_graph_viewer(std::string_view title) {
+    std::string t(title);
+    if (t.empty())
+        return std::unexpected(Error::validation("Graph title cannot be empty"));
+
+    TWidget* w = find_widget(t.c_str());
+    if (w == nullptr)
+        return std::unexpected(Error::not_found("Graph viewer not found", t));
+    ::activate_widget(w, true);
+    return ida::ok();
+}
+
+Status close_graph_viewer(std::string_view title) {
+    std::string t(title);
+    if (t.empty())
+        return std::unexpected(Error::validation("Graph title cannot be empty"));
+
+    TWidget* w = find_widget(t.c_str());
+    if (w == nullptr)
+        return std::unexpected(Error::not_found("Graph viewer not found", t));
+    ::close_widget(w, 0);
     return ida::ok();
 }
 

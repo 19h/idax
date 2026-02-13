@@ -6,6 +6,7 @@
 #include <ida/ui.hpp>
 #include <mutex>
 #include <atomic>
+#include <memory>
 #include <unordered_map>
 
 namespace ida::ui {
@@ -112,6 +113,47 @@ namespace {
 // Monotonically increasing ID for widget identity tracking.
 std::atomic<std::uint64_t> g_next_widget_id{1};
 
+struct CustomViewerState {
+    strvec_t lines;
+    simpleline_place_t min;
+    simpleline_place_t max;
+    simpleline_place_t cur;
+};
+
+std::mutex g_custom_viewers_mutex;
+std::unordered_map<TWidget*, std::unique_ptr<CustomViewerState>> g_custom_viewers;
+
+bool has_custom_viewer_state(TWidget* viewer) {
+    std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+    return g_custom_viewers.find(viewer) != g_custom_viewers.end();
+}
+
+void erase_custom_viewer_state(TWidget* viewer) {
+    std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+    g_custom_viewers.erase(viewer);
+}
+
+Result<std::unique_ptr<CustomViewerState>> make_custom_viewer_state(
+        const std::vector<std::string>& lines) {
+    if (lines.size() > static_cast<std::size_t>(INT_MAX))
+        return std::unexpected(Error::validation("Too many lines for custom viewer",
+                                                 std::to_string(lines.size())));
+
+    auto state = std::make_unique<CustomViewerState>();
+    if (lines.empty()) {
+        state->lines.push_back(simpleline_t(""));
+    } else {
+        state->lines.reserve(lines.size());
+        for (const auto& line : lines)
+            state->lines.push_back(simpleline_t(line.c_str()));
+    }
+
+    state->min = simpleline_place_t(0);
+    state->max = simpleline_place_t(static_cast<int>(state->lines.size() - 1));
+    state->cur = state->min;
+    return state;
+}
+
 } // anonymous namespace
 
 struct WidgetAccess {
@@ -122,6 +164,8 @@ struct WidgetAccess {
         return w;
     }
     static Widget wrap(TWidget* tw, std::uint64_t existing_id = 0) {
+        if (tw == nullptr)
+            return Widget{};
         Widget w;
         w.impl_ = static_cast<void*>(tw);
         w.id_   = existing_id != 0 ? existing_id
@@ -168,6 +212,145 @@ Result<Widget> create_widget(std::string_view title) {
     return WidgetAccess::make(tw);
 }
 
+Result<Widget> create_custom_viewer(std::string_view title,
+                                    const std::vector<std::string>& lines) {
+    std::string stitle(title);
+    if (stitle.empty())
+        return std::unexpected(Error::validation("Viewer title cannot be empty"));
+
+    auto state_r = make_custom_viewer_state(lines);
+    if (!state_r)
+        return std::unexpected(state_r.error());
+
+    auto state = std::move(*state_r);
+
+    TWidget* tw = ::create_custom_viewer(stitle.c_str(),
+                                         &state->min,
+                                         &state->max,
+                                         &state->cur,
+                                         nullptr,
+                                         &state->lines,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr);
+    if (tw == nullptr)
+        return std::unexpected(Error::sdk("create_custom_viewer failed", stitle));
+
+    {
+        std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+        g_custom_viewers[tw] = std::move(state);
+    }
+
+    return WidgetAccess::make(tw);
+}
+
+Status set_custom_viewer_lines(Widget& viewer,
+                               const std::vector<std::string>& lines) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    auto state_r = make_custom_viewer_state(lines);
+    if (!state_r)
+        return std::unexpected(state_r.error());
+
+    {
+        std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+        auto it = g_custom_viewers.find(tw);
+        if (it == g_custom_viewers.end())
+            return std::unexpected(Error::validation("Widget is not a custom viewer"));
+        it->second = std::move(*state_r);
+        ::set_custom_viewer_range(tw, &it->second->min, &it->second->max);
+    }
+
+    ::refresh_custom_viewer(tw);
+    return ida::ok();
+}
+
+Result<std::size_t> custom_viewer_line_count(const Widget& viewer) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+    auto it = g_custom_viewers.find(tw);
+    if (it == g_custom_viewers.end())
+        return std::unexpected(Error::validation("Widget is not a custom viewer"));
+
+    return it->second->lines.size();
+}
+
+Status custom_viewer_jump_to_line(Widget& viewer,
+                                  std::size_t line_index,
+                                  int x,
+                                  int y) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    {
+        std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
+        auto it = g_custom_viewers.find(tw);
+        if (it == g_custom_viewers.end())
+            return std::unexpected(Error::validation("Widget is not a custom viewer"));
+        if (line_index >= it->second->lines.size())
+            return std::unexpected(Error::not_found("Line index out of range",
+                                                    std::to_string(line_index)));
+    }
+
+    if (line_index > static_cast<std::size_t>(INT_MAX))
+        return std::unexpected(Error::not_found("Line index out of range",
+                                                std::to_string(line_index)));
+
+    simpleline_place_t place(static_cast<int>(line_index));
+    if (!::jumpto(tw, &place, x, y))
+        return std::unexpected(Error::sdk("jumpto(custom viewer) failed",
+                                          std::to_string(line_index)));
+    return ida::ok();
+}
+
+Result<std::string> custom_viewer_current_line(const Widget& viewer,
+                                               bool mouse) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    if (!has_custom_viewer_state(tw))
+        return std::unexpected(Error::validation("Widget is not a custom viewer"));
+
+    const char* line = ::get_custom_viewer_curline(tw, mouse);
+    if (line == nullptr)
+        return std::unexpected(Error::not_found("No current line in custom viewer"));
+    return std::string(line);
+}
+
+Status refresh_custom_viewer(Widget& viewer) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    if (!has_custom_viewer_state(tw))
+        return std::unexpected(Error::validation("Widget is not a custom viewer"));
+
+    ::refresh_custom_viewer(tw);
+    ::repaint_custom_viewer(tw);
+    return ida::ok();
+}
+
+Status close_custom_viewer(Widget& viewer) {
+    TWidget* tw = WidgetAccess::raw(viewer);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    if (!has_custom_viewer_state(tw))
+        return std::unexpected(Error::validation("Widget is not a custom viewer"));
+
+    ::destroy_custom_viewer(tw);
+    erase_custom_viewer_state(tw);
+    viewer = Widget{};
+    return ida::ok();
+}
+
 Status show_widget(Widget& widget, const ShowWidgetOptions& options) {
     TWidget* tw = WidgetAccess::raw(widget);
     if (tw == nullptr)
@@ -199,6 +382,7 @@ Status close_widget(Widget& widget) {
     if (tw == nullptr)
         return std::unexpected(Error::validation("Widget handle is invalid"));
     ::close_widget(tw, 0);
+    erase_custom_viewer_state(tw);
     widget = Widget{}; // invalidate
     return ida::ok();
 }
@@ -583,6 +767,18 @@ Result<Token> on_database_closed(std::function<void()> callback) {
     return token;
 }
 
+Result<Token> on_database_inited(std::function<void(bool, std::string)> callback) {
+    auto token = ui_listener().subscribe(
+        ui_database_inited,
+        [cb = std::move(callback)](va_list va) {
+            int is_new = va_arg(va, int);
+            const char* script = va_arg(va, const char*);
+            cb(is_new != 0, script != nullptr ? std::string(script) : std::string());
+        }
+    );
+    return token;
+}
+
 Result<Token> on_ready_to_run(std::function<void()> callback) {
     auto token = ui_listener().subscribe(
         ui_ready_to_run,
@@ -598,6 +794,18 @@ Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callbac
             ea_t new_ea = va_arg(va, ea_t);
             ea_t prev_ea = va_arg(va, ea_t);
             cb(static_cast<Address>(new_ea), static_cast<Address>(prev_ea));
+        }
+    );
+    return token;
+}
+
+Result<Token> on_current_widget_changed(std::function<void(Widget, Widget)> callback) {
+    auto token = ui_listener().subscribe(
+        ui_current_widget_changed,
+        [cb = std::move(callback)](va_list va) {
+            TWidget* current = va_arg(va, TWidget*);
+            TWidget* previous = va_arg(va, TWidget*);
+            cb(WidgetAccess::wrap(current), WidgetAccess::wrap(previous));
         }
     );
     return token;
@@ -720,12 +928,69 @@ Result<Token> on_cursor_changed(std::function<void(Address)> callback) {
     return raw_token + VIEW_TOKEN_BASE;
 }
 
+Result<Token> on_view_activated(std::function<void(Widget)> callback) {
+    auto raw_token = view_listener().subscribe(
+        static_cast<int>(view_activated),
+        [cb = std::move(callback)](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            cb(WidgetAccess::wrap(view));
+        }
+    );
+    return raw_token + VIEW_TOKEN_BASE;
+}
+
+Result<Token> on_view_deactivated(std::function<void(Widget)> callback) {
+    auto raw_token = view_listener().subscribe(
+        static_cast<int>(view_deactivated),
+        [cb = std::move(callback)](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            cb(WidgetAccess::wrap(view));
+        }
+    );
+    return raw_token + VIEW_TOKEN_BASE;
+}
+
+Result<Token> on_view_created(std::function<void(Widget)> callback) {
+    auto raw_token = view_listener().subscribe(
+        static_cast<int>(view_created),
+        [cb = std::move(callback)](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            cb(WidgetAccess::wrap(view));
+        }
+    );
+    return raw_token + VIEW_TOKEN_BASE;
+}
+
+Result<Token> on_view_closed(std::function<void(Widget)> callback) {
+    auto raw_token = view_listener().subscribe(
+        static_cast<int>(view_close),
+        [cb = std::move(callback)](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            cb(WidgetAccess::wrap(view));
+        }
+    );
+    return raw_token + VIEW_TOKEN_BASE;
+}
+
 Result<Token> on_event(std::function<void(const Event&)> callback) {
     if (!callback)
         return std::unexpected(Error::validation("Event callback is empty"));
 
     std::vector<Token> inner_tokens;
-    inner_tokens.reserve(7);
+    inner_tokens.reserve(13);
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_database_inited,
+        [cb = callback](va_list va) {
+            int is_new = va_arg(va, int);
+            const char* script = va_arg(va, const char*);
+            Event ev;
+            ev.kind = EventKind::DatabaseInited;
+            ev.is_new_database = is_new != 0;
+            if (script != nullptr)
+                ev.startup_script = script;
+            cb(ev);
+        }));
 
     inner_tokens.push_back(ui_listener().subscribe(
         ui_database_closed,
@@ -752,6 +1017,18 @@ Result<Token> on_event(std::function<void(const Event&)> callback) {
             ev.kind = EventKind::ScreenAddressChanged;
             ev.address = static_cast<Address>(new_ea);
             ev.previous_address = static_cast<Address>(prev_ea);
+            cb(ev);
+        }));
+
+    inner_tokens.push_back(ui_listener().subscribe(
+        ui_current_widget_changed,
+        [cb = callback](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            TWidget* previous = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::CurrentWidgetChanged;
+            ev.widget = WidgetAccess::wrap(widget);
+            ev.previous_widget = WidgetAccess::wrap(previous);
             cb(ev);
         }));
 
@@ -805,6 +1082,50 @@ Result<Token> on_event(std::function<void(const Event&)> callback) {
             cb(ev);
         });
     inner_tokens.push_back(view_token + VIEW_TOKEN_BASE);
+
+    Token view_activated_token = view_listener().subscribe(
+        static_cast<int>(view_activated),
+        [cb = callback](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::ViewActivated;
+            ev.widget = WidgetAccess::wrap(view);
+            cb(ev);
+        });
+    inner_tokens.push_back(view_activated_token + VIEW_TOKEN_BASE);
+
+    Token view_deactivated_token = view_listener().subscribe(
+        static_cast<int>(view_deactivated),
+        [cb = callback](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::ViewDeactivated;
+            ev.widget = WidgetAccess::wrap(view);
+            cb(ev);
+        });
+    inner_tokens.push_back(view_deactivated_token + VIEW_TOKEN_BASE);
+
+    Token view_created_token = view_listener().subscribe(
+        static_cast<int>(view_created),
+        [cb = callback](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::ViewCreated;
+            ev.widget = WidgetAccess::wrap(view);
+            cb(ev);
+        });
+    inner_tokens.push_back(view_created_token + VIEW_TOKEN_BASE);
+
+    Token view_closed_token = view_listener().subscribe(
+        static_cast<int>(view_close),
+        [cb = callback](va_list va) {
+            TWidget* view = va_arg(va, TWidget*);
+            Event ev;
+            ev.kind = EventKind::ViewClosed;
+            ev.widget = WidgetAccess::wrap(view);
+            cb(ev);
+        });
+    inner_tokens.push_back(view_closed_token + VIEW_TOKEN_BASE);
 
     Token outer_token = make_generic_token();
     {

@@ -133,6 +133,73 @@ void test_graph_move_semantics() {
     CHECK(g3.total_node_count() == 2, "g3 has 2 nodes after move-assign");
 }
 
+void test_graph_layout_matrix() {
+    std::printf("[section] graph: layout behavior matrix\n");
+
+    ida::graph::Graph g;
+    auto n0 = g.add_node();
+    auto n1 = g.add_node();
+    CHECK(n0 >= 0 && n1 >= 0, "graph nodes created for layout test");
+    CHECK(g.add_edge(n0, n1).has_value(), "layout test edge add succeeds");
+
+    const ida::graph::Layout layouts[] = {
+        ida::graph::Layout::None,
+        ida::graph::Layout::Digraph,
+        ida::graph::Layout::Tree,
+        ida::graph::Layout::Circle,
+        ida::graph::Layout::PolarTree,
+        ida::graph::Layout::Orthogonal,
+        ida::graph::Layout::RadialTree,
+    };
+
+    for (auto layout : layouts) {
+        auto set_layout = g.set_layout(layout);
+        CHECK(set_layout.has_value(), "set_layout succeeds");
+        CHECK(g.current_layout() == layout, "current_layout reflects selected layout");
+        CHECK(g.redo_layout().has_value(), "redo_layout succeeds");
+    }
+}
+
+void test_graph_viewer_queries() {
+    std::printf("[section] graph: viewer lifecycle/query helpers\n");
+
+    ida::graph::Graph g;
+    auto n0 = g.add_node();
+    auto n1 = g.add_node();
+    g.add_edge(n0, n1);
+
+    static constexpr const char* kTitle = "idax:test:graph_viewer";
+
+    auto show = ida::graph::show_graph(kTitle, g);
+    if (!show) {
+        SKIP("show_graph unavailable in this runtime");
+        return;
+    }
+
+    auto exists = ida::graph::has_graph_viewer(kTitle);
+    CHECK(exists.has_value(), "has_graph_viewer query succeeds");
+    if (exists)
+        CHECK(*exists, "graph viewer exists after show_graph");
+
+    auto visible = ida::graph::is_graph_viewer_visible(kTitle);
+    CHECK(visible.has_value(), "is_graph_viewer_visible query succeeds");
+
+    auto refresh = ida::graph::refresh_graph(kTitle);
+    CHECK(refresh.has_value(), "refresh_graph succeeds for shown viewer");
+
+    auto activate = ida::graph::activate_graph_viewer(kTitle);
+    CHECK(activate.has_value(), "activate_graph_viewer succeeds for shown viewer");
+
+    auto close = ida::graph::close_graph_viewer(kTitle);
+    CHECK(close.has_value(), "close_graph_viewer succeeds for shown viewer");
+
+    auto refresh_after_close = ida::graph::refresh_graph(kTitle);
+    CHECK(!refresh_after_close.has_value(), "refresh_graph fails after close");
+
+    auto missing = ida::graph::has_graph_viewer("idax:test:graph_viewer_missing");
+    CHECK(missing.has_value() && !*missing, "has_graph_viewer false for missing title");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Flow chart
 // ═══════════════════════════════════════════════════════════════════════════
@@ -392,6 +459,9 @@ void test_debugger_request_and_introspection() {
 void test_ui_subscriptions() {
     std::printf("[section] ui: event subscription lifecycle\n");
 
+    auto tok0 = ida::ui::on_database_inited([](bool, std::string) {});
+    CHECK(tok0.has_value(), "database_inited subscribe ok");
+
     auto tok1 = ida::ui::on_database_closed([]() {});
     CHECK(tok1.has_value(), "database_closed subscribe ok");
 
@@ -401,9 +471,30 @@ void test_ui_subscriptions() {
     auto tok3 = ida::ui::on_screen_ea_changed([](ida::Address, ida::Address) {});
     CHECK(tok3.has_value(), "screen_ea_changed subscribe ok");
 
+    auto tok4 = ida::ui::on_current_widget_changed([](ida::ui::Widget, ida::ui::Widget) {});
+    CHECK(tok4.has_value(), "current_widget_changed subscribe ok");
+
+    auto tok5 = ida::ui::on_view_activated([](ida::ui::Widget) {});
+    CHECK(tok5.has_value(), "view_activated subscribe ok");
+
+    auto tok6 = ida::ui::on_view_deactivated([](ida::ui::Widget) {});
+    CHECK(tok6.has_value(), "view_deactivated subscribe ok");
+
+    auto tok7 = ida::ui::on_view_created([](ida::ui::Widget) {});
+    CHECK(tok7.has_value(), "view_created subscribe ok");
+
+    auto tok8 = ida::ui::on_view_closed([](ida::ui::Widget) {});
+    CHECK(tok8.has_value(), "view_closed subscribe ok");
+
+    if (tok0) ida::ui::unsubscribe(*tok0);
     if (tok1) ida::ui::unsubscribe(*tok1);
     if (tok2) ida::ui::unsubscribe(*tok2);
     if (tok3) ida::ui::unsubscribe(*tok3);
+    if (tok4) ida::ui::unsubscribe(*tok4);
+    if (tok5) ida::ui::unsubscribe(*tok5);
+    if (tok6) ida::ui::unsubscribe(*tok6);
+    if (tok7) ida::ui::unsubscribe(*tok7);
+    if (tok8) ida::ui::unsubscribe(*tok8);
 }
 
 void test_ui_generic_routing() {
@@ -484,6 +575,52 @@ void test_ui_widget_host_bridge() {
     CHECK(close_r.has_value(), "close_widget succeeds for host bridge test");
 }
 
+void test_ui_custom_viewer() {
+    std::printf("[section] ui: custom viewer operations\n");
+
+    std::vector<std::string> lines = {"alpha", "beta", "gamma"};
+    auto viewer = ida::ui::create_custom_viewer("idax:test:custom_viewer", lines);
+    if (!viewer) {
+        SKIP("create_custom_viewer unavailable in this runtime");
+        return;
+    }
+
+    auto shown = ida::ui::show_widget(*viewer);
+    CHECK(shown.has_value(), "show_widget succeeds for custom viewer");
+
+    auto count = ida::ui::custom_viewer_line_count(*viewer);
+    CHECK(count.has_value(), "custom_viewer_line_count succeeds");
+    if (count)
+        CHECK(*count == 3, "custom viewer has initial line count");
+
+    auto current = ida::ui::custom_viewer_current_line(*viewer);
+    CHECK(current.has_value(), "custom_viewer_current_line succeeds");
+
+    auto jump = ida::ui::custom_viewer_jump_to_line(*viewer, 2);
+    CHECK(jump.has_value(), "custom_viewer_jump_to_line succeeds");
+
+    auto bad_jump = ida::ui::custom_viewer_jump_to_line(*viewer, 9999);
+    CHECK(!bad_jump.has_value(), "custom_viewer_jump_to_line rejects out-of-range index");
+
+    std::vector<std::string> updated = {"one", "two"};
+    auto set_lines = ida::ui::set_custom_viewer_lines(*viewer, updated);
+    CHECK(set_lines.has_value(), "set_custom_viewer_lines succeeds");
+
+    auto updated_count = ida::ui::custom_viewer_line_count(*viewer);
+    CHECK(updated_count.has_value(), "updated custom_viewer_line_count succeeds");
+    if (updated_count)
+        CHECK(*updated_count == 2, "custom viewer line count updated");
+
+    auto refreshed = ida::ui::refresh_custom_viewer(*viewer);
+    CHECK(refreshed.has_value(), "refresh_custom_viewer succeeds");
+
+    auto closed = ida::ui::close_custom_viewer(*viewer);
+    CHECK(closed.has_value(), "close_custom_viewer succeeds");
+
+    auto after_close = ida::ui::custom_viewer_current_line(*viewer);
+    CHECK(!after_close.has_value(), "custom_viewer_current_line fails after close");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════
@@ -516,6 +653,8 @@ int main(int argc, char** argv) {
     test_graph_object_operations();
     test_graph_groups();
     test_graph_move_semantics();
+    test_graph_layout_matrix();
+    test_graph_viewer_queries();
 
     // Get a function for flowchart testing
     auto func_count = ida::function::count();
@@ -546,6 +685,7 @@ int main(int argc, char** argv) {
     test_ui_generic_routing();
     test_ui_scoped_subscription();
     test_ui_widget_host_bridge();
+    test_ui_custom_viewer();
 
     std::printf("\n=== Results: %d passed, %d failed, %d skipped ===\n",
                 g_pass, g_fail, g_skip);

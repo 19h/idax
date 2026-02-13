@@ -150,6 +150,9 @@ public:
     /// Set the layout algorithm and recompute.
     Status set_layout(Layout layout);
 
+    /// Return the currently selected layout algorithm.
+    [[nodiscard]] Layout current_layout() const;
+
     /// Recompute the current layout.
     Status redo_layout();
 
@@ -220,6 +223,18 @@ Status show_graph(std::string_view title, Graph& graph,
 
 /// Refresh a graph viewer by title.
 Status refresh_graph(std::string_view title);
+
+/// Check whether a graph viewer with this title exists.
+Result<bool> has_graph_viewer(std::string_view title);
+
+/// Check whether a graph viewer is currently visible.
+Result<bool> is_graph_viewer_visible(std::string_view title);
+
+/// Activate/focus a graph viewer by title.
+Status activate_graph_viewer(std::string_view title);
+
+/// Close a graph viewer by title.
+Status close_graph_viewer(std::string_view title);
 
 // ── Flow chart convenience ──────────────────────────────────────────────
 

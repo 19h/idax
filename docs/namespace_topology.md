@@ -33,8 +33,8 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::debugger       Process/thread control, request queue, events    [2 enums, 4 structs, 1 class, ~40 free fns]
  |-- ida::decompiler     Decompile, pseudocode, ctree, comments          [3 enums, 3 structs, 4 classes, ~4 free fns]
- |-- ida::ui             Messages, dialogs, choosers, timers             [1 enum, 4 structs, 2 classes, ~16 free fns]
- |-- ida::graph          Graph objects, flow charts, basic blocks        [2 enums, 4 structs, 2 classes, ~4 free fns]
+|-- ida::ui             Messages, dialogs, widgets, custom viewers       [1 enum, 4 structs, 2 classes, ~30 free fns]
+|-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
  |
  |-- ida::storage        Netnode abstraction, id/open-by-id, alt/sup/hash/blob [1 class (Node), ~18 methods]
  |-- ida::diagnostics    Logging, counters, diagnostic messages          [1 enum, ~5 free fns]
@@ -104,7 +104,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `ThreadInfo`, `RegisterInfo`, `ScopedSubscription` |
 | `ida::decompiler` | Decompilation | `DecompiledFunction`, `CtreeVisitor`, `ExpressionView` |
-| `ida::ui` | User interface | `Chooser`, `ChooserOptions`, `ScopedSubscription` |
+| `ida::ui` | User interface | `Widget`, `Chooser`, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |
 | `ida::event` | IDB event routing | `Event`, `EventKind`, `ScopedSubscription` |
 | `ida::storage` | Persistent key-value | `Node` |
