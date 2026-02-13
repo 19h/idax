@@ -31,6 +31,9 @@
 | `open_linput(path, false)` | `ida::loader::InputFile` (provided in callbacks) |
 | `file2base(li, off, ea1, ea2, p)` | `ida::loader::file_to_database(handle, off, ea, size, p)` |
 | `mem2base(ptr, ea1, ea2, fpos)` | `ida::loader::memory_to_database(ptr, ea, size)` |
+| `detach_action_from_menu(path, name)` | `ida::plugin::detach_from_menu(path, action_id)` |
+| `detach_action_from_toolbar(name, action)` | `ida::plugin::detach_from_toolbar(name, action_id)` |
+| `detach_action_from_popup(widget, action)` | `ida::plugin::detach_from_popup(widget_title, action_id)` |
 
 ## Entry-point migration
 
@@ -60,6 +63,8 @@ if (cnt) {
 class MyLoader : public ida::loader::Loader {
     Result<std::optional<AcceptResult>> accept(InputFile& f) override { ... }
     Status load(InputFile& f, std::string_view fmt) override { ... }
+    Status load_with_request(InputFile& f, const LoadRequest& req) override { ... }
+    Result<bool> save_with_request(void* fp, const SaveRequest& req) override { ... }
 };
 IDAX_LOADER(MyLoader)
 
@@ -70,6 +75,8 @@ class MyProc : public ida::processor::Processor {
     EmulateResult emulate(Address ea) override { ... }
     void output_instruction(Address ea) override { ... }
     OutputOperandResult output_operand(Address ea, int idx) override { ... }
+    OutputInstructionResult output_instruction_with_context(Address ea, OutputContext& out) override { ... }
+    OutputOperandResult output_operand_with_context(Address ea, int idx, OutputContext& out) override { ... }
 };
 IDAX_PROCESSOR(MyProc)
 ```

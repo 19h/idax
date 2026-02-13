@@ -187,6 +187,9 @@ void register_actions() {
 }
 
 void unregister_actions() {
+    ida::plugin::detach_from_menu("Edit/Plugins/", kMarkReviewed);
+    ida::plugin::detach_from_menu("Edit/Plugins/", kAddBookmark);
+    ida::plugin::detach_from_menu("Edit/Plugins/", kClearMarks);
     ida::plugin::unregister_action(kMarkReviewed);
     ida::plugin::unregister_action(kAddBookmark);
     ida::plugin::unregister_action(kClearMarks);

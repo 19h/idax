@@ -146,6 +146,17 @@ Status attach_to_toolbar(std::string_view toolbar, std::string_view action_id);
 /// Attach an action to a popup/context menu of a widget.
 Status attach_to_popup(std::string_view widget_title, std::string_view action_id);
 
+/// Detach an action from a menu path.
+Status detach_from_menu(std::string_view menu_path, std::string_view action_id);
+
+/// Detach an action from a toolbar.
+Status detach_from_toolbar(std::string_view toolbar, std::string_view action_id);
+
+/// Detach an action from a widget popup/context menu.
+///
+/// This applies to actions attached in permanent mode for that widget.
+Status detach_from_popup(std::string_view widget_title, std::string_view action_id);
+
 } // namespace ida::plugin
 
 // ── Plugin export macro ─────────────────────────────────────────────────

@@ -115,6 +115,35 @@ void test_loader_base_class() {
     // save default returns false
     auto sv = loader.save(nullptr, "test");
     CHECK(sv.has_value() && *sv == false, "default save returns false");
+
+    // Context-rich defaults should delegate to legacy callbacks.
+    ida::loader::LoadRequest req;
+    req.format_name = "test";
+    req.flags.reload = true;
+
+    ida::loader::InputFile dummy;
+    ida::loader::Loader& base = loader;
+    auto lw = base.load_with_request(dummy, req);
+    CHECK(lw.has_value(), "load_with_request delegates to load()");
+
+    ida::loader::SaveRequest sr;
+    sr.format_name = "test";
+    sr.capability_query = true;
+    auto sw = base.save_with_request(nullptr, sr);
+    CHECK(sw.has_value() && *sw == false,
+          "save_with_request delegates to save()");
+
+    ida::loader::MoveSegmentRequest mr;
+    mr.format_name = "test";
+    auto mw = base.move_segment_with_request(0, 0, 0, mr);
+    CHECK(!mw.has_value() && mw.error().category == ida::ErrorCategory::Unsupported,
+          "move_segment_with_request delegates to default Unsupported");
+
+    ida::loader::ArchiveMemberRequest ar;
+    ar.archive_name = "archive.lib";
+    auto archive = base.process_archive(dummy, ar);
+    CHECK(archive.has_value() && !archive->has_value(),
+          "default process_archive returns empty optional");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -209,6 +238,14 @@ void test_processor_base_class() {
     CHECK(proc.may_be_function(0) == 0, "default may_be_function returns 0");
     CHECK(proc.is_indirect_jump(0) == 0, "default is_indirect_jump returns 0");
     CHECK(!proc.create_function_frame(0), "default create_function_frame returns false");
+
+    ida::processor::OutputContext out;
+    auto ires = proc.output_instruction_with_context(0x1000, out);
+    CHECK(ires == ida::processor::OutputInstructionResult::NotImplemented,
+          "default output_instruction_with_context -> NotImplemented");
+    auto ores = proc.output_operand_with_context(0x1000, 0, out);
+    CHECK(ores == ida::processor::OutputOperandResult::Success,
+          "default output_operand_with_context delegates to output_operand");
 }
 
 void test_processor_switch_types() {
@@ -234,6 +271,62 @@ void test_processor_switch_types() {
     CHECK(sc.target == 0x1000, "target address");
 }
 
+namespace {
+
+class ContextProcessor : public TestProcessor {
+public:
+    ida::processor::OutputInstructionResult
+    output_instruction_with_context(ida::Address,
+                                    ida::processor::OutputContext& output) override {
+        output.mnemonic("mov").space().register_name("r0").comma().space().immediate(1);
+        return ida::processor::OutputInstructionResult::Success;
+    }
+
+    ida::processor::OutputOperandResult
+    output_operand_with_context(ida::Address,
+                                int operand_index,
+                                ida::processor::OutputContext& output) override {
+        if (operand_index == 0) {
+            output.register_name("r0");
+            return ida::processor::OutputOperandResult::Success;
+        }
+        return ida::processor::OutputOperandResult::Hidden;
+    }
+};
+
+} // anonymous namespace
+
+void test_processor_output_context() {
+    std::printf("[section] processor: output context abstraction\n");
+
+    ContextProcessor proc;
+    ida::processor::OutputContext out;
+
+    auto insn_res = proc.output_instruction_with_context(0x1000, out);
+    CHECK(insn_res == ida::processor::OutputInstructionResult::Success,
+          "context instruction formatter returns Success");
+    CHECK(out.text().find("mov") != std::string::npos,
+          "context instruction formatter emitted mnemonic");
+    CHECK(out.text().find("r0") != std::string::npos,
+          "context instruction formatter emitted register");
+
+    out.clear();
+    auto op0_res = proc.output_operand_with_context(0x1000, 0, out);
+    CHECK(op0_res == ida::processor::OutputOperandResult::Success,
+          "context operand formatter returns Success for op0");
+    CHECK(out.text() == "r0", "context operand formatter emitted op0 text");
+
+    out.clear();
+    auto op1_res = proc.output_operand_with_context(0x1000, 1, out);
+    CHECK(op1_res == ida::processor::OutputOperandResult::Hidden,
+          "context operand formatter can hide non-existing operands");
+    CHECK(out.empty(), "hidden operand leaves output context empty");
+
+    out.immediate(42, 10).space().address(0x401000).space().character('#');
+    CHECK(out.text().find("42") != std::string::npos, "decimal immediate formatting");
+    CHECK(out.text().find("0x401000") != std::string::npos, "address formatting");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // AcceptResult / LoaderOptions value checks
 // ═══════════════════════════════════════════════════════════════════════════
@@ -256,6 +349,51 @@ void test_loader_value_types() {
     };
     CHECK(lo.supports_reload, "supports_reload");
     CHECK(lo.requires_processor, "requires_processor");
+
+    ida::loader::LoadFlags flags;
+    flags.create_segments = true;
+    flags.rename_entries = true;
+    flags.reload = true;
+    flags.load_all_segments = true;
+
+    auto raw = ida::loader::encode_load_flags(flags);
+    auto decoded = ida::loader::decode_load_flags(raw);
+    CHECK(decoded.create_segments, "decoded create_segments");
+    CHECK(decoded.rename_entries, "decoded rename_entries");
+    CHECK(decoded.reload, "decoded reload");
+    CHECK(decoded.load_all_segments, "decoded load_all_segments");
+
+    ida::loader::LoadRequest load_request;
+    load_request.format_name = "Test Format";
+    load_request.input_name = "fixture.bin";
+    load_request.archive_name = "test_archive.lib";
+    load_request.archive_member_name = "member.o";
+    load_request.flags = flags;
+    load_request.is_remote = false;
+    CHECK(load_request.archive_member_name == "member.o", "archive member name");
+
+    ida::loader::SaveRequest save_request;
+    save_request.format_name = "Test Format";
+    save_request.capability_query = true;
+    CHECK(save_request.capability_query, "save capability_query");
+
+    ida::loader::MoveSegmentRequest move_request;
+    move_request.format_name = "Test Format";
+    move_request.whole_program_rebase = true;
+    move_request.reload = true;
+    CHECK(move_request.whole_program_rebase, "whole-program rebase request");
+
+    ida::loader::ArchiveMemberRequest archive_request;
+    archive_request.archive_name = "libfoo.a";
+    archive_request.default_member = "foo.o";
+    archive_request.flags.reload = true;
+    CHECK(archive_request.default_member == "foo.o", "default archive member");
+
+    ida::loader::ArchiveMemberResult archive_result;
+    archive_result.extracted_file = "/tmp/foo.o";
+    archive_result.member_name = "foo.o";
+    archive_result.flags = archive_request.flags;
+    CHECK(archive_result.member_name == "foo.o", "archive result member");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -316,6 +454,25 @@ void test_plugin_action_types() {
     CHECK(context_handler_called, "context handler invoked");
     CHECK(action.enabled_with_context(context), "context enabled returns true");
     CHECK(context_enabled_called, "context enabled invoked");
+}
+
+void test_plugin_detach_helpers() {
+    std::printf("[section] plugin: detach helper ergonomics\n");
+
+    auto dm = ida::plugin::detach_from_menu("Edit/Plugins/", "idax:test:missing_action");
+    CHECK(!dm.has_value(), "detach_from_menu reports missing attachment");
+    CHECK(dm.error().category == ida::ErrorCategory::NotFound,
+          "detach_from_menu missing -> NotFound");
+
+    auto dt = ida::plugin::detach_from_toolbar("AnalysisToolBar", "idax:test:missing_action");
+    CHECK(!dt.has_value(), "detach_from_toolbar reports missing attachment");
+    CHECK(dt.error().category == ida::ErrorCategory::NotFound,
+          "detach_from_toolbar missing -> NotFound");
+
+    auto dp = ida::plugin::detach_from_popup("NoSuchWidgetTitle", "idax:test:missing_action");
+    CHECK(!dp.has_value(), "detach_from_popup reports missing widget/attachment");
+    CHECK(dp.error().category == ida::ErrorCategory::NotFound,
+          "detach_from_popup missing -> NotFound");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -522,6 +679,20 @@ void test_assembler_info_fields() {
     ai.word_directive = ".hword";
     ai.dword_directive = ".word";
     ai.qword_directive = ".quad";
+    ai.oword_directive = ".xword";
+    ai.float_directive = ".float";
+    ai.double_directive = ".double";
+    ai.tbyte_directive = ".tbyte";
+    ai.align_directive = ".align";
+    ai.include_directive = ".include";
+    ai.public_directive = ".global";
+    ai.weak_directive = ".weak";
+    ai.external_directive = ".extern";
+    ai.current_ip_symbol = "$";
+    ai.uppercase_mnemonics = true;
+    ai.uppercase_registers = true;
+    ai.requires_colon_after_labels = true;
+    ai.supports_quoted_names = true;
 
     CHECK(ai.name == "ARM Assembler", "assembler name");
     CHECK(ai.comment_prefix == "@", "comment prefix @");
@@ -533,6 +704,20 @@ void test_assembler_info_fields() {
     CHECK(ai.word_directive == ".hword", "word directive");
     CHECK(ai.dword_directive == ".word", "dword directive");
     CHECK(ai.qword_directive == ".quad", "qword directive");
+    CHECK(ai.oword_directive == ".xword", "oword directive");
+    CHECK(ai.float_directive == ".float", "float directive");
+    CHECK(ai.double_directive == ".double", "double directive");
+    CHECK(ai.tbyte_directive == ".tbyte", "tbyte directive");
+    CHECK(ai.align_directive == ".align", "align directive");
+    CHECK(ai.include_directive == ".include", "include directive");
+    CHECK(ai.public_directive == ".global", "public directive");
+    CHECK(ai.weak_directive == ".weak", "weak directive");
+    CHECK(ai.external_directive == ".extern", "external directive");
+    CHECK(ai.current_ip_symbol == "$", "current IP symbol");
+    CHECK(ai.uppercase_mnemonics, "uppercase mnemonics");
+    CHECK(ai.uppercase_registers, "uppercase registers");
+    CHECK(ai.requires_colon_after_labels, "colon-after-labels requirement");
+    CHECK(ai.supports_quoted_names, "supports quoted names");
 
     // Default-constructed AssemblerInfo should have sane defaults.
     ida::processor::AssemblerInfo def;
@@ -641,6 +826,11 @@ void test_result_enum_values() {
     CHECK(static_cast<int>(ida::processor::EmulateResult::DeleteInsn) == -1,
           "EmulateResult::DeleteInsn == -1");
 
+    CHECK(static_cast<int>(ida::processor::OutputInstructionResult::NotImplemented) == 0,
+          "OutputInstructionResult::NotImplemented == 0");
+    CHECK(static_cast<int>(ida::processor::OutputInstructionResult::Success) == 1,
+          "OutputInstructionResult::Success == 1");
+
     // OutputOperandResult has 3 known values.
     CHECK(static_cast<int>(ida::processor::OutputOperandResult::NotImplemented) == 0,
           "OutputOperandResult::NotImplemented == 0");
@@ -683,7 +873,9 @@ int main(int argc, char** argv) {
     test_loader_value_types();
     test_processor_base_class();
     test_processor_switch_types();
+    test_processor_output_context();
     test_plugin_action_types();
+    test_plugin_detach_helpers();
     test_processor_optional_callback_defaults();
     test_switch_description_edge_cases();
     test_feature_flag_composition();

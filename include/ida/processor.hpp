@@ -14,9 +14,11 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstdio>
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace ida::processor {
@@ -58,6 +60,9 @@ enum class InstructionFeature : std::uint32_t {
 struct InstructionDescriptor {
     std::string   mnemonic;
     std::uint32_t feature_flags{0};
+    std::uint8_t  operand_count{0};
+    std::string   description;
+    bool          privileged{false};
 };
 
 // ── Assembler syntax descriptor ─────────────────────────────────────────
@@ -77,6 +82,23 @@ struct AssemblerInfo {
     std::string word_directive;   ///< e.g. "dw"
     std::string dword_directive;  ///< e.g. "dd"
     std::string qword_directive;  ///< e.g. "dq"
+
+    // Extended directives (assembler-surface parity helpers).
+    std::string oword_directive;
+    std::string float_directive;
+    std::string double_directive;
+    std::string tbyte_directive;
+    std::string align_directive;
+    std::string include_directive;
+    std::string public_directive;
+    std::string weak_directive;
+    std::string external_directive;
+    std::string current_ip_symbol;
+
+    bool uppercase_mnemonics{false};
+    bool uppercase_registers{false};
+    bool requires_colon_after_labels{false};
+    bool supports_quoted_names{true};
 };
 
 // ── Processor flags ─────────────────────────────────────────────────────
@@ -188,6 +210,81 @@ enum class OutputOperandResult : int {
     Hidden         = -1,  ///< Operand should be hidden.
 };
 
+/// Result of context-driven instruction formatting.
+enum class OutputInstructionResult : int {
+    NotImplemented = 0,
+    Success = 1,
+};
+
+/// SDK-opaque output builder for processor text rendering callbacks.
+class OutputContext {
+public:
+    OutputContext& append(std::string_view text) {
+        buffer_.append(text.data(), text.size());
+        return *this;
+    }
+
+    OutputContext& mnemonic(std::string_view text) { return append(text); }
+    OutputContext& register_name(std::string_view text) { return append(text); }
+
+    OutputContext& immediate(std::int64_t value, int radix = 16) {
+        if (radix == 10) {
+            char buf[64];
+            std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(value));
+            return append(buf);
+        }
+        if (radix == 8) {
+            char buf[64];
+            std::snprintf(buf, sizeof(buf), "0%llo", static_cast<unsigned long long>(value));
+            return append(buf);
+        }
+        if (radix == 2) {
+            append("0b");
+            bool started = false;
+            std::uint64_t bits = static_cast<std::uint64_t>(value);
+            for (int i = 63; i >= 0; --i) {
+                bool bit = ((bits >> i) & 1U) != 0;
+                if (bit) started = true;
+                if (started || i == 0)
+                    append(bit ? "1" : "0");
+            }
+            return *this;
+        }
+
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "0x%llx", static_cast<unsigned long long>(value));
+        return append(buf);
+    }
+
+    OutputContext& address(Address address) {
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "0x%llx", static_cast<unsigned long long>(address));
+        return append(buf);
+    }
+
+    OutputContext& character(char ch) {
+        buffer_.push_back(ch);
+        return *this;
+    }
+
+    OutputContext& space() { return character(' '); }
+    OutputContext& comma() { return character(','); }
+
+    void clear() { buffer_.clear(); }
+
+    [[nodiscard]] bool empty() const { return buffer_.empty(); }
+    [[nodiscard]] const std::string& text() const { return buffer_; }
+
+    [[nodiscard]] std::string take() {
+        std::string out = std::move(buffer_);
+        buffer_.clear();
+        return out;
+    }
+
+private:
+    std::string buffer_;
+};
+
 // ── Processor base class ────────────────────────────────────────────────
 
 /// Base class for custom processor modules.
@@ -230,6 +327,29 @@ public:
     /// @param address  The instruction address.
     /// @param operand_index  The operand number (0-based).
     virtual OutputOperandResult output_operand(Address address, int operand_index) = 0;
+
+    /// Optional context-driven instruction formatter.
+    ///
+    /// Default behavior falls back to `output_instruction(address)` and returns
+    /// `OutputInstructionResult::NotImplemented`.
+    virtual OutputInstructionResult output_instruction_with_context(
+            Address address,
+            OutputContext& output) {
+        (void)output;
+        output_instruction(address);
+        return OutputInstructionResult::NotImplemented;
+    }
+
+    /// Optional context-driven operand formatter.
+    ///
+    /// Default behavior falls back to `output_operand(address, operand_index)`.
+    virtual OutputOperandResult output_operand_with_context(
+            Address address,
+            int operand_index,
+            OutputContext& output) {
+        (void)output;
+        return output_operand(address, operand_index);
+    }
 
     // ── Optional analysis callbacks ─────────────────────────────────────
 

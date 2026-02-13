@@ -67,6 +67,9 @@ struct AcceptResult {
     std::string format_name;     ///< Name shown in the "load file" dialog.
     std::string processor_name;  ///< Desired processor (optional, empty = any).
     int         priority{0};     ///< Higher = preferred.
+    bool        archive_loader{false};   ///< Corresponds to SDK ACCEPT_ARCHIVE.
+    bool        continue_probe{false};   ///< Corresponds to SDK ACCEPT_CONTINUE.
+    bool        prefer_first{false};     ///< Corresponds to SDK ACCEPT_FIRST.
 };
 
 // ── Loader flags ────────────────────────────────────────────────────────
@@ -76,6 +79,67 @@ struct LoaderOptions {
     bool supports_reload{false};    ///< Loader recognizes reload requests.
     bool requires_processor{false}; ///< Loader requires a processor to be set beforehand.
 };
+
+/// Decoded load-file flags (SDK `NEF_*`) exposed as typed booleans.
+struct LoadFlags {
+    bool create_segments{false};
+    bool load_resources{false};
+    bool rename_entries{false};
+    bool manual_load{false};
+    bool fill_gaps{false};
+    bool create_import_segment{false};
+    bool first_file{false};
+    bool binary_code_segment{false};
+    bool reload{false};
+    bool auto_flat_group{false};
+    bool mini_database{false};
+    bool loader_options_dialog{false};
+    bool load_all_segments{false};
+};
+
+/// Rich load request that models normal, reload, and archive-member flows.
+struct LoadRequest {
+    std::string format_name;
+    std::string input_name;
+    std::string archive_name;
+    std::string archive_member_name;
+    LoadFlags flags{};
+    bool is_remote{false};
+};
+
+/// Save request metadata.
+struct SaveRequest {
+    std::string format_name;
+    bool capability_query{false};
+    bool is_remote{false};
+};
+
+/// Segment move/rebase request metadata.
+struct MoveSegmentRequest {
+    std::string format_name;
+    bool whole_program_rebase{false};
+    bool reload{false};
+};
+
+/// Archive extraction request metadata.
+struct ArchiveMemberRequest {
+    std::string archive_name;
+    std::string default_member;
+    LoadFlags flags{};
+};
+
+/// Archive extraction result metadata.
+struct ArchiveMemberResult {
+    std::string extracted_file;
+    std::string member_name;
+    LoadFlags flags{};
+};
+
+/// Decode raw SDK `NEF_*` bits into typed `LoadFlags`.
+LoadFlags decode_load_flags(std::uint16_t raw_flags);
+
+/// Encode typed `LoadFlags` into raw SDK `NEF_*` bits.
+std::uint16_t encode_load_flags(const LoadFlags& flags);
 
 // ── Loader base class ───────────────────────────────────────────────────
 
@@ -123,6 +187,24 @@ public:
     /// @param format_name  The format name from accept().
     virtual Status load(InputFile& file, std::string_view format_name) = 0;
 
+    /// Context-rich load callback for reload/archive/member scenarios.
+    ///
+    /// Default behavior delegates to `load(file, request.format_name)`.
+    virtual Status load_with_request(InputFile& file,
+                                     const LoadRequest& request) {
+        return load(file, request.format_name);
+    }
+
+    /// Optional archive-member extraction callback.
+    ///
+    /// Default behavior indicates no archive processing support.
+    virtual Result<std::optional<ArchiveMemberResult>>
+    process_archive(InputFile& file, const ArchiveMemberRequest& request) {
+        (void)file;
+        (void)request;
+        return std::nullopt;
+    }
+
     /// Save the database back to a file (optional).
     /// @param fp  File pointer to write to, or nullptr to query capability.
     /// @param format_name  The format name.
@@ -130,6 +212,14 @@ public:
     virtual Result<bool> save(void* fp, std::string_view format_name) {
         (void)fp; (void)format_name;
         return false;
+    }
+
+    /// Context-rich save callback.
+    ///
+    /// Default behavior delegates to `save(fp, request.format_name)`.
+    virtual Result<bool> save_with_request(void* fp,
+                                           const SaveRequest& request) {
+        return save(fp, request.format_name);
     }
 
     /// Handle a segment being moved/rebased (optional).
@@ -142,6 +232,16 @@ public:
                                 std::string_view format_name) {
         (void)from; (void)to; (void)size; (void)format_name;
         return std::unexpected(Error::unsupported("move_segment not implemented"));
+    }
+
+    /// Context-rich segment move callback.
+    ///
+    /// Default behavior delegates to `move_segment(..., request.format_name)`.
+    virtual Status move_segment_with_request(Address from,
+                                             Address to,
+                                             AddressSize size,
+                                             const MoveSegmentRequest& request) {
+        return move_segment(from, to, size, request.format_name);
     }
 };
 

@@ -24,6 +24,28 @@ IDAX_LOADER(MyLoader)
 3. Copy bytes with `ida::loader::file_to_database()`.
 4. Add context comment with `ida::loader::create_filename_comment()`.
 
+## Advanced load/reload/archive flow
+
+Use typed request models when you need explicit reload/archive semantics:
+
+```cpp
+ida::loader::LoadRequest request;
+request.format_name = "My Format";
+request.flags.reload = true;
+request.archive_name = "libfoo.a";
+request.archive_member_name = "foo.o";
+
+ida::loader::LoadFlags flags = ida::loader::decode_load_flags(0x0200); // NEF_RELOAD
+auto raw = ida::loader::encode_load_flags(flags);
+```
+
+In custom loader subclasses, optional context-rich hooks are available:
+
+- `load_with_request(InputFile&, const LoadRequest&)`
+- `save_with_request(void*, const SaveRequest&)`
+- `move_segment_with_request(..., const MoveSegmentRequest&)`
+- `process_archive(InputFile&, const ArchiveMemberRequest&)`
+
 ## Database helper equivalent
 
 For non-loader contexts, `ida::database::file_to_database()` and
