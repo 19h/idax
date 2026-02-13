@@ -21,7 +21,7 @@ ida::comment::set_anterior_lines(ea, {"line1", "line2"});
 
 ```cpp
 // Legacy: add_cref(from, to, fl_CN);
-ida::xref::add_code(from, to, ida::xref::CodeType::Call);
+ida::xref::add_code(from, to, ida::xref::CodeType::CallNear);
 ```
 
 ## Search operations
