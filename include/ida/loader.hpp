@@ -24,7 +24,7 @@ namespace ida::loader {
 
 // ── Input file abstraction ──────────────────────────────────────────────
 
-/// Opaque wrapper around the SDK's linput_t for reading input files.
+/// Opaque wrapper around the SDK input handle for reading input files.
 ///
 /// Instances are provided to Loader callbacks — users do not create them.
 class InputFile {
@@ -57,7 +57,7 @@ public:
 
 private:
     friend struct InputFileAccess;
-    void* handle_{nullptr};  ///< Opaque: linput_t*
+    void* handle_{nullptr};  ///< Opaque SDK input handle.
 };
 
 // ── Loader accept result ────────────────────────────────────────────────
@@ -148,7 +148,7 @@ public:
 // ── Loader helper functions ─────────────────────────────────────────────
 
 /// Copy bytes from input file to the database at [ea, ea+size).
-/// @param li_handle  Opaque linput_t* (from InputFile::handle()).
+/// @param li_handle  Opaque SDK input handle (from InputFile::handle()).
 /// @param file_offset  Position in the input file.
 /// @param ea  Destination address in the database.
 /// @param size  Number of bytes to copy.

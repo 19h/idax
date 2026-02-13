@@ -103,7 +103,7 @@ void* make_plugin_export(PluginFactory factory,
 /// Activation/update context provided to action callbacks.
 ///
 /// This is a normalized, SDK-opaque snapshot of key fields from
-/// `action_activation_ctx_t` / `action_update_ctx_t`.
+/// internal SDK activation/update payloads.
 struct ActionContext {
     std::string action_id;
     std::string widget_title;
