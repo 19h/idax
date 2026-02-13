@@ -125,6 +125,31 @@ Status patch_bytes(Address ea, std::span<const std::uint8_t> bytes) {
     return ida::ok();
 }
 
+Status revert_patch(Address ea) {
+    if (!::revert_byte(ea))
+        return std::unexpected(Error::not_found("No patch to revert at address",
+                                                std::to_string(ea)));
+    return ida::ok();
+}
+
+Result<AddressSize> revert_patches(Address ea, AddressSize count) {
+    if (count == 0)
+        return AddressSize{0};
+    if (ea > (BadAddress - count))
+        return std::unexpected(Error::validation("Address range overflow"));
+
+    AddressSize reverted = 0;
+    for (AddressSize i = 0; i < count; ++i) {
+        if (::revert_byte(ea + i))
+            ++reverted;
+    }
+    if (reverted == 0) {
+        return std::unexpected(Error::not_found("No patches to revert in range",
+                                                std::to_string(ea)));
+    }
+    return reverted;
+}
+
 // ── Original values ─────────────────────────────────────────────────────
 
 Result<std::uint8_t> original_byte(Address ea) {
@@ -177,9 +202,45 @@ Status define_qword(Address ea, AddressSize count) {
     return ida::ok();
 }
 
+Status define_oword(Address ea, AddressSize count) {
+    if (!create_oword(ea, static_cast<asize_t>(count)))
+        return std::unexpected(Error::sdk("create_oword failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status define_tbyte(Address ea, AddressSize count) {
+    if (!create_tbyte(ea, static_cast<asize_t>(count)))
+        return std::unexpected(Error::sdk("create_tbyte failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status define_float(Address ea, AddressSize count) {
+    if (!create_float(ea, static_cast<asize_t>(count)))
+        return std::unexpected(Error::sdk("create_float failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status define_double(Address ea, AddressSize count) {
+    if (!create_double(ea, static_cast<asize_t>(count)))
+        return std::unexpected(Error::sdk("create_double failed", std::to_string(ea)));
+    return ida::ok();
+}
+
 Status define_string(Address ea, AddressSize length, std::int32_t string_type) {
     if (!create_strlit(ea, static_cast<asize_t>(length), static_cast<uint32>(string_type)))
         return std::unexpected(Error::sdk("create_strlit failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status define_struct(Address ea, AddressSize length, std::uint64_t structure_id) {
+    if (length == 0)
+        return std::unexpected(Error::validation("Structure length must be > 0"));
+    if (!create_struct(ea,
+                       static_cast<asize_t>(length),
+                       static_cast<tid_t>(structure_id))) {
+        return std::unexpected(Error::sdk("create_struct failed",
+                                          std::to_string(ea)));
+    }
     return ida::ok();
 }
 

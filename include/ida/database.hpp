@@ -19,6 +19,17 @@ namespace ida::database {
 
 // ── Lifecycle ───────────────────────────────────────────────────────────
 
+enum class OpenMode {
+    Analyze,
+    SkipAnalysis,
+};
+
+enum class LoadIntent {
+    AutoDetect,
+    Binary,
+    NonBinary,
+};
+
 /// Initialise the IDA library (call once, before any other idax call).
 /// Wraps init_library().
 Status init(int argc = 0, char* argv[] = nullptr);
@@ -27,6 +38,20 @@ Status init(int argc = 0, char* argv[] = nullptr);
 /// If \p auto_analysis is true the auto-analyser runs to completion.
 /// Wraps open_database().
 Status open(std::string_view path, bool auto_analysis = true);
+
+/// Open a database with explicit analysis mode.
+Status open(std::string_view path, OpenMode mode);
+
+/// Open a database with explicit load intent and analysis mode.
+Status open(std::string_view path,
+            LoadIntent intent,
+            OpenMode mode = OpenMode::Analyze);
+
+/// Open with explicit binary-input intent.
+Status open_binary(std::string_view path, OpenMode mode = OpenMode::Analyze);
+
+/// Open with explicit non-binary-input intent.
+Status open_non_binary(std::string_view path, OpenMode mode = OpenMode::Analyze);
 
 /// Save the current database.
 /// Wraps save_database().
@@ -66,6 +91,12 @@ Result<Address> min_address();
 
 /// Highest mapped address in the database.
 Result<Address> max_address();
+
+/// Address bounds as a half-open range [min_address, max_address).
+Result<ida::address::Range> address_bounds();
+
+/// Span of mapped address space (max_address - min_address).
+Result<AddressSize> address_span();
 
 // ── Snapshot wrappers ────────────────────────────────────────────────────
 

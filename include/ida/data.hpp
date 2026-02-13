@@ -80,6 +80,13 @@ Status patch_dword(Address address, std::uint32_t value);
 Status patch_qword(Address address, std::uint64_t value);
 Status patch_bytes(Address address, std::span<const std::uint8_t> bytes);
 
+/// Revert a patched byte at \p address back to its original value.
+Status revert_patch(Address address);
+
+/// Revert patched bytes in [address, address + count).
+/// Returns the number of bytes that were reverted.
+Result<AddressSize> revert_patches(Address address, AddressSize count);
+
 // ── Original (pre-patch) values ─────────────────────────────────────────
 
 Result<std::uint8_t>  original_byte(Address address);
@@ -93,7 +100,12 @@ Status define_byte(Address address, AddressSize count = 1);
 Status define_word(Address address, AddressSize count = 1);
 Status define_dword(Address address, AddressSize count = 1);
 Status define_qword(Address address, AddressSize count = 1);
+Status define_oword(Address address, AddressSize count = 1);
+Status define_tbyte(Address address, AddressSize count = 1);
+Status define_float(Address address, AddressSize count = 1);
+Status define_double(Address address, AddressSize count = 1);
 Status define_string(Address address, AddressSize length, std::int32_t string_type = 0);
+Status define_struct(Address address, AddressSize length, std::uint64_t structure_id);
 Status undefine(Address address, AddressSize count = 1);
 
 // ── Binary pattern search ────────────────────────────────────────────────

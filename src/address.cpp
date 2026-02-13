@@ -48,6 +48,14 @@ Result<Address> prev_head(Address ea, Address limit) {
     return static_cast<Address>(result);
 }
 
+Result<Address> next_defined(Address ea, Address limit) {
+    return next_head(ea, limit);
+}
+
+Result<Address> prev_defined(Address ea, Address limit) {
+    return prev_head(ea, limit);
+}
+
 Result<Address> next_not_tail(Address ea) {
     ea_t result = ::next_not_tail(ea);
     if (!ida::detail::is_valid(result))
@@ -196,6 +204,79 @@ ItemIterator ItemRange::end() const {
 
 ItemRange items(Address start, Address end) {
     return ItemRange(start, end);
+}
+
+namespace {
+
+Address normalize_end(Address end) {
+    return end == BadAddress ? std::numeric_limits<Address>::max() : end;
+}
+
+Address first_match(Address start, Address end, Predicate predicate) {
+    for (Address ea = start; ea < end; ++ea) {
+        if (matches_predicate(ea, predicate))
+            return ea;
+    }
+    return end;
+}
+
+Address next_match(Address current, Address end, Predicate predicate) {
+    if (current >= end || current == std::numeric_limits<Address>::max())
+        return end;
+    for (Address ea = current + 1; ea < end; ++ea) {
+        if (matches_predicate(ea, predicate))
+            return ea;
+    }
+    return end;
+}
+
+} // namespace
+
+PredicateIterator::PredicateIterator(Address current,
+                                     Address end,
+                                     Predicate predicate)
+    : current_(current),
+      end_(normalize_end(end)),
+      predicate_(predicate) {
+    if (current_ < end_)
+        current_ = first_match(current_, end_, predicate_);
+    else
+        current_ = end_;
+}
+
+PredicateIterator& PredicateIterator::operator++() {
+    current_ = next_match(current_, end_, predicate_);
+    return *this;
+}
+
+PredicateIterator PredicateIterator::operator++(int) {
+    PredicateIterator tmp = *this;
+    ++(*this);
+    return tmp;
+}
+
+PredicateRange::PredicateRange(Address start, Address end, Predicate predicate)
+    : start_(start), end_(end), predicate_(predicate) {}
+
+PredicateIterator PredicateRange::begin() const {
+    return PredicateIterator(start_, end_, predicate_);
+}
+
+PredicateIterator PredicateRange::end() const {
+    Address end = normalize_end(end_);
+    return PredicateIterator(end, end, predicate_);
+}
+
+PredicateRange code_items(Address start, Address end) {
+    return PredicateRange(start, end, Predicate::Code);
+}
+
+PredicateRange data_items(Address start, Address end) {
+    return PredicateRange(start, end, Predicate::Data);
+}
+
+PredicateRange unknown_bytes(Address start, Address end) {
+    return PredicateRange(start, end, Predicate::Unknown);
 }
 
 } // namespace ida::address

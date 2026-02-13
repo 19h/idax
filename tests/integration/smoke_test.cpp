@@ -88,6 +88,18 @@ static void test_database() {
                   << std::dec;
     }
 
+    auto bounds = ida::database::address_bounds();
+    CHECK_OK(bounds);
+    if (bounds && lo && hi) {
+        CHECK(bounds->start == *lo);
+        CHECK(bounds->end == *hi);
+    }
+
+    auto span = ida::database::address_span();
+    CHECK_OK(span);
+    if (span && lo && hi)
+        CHECK(*span == (*hi - *lo));
+
     auto snaps = ida::database::snapshots();
     CHECK_OK(snaps);
     if (snaps)
@@ -215,6 +227,14 @@ static void test_address_predicates() {
     auto hi = ida::database::max_address();
     CHECK_OK(hi);
     if (hi) {
+        auto next_defined = ida::address::next_defined(*lo, *hi);
+        CHECK_OK(next_defined);
+        if (next_defined)
+            CHECK(ida::address::is_head(*next_defined));
+
+        auto prev_defined = ida::address::prev_defined(*hi, *lo);
+        CHECK_OK(prev_defined);
+
         auto first_code = ida::address::find_first(*lo, *hi, ida::address::Predicate::Code);
         CHECK_OK(first_code);
         if (first_code) {
@@ -225,6 +245,31 @@ static void test_address_predicates() {
             CHECK_OK(next_head);
             if (next_head)
                 CHECK(*next_head > *first_code);
+        }
+
+        std::size_t code_seen = 0;
+        for (auto ea : ida::address::code_items(*lo, *hi)) {
+            CHECK(ida::address::is_code(ea));
+            ++code_seen;
+            if (code_seen >= 8)
+                break;
+        }
+        CHECK(code_seen > 0);
+
+        std::size_t data_seen = 0;
+        for (auto ea : ida::address::data_items(*lo, *hi)) {
+            CHECK(ida::address::is_data(ea));
+            ++data_seen;
+            if (data_seen >= 8)
+                break;
+        }
+
+        std::size_t unknown_seen = 0;
+        for (auto ea : ida::address::unknown_bytes(*lo, *hi)) {
+            CHECK(ida::address::is_unknown(ea));
+            ++unknown_seen;
+            if (unknown_seen >= 8)
+                break;
         }
     }
 }

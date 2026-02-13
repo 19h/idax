@@ -67,6 +67,11 @@ void check_address_surface() {
     (void)static_cast<PredFn>(&ida::address::is_head);
     (void)static_cast<PredFn>(&ida::address::is_tail);
 
+    using NextDefinedFn = ida::Result<ida::Address>(*)(ida::Address, ida::Address);
+    using PrevDefinedFn = ida::Result<ida::Address>(*)(ida::Address, ida::Address);
+    (void)static_cast<NextDefinedFn>(&ida::address::next_defined);
+    (void)static_cast<PrevDefinedFn>(&ida::address::prev_defined);
+
     // Predicate enum
     (void)ida::address::Predicate::Mapped;
     (void)ida::address::Predicate::Code;
@@ -74,6 +79,16 @@ void check_address_surface() {
 
     // ItemIterator traits
     static_assert(std::is_same_v<ida::address::ItemIterator::value_type, ida::Address>);
+
+    // Predicate-range traversal
+    static_assert(std::is_same_v<ida::address::PredicateIterator::value_type,
+                                 ida::Address>);
+    using CodeItemsFn = ida::address::PredicateRange(*)(ida::Address, ida::Address);
+    using DataItemsFn = ida::address::PredicateRange(*)(ida::Address, ida::Address);
+    using UnknownBytesFn = ida::address::PredicateRange(*)(ida::Address, ida::Address);
+    (void)static_cast<CodeItemsFn>(&ida::address::code_items);
+    (void)static_cast<DataItemsFn>(&ida::address::data_items);
+    (void)static_cast<UnknownBytesFn>(&ida::address::unknown_bytes);
 }
 
 // ─── ida::data ──────────────────────────────────────────────────────────
@@ -88,6 +103,22 @@ void check_data_surface() {
 
     using PatchByteFn = ida::Status(*)(ida::Address, std::uint8_t);
     (void)static_cast<PatchByteFn>(&ida::data::patch_byte);
+
+    using RevertPatchFn = ida::Status(*)(ida::Address);
+    using RevertPatchesFn = ida::Result<ida::AddressSize>(*)(ida::Address, ida::AddressSize);
+    (void)static_cast<RevertPatchFn>(&ida::data::revert_patch);
+    (void)static_cast<RevertPatchesFn>(&ida::data::revert_patches);
+
+    using DefineOwordFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using DefineTbyteFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using DefineFloatFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using DefineDoubleFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using DefineStructFn = ida::Status(*)(ida::Address, ida::AddressSize, std::uint64_t);
+    (void)static_cast<DefineOwordFn>(&ida::data::define_oword);
+    (void)static_cast<DefineTbyteFn>(&ida::data::define_tbyte);
+    (void)static_cast<DefineFloatFn>(&ida::data::define_float);
+    (void)static_cast<DefineDoubleFn>(&ida::data::define_double);
+    (void)static_cast<DefineStructFn>(&ida::data::define_struct);
 }
 
 // ─── ida::segment ───────────────────────────────────────────────────────
@@ -193,6 +224,30 @@ void check_analysis_surface() {
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
+    (void)ida::database::OpenMode::Analyze;
+    (void)ida::database::OpenMode::SkipAnalysis;
+    (void)ida::database::LoadIntent::AutoDetect;
+    (void)ida::database::LoadIntent::Binary;
+    (void)ida::database::LoadIntent::NonBinary;
+
+    using OpenBoolFn = ida::Status(*)(std::string_view, bool);
+    using OpenModeFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
+    using OpenIntentFn = ida::Status(*)(std::string_view,
+                                        ida::database::LoadIntent,
+                                        ida::database::OpenMode);
+    using OpenBinaryFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
+    using OpenNonBinaryFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
+    using BoundsFn = ida::Result<ida::address::Range>(*)();
+    using SpanFn = ida::Result<ida::AddressSize>(*)();
+
+    (void)static_cast<OpenBoolFn>(&ida::database::open);
+    (void)static_cast<OpenModeFn>(&ida::database::open);
+    (void)static_cast<OpenIntentFn>(&ida::database::open);
+    (void)static_cast<OpenBinaryFn>(&ida::database::open_binary);
+    (void)static_cast<OpenNonBinaryFn>(&ida::database::open_non_binary);
+    (void)static_cast<BoundsFn>(&ida::database::address_bounds);
+    (void)static_cast<SpanFn>(&ida::database::address_span);
+
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
     (void)&ida::database::image_base;

@@ -60,6 +60,12 @@ Result<Address> next_head(Address ea, Address limit = BadAddress);
 /// Start of the previous defined item before \p ea (down to \p limit).
 Result<Address> prev_head(Address ea, Address limit = 0);
 
+/// Alias for next_head() with discoverable naming.
+Result<Address> next_defined(Address ea, Address limit = BadAddress);
+
+/// Alias for prev_head() with discoverable naming.
+Result<Address> prev_defined(Address ea, Address limit = 0);
+
 /// Next address that is not a tail byte.
 Result<Address> next_not_tail(Address ea);
 
@@ -159,6 +165,62 @@ private:
 
 /// Return a range of all item head addresses in [start, end).
 ItemRange items(Address start, Address end);
+
+// ── Predicate range iteration ───────────────────────────────────────────
+
+/// Forward iterator over addresses matching a Predicate in a range.
+class PredicateIterator {
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type        = Address;
+    using difference_type   = AddressDelta;
+    using pointer           = const Address*;
+    using reference         = Address;
+
+    PredicateIterator() = default;
+    PredicateIterator(Address current, Address end, Predicate predicate);
+
+    reference operator*() const noexcept { return current_; }
+    pointer   operator->() const noexcept { return &current_; }
+    PredicateIterator& operator++();
+    PredicateIterator  operator++(int);
+
+    friend bool operator==(const PredicateIterator& a,
+                           const PredicateIterator& b) noexcept {
+        return a.current_ == b.current_;
+    }
+    friend bool operator!=(const PredicateIterator& a,
+                           const PredicateIterator& b) noexcept {
+        return !(a == b);
+    }
+
+private:
+    Address   current_{BadAddress};
+    Address   end_{BadAddress};
+    Predicate predicate_{Predicate::Mapped};
+};
+
+/// Range adaptor over addresses matching a Predicate in [start, end).
+class PredicateRange {
+public:
+    PredicateRange(Address start, Address end, Predicate predicate);
+    [[nodiscard]] PredicateIterator begin() const;
+    [[nodiscard]] PredicateIterator end() const;
+
+private:
+    Address   start_;
+    Address   end_;
+    Predicate predicate_;
+};
+
+/// Iterate addresses classified as code in [start, end).
+PredicateRange code_items(Address start, Address end);
+
+/// Iterate addresses classified as data in [start, end).
+PredicateRange data_items(Address start, Address end);
+
+/// Iterate addresses classified as unknown in [start, end).
+PredicateRange unknown_bytes(Address start, Address end);
 
 } // namespace address
 } // namespace ida
