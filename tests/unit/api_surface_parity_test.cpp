@@ -404,6 +404,14 @@ void check_database_surface() {
     (void)ida::database::LoadIntent::Binary;
     (void)ida::database::LoadIntent::NonBinary;
 
+    ida::database::PluginLoadPolicy plugin_policy;
+    (void)plugin_policy.disable_user_plugins;
+    (void)plugin_policy.allowlist_patterns;
+
+    ida::database::RuntimeOptions runtime_options;
+    (void)runtime_options.quiet;
+    (void)runtime_options.plugin_policy;
+
     using OpenBoolFn = ida::Status(*)(std::string_view, bool);
     using OpenModeFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
     using OpenIntentFn = ida::Status(*)(std::string_view,
@@ -411,9 +419,15 @@ void check_database_surface() {
                                         ida::database::OpenMode);
     using OpenBinaryFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
     using OpenNonBinaryFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
+    using InitBasicFn = ida::Status(*)(int, char*[]);
+    using InitWithOptionsFn = ida::Status(*)(int, char*[], const ida::database::RuntimeOptions&);
+    using InitOptionsOnlyFn = ida::Status(*)(const ida::database::RuntimeOptions&);
     using BoundsFn = ida::Result<ida::address::Range>(*)();
     using SpanFn = ida::Result<ida::AddressSize>(*)();
 
+    (void)static_cast<InitBasicFn>(&ida::database::init);
+    (void)static_cast<InitWithOptionsFn>(&ida::database::init);
+    (void)static_cast<InitOptionsOnlyFn>(&ida::database::init);
     (void)static_cast<OpenBoolFn>(&ida::database::open);
     (void)static_cast<OpenModeFn>(&ida::database::open);
     (void)static_cast<OpenIntentFn>(&ida::database::open);

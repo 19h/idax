@@ -2,8 +2,8 @@
 /// \brief idax-first port of `idalib-dump`'s `ida_dump` command.
 ///
 /// This example intentionally avoids direct SDK calls and uses only idax public
-/// wrappers. The goal is to validate real-world migration ergonomics and expose
-/// API gaps clearly when parity is not yet possible.
+/// wrappers. The goal is to validate real-world migration ergonomics and keep
+/// parity pressure visible through concrete port code.
 
 #include <ida/idax.hpp>
 
@@ -52,8 +52,7 @@ struct Options {
     bool quiet{false};
     bool show_summary{true};
 
-    // Compatibility switches from the original tool that idax cannot
-    // currently implement fully without additional wrapper APIs.
+    // Compatibility switches from the original tool.
     bool no_plugins_requested{false};
     std::vector<std::string> plugin_patterns;
 };
@@ -243,7 +242,12 @@ bool should_process_function(const ida::function::Function& function,
 class DatabaseSession {
 public:
     ida::Status open(std::string_view input_path) {
-        if (auto init_status = ida::database::init(); !init_status) {
+        ida::database::RuntimeOptions runtime_options;
+        runtime_options.quiet = g_options.quiet;
+        runtime_options.plugin_policy.disable_user_plugins = g_options.no_plugins_requested;
+        runtime_options.plugin_policy.allowlist_patterns = g_options.plugin_patterns;
+
+        if (auto init_status = ida::database::init(runtime_options); !init_status) {
             return std::unexpected(init_status.error());
         }
         if (auto open_status = ida::database::open(input_path, ida::database::OpenMode::Analyze);
@@ -289,9 +293,9 @@ void print_usage(const char* program) {
     std::cout << "  -o, --output <file>      write output to file\n";
     std::cout << "  -q, --quiet              suppress startup summary\n";
     std::cout << "  --no-summary             disable final summary\n\n";
-    std::cout << "Compatibility flags (currently informational):\n";
-    std::cout << "  --no-plugins             accepted, but not implemented in idax yet\n";
-    std::cout << "  --plugin <pattern>       accepted, but not implemented in idax yet\n\n";
+    std::cout << "Headless plugin policy:\n";
+    std::cout << "  --no-plugins             disable user plugins from IDAUSR\n";
+    std::cout << "  --plugin <pattern>       allow only matching user plugins (* and ? supported)\n\n";
     std::cout << "  -h, --help               show this help\n";
 }
 
@@ -590,12 +594,6 @@ int run_port() {
             return EXIT_FAILURE;
         }
         g_output = &g_output_file;
-    }
-
-    if (g_options.no_plugins_requested) {
-        std::cerr
-            << "[gap] --no-plugins/--plugin accepted for compatibility, but idax "
-            << "does not yet expose headless plugin-load control\n";
     }
 
     DatabaseSession session;

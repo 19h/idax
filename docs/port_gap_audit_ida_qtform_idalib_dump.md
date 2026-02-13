@@ -18,20 +18,13 @@ surfaces:
 
 ## Confirmed migration gaps
 
-1. Headless plugin-load control surface is missing
-   - Impact: `--no-plugins` / `--plugin <pattern>` compatibility cannot be
-     implemented through idax wrappers (currently requires environment and SDK
-     internals in external tools).
-   - Suggested API: database/session open options for plugin policy and plugin
-     allowlist patterns.
-
-2. Lumina push API is missing
+1. Lumina push API is missing
    - Impact: `idalib-dump` `ida_lumina` cannot be ported to pure idax APIs
      without private SDK reverse-engineering patterns.
    - Suggested API: explicit `ida::lumina` namespace with safe push/query flows,
      or intentional non-goal documentation if this remains out of scope.
 
-3. Additional binary metadata parity helpers are still useful
+2. Additional binary metadata parity helpers are still useful
    - Impact: wrapper consumers still need raw SDK for file-format name,
      compiler metadata, and loaded-module inspection parity used by advanced
      diagnostics tools.
@@ -48,4 +41,7 @@ surfaces:
   `DecompiledFunction::microcode()` and `DecompiledFunction::microcode_lines()`.
 - Structured decompile failure details are now available through
   `ida::decompiler::DecompileFailure` + `decompile(address, &failure)`.
+- Headless plugin-load controls are now available in `ida::database` via
+  `RuntimeOptions` + `PluginLoadPolicy`, including `--no-plugins` and
+  allowlist-pattern flows used by `idalib_dump_port`.
 - Telegram-bot paths were intentionally excluded per request.
