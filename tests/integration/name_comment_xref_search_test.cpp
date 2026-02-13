@@ -344,10 +344,39 @@ void test_search_behaviors() {
     if (elf_magic)
         CHECK(*elf_magic == *lo);
 
+    ida::search::BinaryPatternOptions bin_opts;
+    bin_opts.direction = ida::search::Direction::Forward;
+    bin_opts.skip_start = true;
+    auto elf_skip_start = ida::search::binary_pattern("7F 45 4C 46", *lo, bin_opts);
+    if (elf_skip_start) {
+        CHECK(*elf_skip_start > *lo);
+    } else {
+        CHECK(elf_skip_start.error().category == ida::ErrorCategory::NotFound);
+    }
+
+    auto hi = ida::database::max_address();
+    CHECK_OK(hi);
+    if (hi) {
+        auto elf_backward = ida::search::binary_pattern("7F 45 4C 46", *hi,
+                                                        ida::search::Direction::Backward);
+        CHECK_OK(elf_backward);
+        if (elf_backward)
+            CHECK(*elf_backward == *lo);
+    }
+
     auto impossible_immediate = ida::search::immediate(0xFFFFFFFFFFFFFFFFULL, *lo);
     CHECK(!impossible_immediate.has_value());
     if (!impossible_immediate.has_value()) {
         CHECK(impossible_immediate.error().category == ida::ErrorCategory::NotFound);
+    }
+
+    ida::search::ImmediateOptions imm_opts;
+    imm_opts.direction = ida::search::Direction::Forward;
+    imm_opts.skip_start = true;
+    auto impossible_immediate_opts = ida::search::immediate(0xFFFFFFFFFFFFFFFFULL, *lo, imm_opts);
+    CHECK(!impossible_immediate_opts.has_value());
+    if (!impossible_immediate_opts.has_value()) {
+        CHECK(impossible_immediate_opts.error().category == ida::ErrorCategory::NotFound);
     }
 
     auto next_code = ida::search::next_code(*lo);
@@ -366,6 +395,32 @@ void test_search_behaviors() {
     } else {
         CHECK(next_unknown.error().category == ida::ErrorCategory::NotFound);
     }
+
+    auto next_defined = ida::search::next_defined(*lo);
+    CHECK_OK(next_defined);
+    if (next_defined)
+        CHECK(ida::address::is_head(*next_defined));
+
+    auto next_error = ida::search::next_error(*lo);
+    if (!next_error)
+        CHECK(next_error.error().category == ida::ErrorCategory::NotFound);
+}
+
+void test_analysis_behaviors() {
+    std::cout << "--- analysis behavior ---\n";
+
+    auto lo = ida::database::min_address();
+    CHECK_OK(lo);
+    if (!lo)
+        return;
+
+    CHECK_OK(ida::analysis::wait_range(*lo, *lo + 1));
+    CHECK_OK(ida::analysis::schedule_code(*lo));
+    CHECK_OK(ida::analysis::schedule_function(*lo));
+    CHECK_OK(ida::analysis::schedule_reanalysis(*lo));
+    CHECK_OK(ida::analysis::schedule_reanalysis_range(*lo, *lo + 1));
+    CHECK_OK(ida::analysis::cancel(*lo, *lo + 1));
+    CHECK_OK(ida::analysis::revert_decisions(*lo, *lo));
 }
 
 } // namespace
@@ -394,6 +449,7 @@ int main(int argc, char* argv[]) {
     test_comment_behaviors();
     test_xref_behaviors();
     test_search_behaviors();
+    test_analysis_behaviors();
 
     auto close = ida::database::close(false);
     CHECK_OK(close);
