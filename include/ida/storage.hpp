@@ -18,6 +18,10 @@ namespace ida::storage {
 class Node {
 public:
     static Result<Node> open(std::string_view name, bool create = false);
+    static Result<Node> open_by_id(std::uint64_t node_id);
+
+    Result<std::uint64_t>           id() const;
+    Result<std::string>             name() const;
 
     Result<std::uint64_t>           alt(Address index, std::uint8_t tag = 'A') const;
     Status                          set_alt(Address index, std::uint64_t value, std::uint8_t tag = 'A');

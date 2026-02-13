@@ -26,4 +26,8 @@
    - Netnode blob operations at index 0 can trigger crashes when running under idalib.
    - Always use indices >= 100 for blob/alt/sup operations.
 
+7. **Node identity portability**
+   - For long-lived cross-callback state, store and reuse `Node::id()`.
+   - Reopen later with `Node::open_by_id(id)` instead of repeating name lookups.
+
 See also: [Storage / netnode migration examples](migration/legacy_to_wrapper.md#storage--netnode-migration) for complete code snippets.

@@ -36,7 +36,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::ui             Messages, dialogs, choosers, timers             [1 enum, 4 structs, 2 classes, ~16 free fns]
  |-- ida::graph          Graph objects, flow charts, basic blocks        [2 enums, 4 structs, 2 classes, ~4 free fns]
  |
- |-- ida::storage        Netnode abstraction, alt/sup/hash/blob          [1 class (Node), ~15 methods]
+ |-- ida::storage        Netnode abstraction, id/open-by-id, alt/sup/hash/blob [1 class (Node), ~18 methods]
  |-- ida::diagnostics    Logging, counters, diagnostic messages          [1 enum, ~5 free fns]
 ```
 

@@ -722,6 +722,14 @@ void check_decompiler_surface() {
 void check_storage_surface() {
     static_assert(std::is_move_constructible_v<ida::storage::Node>);
     static_assert(std::is_copy_constructible_v<ida::storage::Node>);
+
+    using OpenByIdFn = ida::Result<ida::storage::Node>(*)(std::uint64_t);
+    using IdFn = ida::Result<std::uint64_t>(ida::storage::Node::*)() const;
+    using NameFn = ida::Result<std::string>(ida::storage::Node::*)() const;
+
+    (void)static_cast<OpenByIdFn>(&ida::storage::Node::open_by_id);
+    (void)static_cast<IdFn>(&ida::storage::Node::id);
+    (void)static_cast<NameFn>(&ida::storage::Node::name);
 }
 
 // ─── ida::diagnostics ───────────────────────────────────────────────────
