@@ -492,6 +492,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/cookbook/disassembly_workflows.md`](docs/cookbook/disassembly_workflows.md) | Decode, operand, xref recipes |
 | [`docs/migration/legacy_to_wrapper.md`](docs/migration/legacy_to_wrapper.md) | SDK-to-idax function mapping |
 | [`docs/api_reference.md`](docs/api_reference.md) | Complete header index |
+| [`docs/namespace_topology.md`](docs/namespace_topology.md) | Namespace map and type inventory |
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
 
 ---
