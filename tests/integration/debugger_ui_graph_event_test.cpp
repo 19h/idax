@@ -314,6 +314,29 @@ void test_ui_subscriptions() {
     if (tok3) ida::ui::unsubscribe(*tok3);
 }
 
+void test_ui_generic_routing() {
+    std::printf("[section] ui: generic routing + filtering\n");
+
+    auto generic_tok = ida::ui::on_event([](const ida::ui::Event& ev) {
+        (void)ev;
+    });
+    CHECK(generic_tok.has_value(), "ui on_event subscribe ok");
+
+    auto filtered_tok = ida::ui::on_event_filtered(
+        [](const ida::ui::Event& ev) {
+            return ev.kind == ida::ui::EventKind::CursorChanged;
+        },
+        [](const ida::ui::Event& ev) {
+            (void)ev;
+        });
+    CHECK(filtered_tok.has_value(), "ui on_event_filtered subscribe ok");
+
+    if (generic_tok)
+        CHECK(ida::ui::unsubscribe(*generic_tok).has_value(), "ui on_event unsubscribe ok");
+    if (filtered_tok)
+        CHECK(ida::ui::unsubscribe(*filtered_tok).has_value(), "ui on_event_filtered unsubscribe ok");
+}
+
 void test_ui_scoped_subscription() {
     std::printf("[section] ui: ScopedSubscription RAII\n");
 
@@ -427,6 +450,7 @@ int main(int argc, char** argv) {
 
     // ── UI subscription tests ───────────────────────────────────────────
     test_ui_subscriptions();
+    test_ui_generic_routing();
     test_ui_scoped_subscription();
     test_ui_widget_host_bridge();
 

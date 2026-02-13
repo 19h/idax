@@ -16,14 +16,50 @@ namespace {
 
 struct ActionAdapter : public action_handler_t {
     std::function<Status()> handler;
+    std::function<Status(const ActionContext&)> handler_with_context;
     std::function<bool()>   enabled;
+    std::function<bool(const ActionContext&)> enabled_with_context;
 
-    int idaapi activate(action_activation_ctx_t *) override {
-        if (handler) handler();
+    static ActionContext to_action_context(const action_ctx_base_t* ctx) {
+        ActionContext out;
+        if (ctx == nullptr)
+            return out;
+
+        if (ctx->action != nullptr)
+            out.action_id = ctx->action;
+
+        out.widget_title = ida::detail::to_string(ctx->widget_title);
+        out.widget_type = ctx->widget_type;
+        out.current_address = ctx->cur_ea == BADADDR
+                            ? BadAddress
+                            : static_cast<Address>(ctx->cur_ea);
+        out.current_value = static_cast<std::uint64_t>(ctx->cur_value);
+        out.has_selection = ctx->has_flag(ACF_HAS_SELECTION);
+        out.is_external_address = ctx->has_flag(ACF_XTRN_EA);
+
+        if (ctx->regname != nullptr)
+            out.register_name = ctx->regname;
+
+        return out;
+    }
+
+    int idaapi activate(action_activation_ctx_t *ctx) override {
+        if (handler_with_context) {
+            auto context = to_action_context(ctx);
+            handler_with_context(context);
+        } else if (handler) {
+            handler();
+        }
         return 1; // refresh
     }
 
-    action_state_t idaapi update(action_update_ctx_t *) override {
+    action_state_t idaapi update(action_update_ctx_t *ctx) override {
+        if (enabled_with_context) {
+            auto context = to_action_context(ctx);
+            if (!enabled_with_context(context))
+                return AST_DISABLE;
+            return AST_ENABLE;
+        }
         if (enabled && !enabled())
             return AST_DISABLE;
         return AST_ENABLE;
@@ -37,7 +73,9 @@ struct ActionAdapter : public action_handler_t {
 Status register_action(const Action& action) {
     auto* adapter = new ActionAdapter();
     adapter->handler = action.handler;
+    adapter->handler_with_context = action.handler_with_context;
     adapter->enabled = action.enabled;
+    adapter->enabled_with_context = action.enabled_with_context;
 
     action_desc_t desc = ACTION_DESC_LITERAL_PLUGMOD(
         action.id.c_str(),
