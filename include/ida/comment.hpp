@@ -26,6 +26,14 @@ Status add_posterior(Address address, std::string_view text);
 Result<std::string> get_anterior(Address address, int line_index);
 Result<std::string> get_posterior(Address address, int line_index);
 
+/// Replace an existing anterior/posterior line at index.
+Status set_anterior(Address address, int line_index, std::string_view text);
+Status set_posterior(Address address, int line_index, std::string_view text);
+
+/// Remove a specific anterior/posterior line by index.
+Status remove_anterior_line(Address address, int line_index);
+Status remove_posterior_line(Address address, int line_index);
+
 // ── Bulk operations ──────────────────────────────────────────────────────
 
 Status set_anterior_lines(Address address, const std::vector<std::string>& lines);

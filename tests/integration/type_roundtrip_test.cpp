@@ -162,6 +162,104 @@ void test_from_declaration() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: function type + calling convention workflows
+// ---------------------------------------------------------------------------
+void test_function_type_workflows() {
+    std::cout << "--- function type workflows ---\n";
+
+    std::vector<ida::type::TypeInfo> args;
+    args.push_back(ida::type::TypeInfo::int32());
+    args.push_back(ida::type::TypeInfo::pointer_to(ida::type::TypeInfo::uint8()));
+
+    auto fn = ida::type::TypeInfo::function_type(
+        ida::type::TypeInfo::int32(),
+        args,
+        ida::type::CallingConvention::Stdcall,
+        false);
+    CHECK_OK(fn);
+    if (fn) {
+        CHECK(fn->is_function());
+
+        auto cc = fn->calling_convention();
+        CHECK_OK(cc);
+        if (cc)
+            CHECK(*cc == ida::type::CallingConvention::Stdcall);
+
+        auto ret = fn->function_return_type();
+        CHECK_OK(ret);
+        if (ret)
+            CHECK(ret->is_integer());
+
+        auto arg_types = fn->function_argument_types();
+        CHECK_OK(arg_types);
+        if (arg_types) {
+            CHECK(arg_types->size() == args.size());
+            if (arg_types->size() == args.size()) {
+                CHECK((*arg_types)[0].is_integer());
+                CHECK((*arg_types)[1].is_pointer());
+            }
+        }
+
+        auto variadic = fn->is_variadic_function();
+        CHECK_OK(variadic);
+        if (variadic)
+            CHECK(!*variadic);
+    }
+
+    auto variadic_fn = ida::type::TypeInfo::function_type(
+        ida::type::TypeInfo::int32(),
+        args,
+        ida::type::CallingConvention::Cdecl,
+        true);
+    CHECK_OK(variadic_fn);
+    if (variadic_fn) {
+        auto variadic = variadic_fn->is_variadic_function();
+        CHECK_OK(variadic);
+        if (variadic)
+            CHECK(*variadic);
+    }
+
+    // calling_convention() on non-function type should fail.
+    auto invalid_cc = ida::type::TypeInfo::int32().calling_convention();
+    CHECK(!invalid_cc.has_value());
+    if (!invalid_cc)
+        CHECK(invalid_cc.error().category == ida::ErrorCategory::Validation);
+}
+
+// ---------------------------------------------------------------------------
+// Test: enum construction and enumeration workflows
+// ---------------------------------------------------------------------------
+void test_enum_workflows() {
+    std::cout << "--- enum workflows ---\n";
+
+    std::vector<ida::type::EnumMember> members;
+    members.push_back({"IDAX_ENUM_ZERO", 0, "zero"});
+    members.push_back({"IDAX_ENUM_ONE", 1, "one"});
+
+    auto enum_type = ida::type::TypeInfo::enum_type(members, 4, false);
+    CHECK_OK(enum_type);
+    if (enum_type) {
+        CHECK(enum_type->is_enum());
+
+        auto enum_members = enum_type->enum_members();
+        CHECK_OK(enum_members);
+        if (enum_members) {
+            CHECK(enum_members->size() == members.size());
+            if (enum_members->size() == members.size()) {
+                CHECK((*enum_members)[0].name == members[0].name);
+                CHECK((*enum_members)[1].value == members[1].value);
+            }
+        }
+    }
+
+    // Invalid width should fail validation.
+    auto bad_enum = ida::type::TypeInfo::enum_type(members, 3, false);
+    CHECK(!bad_enum.has_value());
+    if (!bad_enum)
+        CHECK(bad_enum.error().category == ida::ErrorCategory::Validation);
+}
+
+// ---------------------------------------------------------------------------
 // Test: struct creation, member add, member access
 // ---------------------------------------------------------------------------
 void test_struct_lifecycle() {
@@ -545,6 +643,8 @@ int main(int argc, char* argv[]) {
     test_primitive_factories();
     test_composite_factories();
     test_from_declaration();
+    test_function_type_workflows();
+    test_enum_workflows();
     test_struct_lifecycle();
     test_union_creation();
     test_save_and_lookup();

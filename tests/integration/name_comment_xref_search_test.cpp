@@ -111,7 +111,19 @@ void test_name_behaviors() {
     CHECK_OK(ida::name::set(first_ea, first_temp));
     CHECK_VAL(ida::name::get(first_ea), *_r == first_temp);
     CHECK_VAL(ida::name::resolve(first_temp), *_r == first_ea);
+    CHECK(ida::name::is_user_defined(first_ea));
     CHECK(!ida::name::is_auto_generated(first_ea));
+
+    CHECK_VAL(ida::name::is_valid_identifier("idax_valid_identifier_1"), *_r);
+    CHECK_VAL(ida::name::is_valid_identifier("idax invalid identifier"), !*_r);
+    auto sanitized = ida::name::sanitize_identifier("idax invalid identifier");
+    CHECK_OK(sanitized);
+    if (sanitized) {
+        auto sanitized_valid = ida::name::is_valid_identifier(*sanitized);
+        CHECK_OK(sanitized_valid);
+        if (sanitized_valid)
+            CHECK(*sanitized_valid);
+    }
 
     const bool was_public = ida::name::is_public(first_ea);
     CHECK_OK(ida::name::set_public(first_ea, !was_public));
@@ -196,14 +208,35 @@ void test_comment_behaviors() {
         }
     }
 
+    CHECK_OK(ida::comment::set_anterior(ea, 1, "idax anterior B edited"));
+    CHECK_VAL(ida::comment::get_anterior(ea, 1), *_r == "idax anterior B edited");
+
+    CHECK_OK(ida::comment::set_posterior(ea, 0, "idax posterior A edited"));
+    CHECK_VAL(ida::comment::get_posterior(ea, 0), *_r == "idax posterior A edited");
+
     auto rendered = ida::comment::render(ea, true, true);
     CHECK_OK(rendered);
     if (rendered) {
         CHECK(rendered->find("idax regular") != std::string::npos);
         CHECK(rendered->find("idax repeatable") != std::string::npos);
-        CHECK(rendered->find("idax anterior A") != std::string::npos);
-        CHECK(rendered->find("idax posterior A") != std::string::npos);
+        CHECK(rendered->find("idax anterior B edited") != std::string::npos);
+        CHECK(rendered->find("idax posterior A edited") != std::string::npos);
     }
+
+    CHECK_OK(ida::comment::remove_anterior_line(ea, 0));
+    auto ant_after_remove = ida::comment::anterior_lines(ea);
+    CHECK_OK(ant_after_remove);
+    if (ant_after_remove) {
+        CHECK(ant_after_remove->size() == 1);
+        if (ant_after_remove->size() == 1)
+            CHECK((*ant_after_remove)[0] == "idax anterior B edited");
+    }
+
+    CHECK_OK(ida::comment::remove_posterior_line(ea, 0));
+    auto post_after_remove = ida::comment::posterior_lines(ea);
+    CHECK_OK(post_after_remove);
+    if (post_after_remove)
+        CHECK(post_after_remove->empty());
 
     CHECK_OK(ida::comment::clear_anterior(ea));
     CHECK_OK(ida::comment::clear_posterior(ea));
@@ -231,23 +264,38 @@ void test_xref_behaviors() {
     auto refs_from = ida::xref::refs_from(call_site);
     auto code_from = ida::xref::code_refs_from(call_site);
     auto data_from = ida::xref::data_refs_from(call_site);
+    auto range_from = ida::xref::refs_from_range(call_site);
     CHECK_OK(refs_from);
     CHECK_OK(code_from);
     CHECK_OK(data_from);
+    CHECK_OK(range_from);
 
-    if (refs_from && code_from && data_from) {
+    if (refs_from && code_from && data_from && range_from) {
         CHECK(refs_from->size() >= code_from->size());
         CHECK(refs_from->size() >= data_from->size());
+        CHECK(range_from->size() == refs_from->size());
         for (const auto& ref : *code_from)
             CHECK(ref.is_code);
         for (const auto& ref : *data_from)
             CHECK(!ref.is_code);
+
+        auto call_near = ida::xref::refs_from(call_site, ida::xref::ReferenceType::CallNear);
+        CHECK_OK(call_near);
+        if (call_near) {
+            for (const auto& ref : *call_near)
+                CHECK(ida::xref::is_call(ref.type));
+        }
     }
 
     auto refs_to = ida::xref::refs_to(target);
     auto code_to = ida::xref::code_refs_to(target);
+    auto range_to = ida::xref::refs_to_range(target);
     CHECK_OK(refs_to);
     CHECK_OK(code_to);
+    CHECK_OK(range_to);
+
+    if (refs_to && range_to)
+        CHECK(range_to->size() == refs_to->size());
 
     if (refs_to) {
         bool call_site_found = false;

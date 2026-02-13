@@ -561,6 +561,16 @@ static void test_entry_points() {
             if (e) {
                 std::cout << "  entry[0]: " << e->name << " at 0x"
                           << std::hex << e->address << std::dec << "\n";
+
+                auto original_forwarder = ida::entry::forwarder(e->ordinal);
+                CHECK_OK(ida::entry::set_forwarder(e->ordinal, "idax.temp.forwarder"));
+                auto updated_forwarder = ida::entry::forwarder(e->ordinal);
+                CHECK_OK(updated_forwarder);
+                if (updated_forwarder)
+                    CHECK(updated_forwarder->find("idax.temp.forwarder") != std::string::npos);
+
+                if (original_forwarder && !original_forwarder->empty())
+                    CHECK_OK(ida::entry::set_forwarder(e->ordinal, *original_forwarder));
             }
         }
     }

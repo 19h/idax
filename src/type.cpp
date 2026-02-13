@@ -47,6 +47,67 @@ TypeInfo from_simple(type_t bt) {
     return ti;
 }
 
+callcnv_t to_sdk_calling_convention(CallingConvention cc, bool has_varargs) {
+    callcnv_t sdk = CM_CC_UNKNOWN;
+    switch (cc) {
+        case CallingConvention::Unknown:     sdk = CM_CC_UNKNOWN; break;
+        case CallingConvention::Cdecl:       sdk = CM_CC_CDECL; break;
+        case CallingConvention::Stdcall:     sdk = CM_CC_STDCALL; break;
+        case CallingConvention::Pascal:      sdk = CM_CC_PASCAL; break;
+        case CallingConvention::Fastcall:    sdk = CM_CC_FASTCALL; break;
+        case CallingConvention::Thiscall:    sdk = CM_CC_THISCALL; break;
+        case CallingConvention::Swift:       sdk = CM_CC_SWIFT; break;
+        case CallingConvention::Golang:      sdk = CM_CC_GOLANG; break;
+        case CallingConvention::UserDefined: sdk = CM_CC_SPECIAL; break;
+    }
+
+    if (has_varargs) {
+        if (sdk == CM_CC_UNKNOWN || sdk == CM_CC_CDECL)
+            return CM_CC_ELLIPSIS;
+        if (sdk == CM_CC_SPECIAL)
+            return CM_CC_SPECIALE;
+    }
+    return sdk;
+}
+
+CallingConvention from_sdk_calling_convention(callcnv_t cc) {
+    switch (cc) {
+        case CM_CC_CDECL:
+        case CM_CC_ELLIPSIS:
+            return CallingConvention::Cdecl;
+        case CM_CC_STDCALL:
+            return CallingConvention::Stdcall;
+        case CM_CC_PASCAL:
+            return CallingConvention::Pascal;
+        case CM_CC_FASTCALL:
+            return CallingConvention::Fastcall;
+        case CM_CC_THISCALL:
+            return CallingConvention::Thiscall;
+        case CM_CC_SWIFT:
+            return CallingConvention::Swift;
+        case CM_CC_GOLANG:
+        case CM_CC_GOSTK:
+            return CallingConvention::Golang;
+        case CM_CC_SPECIAL:
+        case CM_CC_SPECIALE:
+        case CM_CC_SPECIALP:
+            return CallingConvention::UserDefined;
+        default:
+            return CallingConvention::Unknown;
+    }
+}
+
+Result<tinfo_t> as_function_type(const tinfo_t& ti) {
+    if (ti.is_func())
+        return ti;
+    if (ti.is_ptr()) {
+        tinfo_t pointed = ti.get_pointed_object();
+        if (pointed.is_func())
+            return pointed;
+    }
+    return std::unexpected(Error::validation("Type is not a function or function pointer"));
+}
+
 } // anonymous namespace
 
 // ── Factory constructors ────────────────────────────────────────────────
@@ -73,6 +134,59 @@ TypeInfo TypeInfo::array_of(const TypeInfo& element, std::size_t count) {
     TypeInfo result;
     TypeInfoAccess::get(result)->ti.create_array(
         TypeInfoAccess::get(element)->ti, static_cast<uint32_t>(count));
+    return result;
+}
+
+Result<TypeInfo> TypeInfo::function_type(const TypeInfo& return_type,
+                                         const std::vector<TypeInfo>& argument_types,
+                                         CallingConvention calling_convention,
+                                         bool has_varargs) {
+    const auto* return_impl = TypeInfoAccess::get(return_type);
+    if (return_impl == nullptr)
+        return std::unexpected(Error::internal("Return type has null implementation"));
+
+    func_type_data_t function_data;
+    function_data.rettype = return_impl->ti;
+    function_data.set_cc(to_sdk_calling_convention(calling_convention, has_varargs));
+
+    for (const auto& argument_type : argument_types) {
+        const auto* argument_impl = TypeInfoAccess::get(argument_type);
+        if (argument_impl == nullptr)
+            return std::unexpected(Error::internal("Argument type has null implementation"));
+        funcarg_t arg;
+        arg.type = argument_impl->ti;
+        function_data.push_back(std::move(arg));
+    }
+
+    TypeInfo result;
+    if (!TypeInfoAccess::get(result)->ti.create_func(function_data))
+        return std::unexpected(Error::sdk("Failed to create function type"));
+    return result;
+}
+
+Result<TypeInfo> TypeInfo::enum_type(const std::vector<EnumMember>& members,
+                                     std::size_t byte_width,
+                                     bool bitmask) {
+    if (byte_width == 0 || byte_width > 8 || (byte_width & (byte_width - 1)) != 0)
+        return std::unexpected(Error::validation("Enum byte width must be one of 1,2,4,8",
+                                                 std::to_string(byte_width)));
+
+    enum_type_data_t enum_data(bitmask ? (BTE_ALWAYS | BTE_HEX | BTE_BITMASK)
+                                       : (BTE_ALWAYS | BTE_HEX));
+    if (!enum_data.set_nbytes(static_cast<int>(byte_width)))
+        return std::unexpected(Error::validation("Failed to set enum byte width",
+                                                 std::to_string(byte_width)));
+
+    for (const auto& member : members) {
+        if (member.name.empty())
+            return std::unexpected(Error::validation("Enum member name cannot be empty"));
+        enum_data.add_constant(member.name.c_str(), member.value,
+                               member.comment.empty() ? nullptr : member.comment.c_str());
+    }
+
+    TypeInfo result;
+    if (!TypeInfoAccess::get(result)->ti.create_enum(enum_data))
+        return std::unexpected(Error::sdk("Failed to create enum type"));
     return result;
 }
 
@@ -141,6 +255,85 @@ Result<std::string> TypeInfo::to_string() const {
     if (!impl_->ti.print(&buf))
         return std::unexpected(Error::sdk("Failed to print type"));
     return ida::detail::to_string(buf);
+}
+
+Result<TypeInfo> TypeInfo::function_return_type() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    TypeInfo result;
+    TypeInfoAccess::get(result)->ti = function_type->get_rettype();
+    return result;
+}
+
+Result<std::vector<TypeInfo>> TypeInfo::function_argument_types() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    func_type_data_t function_data;
+    if (!function_type->get_func_details(&function_data))
+        return std::unexpected(Error::sdk("Failed to get function details"));
+
+    std::vector<TypeInfo> arguments;
+    arguments.reserve(function_data.size());
+    for (const auto& argument : function_data) {
+        TypeInfo wrapped;
+        TypeInfoAccess::get(wrapped)->ti = argument.type;
+        arguments.push_back(std::move(wrapped));
+    }
+    return arguments;
+}
+
+Result<CallingConvention> TypeInfo::calling_convention() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    return from_sdk_calling_convention(function_type->get_cc());
+}
+
+Result<bool> TypeInfo::is_variadic_function() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    return function_type->is_vararg_cc();
+}
+
+Result<std::vector<EnumMember>> TypeInfo::enum_members() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_enum())
+        return std::unexpected(Error::validation("Type is not an enum"));
+
+    enum_type_data_t enum_data;
+    if (!impl_->ti.get_enum_details(&enum_data))
+        return std::unexpected(Error::sdk("Failed to get enum details"));
+
+    std::vector<EnumMember> members;
+    members.reserve(enum_data.size());
+    for (const auto& item : enum_data) {
+        EnumMember member;
+        member.name = ida::detail::to_string(item.name);
+        member.value = item.value;
+        member.comment = ida::detail::to_string(item.cmt);
+        members.push_back(std::move(member));
+    }
+    return members;
 }
 
 Result<std::size_t> TypeInfo::member_count() const {

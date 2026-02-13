@@ -69,4 +69,27 @@ Status rename(std::uint64_t ordinal, std::string_view name) {
     return ida::ok();
 }
 
+Result<std::string> forwarder(std::uint64_t ordinal) {
+    qstring value;
+    if (get_entry_forwarder(&value, static_cast<uval_t>(ordinal)) <= 0)
+        return std::unexpected(Error::not_found("No forwarder for ordinal",
+                                                std::to_string(ordinal)));
+    return ida::detail::to_string(value);
+}
+
+Status set_forwarder(std::uint64_t ordinal, std::string_view target) {
+    qstring qtarget = ida::detail::to_qstring(target);
+    if (!::set_entry_forwarder(static_cast<uval_t>(ordinal), qtarget.c_str()))
+        return std::unexpected(Error::sdk("set_entry_forwarder failed",
+                                          "ordinal=" + std::to_string(ordinal)));
+    return ida::ok();
+}
+
+Status clear_forwarder(std::uint64_t ordinal) {
+    if (!::set_entry_forwarder(static_cast<uval_t>(ordinal), ""))
+        return std::unexpected(Error::sdk("clear_entry_forwarder failed",
+                                          "ordinal=" + std::to_string(ordinal)));
+    return ida::ok();
+}
+
 } // namespace ida::entry
