@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-13 (updated after JBC example-addon matrix reruns)
+Date: 2026-02-13 (updated after hosted validation-matrix log audit)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -20,7 +20,7 @@ scripts/run_validation_matrix.sh [full|unit|compile-only] [build-dir] [build-typ
 GitHub Actions helper:
 
 - `.github/workflows/validation-matrix.yml` runs `compile-only` + `unit`
-  profiles across Linux, macOS (x86_64 + arm64), and Windows.
+  profiles across Linux, macOS arm64, and Windows.
 - Hosted matrix sets `IDAX_BUILD_EXAMPLES=ON` and
   `IDAX_BUILD_EXAMPLE_ADDONS=ON` so plugin/loader/procmod example targets are
   compiled on every row.
@@ -36,14 +36,18 @@ Environment requirements:
 | OS | Arch | Compiler | Build Type | Profile | Runtime | Status | Evidence |
 |---|---|---|---|---|---|---|---|
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | default (`CMAKE_BUILD_TYPE=`) | full | IDA 9.3 | pass | 16/16 tests (`build/`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful with example addons ON (`build-matrix-jbc-compile/`, includes `idax_jbc_full_loader` + `idax_jbc_full_procmod`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests with example addons ON (`build-matrix-jbc-unit/`, examples built including JBC full pair) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, rerun via script) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
+| Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - linux-x86_64` (`job-logs1.txt`), profile complete |
+| Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | unit | none | pass | GitHub Actions `unit - linux-x86_64` (`job-logs4.txt`), 2/2 tests passed |
+| macOS 14 | arm64 | AppleClang 15.0.0.15000309 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - macos-arm64` (`job-logs2.txt`), profile complete |
+| macOS 14 | arm64 | AppleClang 15.0.0.15000309 | RelWithDebInfo | unit | none | pass | GitHub Actions `unit - macos-arm64` (`job-logs5.txt`), 2/2 tests passed |
+| Windows Server 2025 | x64 | MSVC 19.44.35222.0 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - windows-x64` (`job-logs3.txt`), profile complete |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | local rerun with example addons ON (`build-matrix-jbc-compile/`, includes `idax_jbc_full_loader` + `idax_jbc_full_procmod`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | local rerun with example addons ON (`build-matrix-jbc-unit/`, 2/2 tests, examples built including JBC full pair) |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-linux-gcc-docker/`) |
 | Linux | x86_64 | Clang 18.1.3 | RelWithDebInfo | compile-only | none | fail | default toolchain misses `std::expected` (`build-matrix-linux-clang-docker/`); libc++ attempt hits SDK `snprintf` macro clash (`build-matrix-linux-clang-libcpp/`) |
-| Windows | x64 | MSVC v143 | RelWithDebInfo | compile-only | none | pending | queued |
 | Linux | x86_64 | GCC 13+ | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
 | Windows | x64 | MSVC v143 | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
 
@@ -65,6 +69,9 @@ scripts/run_validation_matrix.sh unit build-matrix-unit RelWithDebInfo
 
 ## Notes
 
+- Hosted log bundle audit (`job-logs1.txt`..`job-logs5.txt`) confirms all
+  provided jobs succeeded via `Complete job name`,
+  `validation profile '<profile>' complete`, and `100% tests passed` markers.
 - On macOS, linking against IDA 9.3 dylibs can emit deployment-target warnings
   (`built for newer version 12.0`). Current runs are stable and all tests pass.
 - Packaging output is pinned to the selected build dir via `cpack -B <build-dir>`
