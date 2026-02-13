@@ -18,6 +18,11 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/storage_metadata_plugin.cpp
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
+
+    # Full parity example (real-world port pattern).
+    full/jbc_common.hpp
+    loader/jbc_full_loader.cpp
+    procmod/jbc_full_procmod.cpp
 )
 
 add_custom_target(idax_examples SOURCES ${IDAX_EXAMPLE_SOURCES})
@@ -67,8 +72,18 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
         LIBRARIES idax::idax
     )
 
+    ida_add_loader(idax_jbc_full_loader
+        SOURCES loader/jbc_full_loader.cpp
+        LIBRARIES idax::idax
+    )
+
     ida_add_procmod(idax_xrisc_procmod
         SOURCES procmod/advanced_procmod.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_procmod(idax_jbc_full_procmod
+        SOURCES procmod/jbc_full_procmod.cpp
         LIBRARIES idax::idax
     )
 endif()

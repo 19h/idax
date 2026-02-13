@@ -65,6 +65,19 @@ classification, function prolog recognition, stack pointer delta tracking,
 indirect jump detection, basic block termination, switch table detection with
 case enumeration and xref creation.
 
+### `loader/jbc_full_loader.cpp` + `procmod/jbc_full_procmod.cpp` — JBC Full Port
+
+End-to-end port of the `ida-jam` JAM Byte-Code modules into idax style. The
+loader recreates JBC section mapping (`.strtab`, `.code`, `.data`), imports
+actions/procedures into IDA entries/functions, and persists processor state in
+`ida::storage::Node` (`$ JBC`). The paired processor reuses the JBC opcode
+table for decode sizing, xref generation, jump/call/ret classification, and
+text rendering via `OutputContext`.
+
+This pair is intentionally "full" rather than minimal: it mirrors a real
+porting workflow and surfaces where SDK-level procmod hooks still exceed the
+current idax abstraction.
+
 ## Building
 
 By default, examples are listed as source-only targets. To build addon binaries:

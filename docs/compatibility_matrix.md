@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-13 (updated after Linux Docker compile-only reruns)
+Date: 2026-02-13 (updated after JBC example-addon matrix reruns)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -36,8 +36,8 @@ Environment requirements:
 | OS | Arch | Compiler | Build Type | Profile | Runtime | Status | Evidence |
 |---|---|---|---|---|---|---|---|
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | default (`CMAKE_BUILD_TYPE=`) | full | IDA 9.3 | pass | 16/16 tests (`build/`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-compile/`, rerun) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests (`build-matrix-unit/`, rerun) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful with example addons ON (`build-matrix-jbc-compile/`, includes `idax_jbc_full_loader` + `idax_jbc_full_procmod`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests with example addons ON (`build-matrix-jbc-unit/`, examples built including JBC full pair) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, rerun via script) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
