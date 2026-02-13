@@ -59,12 +59,17 @@ void test_patch_and_original(ida::Address ea) {
     if (preserved_original)
         CHECK(*preserved_original == *original);
 
-    CHECK_OK(ida::data::patch_byte(ea, *original));
+    CHECK_OK(ida::data::revert_patch(ea));
 
     auto after_restore = ida::data::read_byte(ea);
     CHECK_OK(after_restore);
     if (after_restore)
         CHECK(*after_restore == *original);
+
+    auto second_revert = ida::data::revert_patch(ea);
+    CHECK(!second_revert.has_value());
+    if (!second_revert)
+        CHECK(second_revert.error().category == ida::ErrorCategory::NotFound);
 }
 
 void test_write_roundtrip(ida::Address ea) {
@@ -105,6 +110,11 @@ void test_define_undefine_unknown() {
     if (!lo)
         return;
 
+    auto hi = ida::database::max_address();
+    CHECK_OK(hi);
+    if (!hi)
+        return;
+
     auto unknown = ida::search::next_unknown(*lo);
     if (!unknown) {
         CHECK(unknown.error().category == ida::ErrorCategory::NotFound);
@@ -117,6 +127,34 @@ void test_define_undefine_unknown() {
 
     CHECK_OK(ida::data::undefine(*unknown, 1));
     CHECK(ida::address::is_unknown(*unknown));
+
+    if (*unknown + 4 < *hi) {
+        auto make_float = ida::data::define_float(*unknown, 1);
+        if (!make_float) {
+            CHECK(make_float.error().category == ida::ErrorCategory::SdkFailure);
+            std::cout << "  (define_float unsupported at selected address; skipping)\n";
+        } else {
+            CHECK_OK(make_float);
+            auto size = ida::address::item_size(*unknown);
+            CHECK_OK(size);
+            if (size)
+                CHECK_OK(ida::data::undefine(*unknown, *size));
+        }
+    }
+
+    if (*unknown + 8 < *hi) {
+        auto make_double = ida::data::define_double(*unknown, 1);
+        if (!make_double) {
+            CHECK(make_double.error().category == ida::ErrorCategory::SdkFailure);
+            std::cout << "  (define_double unsupported at selected address; skipping)\n";
+        } else {
+            CHECK_OK(make_double);
+            auto size = ida::address::item_size(*unknown);
+            CHECK_OK(size);
+            if (size)
+                CHECK_OK(ida::data::undefine(*unknown, *size));
+        }
+    }
 }
 
 void test_error_paths() {

@@ -8,6 +8,14 @@
 
 namespace ida::database {
 
+namespace {
+
+bool should_auto_analysis(OpenMode mode) {
+    return mode == OpenMode::Analyze;
+}
+
+} // namespace
+
 // ── Lifecycle ───────────────────────────────────────────────────────────
 
 Status init(int argc, char* argv[]) {
@@ -19,12 +27,43 @@ Status init(int argc, char* argv[]) {
 }
 
 Status open(std::string_view path, bool auto_analysis) {
+    if (path.empty())
+        return std::unexpected(Error::validation("Database path cannot be empty"));
+
     qstring qpath = ida::detail::to_qstring(path);
     int rc = open_database(qpath.c_str(), auto_analysis);
     if (rc != 0)
         return std::unexpected(Error::sdk("open_database failed",
                                           std::string(path)));
     return ida::ok();
+}
+
+Status open(std::string_view path, OpenMode mode) {
+    return open(path, should_auto_analysis(mode));
+}
+
+Status open(std::string_view path, LoadIntent intent, OpenMode mode) {
+    switch (intent) {
+    case LoadIntent::AutoDetect:
+        return open(path, mode);
+    case LoadIntent::Binary:
+        return open_binary(path, mode);
+    case LoadIntent::NonBinary:
+        return open_non_binary(path, mode);
+    }
+    return std::unexpected(Error::validation("Invalid load intent"));
+}
+
+Status open_binary(std::string_view path, OpenMode mode) {
+    // open_database() currently performs loader selection automatically.
+    // This wrapper exists to make caller intent explicit.
+    return open(path, mode);
+}
+
+Status open_non_binary(std::string_view path, OpenMode mode) {
+    // open_database() currently performs loader selection automatically.
+    // This wrapper exists to make caller intent explicit.
+    return open(path, mode);
 }
 
 Status save() {
@@ -120,6 +159,26 @@ Result<Address> min_address() {
 Result<Address> max_address() {
     ea_t ea = inf_get_max_ea();
     return static_cast<Address>(ea);
+}
+
+Result<ida::address::Range> address_bounds() {
+    auto lo = min_address();
+    if (!lo)
+        return std::unexpected(lo.error());
+    auto hi = max_address();
+    if (!hi)
+        return std::unexpected(hi.error());
+    if (*hi < *lo)
+        return std::unexpected(Error::sdk("Invalid address bounds",
+                                          std::to_string(*lo) + ">" + std::to_string(*hi)));
+    return ida::address::Range{*lo, *hi};
+}
+
+Result<AddressSize> address_span() {
+    auto bounds = address_bounds();
+    if (!bounds)
+        return std::unexpected(bounds.error());
+    return bounds->size();
 }
 
 // ── Snapshot wrappers ────────────────────────────────────────────────────
