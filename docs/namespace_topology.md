@@ -9,7 +9,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::address        Predicates, traversal, range iteration          [1 struct, 1 enum, 2 classes, ~12 free fns]
  |-- ida::data           Read/write/patch/define bytes, patterns         [~30 free fns, 2 templates]
- |-- ida::database       Open/save/close, metadata, snapshots            [3 structs, ~15 free fns]
+ |-- ida::database       Open/save/close, metadata, snapshots            [6 structs, ~19 free fns]
  |
  |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
  |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~25 free fns]
@@ -25,6 +25,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::search         Text/immediate/binary pattern search            [1 enum, 1 struct, ~7 free fns]
  |-- ida::analysis       Auto-analysis control, scheduling               [~7 free fns]
+ |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |
  |-- ida::event          Typed IDB subscriptions, generic routing        [1 enum, 1 struct, 1 class, ~10 free fns]
  |-- ida::plugin         Plugin base, actions, menu/toolbar              [2 structs, 1 class, ~4 free fns]
@@ -67,7 +68,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::address` | Navigation and predicates | `Range`, `ItemRange`, `Predicate` |
 | `ida::data` | Byte-level access | (free functions only) |
-| `ida::database` | Database lifecycle | `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy` |
+| `ida::database` | Database lifecycle | `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding | `Instruction`, `Operand`, `OperandType` |
@@ -89,6 +90,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::search` | Pattern matching | `Direction`, `TextOptions` |
 | `ida::analysis` | Auto-analysis | (free functions only) |
+| `ida::lumina` | Lumina metadata sync | `Feature`, `PushMode`, `OperationCode`, `BatchResult` |
 
 ### Module Authoring
 

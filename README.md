@@ -89,6 +89,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
+| **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
 | **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar/popup attach+detach, context callbacks |
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
@@ -101,7 +102,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
 
-Known additive gaps from real-world ports (headless plugin-load policy controls and Lumina APIs) are tracked in [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md).
+Real-world port parity notes are tracked in [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md).
 
 ---
 

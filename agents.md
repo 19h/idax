@@ -126,6 +126,7 @@ Proposed top-level namespaces:
 - `ida::entry`
 - `ida::search`
 - `ida::analysis`
+- `ida::lumina`
 - `ida::loader`
 - `ida::plugin`
 - `ida::processor`
@@ -504,6 +505,9 @@ Entries below summarize key findings to preserve as implementation guardrails.
 90. [2026-02-14] idalib-dump parity gap: no public Lumina facade exists in idax. Impact: `ida_lumina`-style metadata push tools cannot be ported to pure idax APIs today. Mitigation: add explicit `ida::lumina` namespace or document as intentional non-goal.
 91. [2026-02-14] README drift risk: absolute coverage wording, stale surface counts/example-layout references, and non-pinned packaging commands can diverge from maintained parity artifacts over time; temporary `Result` range-for snippets can also model unsafe usage patterns. Impact: onboarding mismatches and less reproducible first-run experience. Mitigation: keep README claims/snippets/commands aligned with `docs/sdk_domain_coverage_matrix.md`, `docs/compatibility_matrix.md`, `docs/api_reference.md`, and `examples/README.md`.
 92. [2026-02-14] idalib-dump parity closure: headless plugin-load policy controls are now exposed in `ida::database` via `RuntimeOptions` + `PluginLoadPolicy` (`disable_user_plugins`, allowlist patterns with `*`/`?`). Impact: CLI tools can reproduce `--no-plugins` / selective `--plugin` behavior through pure idax initialization flows. Mitigation: keep compile-only parity coverage for new init overloads and exercise the flow in `examples/tools/idalib_dump_port.cpp`.
+93. [2026-02-14] Database metadata parity nuance: SDK file-type metadata comes from two distinct sources (`get_file_type_name` vs `INF_FILE_FORMAT_NAME`/`get_loader_format_name`), and loader format may be absent while file type is still present. Impact: tools that assume one canonical format string can become brittle. Mitigation: expose both `file_type_name()` and `loader_format_name()` with explicit `NotFound` behavior for missing loader-format metadata.
+94. [2026-02-14] idalib-dump parity closure: Lumina pull/push flows are now exposed through `ida::lumina` (`pull`, `push`, typed `BatchResult` and `OperationCode`, feature selection), allowing pure-wrapper `ida_lumina` scaffolds without raw SDK calls. Impact: core Lumina metadata workflows can now be ported to idax-first code. Mitigation: keep compile-only + smoke coverage and exercise with `examples/tools/idalib_lumina_port.cpp`.
+95. [2026-02-14] Lumina runtime symbol nuance: `close_server_connection2`/`close_server_connections` are declared in SDK headers but not link-exported in this runtime setup. Impact: direct close wrappers fail to link on real dylibs. Mitigation: keep `close_connection`/`close_all_connections` as explicit `Unsupported` wrappers until a portable close path is confirmed.
 
 ---
 
@@ -559,6 +563,9 @@ Format: `[date] decision - rationale`
 - [2026-02-14] Add structured decompile-failure detail surface (`DecompileFailure` + `decompile(address, &failure)`) in `ida::decompiler` - closes diagnostics parity gap for failure-location reporting without exposing raw Hex-Rays failure structs - alternatives considered: keep context embedded only in `ida::Error` strings (rejected, weakly structured), expose raw `hexrays_failure_t` in public API (rejected, breaks opacity) - impact: ports can report failure address/description directly and decompiler error handling remains additive/backward-compatible.
 - [2026-02-14] Align README positioning and commands with matrix-backed coverage artifacts - replaces absolute completeness phrasing with explicit broad-coverage + tracked-gap language, updates packaging command to pinned-output form, and refreshes examples/API messaging to match current surfaces - alternatives considered: keep README caveats only in deep docs (rejected, first-contact drift risk), keep legacy `cpack` invocation (rejected, output-location drift) - impact: first-contact documentation now matches maintained parity and validation guidance.
 - [2026-02-14] Add headless plugin policy controls to `ida::database::init` via additive runtime options (`RuntimeOptions`, `PluginLoadPolicy`) - closes idalib-dump `--no-plugins`/`--plugin` parity gap without exposing SDK internals - alternatives considered: keep environment-variable workarounds only in external tools (rejected, weak portability), introduce standalone plugin-policy APIs outside init (rejected, weaker lifecycle semantics) - impact: pure idax headless sessions can control user-plugin loading policy at startup and the port example now uses wrapper-native controls.
+- [2026-02-14] Add diagnostics-oriented database metadata helpers (`file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`) - closes external-port metadata parity gaps without leaking raw SDK types - alternatives considered: keep metadata extraction in external tools via raw SDK calls (rejected, inconsistent migration experience), add a new diagnostics namespace first (rejected, weaker discoverability for database-oriented metadata) - impact: idalib-dump-style tooling can collect format/compiler/import-module context through pure idax APIs.
+- [2026-02-14] Add `ida::lumina` facade with additive pull/push wrappers (`has_connection`, `pull`, `push`, typed `BatchResult` and `OperationCode`) - closes idalib-dump Lumina migration gap while preserving opaque public headers - alternatives considered: keep gap open and rely on raw SDK from external tools (rejected, inconsistent migration ergonomics), expose raw `lumina_client_t` in public API (rejected, breaks opacity) - impact: pure idax tools can issue Lumina metadata sync operations without SDK-level glue code.
+- [2026-02-14] Keep Lumina close APIs as explicit `Unsupported` wrappers for now - runtime dylibs in this environment do not export `close_server_connection2`/`close_server_connections` despite SDK declarations, so direct linkage is not portable - alternatives considered: call non-exported symbols directly (rejected, link failure), remove close APIs from public surface (rejected, weaker discoverability/future extensibility) - impact: wrapper behavior is explicit and link-stable while leaving room for portable close support later.
 
 ---
 
@@ -660,6 +667,8 @@ Format: `[YYYY-MM-DD HH:MM] scope - change - evidence`
 - [2026-02-14 03:00] Post-Phase-10 parity follow-up - Added structured decompile-failure details (`DecompileFailure` + overloaded `decompile`) in `ida::decompiler`, updated idalib-dump port error reporting to use the new details, expanded integration + compile-only checks (`decompiler_storage_hardening_test`, `api_surface_parity_test`), and refreshed docs/gap audit (`port_gap_audit`, `sdk_domain_coverage_matrix`, `migration`, `namespace_topology`, `api_reference`, `examples/README`) to close the failure-detail gap - Evidence: `cmake --build build` (pass), `ctest --test-dir build --output-on-failure` (16/16 pass), `cmake --build build-port-gap --target idax_idalib_dump_port` (pass).
 - [2026-02-14 03:20] Documentation alignment - Updated `README.md` to match current parity/coverage artifacts: softened absolute completeness wording, refreshed header/surface summary + domain rows, added explicit known-gap pointer to port audit doc, fixed decompiler snippet lifetime safety (`Result` temporaries), expanded examples tree overview, and switched package command to pinned-output `cpack --config ... -B ...` form - Evidence: `README.md` diff aligned with `docs/sdk_domain_coverage_matrix.md`, `docs/compatibility_matrix.md`, `docs/api_reference.md`, and `examples/README.md`.
 - [2026-02-14 03:40] Post-Phase-10 parity follow-up - Added headless plugin-load policy controls to `ida::database` (`RuntimeOptions`, `PluginLoadPolicy`, `init` overloads), implemented allowlist wildcard matching (`*`/`?`) and user-plugin isolation sandboxing for non-Windows paths, and updated the idalib-dump port to route `--no-plugins` / `--plugin` through wrapper-native runtime options; refreshed parity docs/topology/reference to mark the gap closed - Evidence: `cmake --build build` (pass), `ctest --test-dir build --output-on-failure -R api_surface_parity` (pass), `cmake --build build-port-gap --target idax_idalib_dump_port` (pass).
+- [2026-02-14 04:10] Post-Phase-10 parity follow-up - Added diagnostics-oriented database metadata helpers (`file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`) to close idalib-dump metadata gaps; wired startup metadata output in `idalib_dump_port`, expanded compile-only coverage and smoke validation, and updated parity/topology/reference docs plus port-gap audit to reflect closure - Evidence: `cmake --build build` (pass), `ctest --test-dir build --output-on-failure -R "^smoke$|api_surface_parity"` (pass), `cmake --build build-port-gap --target idax_idalib_dump_port idax_idalib_lumina_port` (pass).
+- [2026-02-14 04:40] Post-Phase-10 parity follow-up - Added public `ida::lumina` namespace with typed pull/push wrappers (`Feature`, `PushMode`, `OperationCode`, `BatchResult`, `has_connection`, `pull`, `push`), integrated new API coverage in compile-only + smoke tests, and updated `idalib_lumina_port` + docs to reflect pure-wrapper Lumina workflows; also mapped close APIs to explicit `Unsupported` due missing runtime symbol exports - Evidence: `cmake --build build` (pass), `ctest --test-dir build --output-on-failure -R "api_surface_parity|^smoke$"` (pass), `cmake --build build-port-gap --target idax_idalib_dump_port idax_idalib_lumina_port` (pass).
 
 ---
 
@@ -672,7 +681,7 @@ Post-closure follow-ups (non-blocking):
 1. Keep `.github/workflows/validation-matrix.yml` as the default cross-OS evidence path for `compile-only` + `unit` on every release-significant change.
 2. Continue host-specific hardening runs where licenses/toolchains permit: Linux Clang known-good pairing, plus Linux/Windows `full` rows with runtime installs.
 3. Continue validating the new JBC parity APIs against additional real-world procmod ports and expand typed analyze/output metadata only when concrete migration evidence requires deeper fidelity.
-4. Prioritize additive API design for the remaining external-port gaps documented in `docs/port_gap_audit_ida_qtform_idalib_dump.md` (Lumina facade, additional binary/runtime metadata helpers).
+4. Keep hardening `ida::lumina` behavior with real-server validation (credentialed hosts), especially close/disconnect semantics once portable runtime symbols are confirmed.
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 
@@ -812,6 +821,11 @@ This section captures the intended public API semantics at a concrete level so i
 - Opaque node abstraction
 - Alt/sup/hash/blob/typed helper APIs
 - Explicit caveats for migration and consistency
+
+### 17.24 `ida::lumina`
+- Typed Lumina feature selection and operation results
+- Metadata pull/push wrappers for function-address batches
+- Connection-state query helpers with explicit unsupported close semantics in this runtime
 
 ---
 

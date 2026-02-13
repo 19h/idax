@@ -412,6 +412,22 @@ void check_database_surface() {
     (void)runtime_options.quiet;
     (void)runtime_options.plugin_policy;
 
+    ida::database::CompilerInfo compiler;
+    (void)compiler.id;
+    (void)compiler.uncertain;
+    (void)compiler.name;
+    (void)compiler.abbreviation;
+
+    ida::database::ImportSymbol import_symbol;
+    (void)import_symbol.address;
+    (void)import_symbol.name;
+    (void)import_symbol.ordinal;
+
+    ida::database::ImportModule import_module;
+    (void)import_module.index;
+    (void)import_module.name;
+    (void)import_module.symbols;
+
     using OpenBoolFn = ida::Status(*)(std::string_view, bool);
     using OpenModeFn = ida::Status(*)(std::string_view, ida::database::OpenMode);
     using OpenIntentFn = ida::Status(*)(std::string_view,
@@ -424,6 +440,10 @@ void check_database_surface() {
     using InitOptionsOnlyFn = ida::Status(*)(const ida::database::RuntimeOptions&);
     using BoundsFn = ida::Result<ida::address::Range>(*)();
     using SpanFn = ida::Result<ida::AddressSize>(*)();
+    using FileTypeNameFn = ida::Result<std::string>(*)();
+    using LoaderFormatNameFn = ida::Result<std::string>(*)();
+    using CompilerInfoFn = ida::Result<ida::database::CompilerInfo>(*)();
+    using ImportModulesFn = ida::Result<std::vector<ida::database::ImportModule>>(*)();
 
     (void)static_cast<InitBasicFn>(&ida::database::init);
     (void)static_cast<InitWithOptionsFn>(&ida::database::init);
@@ -435,10 +455,67 @@ void check_database_surface() {
     (void)static_cast<OpenNonBinaryFn>(&ida::database::open_non_binary);
     (void)static_cast<BoundsFn>(&ida::database::address_bounds);
     (void)static_cast<SpanFn>(&ida::database::address_span);
+    (void)static_cast<FileTypeNameFn>(&ida::database::file_type_name);
+    (void)static_cast<LoaderFormatNameFn>(&ida::database::loader_format_name);
+    (void)static_cast<CompilerInfoFn>(&ida::database::compiler_info);
+    (void)static_cast<ImportModulesFn>(&ida::database::import_modules);
 
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
     (void)&ida::database::image_base;
+}
+
+// ─── ida::lumina ────────────────────────────────────────────────────────
+
+void check_lumina_surface() {
+    (void)ida::lumina::Feature::PrimaryMetadata;
+    (void)ida::lumina::Feature::Decompiler;
+    (void)ida::lumina::Feature::Telemetry;
+    (void)ida::lumina::Feature::SecondaryMetadata;
+
+    (void)ida::lumina::PushMode::PreferBetterOrDifferent;
+    (void)ida::lumina::PushMode::Override;
+    (void)ida::lumina::PushMode::KeepExisting;
+    (void)ida::lumina::PushMode::Merge;
+
+    (void)ida::lumina::OperationCode::BadPattern;
+    (void)ida::lumina::OperationCode::NotFound;
+    (void)ida::lumina::OperationCode::Error;
+    (void)ida::lumina::OperationCode::Ok;
+    (void)ida::lumina::OperationCode::Added;
+
+    ida::lumina::BatchResult batch;
+    (void)batch.requested;
+    (void)batch.completed;
+    (void)batch.succeeded;
+    (void)batch.failed;
+    (void)batch.codes;
+
+    using HasConnectionFn = ida::Result<bool>(*)(ida::lumina::Feature);
+    using CloseConnectionFn = ida::Status(*)(ida::lumina::Feature);
+    using CloseAllFn = ida::Status(*)();
+    using PullManyFn = ida::Result<ida::lumina::BatchResult>(*)(std::span<const ida::Address>,
+                                                                bool,
+                                                                bool,
+                                                                ida::lumina::Feature);
+    using PullOneFn = ida::Result<ida::lumina::BatchResult>(*)(ida::Address,
+                                                               bool,
+                                                               bool,
+                                                               ida::lumina::Feature);
+    using PushManyFn = ida::Result<ida::lumina::BatchResult>(*)(std::span<const ida::Address>,
+                                                                ida::lumina::PushMode,
+                                                                ida::lumina::Feature);
+    using PushOneFn = ida::Result<ida::lumina::BatchResult>(*)(ida::Address,
+                                                               ida::lumina::PushMode,
+                                                               ida::lumina::Feature);
+
+    (void)static_cast<HasConnectionFn>(&ida::lumina::has_connection);
+    (void)static_cast<CloseConnectionFn>(&ida::lumina::close_connection);
+    (void)static_cast<CloseAllFn>(&ida::lumina::close_all_connections);
+    (void)static_cast<PullManyFn>(&ida::lumina::pull);
+    (void)static_cast<PullOneFn>(&ida::lumina::pull);
+    (void)static_cast<PushManyFn>(&ida::lumina::push);
+    (void)static_cast<PushOneFn>(&ida::lumina::push);
 }
 
 // ─── ida::plugin ────────────────────────────────────────────────────────
@@ -1012,6 +1089,7 @@ int main() {
     surface_check::check_search_surface();     namespaces_verified++;
     surface_check::check_analysis_surface();   namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
+    surface_check::check_lumina_surface();     namespaces_verified++;
     surface_check::check_plugin_surface();     namespaces_verified++;
     surface_check::check_loader_surface();     namespaces_verified++;
     surface_check::check_processor_surface();  namespaces_verified++;
@@ -1024,9 +1102,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 26, "all 26 namespace surfaces verified");
+    CHECK(namespaces_verified == 27, "all 27 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (26 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (27 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }
