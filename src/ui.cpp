@@ -78,6 +78,17 @@ Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_valu
     return static_cast<std::int64_t>(val);
 }
 
+Result<bool> ask_form(std::string_view markup) {
+    if (markup.empty())
+        return std::unexpected(Error::validation("Form markup cannot be empty"));
+
+    qstring qmarkup = ida::detail::to_qstring(markup);
+    int rc = ::ask_form(qmarkup.c_str());
+    if (rc < 0)
+        return std::unexpected(Error::sdk("ask_form failed"));
+    return rc > 0;
+}
+
 // ── Navigation ──────────────────────────────────────────────────────────
 
 Status jump_to(Address address) {
