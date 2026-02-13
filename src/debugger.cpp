@@ -170,6 +170,241 @@ Status write_memory(Address ea, std::span<const std::uint8_t> bytes) {
     return ida::ok();
 }
 
+// ── Request-queue execution helpers ─────────────────────────────────────
+
+bool is_request_running() {
+    return ::is_request_running();
+}
+
+Status run_requests() {
+    if (!::run_requests())
+        return std::unexpected(Error::sdk("run_requests failed"));
+    return ida::ok();
+}
+
+Status request_suspend() {
+    if (!request_suspend_process())
+        return std::unexpected(Error::sdk("request_suspend_process failed"));
+    return ida::ok();
+}
+
+Status request_resume() {
+    if (!request_continue_process())
+        return std::unexpected(Error::sdk("request_continue_process failed"));
+    return ida::ok();
+}
+
+Status request_step_into() {
+    if (!::request_step_into())
+        return std::unexpected(Error::sdk("request_step_into failed"));
+    return ida::ok();
+}
+
+Status request_step_over() {
+    if (!::request_step_over())
+        return std::unexpected(Error::sdk("request_step_over failed"));
+    return ida::ok();
+}
+
+Status request_step_out() {
+    if (!::request_step_until_ret())
+        return std::unexpected(Error::sdk("request_step_until_ret failed"));
+    return ida::ok();
+}
+
+Status request_run_to(Address address) {
+    if (address == BadAddress)
+        return std::unexpected(Error::validation("Invalid run-to address"));
+    if (!::request_run_to(static_cast<ea_t>(address)))
+        return std::unexpected(Error::sdk("request_run_to failed",
+                                          std::to_string(address)));
+    return ida::ok();
+}
+
+// ── Thread and register introspection ───────────────────────────────────
+
+Result<std::size_t> thread_count() {
+    int qty = get_thread_qty();
+    if (qty < 0)
+        return std::unexpected(Error::sdk("get_thread_qty failed"));
+    return static_cast<std::size_t>(qty);
+}
+
+Result<int> thread_id_at(std::size_t index) {
+    auto qty = thread_count();
+    if (!qty)
+        return std::unexpected(qty.error());
+    if (index >= *qty)
+        return std::unexpected(Error::not_found("Thread index out of range",
+                                                std::to_string(index)));
+
+    thid_t tid = getn_thread(static_cast<int>(index));
+    if (tid == NO_THREAD)
+        return std::unexpected(Error::not_found("Thread not found at index",
+                                                std::to_string(index)));
+    return static_cast<int>(tid);
+}
+
+Result<std::string> thread_name_at(std::size_t index) {
+    auto tid = thread_id_at(index);
+    if (!tid)
+        return std::unexpected(tid.error());
+
+    const char* name = getn_thread_name(static_cast<int>(index));
+    if (name == nullptr)
+        return std::unexpected(Error::not_found("Thread name unavailable",
+                                                std::to_string(*tid)));
+    return std::string(name);
+}
+
+Result<int> current_thread_id() {
+    thid_t tid = get_current_thread();
+    if (tid == NO_THREAD)
+        return std::unexpected(Error::not_found("No current thread"));
+    return static_cast<int>(tid);
+}
+
+Result<std::vector<ThreadInfo>> threads() {
+    auto qty = thread_count();
+    if (!qty)
+        return std::unexpected(qty.error());
+
+    thid_t current = get_current_thread();
+    std::vector<ThreadInfo> out;
+    out.reserve(*qty);
+
+    for (std::size_t i = 0; i < *qty; ++i) {
+        thid_t tid = getn_thread(static_cast<int>(i));
+        if (tid == NO_THREAD)
+            continue;
+
+        ThreadInfo ti;
+        ti.id = static_cast<int>(tid);
+        if (const char* name = getn_thread_name(static_cast<int>(i)); name != nullptr)
+            ti.name = name;
+        ti.is_current = (current != NO_THREAD && tid == current);
+        out.push_back(std::move(ti));
+    }
+    return out;
+}
+
+Status select_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    if (!::select_thread(static_cast<thid_t>(thread_id)))
+        return std::unexpected(Error::not_found("Thread not found",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Status request_select_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    if (!::request_select_thread(static_cast<thid_t>(thread_id)))
+        return std::unexpected(Error::not_found("Thread not found",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Status suspend_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    int rc = ::suspend_thread(static_cast<thid_t>(thread_id));
+    if (rc < 0)
+        return std::unexpected(Error::sdk("suspend_thread failed",
+                                          std::to_string(thread_id)));
+    if (rc == 0)
+        return std::unexpected(Error::not_found("Thread not found or cannot be suspended",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Status request_suspend_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    int rc = ::request_suspend_thread(static_cast<thid_t>(thread_id));
+    if (rc < 0)
+        return std::unexpected(Error::sdk("request_suspend_thread failed",
+                                          std::to_string(thread_id)));
+    if (rc == 0)
+        return std::unexpected(Error::not_found("Thread not found or cannot be suspended",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Status resume_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    int rc = ::resume_thread(static_cast<thid_t>(thread_id));
+    if (rc < 0)
+        return std::unexpected(Error::sdk("resume_thread failed",
+                                          std::to_string(thread_id)));
+    if (rc == 0)
+        return std::unexpected(Error::not_found("Thread not found or cannot be resumed",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Status request_resume_thread(int thread_id) {
+    if (thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(thread_id)));
+    int rc = ::request_resume_thread(static_cast<thid_t>(thread_id));
+    if (rc < 0)
+        return std::unexpected(Error::sdk("request_resume_thread failed",
+                                          std::to_string(thread_id)));
+    if (rc == 0)
+        return std::unexpected(Error::not_found("Thread not found or cannot be resumed",
+                                                std::to_string(thread_id)));
+    return ida::ok();
+}
+
+Result<RegisterInfo> register_info(std::string_view register_name) {
+    if (register_name.empty())
+        return std::unexpected(Error::validation("register_name cannot be empty"));
+
+    std::string rn(register_name);
+    register_info_t sdk_info{};
+    if (!get_dbg_reg_info(rn.c_str(), &sdk_info))
+        return std::unexpected(Error::not_found("Debugger register not found", rn));
+
+    RegisterInfo out;
+    out.name = sdk_info.name != nullptr ? std::string(sdk_info.name) : rn;
+    out.read_only = (sdk_info.flags & REGISTER_READONLY) != 0;
+    out.instruction_pointer = (sdk_info.flags & REGISTER_IP) != 0;
+    out.stack_pointer = (sdk_info.flags & REGISTER_SP) != 0;
+    out.frame_pointer = (sdk_info.flags & REGISTER_FP) != 0;
+    out.may_contain_address = (sdk_info.flags & REGISTER_ADDRESS) != 0;
+    out.custom_format = (sdk_info.flags & REGISTER_CUSTFMT) != 0;
+    return out;
+}
+
+Result<bool> is_integer_register(std::string_view register_name) {
+    auto info = register_info(register_name);
+    if (!info)
+        return std::unexpected(info.error());
+    return ::is_reg_integer(info->name.c_str());
+}
+
+Result<bool> is_floating_register(std::string_view register_name) {
+    auto info = register_info(register_name);
+    if (!info)
+        return std::unexpected(info.error());
+    return ::is_reg_float(info->name.c_str());
+}
+
+Result<bool> is_custom_register(std::string_view register_name) {
+    auto info = register_info(register_name);
+    if (!info)
+        return std::unexpected(info.error());
+    return ::is_reg_custom(info->name.c_str());
+}
+
 // ── Debugger event listener ─────────────────────────────────────────────
 
 namespace {

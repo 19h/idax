@@ -56,6 +56,57 @@ Result<bool> has_breakpoint(Address address);
 Result<std::vector<std::uint8_t>> read_memory(Address address, AddressSize size);
 Status write_memory(Address address, std::span<const std::uint8_t> bytes);
 
+// ── Request-queue execution helpers ─────────────────────────────────────
+
+/// True if there is a debugger request currently being processed.
+bool is_request_running();
+
+/// Execute queued debugger requests posted via `request_*` helpers.
+Status run_requests();
+
+Status request_suspend();
+Status request_resume();
+Status request_step_into();
+Status request_step_over();
+Status request_step_out();
+Status request_run_to(Address address);
+
+// ── Thread and register introspection ───────────────────────────────────
+
+struct ThreadInfo {
+    int         id{0};
+    std::string name;
+    bool        is_current{false};
+};
+
+struct RegisterInfo {
+    std::string name;
+    bool        read_only{false};
+    bool        instruction_pointer{false};
+    bool        stack_pointer{false};
+    bool        frame_pointer{false};
+    bool        may_contain_address{false};
+    bool        custom_format{false};
+};
+
+Result<std::size_t> thread_count();
+Result<int> thread_id_at(std::size_t index);
+Result<std::string> thread_name_at(std::size_t index);
+Result<int> current_thread_id();
+Result<std::vector<ThreadInfo>> threads();
+
+Status select_thread(int thread_id);
+Status request_select_thread(int thread_id);
+Status suspend_thread(int thread_id);
+Status request_suspend_thread(int thread_id);
+Status resume_thread(int thread_id);
+Status request_resume_thread(int thread_id);
+
+Result<RegisterInfo> register_info(std::string_view register_name);
+Result<bool> is_integer_register(std::string_view register_name);
+Result<bool> is_floating_register(std::string_view register_name);
+Result<bool> is_custom_register(std::string_view register_name);
+
 // ── Debugger event subscriptions ────────────────────────────────────────
 
 using Token = std::uint64_t;

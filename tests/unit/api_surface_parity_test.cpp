@@ -589,6 +589,58 @@ void check_debugger_surface() {
     ida::debugger::ModuleInfo mi;
     (void)mi.name; (void)mi.base; (void)mi.size;
 
+    ida::debugger::ThreadInfo ti;
+    (void)ti.id; (void)ti.name; (void)ti.is_current;
+
+    ida::debugger::RegisterInfo ri;
+    (void)ri.name;
+    (void)ri.read_only;
+    (void)ri.instruction_pointer;
+    (void)ri.stack_pointer;
+    (void)ri.frame_pointer;
+    (void)ri.may_contain_address;
+    (void)ri.custom_format;
+
+    using ThreadCountFn = ida::Result<std::size_t>(*)();
+    using ThreadIdAtFn = ida::Result<int>(*)(std::size_t);
+    using ThreadNameAtFn = ida::Result<std::string>(*)(std::size_t);
+    using CurrentThreadIdFn = ida::Result<int>(*)();
+    using ThreadsFn = ida::Result<std::vector<ida::debugger::ThreadInfo>>(*)();
+    using SelectThreadFn = ida::Status(*)(int);
+    using RequestSelectThreadFn = ida::Status(*)(int);
+    using SuspendThreadFn = ida::Status(*)(int);
+    using RequestSuspendThreadFn = ida::Status(*)(int);
+    using ResumeThreadFn = ida::Status(*)(int);
+    using RequestResumeThreadFn = ida::Status(*)(int);
+    using RegisterInfoFn = ida::Result<ida::debugger::RegisterInfo>(*)(std::string_view);
+    using RegisterPredFn = ida::Result<bool>(*)(std::string_view);
+    using RequestRunToFn = ida::Status(*)(ida::Address);
+
+    (void)&ida::debugger::is_request_running;
+    (void)&ida::debugger::run_requests;
+    (void)&ida::debugger::request_suspend;
+    (void)&ida::debugger::request_resume;
+    (void)&ida::debugger::request_step_into;
+    (void)&ida::debugger::request_step_over;
+    (void)&ida::debugger::request_step_out;
+    (void)static_cast<RequestRunToFn>(&ida::debugger::request_run_to);
+
+    (void)static_cast<ThreadCountFn>(&ida::debugger::thread_count);
+    (void)static_cast<ThreadIdAtFn>(&ida::debugger::thread_id_at);
+    (void)static_cast<ThreadNameAtFn>(&ida::debugger::thread_name_at);
+    (void)static_cast<CurrentThreadIdFn>(&ida::debugger::current_thread_id);
+    (void)static_cast<ThreadsFn>(&ida::debugger::threads);
+    (void)static_cast<SelectThreadFn>(&ida::debugger::select_thread);
+    (void)static_cast<RequestSelectThreadFn>(&ida::debugger::request_select_thread);
+    (void)static_cast<SuspendThreadFn>(&ida::debugger::suspend_thread);
+    (void)static_cast<RequestSuspendThreadFn>(&ida::debugger::request_suspend_thread);
+    (void)static_cast<ResumeThreadFn>(&ida::debugger::resume_thread);
+    (void)static_cast<RequestResumeThreadFn>(&ida::debugger::request_resume_thread);
+    (void)static_cast<RegisterInfoFn>(&ida::debugger::register_info);
+    (void)static_cast<RegisterPredFn>(&ida::debugger::is_integer_register);
+    (void)static_cast<RegisterPredFn>(&ida::debugger::is_floating_register);
+    (void)static_cast<RegisterPredFn>(&ida::debugger::is_custom_register);
+
     static_assert(std::is_move_constructible_v<ida::debugger::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::debugger::ScopedSubscription>);
 }
