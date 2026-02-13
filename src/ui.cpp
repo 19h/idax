@@ -1,9 +1,11 @@
 /// \file ui.cpp
-/// \brief Implementation of ida::ui — messages, warnings, dialogs, choosers.
+/// \brief Implementation of ida::ui — messages, warnings, dialogs, choosers,
+///        dock widgets, navigation, and event subscriptions.
 
 #include "detail/sdk_bridge.hpp"
 #include <ida/ui.hpp>
 #include <mutex>
+#include <atomic>
 
 namespace ida::ui {
 
@@ -74,6 +76,17 @@ Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_valu
     return static_cast<std::int64_t>(val);
 }
 
+// ── Navigation ──────────────────────────────────────────────────────────
+
+Status jump_to(Address address) {
+    if (address == BadAddress)
+        return std::unexpected(Error::validation("Cannot jump to BadAddress"));
+    if (!jumpto(static_cast<ea_t>(address)))
+        return std::unexpected(Error::sdk("jumpto failed",
+                                          std::to_string(address)));
+    return ida::ok();
+}
+
 // ── Screen/cursor queries ───────────────────────────────────────────────
 
 Result<Address> screen_address() {
@@ -89,6 +102,115 @@ Result<ida::address::Range> selection() {
         return std::unexpected(Error::not_found("No selection"));
     return ida::address::Range{static_cast<Address>(start),
                                 static_cast<Address>(end)};
+}
+
+// ── Dock widget hosting ─────────────────────────────────────────────────
+
+namespace {
+
+// Monotonically increasing ID for widget identity tracking.
+std::atomic<std::uint64_t> g_next_widget_id{1};
+
+} // anonymous namespace
+
+struct WidgetAccess {
+    static Widget make(TWidget* tw) {
+        Widget w;
+        w.impl_ = static_cast<void*>(tw);
+        w.id_   = g_next_widget_id.fetch_add(1, std::memory_order_relaxed);
+        return w;
+    }
+    static Widget wrap(TWidget* tw, std::uint64_t existing_id = 0) {
+        Widget w;
+        w.impl_ = static_cast<void*>(tw);
+        w.id_   = existing_id != 0 ? existing_id
+                                    : g_next_widget_id.fetch_add(1, std::memory_order_relaxed);
+        return w;
+    }
+    static TWidget* raw(const Widget& w) {
+        return static_cast<TWidget*>(w.impl_);
+    }
+};
+
+std::string Widget::title() const {
+    if (!impl_) return {};
+    qstring qtitle;
+    get_widget_title(&qtitle, static_cast<TWidget*>(impl_));
+    return ida::detail::to_string(qtitle);
+}
+
+namespace {
+
+uint32 dock_position_to_flags(DockPosition pos, bool restore) {
+    uint32 flags = 0;
+    switch (pos) {
+    case DockPosition::Left:     flags = WOPN_DP_LEFT;   break;
+    case DockPosition::Right:    flags = WOPN_DP_RIGHT;  break;
+    case DockPosition::Top:      flags = WOPN_DP_TOP;    break;
+    case DockPosition::Bottom:   flags = WOPN_DP_BOTTOM; break;
+    case DockPosition::Floating: flags = WOPN_DP_FLOATING;  break;
+    case DockPosition::Tab:      flags = WOPN_DP_TAB;    break;
+    }
+    if (restore)
+        flags |= WOPN_RESTORE;
+    return flags;
+}
+
+} // anonymous namespace
+
+Result<Widget> create_widget(std::string_view title) {
+    std::string stitle(title);
+    TWidget* tw = create_empty_widget(stitle.c_str());
+    if (tw == nullptr)
+        return std::unexpected(Error::sdk("create_empty_widget failed",
+                                          stitle));
+    return WidgetAccess::make(tw);
+}
+
+Status show_widget(Widget& widget, const ShowWidgetOptions& options) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+    uint32 flags = dock_position_to_flags(options.position,
+                                           options.restore_previous);
+    display_widget(tw, flags);
+    return ida::ok();
+}
+
+Status activate_widget(Widget& widget) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+    ::activate_widget(tw, true);
+    return ida::ok();
+}
+
+Widget find_widget(std::string_view title) {
+    std::string stitle(title);
+    TWidget* tw = ::find_widget(stitle.c_str());
+    if (tw == nullptr)
+        return Widget{}; // invalid handle
+    return WidgetAccess::make(tw);
+}
+
+Status close_widget(Widget& widget) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+    ::close_widget(tw, 0);
+    widget = Widget{}; // invalidate
+    return ida::ok();
+}
+
+bool is_widget_visible(const Widget& widget) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return false;
+    // A widget is visible if find_widget with its title returns the same pointer.
+    qstring qtitle;
+    get_widget_title(&qtitle, tw);
+    TWidget* found = ::find_widget(qtitle.c_str());
+    return found == tw;
 }
 
 // ── Chooser ─────────────────────────────────────────────────────────────
@@ -320,12 +442,13 @@ Status unregister_timer(std::uint64_t token) {
     return ida::ok();
 }
 
-// ── UI event subscriptions ──────────────────────────────────────────────
+// ── Event subscription infrastructure ───────────────────────────────────
 
 namespace {
 
-/// Singleton listener for UI events, similar to the IDB event listener in event.cpp.
-class UiListener : public event_listener_t {
+/// Unified listener that supports multiple hook types (HT_UI, HT_VIEW).
+/// Each hook type gets its own singleton instance.
+class EventListener : public event_listener_t {
 public:
     struct Subscription {
         Token token;
@@ -333,10 +456,7 @@ public:
         std::function<void(va_list)> handler;
     };
 
-    static UiListener& instance() {
-        static UiListener inst;
-        return inst;
-    }
+    explicit EventListener(hook_type_t type) : type_(type) {}
 
     Token subscribe(int code, std::function<void(va_list)> handler) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -360,7 +480,7 @@ public:
     }
 
     ssize_t idaapi on_event(ssize_t code, va_list va) override {
-        // Make a copy of matching subscriptions to avoid holding lock during callbacks.
+        // Copy matching handlers to avoid holding lock during callbacks.
         std::vector<std::function<void(va_list)>> matched;
         {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -369,42 +489,54 @@ public:
                     matched.push_back(s.handler);
             }
         }
-        for (auto& h : matched) {
-            // va_list can only be consumed once, so for multiple handlers on the
-            // same event we need to be careful. In practice we'll have at most one
-            // handler per event code. The SDK doesn't provide va_copy-safe dispatching.
+        for (auto& h : matched)
             h(va);
-        }
         return 0;
     }
 
 private:
-    UiListener() = default;
-
     void ensure_hooked() {
         if (!hooked_) {
-            hook_event_listener(HT_UI, this, nullptr);
+            hook_event_listener(type_, this, nullptr);
             hooked_ = true;
         }
     }
 
     void ensure_unhooked() {
         if (hooked_) {
-            unhook_event_listener(HT_UI, this);
+            unhook_event_listener(type_, this);
             hooked_ = false;
         }
     }
 
+    hook_type_t type_;
     std::mutex mutex_;
     std::vector<Subscription> subs_;
     Token next_token_{0};
     bool hooked_{false};
 };
 
+// Singleton listeners per hook type.
+EventListener& ui_listener() {
+    static EventListener inst(HT_UI);
+    return inst;
+}
+
+EventListener& view_listener() {
+    static EventListener inst(HT_VIEW);
+    return inst;
+}
+
+// Token range partitioning: UI tokens in [1, 1<<62), VIEW tokens in [1<<62, 2<<62).
+// This lets unsubscribe() route to the correct listener.
+constexpr Token VIEW_TOKEN_BASE = Token{1} << 62;
+
 } // anonymous namespace
 
+// ── UI event subscriptions (global) ─────────────────────────────────────
+
 Result<Token> on_database_closed(std::function<void()> callback) {
-    auto token = UiListener::instance().subscribe(
+    auto token = ui_listener().subscribe(
         ui_database_closed,
         [cb = std::move(callback)](va_list) { cb(); }
     );
@@ -412,7 +544,7 @@ Result<Token> on_database_closed(std::function<void()> callback) {
 }
 
 Result<Token> on_ready_to_run(std::function<void()> callback) {
-    auto token = UiListener::instance().subscribe(
+    auto token = ui_listener().subscribe(
         ui_ready_to_run,
         [cb = std::move(callback)](va_list) { cb(); }
     );
@@ -420,7 +552,7 @@ Result<Token> on_ready_to_run(std::function<void()> callback) {
 }
 
 Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callback) {
-    auto token = UiListener::instance().subscribe(
+    auto token = ui_listener().subscribe(
         ui_screen_ea_changed,
         [cb = std::move(callback)](va_list va) {
             ea_t new_ea = va_arg(va, ea_t);
@@ -431,8 +563,10 @@ Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callbac
     return token;
 }
 
+// ── Title-based widget events ───────────────────────────────────────────
+
 Result<Token> on_widget_visible(std::function<void(std::string)> callback) {
-    auto token = UiListener::instance().subscribe(
+    auto token = ui_listener().subscribe(
         ui_widget_visible,
         [cb = std::move(callback)](va_list va) {
             TWidget* widget = va_arg(va, TWidget*);
@@ -444,8 +578,21 @@ Result<Token> on_widget_visible(std::function<void(std::string)> callback) {
     return token;
 }
 
+Result<Token> on_widget_invisible(std::function<void(std::string)> callback) {
+    auto token = ui_listener().subscribe(
+        ui_widget_invisible,
+        [cb = std::move(callback)](va_list va) {
+            TWidget* widget = va_arg(va, TWidget*);
+            qstring qtitle;
+            get_widget_title(&qtitle, widget);
+            cb(ida::detail::to_string(qtitle));
+        }
+    );
+    return token;
+}
+
 Result<Token> on_widget_closing(std::function<void(std::string)> callback) {
-    auto token = UiListener::instance().subscribe(
+    auto token = ui_listener().subscribe(
         ui_widget_closing,
         [cb = std::move(callback)](va_list va) {
             TWidget* widget = va_arg(va, TWidget*);
@@ -457,9 +604,97 @@ Result<Token> on_widget_closing(std::function<void(std::string)> callback) {
     return token;
 }
 
+// ── Handle-based widget events ──────────────────────────────────────────
+
+Result<Token> on_widget_visible(const Widget& widget,
+                                std::function<void(Widget)> callback) {
+    if (!widget.valid())
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    void* target = WidgetAccess::raw(widget);
+    std::uint64_t wid = widget.id();
+
+    auto token = ui_listener().subscribe(
+        ui_widget_visible,
+        [cb = std::move(callback), target, wid](va_list va) {
+            TWidget* w = va_arg(va, TWidget*);
+            if (static_cast<void*>(w) == target)
+                cb(WidgetAccess::wrap(w, wid));
+        }
+    );
+    return token;
+}
+
+Result<Token> on_widget_invisible(const Widget& widget,
+                                  std::function<void(Widget)> callback) {
+    if (!widget.valid())
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    void* target = WidgetAccess::raw(widget);
+    std::uint64_t wid = widget.id();
+
+    auto token = ui_listener().subscribe(
+        ui_widget_invisible,
+        [cb = std::move(callback), target, wid](va_list va) {
+            TWidget* w = va_arg(va, TWidget*);
+            if (static_cast<void*>(w) == target)
+                cb(WidgetAccess::wrap(w, wid));
+        }
+    );
+    return token;
+}
+
+Result<Token> on_widget_closing(const Widget& widget,
+                                std::function<void(Widget)> callback) {
+    if (!widget.valid())
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+
+    void* target = WidgetAccess::raw(widget);
+    std::uint64_t wid = widget.id();
+
+    auto token = ui_listener().subscribe(
+        ui_widget_closing,
+        [cb = std::move(callback), target, wid](va_list va) {
+            TWidget* w = va_arg(va, TWidget*);
+            if (static_cast<void*>(w) == target)
+                cb(WidgetAccess::wrap(w, wid));
+        }
+    );
+    return token;
+}
+
+// ── View events ─────────────────────────────────────────────────────────
+
+Result<Token> on_cursor_changed(std::function<void(Address)> callback) {
+    auto raw_token = view_listener().subscribe(
+        static_cast<int>(view_curpos),
+        [cb = std::move(callback)](va_list) {
+            // view_curpos provides no va_list payload — the new cursor
+            // position is obtained through get_screen_ea().
+            ea_t ea = get_screen_ea();
+            if (ea != BADADDR)
+                cb(static_cast<Address>(ea));
+        }
+    );
+    // Offset the token so unsubscribe can route to the correct listener.
+    return raw_token + VIEW_TOKEN_BASE;
+}
+
+// ── Unified unsubscribe ─────────────────────────────────────────────────
+
 Status unsubscribe(Token token) {
-    if (!UiListener::instance().unsubscribe(token))
-        return std::unexpected(Error::not_found("UI subscription not found",
+    if (token == 0)
+        return std::unexpected(Error::validation("Invalid subscription token (0)"));
+
+    bool removed = false;
+    if (token >= VIEW_TOKEN_BASE) {
+        removed = view_listener().unsubscribe(token - VIEW_TOKEN_BASE);
+    } else {
+        removed = ui_listener().unsubscribe(token);
+    }
+
+    if (!removed)
+        return std::unexpected(Error::not_found("UI/view subscription not found",
                                                 std::to_string(token)));
     return ida::ok();
 }

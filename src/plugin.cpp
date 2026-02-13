@@ -1,8 +1,6 @@
 /// \file plugin.cpp
-/// \brief Implementation of ida::plugin — action registration stubs.
-///
-/// These functions wrap the SDK's action_handler_t registration machinery.
-/// Full plugin lifecycle (Plugin base class) is planned for Phase 6.
+/// \brief Implementation of ida::plugin — action registration, popup attachment,
+///        and the plugmod_t bridge for the IDAX_PLUGIN() export macro.
 
 #include "detail/sdk_bridge.hpp"
 #include <ida/plugin.hpp>
@@ -32,13 +30,9 @@ struct ActionAdapter : public action_handler_t {
     }
 };
 
-// We leak these intentionally — IDA owns action lifetime until
-// unregister_action. A proper solution tracks registered adapters.
-// This is adequate for initial Phase 6 scaffolding.
-
 } // anonymous namespace
 
-// ── Public API ──────────────────────────────────────────────────────────
+// ── Public action API ───────────────────────────────────────────────────
 
 Status register_action(const Action& action) {
     auto* adapter = new ActionAdapter();
@@ -52,7 +46,7 @@ Status register_action(const Action& action) {
         nullptr, // plugmod owner (nullptr = global)
         action.hotkey.empty() ? nullptr : action.hotkey.c_str(),
         action.tooltip.empty() ? nullptr : action.tooltip.c_str(),
-        -1);     // icon
+        action.icon);
 
     if (!register_action(desc)) {
         delete adapter;
@@ -83,4 +77,117 @@ Status attach_to_toolbar(std::string_view toolbar, std::string_view action_id) {
     return ida::ok();
 }
 
+Status attach_to_popup(std::string_view widget_title, std::string_view action_id) {
+    std::string wt(widget_title), aid(action_id);
+    TWidget* tw = ::find_widget(wt.c_str());
+    if (tw == nullptr)
+        return std::unexpected(Error::not_found("Widget not found", wt));
+    if (!::attach_action_to_popup(tw, nullptr, aid.c_str()))
+        return std::unexpected(Error::sdk("attach_action_to_popup failed", std::string(action_id)));
+    return ida::ok();
+}
+
+// ── Plugin export bridge (IDAX_PLUGIN macro support) ────────────────────
+//
+// The IDAX_PLUGIN(ClassName) macro generates a factory function and calls
+// detail::make_plugin_export() which stores the factory pointer in a global.
+//
+// This TU provides the `plugin_t PLUGIN` symbol that IDA looks for. The
+// init function uses the stored factory to construct the user's Plugin,
+// wrap it in a plugmod_t adapter, and return it to IDA.
+//
+// Static initialization ordering: `make_plugin_export()` is called during
+// static init of the user's TU. The `plugin_t PLUGIN` struct below uses
+// only string literals and function pointers, so it has no dependency on
+// dynamic init order. By the time IDA calls `idax_plugin_init_`, all
+// static initializers have completed and `g_plugin_factory` is populated.
+
+// Global factory, set by IDAX_PLUGIN macro's static initializer.
+PluginFactory g_plugin_factory = nullptr;
+
+// Cached metadata (populated on first init call, used for display purposes).
+static char g_name_buf[256]    = "idax plugin";
+static char g_comment_buf[256] = "";
+static char g_help_buf[256]    = "";
+static char g_hotkey_buf[64]   = "";
+
+/// plugmod_t adapter that wraps a user's Plugin subclass.
+class PlugmodAdapter : public plugmod_t {
+public:
+    explicit PlugmodAdapter(Plugin* plugin) : plugin_(plugin) {}
+
+    ~PlugmodAdapter() override {
+        if (plugin_) {
+            plugin_->term();
+            delete plugin_;
+        }
+    }
+
+    bool idaapi run(size_t arg) override {
+        if (!plugin_) return false;
+        auto result = plugin_->run(arg);
+        return result.has_value();
+    }
+
+private:
+    Plugin* plugin_;
+};
+
+namespace {
+
+plugmod_t* idaapi idax_plugin_init_() {
+    if (!g_plugin_factory)
+        return nullptr;
+
+    auto* plugin = g_plugin_factory();
+    if (!plugin)
+        return nullptr;
+
+    // Let the user's init() decide whether to keep the plugin.
+    if (!plugin->init()) {
+        delete plugin;
+        return nullptr;
+    }
+
+    // Capture real metadata into static buffers for IDA's plugin list.
+    auto info = plugin->info();
+    qstrncpy(g_name_buf,    info.name.c_str(),    sizeof(g_name_buf));
+    qstrncpy(g_comment_buf, info.comment.c_str(),  sizeof(g_comment_buf));
+    qstrncpy(g_help_buf,    info.help.c_str(),     sizeof(g_help_buf));
+    qstrncpy(g_hotkey_buf,  info.hotkey.c_str(),   sizeof(g_hotkey_buf));
+
+    return new PlugmodAdapter(plugin);
+}
+
+} // anonymous namespace
+
+namespace detail {
+
+void* make_plugin_export(PluginFactory factory,
+                         const char* /*name*/,
+                         const char* /*comment*/,
+                         const char* /*help*/,
+                         const char* /*hotkey*/) {
+    g_plugin_factory = factory;
+    return &g_plugin_factory;
+}
+
+} // namespace detail
+
 } // namespace ida::plugin
+
+// ── SDK plugin_t export ─────────────────────────────────────────────────
+// This is the symbol IDA scans for when loading a plugin.
+// It uses static char buffers that are populated at init time.
+
+plugin_t PLUGIN = {
+    IDP_INTERFACE_VERSION,
+    PLUGIN_MULTI,
+    ida::plugin::idax_plugin_init_,
+    nullptr, // term — handled by ~PlugmodAdapter
+    nullptr, // run  — handled by PlugmodAdapter::run
+    ida::plugin::g_comment_buf,
+    ida::plugin::g_help_buf,
+    ida::plugin::g_name_buf,
+    ida::plugin::g_hotkey_buf,
+};

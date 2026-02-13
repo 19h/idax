@@ -8,12 +8,53 @@ namespace ida::segment {
 
 // ── Internal access helper ──────────────────────────────────────────────
 
+namespace {
+
+Type sdk_type_to_type(uchar sdk_type) {
+    switch (sdk_type) {
+    case SEG_NORM:  return Type::Normal;
+    case SEG_XTRN:  return Type::External;
+    case SEG_CODE:  return Type::Code;
+    case SEG_DATA:  return Type::Data;
+    case SEG_BSS:   return Type::Bss;
+    case SEG_ABSSYM:return Type::AbsoluteSymbols;
+    case SEG_COMM:  return Type::Common;
+    case SEG_NULL:  return Type::Null;
+    case SEG_UNDF:  return Type::Undefined;
+    case SEG_IMP:   return Type::Import;
+    case SEG_IMEM:  return Type::InternalMemory;
+    case SEG_GRP:   return Type::Group;
+    default:        return Type::Undefined;
+    }
+}
+
+uchar type_to_sdk_type(Type type) {
+    switch (type) {
+    case Type::Normal:         return SEG_NORM;
+    case Type::External:       return SEG_XTRN;
+    case Type::Code:           return SEG_CODE;
+    case Type::Data:           return SEG_DATA;
+    case Type::Bss:            return SEG_BSS;
+    case Type::AbsoluteSymbols:return SEG_ABSSYM;
+    case Type::Common:         return SEG_COMM;
+    case Type::Null:           return SEG_NULL;
+    case Type::Undefined:      return SEG_UNDF;
+    case Type::Import:         return SEG_IMP;
+    case Type::InternalMemory: return SEG_IMEM;
+    case Type::Group:          return SEG_GRP;
+    default:                   return SEG_NORM;
+    }
+}
+
+} // anonymous namespace
+
 struct SegmentAccess {
     static Segment populate(const segment_t* seg) {
         Segment s;
         s.start_   = static_cast<Address>(seg->start_ea);
         s.end_     = static_cast<Address>(seg->end_ea);
         s.bitness_ = ida::detail::bitness_to_bits(seg->bitness);
+        s.type_    = sdk_type_to_type(seg->type);
 
         s.perm_.read    = (seg->perm & SEGPERM_READ)  != 0;
         s.perm_.write   = (seg->perm & SEGPERM_WRITE) != 0;
@@ -50,7 +91,7 @@ Status Segment::refresh() {
 Result<Segment> create(Address start, Address end,
                        std::string_view name,
                        std::string_view class_name,
-                       Type /*type*/) {
+                       Type type) {
     qstring qname  = ida::detail::to_qstring(name);
     qstring qclass = ida::detail::to_qstring(class_name);
 
@@ -62,6 +103,7 @@ Result<Segment> create(Address start, Address end,
     seg.align    = saRelByte;
     seg.comb     = scPub;
     seg.perm     = SEGPERM_READ | SEGPERM_WRITE | SEGPERM_EXEC;
+    seg.type     = type_to_sdk_type(type);
 
     if (!add_segm_ex(&seg, qname.c_str(), qclass.c_str(), ADDSEG_OR_DIE))
         return std::unexpected(Error::sdk("add_segm_ex failed",
@@ -141,6 +183,16 @@ Status set_class(Address ea, std::string_view class_name) {
     if (rc == 0)
         return std::unexpected(Error::sdk("set_segm_class failed",
                                           std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_type(Address ea, Type type) {
+    segment_t* seg = getseg(ea);
+    if (seg == nullptr)
+        return std::unexpected(Error::not_found("No segment at address",
+                                                std::to_string(ea)));
+    seg->type = type_to_sdk_type(type);
+    seg->update();
     return ida::ok();
 }
 
