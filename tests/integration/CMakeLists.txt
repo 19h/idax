@@ -75,3 +75,6 @@ idax_add_integration_test(operand_and_text                 operand_and_text_test
 idax_add_integration_test(decompiler_storage_hardening     decompiler_storage_hardening_test.cpp)
 idax_add_integration_test(debugger_ui_graph_event          debugger_ui_graph_event_test.cpp)
 idax_add_integration_test(loader_processor_scenario        loader_processor_scenario_test.cpp)
+idax_add_integration_test(event_stress                      event_stress_test.cpp)
+idax_add_integration_test(decompiler_edge_cases            decompiler_edge_cases_test.cpp)
+idax_add_integration_test(performance_benchmark            performance_benchmark_test.cpp)
