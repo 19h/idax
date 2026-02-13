@@ -43,7 +43,14 @@ Result<Address> resolve(std::string_view name, Address context = BadAddress);
 
 bool is_public(Address address);
 bool is_weak(Address address);
+bool is_user_defined(Address address);
 bool is_auto_generated(Address address);
+
+/// Validate a user-facing identifier according to IDA naming rules.
+Result<bool> is_valid_identifier(std::string_view text);
+
+/// Normalize an identifier by replacing invalid characters where possible.
+Result<std::string> sanitize_identifier(std::string_view text);
 
 Status set_public(Address address, bool value = true);
 Status set_weak(Address address, bool value = true);

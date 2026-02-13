@@ -92,6 +92,66 @@ Status add_posterior(Address ea, std::string_view text) {
     return ida::ok();
 }
 
+Status set_anterior(Address ea, int line_index, std::string_view text) {
+    if (line_index < 0)
+        return std::unexpected(Error::validation("Anterior line index must be non-negative",
+                                                 std::to_string(line_index)));
+    qstring existing;
+    if (get_extra_cmt(&existing, ea, E_PREV + line_index) <= 0)
+        return std::unexpected(Error::not_found("Anterior line index not found",
+                                                std::to_string(line_index)));
+
+    qstring qtxt = ida::detail::to_qstring(text);
+    if (!update_extra_cmt(ea, E_PREV + line_index, qtxt.c_str()))
+        return std::unexpected(Error::sdk("update_extra_cmt failed",
+                                          std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_posterior(Address ea, int line_index, std::string_view text) {
+    if (line_index < 0)
+        return std::unexpected(Error::validation("Posterior line index must be non-negative",
+                                                 std::to_string(line_index)));
+    qstring existing;
+    if (get_extra_cmt(&existing, ea, E_NEXT + line_index) <= 0)
+        return std::unexpected(Error::not_found("Posterior line index not found",
+                                                std::to_string(line_index)));
+
+    qstring qtxt = ida::detail::to_qstring(text);
+    if (!update_extra_cmt(ea, E_NEXT + line_index, qtxt.c_str()))
+        return std::unexpected(Error::sdk("update_extra_cmt failed",
+                                          std::to_string(ea)));
+    return ida::ok();
+}
+
+Status remove_anterior_line(Address ea, int line_index) {
+    if (line_index < 0)
+        return std::unexpected(Error::validation("Anterior line index must be non-negative",
+                                                 std::to_string(line_index)));
+    auto lines = collect_extra_lines(ea, E_PREV);
+    if (!lines)
+        return std::unexpected(lines.error());
+    if (static_cast<std::size_t>(line_index) >= lines->size())
+        return std::unexpected(Error::not_found("Anterior line index not found",
+                                                std::to_string(line_index)));
+    lines->erase(lines->begin() + line_index);
+    return set_extra_lines(ea, E_PREV, *lines);
+}
+
+Status remove_posterior_line(Address ea, int line_index) {
+    if (line_index < 0)
+        return std::unexpected(Error::validation("Posterior line index must be non-negative",
+                                                 std::to_string(line_index)));
+    auto lines = collect_extra_lines(ea, E_NEXT);
+    if (!lines)
+        return std::unexpected(lines.error());
+    if (static_cast<std::size_t>(line_index) >= lines->size())
+        return std::unexpected(Error::not_found("Posterior line index not found",
+                                                std::to_string(line_index)));
+    lines->erase(lines->begin() + line_index);
+    return set_extra_lines(ea, E_NEXT, *lines);
+}
+
 Result<std::string> get_anterior(Address ea, int line_index) {
     qstring qbuf;
     if (get_extra_cmt(&qbuf, ea, E_PREV + line_index) <= 0)

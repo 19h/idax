@@ -90,8 +90,11 @@ void test_set_get_roundtrip() {
     if (retrieved) {
         CHECK(retrieved->source == test_ea);
         CHECK(retrieved->type == ida::fixup::Type::Off32);
+        CHECK(retrieved->flags == 0);
         CHECK(retrieved->selector == 1);
+        CHECK(retrieved->base == 0);
         CHECK(retrieved->offset == *lo);
+        CHECK(retrieved->target == retrieved->base + retrieved->offset);
         CHECK(retrieved->displacement == 42);
     }
 
@@ -120,6 +123,9 @@ void test_fixup_types() {
         {ida::fixup::Type::Off16, "Off16"},
         {ida::fixup::Type::Off32, "Off32"},
         {ida::fixup::Type::Off64, "Off64"},
+        {ida::fixup::Type::Off8Signed, "Off8Signed"},
+        {ida::fixup::Type::Off16Signed, "Off16Signed"},
+        {ida::fixup::Type::Off32Signed, "Off32Signed"},
         {ida::fixup::Type::Hi8,   "Hi8"},
         {ida::fixup::Type::Low8,  "Low8"},
     };
@@ -289,6 +295,54 @@ void test_range_iteration() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: in_range traversal helper
+// ---------------------------------------------------------------------------
+void test_in_range_helper() {
+    std::cout << "--- fixup in_range helper ---\n";
+
+    auto lo = ida::database::min_address();
+    CHECK_OK(lo);
+    if (!lo) return;
+
+    ida::Address ea1 = *lo + 0x600;
+    ida::Address ea2 = *lo + 0x610;
+
+    ida::fixup::remove(ea1);
+    ida::fixup::remove(ea2);
+
+    ida::fixup::Descriptor d;
+    d.type = ida::fixup::Type::Off32;
+    d.offset = *lo;
+
+    d.source = ea1;
+    CHECK_OK(ida::fixup::set(ea1, d));
+    d.source = ea2;
+    CHECK_OK(ida::fixup::set(ea2, d));
+
+    auto ranged = ida::fixup::in_range(ea1, ea2 + 1);
+    CHECK_OK(ranged);
+    if (ranged) {
+        CHECK(ranged->size() >= 2);
+        bool found1 = false;
+        bool found2 = false;
+        for (const auto& desc : *ranged) {
+            if (desc.source == ea1) found1 = true;
+            if (desc.source == ea2) found2 = true;
+        }
+        CHECK(found1);
+        CHECK(found2);
+    }
+
+    auto bad_range = ida::fixup::in_range(ea2, ea1);
+    CHECK(!bad_range.has_value());
+    if (!bad_range)
+        CHECK(bad_range.error().category == ida::ErrorCategory::Validation);
+
+    ida::fixup::remove(ea1);
+    ida::fixup::remove(ea2);
+}
+
+// ---------------------------------------------------------------------------
 // Test: error paths
 // ---------------------------------------------------------------------------
 void test_error_paths() {
@@ -374,6 +428,7 @@ int main(int argc, char* argv[]) {
     test_contains();
     test_traversal();
     test_range_iteration();
+    test_in_range_helper();
     test_error_paths();
     test_custom_fixup_lifecycle();
 

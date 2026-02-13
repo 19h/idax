@@ -206,6 +206,14 @@ void check_name_surface() {
     (void)ida::name::DemangleForm::Short;
     (void)ida::name::DemangleForm::Long;
     (void)ida::name::DemangleForm::Full;
+
+    using NamePredicateFn = bool(*)(ida::Address);
+    using IsValidIdentifierFn = ida::Result<bool>(*)(std::string_view);
+    using SanitizeIdentifierFn = ida::Result<std::string>(*)(std::string_view);
+
+    (void)static_cast<NamePredicateFn>(&ida::name::is_user_defined);
+    (void)static_cast<IsValidIdentifierFn>(&ida::name::is_valid_identifier);
+    (void)static_cast<SanitizeIdentifierFn>(&ida::name::sanitize_identifier);
 }
 
 // ─── ida::xref ──────────────────────────────────────────────────────────
@@ -218,6 +226,30 @@ void check_xref_surface() {
     (void)ida::xref::DataType::Offset;
     (void)ida::xref::DataType::Read;
     (void)ida::xref::DataType::Write;
+
+    static_assert(std::is_move_constructible_v<ida::xref::ReferenceRange>);
+
+    using RefsFromTypedFn = ida::Result<std::vector<ida::xref::Reference>>(*)(ida::Address,
+                                                                               ida::xref::ReferenceType);
+    using RefsToTypedFn = ida::Result<std::vector<ida::xref::Reference>>(*)(ida::Address,
+                                                                             ida::xref::ReferenceType);
+    using RefsRangeFn = ida::Result<ida::xref::ReferenceRange>(*)(ida::Address);
+    using RefTypePredicateFn = bool(*)(ida::xref::ReferenceType);
+
+    (void)static_cast<RefsFromTypedFn>(&ida::xref::refs_from);
+    (void)static_cast<RefsToTypedFn>(&ida::xref::refs_to);
+    (void)static_cast<RefsRangeFn>(&ida::xref::refs_from_range);
+    (void)static_cast<RefsRangeFn>(&ida::xref::refs_to_range);
+    (void)static_cast<RefsRangeFn>(&ida::xref::code_refs_from_range);
+    (void)static_cast<RefsRangeFn>(&ida::xref::code_refs_to_range);
+    (void)static_cast<RefsRangeFn>(&ida::xref::data_refs_from_range);
+    (void)static_cast<RefsRangeFn>(&ida::xref::data_refs_to_range);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_call);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_jump);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_flow);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_data);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_data_read);
+    (void)static_cast<RefTypePredicateFn>(&ida::xref::is_data_write);
 }
 
 // ─── ida::comment ───────────────────────────────────────────────────────
@@ -227,6 +259,13 @@ void check_comment_surface() {
     (void)&ida::comment::set;
     (void)&ida::comment::get;
     (void)&ida::comment::remove;
+
+    using SetIndexedLineFn = ida::Status(*)(ida::Address, int, std::string_view);
+    using RemoveIndexedLineFn = ida::Status(*)(ida::Address, int);
+    (void)static_cast<SetIndexedLineFn>(&ida::comment::set_anterior);
+    (void)static_cast<SetIndexedLineFn>(&ida::comment::set_posterior);
+    (void)static_cast<RemoveIndexedLineFn>(&ida::comment::remove_anterior_line);
+    (void)static_cast<RemoveIndexedLineFn>(&ida::comment::remove_posterior_line);
 }
 
 // ─── ida::type ──────────────────────────────────────────────────────────
@@ -237,6 +276,35 @@ void check_type_surface() {
 
     ida::type::Member m;
     (void)m.name; (void)m.byte_offset; (void)m.bit_size;
+
+    (void)ida::type::CallingConvention::Cdecl;
+    (void)ida::type::CallingConvention::Stdcall;
+
+    ida::type::EnumMember em;
+    (void)em.name; (void)em.value; (void)em.comment;
+
+    using FunctionTypeFactoryFn = ida::Result<ida::type::TypeInfo>(*)(
+        const ida::type::TypeInfo&,
+        const std::vector<ida::type::TypeInfo>&,
+        ida::type::CallingConvention,
+        bool);
+    using EnumTypeFactoryFn = ida::Result<ida::type::TypeInfo>(*)(
+        const std::vector<ida::type::EnumMember>&,
+        std::size_t,
+        bool);
+    using FunctionReturnTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
+    using FunctionArgsFn = ida::Result<std::vector<ida::type::TypeInfo>>(ida::type::TypeInfo::*)() const;
+    using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
+    using VariadicFn = ida::Result<bool>(ida::type::TypeInfo::*)() const;
+    using EnumMembersFn = ida::Result<std::vector<ida::type::EnumMember>>(ida::type::TypeInfo::*)() const;
+
+    (void)static_cast<FunctionTypeFactoryFn>(&ida::type::TypeInfo::function_type);
+    (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
+    (void)static_cast<FunctionReturnTypeFn>(&ida::type::TypeInfo::function_return_type);
+    (void)static_cast<FunctionArgsFn>(&ida::type::TypeInfo::function_argument_types);
+    (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);
+    (void)static_cast<VariadicFn>(&ida::type::TypeInfo::is_variadic_function);
+    (void)static_cast<EnumMembersFn>(&ida::type::TypeInfo::enum_members);
 }
 
 // ─── ida::fixup ─────────────────────────────────────────────────────────
@@ -246,7 +314,19 @@ void check_fixup_surface() {
     (void)ida::fixup::Type::Off16;
     (void)ida::fixup::Type::Off32;
     (void)ida::fixup::Type::Off64;
+    (void)ida::fixup::Type::Off8Signed;
+    (void)ida::fixup::Type::Off16Signed;
+    (void)ida::fixup::Type::Off32Signed;
     (void)ida::fixup::Type::Custom;
+
+    ida::fixup::Descriptor descriptor;
+    (void)descriptor.flags;
+    (void)descriptor.base;
+    (void)descriptor.target;
+
+    using FixupInRangeFn = ida::Result<std::vector<ida::fixup::Descriptor>>(*)(ida::Address,
+                                                                                ida::Address);
+    (void)static_cast<FixupInRangeFn>(&ida::fixup::in_range);
 }
 
 // ─── ida::entry ─────────────────────────────────────────────────────────
@@ -254,6 +334,13 @@ void check_fixup_surface() {
 void check_entry_surface() {
     ida::entry::EntryPoint ep;
     (void)ep.ordinal; (void)ep.address; (void)ep.name; (void)ep.forwarder;
+
+    using EntryForwarderFn = ida::Result<std::string>(*)(std::uint64_t);
+    using EntrySetForwarderFn = ida::Status(*)(std::uint64_t, std::string_view);
+    using EntryClearForwarderFn = ida::Status(*)(std::uint64_t);
+    (void)static_cast<EntryForwarderFn>(&ida::entry::forwarder);
+    (void)static_cast<EntrySetForwarderFn>(&ida::entry::set_forwarder);
+    (void)static_cast<EntryClearForwarderFn>(&ida::entry::clear_forwarder);
 }
 
 // ─── ida::search ────────────────────────────────────────────────────────

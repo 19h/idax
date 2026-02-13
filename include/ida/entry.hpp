@@ -26,6 +26,15 @@ Result<EntryPoint>  by_ordinal(std::uint64_t ordinal);
 Status add(std::uint64_t ordinal, Address address, std::string_view name, bool make_code = true);
 Status rename(std::uint64_t ordinal, std::string_view name);
 
+/// Get entry forwarder text by ordinal.
+Result<std::string> forwarder(std::uint64_t ordinal);
+
+/// Set entry forwarder text by ordinal.
+Status set_forwarder(std::uint64_t ordinal, std::string_view target);
+
+/// Clear entry forwarder text for ordinal.
+Status clear_forwarder(std::uint64_t ordinal);
+
 } // namespace ida::entry
 
 #endif // IDAX_ENTRY_HPP

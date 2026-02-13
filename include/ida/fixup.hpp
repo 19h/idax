@@ -10,6 +10,7 @@
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ida::fixup {
 
@@ -18,14 +19,20 @@ enum class Type {
     Off32, Ptr32,
     Hi8, Hi16, Low8, Low16,
     Off64,
+    Off8Signed,
+    Off16Signed,
+    Off32Signed,
     Custom,
 };
 
 struct Descriptor {
     Address       source{};         ///< Address of the fixup site.
     Type          type{Type::Off32};
+    std::uint32_t flags{};          ///< Raw FIXUPF_* bits.
+    Address       base{};           ///< Base address used by relative fixups.
+    Address       target{};         ///< Normalized target (base + offset).
     std::uint16_t selector{};
-    Address       offset{};         ///< Target offset.
+    Address       offset{};         ///< Raw fixup offset payload.
     AddressDelta  displacement{};
 };
 
@@ -38,6 +45,9 @@ bool exists(Address source);
 
 /// Check whether an address range contains any fixups.
 bool contains(Address start, AddressSize size);
+
+/// Collect fixup descriptors in [start, end).
+Result<std::vector<Descriptor>> in_range(Address start, Address end);
 
 // ── Traversal ───────────────────────────────────────────────────────────
 

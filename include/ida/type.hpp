@@ -16,6 +16,24 @@ namespace ida::type {
 // Forward declaration so Member can reference TypeInfo.
 class TypeInfo;
 
+enum class CallingConvention {
+    Unknown,
+    Cdecl,
+    Stdcall,
+    Pascal,
+    Fastcall,
+    Thiscall,
+    Swift,
+    Golang,
+    UserDefined,
+};
+
+struct EnumMember {
+    std::string name;
+    std::uint64_t value{0};
+    std::string comment;
+};
+
 /// Opaque handle representing a type in the IDA database.
 /// This class is movable, copyable, and cheap to construct for primitives.
 class TypeInfo {
@@ -42,6 +60,13 @@ public:
 
     static TypeInfo pointer_to(const TypeInfo& target);
     static TypeInfo array_of(const TypeInfo& element, std::size_t count);
+    static Result<TypeInfo> function_type(const TypeInfo& return_type,
+                                          const std::vector<TypeInfo>& argument_types = {},
+                                          CallingConvention calling_convention = CallingConvention::Unknown,
+                                          bool has_varargs = false);
+    static Result<TypeInfo> enum_type(const std::vector<EnumMember>& members,
+                                      std::size_t byte_width = 4,
+                                      bool bitmask = false);
     static Result<TypeInfo> from_declaration(std::string_view c_decl);
 
     /// Create an empty struct type.
@@ -66,6 +91,11 @@ public:
 
     [[nodiscard]] Result<std::size_t> size() const;
     [[nodiscard]] Result<std::string> to_string() const;
+    [[nodiscard]] Result<TypeInfo> function_return_type() const;
+    [[nodiscard]] Result<std::vector<TypeInfo>> function_argument_types() const;
+    [[nodiscard]] Result<CallingConvention> calling_convention() const;
+    [[nodiscard]] Result<bool> is_variadic_function() const;
+    [[nodiscard]] Result<std::vector<EnumMember>> enum_members() const;
 
     /// Number of struct/union members (0 for non-UDT types).
     [[nodiscard]] Result<std::size_t> member_count() const;

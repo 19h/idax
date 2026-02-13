@@ -68,6 +68,16 @@ Reference make_ref(const xrefblk_t& xb) {
     return r;
 }
 
+std::vector<Reference> filter_refs(const std::vector<Reference>& refs, ReferenceType type) {
+    std::vector<Reference> out;
+    out.reserve(refs.size());
+    for (const auto& ref : refs) {
+        if (ref.type == type)
+            out.push_back(ref);
+    }
+    return out;
+}
+
 } // anonymous namespace
 
 // ── Mutation ────────────────────────────────────────────────────────────
@@ -115,6 +125,20 @@ Result<std::vector<Reference>> refs_to(Address ea) {
     return result;
 }
 
+Result<std::vector<Reference>> refs_from(Address ea, ReferenceType type) {
+    auto refs = refs_from(ea);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return filter_refs(*refs, type);
+}
+
+Result<std::vector<Reference>> refs_to(Address ea, ReferenceType type) {
+    auto refs = refs_to(ea);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return filter_refs(*refs, type);
+}
+
 Result<std::vector<Reference>> code_refs_from(Address ea) {
     std::vector<Reference> result;
     xrefblk_t xb;
@@ -153,6 +177,76 @@ Result<std::vector<Reference>> data_refs_to(Address ea) {
             result.push_back(make_ref(xb));
     }
     return result;
+}
+
+Result<ReferenceRange> refs_from_range(Address address) {
+    auto refs = refs_from(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+Result<ReferenceRange> refs_to_range(Address address) {
+    auto refs = refs_to(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+Result<ReferenceRange> code_refs_from_range(Address address) {
+    auto refs = code_refs_from(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+Result<ReferenceRange> code_refs_to_range(Address address) {
+    auto refs = code_refs_to(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+Result<ReferenceRange> data_refs_from_range(Address address) {
+    auto refs = data_refs_from(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+Result<ReferenceRange> data_refs_to_range(Address address) {
+    auto refs = data_refs_to(address);
+    if (!refs)
+        return std::unexpected(refs.error());
+    return ReferenceRange(std::move(*refs));
+}
+
+bool is_call(ReferenceType type) {
+    return type == ReferenceType::CallNear || type == ReferenceType::CallFar;
+}
+
+bool is_jump(ReferenceType type) {
+    return type == ReferenceType::JumpNear || type == ReferenceType::JumpFar;
+}
+
+bool is_flow(ReferenceType type) {
+    return type == ReferenceType::Flow;
+}
+
+bool is_data(ReferenceType type) {
+    return type == ReferenceType::Offset
+        || type == ReferenceType::Read
+        || type == ReferenceType::Write
+        || type == ReferenceType::Text
+        || type == ReferenceType::Informational;
+}
+
+bool is_data_read(ReferenceType type) {
+    return type == ReferenceType::Read;
+}
+
+bool is_data_write(ReferenceType type) {
+    return type == ReferenceType::Write;
 }
 
 } // namespace ida::xref

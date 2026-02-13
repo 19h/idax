@@ -77,12 +77,38 @@ bool is_weak(Address ea) {
     return is_weak_name(ea);
 }
 
+bool is_user_defined(Address ea) {
+    flags64_t f = get_flags(ea);
+    if (f == 0)
+        return false;
+    return has_any_name(f) && has_user_name(f);
+}
+
 bool is_auto_generated(Address ea) {
     // A name is auto-generated if it exists but is not user-defined.
     // SDK has has_user_name() which checks if the name was set by the user.
     flags64_t f = get_flags(ea);
     if (f == 0) return false;
     return has_any_name(f) && !has_user_name(f);
+}
+
+Result<bool> is_valid_identifier(std::string_view text) {
+    if (text.empty())
+        return false;
+    std::string value(text);
+    return ::is_uname(value.c_str());
+}
+
+Result<std::string> sanitize_identifier(std::string_view text) {
+    if (text.empty())
+        return std::unexpected(Error::validation("Identifier cannot be empty"));
+
+    qstring value = ida::detail::to_qstring(text);
+    if (!validate_name(&value, VNT_IDENT, SN_NOCHECK)) {
+        return std::unexpected(Error::validation("Identifier cannot be sanitized",
+                                                 std::string(text)));
+    }
+    return ida::detail::to_string(value);
 }
 
 Status set_public(Address ea, bool value) {
