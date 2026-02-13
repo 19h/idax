@@ -348,6 +348,30 @@ void check_entry_surface() {
 void check_search_surface() {
     (void)ida::search::Direction::Forward;
     (void)ida::search::Direction::Backward;
+
+    ida::search::TextOptions text_opts;
+    (void)text_opts.break_on_cancel;
+    ida::search::ImmediateOptions imm_opts;
+    (void)imm_opts.skip_start;
+    ida::search::BinaryPatternOptions bin_opts;
+    (void)bin_opts.no_show;
+
+    using SearchTextWithOptionsFn = ida::Result<ida::Address>(*)(std::string_view,
+                                                                 ida::Address,
+                                                                 const ida::search::TextOptions&);
+    using SearchImmediateWithOptionsFn = ida::Result<ida::Address>(*)(std::uint64_t,
+                                                                      ida::Address,
+                                                                      const ida::search::ImmediateOptions&);
+    using SearchBinaryWithOptionsFn = ida::Result<ida::Address>(*)(std::string_view,
+                                                                   ida::Address,
+                                                                   const ida::search::BinaryPatternOptions&);
+    using SearchNextFn = ida::Result<ida::Address>(*)(ida::Address);
+
+    (void)static_cast<SearchTextWithOptionsFn>(&ida::search::text);
+    (void)static_cast<SearchImmediateWithOptionsFn>(&ida::search::immediate);
+    (void)static_cast<SearchBinaryWithOptionsFn>(&ida::search::binary_pattern);
+    (void)static_cast<SearchNextFn>(&ida::search::next_defined);
+    (void)static_cast<SearchNextFn>(&ida::search::next_error);
 }
 
 // ─── ida::analysis ──────────────────────────────────────────────────────
@@ -356,6 +380,15 @@ void check_analysis_surface() {
     (void)&ida::analysis::is_enabled;
     (void)&ida::analysis::is_idle;
     (void)&ida::analysis::wait;
+
+    using AnalysisScheduleOneFn = ida::Status(*)(ida::Address);
+    using AnalysisScheduleRangeFn = ida::Status(*)(ida::Address, ida::Address);
+    (void)static_cast<AnalysisScheduleOneFn>(&ida::analysis::schedule_code);
+    (void)static_cast<AnalysisScheduleOneFn>(&ida::analysis::schedule_function);
+    (void)static_cast<AnalysisScheduleOneFn>(&ida::analysis::schedule_reanalysis);
+    (void)static_cast<AnalysisScheduleRangeFn>(&ida::analysis::schedule_reanalysis_range);
+    (void)static_cast<AnalysisScheduleRangeFn>(&ida::analysis::cancel);
+    (void)static_cast<AnalysisScheduleRangeFn>(&ida::analysis::revert_decisions);
 }
 
 // ─── ida::database ──────────────────────────────────────────────────────

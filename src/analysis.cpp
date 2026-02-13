@@ -33,13 +33,41 @@ Status wait_range(Address start, Address end) {
     return ida::ok();
 }
 
-Status schedule(Address ea) {
-    ::auto_mark_range(ea, ea + 1, AU_CODE);
-    return ida::ok();
+Status schedule(Address address) {
+    return schedule_reanalysis(address);
 }
 
 Status schedule_range(Address start, Address end) {
-    ::auto_mark_range(start, end, AU_CODE);
+    return schedule_reanalysis_range(start, end);
+}
+
+Status schedule_code(Address address) {
+    ::auto_mark(address, AU_CODE);
+    return ida::ok();
+}
+
+Status schedule_function(Address address) {
+    ::auto_make_proc(address);
+    return ida::ok();
+}
+
+Status schedule_reanalysis(Address address) {
+    ::plan_ea(address);
+    return ida::ok();
+}
+
+Status schedule_reanalysis_range(Address start, Address end) {
+    ::plan_range(start, end);
+    return ida::ok();
+}
+
+Status cancel(Address start, Address end) {
+    ::auto_cancel(start, end);
+    return ida::ok();
+}
+
+Status revert_decisions(Address start, Address end) {
+    ::revert_ida_decisions(start, end);
     return ida::ok();
 }
 

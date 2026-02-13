@@ -30,6 +30,24 @@ Status schedule(Address address);
 /// Schedule reanalysis of the range [start, end).
 Status schedule_range(Address start, Address end);
 
+/// Schedule conversion to code at \p address.
+Status schedule_code(Address address);
+
+/// Schedule function creation/recovery at \p address.
+Status schedule_function(Address address);
+
+/// Schedule reanalysis at \p address.
+Status schedule_reanalysis(Address address);
+
+/// Schedule reanalysis for [start, end).
+Status schedule_reanalysis_range(Address start, Address end);
+
+/// Remove pending code/function/reanalysis queue entries in [start, end).
+Status cancel(Address start, Address end);
+
+/// Revert analyzer-generated decisions in [start, end).
+Status revert_decisions(Address start, Address end);
+
 } // namespace ida::analysis
 
 #endif // IDAX_ANALYSIS_HPP
