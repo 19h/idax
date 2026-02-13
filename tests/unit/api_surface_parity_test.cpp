@@ -656,8 +656,12 @@ void check_ui_surface() {
     (void)ida::ui::ColumnFormat::Hex;
     (void)ida::ui::ColumnFormat::Address;
 
+    (void)ida::ui::EventKind::DatabaseInited;
     (void)ida::ui::EventKind::DatabaseClosed;
+    (void)ida::ui::EventKind::CurrentWidgetChanged;
     (void)ida::ui::EventKind::WidgetInvisible;
+    (void)ida::ui::EventKind::ViewActivated;
+    (void)ida::ui::EventKind::ViewClosed;
     (void)ida::ui::EventKind::CursorChanged;
 
     ida::ui::ShowWidgetOptions show_opts;
@@ -673,9 +677,19 @@ void check_ui_surface() {
     (void)event.address;
     (void)event.previous_address;
     (void)event.widget;
+    (void)event.previous_widget;
+    (void)event.is_new_database;
+    (void)event.startup_script;
     (void)event.widget_title;
 
     using CreateWidgetFn = ida::Result<ida::ui::Widget>(*)(std::string_view);
+    using CreateCustomViewerFn = ida::Result<ida::ui::Widget>(*)(std::string_view, const std::vector<std::string>&);
+    using SetCustomViewerLinesFn = ida::Status(*)(ida::ui::Widget&, const std::vector<std::string>&);
+    using CustomViewerLineCountFn = ida::Result<std::size_t>(*)(const ida::ui::Widget&);
+    using CustomViewerJumpFn = ida::Status(*)(ida::ui::Widget&, std::size_t, int, int);
+    using CustomViewerCurrentLineFn = ida::Result<std::string>(*)(const ida::ui::Widget&, bool);
+    using RefreshCustomViewerFn = ida::Status(*)(ida::ui::Widget&);
+    using CloseCustomViewerFn = ida::Status(*)(ida::ui::Widget&);
     using ShowWidgetFn = ida::Status(*)(ida::ui::Widget&, const ida::ui::ShowWidgetOptions&);
     using ActivateWidgetFn = ida::Status(*)(ida::ui::Widget&);
     using FindWidgetFn = ida::ui::Widget(*)(std::string_view);
@@ -692,11 +706,22 @@ void check_ui_surface() {
     using OnWidgetInvisibleHandleFn = ida::Result<ida::ui::Token>(*)(const ida::ui::Widget&, std::function<void(ida::ui::Widget)>);
     using OnWidgetClosingHandleFn = ida::Result<ida::ui::Token>(*)(const ida::ui::Widget&, std::function<void(ida::ui::Widget)>);
 
+    using OnDatabaseInitedFn = ida::Result<ida::ui::Token>(*)(std::function<void(bool, std::string)>);
+    using OnCurrentWidgetChangedFn = ida::Result<ida::ui::Token>(*)(std::function<void(ida::ui::Widget, ida::ui::Widget)>);
+    using OnViewLifecycleFn = ida::Result<ida::ui::Token>(*)(std::function<void(ida::ui::Widget)>);
+
     using OnUiEventFn = ida::Result<ida::ui::Token>(*)(std::function<void(const ida::ui::Event&)>);
     using OnUiEventFilteredFn = ida::Result<ida::ui::Token>(*)(std::function<bool(const ida::ui::Event&)>,
                                                                std::function<void(const ida::ui::Event&)>);
 
     (void)static_cast<CreateWidgetFn>(&ida::ui::create_widget);
+    (void)static_cast<CreateCustomViewerFn>(&ida::ui::create_custom_viewer);
+    (void)static_cast<SetCustomViewerLinesFn>(&ida::ui::set_custom_viewer_lines);
+    (void)static_cast<CustomViewerLineCountFn>(&ida::ui::custom_viewer_line_count);
+    (void)static_cast<CustomViewerJumpFn>(&ida::ui::custom_viewer_jump_to_line);
+    (void)static_cast<CustomViewerCurrentLineFn>(&ida::ui::custom_viewer_current_line);
+    (void)static_cast<RefreshCustomViewerFn>(&ida::ui::refresh_custom_viewer);
+    (void)static_cast<CloseCustomViewerFn>(&ida::ui::close_custom_viewer);
     (void)static_cast<ShowWidgetFn>(&ida::ui::show_widget);
     (void)static_cast<ActivateWidgetFn>(&ida::ui::activate_widget);
     (void)static_cast<FindWidgetFn>(&ida::ui::find_widget);
@@ -708,6 +733,12 @@ void check_ui_surface() {
     (void)static_cast<OnWidgetVisibleTitleFn>(&ida::ui::on_widget_visible);
     (void)static_cast<OnWidgetInvisibleTitleFn>(&ida::ui::on_widget_invisible);
     (void)static_cast<OnWidgetClosingTitleFn>(&ida::ui::on_widget_closing);
+    (void)static_cast<OnDatabaseInitedFn>(&ida::ui::on_database_inited);
+    (void)static_cast<OnCurrentWidgetChangedFn>(&ida::ui::on_current_widget_changed);
+    (void)static_cast<OnViewLifecycleFn>(&ida::ui::on_view_activated);
+    (void)static_cast<OnViewLifecycleFn>(&ida::ui::on_view_deactivated);
+    (void)static_cast<OnViewLifecycleFn>(&ida::ui::on_view_created);
+    (void)static_cast<OnViewLifecycleFn>(&ida::ui::on_view_closed);
     (void)static_cast<OnWidgetVisibleHandleFn>(&ida::ui::on_widget_visible);
     (void)static_cast<OnWidgetInvisibleHandleFn>(&ida::ui::on_widget_invisible);
     (void)static_cast<OnWidgetClosingHandleFn>(&ida::ui::on_widget_closing);
@@ -742,6 +773,20 @@ void check_graph_surface() {
 
     ida::graph::BasicBlock bb;
     (void)bb.start; (void)bb.end; (void)bb.type;
+
+    using RefreshGraphFn = ida::Status(*)(std::string_view);
+    using HasGraphViewerFn = ida::Result<bool>(*)(std::string_view);
+    using IsGraphViewerVisibleFn = ida::Result<bool>(*)(std::string_view);
+    using ActivateGraphViewerFn = ida::Status(*)(std::string_view);
+    using CloseGraphViewerFn = ida::Status(*)(std::string_view);
+    using CurrentLayoutFn = ida::graph::Layout(ida::graph::Graph::*)() const;
+
+    (void)static_cast<RefreshGraphFn>(&ida::graph::refresh_graph);
+    (void)static_cast<HasGraphViewerFn>(&ida::graph::has_graph_viewer);
+    (void)static_cast<IsGraphViewerVisibleFn>(&ida::graph::is_graph_viewer_visible);
+    (void)static_cast<ActivateGraphViewerFn>(&ida::graph::activate_graph_viewer);
+    (void)static_cast<CloseGraphViewerFn>(&ida::graph::close_graph_viewer);
+    (void)static_cast<CurrentLayoutFn>(&ida::graph::Graph::current_layout);
 
     static_assert(std::is_move_constructible_v<ida::graph::Graph>);
     static_assert(!std::is_copy_constructible_v<ida::graph::Graph>);

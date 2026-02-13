@@ -126,6 +126,35 @@ private:
 /// The widget is not yet visible — call show_widget() to display it.
 Result<Widget> create_widget(std::string_view title);
 
+/// Create a custom text viewer backed by simple line content.
+///
+/// The returned widget can be shown/activated like any other widget.
+Result<Widget> create_custom_viewer(std::string_view title,
+                                    const std::vector<std::string>& lines);
+
+/// Replace all lines in an existing custom text viewer.
+Status set_custom_viewer_lines(Widget& viewer,
+                               const std::vector<std::string>& lines);
+
+/// Get the current number of lines in a custom text viewer.
+Result<std::size_t> custom_viewer_line_count(const Widget& viewer);
+
+/// Jump to a specific line in a custom text viewer.
+Status custom_viewer_jump_to_line(Widget& viewer,
+                                  std::size_t line_index,
+                                  int x = 0,
+                                  int y = 0);
+
+/// Read the current line text from a custom text viewer.
+Result<std::string> custom_viewer_current_line(const Widget& viewer,
+                                               bool mouse = false);
+
+/// Refresh/repaint custom viewer contents.
+Status refresh_custom_viewer(Widget& viewer);
+
+/// Close and destroy a custom viewer.
+Status close_custom_viewer(Widget& viewer);
+
 /// Display (or re-display) a widget in IDA's docking system.
 Status show_widget(Widget& widget,
                    const ShowWidgetOptions& options = {});
@@ -309,12 +338,18 @@ using Token = std::uint64_t;
 
 /// Generic UI/view event kind for broad routing subscriptions.
 enum class EventKind {
+    DatabaseInited,
     DatabaseClosed,
     ReadyToRun,
+    CurrentWidgetChanged,
     ScreenAddressChanged,
     WidgetVisible,
     WidgetInvisible,
     WidgetClosing,
+    ViewActivated,
+    ViewDeactivated,
+    ViewCreated,
+    ViewClosed,
     CursorChanged,
 };
 
@@ -328,6 +363,13 @@ struct Event {
     /// Previous address for ScreenAddressChanged.
     Address previous_address{BadAddress};
 
+    /// Previous widget for CurrentWidgetChanged.
+    Widget previous_widget{};
+
+    /// Set for DatabaseInited.
+    bool is_new_database{false};
+    std::string startup_script;
+
     /// Widget payload (for widget visibility/lifecycle events).
     Widget widget{};
     std::string widget_title;
@@ -336,12 +378,20 @@ struct Event {
 /// Subscribe to the "database closed" event.
 Result<Token> on_database_closed(std::function<void()> callback);
 
+/// Subscribe to "database initialized" event.
+/// Callback receives `(is_new_database, startup_script_path)`.
+Result<Token> on_database_inited(std::function<void(bool, std::string)> callback);
+
 /// Subscribe to the "ready to run" event (all UI elements initialized).
 Result<Token> on_ready_to_run(std::function<void()> callback);
 
 /// Subscribe to "current screen EA changed" event.
 /// Callback receives (new_ea, prev_ea).
 Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callback);
+
+/// Subscribe to "current widget changed" event.
+/// Callback receives `(current_widget, previous_widget)`.
+Result<Token> on_current_widget_changed(std::function<void(Widget, Widget)> callback);
 
 // ── Title-based widget events (global) ──────────────────────────────────
 // These fire for ALL widgets and deliver the widget title as a string.
@@ -380,6 +430,12 @@ Result<Token> on_widget_closing(const Widget& widget,
 /// Subscribe to "cursor position changed" in any view.
 /// Callback receives the address the cursor moved to.
 Result<Token> on_cursor_changed(std::function<void(Address)> callback);
+
+/// Subscribe to view activation/deactivation/lifecycle events.
+Result<Token> on_view_activated(std::function<void(Widget)> callback);
+Result<Token> on_view_deactivated(std::function<void(Widget)> callback);
+Result<Token> on_view_created(std::function<void(Widget)> callback);
+Result<Token> on_view_closed(std::function<void(Widget)> callback);
 
 /// Subscribe to all supported UI/view events through one callback.
 Result<Token> on_event(std::function<void(const Event&)> callback);
