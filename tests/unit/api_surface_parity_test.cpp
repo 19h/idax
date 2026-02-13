@@ -205,10 +205,31 @@ void check_plugin_surface() {
                   "Plugin should be abstract base class");
 
     ida::plugin::Info info;
-    (void)info.name; (void)info.hotkey; (void)info.comment; (void)info.help;
+    (void)info.name; (void)info.hotkey; (void)info.comment; (void)info.help; (void)info.icon;
+
+    ida::plugin::ActionContext context;
+    (void)context.action_id;
+    (void)context.widget_title;
+    (void)context.widget_type;
+    (void)context.current_address;
+    (void)context.current_value;
+    (void)context.has_selection;
+    (void)context.is_external_address;
+    (void)context.register_name;
 
     ida::plugin::Action action;
-    (void)action.id; (void)action.label; (void)action.handler;
+    (void)action.id;
+    (void)action.label;
+    (void)action.hotkey;
+    (void)action.tooltip;
+    (void)action.icon;
+    (void)action.handler;
+    (void)action.handler_with_context;
+    (void)action.enabled;
+    (void)action.enabled_with_context;
+
+    using AttachPopupFn = ida::Status(*)(std::string_view, std::string_view);
+    (void)static_cast<AttachPopupFn>(&ida::plugin::attach_to_popup);
 }
 
 // ─── ida::loader ────────────────────────────────────────────────────────
@@ -272,9 +293,71 @@ void check_debugger_surface() {
 // ─── ida::ui ────────────────────────────────────────────────────────────
 
 void check_ui_surface() {
+    (void)ida::ui::DockPosition::Left;
+    (void)ida::ui::DockPosition::Right;
+    (void)ida::ui::DockPosition::Floating;
+
     (void)ida::ui::ColumnFormat::Plain;
     (void)ida::ui::ColumnFormat::Hex;
     (void)ida::ui::ColumnFormat::Address;
+
+    (void)ida::ui::EventKind::DatabaseClosed;
+    (void)ida::ui::EventKind::WidgetInvisible;
+    (void)ida::ui::EventKind::CursorChanged;
+
+    ida::ui::ShowWidgetOptions show_opts;
+    (void)show_opts.position;
+    (void)show_opts.restore_previous;
+
+    ida::ui::Widget widget;
+    (void)widget.valid();
+    (void)widget.id();
+
+    ida::ui::Event event;
+    (void)event.kind;
+    (void)event.address;
+    (void)event.previous_address;
+    (void)event.widget;
+    (void)event.widget_title;
+
+    using CreateWidgetFn = ida::Result<ida::ui::Widget>(*)(std::string_view);
+    using ShowWidgetFn = ida::Status(*)(ida::ui::Widget&, const ida::ui::ShowWidgetOptions&);
+    using ActivateWidgetFn = ida::Status(*)(ida::ui::Widget&);
+    using FindWidgetFn = ida::ui::Widget(*)(std::string_view);
+    using CloseWidgetFn = ida::Status(*)(ida::ui::Widget&);
+    using IsWidgetVisibleFn = bool(*)(const ida::ui::Widget&);
+    using WidgetHostFn = ida::Result<ida::ui::WidgetHost>(*)(const ida::ui::Widget&);
+    using WithWidgetHostFn = ida::Status(*)(const ida::ui::Widget&, ida::ui::WidgetHostCallback);
+
+    using OnWidgetVisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
+    using OnWidgetInvisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
+    using OnWidgetClosingTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
+
+    using OnWidgetVisibleHandleFn = ida::Result<ida::ui::Token>(*)(const ida::ui::Widget&, std::function<void(ida::ui::Widget)>);
+    using OnWidgetInvisibleHandleFn = ida::Result<ida::ui::Token>(*)(const ida::ui::Widget&, std::function<void(ida::ui::Widget)>);
+    using OnWidgetClosingHandleFn = ida::Result<ida::ui::Token>(*)(const ida::ui::Widget&, std::function<void(ida::ui::Widget)>);
+
+    using OnUiEventFn = ida::Result<ida::ui::Token>(*)(std::function<void(const ida::ui::Event&)>);
+    using OnUiEventFilteredFn = ida::Result<ida::ui::Token>(*)(std::function<bool(const ida::ui::Event&)>,
+                                                               std::function<void(const ida::ui::Event&)>);
+
+    (void)static_cast<CreateWidgetFn>(&ida::ui::create_widget);
+    (void)static_cast<ShowWidgetFn>(&ida::ui::show_widget);
+    (void)static_cast<ActivateWidgetFn>(&ida::ui::activate_widget);
+    (void)static_cast<FindWidgetFn>(&ida::ui::find_widget);
+    (void)static_cast<CloseWidgetFn>(&ida::ui::close_widget);
+    (void)static_cast<IsWidgetVisibleFn>(&ida::ui::is_widget_visible);
+    (void)static_cast<WidgetHostFn>(&ida::ui::widget_host);
+    (void)static_cast<WithWidgetHostFn>(&ida::ui::with_widget_host);
+
+    (void)static_cast<OnWidgetVisibleTitleFn>(&ida::ui::on_widget_visible);
+    (void)static_cast<OnWidgetInvisibleTitleFn>(&ida::ui::on_widget_invisible);
+    (void)static_cast<OnWidgetClosingTitleFn>(&ida::ui::on_widget_closing);
+    (void)static_cast<OnWidgetVisibleHandleFn>(&ida::ui::on_widget_visible);
+    (void)static_cast<OnWidgetInvisibleHandleFn>(&ida::ui::on_widget_invisible);
+    (void)static_cast<OnWidgetClosingHandleFn>(&ida::ui::on_widget_closing);
+    (void)static_cast<OnUiEventFn>(&ida::ui::on_event);
+    (void)static_cast<OnUiEventFilteredFn>(&ida::ui::on_event_filtered);
 
     static_assert(std::is_abstract_v<ida::ui::Chooser>,
                   "Chooser should be abstract");
@@ -345,19 +428,45 @@ void check_diagnostics_surface() {
     (void)ida::diagnostics::LogLevel::Info;
     (void)ida::diagnostics::LogLevel::Warning;
     (void)ida::diagnostics::LogLevel::Error;
+
+    ida::diagnostics::PerformanceCounters counters;
+    (void)counters.log_messages;
+    (void)counters.invariant_failures;
+
+    using SetLogLevelFn = ida::Status(*)(ida::diagnostics::LogLevel);
+    using LogLevelFn = ida::diagnostics::LogLevel(*)();
+    using LogFn = void(*)(ida::diagnostics::LogLevel, std::string_view, std::string_view);
+    using EnrichFn = ida::Error(*)(ida::Error, std::string_view);
+    using AssertInvariantFn = ida::Status(*)(bool, std::string_view);
+    using ResetCountersFn = void(*)();
+    using GetCountersFn = ida::diagnostics::PerformanceCounters(*)();
+
+    (void)static_cast<SetLogLevelFn>(&ida::diagnostics::set_log_level);
+    (void)static_cast<LogLevelFn>(&ida::diagnostics::log_level);
+    (void)static_cast<LogFn>(&ida::diagnostics::log);
+    (void)static_cast<EnrichFn>(&ida::diagnostics::enrich);
+    (void)static_cast<AssertInvariantFn>(&ida::diagnostics::assert_invariant);
+    (void)static_cast<ResetCountersFn>(&ida::diagnostics::reset_performance_counters);
+    (void)static_cast<GetCountersFn>(&ida::diagnostics::performance_counters);
 }
 
 // ─── ida::core ──────────────────────────────────────────────────────────
 
 void check_core_surface() {
     ida::OperationOptions oo;
-    (void)oo.strict_validation; (void)oo.quiet;
+    (void)oo.strict_validation;
+    (void)oo.allow_partial_results;
+    (void)oo.cancel_on_user_break;
+    (void)oo.quiet;
 
     ida::RangeOptions ro;
-    (void)ro.start; (void)ro.end;
+    (void)ro.start;
+    (void)ro.end;
+    (void)ro.inclusive_end;
 
     ida::WaitOptions wo;
-    (void)wo.timeout_ms; (void)wo.poll_interval_ms;
+    (void)wo.timeout_ms;
+    (void)wo.poll_interval_ms;
 }
 
 } // namespace surface_check

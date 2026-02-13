@@ -13,7 +13,8 @@ namespace {
 
 std::atomic<LogLevel> g_level{LogLevel::Warning};
 std::mutex g_io_mutex;
-PerformanceCounters g_counters;
+std::atomic<std::uint64_t> g_log_messages{0};
+std::atomic<std::uint64_t> g_invariant_failures{0};
 
 const char* level_name(LogLevel level) {
     switch (level) {
@@ -46,7 +47,7 @@ void log(LogLevel level, std::string_view domain, std::string_view message) {
         std::cerr << "[idax][" << level_name(level) << "][" << domain << "] "
                   << message << "\n";
     }
-    ++g_counters.log_messages;
+    g_log_messages.fetch_add(1, std::memory_order_relaxed);
 }
 
 Error enrich(Error base, std::string_view context_suffix) {
@@ -60,17 +61,21 @@ Status assert_invariant(bool condition, std::string_view message) {
     if (condition)
         return ida::ok();
 
-    ++g_counters.invariant_failures;
+    g_invariant_failures.fetch_add(1, std::memory_order_relaxed);
     log(LogLevel::Error, "invariant", message);
     return std::unexpected(Error::internal("Invariant failed", std::string(message)));
 }
 
 void reset_performance_counters() {
-    g_counters = {};
+    g_log_messages.store(0, std::memory_order_relaxed);
+    g_invariant_failures.store(0, std::memory_order_relaxed);
 }
 
 PerformanceCounters performance_counters() {
-    return g_counters;
+    return PerformanceCounters{
+        g_log_messages.load(std::memory_order_relaxed),
+        g_invariant_failures.load(std::memory_order_relaxed),
+    };
 }
 
 } // namespace ida::diagnostics
