@@ -21,14 +21,17 @@ namespace ida::segment {
 /// Segment type classification.
 enum class Type {
     Normal,
-    External,
-    Code,
-    Data,
-    Bss,
-    AbsoluteSymbols,
-    Common,
-    Null,
-    Undefined,
+    External,         ///< External symbols (SEG_XTRN).
+    Code,             ///< Pure code segment.
+    Data,             ///< Pure data segment.
+    Bss,              ///< Uninitialized data.
+    AbsoluteSymbols,  ///< Absolute symbols table.
+    Common,           ///< Common block.
+    Null,             ///< Zero-length or placeholder.
+    Undefined,        ///< Unknown/other.
+    Import,           ///< Import table (alias for External in some contexts).
+    InternalMemory,   ///< Processor internal memory.
+    Group,            ///< Group of segments.
 };
 
 /// Readable permission flags.
@@ -48,6 +51,7 @@ public:
     [[nodiscard]] Address     end()        const noexcept { return end_; }
     [[nodiscard]] AddressSize size()       const noexcept { return end_ - start_; }
     [[nodiscard]] int         bitness()    const noexcept { return bitness_; }
+    [[nodiscard]] Type        type()       const noexcept { return type_; }
     [[nodiscard]] Permissions permissions() const noexcept { return perm_; }
 
     [[nodiscard]] std::string name()       const { return name_; }
@@ -65,6 +69,7 @@ private:
     Address     start_{};
     Address     end_{};
     int         bitness_{};
+    Type        type_{Type::Normal};
     Permissions perm_{};
     std::string name_;
     std::string class_;
@@ -98,6 +103,7 @@ Result<std::size_t> count();
 
 Status set_name(Address address, std::string_view name);
 Status set_class(Address address, std::string_view class_name);
+Status set_type(Address address, Type type);
 Status set_permissions(Address address, Permissions perm);
 Status set_bitness(Address address, int bits);
 

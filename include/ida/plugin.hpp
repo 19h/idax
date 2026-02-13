@@ -1,13 +1,40 @@
 /// \file plugin.hpp
-/// \brief Plugin lifecycle and action registration.
+/// \brief Plugin lifecycle, action registration, and export helpers.
 ///
-/// Provides the Plugin base class for PLUGIN_MULTI-style plugins and
-/// typed action registration wrappers.
+/// Provides the Plugin base class for PLUGIN_MULTI-style plugins,
+/// typed action registration wrappers, and the IDAX_PLUGIN() macro
+/// for generating the required IDA export block.
+///
+/// ## Quick start
+///
+/// 1. Subclass `ida::plugin::Plugin`.
+/// 2. Override `info()` and `run()`.
+/// 3. In exactly one .cpp file, use `IDAX_PLUGIN(MyPlugin)` at file scope.
+///
+/// Example:
+/// ```cpp
+/// #include <ida/plugin.hpp>
+/// #include <ida/ui.hpp>
+///
+/// struct MyPlugin : ida::plugin::Plugin {
+///     Info info() const override {
+///         return { .name = "MyPlugin", .hotkey = "Ctrl-F9",
+///                  .comment = "Does something", .help = "Help text" };
+///     }
+///     Status run(std::size_t arg) override {
+///         ida::ui::message("Hello from MyPlugin!\n");
+///         return ida::ok();
+///     }
+/// };
+///
+/// IDAX_PLUGIN(MyPlugin)
+/// ```
 
 #ifndef IDAX_PLUGIN_HPP
 #define IDAX_PLUGIN_HPP
 
 #include <ida/error.hpp>
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -22,31 +49,24 @@ struct Info {
     std::string hotkey;     ///< Hotkey trigger (e.g. "Ctrl-Alt-X").
     std::string comment;    ///< Status-bar / tooltip text.
     std::string help;       ///< Extended help text.
+    int         icon{-1};   ///< Icon index (-1 = default).
 };
 
 /// Base class for PLUGIN_MULTI-style plugins.
 ///
-/// Subclass this and override run(). Optionally override term().
-/// Use make_plugin_descriptor() to generate the required export block.
-///
-/// Example:
-/// ```cpp
-/// struct MyPlugin : ida::plugin::Plugin {
-///     Info info() const override {
-///         return { "MyPlugin", "Ctrl-F9", "Does something", "Help text" };
-///     }
-///     Status run(std::size_t arg) override {
-///         ida::ui::message("Hello from MyPlugin!\n");
-///         return ida::ok();
-///     }
-/// };
-/// ```
+/// Subclass this and override run(). Optionally override init(), term(),
+/// and event() for full lifecycle control.
 class Plugin {
 public:
     virtual ~Plugin() = default;
 
     /// Return metadata about this plugin instance.
     virtual Info info() const = 0;
+
+    /// Called once when this plugin instance is being initialized.
+    /// Return true to keep the plugin loaded, false to unload it.
+    /// Default returns true.
+    virtual bool init() { return true; }
 
     /// Called once when this plugin instance is being unloaded.
     /// Override to clean up resources.
@@ -58,6 +78,24 @@ public:
     virtual Status run(std::size_t arg) = 0;
 };
 
+/// Factory function type for IDAX_PLUGIN macro.
+using PluginFactory = Plugin* (*)();
+
+/// Internal: bridge structure used by the export macro.
+/// Do not use directly — use IDAX_PLUGIN() instead.
+namespace detail {
+
+/// Register a plugin factory so the export block can construct it.
+/// Returns a stable pointer to the factory for the PLUGIN export struct.
+/// This is called by the IDAX_PLUGIN macro at static-init time.
+void* make_plugin_export(PluginFactory factory,
+                         const char* name,
+                         const char* comment,
+                         const char* help,
+                         const char* hotkey);
+
+} // namespace detail
+
 // ── Action registration ─────────────────────────────────────────────────
 
 /// Descriptor for a UI action (toolbar/menu/popup).
@@ -66,6 +104,7 @@ struct Action {
     std::string label;        ///< Human-readable label.
     std::string hotkey;       ///< Keyboard shortcut (e.g. "Ctrl-Shift-X").
     std::string tooltip;      ///< Tooltip text.
+    int         icon{-1};     ///< Icon index (-1 = default IDA icon).
     std::function<Status()> handler;  ///< Called when the action is triggered.
     std::function<bool()>   enabled;  ///< Returns true when the action is available.
 };
@@ -82,6 +121,39 @@ Status attach_to_menu(std::string_view menu_path, std::string_view action_id);
 /// Attach an action to a toolbar.
 Status attach_to_toolbar(std::string_view toolbar, std::string_view action_id);
 
+/// Attach an action to a popup/context menu of a widget.
+Status attach_to_popup(std::string_view widget_title, std::string_view action_id);
+
 } // namespace ida::plugin
+
+// ── Plugin export macro ─────────────────────────────────────────────────
+//
+// Place this at file scope in exactly ONE .cpp file of your plugin.
+// It generates the `plugin_t PLUGIN` export required by IDA.
+//
+// The ClassName must be default-constructible and inherit from
+// ida::plugin::Plugin.
+//
+// Requirements for the .cpp file that uses this macro:
+//   - Must #include <ida/plugin.hpp>
+//   - The ClassName must be fully defined before the macro.
+//   - Link against libidax.a (which provides the plugmod_t adapter).
+
+/// Generate the IDA plugin export block for the given Plugin subclass.
+/// Usage: `IDAX_PLUGIN(MyPluginClass)`
+#define IDAX_PLUGIN(ClassName)                                              \
+    static_assert(std::is_base_of_v<ida::plugin::Plugin, ClassName>,       \
+                  #ClassName " must inherit from ida::plugin::Plugin");     \
+    static_assert(std::is_default_constructible_v<ClassName>,              \
+                  #ClassName " must be default-constructible");             \
+    namespace {                                                             \
+    ida::plugin::Plugin* idax_factory_##ClassName() {                      \
+        return new ClassName();                                             \
+    }                                                                       \
+    } /* anonymous */                                                       \
+    static void* idax_reg_##ClassName =                                    \
+        ida::plugin::detail::make_plugin_export(                           \
+            idax_factory_##ClassName,                                       \
+            #ClassName, nullptr, nullptr, nullptr);
 
 #endif // IDAX_PLUGIN_HPP

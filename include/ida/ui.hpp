@@ -1,5 +1,5 @@
 /// \file ui.hpp
-/// \brief UI utilities: messages, warnings, dialogs, choosers.
+/// \brief UI utilities: messages, warnings, dialogs, choosers, dock widgets.
 
 #ifndef IDAX_UI_HPP
 #define IDAX_UI_HPP
@@ -49,6 +49,12 @@ Result<Address> ask_address(std::string_view prompt, Address default_value = Bad
 /// Ask the user for a long integer value.
 Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_value = 0);
 
+// ── Navigation ──────────────────────────────────────────────────────────
+
+/// Navigate the active disassembly view to the given address.
+/// Equivalent to double-clicking an address or pressing G and entering it.
+Status jump_to(Address address);
+
 // ── Screen/cursor queries ───────────────────────────────────────────────
 
 /// Get the current effective address in the IDA view.
@@ -56,6 +62,87 @@ Result<Address> screen_address();
 
 /// Get the current selection range, if any.
 Result<ida::address::Range> selection();
+
+// ── Dock widget hosting ─────────────────────────────────────────────────
+
+/// Preferred docking position when showing a widget.
+enum class DockPosition {
+    Left,          ///< Dock to the left pane.
+    Right,         ///< Dock to the right pane.
+    Top,           ///< Dock to the top pane.
+    Bottom,        ///< Dock to the bottom pane.
+    Floating,      ///< Free-floating window.
+    Tab,           ///< Open as a tab in the current panel.
+};
+
+/// Options controlling how a widget is displayed.
+struct ShowWidgetOptions {
+    DockPosition position{DockPosition::Right};
+    bool         restore_previous{true};   ///< Restore last-used size/position if available.
+};
+
+/// Opaque handle to a docked widget panel.
+///
+/// A Widget wraps IDA's internal widget pointer without exposing it.
+/// Widget instances are lightweight handles — copying is cheap but both
+/// copies refer to the same underlying panel.
+///
+/// Typical workflow:
+/// \code
+///     auto widget = ida::ui::create_widget("My Panel");
+///     ida::ui::show_widget(widget);
+///     // ... later ...
+///     ida::ui::close_widget(widget);
+/// \endcode
+class Widget {
+public:
+    Widget() = default;
+
+    /// Whether this handle refers to a live widget.
+    [[nodiscard]] bool valid() const noexcept { return impl_ != nullptr; }
+    explicit operator bool() const noexcept { return valid(); }
+
+    /// The title this widget was created with.
+    [[nodiscard]] std::string title() const;
+
+    /// Stable identity token for use in event callbacks.
+    /// Two handles to the same underlying widget share the same id.
+    [[nodiscard]] std::uint64_t id() const noexcept { return id_; }
+
+    friend bool operator==(const Widget& a, const Widget& b) noexcept {
+        return a.impl_ == b.impl_;
+    }
+    friend bool operator!=(const Widget& a, const Widget& b) noexcept {
+        return !(a == b);
+    }
+
+private:
+    friend struct WidgetAccess;
+    void*         impl_{nullptr};
+    std::uint64_t id_{0};
+};
+
+/// Create a new empty docked widget with the given title.
+/// The widget is not yet visible — call show_widget() to display it.
+Result<Widget> create_widget(std::string_view title);
+
+/// Display (or re-display) a widget in IDA's docking system.
+Status show_widget(Widget& widget,
+                   const ShowWidgetOptions& options = {});
+
+/// Bring an already-visible widget to the foreground.
+Status activate_widget(Widget& widget);
+
+/// Find an existing widget by its title.
+/// Returns an empty Widget (valid()==false) if not found.
+Widget find_widget(std::string_view title);
+
+/// Close and destroy a widget.
+/// After this call the handle becomes invalid.
+Status close_widget(Widget& widget);
+
+/// Check whether a widget is currently visible on screen.
+bool is_widget_visible(const Widget& widget);
 
 // ── Chooser ─────────────────────────────────────────────────────────────
 
@@ -209,28 +296,59 @@ Result<Token> on_ready_to_run(std::function<void()> callback);
 /// Callback receives (new_ea, prev_ea).
 Result<Token> on_screen_ea_changed(std::function<void(Address, Address)> callback);
 
+// ── Title-based widget events (global) ──────────────────────────────────
+// These fire for ALL widgets and deliver the widget title as a string.
+
 /// Subscribe to "widget visible" event.
 /// Callback receives the title of the widget.
 Result<Token> on_widget_visible(std::function<void(std::string)> callback);
+
+/// Subscribe to "widget invisible" (hidden) event.
+/// Callback receives the title of the widget.
+Result<Token> on_widget_invisible(std::function<void(std::string)> callback);
 
 /// Subscribe to "widget closing" event.
 /// Callback receives the title of the widget.
 Result<Token> on_widget_closing(std::function<void(std::string)> callback);
 
-/// Unsubscribe from a UI event.
+// ── Handle-based widget events (targeted) ───────────────────────────────
+// These fire only for the specific widget and deliver the Widget handle.
+// Prefer these over title-based events for stable per-panel tracking.
+
+/// Subscribe to "widget visible" for a specific widget.
+Result<Token> on_widget_visible(const Widget& widget,
+                                std::function<void(Widget)> callback);
+
+/// Subscribe to "widget invisible" (hidden) for a specific widget.
+Result<Token> on_widget_invisible(const Widget& widget,
+                                  std::function<void(Widget)> callback);
+
+/// Subscribe to "widget closing" for a specific widget.
+Result<Token> on_widget_closing(const Widget& widget,
+                                std::function<void(Widget)> callback);
+
+// ── View events ─────────────────────────────────────────────────────────
+// These subscribe to IDA's HT_VIEW notification layer.
+
+/// Subscribe to "cursor position changed" in any view.
+/// Callback receives the address the cursor moved to.
+Result<Token> on_cursor_changed(std::function<void(Address)> callback);
+
+/// Unsubscribe from a UI or view event.
 Status unsubscribe(Token token);
 
 /// RAII guard that unsubscribes on destruction.
 class ScopedSubscription {
 public:
+    ScopedSubscription() = default;
     explicit ScopedSubscription(Token token) : token_(token) {}
-    ~ScopedSubscription() { unsubscribe(token_); }
+    ~ScopedSubscription() { if (token_ != 0) unsubscribe(token_); }
 
     ScopedSubscription(const ScopedSubscription&) = delete;
     ScopedSubscription& operator=(const ScopedSubscription&) = delete;
     ScopedSubscription(ScopedSubscription&& o) noexcept : token_(o.token_) { o.token_ = 0; }
     ScopedSubscription& operator=(ScopedSubscription&& o) noexcept {
-        if (this != &o) { unsubscribe(token_); token_ = o.token_; o.token_ = 0; }
+        if (this != &o) { if (token_ != 0) unsubscribe(token_); token_ = o.token_; o.token_ = 0; }
         return *this;
     }
 
