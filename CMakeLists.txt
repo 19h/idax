@@ -2,9 +2,48 @@ cmake_minimum_required(VERSION 3.27)
 project(idax VERSION 0.1.0 LANGUAGES CXX)
 
 # ── Bootstrap ida-cmake ──────────────────────────────────────────────────
-# IDASDK env var must point to the ida-sdk root (GitHub clone or zip)
-include($ENV{IDASDK}/ida-cmake/bootstrap.cmake)
+# IDASDK may point either to an SDK root that contains `ida-cmake/`, or to
+# a GitHub checkout root where SDK contents live under `src/`.
+set(IDASDK_BOOTSTRAP_ROOT "$ENV{IDASDK}")
+
+if(NOT IDASDK_BOOTSTRAP_ROOT)
+    message(FATAL_ERROR "IDASDK is not set. Set IDASDK to your IDA SDK path.")
+endif()
+
+if(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
+    set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
+    set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/src/ida-cmake/bootstrap.cmake")
+    set(IDASDK_BOOTSTRAP_ROOT "${IDASDK_BOOTSTRAP_ROOT}/src")
+    set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/src/cmake/bootstrap.cmake")
+    set(IDASDK_BOOTSTRAP_ROOT "${IDASDK_BOOTSTRAP_ROOT}/src")
+    set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
+else()
+    message(FATAL_ERROR
+        "Could not find ida-cmake bootstrap under IDASDK='${IDASDK_BOOTSTRAP_ROOT}'.\n"
+        "Expected one of:\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/src/ida-cmake/bootstrap.cmake\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/src/cmake/bootstrap.cmake")
+endif()
+
+set(ENV{IDASDK} "${IDASDK_BOOTSTRAP_ROOT}")
+include("${IDASDK_BOOTSTRAP_FILE}")
+
 find_package(idasdk REQUIRED)
+
+if(DEFINED IDASDK AND EXISTS "${IDASDK}/include")
+    set(IDAX_SDK_ROOT "${IDASDK}")
+elseif(EXISTS "$ENV{IDASDK}/include")
+    set(IDAX_SDK_ROOT "$ENV{IDASDK}")
+else()
+    message(FATAL_ERROR
+        "Could not resolve SDK include directory after bootstrap.\n"
+        "IDASDK='${IDASDK}', ENV{IDASDK}='$ENV{IDASDK}'.")
+endif()
 
 # ── C++23 standard for idax itself ───────────────────────────────────────
 set(CMAKE_CXX_STANDARD 23)
@@ -23,7 +62,7 @@ file(GLOB_RECURSE IDAX_SOURCES CONFIGURE_DEPENDS
 if(NOT TARGET idasdk_headers)
     add_library(idasdk_headers INTERFACE IMPORTED)
     set_target_properties(idasdk_headers PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${IDASDK}/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${IDAX_SDK_ROOT}/include"
     )
     target_compile_definitions(idasdk_headers INTERFACE __EA64__)
     target_link_libraries(idasdk_headers INTERFACE

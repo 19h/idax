@@ -17,6 +17,11 @@ Automation helper:
 scripts/run_validation_matrix.sh [full|unit|compile-only] [build-dir] [build-type]
 ```
 
+GitHub Actions helper:
+
+- `.github/workflows/validation-matrix.yml` runs `compile-only` + `unit`
+  profiles across Linux, macOS (x86_64 + arm64), and Windows.
+
 Environment requirements:
 
 - `IDASDK` is required for all profiles (headers + ida-cmake bootstrap).

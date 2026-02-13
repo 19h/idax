@@ -10,6 +10,9 @@
 // ── C++20/23 compatibility shim ─────────────────────────────────────────
 // The IDA SDK (pro.h) uses std::is_pod<T> without including <type_traits>.
 // Ensure the header is included before pro.h so std::is_pod is visible.
+#include <functional>
+#include <locale>
+#include <vector>
 #include <type_traits>
 
 // ── IDA SDK headers ─────────────────────────────────────────────────────
