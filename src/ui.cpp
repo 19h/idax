@@ -213,6 +213,25 @@ bool is_widget_visible(const Widget& widget) {
     return found == tw;
 }
 
+Result<WidgetHost> widget_host(const Widget& widget) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return std::unexpected(Error::validation("Widget handle is invalid"));
+    return static_cast<WidgetHost>(tw);
+}
+
+Status with_widget_host(const Widget& widget, WidgetHostCallback callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Widget host callback is empty"));
+    auto host = widget_host(widget);
+    if (!host)
+        return std::unexpected(host.error());
+    auto result = callback(*host);
+    if (!result)
+        return std::unexpected(result.error());
+    return ida::ok();
+}
+
 // ── Chooser ─────────────────────────────────────────────────────────────
 
 // Internal SDK chooser adapter that bridges to our Chooser base class.

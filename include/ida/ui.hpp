@@ -144,6 +144,27 @@ Status close_widget(Widget& widget);
 /// Check whether a widget is currently visible on screen.
 bool is_widget_visible(const Widget& widget);
 
+/// Opaque pointer type for toolkit-native widget hosts.
+///
+/// In GUI builds this points to IDA's native widget container (Qt QWidget in
+/// current desktop builds). The exact type is intentionally hidden.
+using WidgetHost = void*;
+
+/// Callback type used by with_widget_host().
+using WidgetHostCallback = std::function<Status(WidgetHost)>;
+
+/// Get the native host pointer for a widget.
+///
+/// This enables advanced embedding scenarios (for example, attaching a custom
+/// Qt child widget) while keeping SDK/UI types out of the public API.
+Result<WidgetHost> widget_host(const Widget& widget);
+
+/// Execute a callback with the widget's native host pointer.
+///
+/// Use this helper when you need temporary host access without persisting
+/// toolkit pointers in your own APIs.
+Status with_widget_host(const Widget& widget, WidgetHostCallback callback);
+
 // ── Chooser ─────────────────────────────────────────────────────────────
 
 /// Column data type hint for a chooser column.

@@ -328,6 +328,47 @@ void test_ui_scoped_subscription() {
     CHECK(true, "ui ScopedSubscription RAII ok");
 }
 
+void test_ui_widget_host_bridge() {
+    std::printf("[section] ui: widget host bridge\n");
+
+    ida::ui::Widget invalid;
+
+    auto invalid_host = ida::ui::widget_host(invalid);
+    CHECK(!invalid_host.has_value(), "widget_host rejects invalid handle");
+
+    auto empty_cb = ida::ui::with_widget_host(invalid, {});
+    CHECK(!empty_cb.has_value(), "with_widget_host rejects empty callback");
+
+    auto create_r = ida::ui::create_widget("idax:test:host_bridge");
+    if (!create_r) {
+        SKIP("create_widget unavailable in this runtime (likely headless)");
+        return;
+    }
+
+    auto show_r = ida::ui::show_widget(*create_r);
+    CHECK(show_r.has_value(), "show_widget succeeds for host bridge test");
+
+    auto host = ida::ui::widget_host(*create_r);
+    CHECK(host.has_value(), "widget_host returns host for valid widget");
+    if (!host)
+        return;
+
+    bool callback_called = false;
+    auto with_r = ida::ui::with_widget_host(
+        *create_r,
+        [&](ida::ui::WidgetHost host_ptr) -> ida::Status {
+            callback_called = true;
+            CHECK(host_ptr != nullptr, "with_widget_host receives non-null host");
+            CHECK(host_ptr == *host, "with_widget_host host matches widget_host");
+            return ida::ok();
+        });
+    CHECK(with_r.has_value(), "with_widget_host succeeds for valid widget");
+    CHECK(callback_called, "with_widget_host callback invoked");
+
+    auto close_r = ida::ui::close_widget(*create_r);
+    CHECK(close_r.has_value(), "close_widget succeeds for host bridge test");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════
@@ -387,6 +428,7 @@ int main(int argc, char** argv) {
     // ── UI subscription tests ───────────────────────────────────────────
     test_ui_subscriptions();
     test_ui_scoped_subscription();
+    test_ui_widget_host_bridge();
 
     std::printf("\n=== Results: %d passed, %d failed, %d skipped ===\n",
                 g_pass, g_fail, g_skip);
