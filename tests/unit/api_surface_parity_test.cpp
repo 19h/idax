@@ -733,6 +733,7 @@ void check_ui_surface() {
     using IsWidgetVisibleFn = bool(*)(const ida::ui::Widget&);
     using WidgetHostFn = ida::Result<ida::ui::WidgetHost>(*)(const ida::ui::Widget&);
     using WithWidgetHostFn = ida::Status(*)(const ida::ui::Widget&, ida::ui::WidgetHostCallback);
+    using AskFormFn = ida::Result<bool>(*)(std::string_view);
 
     using OnWidgetVisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
     using OnWidgetInvisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
@@ -765,6 +766,7 @@ void check_ui_surface() {
     (void)static_cast<IsWidgetVisibleFn>(&ida::ui::is_widget_visible);
     (void)static_cast<WidgetHostFn>(&ida::ui::widget_host);
     (void)static_cast<WithWidgetHostFn>(&ida::ui::with_widget_host);
+    (void)static_cast<AskFormFn>(&ida::ui::ask_form);
 
     (void)static_cast<OnWidgetVisibleTitleFn>(&ida::ui::on_widget_visible);
     (void)static_cast<OnWidgetInvisibleTitleFn>(&ida::ui::on_widget_invisible);

@@ -49,6 +49,12 @@ Result<Address> ask_address(std::string_view prompt, Address default_value = Bad
 /// Ask the user for a long integer value.
 Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_value = 0);
 
+/// Show an IDA form and return whether it was accepted.
+///
+/// This overload is for markup-only forms that do not require typed vararg
+/// bindings. Returns true when accepted, false when cancelled.
+Result<bool> ask_form(std::string_view markup);
+
 // ── Navigation ──────────────────────────────────────────────────────────
 
 /// Navigate the active disassembly view to the given address.
