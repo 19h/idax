@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-13 (updated)
+Date: 2026-02-13 (updated after P10.7.d)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -28,9 +28,9 @@ Environment requirements:
 | OS | Arch | Compiler | Build Type | Profile | Runtime | Status | Evidence |
 |---|---|---|---|---|---|---|---|
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | default (`CMAKE_BUILD_TYPE=`) | full | IDA 9.3 | pass | 16/16 tests (`build/`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-compile/`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests (`build-matrix-unit/`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, via script) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-compile/`, rerun) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | 2/2 tests (`build-matrix-unit/`, rerun) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, rerun via script) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
 | Linux | x86_64 | GCC 13+ | RelWithDebInfo | compile-only | none | pending | queued |

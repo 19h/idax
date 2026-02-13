@@ -15,6 +15,10 @@
 #include <string>
 #include <vector>
 
+namespace ida::type {
+class TypeInfo;
+}
+
 namespace ida::decompiler {
 
 /// Check whether a Hex-Rays decompiler is available.
@@ -284,6 +288,16 @@ public:
     /// Rename a local variable (persistent — saved to database).
     Status rename_variable(std::string_view old_name, std::string_view new_name);
 
+    /// Retype a local variable by name (persistent — saved to database).
+    /// Call refresh() after success to update pseudocode text.
+    Status retype_variable(std::string_view variable_name,
+                           const ida::type::TypeInfo& new_type);
+
+    /// Retype a local variable by index from variables() (persistent).
+    /// Call refresh() after success to update pseudocode text.
+    Status retype_variable(std::size_t variable_index,
+                           const ida::type::TypeInfo& new_type);
+
     // ── Ctree traversal ─────────────────────────────────────────────────
 
     /// Traverse the function's ctree with a visitor.
@@ -311,6 +325,13 @@ public:
 
     /// Save all user-defined comments to the database.
     Status save_comments() const;
+
+    /// Return true if the decompiler has orphan user comments.
+    [[nodiscard]] Result<bool> has_orphan_comments() const;
+
+    /// Remove orphan user comments from the current decompiled function.
+    /// Call save_comments() afterward to persist removal to the database.
+    [[nodiscard]] Result<int> remove_orphan_comments();
 
     /// Refresh the pseudocode text (invalidates cached text/lines).
     /// Useful after modifying comments, variable names, or types.

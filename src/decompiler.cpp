@@ -6,6 +6,7 @@
 /// init_hexrays_plugin() at runtime to check availability.
 
 #include "detail/sdk_bridge.hpp"
+#include "detail/type_impl.hpp"
 #include <ida/decompiler.hpp>
 
 // hexrays.hpp is part of the IDA SDK and provides all decompiler APIs
@@ -344,6 +345,61 @@ Status DecompiledFunction::rename_variable(std::string_view old_name,
     return ida::ok();
 }
 
+Status DecompiledFunction::retype_variable(std::string_view variable_name,
+                                           const ida::type::TypeInfo& new_type) {
+    CHECK_IMPL();
+
+    if (variable_name.empty())
+        return std::unexpected(Error::validation("Variable name cannot be empty"));
+
+    const auto* type_impl = ida::type::TypeInfoAccess::get(new_type);
+    if (type_impl == nullptr)
+        return std::unexpected(Error::internal("TypeInfo has null implementation"));
+
+    std::string name_str(variable_name);
+    lvar_saved_info_t info;
+    if (!locate_lvar(&info.ll, impl_->func_ea, name_str.c_str()))
+        return std::unexpected(Error::not_found("Local variable not found", name_str));
+
+    info.type = type_impl->ti;
+    const size_t size = info.type.get_size();
+    if (size != BADSIZE)
+        info.size = static_cast<ssize_t>(size);
+
+    if (!modify_user_lvar_info(impl_->func_ea, MLI_TYPE, info))
+        return std::unexpected(Error::sdk("modify_user_lvar_info(type) failed", name_str));
+    return ida::ok();
+}
+
+Status DecompiledFunction::retype_variable(std::size_t variable_index,
+                                           const ida::type::TypeInfo& new_type) {
+    CHECK_IMPL();
+
+    const auto* type_impl = ida::type::TypeInfoAccess::get(new_type);
+    if (type_impl == nullptr)
+        return std::unexpected(Error::internal("TypeInfo has null implementation"));
+
+    lvars_t* variables = impl_->cfunc->get_lvars();
+    if (variables == nullptr || variable_index >= variables->size())
+        return std::unexpected(Error::not_found("Variable index out of range",
+                                                std::to_string(variable_index)));
+
+    lvar_saved_info_t info;
+    info.ll = (*variables)[variable_index];
+    info.type = type_impl->ti;
+    const size_t size = info.type.get_size();
+    if (size != BADSIZE)
+        info.size = static_cast<ssize_t>(size);
+
+    std::string context = std::to_string(variable_index);
+    if (!(*variables)[variable_index].name.empty())
+        context = ida::detail::to_string((*variables)[variable_index].name);
+
+    if (!modify_user_lvar_info(impl_->func_ea, MLI_TYPE, info))
+        return std::unexpected(Error::sdk("modify_user_lvar_info(type) failed", context));
+    return ida::ok();
+}
+
 // ── Ctree traversal ─────────────────────────────────────────────────────
 
 Result<int> DecompiledFunction::visit(CtreeVisitor& visitor,
@@ -409,6 +465,19 @@ Status DecompiledFunction::save_comments() const {
     CHECK_IMPL();
     impl_->cfunc->save_user_cmts();
     return ida::ok();
+}
+
+Result<bool> DecompiledFunction::has_orphan_comments() const {
+    CHECK_IMPL();
+    return impl_->cfunc->has_orphan_cmts();
+}
+
+Result<int> DecompiledFunction::remove_orphan_comments() {
+    CHECK_IMPL();
+    const int removed = impl_->cfunc->del_orphan_cmts();
+    if (removed < 0)
+        return std::unexpected(Error::sdk("del_orphan_cmts failed"));
+    return removed;
 }
 
 Status DecompiledFunction::refresh() const {

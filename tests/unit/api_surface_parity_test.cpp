@@ -810,8 +810,19 @@ void check_event_surface() {
 // ─── ida::decompiler ────────────────────────────────────────────────────
 
 void check_decompiler_surface() {
+    using RetypeByNameFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        std::string_view, const ida::type::TypeInfo&);
+    using RetypeByIndexFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        std::size_t, const ida::type::TypeInfo&);
+    using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
+    using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
+
     (void)&ida::decompiler::available;
     (void)&ida::decompiler::decompile;
+    (void)static_cast<RetypeByNameFn>(&ida::decompiler::DecompiledFunction::retype_variable);
+    (void)static_cast<RetypeByIndexFn>(&ida::decompiler::DecompiledFunction::retype_variable);
+    (void)static_cast<HasOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::has_orphan_comments);
+    (void)static_cast<RemoveOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::remove_orphan_comments);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────
