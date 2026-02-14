@@ -178,9 +178,13 @@ struct MicrocodeCallOptions {
     MicrocodeCallingConvention calling_convention{MicrocodeCallingConvention::Unspecified};
     bool mark_final{false};
     bool mark_propagated{false};
+    bool mark_dead_return_registers{false};
     bool mark_no_return{false};
     bool mark_pure{false};
     bool mark_no_side_effects{false};
+    bool mark_spoiled_lists_optimized{false};
+    bool mark_synthetic_has_call{false};
+    bool mark_has_format_string{false};
     bool mark_explicit_locations{false};
 };
 

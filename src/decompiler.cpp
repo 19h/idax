@@ -135,9 +135,13 @@ Status apply_call_options(minsn_t* root,
         options.calling_convention != MicrocodeCallingConvention::Unspecified
         || options.mark_final
         || options.mark_propagated
+        || options.mark_dead_return_registers
         || options.mark_no_return
         || options.mark_pure
         || options.mark_no_side_effects
+        || options.mark_spoiled_lists_optimized
+        || options.mark_synthetic_has_call
+        || options.mark_has_format_string
         || options.mark_explicit_locations;
     if (!has_options)
         return ida::ok();
@@ -162,12 +166,20 @@ Status apply_call_options(minsn_t* root,
         info->flags |= FCI_FINAL;
     if (options.mark_propagated)
         info->flags |= FCI_PROP;
+    if (options.mark_dead_return_registers)
+        info->flags |= FCI_DEAD;
     if (options.mark_no_return)
         info->flags |= FCI_NORET;
     if (options.mark_pure)
         info->flags |= FCI_PURE;
     if (options.mark_no_side_effects)
         info->flags |= FCI_NOSIDE;
+    if (options.mark_spoiled_lists_optimized)
+        info->flags |= FCI_SPLOK;
+    if (options.mark_synthetic_has_call)
+        info->flags |= FCI_HASCALL;
+    if (options.mark_has_format_string)
+        info->flags |= FCI_HASFMT;
     if (options.mark_explicit_locations)
         info->flags |= FCI_EXPLOCS;
 

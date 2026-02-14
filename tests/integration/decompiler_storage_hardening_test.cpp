@@ -805,7 +805,11 @@ public:
         ida::decompiler::MicrocodeCallOptions options;
         options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Stdcall;
         options.mark_final = true;
+        options.mark_dead_return_registers = true;
         options.mark_no_side_effects = true;
+        options.mark_spoiled_lists_optimized = true;
+        options.mark_synthetic_has_call = true;
+        options.mark_has_format_string = true;
         options.mark_explicit_locations = true;
 
         auto bad_helper_with_options = context.emit_helper_call_with_arguments_and_options("", {}, options);

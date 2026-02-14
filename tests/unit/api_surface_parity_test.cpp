@@ -1155,9 +1155,13 @@ void check_decompiler_surface() {
     (void)call_options.calling_convention;
     (void)call_options.mark_final;
     (void)call_options.mark_propagated;
+    (void)call_options.mark_dead_return_registers;
     (void)call_options.mark_no_return;
     (void)call_options.mark_pure;
     (void)call_options.mark_no_side_effects;
+    (void)call_options.mark_spoiled_lists_optimized;
+    (void)call_options.mark_synthetic_has_call;
+    (void)call_options.mark_has_format_string;
     (void)call_options.mark_explicit_locations;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
