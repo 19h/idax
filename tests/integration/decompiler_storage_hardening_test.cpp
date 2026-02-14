@@ -551,6 +551,14 @@ public:
         if (!bad_emit_typed && bad_emit_typed.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_emit_typed_with_policy = context.emit_instruction_with_policy(
+            bad_typed_instruction,
+            ida::decompiler::MicrocodeInsertPolicy::Beginning);
+        if (!bad_emit_typed_with_policy
+            && bad_emit_typed_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeInstruction bad_memory_instruction;
         bad_memory_instruction.opcode = ida::decompiler::MicrocodeOpcode::LoadMemory;
         bad_memory_instruction.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
@@ -568,6 +576,14 @@ public:
         auto bad_emit_batch = context.emit_instructions(bad_instruction_batch);
         if (!bad_emit_batch && bad_emit_batch.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
+
+        auto bad_emit_batch_with_policy = context.emit_instructions_with_policy(
+            bad_instruction_batch,
+            ida::decompiler::MicrocodeInsertPolicy::BeforeTail);
+        if (!bad_emit_batch_with_policy
+            && bad_emit_batch_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
 
         auto bad_helper = context.emit_helper_call("");
         if (!bad_helper && bad_helper.error().category == ida::ErrorCategory::Validation)
@@ -905,10 +921,30 @@ public:
             }
         }
 
+        auto typed_nop_with_policy = context.emit_instruction_with_policy(
+            typed_nop_instruction,
+            ida::decompiler::MicrocodeInsertPolicy::Beginning);
+        if (!typed_nop_with_policy) {
+            if (typed_nop_with_policy.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
         std::vector<ida::decompiler::MicrocodeInstruction> typed_nop_batch{typed_nop_instruction};
         auto typed_nop_batch_status = context.emit_instructions(typed_nop_batch);
         if (!typed_nop_batch_status) {
             if (typed_nop_batch_status.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
+        auto typed_nop_batch_with_policy_status = context.emit_instructions_with_policy(
+            typed_nop_batch,
+            ida::decompiler::MicrocodeInsertPolicy::BeforeTail);
+        if (!typed_nop_batch_with_policy_status) {
+            if (typed_nop_batch_with_policy_status.error().category != ida::ErrorCategory::SdkFailure) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -944,7 +980,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 35);
+        CHECK(filter->validation_hits >= 37);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);
