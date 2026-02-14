@@ -498,22 +498,65 @@ void test_maturity_subscription_and_dirty(ida::Address fn_ea) {
     CHECK(event_count >= 0);
 }
 
-class CountingMicrocodeFilter final : public ida::decompiler::MicrocodeFilter {
+class ProbingMicrocodeFilter final : public ida::decompiler::MicrocodeFilter {
 public:
     bool match(const ida::decompiler::MicrocodeContext& context) override {
         (void)context.address();
         (void)context.instruction_type();
         ++match_count;
-        return false;
+        return armed;
     }
 
-    ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext&) override {
+    ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext& context) override {
         ++apply_count;
-        return ida::decompiler::MicrocodeApplyResult::NotHandled;
+
+        armed = false;
+        saw_non_bad_address = context.address() != ida::BadAddress;
+        saw_instruction_type = context.instruction_type() >= 0;
+
+        auto bad_load = context.load_operand_register(-1);
+        if (!bad_load && bad_load.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_lea = context.load_effective_address_register(-1);
+        if (!bad_lea && bad_lea.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_store = context.store_operand_register(-1, 0, 1);
+        if (!bad_store && bad_store.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_move = context.emit_move_register(0, 0, 0);
+        if (!bad_move && bad_move.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_load_mem = context.emit_load_memory_register(0, 0, 0, 0, 1);
+        if (!bad_load_mem && bad_load_mem.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_store_mem = context.emit_store_memory_register(0, 0, 0, 1, 0);
+        if (!bad_store_mem && bad_store_mem.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_helper = context.emit_helper_call("");
+        if (!bad_helper && bad_helper.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto nop = context.emit_noop();
+        if (!nop) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        return ida::decompiler::MicrocodeApplyResult::Handled;
     }
 
+    bool armed{true};
     int match_count{0};
     int apply_count{0};
+    int validation_hits{0};
+    bool saw_non_bad_address{false};
+    bool saw_instruction_type{false};
+    bool saw_emit_failure{false};
 };
 
 void test_microcode_filter_registration(ida::Address fn_ea) {
@@ -522,7 +565,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     auto avail = ida::decompiler::available();
     if (!avail || !*avail) return;
 
-    auto filter = std::make_shared<CountingMicrocodeFilter>();
+    auto filter = std::make_shared<ProbingMicrocodeFilter>();
     auto token = ida::decompiler::register_microcode_filter(filter);
     CHECK_OK(token);
     if (!token) return;
@@ -533,7 +576,11 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     CHECK_HAS_VALUE(decomp);
     if (decomp) {
         CHECK(filter->match_count > 0);
-        CHECK(filter->apply_count == 0);
+        CHECK(filter->apply_count == 1);
+        CHECK(filter->validation_hits >= 7);
+        CHECK(filter->saw_non_bad_address);
+        CHECK(filter->saw_instruction_type);
+        CHECK(!filter->saw_emit_failure);
     }
 
     guard.reset();

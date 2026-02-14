@@ -1064,6 +1064,13 @@ void check_decompiler_surface() {
     using MicrocodeContextAddressFn = ida::Address(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
+    using MicrocodeContextLoadOperandFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
+    using MicrocodeContextLoadEaFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
+    using MicrocodeContextStoreOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
+    using MicrocodeContextEmitMoveFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
+    using MicrocodeContextEmitLoadMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
+    using MicrocodeContextEmitStoreMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
+    using MicrocodeContextEmitHelperFn = ida::Status(ida::decompiler::MicrocodeContext::*)(std::string_view);
 
     ida::decompiler::DecompileFailure failure;
     (void)failure.request_address;
@@ -1102,6 +1109,13 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextAddressFn>(&ida::decompiler::MicrocodeContext::address);
     (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
     (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);
+    (void)static_cast<MicrocodeContextLoadOperandFn>(&ida::decompiler::MicrocodeContext::load_operand_register);
+    (void)static_cast<MicrocodeContextLoadEaFn>(&ida::decompiler::MicrocodeContext::load_effective_address_register);
+    (void)static_cast<MicrocodeContextStoreOperandFn>(&ida::decompiler::MicrocodeContext::store_operand_register);
+    (void)static_cast<MicrocodeContextEmitMoveFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
+    (void)static_cast<MicrocodeContextEmitLoadMemoryFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register);
+    (void)static_cast<MicrocodeContextEmitStoreMemoryFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register);
+    (void)static_cast<MicrocodeContextEmitHelperFn>(&ida::decompiler::MicrocodeContext::emit_helper_call);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────

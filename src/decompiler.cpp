@@ -255,6 +255,172 @@ Status MicrocodeContext::emit_noop() {
     return ida::ok();
 }
 
+Result<int> MicrocodeContext::load_operand_register(int operand_index) {
+    if (operand_index < 0)
+        return std::unexpected(Error::validation("Operand index cannot be negative",
+                                                 std::to_string(operand_index)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    const mreg_t reg = impl->codegen->load_operand(operand_index, 0);
+    if (reg == mr_none)
+        return std::unexpected(Error::sdk("load_operand failed",
+                                          std::to_string(operand_index)));
+    return static_cast<int>(reg);
+}
+
+Result<int> MicrocodeContext::load_effective_address_register(int operand_index) {
+    if (operand_index < 0)
+        return std::unexpected(Error::validation("Operand index cannot be negative",
+                                                 std::to_string(operand_index)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    const mreg_t reg = impl->codegen->load_effective_address(operand_index, 0);
+    if (reg == mr_none)
+        return std::unexpected(Error::sdk("load_effective_address failed",
+                                          std::to_string(operand_index)));
+    return static_cast<int>(reg);
+}
+
+Status MicrocodeContext::store_operand_register(int operand_index,
+                                                int source_register,
+                                                int byte_width) {
+    if (operand_index < 0)
+        return std::unexpected(Error::validation("Operand index cannot be negative",
+                                                 std::to_string(operand_index)));
+    if (byte_width <= 0)
+        return std::unexpected(Error::validation("Byte width must be positive",
+                                                 std::to_string(byte_width)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    mop_t source;
+    source.make_reg(static_cast<mreg_t>(source_register), byte_width);
+    if (!impl->codegen->store_operand(operand_index, source, 0, nullptr))
+        return std::unexpected(Error::sdk("store_operand failed",
+                                          std::to_string(operand_index)));
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_move_register(int source_register,
+                                            int destination_register,
+                                            int byte_width) {
+    if (byte_width <= 0)
+        return std::unexpected(Error::validation("Byte width must be positive",
+                                                 std::to_string(byte_width)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    (void)impl->codegen->emit(m_mov,
+                              byte_width,
+                              static_cast<uval_t>(source_register),
+                              0,
+                              static_cast<uval_t>(destination_register),
+                              0);
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_load_memory_register(int selector_register,
+                                                   int offset_register,
+                                                   int destination_register,
+                                                   int byte_width,
+                                                   int offset_byte_width) {
+    if (byte_width <= 0)
+        return std::unexpected(Error::validation("Byte width must be positive",
+                                                 std::to_string(byte_width)));
+    if (offset_byte_width <= 0)
+        return std::unexpected(Error::validation("Offset byte width must be positive",
+                                                 std::to_string(offset_byte_width)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    minsn_t* emitted = impl->codegen->emit(m_ldx,
+                                           byte_width,
+                                           static_cast<uval_t>(selector_register),
+                                           static_cast<uval_t>(offset_register),
+                                           static_cast<uval_t>(destination_register),
+                                           offset_byte_width);
+    if (emitted == nullptr)
+        return std::unexpected(Error::sdk("emit(m_ldx) failed"));
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_store_memory_register(int source_register,
+                                                    int selector_register,
+                                                    int offset_register,
+                                                    int byte_width,
+                                                    int offset_byte_width) {
+    if (byte_width <= 0)
+        return std::unexpected(Error::validation("Byte width must be positive",
+                                                 std::to_string(byte_width)));
+    if (offset_byte_width <= 0)
+        return std::unexpected(Error::validation("Offset byte width must be positive",
+                                                 std::to_string(offset_byte_width)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+
+    minsn_t* emitted = impl->codegen->emit(m_stx,
+                                           byte_width,
+                                           static_cast<uval_t>(source_register),
+                                           static_cast<uval_t>(selector_register),
+                                           static_cast<uval_t>(offset_register),
+                                           offset_byte_width);
+    if (emitted == nullptr)
+        return std::unexpected(Error::sdk("emit(m_stx) failed"));
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_helper_call(std::string_view helper_name) {
+    if (helper_name.empty())
+        return std::unexpected(Error::validation("Helper name cannot be empty"));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    std::string helper(helper_name);
+    minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
+                                                           helper.c_str(),
+                                                           nullptr,
+                                                           nullptr,
+                                                           nullptr);
+    if (call == nullptr)
+        return std::unexpected(Error::sdk("create_helper_call failed", helper));
+
+    if (impl->codegen->mb->insert_into_block(call, impl->codegen->mb->tail) == nullptr) {
+        delete call;
+        return std::unexpected(Error::sdk("insert_into_block failed", helper));
+    }
+    return ida::ok();
+}
+
 Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter) {
     if (!filter)
         return std::unexpected(Error::validation("Microcode filter cannot be null"));
