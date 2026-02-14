@@ -114,6 +114,59 @@ void test_name_behaviors() {
     CHECK(ida::name::is_user_defined(first_ea));
     CHECK(!ida::name::is_auto_generated(first_ea));
 
+    auto user_inventory = ida::name::all_user_defined();
+    CHECK_OK(user_inventory);
+    if (user_inventory) {
+        bool found_primary = false;
+        for (const auto& entry : *user_inventory) {
+            CHECK(!entry.name.empty());
+            if (entry.address == first_ea) {
+                found_primary = true;
+                CHECK(entry.user_defined);
+                CHECK(!entry.auto_generated);
+                CHECK(entry.name == first_temp);
+            }
+        }
+        CHECK(found_primary);
+    }
+
+    ida::name::ListOptions ranged_options;
+    ranged_options.start = first_ea;
+    ranged_options.end = first_ea + 1;
+    ranged_options.include_user_defined = true;
+    ranged_options.include_auto_generated = false;
+
+    auto ranged_inventory = ida::name::all(ranged_options);
+    CHECK_OK(ranged_inventory);
+    if (ranged_inventory) {
+        bool found_primary = false;
+        for (const auto& entry : *ranged_inventory) {
+            CHECK(entry.address >= first_ea);
+            CHECK(entry.address < first_ea + 1);
+            if (entry.address == first_ea) {
+                found_primary = true;
+                CHECK(entry.name == first_temp);
+            }
+        }
+        CHECK(found_primary);
+    }
+
+    ida::name::ListOptions invalid_category_options;
+    invalid_category_options.include_user_defined = false;
+    invalid_category_options.include_auto_generated = false;
+    auto no_category = ida::name::all(invalid_category_options);
+    CHECK(!no_category.has_value());
+    if (!no_category.has_value())
+        CHECK(no_category.error().category == ida::ErrorCategory::Validation);
+
+    ida::name::ListOptions invalid_range_options;
+    invalid_range_options.start = first_ea + 1;
+    invalid_range_options.end = first_ea;
+    auto bad_range = ida::name::all(invalid_range_options);
+    CHECK(!bad_range.has_value());
+    if (!bad_range.has_value())
+        CHECK(bad_range.error().category == ida::ErrorCategory::Validation);
+
     CHECK_VAL(ida::name::is_valid_identifier("idax_valid_identifier_1"), *_r);
     CHECK_VAL(ida::name::is_valid_identifier("idax invalid identifier"), !*_r);
     auto sanitized = ida::name::sanitize_identifier("idax invalid identifier");

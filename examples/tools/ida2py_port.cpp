@@ -145,7 +145,7 @@ void print_usage(const char* program) {
     std::printf("ida2py_port - idax-first port probe for ida2py workflows\n\n");
     std::printf("Usage: %s [options] <binary_file>\n\n", program);
     std::printf("Operations:\n");
-    std::printf("  --list-user-symbols            list user-defined symbols (fallback scan)\n");
+    std::printf("  --list-user-symbols            list user-defined symbols (name inventory API)\n");
     std::printf("  --show <name|address>          inspect symbol type/value/xref details (repeatable)\n");
     std::printf("  --cast <name|address> <decl>   apply C declaration at target then inspect\n");
     std::printf("  --callsites <name|address>     list callsites targeting the callee (repeatable)\n");
@@ -393,9 +393,9 @@ ida::Status inspect_symbol(ida::Address address, std::string_view token) {
 }
 
 ida::Status run_list_user_symbols() {
-    auto bounds = ida::database::address_bounds();
-    if (!bounds) {
-        return std::unexpected(bounds.error());
+    auto inventory = ida::name::all_user_defined();
+    if (!inventory) {
+        return std::unexpected(inventory.error());
     }
 
     struct SymbolRow {
@@ -405,20 +405,14 @@ ida::Status run_list_user_symbols() {
     };
 
     std::vector<SymbolRow> rows;
-    rows.reserve(g_options.max_symbols);
+    rows.reserve(inventory->size());
 
-    for (ida::Address address : ida::address::items(bounds->start, bounds->end)) {
-        auto name = ida::name::get(address);
-        if (!name) {
-            continue;
-        }
-        if (!ida::name::is_user_defined(address)) {
-            continue;
-        }
+    for (const auto& entry : *inventory) {
+        const ida::Address address = entry.address;
 
         SymbolRow row;
         row.address = address;
-        row.name = *name;
+        row.name = entry.name;
 
         if (auto type_info = ida::type::retrieve(address)) {
             if (auto rendered = type_info->to_string()) {
@@ -427,9 +421,6 @@ ida::Status run_list_user_symbols() {
         }
 
         rows.push_back(std::move(row));
-        if (rows.size() >= g_options.max_symbols) {
-            break;
-        }
     }
 
     std::sort(rows.begin(), rows.end(), [](const SymbolRow& a, const SymbolRow& b) {
@@ -438,6 +429,10 @@ ida::Status run_list_user_symbols() {
         }
         return a.address < b.address;
     });
+
+    if (rows.size() > g_options.max_symbols) {
+        rows.resize(g_options.max_symbols);
+    }
 
     std::printf("%s\n", std::string(78, '=').c_str());
     std::printf("User-defined symbols (max=%zu)\n", g_options.max_symbols);
