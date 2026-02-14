@@ -607,6 +607,49 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_register_decl_parse_argument;
+        bad_register_decl_parse_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_register_decl_parse_argument.register_id = 0;
+        bad_register_decl_parse_argument.byte_width = 4;
+        bad_register_decl_parse_argument.type_declaration = "int(";
+        std::vector<ida::decompiler::MicrocodeValue> bad_register_decl_parse_args{
+            bad_register_decl_parse_argument};
+
+        auto bad_register_decl_parse_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_register_decl_parse_args);
+        if (!bad_register_decl_parse_helper
+            && bad_register_decl_parse_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_register_decl_size_argument;
+        bad_register_decl_size_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_register_decl_size_argument.register_id = 0;
+        bad_register_decl_size_argument.byte_width = 8;
+        bad_register_decl_size_argument.type_declaration = "int";
+        std::vector<ida::decompiler::MicrocodeValue> bad_register_decl_size_args{
+            bad_register_decl_size_argument};
+
+        auto bad_register_decl_size_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_register_decl_size_args);
+        if (!bad_register_decl_size_helper
+            && bad_register_decl_size_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_register_id_argument;
+        bad_register_id_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_register_id_argument.register_id = -1;
+        bad_register_id_argument.byte_width = 4;
+        std::vector<ida::decompiler::MicrocodeValue> bad_register_id_args{bad_register_id_argument};
+
+        auto bad_register_id_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_register_id_args);
+        if (!bad_register_id_helper
+            && bad_register_id_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_float_argument;
         bad_float_argument.kind = ida::decompiler::MicrocodeValueKind::Float32Immediate;
         bad_float_argument.floating_immediate = 1.0;
@@ -1030,7 +1073,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 42);
+        CHECK(filter->validation_hits >= 45);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

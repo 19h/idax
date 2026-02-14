@@ -634,21 +634,62 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
         mcallarg_t callarg;
         switch (argument.kind) {
             case MicrocodeValueKind::Register: {
-                if (argument.byte_width <= 0) {
+                if (argument.register_id < 0) {
                     return std::unexpected(Error::validation(
-                        "Microcode register argument byte width must be positive",
+                        "Microcode register argument id cannot be negative",
                         std::to_string(i)));
                 }
+
+                int argument_width = argument.byte_width;
                 tinfo_t argument_type;
-                if (!make_integer_type(&argument_type,
-                                       argument.byte_width,
-                                       argument.unsigned_integer)) {
-                    return std::unexpected(Error::unsupported(
-                        "Microcode register argument width unsupported",
-                        std::to_string(argument.byte_width)));
+
+                if (!argument.type_declaration.empty()) {
+                    qstring declaration(argument.type_declaration.c_str());
+                    if (!declaration.empty() && declaration.last() != ';')
+                        declaration.append(';');
+
+                    qstring name;
+                    if (!parse_decl(&argument_type,
+                                    &name,
+                                    nullptr,
+                                    declaration.c_str(),
+                                    PT_SIL)) {
+                        return std::unexpected(Error::validation(
+                            "Failed to parse register argument type declaration",
+                            argument.type_declaration));
+                    }
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size == 0) {
+                        return std::unexpected(Error::validation(
+                            "Parsed register argument type has unknown size",
+                            argument.type_declaration));
+                    }
+
+                    if (argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    else if (static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Register argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    if (argument_width <= 0) {
+                        return std::unexpected(Error::validation(
+                            "Microcode register argument byte width must be positive",
+                            std::to_string(i)));
+                    }
+                    if (!make_integer_type(&argument_type,
+                                           argument_width,
+                                           argument.unsigned_integer)) {
+                        return std::unexpected(Error::unsupported(
+                            "Microcode register argument width unsupported",
+                            std::to_string(argument_width)));
+                    }
                 }
+
                 callarg.set_regarg(static_cast<mreg_t>(argument.register_id),
-                                   argument.byte_width,
+                                   argument_width,
                                    argument_type);
                 break;
             }
