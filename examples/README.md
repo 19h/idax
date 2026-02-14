@@ -93,11 +93,13 @@ are currently portable through idax: action registration, pseudocode popup
 attachment, decompiler pseudocode/microcode snapshot dumping, and
 outlined-flag/cache-invalidation helpers.
 
-It now installs a VMX + AVX scalar microcode lifter subset through
+It now installs a VMX + AVX scalar/packed microcode lifter subset through
 `ida::decompiler::register_microcode_filter`, combining typed helper-call
 lowering (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`)
-with typed microcode emission for scalar AVX math/conversion
-(`vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
+with typed microcode emission for scalar/packed AVX lowering
+(`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
+`vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families,
+`vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
 `vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
 `vcvtss2sd`, `vcvtsd2ss`, `vmovss`, `vmovsd`).
 

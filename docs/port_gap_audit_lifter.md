@@ -30,15 +30,18 @@ to idax-first surfaces.
   (`vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
   `vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
   `vcvtss2sd`, `vcvtsd2ss`, `vmovss`, `vmovsd`).
+- AVX packed math/move subset through typed microcode emission
+  (`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
+  `vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families).
 
 ## Confirmed parity gaps
 
-1. Microcode filter hooks are now available and VMX+AVX scalar subset lifting is wired,
+1. Microcode filter hooks are now available and VMX+AVX scalar/packed subset lifting is wired,
    but full lifter-class write-path depth is still incomplete
     - idax now supports registration/unregistration and match/apply dispatch
       (`register_microcode_filter`, `unregister_microcode_filter`,
       `MicrocodeContext`, `MicrocodeApplyResult`).
-    - The port probe now uses those hooks for concrete VMX + AVX scalar
+    - The port probe now uses those hooks for concrete VMX + AVX scalar/packed
       instruction subsets with helper-call and typed microcode lowering.
     - Current context now includes primitive operand/register/memory/helper
       operations (`load_operand_register`, `store_operand_register`,
@@ -242,9 +245,9 @@ be executed in small, testable API slices.
   `MicrocodeValue::argument_name` + `MicrocodeValue::argument_flags`
   (`MicrocodeArgumentFlag`).
 - Expanded executable probe coverage from VMX-only lowering to include AVX
-  scalar math/conversion/minmax/sqrt/move flows (`vadd*`/`vsub*`/`vmul*`/
-  `vdiv*`, `vcvt*`, `vmin*`/`vmax*`, `vsqrt*`, `vmov*`) through typed
-  instruction emission + helper-return composition.
+  scalar and packed math/move flows (`vadd*`/`vsub*`/`vmul*`/`vdiv*`, `vcvt*`,
+  `vmin*`/`vmax*`, `vsqrt*`, `vmov*`) through typed instruction emission,
+  helper-return composition, and store-aware move lowering.
 - Added action-context host bridges for advanced decompiler popup workflows:
   `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
   plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.
