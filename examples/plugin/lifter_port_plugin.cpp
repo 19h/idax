@@ -67,6 +67,12 @@ std::string lower_copy(std::string text) {
     return text;
 }
 
+int infer_operand_byte_width(ida::Address address, int operand_index, int fallback);
+ida::decompiler::MicrocodeCallOptions vmx_call_options();
+ida::decompiler::MicrocodeValue register_argument(int register_id,
+                                                  int byte_width,
+                                                  bool unsigned_integer);
+
 bool is_supported_vmx_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
         "vzeroupper",
@@ -91,6 +97,21 @@ bool is_supported_avx_scalar_mnemonic(std::string_view mnemonic) {
 
 bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
+        "vandps", "vandpd", "vandnps", "vandnpd",
+        "vorps", "vorpd", "vxorps", "vxorpd",
+        "vpand", "vpandd", "vpandq", "vpandn", "vpandnd", "vpandnq",
+        "vpor", "vpord", "vporq", "vpxor", "vpxord", "vpxorq",
+        "vblendps", "vblendpd", "vblendvps", "vblendvpd", "vpblendd", "vpblendvb",
+        "vshufps", "vshufpd", "vpermilps", "vpermilpd", "vpermq", "vpermd",
+        "vperm2f128", "vperm2i128",
+        "vpsllw", "vpslld", "vpsllq", "vpsrlw", "vpsrld", "vpsrlq",
+        "vpsraw", "vpsrad", "vpsraq",
+        "vpsllvw", "vpsllvd", "vpsllvq", "vpsrlvw", "vpsrlvd", "vpsrlvq",
+        "vpsravw", "vpsravd", "vpsravq",
+        "vprold", "vprolq", "vprord", "vprorq", "vprolvd", "vprolvq",
+        "vprorvd", "vprorvq",
+        "vpshldw", "vpshldd", "vpshldq", "vpshldvw", "vpshldvd", "vpshldvq",
+        "vpshrdw", "vpshrdd", "vpshrdq", "vpshrdvw", "vpshrdvd", "vpshrdvq",
         "vaddps", "vsubps", "vmulps", "vdivps",
         "vaddpd", "vsubpd", "vmulpd", "vdivpd",
         "vaddsubps", "vaddsubpd",
@@ -171,6 +192,102 @@ bool is_packed_helper_addsub_mnemonic(std::string_view mnemonic_lower) {
         "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
     };
     return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_bitwise_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vandps", "vandpd", "vandnps", "vandnpd",
+        "vorps", "vorpd", "vxorps", "vxorpd",
+        "vpand", "vpandd", "vpandq", "vpandn", "vpandnd", "vpandnq",
+        "vpor", "vpord", "vporq", "vpxor", "vpxord", "vpxorq",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_permute_blend_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vblendps", "vblendpd", "vblendvps", "vblendvpd", "vpblendd", "vpblendvb",
+        "vshufps", "vshufpd", "vpermilps", "vpermilpd", "vpermq", "vpermd",
+        "vperm2f128", "vperm2i128",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_shift_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vpsllw", "vpslld", "vpsllq", "vpsrlw", "vpsrld", "vpsrlq",
+        "vpsraw", "vpsrad", "vpsraq",
+        "vpsllvw", "vpsllvd", "vpsllvq", "vpsrlvw", "vpsrlvd", "vpsrlvq",
+        "vpsravw", "vpsravd", "vpsravq",
+        "vprold", "vprolq", "vprord", "vprorq", "vprolvd", "vprolvq",
+        "vprorvd", "vprorvq",
+        "vpshldw", "vpshldd", "vpshldq", "vpshldvw", "vpshldvd", "vpshldvq",
+        "vpshrdw", "vpshrdd", "vpshrdq", "vpshrdvw", "vpshrdvd", "vpshrdvq",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext& context,
+                                              const ida::instruction::Instruction& instruction,
+                                              std::string_view mnemonic_lower) {
+    const auto operand_count = instruction.operand_count();
+    if (operand_count < 2) {
+        return false;
+    }
+
+    const auto destination_reg = context.load_operand_register(0);
+    if (!destination_reg) {
+        return std::unexpected(destination_reg.error());
+    }
+
+    const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+
+    std::vector<ida::decompiler::MicrocodeValue> args;
+    args.reserve(operand_count > 0 ? operand_count - 1 : 0);
+
+    for (std::size_t index = 1; index < operand_count; ++index) {
+        auto operand = instruction.operand(index);
+        if (!operand) {
+            return std::unexpected(operand.error());
+        }
+
+        if (operand->is_immediate()) {
+            ida::decompiler::MicrocodeValue value;
+            value.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
+            value.unsigned_immediate = operand->value();
+            int immediate_width = infer_operand_byte_width(instruction.address(), static_cast<int>(index), 4);
+            if (immediate_width <= 0) {
+                immediate_width = 4;
+            }
+            value.byte_width = immediate_width;
+            value.unsigned_integer = true;
+            args.push_back(value);
+            continue;
+        }
+
+        auto register_value = context.load_operand_register(static_cast<int>(index));
+        if (!register_value) {
+            return std::unexpected(register_value.error());
+        }
+
+        const int argument_width = infer_operand_byte_width(instruction.address(),
+                                                            static_cast<int>(index),
+                                                            destination_width);
+        args.push_back(register_argument(*register_value, argument_width, false));
+    }
+
+    const std::string helper = "__" + std::string(mnemonic_lower);
+    auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        helper,
+        args,
+        *destination_reg,
+        destination_width,
+        false,
+        vmx_call_options());
+    if (!helper_status) {
+        return std::unexpected(helper_status.error());
+    }
+    return true;
 }
 
 int infer_operand_byte_width(ida::Address address, int operand_index, int fallback) {
@@ -613,6 +730,12 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     }
 
+    if (is_packed_helper_bitwise_mnemonic(mnemonic_lower)
+        || is_packed_helper_permute_blend_mnemonic(mnemonic_lower)
+        || is_packed_helper_shift_mnemonic(mnemonic_lower)) {
+        return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
+    }
+
     if (mnemonic_lower.starts_with("vmov")) {
         const auto destination_operand = instruction.operand(0);
         if (!destination_operand) {
@@ -903,7 +1026,8 @@ ida::Status show_gap_report() {
         "  2) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
         "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
-        "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion subset,\n"
+        "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion\n"
+        "               + helper-fallback bitwise/permute/blend subset,\n"
         "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }
