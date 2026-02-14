@@ -572,6 +572,31 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_byte_array_argument;
+        bad_byte_array_argument.kind = ida::decompiler::MicrocodeValueKind::ByteArray;
+        bad_byte_array_argument.byte_width = 16;
+        std::vector<ida::decompiler::MicrocodeValue> bad_byte_array_args{bad_byte_array_argument};
+
+        auto bad_byte_array_helper = context.emit_helper_call_with_arguments("idax_probe", bad_byte_array_args);
+        if (!bad_byte_array_helper
+            && bad_byte_array_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_byte_array_width_argument;
+        bad_byte_array_width_argument.kind = ida::decompiler::MicrocodeValueKind::ByteArray;
+        bad_byte_array_width_argument.byte_width = 0;
+        bad_byte_array_width_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::StackOffset;
+        bad_byte_array_width_argument.location.stack_offset = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_byte_array_width_args{bad_byte_array_width_argument};
+
+        auto bad_byte_array_width_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_byte_array_width_args);
+        if (!bad_byte_array_width_helper
+            && bad_byte_array_width_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_location_argument;
         bad_location_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
         bad_location_argument.register_id = 0;
@@ -747,7 +772,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 20);
+        CHECK(filter->validation_hits >= 22);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

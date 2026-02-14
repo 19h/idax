@@ -105,6 +105,7 @@ enum class MicrocodeValueKind : int {
     SignedImmediate,
     Float32Immediate,
     Float64Immediate,
+    ByteArray,
 };
 
 /// Explicit argument-location hint for helper-call arguments.
@@ -218,7 +219,7 @@ public:
 
     /// Emit helper call with typed arguments.
     ///
-    /// Current typed support is integer-oriented (`byte_width` 1/2/4/8).
+    /// Current typed support includes scalar values and byte-array views.
     Status emit_helper_call_with_arguments(
         std::string_view helper_name,
         const std::vector<MicrocodeValue>& arguments);
@@ -231,7 +232,7 @@ public:
 
     /// Emit helper call with typed arguments and move the return value to a register.
     ///
-    /// Current typed support is integer-oriented (`destination_byte_width` 1/2/4/8).
+    /// Current typed return support is integer-oriented (`destination_byte_width` 1/2/4/8).
     Status emit_helper_call_with_arguments_to_register(
         std::string_view helper_name,
         const std::vector<MicrocodeValue>& arguments,

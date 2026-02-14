@@ -457,6 +457,26 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 callarg.type = tinfo_t(BTF_DOUBLE);
                 break;
             }
+
+            case MicrocodeValueKind::ByteArray: {
+                if (argument.byte_width <= 0) {
+                    return std::unexpected(Error::validation(
+                        "ByteArray argument byte width must be positive",
+                        std::to_string(i)));
+                }
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                    return std::unexpected(Error::validation(
+                        "ByteArray argument requires explicit location",
+                        std::to_string(i)));
+                }
+
+                tinfo_t element_type(BT_INT8 | BTMT_USIGNED);
+                tinfo_t array_type;
+                array_type.create_array(element_type,
+                                        static_cast<uint32_t>(argument.byte_width));
+                callarg.type = array_type;
+                break;
+            }
         }
 
         auto location_status = apply_explicit_location(&callarg,
