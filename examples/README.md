@@ -101,6 +101,14 @@ Headless idax session scaffold for `ida_lumina`-style workflows using
 `ida::lumina::pull()` and `ida::lumina::push()` against a resolved function
 address.
 
+### `tools/ida2py_port.cpp` — ida2py Port Probe
+
+Port of `/Users/int/Downloads/plo/ida2py-main` static query workflows to pure
+idax calls: user-defined symbol discovery, type apply/retrieve checks,
+symbol-centric value/xref inspection, and decompiler-backed callsite text
+listing. The example is intentionally used as a parity probe and documents
+remaining gaps in the dedicated port audit doc.
+
 ## Building
 
 By default, examples are listed as source-only targets. To build addon binaries:
@@ -114,5 +122,5 @@ To build the idalib tool port example as an executable:
 
 ```bash
 cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_TOOLS=ON
-cmake --build build --target idax_idalib_dump_port idax_idalib_lumina_port
+cmake --build build --target idax_idalib_dump_port idax_idalib_lumina_port idax_ida2py_port
 ```
