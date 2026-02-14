@@ -115,11 +115,12 @@ be executed in small, testable API slices.
     per-arg placement details, and call-shape flags.
 - Current idax status:
   - partial, with a baseline closure increment. `MicrocodeCallOptions` now
-    covers useful flag and scalar hints (calling convention, selected `FCI_*`,
-    callee/SPD/stack/solid-arg hints, function-role hint,
-    return-location hint, return-type declaration).
+  covers useful flag and scalar hints (calling convention, selected `FCI_*`,
+  callee/SPD/stack/solid-arg hints, function-role hint,
+  return-location hint, return-type declaration) and declaration-driven
+  typed register-return emission with size validation.
   - Remaining depth is richer typed callinfo/tmop authoring controls beyond
-    current option-hint shaping.
+  current option-hint shaping.
 - Migration impact:
   - medium/high. Many helper-call flows are now possible, but complex callinfo
     parity still requires raw SDK.
@@ -210,6 +211,9 @@ be executed in small, testable API slices.
 - Expanded helper-call option shaping with semantic role + return-location
   hinting (`function_role`, `return_location`) for additive callinfo depth
   without raw `mcallinfo_t` mutation in public APIs.
+- Expanded helper-call typed-return shaping for register-return paths:
+  declaration-driven return typing now supports non-integer widths when
+  destination size matches the declared type.
 - Added action-context host bridges for advanced decompiler popup workflows:
   `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
   plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.
