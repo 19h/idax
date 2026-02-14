@@ -213,6 +213,10 @@ struct MicrocodeValue {
     int vector_element_count{0};
     bool vector_elements_unsigned{true};
     bool vector_elements_floating{false};
+    /// C-style type declaration used for typed views.
+    ///
+    /// - `TypeDeclarationView`: declaration of the argument type (required).
+    /// - `Register`: optional declaration override for typed register arguments.
     std::string type_declaration{};
     MicrocodeValueLocation location{};
 };
