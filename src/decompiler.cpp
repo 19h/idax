@@ -117,6 +117,20 @@ bool make_integer_type(tinfo_t* out, int byte_width, bool is_unsigned) {
     return true;
 }
 
+bool make_byte_array_type(tinfo_t* out, int byte_width) {
+    if (out == nullptr || byte_width <= 0)
+        return false;
+
+    tinfo_t element(BT_INT8 | BTMT_USIGNED);
+    tinfo_t array;
+    array.create_array(element, static_cast<uint32_t>(byte_width));
+    if (array.get_size() != static_cast<size_t>(byte_width))
+        return false;
+
+    *out = array;
+    return true;
+}
+
 callcnv_t to_sdk_calling_convention(MicrocodeCallingConvention convention) {
     switch (convention) {
         case MicrocodeCallingConvention::Unspecified: return CM_CC_INVALID;
@@ -1526,8 +1540,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
         }
     } else {
         if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
-            return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
-                                                      std::to_string(destination_byte_width)));
+            if (!make_byte_array_type(&return_type, destination_byte_width)) {
+                return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
+                                                          std::to_string(destination_byte_width)));
+            }
         }
     }
 
