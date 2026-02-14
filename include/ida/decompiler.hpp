@@ -107,6 +107,20 @@ enum class MicrocodeValueKind : int {
     Float64Immediate,
 };
 
+/// Explicit argument-location hint for helper-call arguments.
+enum class MicrocodeValueLocationKind : int {
+    Unspecified,
+    Register,
+    StackOffset,
+};
+
+/// Optional explicit location for a helper-call argument.
+struct MicrocodeValueLocation {
+    MicrocodeValueLocationKind kind{MicrocodeValueLocationKind::Unspecified};
+    int register_id{0};
+    std::int64_t stack_offset{0};
+};
+
 /// Typed microcode value for helper-call argument construction.
 struct MicrocodeValue {
     MicrocodeValueKind kind{MicrocodeValueKind::Register};
@@ -116,6 +130,7 @@ struct MicrocodeValue {
     double floating_immediate{0.0};
     int byte_width{0};
     bool unsigned_integer{true};
+    MicrocodeValueLocation location{};
 };
 
 /// Calling-convention override for helper calls.
