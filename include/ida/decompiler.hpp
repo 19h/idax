@@ -103,6 +103,8 @@ enum class MicrocodeValueKind : int {
     Register,
     UnsignedImmediate,
     SignedImmediate,
+    Float32Immediate,
+    Float64Immediate,
 };
 
 /// Typed microcode value for helper-call argument construction.
@@ -111,6 +113,7 @@ struct MicrocodeValue {
     int register_id{0};
     std::uint64_t unsigned_immediate{0};
     std::int64_t signed_immediate{0};
+    double floating_immediate{0.0};
     int byte_width{0};
     bool unsigned_integer{true};
 };
@@ -132,6 +135,7 @@ struct MicrocodeCallOptions {
     bool mark_no_return{false};
     bool mark_pure{false};
     bool mark_no_side_effects{false};
+    bool mark_explicit_locations{false};
 };
 
 /// Opaque mutable context passed to microcode-filter callbacks.

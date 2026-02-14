@@ -560,6 +560,18 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_float_argument;
+        bad_float_argument.kind = ida::decompiler::MicrocodeValueKind::Float32Immediate;
+        bad_float_argument.floating_immediate = 1.0;
+        bad_float_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_float_args{bad_float_argument};
+
+        auto bad_float_helper = context.emit_helper_call_with_arguments("idax_probe", bad_float_args);
+        if (!bad_float_helper
+            && bad_float_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_helper_to_reg = context.emit_helper_call_with_arguments_to_register(
             "idax_probe", {}, 0, 0, true);
         if (!bad_helper_to_reg
@@ -571,6 +583,7 @@ public:
         options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Stdcall;
         options.mark_final = true;
         options.mark_no_side_effects = true;
+        options.mark_explicit_locations = true;
 
         auto bad_helper_with_options = context.emit_helper_call_with_arguments_and_options("", {}, options);
         if (!bad_helper_with_options
@@ -620,7 +633,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 12);
+        CHECK(filter->validation_hits >= 13);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

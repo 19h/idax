@@ -1106,11 +1106,14 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeApplyResult::NotHandled;
     (void)ida::decompiler::MicrocodeApplyResult::Handled;
     (void)ida::decompiler::MicrocodeValueKind::Register;
+    (void)ida::decompiler::MicrocodeValueKind::Float32Immediate;
+    (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
     (void)value.unsigned_immediate;
     (void)value.signed_immediate;
+    (void)value.floating_immediate;
     (void)value.byte_width;
     (void)value.unsigned_integer;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
@@ -1121,6 +1124,7 @@ void check_decompiler_surface() {
     (void)call_options.mark_no_return;
     (void)call_options.mark_pure;
     (void)call_options.mark_no_side_effects;
+    (void)call_options.mark_explicit_locations;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
 
