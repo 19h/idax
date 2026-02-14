@@ -282,43 +282,6 @@ std::string bytes_to_hex(const std::vector<std::uint8_t>& bytes) {
     return out;
 }
 
-ida::Result<std::uint64_t> read_unsigned_value(ida::Address address, std::size_t width) {
-    switch (width) {
-        case 1: {
-            auto value = ida::data::read_byte(address);
-            if (!value) {
-                return std::unexpected(value.error());
-            }
-            return *value;
-        }
-        case 2: {
-            auto value = ida::data::read_word(address);
-            if (!value) {
-                return std::unexpected(value.error());
-            }
-            return *value;
-        }
-        case 4: {
-            auto value = ida::data::read_dword(address);
-            if (!value) {
-                return std::unexpected(value.error());
-            }
-            return *value;
-        }
-        case 8: {
-            auto value = ida::data::read_qword(address);
-            if (!value) {
-                return std::unexpected(value.error());
-            }
-            return *value;
-        }
-        default:
-            return std::unexpected(ida::Error::unsupported(
-                "Unsupported integer width for direct value preview",
-                std::to_string(width)));
-    }
-}
-
 ida::Status inspect_symbol(ida::Address address, std::string_view token) {
     std::printf("%s\n", std::string(78, '=').c_str());
     std::printf("Symbol: %s (%s)\n", std::string(token).c_str(), address_text(address).c_str());
@@ -392,14 +355,37 @@ ida::Status inspect_symbol(ida::Address address, std::string_view token) {
         std::printf("Kind: Other\n");
     }
 
-    if (type_info && type_info->is_integer()) {
-        auto width = type_info->size();
-        if (width) {
-            auto value = read_unsigned_value(address, *width);
-            if (value) {
-                std::printf("Integer value: %llu (%s)\n",
-                            static_cast<unsigned long long>(*value),
-                            address_text(*value).c_str());
+    if (type_info) {
+        auto typed = ida::data::read_typed(address, *type_info);
+        if (typed) {
+            switch (typed->kind) {
+                case ida::data::TypedValueKind::UnsignedInteger:
+                    std::printf("Typed value: unsigned=%llu (%s)\n",
+                                static_cast<unsigned long long>(typed->unsigned_value),
+                                address_text(typed->unsigned_value).c_str());
+                    break;
+                case ida::data::TypedValueKind::SignedInteger:
+                    std::printf("Typed value: signed=%lld\n",
+                                static_cast<long long>(typed->signed_value));
+                    break;
+                case ida::data::TypedValueKind::FloatingPoint:
+                    std::printf("Typed value: floating=%g\n", typed->floating_value);
+                    break;
+                case ida::data::TypedValueKind::Pointer:
+                    std::printf("Typed value: pointer=%s\n",
+                                address_text(typed->pointer_value).c_str());
+                    break;
+                case ida::data::TypedValueKind::String:
+                    std::printf("Typed value: string=%s\n", typed->string_value.c_str());
+                    break;
+                case ida::data::TypedValueKind::Bytes:
+                    std::printf("Typed value: bytes[%zu]=%s\n",
+                                typed->bytes.size(),
+                                bytes_to_hex(typed->bytes).c_str());
+                    break;
+                case ida::data::TypedValueKind::Array:
+                    std::printf("Typed value: array[%zu]\n", typed->elements.size());
+                    break;
             }
         }
     }

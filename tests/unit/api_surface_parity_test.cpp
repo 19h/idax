@@ -98,8 +98,36 @@ void check_data_surface() {
     using ReadByteFn = ida::Result<std::uint8_t>(*)(ida::Address);
     (void)static_cast<ReadByteFn>(&ida::data::read_byte);
 
+    (void)ida::data::TypedValueKind::UnsignedInteger;
+    (void)ida::data::TypedValueKind::SignedInteger;
+    (void)ida::data::TypedValueKind::FloatingPoint;
+    (void)ida::data::TypedValueKind::Pointer;
+    (void)ida::data::TypedValueKind::String;
+    (void)ida::data::TypedValueKind::Bytes;
+    (void)ida::data::TypedValueKind::Array;
+
+    ida::data::TypedValue typed_value;
+    (void)typed_value.kind;
+    (void)typed_value.unsigned_value;
+    (void)typed_value.signed_value;
+    (void)typed_value.floating_value;
+    (void)typed_value.pointer_value;
+    (void)typed_value.string_value;
+    (void)typed_value.bytes;
+    (void)typed_value.elements;
+
     using WriteByteFn = ida::Status(*)(ida::Address, std::uint8_t);
     (void)static_cast<WriteByteFn>(&ida::data::write_byte);
+
+    using ReadTypedFn = ida::Result<ida::data::TypedValue>(*)(
+        ida::Address,
+        const ida::type::TypeInfo&);
+    using WriteTypedFn = ida::Status(*)(
+        ida::Address,
+        const ida::type::TypeInfo&,
+        const ida::data::TypedValue&);
+    (void)static_cast<ReadTypedFn>(&ida::data::read_typed);
+    (void)static_cast<WriteTypedFn>(&ida::data::write_typed);
 
     using PatchByteFn = ida::Status(*)(ida::Address, std::uint8_t);
     (void)static_cast<PatchByteFn>(&ida::data::patch_byte);

@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace {
@@ -100,6 +101,58 @@ void test_write_roundtrip(ida::Address ea) {
     CHECK_OK(read_restored);
     if (read_restored)
         CHECK(*read_restored == *original);
+}
+
+void test_typed_value_facade(ida::Address ea) {
+    std::cout << "--- typed value facade ---\n";
+
+    auto i32 = ida::type::TypeInfo::int32();
+    auto read_i32 = ida::data::read_typed(ea, i32);
+    CHECK_OK(read_i32);
+    if (read_i32) {
+        CHECK(read_i32->kind == ida::data::TypedValueKind::SignedInteger
+              || read_i32->kind == ida::data::TypedValueKind::UnsignedInteger);
+    }
+
+    auto byte_array = ida::type::TypeInfo::array_of(ida::type::TypeInfo::uint8(), 4);
+    auto typed_bytes = ida::data::read_typed(ea, byte_array);
+    CHECK_OK(typed_bytes);
+    if (typed_bytes) {
+        CHECK(typed_bytes->kind == ida::data::TypedValueKind::Bytes);
+        if (typed_bytes->kind == ida::data::TypedValueKind::Bytes)
+            CHECK(typed_bytes->bytes.size() == 4);
+    }
+
+    auto original = ida::data::read_bytes(ea, 4);
+    CHECK_OK(original);
+    if (!original || original->size() != 4)
+        return;
+
+    ida::data::TypedValue mutated;
+    mutated.kind = ida::data::TypedValueKind::Bytes;
+    mutated.bytes = *original;
+    for (auto& b : mutated.bytes)
+        b ^= 0xA5u;
+
+    if (mutated.bytes == *original)
+        mutated.bytes[0] ^= 0x01u;
+
+    CHECK_OK(ida::data::write_typed(ea, byte_array, mutated));
+
+    auto read_mutated = ida::data::read_bytes(ea, 4);
+    CHECK_OK(read_mutated);
+    if (read_mutated)
+        CHECK(*read_mutated == mutated.bytes);
+
+    CHECK_OK(ida::data::write_bytes(ea, *original));
+
+    ida::data::TypedValue wrong_size;
+    wrong_size.kind = ida::data::TypedValueKind::Bytes;
+    wrong_size.bytes = {0x41, 0x42};
+    auto mismatch = ida::data::write_typed(ea, byte_array, wrong_size);
+    CHECK(!mismatch.has_value());
+    if (!mismatch)
+        CHECK(mismatch.error().category == ida::ErrorCategory::Validation);
 }
 
 void test_define_undefine_unknown() {
@@ -210,6 +263,7 @@ int main(int argc, char* argv[]) {
     if (lo) {
         test_patch_and_original(*lo);
         test_write_roundtrip(*lo);
+        test_typed_value_facade(*lo);
     }
 
     test_define_undefine_unknown();
