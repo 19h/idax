@@ -68,6 +68,7 @@ std::string lower_copy(std::string text) {
 
 bool is_supported_vmx_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
+        "vzeroupper",
         "vmxon", "vmxoff", "vmcall", "vmlaunch", "vmresume",
         "vmptrld", "vmptrst", "vmclear", "vmread", "vmwrite",
         "invept", "invvpid", "vmfunc",
@@ -129,6 +130,12 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
                                            const ida::instruction::Instruction& instruction,
                                            std::string_view mnemonic_lower) {
     const int integer_width = pointer_byte_width(instruction.address());
+
+    if (mnemonic_lower == "vzeroupper") {
+        auto st = context.emit_noop();
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
 
     if (mnemonic_lower == "vmxoff") {
         auto st = emit_vmx_no_operand_helper(context, "__vmxoff");

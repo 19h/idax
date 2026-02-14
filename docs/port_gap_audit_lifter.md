@@ -24,8 +24,8 @@ to idax-first surfaces.
 - Outlining + cache invalidation flow via `ida::function::is_outlined` /
   `ida::function::set_outlined` and `ida::decompiler::mark_dirty_with_callers`.
 - VMX microcode lifting subset through idax filter APIs and typed helper-call
-  emission (`vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/
-  vmread/vmwrite/invept/invvpid/vmfunc`).
+  emission (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/
+  vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`).
 
 ## Confirmed parity gaps
 
@@ -105,9 +105,10 @@ be executed in small, testable API slices.
     `minsn_t` field updates.
 - Current idax status:
   - partial. Typed helper-call arguments now cover integer/float/byte-array/
-    vector/type-declaration values and rich location hints, but there is no
-    first-class opaque `MicrocodeOperand` builder for generic instruction
-    operands outside helper-call argument paths.
+    vector/type-declaration values and rich location hints; temporary register
+    allocation is now available via `MicrocodeContext::allocate_temporary_register`.
+  - There is still no first-class opaque `MicrocodeOperand` builder for generic
+    instruction operands outside helper-call argument paths.
 - Migration impact:
   - high. Non-helper instruction rewrites remain blocked.
 
