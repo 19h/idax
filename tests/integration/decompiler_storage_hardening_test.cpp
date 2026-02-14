@@ -850,7 +850,9 @@ public:
         }
 
         ida::decompiler::MicrocodeCallOptions options;
+        options.insert_policy = ida::decompiler::MicrocodeInsertPolicy::Tail;
         options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Stdcall;
+        options.function_role = ida::decompiler::MicrocodeFunctionRole::Memcpy;
         options.mark_final = true;
         options.mark_dead_return_registers = true;
         options.mark_no_side_effects = true;

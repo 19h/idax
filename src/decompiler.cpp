@@ -383,16 +383,21 @@ Status apply_call_options(minsn_t* root,
     return ida::ok();
 }
 
+minsn_t* anchor_for_insert_policy(mblock_t* block,
+                                  MicrocodeInsertPolicy policy);
+
 Status insert_call_instruction(MicrocodeContextImpl* impl,
                                minsn_t* call,
-                               std::string_view helper_name) {
+                               std::string_view helper_name,
+                               MicrocodeInsertPolicy policy) {
     if (impl == nullptr || impl->codegen == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
     if (call == nullptr)
         return std::unexpected(Error::sdk("create_helper_call failed",
                                           std::string(helper_name)));
 
-    if (impl->codegen->mb->insert_into_block(call, impl->codegen->mb->tail) == nullptr) {
+    minsn_t* anchor = anchor_for_insert_policy(impl->codegen->mb, policy);
+    if (impl->codegen->mb->insert_into_block(call, anchor) == nullptr) {
         delete call;
         return std::unexpected(Error::sdk("insert_into_block failed",
                                           std::string(helper_name)));
@@ -1257,7 +1262,7 @@ Status MicrocodeContext::emit_helper_call(std::string_view helper_name) {
                                                            nullptr,
                                                            nullptr,
                                                            nullptr);
-    return insert_call_instruction(impl, call, helper);
+    return insert_call_instruction(impl, call, helper, MicrocodeInsertPolicy::Tail);
 }
 
 Status MicrocodeContext::emit_helper_call_with_arguments(
@@ -1305,7 +1310,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_and_options(
         return st;
     }
 
-    return insert_call_instruction(impl, call, helper);
+    const MicrocodeInsertPolicy insert_policy = effective_options.insert_policy.has_value()
+        ? *effective_options.insert_policy
+        : MicrocodeInsertPolicy::Tail;
+    return insert_call_instruction(impl, call, helper, insert_policy);
 }
 
 Status MicrocodeContext::emit_helper_call_with_arguments_to_register(
@@ -1374,7 +1382,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
         return st;
     }
 
-    return insert_call_instruction(impl, call, helper);
+    const MicrocodeInsertPolicy insert_policy = effective_options.insert_policy.has_value()
+        ? *effective_options.insert_policy
+        : MicrocodeInsertPolicy::Tail;
+    return insert_call_instruction(impl, call, helper, insert_policy);
 }
 
 Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter) {

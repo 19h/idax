@@ -273,6 +273,7 @@ enum class MicrocodeFunctionRole : int {
 
 /// Additional call-shaping options for emitted helper calls.
 struct MicrocodeCallOptions {
+    std::optional<MicrocodeInsertPolicy> insert_policy{};
     std::optional<Address> callee_address{};
     std::optional<int> solid_argument_count{};
     std::optional<int> call_stack_pointer_delta{};
