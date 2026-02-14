@@ -201,6 +201,7 @@ Status apply_single_location_to_argloc(argloc_t* argloc,
                                        int register_id,
                                        int second_register_id,
                                        int register_offset,
+                                       std::int64_t register_relative_offset,
                                        std::int64_t stack_offset,
                                        Address static_address,
                                        std::string_view context) {
@@ -230,6 +231,19 @@ Status apply_single_location_to_argloc(argloc_t* argloc,
                     "Explicit register-pair ids cannot be negative",
                     std::string(context)));
             argloc->set_reg2(register_id, second_register_id);
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::RegisterRelative:
+            if (register_id < 0)
+                return std::unexpected(Error::validation(
+                    "Explicit register-relative base register cannot be negative",
+                    std::string(context)));
+            {
+                auto rrel = std::make_unique<rrel_t>();
+                rrel->reg = register_id;
+                rrel->off = static_cast<sval_t>(register_relative_offset);
+                argloc->consume_rrel(rrel.release());
+            }
             return ida::ok();
 
         case MicrocodeValueLocationKind::StackOffset:
@@ -273,6 +287,7 @@ Status apply_explicit_location(mcallarg_t* callarg,
         case MicrocodeValueLocationKind::Register:
         case MicrocodeValueLocationKind::RegisterWithOffset:
         case MicrocodeValueLocationKind::RegisterPair:
+        case MicrocodeValueLocationKind::RegisterRelative:
         case MicrocodeValueLocationKind::StackOffset:
         case MicrocodeValueLocationKind::StaticAddress:
             {
@@ -281,6 +296,7 @@ Status apply_explicit_location(mcallarg_t* callarg,
                                                               location.register_id,
                                                               location.second_register_id,
                                                               location.register_offset,
+                                                              location.register_relative_offset,
                                                               location.stack_offset,
                                                               location.static_address,
                                                               std::to_string(index));
@@ -319,6 +335,7 @@ Status apply_explicit_location(mcallarg_t* callarg,
                                                               part.register_id,
                                                               part.second_register_id,
                                                               part.register_offset,
+                                                              part.register_relative_offset,
                                                               part.stack_offset,
                                                               part.static_address,
                                                               std::to_string(index) + ":" + std::to_string(part_index));
