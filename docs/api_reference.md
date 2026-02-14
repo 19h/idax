@@ -23,7 +23,7 @@ Public headers:
 | `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
-| `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar attachment |
+| `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar/popup attachment, action-context host bridges |
 | `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
 | `include/ida/processor.hpp` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | `include/ida/debugger.hpp` | Process lifecycle, breakpoints, memory, registers, appcall/executor APIs, typed event subscriptions |

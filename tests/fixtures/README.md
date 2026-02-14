@@ -24,6 +24,7 @@
 - **Used by**: debugger Appcall runtime smoke (`examples/tools/ida2py_port.cpp`)
 - **Key characteristics**:
   - Exports `ref4(int *p)` used by `--appcall-smoke`
+  - Supports `--wait` launch mode to keep process alive during debugger startup probes
   - Small and portable so host/runtime debugger checks can be repeated quickly
   - Avoids architecture-mismatch ambiguity during Appcall validation
 

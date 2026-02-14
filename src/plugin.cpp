@@ -6,6 +6,7 @@
 #include <ida/plugin.hpp>
 
 #include <kernwin.hpp>
+#include <hexrays.hpp>
 
 namespace ida::plugin {
 
@@ -39,6 +40,16 @@ struct ActionAdapter : public action_handler_t {
 
         if (ctx->regname != nullptr)
             out.register_name = ctx->regname;
+
+        out.widget_handle = static_cast<void*>(ctx->widget);
+        out.focused_widget_handle = static_cast<void*>(ctx->focus);
+
+        if (ctx->widget != nullptr
+            && ctx->widget_type == BWN_PSEUDOCODE
+            && init_hexrays_plugin()) {
+            if (auto* vu = get_widget_vdui(ctx->widget); vu != nullptr)
+                out.decompiler_view_handle = static_cast<void*>(vu);
+        }
 
         return out;
     }
@@ -150,6 +161,42 @@ Status detach_from_popup(std::string_view widget_title, std::string_view action_
         return std::unexpected(Error::not_found("Action is not attached to widget popup",
                                                 std::string(action_id)));
     return ida::ok();
+}
+
+Result<void*> widget_host(const ActionContext& context) {
+    if (context.widget_handle == nullptr)
+        return std::unexpected(Error::not_found("Action context does not include widget host"));
+    return context.widget_handle;
+}
+
+Status with_widget_host(const ActionContext& context,
+                        ActionContextHostCallback callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Widget host callback cannot be empty"));
+
+    auto host = widget_host(context);
+    if (!host)
+        return std::unexpected(host.error());
+    return callback(*host);
+}
+
+Result<void*> decompiler_view_host(const ActionContext& context) {
+    if (context.decompiler_view_handle == nullptr) {
+        return std::unexpected(
+            Error::not_found("Action context does not include decompiler view host"));
+    }
+    return context.decompiler_view_handle;
+}
+
+Status with_decompiler_view_host(const ActionContext& context,
+                                 ActionContextHostCallback callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Decompiler view callback cannot be empty"));
+
+    auto host = decompiler_view_host(context);
+    if (!host)
+        return std::unexpected(host.error());
+    return callback(*host);
 }
 
 // ── Plugin export bridge (IDAX_PLUGIN macro support) ────────────────────

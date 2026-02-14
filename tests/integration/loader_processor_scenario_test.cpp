@@ -501,6 +501,63 @@ void test_plugin_action_types() {
         .register_name = "rax",
     };
 
+    auto missing_widget_host = ida::plugin::widget_host(context);
+    CHECK(!missing_widget_host.has_value(), "missing widget host returns error");
+    CHECK(missing_widget_host.error().category == ida::ErrorCategory::NotFound,
+          "missing widget host -> NotFound");
+
+    auto missing_decompiler_host = ida::plugin::decompiler_view_host(context);
+    CHECK(!missing_decompiler_host.has_value(), "missing decompiler host returns error");
+    CHECK(missing_decompiler_host.error().category == ida::ErrorCategory::NotFound,
+          "missing decompiler host -> NotFound");
+
+    context.widget_handle = reinterpret_cast<void*>(0x1000);
+    context.decompiler_view_handle = reinterpret_cast<void*>(0x2000);
+
+    auto widget_host = ida::plugin::widget_host(context);
+    CHECK(widget_host.has_value(), "widget host available");
+    CHECK(*widget_host == context.widget_handle, "widget host value roundtrip");
+
+    auto decompiler_host = ida::plugin::decompiler_view_host(context);
+    CHECK(decompiler_host.has_value(), "decompiler host available");
+    CHECK(*decompiler_host == context.decompiler_view_handle,
+          "decompiler host value roundtrip");
+
+    int widget_callback_hits = 0;
+    auto with_widget = ida::plugin::with_widget_host(
+        context,
+        [&](void* host) -> ida::Status {
+            ++widget_callback_hits;
+            CHECK(host == context.widget_handle, "with_widget_host callback receives context host");
+            return ida::ok();
+        });
+    CHECK(with_widget.has_value(), "with_widget_host succeeds");
+    CHECK(widget_callback_hits == 1, "with_widget_host callback invoked once");
+
+    int decompiler_callback_hits = 0;
+    auto with_decompiler = ida::plugin::with_decompiler_view_host(
+        context,
+        [&](void* host) -> ida::Status {
+            ++decompiler_callback_hits;
+            CHECK(host == context.decompiler_view_handle,
+                  "with_decompiler_view_host callback receives context host");
+            return ida::ok();
+        });
+    CHECK(with_decompiler.has_value(), "with_decompiler_view_host succeeds");
+    CHECK(decompiler_callback_hits == 1,
+          "with_decompiler_view_host callback invoked once");
+
+    auto with_widget_empty_cb = ida::plugin::with_widget_host(context, {});
+    CHECK(!with_widget_empty_cb.has_value(), "with_widget_host rejects empty callback");
+    CHECK(with_widget_empty_cb.error().category == ida::ErrorCategory::Validation,
+          "with_widget_host empty callback -> Validation");
+
+    auto with_decompiler_empty_cb = ida::plugin::with_decompiler_view_host(context, {});
+    CHECK(!with_decompiler_empty_cb.has_value(),
+          "with_decompiler_view_host rejects empty callback");
+    CHECK(with_decompiler_empty_cb.error().category == ida::ErrorCategory::Validation,
+          "with_decompiler_view_host empty callback -> Validation");
+
     bool context_handler_called = false;
     action.handler_with_context = [&](const ida::plugin::ActionContext& ctx) {
         context_handler_called = true;

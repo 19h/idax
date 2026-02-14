@@ -43,8 +43,8 @@ Environment requirements:
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port runtime (non-debugger flows) | IDA 9.3 | pass | `build-port-gap/examples/idax_ida2py_port --list-user-symbols ...`, `build-port-gap/examples/idax_idalib_dump_port --list ...`, `build-port-gap/examples/idax_idalib_lumina_port ...` |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port appcall smoke | IDA 9.3 | blocked | launch attempts fail with `start_process failed (return code: -1)` in this host runtime (`build-open-points-run2/logs/appcall-smoke.log`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port lumina smoke | IDA 9.3 + Lumina service | pass | `pull: requested=1 succeeded=1 failed=0`, `push: requested=1 succeeded=1 failed=0` (`build-open-points-run2/logs/lumina-smoke.log`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port appcall smoke | IDA 9.3 | blocked | launch attempts (including `--wait` and default-arg paths) fail with `start_process failed (return code: -1)` in this host runtime (`build-open-points-surge2/logs/appcall-smoke.log`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port lumina smoke | IDA 9.3 + Lumina service | pass | `pull: requested=1 succeeded=1 failed=0`, `push: requested=1 succeeded=1 failed=0` (`build-open-points-surge2/logs/lumina-smoke.log`) |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - linux-x86_64` (`job-logs1.txt`), profile complete |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | unit | none | pass | GitHub Actions `unit - linux-x86_64` (`job-logs4.txt`), 2/2 tests passed |
 | macOS 14 | arm64 | AppleClang 15.0.0.15000309 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - macos-arm64` (`job-logs2.txt`), profile complete |
@@ -102,9 +102,10 @@ scripts/run_open_points.sh build-open-points RelWithDebInfo
   `x64_linux_clang_64` runtime libs are missing (`libida.so` / `libidalib.so`).
 - On the current macOS host/runtime, appcall smoke is blocked by debugger
   backend readiness (`start_process failed`, return code `-1`) despite
-  successful fixture/tool setup and launch fallback attempts.
+  successful fixture/tool setup and expanded launch fallback attempts
+  (`--wait` and default-arg launches across path/cwd permutations).
 - On the current macOS host/runtime, Lumina pull/push smoke succeeds against the
-  configured service (`build-open-points-run2/logs/lumina-smoke.log`).
+  configured service (`build-open-points-surge2/logs/lumina-smoke.log`).
 - Full multi-OS completion requires Linux and Windows hosts with licensed IDA
   runtime installations available to the test harness.
 

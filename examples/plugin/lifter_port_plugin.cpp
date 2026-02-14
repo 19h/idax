@@ -99,14 +99,26 @@ ida::Status show_gap_report() {
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
         "  1) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
-        "  2) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n"
-        "[lifter-port] Recently closed: hxe_maturity subscription and FUNC_OUTLINE + cache-dirty helpers.\n");
+        "  2) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
+        "[lifter-port] Recently closed: hxe_maturity subscription, FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }
 
 ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) {
     if (auto decompiler_status = require_decompiler(); !decompiler_status) {
         return decompiler_status;
+    }
+
+    bool has_view_host = false;
+    auto view_host_status = ida::plugin::with_decompiler_view_host(
+        context,
+        [&](void*) -> ida::Status {
+            has_view_host = true;
+            return ida::ok();
+        });
+    if (!view_host_status
+        && view_host_status.error().category != ida::ErrorCategory::NotFound) {
+        return std::unexpected(view_host_status.error());
     }
 
     auto address = resolve_action_address(context);
@@ -149,12 +161,13 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
     }
 
     ida::ui::message(fmt(
-        "[lifter-port] snapshot %s @ %#llx : pseudo=%zu lines, microcode=%zu lines, calls=%zu\n",
+        "[lifter-port] snapshot %s @ %#llx : pseudo=%zu lines, microcode=%zu lines, calls=%zu, view_host=%s\n",
         function->name().c_str(),
         static_cast<unsigned long long>(function->start()),
         pseudocode_lines->size(),
         microcode_lines->size(),
-        *call_count));
+        *call_count,
+        has_view_host ? "yes" : "no"));
 
     const std::size_t preview_count = std::min<std::size_t>(microcode_lines->size(), 4);
     for (std::size_t i = 0; i < preview_count; ++i) {

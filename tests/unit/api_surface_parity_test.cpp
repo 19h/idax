@@ -594,6 +594,9 @@ void check_plugin_surface() {
     (void)context.has_selection;
     (void)context.is_external_address;
     (void)context.register_name;
+    (void)context.widget_handle;
+    (void)context.focused_widget_handle;
+    (void)context.decompiler_view_handle;
 
     ida::plugin::Action action;
     (void)action.id;
@@ -610,10 +613,20 @@ void check_plugin_surface() {
     using DetachMenuFn = ida::Status(*)(std::string_view, std::string_view);
     using DetachToolbarFn = ida::Status(*)(std::string_view, std::string_view);
     using DetachPopupFn = ida::Status(*)(std::string_view, std::string_view);
+    using ActionContextWidgetHostFn = ida::Result<void*>(*)(const ida::plugin::ActionContext&);
+    using ActionContextWithWidgetHostFn = ida::Status(*)(
+        const ida::plugin::ActionContext&, ida::plugin::ActionContextHostCallback);
+    using ActionContextDecompilerViewHostFn = ida::Result<void*>(*)(const ida::plugin::ActionContext&);
+    using ActionContextWithDecompilerViewHostFn = ida::Status(*)(
+        const ida::plugin::ActionContext&, ida::plugin::ActionContextHostCallback);
     (void)static_cast<AttachPopupFn>(&ida::plugin::attach_to_popup);
     (void)static_cast<DetachMenuFn>(&ida::plugin::detach_from_menu);
     (void)static_cast<DetachToolbarFn>(&ida::plugin::detach_from_toolbar);
     (void)static_cast<DetachPopupFn>(&ida::plugin::detach_from_popup);
+    (void)static_cast<ActionContextWidgetHostFn>(&ida::plugin::widget_host);
+    (void)static_cast<ActionContextWithWidgetHostFn>(&ida::plugin::with_widget_host);
+    (void)static_cast<ActionContextDecompilerViewHostFn>(&ida::plugin::decompiler_view_host);
+    (void)static_cast<ActionContextWithDecompilerViewHostFn>(&ida::plugin::with_decompiler_view_host);
 }
 
 // ─── ida::loader ────────────────────────────────────────────────────────

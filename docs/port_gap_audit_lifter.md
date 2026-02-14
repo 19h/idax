@@ -45,11 +45,16 @@ to idax-first surfaces.
       helper call-shaping options (calling-convention/flags plus scalar callinfo fields like callee/spd/solid-arg hints), but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
-3. Action context is intentionally normalized and SDK-opaque
+3. Action context now has opaque host bridges, but typed decompiler-view
+   ergonomics are still pending
    - lifter popup handlers rely on direct `vdui_t` / `cfunc_t` level handles.
-   - idax `ActionContext` provides stable high-value fields (address/widget metadata)
-     but not raw decompiler-view objects.
-   - Impact: advanced per-view decompiler manipulations are limited.
+   - idax now provides scoped host access from action callbacks
+     (`with_widget_host`, `with_decompiler_view_host`) plus context host fields,
+     which unblocks practical advanced interop without exposing SDK types in
+     public headers.
+   - Impact: advanced workflows are now possible through opaque host bridges,
+     but typed first-class wrappers for high-value `vdui_t`/`cfunc_t` edit flows
+     are still additive follow-up work.
 
 ## Newly closed since initial audit
 
@@ -65,6 +70,9 @@ to idax-first surfaces.
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
   counts.
+- Added action-context host bridges for advanced decompiler popup workflows:
+  `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
+  plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.
 
 ## Notes
 

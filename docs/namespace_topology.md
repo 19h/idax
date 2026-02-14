@@ -96,7 +96,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
-| `ida::plugin` | Plugin development | `Plugin`, `Action`, `Info` |
+| `ida::plugin` | Plugin development | `Plugin`, `Action`, `ActionContext`, `Info` |
 | `ida::loader` | Loader development | `Loader`, `InputFile`, `AcceptResult` |
 | `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `AnalyzeDetails`, `OutputContext` |
 

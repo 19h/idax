@@ -116,7 +116,35 @@ struct ActionContext {
     bool is_external_address{false};
 
     std::string register_name;
+
+    /// Opaque host pointer for the current widget (`TWidget*` cast to `void*`).
+    /// Useful for advanced interop scenarios.
+    void* widget_handle{nullptr};
+
+    /// Opaque host pointer for the focused widget (`TWidget*` cast to `void*`).
+    void* focused_widget_handle{nullptr};
+
+    /// Opaque decompiler-view handle (`vdui_t*` cast to `void*`) when
+    /// available for pseudocode widget contexts.
+    void* decompiler_view_handle{nullptr};
 };
+
+/// Scoped callback for advanced action-context host access.
+using ActionContextHostCallback = std::function<Status(void*)>;
+
+/// Get the current widget host handle from an action context.
+Result<void*> widget_host(const ActionContext& context);
+
+/// Run a callback with the current widget host handle.
+Status with_widget_host(const ActionContext& context,
+                        ActionContextHostCallback callback);
+
+/// Get the current decompiler view host handle from an action context.
+Result<void*> decompiler_view_host(const ActionContext& context);
+
+/// Run a callback with the current decompiler view host handle.
+Status with_decompiler_view_host(const ActionContext& context,
+                                 ActionContextHostCallback callback);
 
 /// Descriptor for a UI action (toolbar/menu/popup).
 struct Action {
