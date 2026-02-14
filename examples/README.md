@@ -90,11 +90,11 @@ The original "Test in ask_form" flow now uses markup-only
 
 Port probe of `/Users/int/dev/lifter` focused on plugin-shell workflows that
 are currently portable through idax: action registration, pseudocode popup
-attachment, decompiler pseudocode/microcode snapshot dumping, and an
-inline/outlining intent toggle fallback.
+attachment, decompiler pseudocode/microcode snapshot dumping, and
+outlined-flag/cache-invalidation helpers.
 
 It also prints a gap report for the currently missing APIs needed for a full
-AVX/VMX microcode-lifter migration (microcode filter install/mutate surfaces and
+AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and
 raw decompiler-view handle context for advanced per-view manipulations).
 
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)

@@ -1058,6 +1058,12 @@ void check_decompiler_surface() {
         std::function<void(const ida::decompiler::MaturityEvent&)>);
     using DecompilerUnsubscribeFn = ida::Status(*)(ida::decompiler::Token);
     using MarkDirtyFn = ida::Status(*)(ida::Address, bool);
+    using RegisterMicrocodeFilterFn = ida::Result<ida::decompiler::FilterToken>(*)(
+        std::shared_ptr<ida::decompiler::MicrocodeFilter>);
+    using UnregisterMicrocodeFilterFn = ida::Status(*)(ida::decompiler::FilterToken);
+    using MicrocodeContextAddressFn = ida::Address(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
 
     ida::decompiler::DecompileFailure failure;
     (void)failure.request_address;
@@ -1070,6 +1076,10 @@ void check_decompiler_surface() {
     (void)ida::decompiler::Maturity::Final;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSubscription>);
+    (void)ida::decompiler::MicrocodeApplyResult::NotHandled;
+    (void)ida::decompiler::MicrocodeApplyResult::Handled;
+    static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
+    static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
 
     (void)&ida::decompiler::available;
     (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
@@ -1087,6 +1097,11 @@ void check_decompiler_surface() {
     (void)static_cast<DecompilerUnsubscribeFn>(&ida::decompiler::unsubscribe);
     (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty);
     (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty_with_callers);
+    (void)static_cast<RegisterMicrocodeFilterFn>(&ida::decompiler::register_microcode_filter);
+    (void)static_cast<UnregisterMicrocodeFilterFn>(&ida::decompiler::unregister_microcode_filter);
+    (void)static_cast<MicrocodeContextAddressFn>(&ida::decompiler::MicrocodeContext::address);
+    (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
+    (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────

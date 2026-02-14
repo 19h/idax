@@ -97,9 +97,9 @@ ida::Result<std::size_t> count_call_expressions(const ida::decompiler::Decompile
 ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
-        "  1) No decompiler microcode-filter install/remove API (match/apply hooks).\n"
-        "  2) No public microcode IR write API (emit m_call/m_nop/m_ldx, helper calls, typed mops).\n"
-        "  3) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n"
+        "  1) Microcode filter hooks are present, but microcode IR write APIs remain minimal\n"
+        "     (full m_call/m_ldx/helper/mop orchestration is still missing).\n"
+        "  2) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n"
         "[lifter-port] Recently closed: hxe_maturity subscription and FUNC_OUTLINE + cache-dirty helpers.\n");
     return ida::ok();
 }
