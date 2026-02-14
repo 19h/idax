@@ -211,13 +211,29 @@ void check_name_surface() {
     (void)ida::name::DemangleForm::Long;
     (void)ida::name::DemangleForm::Full;
 
+    ida::name::Entry entry;
+    (void)entry.address;
+    (void)entry.name;
+    (void)entry.user_defined;
+    (void)entry.auto_generated;
+
+    ida::name::ListOptions options;
+    (void)options.start;
+    (void)options.end;
+    (void)options.include_user_defined;
+    (void)options.include_auto_generated;
+
     using NamePredicateFn = bool(*)(ida::Address);
     using IsValidIdentifierFn = ida::Result<bool>(*)(std::string_view);
     using SanitizeIdentifierFn = ida::Result<std::string>(*)(std::string_view);
+    using NameAllFn = ida::Result<std::vector<ida::name::Entry>>(*)(const ida::name::ListOptions&);
+    using NameAllUserDefinedFn = ida::Result<std::vector<ida::name::Entry>>(*)(ida::Address, ida::Address);
 
     (void)static_cast<NamePredicateFn>(&ida::name::is_user_defined);
     (void)static_cast<IsValidIdentifierFn>(&ida::name::is_valid_identifier);
     (void)static_cast<SanitizeIdentifierFn>(&ida::name::sanitize_identifier);
+    (void)static_cast<NameAllFn>(&ida::name::all);
+    (void)static_cast<NameAllUserDefinedFn>(&ida::name::all_user_defined);
 }
 
 // ─── ida::xref ──────────────────────────────────────────────────────────

@@ -6,6 +6,24 @@
 
 namespace ida::name {
 
+namespace {
+
+bool in_range(Address address, const ListOptions& options) {
+    if (options.start != BadAddress && address < options.start)
+        return false;
+    if (options.end != BadAddress && address >= options.end)
+        return false;
+    return true;
+}
+
+bool include_name(bool user_defined, const ListOptions& options) {
+    if (user_defined)
+        return options.include_user_defined;
+    return options.include_auto_generated;
+}
+
+} // anonymous namespace
+
 // ── Core naming ─────────────────────────────────────────────────────────
 
 Status set(Address ea, std::string_view name) {
@@ -65,6 +83,63 @@ Result<Address> resolve(std::string_view name, Address context) {
         return std::unexpected(Error::not_found("Name not resolved",
                                                 std::string(name)));
     return static_cast<Address>(result);
+}
+
+// ── Name inventory ───────────────────────────────────────────────────────
+
+Result<std::vector<Entry>> all(const ListOptions& options) {
+    if (!options.include_user_defined && !options.include_auto_generated) {
+        return std::unexpected(Error::validation(
+            "At least one name category must be included"));
+    }
+    if (options.start != BadAddress
+        && options.end != BadAddress
+        && options.start > options.end) {
+        return std::unexpected(Error::validation(
+            "Invalid name range: start is greater than end",
+            std::to_string(options.start) + ":" + std::to_string(options.end)));
+    }
+
+    const std::size_t total = get_nlist_size();
+    std::vector<Entry> out;
+    out.reserve(total);
+
+    for (std::size_t index = 0; index < total; ++index) {
+        const ea_t ea = get_nlist_ea(index);
+        if (!ida::detail::is_valid(ea))
+            continue;
+
+        const Address address = static_cast<Address>(ea);
+        if (!in_range(address, options))
+            continue;
+
+        const char* raw_name = get_nlist_name(index);
+        if (raw_name == nullptr || *raw_name == '\0')
+            continue;
+
+        const flags64_t flags = get_flags(ea);
+        const bool user_defined = flags != 0 && has_user_name(flags);
+        if (!include_name(user_defined, options))
+            continue;
+
+        Entry entry;
+        entry.address = address;
+        entry.name = raw_name;
+        entry.user_defined = user_defined;
+        entry.auto_generated = !user_defined;
+        out.push_back(std::move(entry));
+    }
+
+    return out;
+}
+
+Result<std::vector<Entry>> all_user_defined(Address start, Address end) {
+    ListOptions options;
+    options.start = start;
+    options.end = end;
+    options.include_user_defined = true;
+    options.include_auto_generated = false;
+    return all(options);
 }
 
 // ── Name properties ─────────────────────────────────────────────────────

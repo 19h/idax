@@ -8,6 +8,7 @@
 #include <ida/address.hpp>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ida::name {
 
@@ -38,6 +39,33 @@ Result<std::string> demangled(Address address, DemangleForm form = DemangleForm:
 
 /// Resolve a name to an address.
 Result<Address> resolve(std::string_view name, Address context = BadAddress);
+
+// ── Name inventory ───────────────────────────────────────────────────────
+
+/// Enumerated name entry.
+struct Entry {
+    Address     address{BadAddress};
+    std::string name;
+    bool        user_defined{false};
+    bool        auto_generated{false};
+};
+
+/// Options for name inventory enumeration.
+/// If start/end are BadAddress, the full inventory is returned.
+/// Address filtering uses a half-open range [start, end).
+struct ListOptions {
+    Address start{BadAddress};
+    Address end{BadAddress};
+    bool    include_user_defined{true};
+    bool    include_auto_generated{true};
+};
+
+/// Enumerate names with typed filtering options.
+Result<std::vector<Entry>> all(const ListOptions& options = {});
+
+/// Enumerate only user-defined names, optionally in [start, end).
+Result<std::vector<Entry>> all_user_defined(Address start = BadAddress,
+                                            Address end = BadAddress);
 
 // ── Name properties ─────────────────────────────────────────────────────
 
