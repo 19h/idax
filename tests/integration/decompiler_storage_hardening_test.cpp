@@ -890,6 +890,16 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeCallOptions bad_return_type_size_options = options;
+        bad_return_type_size_options.return_type_declaration = "int";
+        auto bad_helper_to_reg_return_type_size =
+            context.emit_helper_call_with_arguments_to_register_and_options(
+                "idax_probe", {}, 0, 8, true, bad_return_type_size_options);
+        if (!bad_helper_to_reg_return_type_size
+            && bad_helper_to_reg_return_type_size.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeCallOptions bad_return_location_options = options;
         bad_return_location_options.return_location = ida::decompiler::MicrocodeValueLocation{};
 
@@ -1020,7 +1030,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 41);
+        CHECK(filter->validation_hits >= 42);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

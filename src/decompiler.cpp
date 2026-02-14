@@ -1358,13 +1358,44 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
         effective_options.mark_explicit_locations = true;
 
     tinfo_t return_type;
-    if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
-        return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
-                                                  std::to_string(destination_byte_width)));
+    if (!effective_options.return_type_declaration.empty()) {
+        qstring declaration(effective_options.return_type_declaration.c_str());
+        if (!declaration.empty() && declaration.last() != ';')
+            declaration.append(';');
+
+        qstring name;
+        if (!parse_decl(&return_type,
+                        &name,
+                        nullptr,
+                        declaration.c_str(),
+                        PT_SIL)) {
+            return std::unexpected(Error::validation(
+                "Failed to parse helper-call return type declaration",
+                effective_options.return_type_declaration));
+        }
+
+        const size_t return_size = return_type.get_size();
+        if (return_size == 0) {
+            return std::unexpected(Error::validation(
+                "Parsed helper-call return type has unknown size",
+                effective_options.return_type_declaration));
+        }
+        if (static_cast<int>(return_size) != destination_byte_width) {
+            return std::unexpected(Error::validation(
+                "Return type size does not match destination byte width",
+                std::to_string(return_size) + ":" + std::to_string(destination_byte_width)));
+        }
+    } else {
+        if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
+            return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
+                                                      std::to_string(destination_byte_width)));
+        }
     }
 
     mop_t destination;
     destination.make_reg(static_cast<mreg_t>(destination_register), destination_byte_width);
+    if (destination_byte_width > 8)
+        destination.set_udt();
 
     std::string helper(helper_name);
     minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
