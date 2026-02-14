@@ -106,8 +106,8 @@ address.
 Port of `/Users/int/Downloads/plo/ida2py-main` static query workflows to pure
 idax calls: user-defined symbol discovery, type apply/retrieve checks,
 symbol-centric value/xref inspection, and decompiler-backed callsite text
-listing. The example is intentionally used as a parity probe and documents
-remaining gaps in the dedicated port audit doc.
+listing. It also includes optional runtime `--appcall-smoke` coverage for
+debugger-capable hosts (`ida::debugger::appcall`).
 
 ## Building
 
@@ -124,3 +124,7 @@ To build the idalib tool port example as an executable:
 cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_TOOLS=ON
 cmake --build build --target idax_idalib_dump_port idax_idalib_lumina_port idax_ida2py_port
 ```
+
+When a real IDA runtime is available (`IDADIR` or common macOS install path),
+tool examples are linked against the real runtime dylibs. Otherwise they fall
+back to SDK idalib stubs for compile-only environments.

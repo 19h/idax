@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-13 (updated after hosted validation-matrix log audit)
+Date: 2026-02-14 (updated after tool-port runtime linkage hardening)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -31,6 +31,8 @@ Environment requirements:
 - `IDASDK` is required for all profiles (headers + ida-cmake bootstrap).
 - `IDADIR` (or platform auto-discovery) is required for full integration-test
   coverage. Without a runtime install, integration tests are skipped by CMake.
+- Appcall runtime-path validation is tracked separately in
+  `docs/appcall_runtime_validation.md`.
 
 ## Current matrix status
 
@@ -40,6 +42,8 @@ Environment requirements:
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full | IDA 9.3 | pass | 16/16 tests (`build-matrix-full/`, rerun via script) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port runtime (non-debugger flows) | IDA 9.3 | pass | `build-port-gap/examples/idax_ida2py_port --list-user-symbols ...`, `build-port-gap/examples/idax_idalib_dump_port --list ...`, `build-port-gap/examples/idax_idalib_lumina_port ...` |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port appcall smoke | IDA 9.3 | fail (graceful) | `build-port-gap/examples/idax_ida2py_port --appcall-smoke ...` returns `dbg_appcall` error code `1552` (no signal-11 crash) |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - linux-x86_64` (`job-logs1.txt`), profile complete |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | unit | none | pass | GitHub Actions `unit - linux-x86_64` (`job-logs4.txt`), 2/2 tests passed |
 | macOS 14 | arm64 | AppleClang 15.0.0.15000309 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - macos-arm64` (`job-logs2.txt`), profile complete |
@@ -75,6 +79,9 @@ scripts/run_validation_matrix.sh unit build-matrix-unit RelWithDebInfo
   `validation profile '<profile>' complete`, and `100% tests passed` markers.
 - On macOS, linking against IDA 9.3 dylibs can emit deployment-target warnings
   (`built for newer version 12.0`). Current runs are stable and all tests pass.
+- Tool-port example executables now prefer real IDA runtime dylibs when
+  available (`IDADIR` or common macOS install paths), which avoids SDK-stub
+  runtime symbol-mismatch crashes in local functional runs.
 - Packaging output is pinned to the selected build dir via `cpack -B <build-dir>`
   in the matrix script.
 - Linux Clang row currently fails in the Ubuntu 24.04 container because the
