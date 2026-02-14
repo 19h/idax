@@ -12,6 +12,7 @@
 #include <cctype>
 #include <cstdio>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -74,6 +75,34 @@ bool is_supported_vmx_mnemonic(std::string_view mnemonic) {
         "invept", "invvpid", "vmfunc",
     };
     return kSupported.contains(std::string(mnemonic));
+}
+
+bool is_supported_avx_scalar_mnemonic(std::string_view mnemonic) {
+    static const std::unordered_set<std::string> kSupported{
+        "vaddss", "vsubss", "vmulss", "vdivss",
+        "vaddsd", "vsubsd", "vmulsd", "vdivsd",
+        "vminss", "vmaxss", "vminsd", "vmaxsd",
+        "vsqrtss", "vsqrtsd",
+        "vcvtss2sd", "vcvtsd2ss",
+        "vmovss", "vmovsd",
+    };
+    return kSupported.contains(std::string(mnemonic));
+}
+
+std::optional<ida::decompiler::MicrocodeOpcode> scalar_math_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower == "vaddss" || mnemonic_lower == "vaddsd") {
+        return ida::decompiler::MicrocodeOpcode::FloatAdd;
+    }
+    if (mnemonic_lower == "vsubss" || mnemonic_lower == "vsubsd") {
+        return ida::decompiler::MicrocodeOpcode::FloatSub;
+    }
+    if (mnemonic_lower == "vmulss" || mnemonic_lower == "vmulsd") {
+        return ida::decompiler::MicrocodeOpcode::FloatMul;
+    }
+    if (mnemonic_lower == "vdivss" || mnemonic_lower == "vdivsd") {
+        return ida::decompiler::MicrocodeOpcode::FloatDiv;
+    }
+    return std::nullopt;
 }
 
 int pointer_byte_width(ida::Address address) {
@@ -258,14 +287,182 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
     return false;
 }
 
-class VmxLifterFilter final : public ida::decompiler::MicrocodeFilter {
+ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeContext& context,
+                                                  const ida::instruction::Instruction& instruction,
+                                                  std::string_view mnemonic_lower) {
+    const auto operand_count = instruction.operand_count();
+    if (operand_count < 2) {
+        return false;
+    }
+
+    const auto destination_operand = instruction.operand(0);
+    if (!destination_operand) {
+        return std::unexpected(destination_operand.error());
+    }
+
+    if ((mnemonic_lower == "vmovss" || mnemonic_lower == "vmovsd")
+        && operand_count == 2
+        && destination_operand->is_memory()) {
+        const int scalar_width = mnemonic_lower.ends_with("ss") ? 4 : 8;
+        const auto source_reg = context.load_operand_register(1);
+        if (!source_reg) {
+            return std::unexpected(source_reg.error());
+        }
+
+        auto store_status = context.store_operand_register(0, *source_reg, scalar_width);
+        if (!store_status) {
+            return std::unexpected(store_status.error());
+        }
+        return true;
+    }
+
+    constexpr int destination_width = 16;
+    const auto destination_reg = context.load_operand_register(0);
+    if (!destination_reg) {
+        return std::unexpected(destination_reg.error());
+    }
+
+    const auto source1_reg = context.load_operand_register(1);
+    if (!source1_reg) {
+        return std::unexpected(source1_reg.error());
+    }
+
+    if (*source1_reg != *destination_reg) {
+        auto move_status = context.emit_move_register(*source1_reg,
+                                                      *destination_reg,
+                                                      destination_width);
+        if (!move_status) {
+            return std::unexpected(move_status.error());
+        }
+    }
+
+    if (mnemonic_lower == "vmovss" || mnemonic_lower == "vmovsd") {
+        const int scalar_width = mnemonic_lower.ends_with("ss") ? 4 : 8;
+
+        if (operand_count == 2) {
+            auto move_status = context.emit_move_register(*source1_reg,
+                                                          *destination_reg,
+                                                          scalar_width);
+            if (!move_status) {
+                return std::unexpected(move_status.error());
+            }
+            return true;
+        }
+
+        if (operand_count >= 3) {
+            const auto source2_reg = context.load_operand_register(2);
+            if (!source2_reg) {
+                return std::unexpected(source2_reg.error());
+            }
+
+            auto scalar_move_status = context.emit_move_register(*source2_reg,
+                                                                 *destination_reg,
+                                                                 scalar_width);
+            if (!scalar_move_status) {
+                return std::unexpected(scalar_move_status.error());
+            }
+            return true;
+        }
+    }
+
+    if (operand_count < 3) {
+        return false;
+    }
+
+    const auto source2_reg = context.load_operand_register(2);
+    if (!source2_reg) {
+        return std::unexpected(source2_reg.error());
+    }
+
+    if (mnemonic_lower == "vcvtss2sd" || mnemonic_lower == "vcvtsd2ss") {
+        const int source_width = mnemonic_lower == "vcvtss2sd" ? 4 : 8;
+        const int result_width = mnemonic_lower == "vcvtss2sd" ? 8 : 4;
+
+        ida::decompiler::MicrocodeInstruction instruction_ir;
+        instruction_ir.opcode = ida::decompiler::MicrocodeOpcode::FloatToFloat;
+        instruction_ir.floating_point_instruction = true;
+
+        instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.left.register_id = *source2_reg;
+        instruction_ir.left.byte_width = source_width;
+
+        instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.destination.register_id = *destination_reg;
+        instruction_ir.destination.byte_width = result_width;
+
+        auto emit_status = context.emit_instruction(instruction_ir);
+        if (!emit_status) {
+            return std::unexpected(emit_status.error());
+        }
+        return true;
+    }
+
+    if (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
+        || mnemonic_lower == "vminsd" || mnemonic_lower == "vmaxsd"
+        || mnemonic_lower == "vsqrtss" || mnemonic_lower == "vsqrtsd") {
+        const int scalar_width = mnemonic_lower.ends_with("ss") ? 4 : 8;
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        if (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
+            || mnemonic_lower == "vminsd" || mnemonic_lower == "vmaxsd") {
+            args.push_back(register_argument(*source1_reg, scalar_width, false));
+        }
+        args.push_back(register_argument(*source2_reg, scalar_width, false));
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+            helper,
+            args,
+            *destination_reg,
+            scalar_width,
+            false,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
+    }
+
+    const auto opcode = scalar_math_opcode(mnemonic_lower);
+    if (!opcode.has_value()) {
+        return false;
+    }
+
+    const int scalar_width = mnemonic_lower.ends_with("ss") ? 4 : 8;
+
+    ida::decompiler::MicrocodeInstruction instruction_ir;
+    instruction_ir.opcode = *opcode;
+    instruction_ir.floating_point_instruction = true;
+
+    instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+    instruction_ir.left.register_id = *source1_reg;
+    instruction_ir.left.byte_width = scalar_width;
+
+    instruction_ir.right.kind = ida::decompiler::MicrocodeOperandKind::Register;
+    instruction_ir.right.register_id = *source2_reg;
+    instruction_ir.right.byte_width = scalar_width;
+
+    instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+    instruction_ir.destination.register_id = *destination_reg;
+    instruction_ir.destination.byte_width = scalar_width;
+
+    auto emit_status = context.emit_instruction(instruction_ir);
+    if (!emit_status) {
+        return std::unexpected(emit_status.error());
+    }
+    return true;
+}
+
+class VmxAvxLifterFilter final : public ida::decompiler::MicrocodeFilter {
 public:
     bool match(const ida::decompiler::MicrocodeContext& context) override {
         auto decoded = ida::instruction::decode(context.address());
         if (!decoded) {
             return false;
         }
-        return is_supported_vmx_mnemonic(lower_copy(decoded->mnemonic()));
+        const std::string mnemonic = lower_copy(decoded->mnemonic());
+        return is_supported_vmx_mnemonic(mnemonic)
+            || is_supported_avx_scalar_mnemonic(mnemonic);
     }
 
     ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext& context) override {
@@ -277,8 +474,12 @@ public:
         auto lifted = try_lift_vmx_instruction(context,
                                                *decoded,
                                                lower_copy(decoded->mnemonic()));
+        const std::string mnemonic = lower_copy(decoded->mnemonic());
+        if (!lifted || !*lifted) {
+            lifted = try_lift_avx_scalar_instruction(context, *decoded, mnemonic);
+        }
         if (!lifted) {
-            ida::ui::message(fmt("[lifter-port] vmx lift failed @ %#llx: %s\n",
+            ida::ui::message(fmt("[lifter-port] subset lift failed @ %#llx: %s\n",
                                  static_cast<unsigned long long>(context.address()),
                                  error_text(lifted.error()).c_str()));
             return ida::decompiler::MicrocodeApplyResult::Error;
@@ -303,7 +504,7 @@ ida::Status install_vmx_lifter_filter() {
             "Hex-Rays decompiler is unavailable; VMX lifter filter is disabled"));
     }
 
-    auto token = ida::decompiler::register_microcode_filter(std::make_shared<VmxLifterFilter>());
+    auto token = ida::decompiler::register_microcode_filter(std::make_shared<VmxAvxLifterFilter>());
     if (!token) {
         return std::unexpected(token.error());
     }
@@ -354,11 +555,12 @@ ida::Result<std::size_t> count_call_expressions(const ida::decompiler::Decompile
 ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
-        "  1) VMX microcode lifting subset is now active via idax filter hooks + typed helper-call emission.\n"
+        "  1) VMX + AVX scalar microcode lifting subsets are now active via idax filter hooks.\n"
         "  2) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
         "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
-        "[lifter-port] Recently closed: hxe_maturity subscription, FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
+        "[lifter-port] Recently closed: VMX subset, AVX scalar math/conversion subset, hxe_maturity subscription,\n"
+        "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }
 
@@ -693,7 +895,7 @@ public:
             ida::ui::message(fmt("[lifter-port] VMX lifter filter disabled: %s\n",
                                  error_text(vmx_filter_status.error()).c_str()));
         } else {
-            ida::ui::message("[lifter-port] VMX microcode lifter filter enabled (subset).\n");
+            ida::ui::message("[lifter-port] VMX + AVX scalar microcode lifter filter enabled (subset).\n");
         }
 
         ida::ui::message(
