@@ -21,6 +21,8 @@ to idax-first surfaces.
 - Type-apply parity checks (`TypeInfo::from_declaration` + `TypeInfo::apply`).
 - Callsite listing for a callee (`ida::xref::refs_to` + decompiler call text via
   `ida::decompiler::for_each_expression`).
+- Runtime Appcall smoke path via `examples/tools/ida2py_port.cpp`
+  (`--appcall-smoke`, using `ida::debugger::appcall`).
 
 ## Recent parity closures
 
@@ -51,6 +53,10 @@ to idax-first surfaces.
   specific and was not treated as a required C++ wrapper parity goal.
 - The port probe intentionally focuses on static query/type/callsite workflows
   where idax is expected to be the primary abstraction layer.
-- Host runtime caveat remains: local execution of idalib tool examples on this
-  machine may still require a known-good runtime environment for functional
-  (non-help) validation.
+- Local functional execution is now verified for non-debugger flows when tool
+  examples are linked against real IDA runtime dylibs (not SDK stubs).
+- Appcall runtime validation still requires a debugger-capable host/session;
+  current host run fails cleanly with `dbg_appcall` error code `1552`
+  (no signal-11 crash).
+- Runtime validation procedure is tracked in
+  `docs/appcall_runtime_validation.md`.

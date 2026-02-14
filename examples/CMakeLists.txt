@@ -98,25 +98,71 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 endif()
 
 if(IDAX_BUILD_EXAMPLE_TOOLS)
-    if(COMMAND ida_add_idalib)
-        ida_add_idalib(idax_idalib_dump_port
-            TYPE EXECUTABLE
-            SOURCES tools/idalib_dump_port.cpp
-            LIBRARIES idax::idax
-        )
+    if(WIN32)
+        set(IDAX_IDALIB_LIB_NAME "idalib.lib")
+        set(IDAX_IDA_LIB_NAME "ida.lib")
+    elseif(APPLE)
+        set(IDAX_IDALIB_LIB_NAME "libidalib.dylib")
+        set(IDAX_IDA_LIB_NAME "libida.dylib")
+    else()
+        set(IDAX_IDALIB_LIB_NAME "libidalib.so")
+        set(IDAX_IDA_LIB_NAME "libida.so")
+    endif()
 
-        ida_add_idalib(idax_idalib_lumina_port
-            TYPE EXECUTABLE
-            SOURCES tools/idalib_lumina_port.cpp
-            LIBRARIES idax::idax
-        )
+    set(IDAX_EXAMPLE_IDA_RUNTIME_DIR "")
+    if(DEFINED ENV{IDADIR})
+        set(_ida_dir "$ENV{IDADIR}")
+        if(EXISTS "${_ida_dir}/${IDAX_IDALIB_LIB_NAME}" AND EXISTS "${_ida_dir}/${IDAX_IDA_LIB_NAME}")
+            set(IDAX_EXAMPLE_IDA_RUNTIME_DIR "${_ida_dir}")
+        endif()
+    endif()
 
-        ida_add_idalib(idax_ida2py_port
-            TYPE EXECUTABLE
-            SOURCES tools/ida2py_port.cpp
-            LIBRARIES idax::idax
-        )
+    if(NOT IDAX_EXAMPLE_IDA_RUNTIME_DIR AND APPLE)
+        foreach(_ver 9.3 9.2)
+            set(_try "/Applications/IDA Professional ${_ver}.app/Contents/MacOS")
+            if(EXISTS "${_try}/${IDAX_IDALIB_LIB_NAME}" AND EXISTS "${_try}/${IDAX_IDA_LIB_NAME}")
+                set(IDAX_EXAMPLE_IDA_RUNTIME_DIR "${_try}")
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    function(idax_add_idalib_tool TARGET_NAME SOURCE_FILE)
+        if(IDAX_EXAMPLE_IDA_RUNTIME_DIR)
+            add_executable(${TARGET_NAME} ${SOURCE_FILE})
+            target_link_libraries(${TARGET_NAME}
+                PRIVATE
+                    idax
+                    "${IDAX_EXAMPLE_IDA_RUNTIME_DIR}/${IDAX_IDALIB_LIB_NAME}"
+                    "${IDAX_EXAMPLE_IDA_RUNTIME_DIR}/${IDAX_IDA_LIB_NAME}"
+            )
+
+            if(APPLE)
+                set_target_properties(${TARGET_NAME} PROPERTIES
+                    BUILD_RPATH "${IDAX_EXAMPLE_IDA_RUNTIME_DIR}"
+                    INSTALL_RPATH "${IDAX_EXAMPLE_IDA_RUNTIME_DIR}"
+                )
+            endif()
+        elseif(COMMAND ida_add_idalib)
+            ida_add_idalib(${TARGET_NAME}
+                TYPE EXECUTABLE
+                SOURCES ${SOURCE_FILE}
+                LIBRARIES idax::idax
+            )
+        endif()
+    endfunction()
+
+    if(IDAX_EXAMPLE_IDA_RUNTIME_DIR)
+        message(STATUS "idax tool examples use IDA runtime: ${IDAX_EXAMPLE_IDA_RUNTIME_DIR}")
+    elseif(COMMAND ida_add_idalib)
+        message(STATUS "idax tool examples use SDK idalib stubs (set IDADIR for runtime-linked binaries)")
     else()
         message(WARNING "ida_add_idalib() is unavailable; skipping idalib tool examples")
+    endif()
+
+    if(COMMAND ida_add_idalib OR IDAX_EXAMPLE_IDA_RUNTIME_DIR)
+        idax_add_idalib_tool(idax_idalib_dump_port tools/idalib_dump_port.cpp)
+        idax_add_idalib_tool(idax_idalib_lumina_port tools/idalib_lumina_port.cpp)
+        idax_add_idalib_tool(idax_ida2py_port tools/ida2py_port.cpp)
     endif()
 endif()

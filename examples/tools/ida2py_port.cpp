@@ -43,6 +43,7 @@ struct CastRequest {
 struct Options {
     std::string input_file;
     bool list_user_symbols{false};
+    bool appcall_smoke{false};
     std::size_t max_symbols{200};
     bool quiet{false};
 
@@ -149,13 +150,14 @@ void print_usage(const char* program) {
     std::printf("  --show <name|address>          inspect symbol type/value/xref details (repeatable)\n");
     std::printf("  --cast <name|address> <decl>   apply C declaration at target then inspect\n");
     std::printf("  --callsites <name|address>     list callsites targeting the callee (repeatable)\n");
+    std::printf("  --appcall-smoke                run debugger appcall smoke (ref4(NULL))\n");
     std::printf("\nOptions:\n");
     std::printf("  --max-symbols <n>              cap for --list-user-symbols (default: 200)\n");
     std::printf("  -q, --quiet                    suppress startup metadata\n");
     std::printf("  -h, --help                     show this help\n\n");
     std::printf("Notes:\n");
     std::printf("  * This port intentionally focuses on ida2py's static-type/query workflows.\n");
-    std::printf("  * Dynamic execution is available via ida::debugger::appcall/executor hooks; this probe keeps runtime flow static-focused.\n");
+    std::printf("  * --appcall-smoke requires a debugger-capable runtime host/session.\n");
 }
 
 bool parse_arguments(int argc, char* argv[]) {
@@ -197,6 +199,10 @@ bool parse_arguments(int argc, char* argv[]) {
             g_options.callsites_targets.emplace_back(argv[++i]);
             continue;
         }
+        if (arg == "--appcall-smoke") {
+            g_options.appcall_smoke = true;
+            continue;
+        }
         if (arg == "--max-symbols") {
             if (i + 1 >= argc) {
                 std::fprintf(stderr, "--max-symbols requires a value\n");
@@ -236,7 +242,8 @@ bool parse_arguments(int argc, char* argv[]) {
     if (!g_options.list_user_symbols
         && g_options.show_symbols.empty()
         && g_options.casts.empty()
-        && g_options.callsites_targets.empty()) {
+        && g_options.callsites_targets.empty()
+        && !g_options.appcall_smoke) {
         g_options.list_user_symbols = true;
     }
 
@@ -626,6 +633,79 @@ ida::Status run_callsites() {
     return ida::ok();
 }
 
+ida::Status run_appcall_smoke() {
+    std::printf("%s\n", std::string(78, '=').c_str());
+    std::printf("Debugger Appcall Smoke\n");
+    std::printf("%s\n", std::string(78, '-').c_str());
+
+    auto target = ida::name::resolve("ref4");
+    if (!target) {
+        return std::unexpected(ida::Error::not_found(
+            "Could not resolve appcall smoke target",
+            "symbol=ref4"));
+    }
+
+    std::vector<ida::type::TypeInfo> argument_types;
+    argument_types.push_back(
+        ida::type::TypeInfo::pointer_to(ida::type::TypeInfo::int32()));
+
+    auto function_type = ida::type::TypeInfo::function_type(
+        ida::type::TypeInfo::int32(), argument_types);
+    if (!function_type) {
+        return std::unexpected(function_type.error());
+    }
+
+    ida::debugger::AppcallRequest request;
+    request.function_address = *target;
+    request.function_type = *function_type;
+
+    ida::debugger::AppcallValue null_pointer_argument;
+    null_pointer_argument.kind = ida::debugger::AppcallValueKind::Address;
+    null_pointer_argument.address_value = 0;
+    null_pointer_argument.unsigned_value = 0;
+    request.arguments.push_back(std::move(null_pointer_argument));
+
+    std::printf("Target: ref4 @ %s\n", address_text(*target).c_str());
+    std::printf("Call: int ref4(int* p) with p = NULL\n");
+
+    auto result = ida::debugger::appcall(request);
+    if (!result) {
+        return std::unexpected(result.error());
+    }
+
+    switch (result->return_value.kind) {
+        case ida::debugger::AppcallValueKind::SignedInteger:
+            std::printf("Return: signed=%lld\n",
+                        static_cast<long long>(result->return_value.signed_value));
+            break;
+        case ida::debugger::AppcallValueKind::UnsignedInteger:
+            std::printf("Return: unsigned=%llu\n",
+                        static_cast<unsigned long long>(result->return_value.unsigned_value));
+            break;
+        case ida::debugger::AppcallValueKind::FloatingPoint:
+            std::printf("Return: floating=%g\n", result->return_value.floating_value);
+            break;
+        case ida::debugger::AppcallValueKind::String:
+            std::printf("Return: string=%s\n", result->return_value.string_value.c_str());
+            break;
+        case ida::debugger::AppcallValueKind::Address:
+            std::printf("Return: address=%s\n",
+                        address_text(result->return_value.address_value).c_str());
+            break;
+        case ida::debugger::AppcallValueKind::Boolean:
+            std::printf("Return: bool=%s\n",
+                        result->return_value.boolean_value ? "true" : "false");
+            break;
+    }
+
+    if (!result->diagnostics.empty()) {
+        std::printf("Diagnostics: %s\n", result->diagnostics.c_str());
+    }
+
+    std::printf("\n");
+    return ida::ok();
+}
+
 int run_port() {
     DatabaseSession session;
     if (auto open_status = session.open(g_options.input_file); !open_status) {
@@ -660,6 +740,14 @@ int run_port() {
         std::fprintf(stderr, "callsite inspection failed: %s\n",
                      error_text(status.error()).c_str());
         return EXIT_FAILURE;
+    }
+
+    if (g_options.appcall_smoke) {
+        if (auto status = run_appcall_smoke(); !status) {
+            std::fprintf(stderr, "appcall smoke failed: %s\n",
+                         error_text(status.error()).c_str());
+            return EXIT_FAILURE;
+        }
     }
 
     return EXIT_SUCCESS;
