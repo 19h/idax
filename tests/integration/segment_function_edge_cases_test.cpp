@@ -181,6 +181,17 @@ void test_function_edge_cases() {
     CHECK_OK(ida::function::update(fn0->start()));
     CHECK_OK(ida::function::reanalyze(fn0->start()));
 
+    auto outlined_before = ida::function::is_outlined(fn0->start());
+    CHECK_OK(outlined_before);
+    if (outlined_before) {
+        CHECK_OK(ida::function::set_outlined(fn0->start(), !*outlined_before));
+        auto outlined_after = ida::function::is_outlined(fn0->start());
+        CHECK_OK(outlined_after);
+        if (outlined_after)
+            CHECK(*outlined_after == !*outlined_before);
+        CHECK_OK(ida::function::set_outlined(fn0->start(), *outlined_before));
+    }
+
     auto items = ida::function::item_addresses(fn0->start());
     auto codes = ida::function::code_addresses(fn0->start());
     CHECK_OK(items);

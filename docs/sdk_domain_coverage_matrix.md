@@ -100,4 +100,4 @@ Tracking rules:
 - `ida::core` / `ida::diagnostics`: intentionally compact cross-cutting helpers; not intended to mirror SDK-internal flag/counter breadth.
 - `ida::event`: intentionally curated typed IDB events + generic filtered routing; not intended to exhaustively mirror every raw IDB notification.
 - Real-world port audit follow-up (`docs/port_gap_audit_ida_qtform_idalib_dump.md`): audited non-Telegram paths currently have no open high-severity parity blockers; further expansion is additive and demand-driven.
-- Real-world port audit follow-up (`docs/port_gap_audit_lifter.md`): full lifter migration is currently blocked by missing decompiler write-path surfaces (microcode filter hooks/IR emission, maturity callbacks, and FUNC_OUTLINE cache invalidation parity).
+- Real-world port audit follow-up (`docs/port_gap_audit_lifter.md`): full lifter migration remains blocked by decompiler write-path gaps (microcode filter hooks/IR emission and raw view-handle context); maturity subscriptions and FUNC_OUTLINE/cache-dirty parity helpers are now covered.

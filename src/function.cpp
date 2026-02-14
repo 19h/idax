@@ -167,6 +167,31 @@ Status reanalyze(Address address) {
     return ida::ok();
 }
 
+Result<bool> is_outlined(Address address) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+    return (fn->flags & FUNC_OUTLINE) != 0;
+}
+
+Status set_outlined(Address address, bool outlined) {
+    func_t* fn = get_func(address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(address)));
+
+    if (outlined)
+        fn->flags |= FUNC_OUTLINE;
+    else
+        fn->flags &= ~FUNC_OUTLINE;
+
+    if (!update_func(fn))
+        return std::unexpected(Error::sdk("update_func failed",
+                                          std::to_string(address)));
+    return ida::ok();
+}
+
 // ── Comment access ──────────────────────────────────────────────────────
 
 Result<std::string> comment(Address ea, bool repeatable) {

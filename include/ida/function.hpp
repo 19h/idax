@@ -146,6 +146,12 @@ Status update(Address address);
 /// Schedule reanalysis for all items in the function containing \p address.
 Status reanalyze(Address address);
 
+/// Return true if the function is marked as outlined (`FUNC_OUTLINE`).
+Result<bool> is_outlined(Address address);
+
+/// Set or clear the outlined marker (`FUNC_OUTLINE`) on a function.
+Status set_outlined(Address address, bool outlined);
+
 // ── Comment access ──────────────────────────────────────────────────────
 
 Result<std::string> comment(Address address, bool repeatable = false);

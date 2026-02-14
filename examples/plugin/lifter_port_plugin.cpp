@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstdio>
 #include <string>
 #include <string_view>
@@ -34,8 +33,6 @@ std::string error_text(const ida::Error& error) {
 }
 
 constexpr std::string_view kPluginMenuPath = "Edit/Plugins/";
-constexpr std::string_view kOutlineIntentTag = "[lifter-outline-intent]";
-
 constexpr const char* kActionDumpSnapshot = "idax:lifter_port:dump_snapshot";
 constexpr const char* kActionToggleOutlineIntent = "idax:lifter_port:toggle_outline_intent";
 constexpr const char* kActionShowGaps = "idax:lifter_port:show_gaps";
@@ -102,9 +99,8 @@ ida::Status show_gap_report() {
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
         "  1) No decompiler microcode-filter install/remove API (match/apply hooks).\n"
         "  2) No public microcode IR write API (emit m_call/m_nop/m_ldx, helper calls, typed mops).\n"
-        "  3) No Hex-Rays maturity callback surface (hxe_maturity) for before/after pass instrumentation.\n"
-        "  4) No public FUNC_OUTLINE + mark_cfunc_dirty parity APIs for inline/outlining cache workflows.\n"
-        "  5) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n");
+        "  3) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n"
+        "[lifter-port] Recently closed: hxe_maturity subscription and FUNC_OUTLINE + cache-dirty helpers.\n");
     return ida::ok();
 }
 
@@ -173,25 +169,6 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
     return ida::ok();
 }
 
-std::string strip_ascii_space(std::string text) {
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front())) != 0) {
-        text.erase(text.begin());
-    }
-    while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back())) != 0) {
-        text.pop_back();
-    }
-    return text;
-}
-
-std::string remove_outline_intent_tag(std::string text) {
-    const std::size_t pos = text.find(kOutlineIntentTag);
-    if (pos == std::string::npos) {
-        return text;
-    }
-    text.erase(pos, kOutlineIntentTag.size());
-    return strip_ascii_space(text);
-}
-
 ida::Status toggle_outline_intent(const ida::plugin::ActionContext& context) {
     auto address = resolve_action_address(context);
     if (!address) {
@@ -203,41 +180,26 @@ ida::Status toggle_outline_intent(const ida::plugin::ActionContext& context) {
         return std::unexpected(function.error());
     }
 
-    auto existing_comment = ida::function::comment(function->start(), true);
-    if (!existing_comment) {
-        return std::unexpected(existing_comment.error());
-    }
+    auto outlined = ida::function::is_outlined(function->start());
+    if (!outlined)
+        return std::unexpected(outlined.error());
 
-    const bool currently_outlined =
-        existing_comment->find(kOutlineIntentTag) != std::string::npos;
-
-    std::string next_comment;
-    if (currently_outlined) {
-        next_comment = remove_outline_intent_tag(*existing_comment);
-    } else if (existing_comment->empty()) {
-        next_comment = std::string(kOutlineIntentTag);
-    } else {
-        next_comment = std::string(kOutlineIntentTag) + " " + *existing_comment;
-    }
-
-    if (auto set_status = ida::function::set_comment(function->start(), next_comment, true);
+    const bool next_outlined = !*outlined;
+    if (auto set_status = ida::function::set_outlined(function->start(), next_outlined);
         !set_status) {
         return std::unexpected(set_status.error());
     }
 
-    if (auto available = ida::decompiler::available(); available && *available) {
-        if (auto decompiled = ida::decompiler::decompile(function->start()); decompiled) {
-            (void)decompiled->refresh();
-        }
+    if (auto dirty_status = ida::decompiler::mark_dirty_with_callers(function->start());
+        !dirty_status) {
+        return std::unexpected(dirty_status.error());
     }
 
     ida::ui::message(fmt(
-        "[lifter-port] %s outline intent for %s @ %#llx (comment-tag fallback).\n",
-        currently_outlined ? "Cleared" : "Set",
+        "[lifter-port] %s FUNC_OUTLINE for %s @ %#llx and dirtied caller cache.\n",
+        next_outlined ? "Set" : "Cleared",
         function->name().c_str(),
         static_cast<unsigned long long>(function->start())));
-    ida::ui::message(
-        "[lifter-port] gap: FUNC_OUTLINE and mark_cfunc_dirty parity APIs are not yet public.\n");
     return ida::ok();
 }
 
@@ -292,8 +254,7 @@ ida::Status register_actions() {
     outline_action.id = kActionToggleOutlineIntent;
     outline_action.label = "Lifter Port: Toggle Outline Intent";
     outline_action.hotkey = "Ctrl-Alt-Shift-O";
-    outline_action.tooltip =
-        "Toggle outline intent tag on current function (FUNC_OUTLINE fallback path)";
+    outline_action.tooltip = "Toggle FUNC_OUTLINE on current function and dirty caller decompiler cache";
     outline_action.handler = []() {
         ida::plugin::ActionContext context;
         auto screen = ida::ui::screen_address();
