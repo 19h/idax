@@ -539,6 +539,38 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 callarg.type = vector_type;
                 break;
             }
+
+            case MicrocodeValueKind::TypeDeclarationView: {
+                if (argument.type_declaration.empty()) {
+                    return std::unexpected(Error::validation(
+                        "TypeDeclarationView argument requires a non-empty declaration",
+                        std::to_string(i)));
+                }
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                    return std::unexpected(Error::validation(
+                        "TypeDeclarationView argument requires explicit location",
+                        std::to_string(i)));
+                }
+
+                qstring declaration(argument.type_declaration.c_str());
+                if (!declaration.empty() && declaration.last() != ';')
+                    declaration.append(';');
+
+                qstring name;
+                tinfo_t declared_type;
+                if (!parse_decl(&declared_type,
+                                &name,
+                                nullptr,
+                                declaration.c_str(),
+                                PT_SIL)) {
+                    return std::unexpected(Error::validation(
+                        "Failed to parse TypeDeclarationView declaration",
+                        argument.type_declaration));
+                }
+
+                callarg.type = declared_type;
+                break;
+            }
         }
 
         auto location_status = apply_explicit_location(&callarg,

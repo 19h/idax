@@ -627,6 +627,45 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_decl_empty_argument;
+        bad_decl_empty_argument.kind = ida::decompiler::MicrocodeValueKind::TypeDeclarationView;
+        bad_decl_empty_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::StackOffset;
+        bad_decl_empty_argument.location.stack_offset = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_decl_empty_args{bad_decl_empty_argument};
+
+        auto bad_decl_empty_helper = context.emit_helper_call_with_arguments("idax_probe", bad_decl_empty_args);
+        if (!bad_decl_empty_helper
+            && bad_decl_empty_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_decl_missing_location_argument;
+        bad_decl_missing_location_argument.kind = ida::decompiler::MicrocodeValueKind::TypeDeclarationView;
+        bad_decl_missing_location_argument.type_declaration = "int";
+        std::vector<ida::decompiler::MicrocodeValue> bad_decl_missing_location_args{
+            bad_decl_missing_location_argument};
+
+        auto bad_decl_missing_location_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_decl_missing_location_args);
+        if (!bad_decl_missing_location_helper
+            && bad_decl_missing_location_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_decl_parse_argument;
+        bad_decl_parse_argument.kind = ida::decompiler::MicrocodeValueKind::TypeDeclarationView;
+        bad_decl_parse_argument.type_declaration = "this is not a C declaration";
+        bad_decl_parse_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::StackOffset;
+        bad_decl_parse_argument.location.stack_offset = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_decl_parse_args{bad_decl_parse_argument};
+
+        auto bad_decl_parse_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_decl_parse_args);
+        if (!bad_decl_parse_helper
+            && bad_decl_parse_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_location_argument;
         bad_location_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
         bad_location_argument.register_id = 0;
@@ -817,7 +856,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 25);
+        CHECK(filter->validation_hits >= 28);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

@@ -1110,6 +1110,7 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
     (void)ida::decompiler::MicrocodeValueKind::ByteArray;
     (void)ida::decompiler::MicrocodeValueKind::Vector;
+    (void)ida::decompiler::MicrocodeValueKind::TypeDeclarationView;
     (void)ida::decompiler::MicrocodeValueLocationKind::Register;
     (void)ida::decompiler::MicrocodeValueLocationKind::RegisterWithOffset;
     (void)ida::decompiler::MicrocodeValueLocationKind::RegisterPair;
@@ -1147,6 +1148,7 @@ void check_decompiler_surface() {
     (void)value.vector_element_count;
     (void)value.vector_elements_unsigned;
     (void)value.vector_elements_floating;
+    (void)value.type_declaration;
     (void)value.location;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
     ida::decompiler::MicrocodeCallOptions call_options;

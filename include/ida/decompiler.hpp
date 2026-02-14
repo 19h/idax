@@ -107,6 +107,7 @@ enum class MicrocodeValueKind : int {
     Float64Immediate,
     ByteArray,
     Vector,
+    TypeDeclarationView,
 };
 
 /// Explicit argument-location hint for helper-call arguments.
@@ -159,6 +160,7 @@ struct MicrocodeValue {
     int vector_element_count{0};
     bool vector_elements_unsigned{true};
     bool vector_elements_floating{false};
+    std::string type_declaration{};
     MicrocodeValueLocation location{};
 };
 
@@ -227,7 +229,7 @@ public:
 
     /// Emit helper call with typed arguments.
     ///
-    /// Current typed support includes scalar values and byte-array views.
+    /// Current typed support includes scalar values and byte-array/vector/type-declaration views.
     Status emit_helper_call_with_arguments(
         std::string_view helper_name,
         const std::vector<MicrocodeValue>& arguments);
