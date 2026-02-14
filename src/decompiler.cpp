@@ -8,19 +8,82 @@
 #include "detail/sdk_bridge.hpp"
 #include "detail/type_impl.hpp"
 #include <ida/decompiler.hpp>
+#include <ida/function.hpp>
 
 // hexrays.hpp is part of the IDA SDK and provides all decompiler APIs
 // through a single runtime dispatch pointer (no link dependencies).
 #include <hexrays.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdarg>
+#include <mutex>
+#include <unordered_map>
 
 namespace ida::decompiler {
 
 // ── Availability ────────────────────────────────────────────────────────
 
 static bool s_hexrays_initialized = false;
+
+namespace {
+
+std::mutex g_subscription_mutex;
+std::unordered_map<Token, std::function<void(const MaturityEvent&)>> g_maturity_callbacks;
+std::atomic<std::uint64_t> g_next_token{1};
+bool g_hexrays_callback_installed = false;
+
+Maturity to_maturity(int value) {
+    switch (value) {
+        case CMAT_ZERO:   return Maturity::Zero;
+        case CMAT_BUILT:  return Maturity::Built;
+        case CMAT_TRANS1: return Maturity::Trans1;
+        case CMAT_NICE:   return Maturity::Nice;
+        case CMAT_TRANS2: return Maturity::Trans2;
+        case CMAT_CPA:    return Maturity::Cpa;
+        case CMAT_TRANS3: return Maturity::Trans3;
+        case CMAT_CASTED: return Maturity::Casted;
+        case CMAT_FINAL:  return Maturity::Final;
+        default:          return Maturity::Zero;
+    }
+}
+
+ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
+    if (event != hxe_maturity)
+        return 0;
+
+    cfunc_t* cfunc = va_arg(va, cfunc_t*);
+    int maturity_raw = va_arg(va, int);
+
+    MaturityEvent evt;
+    if (cfunc != nullptr)
+        evt.function_address = static_cast<Address>(cfunc->entry_ea);
+    evt.new_maturity = to_maturity(maturity_raw);
+
+    std::vector<std::function<void(const MaturityEvent&)>> callbacks;
+    {
+        std::lock_guard<std::mutex> lock(g_subscription_mutex);
+        callbacks.reserve(g_maturity_callbacks.size());
+        for (const auto& [_, callback] : g_maturity_callbacks)
+            callbacks.push_back(callback);
+    }
+    for (const auto& callback : callbacks)
+        callback(evt);
+    return 0;
+}
+
+Status ensure_callback_installed_locked() {
+    if (g_hexrays_callback_installed)
+        return ida::ok();
+    if (!install_hexrays_callback(&hexrays_event_bridge, nullptr))
+        return std::unexpected(Error::sdk("install_hexrays_callback failed"));
+    g_hexrays_callback_installed = true;
+    return ida::ok();
+}
+
+} // namespace
+
+static Status ensure_hexrays();
 
 Result<bool> available() {
     if (s_hexrays_initialized)
@@ -30,6 +93,86 @@ Result<bool> available() {
         return true;
     }
     return false;
+}
+
+Result<Token> on_maturity_changed(std::function<void(const MaturityEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Maturity callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_maturity_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Status unsubscribe(Token token) {
+    if (token == 0)
+        return std::unexpected(Error::validation("Invalid subscription token"));
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    auto it = g_maturity_callbacks.find(token);
+    if (it == g_maturity_callbacks.end())
+        return std::unexpected(Error::not_found("Decompiler subscription token not found",
+                                                std::to_string(token)));
+    g_maturity_callbacks.erase(it);
+
+    if (g_maturity_callbacks.empty() && g_hexrays_callback_installed) {
+        remove_hexrays_callback(&hexrays_event_bridge, nullptr);
+        g_hexrays_callback_installed = false;
+    }
+    return ida::ok();
+}
+
+void ScopedSubscription::reset() {
+    if (token_ == 0)
+        return;
+    (void)unsubscribe(token_);
+    token_ = 0;
+}
+
+ScopedSubscription::~ScopedSubscription() {
+    reset();
+}
+
+Status mark_dirty(Address function_address, bool close_views) {
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    func_t* fn = get_func(function_address);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(function_address)));
+
+    if (!mark_cfunc_dirty(fn->start_ea, close_views))
+        return std::unexpected(Error::sdk("mark_cfunc_dirty failed",
+                                          std::to_string(function_address)));
+    return ida::ok();
+}
+
+Status mark_dirty_with_callers(Address function_address, bool close_views) {
+    auto st = mark_dirty(function_address, close_views);
+    if (!st)
+        return st;
+
+    auto caller_addresses = ida::function::callers(function_address);
+    if (!caller_addresses)
+        return std::unexpected(caller_addresses.error());
+
+    for (Address caller_address : *caller_addresses) {
+        st = mark_dirty(caller_address, close_views);
+        if (!st)
+            return st;
+    }
+    return ida::ok();
 }
 
 // ── Helper: ensure decompiler is initialized ────────────────────────────

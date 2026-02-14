@@ -94,8 +94,8 @@ attachment, decompiler pseudocode/microcode snapshot dumping, and an
 inline/outlining intent toggle fallback.
 
 It also prints a gap report for the currently missing APIs needed for a full
-AVX/VMX microcode-lifter migration (microcode filter install/mutate surfaces,
-Hex-Rays maturity callbacks, and FUNC_OUTLINE cache-invalidation parity).
+AVX/VMX microcode-lifter migration (microcode filter install/mutate surfaces and
+raw decompiler-view handle context for advanced per-view manipulations).
 
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
 

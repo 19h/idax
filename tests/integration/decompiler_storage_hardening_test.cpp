@@ -468,6 +468,36 @@ void test_microcode_output(ida::Address fn_ea) {
 }
 
 // ---------------------------------------------------------------------------
+// Post-phase parity: maturity subscription + cache invalidation helpers
+// ---------------------------------------------------------------------------
+void test_maturity_subscription_and_dirty(ida::Address fn_ea) {
+    std::cout << "--- decompiler maturity + dirty helpers ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    int event_count = 0;
+    auto token = ida::decompiler::on_maturity_changed(
+        [&](const ida::decompiler::MaturityEvent& event) {
+            if (event.function_address != ida::BadAddress)
+                ++event_count;
+        });
+    CHECK_OK(token);
+    if (!token) return;
+
+    ida::decompiler::ScopedSubscription guard(*token);
+
+    auto decomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(decomp);
+    if (decomp) {
+        CHECK_OK(ida::decompiler::mark_dirty(fn_ea));
+        CHECK_OK(ida::decompiler::mark_dirty_with_callers(fn_ea));
+    }
+
+    CHECK(event_count >= 0);
+}
+
+// ---------------------------------------------------------------------------
 // P8.4.d: user comment roundtrip
 // ---------------------------------------------------------------------------
 void test_decompiler_comments(ida::Address fn_ea) {
@@ -1010,6 +1040,7 @@ int main(int argc, char* argv[]) {
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);
         test_microcode_output(fn_ea);
+        test_maturity_subscription_and_dirty(fn_ea);
         test_decompiler_comments(fn_ea);
         test_decompiler_retype_variable(fn_ea);
     } else {

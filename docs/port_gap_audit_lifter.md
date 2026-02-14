@@ -38,23 +38,20 @@ to idax-first surfaces.
      writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
-3. No Hex-Rays maturity callback routing
-   - lifter uses `hxe_maturity` to capture before/after microcode stages and
-     decompilation debug instrumentation.
-   - Impact: stage-aware pass tracing and maturity-driven diagnostics are blocked.
-
-4. No FUNC_OUTLINE + global decompiler cache invalidation parity APIs
-   - lifter toggles `FUNC_OUTLINE`, calls `update_func`, and dirties current +
-     caller functions with `mark_cfunc_dirty`.
-   - idax fallback can tag comments and refresh one decompiled function, but
-     cannot reproduce kernel-level outlining + caller-cache invalidation semantics.
-   - Impact: inline/outlining workflow parity is partial.
-
-5. Action context is intentionally normalized and SDK-opaque
+3. Action context is intentionally normalized and SDK-opaque
    - lifter popup handlers rely on direct `vdui_t` / `cfunc_t` level handles.
    - idax `ActionContext` provides stable high-value fields (address/widget metadata)
      but not raw decompiler-view objects.
    - Impact: advanced per-view decompiler manipulations are limited.
+
+## Newly closed since initial audit
+
+- Added decompiler maturity subscriptions: `ida::decompiler::on_maturity_changed`,
+  `ida::decompiler::unsubscribe`, and RAII `ScopedSubscription`.
+- Added cache invalidation helpers: `ida::decompiler::mark_dirty` and
+  `ida::decompiler::mark_dirty_with_callers`.
+- Added function outlining helpers: `ida::function::is_outlined` and
+  `ida::function::set_outlined`.
 
 ## Notes
 

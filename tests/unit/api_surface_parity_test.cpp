@@ -192,6 +192,8 @@ void check_function_surface() {
 
     using FunctionUpdateFn = ida::Status(*)(ida::Address);
     using FunctionReanalyzeFn = ida::Status(*)(ida::Address);
+    using FunctionIsOutlinedFn = ida::Result<bool>(*)(ida::Address);
+    using FunctionSetOutlinedFn = ida::Status(*)(ida::Address, bool);
     using FunctionFrameByNameFn = ida::Result<ida::function::FrameVariable>(*)(ida::Address,
                                                                                std::string_view);
     using FunctionFrameByOffsetFn = ida::Result<ida::function::FrameVariable>(*)(ida::Address,
@@ -202,6 +204,8 @@ void check_function_surface() {
 
     (void)static_cast<FunctionUpdateFn>(&ida::function::update);
     (void)static_cast<FunctionReanalyzeFn>(&ida::function::reanalyze);
+    (void)static_cast<FunctionIsOutlinedFn>(&ida::function::is_outlined);
+    (void)static_cast<FunctionSetOutlinedFn>(&ida::function::set_outlined);
     (void)static_cast<FunctionFrameByNameFn>(&ida::function::frame_variable_by_name);
     (void)static_cast<FunctionFrameByOffsetFn>(&ida::function::frame_variable_by_offset);
     (void)static_cast<FunctionRegisterVarsFn>(&ida::function::register_variables);
@@ -1050,11 +1054,22 @@ void check_decompiler_surface() {
     using ExprCallArgCountFn = ida::Result<std::size_t>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallCalleeFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
+    using OnMaturityChangedFn = ida::Result<ida::decompiler::Token>(*)(
+        std::function<void(const ida::decompiler::MaturityEvent&)>);
+    using DecompilerUnsubscribeFn = ida::Status(*)(ida::decompiler::Token);
+    using MarkDirtyFn = ida::Status(*)(ida::Address, bool);
 
     ida::decompiler::DecompileFailure failure;
     (void)failure.request_address;
     (void)failure.failure_address;
     (void)failure.description;
+
+    ida::decompiler::MaturityEvent event;
+    (void)event.function_address;
+    (void)event.new_maturity;
+    (void)ida::decompiler::Maturity::Final;
+    static_assert(std::is_move_constructible_v<ida::decompiler::ScopedSubscription>);
+    static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSubscription>);
 
     (void)&ida::decompiler::available;
     (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
@@ -1068,6 +1083,10 @@ void check_decompiler_surface() {
     (void)static_cast<ExprCallArgCountFn>(&ida::decompiler::ExpressionView::call_argument_count);
     (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::call_callee);
     (void)static_cast<ExprCallArgFn>(&ida::decompiler::ExpressionView::call_argument);
+    (void)static_cast<OnMaturityChangedFn>(&ida::decompiler::on_maturity_changed);
+    (void)static_cast<DecompilerUnsubscribeFn>(&ida::decompiler::unsubscribe);
+    (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty);
+    (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty_with_callers);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────

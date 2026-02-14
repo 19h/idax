@@ -12,7 +12,7 @@ Public headers:
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
 | `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (file type/compiler/imports), snapshots, file/memory transfer |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
-| `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees |
+| `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers |
 | `include/ida/instruction.hpp` | Decode/create, operand access, representation controls, xref conveniences |
 | `include/ida/name.hpp` | Set/get/force/remove names, demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
@@ -30,7 +30,7 @@ Public headers:
 | `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| `include/ida/decompiler.hpp` | Decompile (including structured failure details), pseudocode/microcode extraction, variable rename/retype, ctree visitor, comment/orphan workflows, address mapping |
+| `include/ida/decompiler.hpp` | Decompile (including structured failure details), pseudocode/microcode extraction, maturity subscriptions, cache-dirty helpers, variable rename/retype, ctree visitor, comment/orphan workflows, address mapping |
 | `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
 See also:

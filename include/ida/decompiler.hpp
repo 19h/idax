@@ -21,6 +21,74 @@ class TypeInfo;
 
 namespace ida::decompiler {
 
+/// Ctree maturity stage.
+enum class Maturity : int {
+    Zero   = 0,
+    Built  = 1,
+    Trans1 = 2,
+    Nice   = 3,
+    Trans2 = 4,
+    Cpa    = 5,
+    Trans3 = 6,
+    Casted = 7,
+    Final  = 8,
+};
+
+/// Event payload for a ctree maturity transition.
+struct MaturityEvent {
+    Address  function_address{BadAddress};
+    Maturity new_maturity{Maturity::Zero};
+};
+
+/// Decompiler event subscription token.
+using Token = std::uint64_t;
+
+/// Subscribe to decompiler maturity transitions.
+/// Callback is fired on `hxe_maturity` events.
+Result<Token> on_maturity_changed(std::function<void(const MaturityEvent&)> callback);
+
+/// Remove a previously registered decompiler subscription.
+Status unsubscribe(Token token);
+
+/// RAII wrapper for decompiler event subscriptions.
+class ScopedSubscription {
+public:
+    ScopedSubscription() = default;
+    explicit ScopedSubscription(Token token) : token_(token) {}
+    ~ScopedSubscription();
+
+    ScopedSubscription(const ScopedSubscription&) = delete;
+    ScopedSubscription& operator=(const ScopedSubscription&) = delete;
+
+    ScopedSubscription(ScopedSubscription&& other) noexcept
+        : token_(other.token_) {
+        other.token_ = 0;
+    }
+    ScopedSubscription& operator=(ScopedSubscription&& other) noexcept {
+        if (this != &other) {
+            reset();
+            token_ = other.token_;
+            other.token_ = 0;
+        }
+        return *this;
+    }
+
+    void reset();
+    [[nodiscard]] Token token() const noexcept { return token_; }
+    [[nodiscard]] bool valid() const noexcept { return token_ != 0; }
+
+private:
+    Token token_{0};
+};
+
+/// Mark a decompiled function cache entry dirty.
+/// If `close_views` is true, open pseudocode views may be closed by the SDK.
+Status mark_dirty(Address function_address, bool close_views = false);
+
+/// Mark a function and all caller functions dirty in decompiler cache.
+/// This is useful after transformations that affect callsite-level decompilation.
+Status mark_dirty_with_callers(Address function_address, bool close_views = false);
+
 /// Check whether a Hex-Rays decompiler is available.
 /// Must be called before other decompiler functions.
 /// Returns true if the decompiler was initialized successfully.
