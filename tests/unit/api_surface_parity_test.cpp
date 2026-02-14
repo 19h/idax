@@ -1085,8 +1085,14 @@ void check_decompiler_surface() {
     using MicrocodeContextEmitStoreMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
     using MicrocodeContextEmitInstructionFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         const ida::decompiler::MicrocodeInstruction&);
+    using MicrocodeContextEmitInstructionWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        const ida::decompiler::MicrocodeInstruction&,
+        ida::decompiler::MicrocodeInsertPolicy);
     using MicrocodeContextEmitInstructionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         const std::vector<ida::decompiler::MicrocodeInstruction>&);
+    using MicrocodeContextEmitInstructionsWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        const std::vector<ida::decompiler::MicrocodeInstruction>&,
+        ida::decompiler::MicrocodeInsertPolicy);
     using MicrocodeContextEmitHelperFn = ida::Status(ida::decompiler::MicrocodeContext::*)(std::string_view);
     using MicrocodeContextEmitHelperArgsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         std::string_view,
@@ -1127,6 +1133,9 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
     (void)ida::decompiler::MicrocodeOperandKind::Empty;
     (void)ida::decompiler::MicrocodeOperandKind::Register;
+    (void)ida::decompiler::MicrocodeInsertPolicy::Tail;
+    (void)ida::decompiler::MicrocodeInsertPolicy::Beginning;
+    (void)ida::decompiler::MicrocodeInsertPolicy::BeforeTail;
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
@@ -1234,7 +1243,9 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextEmitLoadMemoryFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register);
     (void)static_cast<MicrocodeContextEmitStoreMemoryFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register);
     (void)static_cast<MicrocodeContextEmitInstructionFn>(&ida::decompiler::MicrocodeContext::emit_instruction);
+    (void)static_cast<MicrocodeContextEmitInstructionWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_instruction_with_policy);
     (void)static_cast<MicrocodeContextEmitInstructionsFn>(&ida::decompiler::MicrocodeContext::emit_instructions);
+    (void)static_cast<MicrocodeContextEmitInstructionsWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_instructions_with_policy);
     (void)static_cast<MicrocodeContextEmitHelperFn>(&ida::decompiler::MicrocodeContext::emit_helper_call);
     (void)static_cast<MicrocodeContextEmitHelperArgsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments);
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register);

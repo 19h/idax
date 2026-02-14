@@ -321,6 +321,41 @@ Status insert_call_instruction(MicrocodeContextImpl* impl,
     return ida::ok();
 }
 
+minsn_t* anchor_for_insert_policy(mblock_t* block,
+                                  MicrocodeInsertPolicy policy) {
+    if (block == nullptr)
+        return nullptr;
+
+    switch (policy) {
+        case MicrocodeInsertPolicy::Tail:
+            return block->tail;
+        case MicrocodeInsertPolicy::Beginning:
+            return nullptr;
+        case MicrocodeInsertPolicy::BeforeTail:
+            return block->tail == nullptr ? nullptr : block->tail->prev;
+    }
+    return block->tail;
+}
+
+Status reposition_emitted_instruction(MicrocodeContextImpl* impl,
+                                     minsn_t* emitted,
+                                     MicrocodeInsertPolicy policy) {
+    if (policy == MicrocodeInsertPolicy::Tail)
+        return ida::ok();
+    if (impl == nullptr || impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+    if (emitted == nullptr)
+        return std::unexpected(Error::internal("Cannot reposition null emitted instruction"));
+
+    auto* block = impl->codegen->mb;
+    block->remove_from_block(emitted);
+    minsn_t* anchor = anchor_for_insert_policy(block, policy);
+    minsn_t* inserted = block->insert_into_block(emitted, anchor);
+    if (inserted == nullptr)
+        return std::unexpected(Error::sdk("insert_into_block failed"));
+    return ida::ok();
+}
+
 struct CallArgumentsBuildResult {
     mcallargs_t arguments;
     bool has_explicit_locations{false};
@@ -873,6 +908,11 @@ Status MicrocodeContext::emit_noop() {
 }
 
 Status MicrocodeContext::emit_instruction(const MicrocodeInstruction& instruction) {
+    return emit_instruction_with_policy(instruction, MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction& instruction,
+                                                      MicrocodeInsertPolicy policy) {
     if (raw_ == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext is empty"));
 
@@ -898,6 +938,11 @@ Status MicrocodeContext::emit_instruction(const MicrocodeInstruction& instructio
         minsn_t* emitted = impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
         if (emitted == nullptr)
             return std::unexpected(Error::sdk("emit(m_nop) failed"));
+
+        auto move_status = reposition_emitted_instruction(impl, emitted, policy);
+        if (!move_status)
+            return move_status;
+
         if (instruction.floating_point_instruction)
             emitted->set_fpinsn();
         impl->emitted_noop = true;
@@ -929,14 +974,24 @@ Status MicrocodeContext::emit_instruction(const MicrocodeInstruction& instructio
             "emit typed instruction failed",
             std::to_string(static_cast<int>(instruction.opcode))));
     }
+
+    auto move_status = reposition_emitted_instruction(impl, emitted, policy);
+    if (!move_status)
+        return move_status;
+
     if (instruction.floating_point_instruction)
         emitted->set_fpinsn();
     return ida::ok();
 }
 
 Status MicrocodeContext::emit_instructions(const std::vector<MicrocodeInstruction>& instructions) {
+    return emit_instructions_with_policy(instructions, MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_instructions_with_policy(const std::vector<MicrocodeInstruction>& instructions,
+                                                       MicrocodeInsertPolicy policy) {
     for (std::size_t index = 0; index < instructions.size(); ++index) {
-        auto st = emit_instruction(instructions[index]);
+        auto st = emit_instruction_with_policy(instructions[index], policy);
         if (!st) {
             Error error = st.error();
             if (error.context.empty())

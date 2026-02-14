@@ -144,6 +144,13 @@ struct MicrocodeInstruction {
     bool floating_point_instruction{false};
 };
 
+/// Placement policy for emitted microcode instructions.
+enum class MicrocodeInsertPolicy : int {
+    Tail,        ///< Append at block tail (default behavior).
+    Beginning,   ///< Insert at block beginning.
+    BeforeTail,  ///< Insert immediately before current block tail.
+};
+
 /// Kind of typed microcode value used for helper-call arguments.
 enum class MicrocodeValueKind : int {
     Register,
@@ -257,8 +264,16 @@ public:
     /// opcode+operand emission without exposing SDK instruction types.
     Status emit_instruction(const MicrocodeInstruction& instruction);
 
+    /// Emit one typed instruction with explicit placement policy.
+    Status emit_instruction_with_policy(const MicrocodeInstruction& instruction,
+                                        MicrocodeInsertPolicy policy);
+
     /// Emit multiple typed microcode instructions in order.
     Status emit_instructions(const std::vector<MicrocodeInstruction>& instructions);
+
+    /// Emit multiple typed instructions with explicit placement policy.
+    Status emit_instructions_with_policy(const std::vector<MicrocodeInstruction>& instructions,
+                                         MicrocodeInsertPolicy policy);
 
     /// Load an instruction operand into a temporary register.
     /// Returns the SDK register id on success.

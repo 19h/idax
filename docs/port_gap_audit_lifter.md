@@ -131,8 +131,12 @@ be executed in small, testable API slices.
   - explicit insertion into microblocks (`insert_into_block(..., mb->tail)`),
     and lifetime ownership transfer expectations for emitted instructions.
 - Current idax status:
-  - partial. `MicrocodeContext` emits supported operations, but does not yet
-    expose explicit placement policies or block-level insertion controls.
+  - partial, with a baseline closure increment. `MicrocodeContext` now exposes
+    deterministic placement policy controls for typed instruction emission via
+    `MicrocodeInsertPolicy` (`Tail`, `Beginning`, `BeforeTail`) and
+    `emit_instruction_with_policy`/`emit_instructions_with_policy`.
+  - Remaining depth is placement control parity for helper-call and other
+    non-typed-emitter paths where concrete ports require it.
 - Migration impact:
   - medium. Some deterministic rewrite ordering patterns cannot be expressed
     through public APIs yet.
@@ -164,9 +168,11 @@ be executed in small, testable API slices.
    - Add additive per-argument metadata controls and richer return/call shape
      options beyond current scalar hints while keeping public SDK opacity.
 
-3. `P2` - Placement policy controls
-   - Add constrained insertion policy options (for example tail/current-before/
-     current-after style semantics) rather than exposing raw block internals.
+3. `P2` - Placement policy controls (baseline closure increment complete)
+   - `MicrocodeInsertPolicy` + policy-aware typed emission APIs provide
+     constrained insertion controls without exposing raw block internals.
+   - Remaining closure is demand-driven expansion to additional emission paths
+     beyond typed instruction emitters.
 
 4. `P3` - Typed high-value decompiler-view helpers
    - Add first-class wrappers only for repeatedly observed flows from real ports
@@ -186,6 +192,9 @@ be executed in small, testable API slices.
   `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`,
   `MicrocodeInstruction`, `MicrocodeContext::emit_instruction`, and
   `MicrocodeContext::emit_instructions`.
+- Added constrained placement controls for typed instruction emission:
+  `MicrocodeInsertPolicy`, `MicrocodeContext::emit_instruction_with_policy`,
+  and `MicrocodeContext::emit_instructions_with_policy`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
