@@ -98,6 +98,23 @@ enum class MicrocodeApplyResult : int {
     Error      = 2,  ///< Filter failed; SDK fallback is used.
 };
 
+/// Kind of typed microcode value used for helper-call arguments.
+enum class MicrocodeValueKind : int {
+    Register,
+    UnsignedImmediate,
+    SignedImmediate,
+};
+
+/// Typed microcode value for helper-call argument construction.
+struct MicrocodeValue {
+    MicrocodeValueKind kind{MicrocodeValueKind::Register};
+    int register_id{0};
+    std::uint64_t unsigned_immediate{0};
+    std::int64_t signed_immediate{0};
+    int byte_width{0};
+    bool unsigned_integer{true};
+};
+
 /// Opaque mutable context passed to microcode-filter callbacks.
 class MicrocodeContext {
 public:
@@ -140,6 +157,23 @@ public:
 
     /// Emit helper call with no explicit arguments.
     Status emit_helper_call(std::string_view helper_name);
+
+    /// Emit helper call with typed arguments.
+    ///
+    /// Current typed support is integer-oriented (`byte_width` 1/2/4/8).
+    Status emit_helper_call_with_arguments(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments);
+
+    /// Emit helper call with typed arguments and move the return value to a register.
+    ///
+    /// Current typed support is integer-oriented (`destination_byte_width` 1/2/4/8).
+    Status emit_helper_call_with_arguments_to_register(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        int destination_register,
+        int destination_byte_width,
+        bool destination_unsigned = true);
 
     struct Tag {};
     explicit MicrocodeContext(Tag, void* raw) noexcept : raw_(raw) {}

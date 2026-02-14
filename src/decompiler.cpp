@@ -99,6 +99,99 @@ Maturity to_maturity(int value) {
     }
 }
 
+bool make_integer_type(tinfo_t* out, int byte_width, bool is_unsigned) {
+    if (out == nullptr)
+        return false;
+    type_t base = 0;
+    switch (byte_width) {
+        case 1: base = BT_INT8; break;
+        case 2: base = BT_INT16; break;
+        case 4: base = BT_INT32; break;
+        case 8: base = BT_INT64; break;
+        default: return false;
+    }
+    if (is_unsigned)
+        base = static_cast<type_t>(base | BTMT_USIGNED);
+    *out = tinfo_t(base);
+    return true;
+}
+
+Status insert_call_instruction(MicrocodeContextImpl* impl,
+                               minsn_t* call,
+                               std::string_view helper_name) {
+    if (impl == nullptr || impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+    if (call == nullptr)
+        return std::unexpected(Error::sdk("create_helper_call failed",
+                                          std::string(helper_name)));
+
+    if (impl->codegen->mb->insert_into_block(call, impl->codegen->mb->tail) == nullptr) {
+        delete call;
+        return std::unexpected(Error::sdk("insert_into_block failed",
+                                          std::string(helper_name)));
+    }
+    return ida::ok();
+}
+
+Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& arguments,
+                                         ea_t instruction_address) {
+    mcallargs_t callargs;
+    callargs.reserve(arguments.size());
+
+    for (std::size_t i = 0; i < arguments.size(); ++i) {
+        const auto& argument = arguments[i];
+        if (argument.byte_width <= 0) {
+            return std::unexpected(Error::validation("Microcode argument byte width must be positive",
+                                                     std::to_string(i)));
+        }
+
+        tinfo_t argument_type;
+        const bool is_unsigned = argument.kind == MicrocodeValueKind::SignedImmediate
+                                     ? false
+                                     : argument.unsigned_integer;
+        if (!make_integer_type(&argument_type, argument.byte_width, is_unsigned)) {
+            return std::unexpected(Error::unsupported(
+                "Microcode typed argument width unsupported",
+                std::to_string(argument.byte_width)));
+        }
+
+        mcallarg_t callarg;
+        switch (argument.kind) {
+            case MicrocodeValueKind::Register:
+                callarg.set_regarg(static_cast<mreg_t>(argument.register_id),
+                                   argument.byte_width,
+                                   argument_type);
+                break;
+
+            case MicrocodeValueKind::UnsignedImmediate: {
+                mop_t immediate;
+                immediate.make_number(argument.unsigned_immediate,
+                                      argument.byte_width,
+                                      instruction_address,
+                                      0);
+                callarg.copy_mop(immediate);
+                callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::SignedImmediate: {
+                mop_t immediate;
+                immediate.make_number(static_cast<std::uint64_t>(argument.signed_immediate),
+                                      argument.byte_width,
+                                      instruction_address,
+                                      0);
+                callarg.copy_mop(immediate);
+                callarg.type = argument_type;
+                break;
+            }
+        }
+
+        callargs.push_back(std::move(callarg));
+    }
+
+    return callargs;
+}
+
 ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
     if (event != hxe_maturity)
         return 0;
@@ -411,14 +504,72 @@ Status MicrocodeContext::emit_helper_call(std::string_view helper_name) {
                                                            nullptr,
                                                            nullptr,
                                                            nullptr);
-    if (call == nullptr)
-        return std::unexpected(Error::sdk("create_helper_call failed", helper));
+    return insert_call_instruction(impl, call, helper);
+}
 
-    if (impl->codegen->mb->insert_into_block(call, impl->codegen->mb->tail) == nullptr) {
-        delete call;
-        return std::unexpected(Error::sdk("insert_into_block failed", helper));
+Status MicrocodeContext::emit_helper_call_with_arguments(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments) {
+    if (helper_name.empty())
+        return std::unexpected(Error::validation("Helper name cannot be empty"));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    auto callargs = build_call_arguments(arguments, impl->codegen->insn.ea);
+    if (!callargs)
+        return std::unexpected(callargs.error());
+
+    std::string helper(helper_name);
+    minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
+                                                            helper.c_str(),
+                                                            nullptr,
+                                                            callargs->empty() ? nullptr : &*callargs,
+                                                            nullptr);
+    return insert_call_instruction(impl, call, helper);
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_register(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    int destination_register,
+    int destination_byte_width,
+    bool destination_unsigned) {
+    if (helper_name.empty())
+        return std::unexpected(Error::validation("Helper name cannot be empty"));
+    if (destination_byte_width <= 0)
+        return std::unexpected(Error::validation("Destination byte width must be positive",
+                                                 std::to_string(destination_byte_width)));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    auto callargs = build_call_arguments(arguments, impl->codegen->insn.ea);
+    if (!callargs)
+        return std::unexpected(callargs.error());
+
+    tinfo_t return_type;
+    if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
+        return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
+                                                  std::to_string(destination_byte_width)));
     }
-    return ida::ok();
+
+    mop_t destination;
+    destination.make_reg(static_cast<mreg_t>(destination_register), destination_byte_width);
+
+    std::string helper(helper_name);
+    minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
+                                                            helper.c_str(),
+                                                            &return_type,
+                                                            callargs->empty() ? nullptr : &*callargs,
+                                                            &destination);
+    return insert_call_instruction(impl, call, helper);
 }
 
 Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter) {
