@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <map>
 #include <string>
 #include <string_view>
@@ -141,6 +142,190 @@ public:
 private:
     bool is_open_{false};
 };
+
+std::vector<std::pair<std::string, std::string>> debugger_launch_candidates(
+    std::string_view input_file) {
+    std::vector<std::pair<std::string, std::string>> candidates;
+    std::unordered_set<std::string> seen;
+
+    auto add_candidate = [&](const std::string& path, const std::string& working_dir) {
+        if (path.empty()) {
+            return;
+        }
+        const std::string key = path + "\n" + working_dir;
+        if (!seen.insert(key).second) {
+            return;
+        }
+        candidates.emplace_back(path, working_dir);
+    };
+
+    std::filesystem::path original{std::string(input_file)};
+    if (original.empty()) {
+        return candidates;
+    }
+
+    const std::string parent = original.has_parent_path() ? original.parent_path().string() : "";
+    add_candidate(original.string(), parent);
+
+    std::error_code ec;
+    const std::filesystem::path absolute = std::filesystem::absolute(original, ec);
+    if (!ec) {
+        const std::string absolute_parent =
+            absolute.has_parent_path() ? absolute.parent_path().string() : "";
+        add_candidate(absolute.string(), absolute_parent);
+    }
+
+    if (original.has_filename()) {
+        add_candidate(original.filename().string(), parent);
+        if (!ec) {
+            const std::string absolute_parent =
+                absolute.has_parent_path() ? absolute.parent_path().string() : "";
+            add_candidate(absolute.filename().string(), absolute_parent);
+        }
+    }
+
+    return candidates;
+}
+
+ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
+                                              bool* started_here) {
+    if (started_here != nullptr) {
+        *started_here = false;
+    }
+
+    auto state = ida::debugger::state();
+    if (!state) {
+        return std::unexpected(state.error());
+    }
+
+    bool started = false;
+    if (*state == ida::debugger::ProcessState::NoProcess) {
+        const auto candidates = debugger_launch_candidates(input_file);
+        if (candidates.empty()) {
+            return std::unexpected(
+                ida::Error::validation("No debuggee path available for appcall smoke"));
+        }
+
+        std::string launch_errors;
+        for (const auto& candidate : candidates) {
+            auto start_status = ida::debugger::start(candidate.first, "", candidate.second);
+            if (start_status) {
+                started = true;
+                break;
+            }
+
+            if (!launch_errors.empty()) {
+                launch_errors += " | ";
+            }
+            launch_errors += "path='" + candidate.first + "'";
+            if (!candidate.second.empty()) {
+                launch_errors += ", cwd='" + candidate.second + "'";
+            }
+            launch_errors += ": " + error_text(start_status.error());
+        }
+
+        if (!started) {
+            return std::unexpected(ida::Error::sdk(
+                "Failed to launch debuggee for appcall smoke",
+                launch_errors));
+        }
+    }
+
+    state = ida::debugger::state();
+    if (!state) {
+        return std::unexpected(state.error());
+    }
+
+    if (*state == ida::debugger::ProcessState::Running) {
+        auto suspend = ida::debugger::suspend();
+        if (!suspend) {
+            auto request_suspend = ida::debugger::request_suspend();
+            if (!request_suspend) {
+                return std::unexpected(ida::Error::sdk(
+                    "Failed to suspend debugger before appcall",
+                    error_text(suspend.error()) + " | "
+                        + error_text(request_suspend.error())));
+            }
+            auto run_requests = ida::debugger::run_requests();
+            if (!run_requests) {
+                return std::unexpected(run_requests.error());
+            }
+        }
+    }
+
+    state = ida::debugger::state();
+    if (!state) {
+        return std::unexpected(state.error());
+    }
+    if (*state == ida::debugger::ProcessState::NoProcess) {
+        return std::unexpected(
+            ida::Error::sdk("Debugger process is not active for appcall"));
+    }
+
+    if (started_here != nullptr) {
+        *started_here = started;
+    }
+    return ida::ok();
+}
+
+class ScopedAppcallDebugSession {
+public:
+    ida::Status prepare(std::string_view input_file) {
+        bool started = false;
+        auto status = ensure_debugger_ready_for_appcall(input_file, &started);
+        if (!status) {
+            return status;
+        }
+        started_here_ = started;
+        return ida::ok();
+    }
+
+    ~ScopedAppcallDebugSession() {
+        if (!started_here_) {
+            return;
+        }
+        auto state = ida::debugger::state();
+        if (state && *state != ida::debugger::ProcessState::NoProcess) {
+            (void)ida::debugger::terminate();
+        }
+    }
+
+private:
+    bool started_here_{false};
+};
+
+ida::Result<ida::debugger::AppcallResult> appcall_with_fallbacks(
+    const ida::debugger::AppcallRequest& base_request) {
+    std::vector<std::pair<std::string, ida::debugger::AppcallRequest>> attempts;
+    attempts.push_back({"default", base_request});
+
+    ida::debugger::AppcallRequest with_debug_event = base_request;
+    with_debug_event.options.include_debug_event = true;
+    attempts.push_back({"include_debug_event", with_debug_event});
+
+    if (auto current_thread = ida::debugger::current_thread_id(); current_thread) {
+        ida::debugger::AppcallRequest with_thread = with_debug_event;
+        with_thread.options.thread_id = *current_thread;
+        attempts.push_back({"include_debug_event+thread", with_thread});
+    }
+
+    std::string diagnostics;
+    for (const auto& attempt : attempts) {
+        auto result = ida::debugger::appcall(attempt.second);
+        if (result) {
+            return result;
+        }
+
+        if (!diagnostics.empty()) {
+            diagnostics += " | ";
+        }
+        diagnostics += attempt.first + ": " + error_text(result.error());
+    }
+
+    return std::unexpected(ida::Error::sdk(
+        "dbg_appcall failed after fallback attempts",
+        diagnostics));
+}
 
 void print_usage(const char* program) {
     std::printf("ida2py_port - idax-first port probe for ida2py workflows\n\n");
@@ -638,6 +823,11 @@ ida::Status run_appcall_smoke() {
     std::printf("Debugger Appcall Smoke\n");
     std::printf("%s\n", std::string(78, '-').c_str());
 
+    ScopedAppcallDebugSession debug_session;
+    if (auto ready = debug_session.prepare(g_options.input_file); !ready) {
+        return std::unexpected(ready.error());
+    }
+
     auto target = ida::name::resolve("ref4");
     if (!target) {
         return std::unexpected(ida::Error::not_found(
@@ -668,7 +858,7 @@ ida::Status run_appcall_smoke() {
     std::printf("Target: ref4 @ %s\n", address_text(*target).c_str());
     std::printf("Call: int ref4(int* p) with p = NULL\n");
 
-    auto result = ida::debugger::appcall(request);
+    auto result = appcall_with_fallbacks(request);
     if (!result) {
         return std::unexpected(result.error());
     }

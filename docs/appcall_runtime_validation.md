@@ -14,7 +14,7 @@ surface checks and external-executor dispatch tests).
 
 - Host has licensed IDA runtime/debugger support for the fixture platform.
 - `IDASDK` is configured and idax tool examples can be built.
-- Fixture is available: `tests/fixtures/simple_appcall_linux64`.
+- A C compiler is available (`cc`/`clang`/`gcc`) to build a host-native fixture.
 
 ## Build
 
@@ -25,6 +25,9 @@ cmake -S . -B build-port-gap \
   -DIDAX_BUILD_EXAMPLE_ADDONS=OFF \
   -DIDAX_BUILD_TESTS=OFF
 cmake --build build-port-gap --target idax_ida2py_port
+
+# Build host-native Appcall fixture (contains symbol ref4)
+scripts/build_appcall_fixture.sh build-port-gap/fixtures/simple_appcall_host
 ```
 
 ## Appcall Smoke Command
@@ -33,7 +36,7 @@ cmake --build build-port-gap --target idax_ida2py_port
 build-port-gap/examples/idax_ida2py_port \
   --quiet \
   --appcall-smoke \
-  tests/fixtures/simple_appcall_linux64
+  build-port-gap/fixtures/simple_appcall_host
 ```
 
 The smoke flow resolves `ref4` and calls:
@@ -55,6 +58,8 @@ On a debugger-capable host, output includes:
 ## If It Fails
 
 - Capture full stderr/stdout and the reported `ida::Error` context.
+- If startup fails with `start_process failed (return code: -1)` across all launch
+  candidates, classify as debugger-backend readiness gap on that host.
 - On hosts without a usable debugger backend/session, a graceful
   `dbg_appcall failed` error (for example error code `1552`) is expected and
   should be tracked as environment/runtime readiness, not a wrapper crash.
