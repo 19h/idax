@@ -2,11 +2,15 @@
 /// \brief Implementation of ida::debugger — process control, breakpoints, memory.
 
 #include "detail/sdk_bridge.hpp"
+#include "detail/type_impl.hpp"
 #include <ida/debugger.hpp>
 
 #include <dbg.hpp>
+#include <expr.hpp>
 #include <idd.hpp>
+#include <limits>
 #include <mutex>
+#include <unordered_map>
 
 namespace ida::debugger {
 
@@ -403,6 +407,340 @@ Result<bool> is_custom_register(std::string_view register_name) {
     if (!info)
         return std::unexpected(info.error());
     return ::is_reg_custom(info->name.c_str());
+}
+
+// ── Appcall + external executor surface ────────────────────────────────
+
+namespace {
+
+Result<thid_t> to_thread_id(const AppcallOptions& options) {
+    if (!options.thread_id)
+        return NO_THREAD;
+    if (*options.thread_id <= 0)
+        return std::unexpected(Error::validation("thread_id must be positive",
+                                                 std::to_string(*options.thread_id)));
+    return static_cast<thid_t>(*options.thread_id);
+}
+
+Result<int> to_appcall_flags(const AppcallOptions& options) {
+    int flags = 0;
+    if (options.manual)
+        flags |= APPCALL_MANUAL;
+    if (options.include_debug_event)
+        flags |= APPCALL_DEBEV;
+    if (options.timeout_milliseconds) {
+        if (*options.timeout_milliseconds > 0xFFFFu) {
+            return std::unexpected(Error::validation(
+                "timeout_milliseconds exceeds APPCALL limit",
+                std::to_string(*options.timeout_milliseconds)));
+        }
+        flags |= SET_APPCALL_TIMEOUT(*options.timeout_milliseconds);
+    }
+    return flags;
+}
+
+Result<ida::type::TypeInfo> normalize_appcall_type(const ida::type::TypeInfo& input) {
+    ida::type::TypeInfo resolved = input;
+    if (input.is_typedef()) {
+        auto unaliased = input.resolve_typedef();
+        if (!unaliased)
+            return std::unexpected(unaliased.error());
+        resolved = *unaliased;
+    }
+
+    if (resolved.is_function())
+        return resolved;
+
+    if (resolved.is_pointer()) {
+        auto pointee = resolved.pointee_type();
+        if (!pointee)
+            return std::unexpected(pointee.error());
+        if (pointee->is_function())
+            return *pointee;
+    }
+
+    return std::unexpected(Error::validation(
+        "Appcall requires a function or pointer-to-function type"));
+}
+
+Status to_idc_value(idc_value_t* out, const AppcallValue& value) {
+    if (out == nullptr)
+        return std::unexpected(Error::internal("null idc value destination"));
+
+    switch (value.kind) {
+        case AppcallValueKind::SignedInteger:
+            out->set_int64(static_cast<int64>(value.signed_value));
+            return ida::ok();
+        case AppcallValueKind::UnsignedInteger:
+            if (value.unsigned_value > static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())) {
+                return std::unexpected(Error::validation(
+                    "Unsigned appcall value exceeds IDC signed range",
+                    std::to_string(value.unsigned_value)));
+            }
+            out->set_int64(static_cast<int64>(value.unsigned_value));
+            return ida::ok();
+        case AppcallValueKind::FloatingPoint:
+        {
+            fpvalue_t fp;
+            if (fp.from_double(value.floating_value) != REAL_ERROR_OK) {
+                return std::unexpected(Error::validation(
+                    "Floating-point argument conversion failed",
+                    std::to_string(value.floating_value)));
+            }
+            out->set_float(fp);
+            return ida::ok();
+        }
+        case AppcallValueKind::String:
+            out->set_string(value.string_value.c_str());
+            return ida::ok();
+        case AppcallValueKind::Address:
+            if (value.address_value > static_cast<Address>(std::numeric_limits<std::int64_t>::max())) {
+                return std::unexpected(Error::validation(
+                    "Address appcall value exceeds IDC signed range",
+                    std::to_string(value.address_value)));
+            }
+            out->set_int64(static_cast<int64>(value.address_value));
+            return ida::ok();
+        case AppcallValueKind::Boolean:
+            out->set_long(value.boolean_value ? 1 : 0);
+            return ida::ok();
+    }
+
+    return std::unexpected(Error::validation("Unsupported appcall argument kind"));
+}
+
+Result<std::string> render_idc_value(const idc_value_t& value) {
+    qstring out;
+    if (!print_idcv(&out, value, nullptr, 0))
+        return std::unexpected(Error::sdk("print_idcv failed"));
+    return ida::detail::to_string(out);
+}
+
+Result<AppcallValue> from_idc_value(const idc_value_t& value, bool pointer_return) {
+    AppcallValue out;
+
+    auto numeric_to_output = [&](std::int64_t signed_number) -> AppcallValue {
+        AppcallValue converted;
+        converted.signed_value = signed_number;
+        converted.unsigned_value = static_cast<std::uint64_t>(signed_number);
+        if (pointer_return) {
+            converted.kind = AppcallValueKind::Address;
+            converted.address_value = static_cast<Address>(converted.unsigned_value);
+        } else {
+            converted.kind = AppcallValueKind::SignedInteger;
+        }
+        return converted;
+    };
+
+    switch (value.vtype) {
+        case VT_LONG:
+            return numeric_to_output(static_cast<std::int64_t>(value.num));
+        case VT_INT64:
+            return numeric_to_output(static_cast<std::int64_t>(value.i64));
+        case VT_FLOAT:
+        {
+            double d = 0.0;
+            if (value.e.to_double(&d) != REAL_ERROR_OK) {
+                return std::unexpected(Error::unsupported(
+                    "Unsupported floating-point return value format"));
+            }
+            out.kind = AppcallValueKind::FloatingPoint;
+            out.floating_value = d;
+            return out;
+        }
+        case VT_STR:
+            out.kind = AppcallValueKind::String;
+            out.string_value = ida::detail::to_string(value.qstr());
+            return out;
+        case VT_PVOID:
+            out.kind = AppcallValueKind::Address;
+            out.address_value = static_cast<Address>(reinterpret_cast<std::uintptr_t>(value.pvoid));
+            out.unsigned_value = static_cast<std::uint64_t>(out.address_value);
+            return out;
+        default:
+            break;
+    }
+
+    idc_value_t numeric(value);
+    if (idcv_num(&numeric) == eOk) {
+        if (numeric.vtype == VT_LONG)
+            return numeric_to_output(static_cast<std::int64_t>(numeric.num));
+        if (numeric.vtype == VT_INT64)
+            return numeric_to_output(static_cast<std::int64_t>(numeric.i64));
+    }
+
+    return std::unexpected(Error::unsupported(
+        "Unsupported appcall return value kind",
+        std::to_string(static_cast<int>(value.vtype))));
+}
+
+class ExecutorRegistry {
+public:
+    static ExecutorRegistry& instance() {
+        static ExecutorRegistry registry;
+        return registry;
+    }
+
+    Status register_named(std::string_view name,
+                          const std::shared_ptr<AppcallExecutor>& executor) {
+        if (name.empty())
+            return std::unexpected(Error::validation("Executor name cannot be empty"));
+        if (!executor)
+            return std::unexpected(Error::validation("Executor pointer cannot be null"));
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        const std::string key(name);
+        if (executors_.contains(key)) {
+            return std::unexpected(Error::conflict(
+                "Executor is already registered", key));
+        }
+        executors_.emplace(key, executor);
+        return ida::ok();
+    }
+
+    Status unregister_named(std::string_view name) {
+        if (name.empty())
+            return std::unexpected(Error::validation("Executor name cannot be empty"));
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        const std::string key(name);
+        auto it = executors_.find(key);
+        if (it == executors_.end()) {
+            return std::unexpected(Error::not_found(
+                "Executor is not registered", key));
+        }
+        executors_.erase(it);
+        return ida::ok();
+    }
+
+    Result<std::shared_ptr<AppcallExecutor>> find_named(std::string_view name) {
+        if (name.empty())
+            return std::unexpected(Error::validation("Executor name cannot be empty"));
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        const std::string key(name);
+        auto it = executors_.find(key);
+        if (it == executors_.end()) {
+            return std::unexpected(Error::not_found(
+                "Executor is not registered", key));
+        }
+        return it->second;
+    }
+
+private:
+    std::mutex mutex_;
+    std::unordered_map<std::string, std::shared_ptr<AppcallExecutor>> executors_;
+};
+
+} // anonymous namespace
+
+Result<AppcallResult> appcall(const AppcallRequest& request) {
+    if (request.function_address == BadAddress) {
+        return std::unexpected(Error::validation("Invalid function address"));
+    }
+
+    auto type_info = normalize_appcall_type(request.function_type);
+    if (!type_info)
+        return std::unexpected(type_info.error());
+
+    auto thread_id = to_thread_id(request.options);
+    if (!thread_id)
+        return std::unexpected(thread_id.error());
+
+    auto flags = to_appcall_flags(request.options);
+    if (!flags)
+        return std::unexpected(flags.error());
+
+    const auto* impl = ida::type::TypeInfoAccess::get(*type_info);
+    if (impl == nullptr) {
+        return std::unexpected(Error::internal("TypeInfo implementation is null"));
+    }
+
+    std::vector<idc_value_t> argv(request.arguments.size());
+    for (std::size_t i = 0; i < request.arguments.size(); ++i) {
+        auto status = to_idc_value(&argv[i], request.arguments[i]);
+        if (!status) {
+            auto err = status.error();
+            std::string context = "argument_index=" + std::to_string(i);
+            if (!err.context.empty())
+                context += ":" + err.context;
+            err.context = context;
+            return std::unexpected(err);
+        }
+    }
+
+    idc_value_t return_value;
+    error_t rc = dbg_appcall(&return_value,
+                             static_cast<ea_t>(request.function_address),
+                             *thread_id,
+                             &impl->ti,
+                             argv.empty() ? nullptr : argv.data(),
+                             argv.size());
+    if (rc != eOk) {
+        std::string context = "error_code=" + std::to_string(rc);
+        if (auto rendered = render_idc_value(return_value); rendered && !rendered->empty())
+            context += ", return=" + *rendered;
+        return std::unexpected(Error::sdk("dbg_appcall failed", context));
+    }
+
+    bool pointer_return = false;
+    if (auto return_type = type_info->function_return_type(); return_type) {
+        pointer_return = return_type->is_pointer();
+    }
+
+    auto converted = from_idc_value(return_value, pointer_return);
+    if (!converted)
+        return std::unexpected(converted.error());
+
+    AppcallResult result;
+    result.return_value = std::move(*converted);
+    return result;
+}
+
+Status cleanup_appcall(std::optional<int> thread_id) {
+    thid_t tid = NO_THREAD;
+    if (thread_id) {
+        if (*thread_id <= 0) {
+            return std::unexpected(Error::validation("thread_id must be positive",
+                                                     std::to_string(*thread_id)));
+        }
+        tid = static_cast<thid_t>(*thread_id);
+    }
+
+    error_t rc = ::cleanup_appcall(tid);
+    if (rc != eOk) {
+        return std::unexpected(Error::sdk("cleanup_appcall failed",
+                                          "error_code=" + std::to_string(rc)));
+    }
+    return ida::ok();
+}
+
+Status register_executor(std::string_view name,
+                         std::shared_ptr<AppcallExecutor> executor) {
+    return ExecutorRegistry::instance().register_named(name, executor);
+}
+
+Status unregister_executor(std::string_view name) {
+    return ExecutorRegistry::instance().unregister_named(name);
+}
+
+Result<AppcallResult> appcall_with_executor(std::string_view name,
+                                            const AppcallRequest& request) {
+    auto executor = ExecutorRegistry::instance().find_named(name);
+    if (!executor)
+        return std::unexpected(executor.error());
+
+    auto result = (*executor)->execute(request);
+    if (!result) {
+        auto err = result.error();
+        std::string prefix = "executor=" + std::string(name);
+        if (err.context.empty())
+            err.context = prefix;
+        else
+            err.context = prefix + ":" + err.context;
+        return std::unexpected(err);
+    }
+    return result;
 }
 
 // ── Debugger event listener ─────────────────────────────────────────────

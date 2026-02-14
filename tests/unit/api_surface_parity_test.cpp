@@ -782,6 +782,38 @@ void check_debugger_surface() {
     (void)ri.may_contain_address;
     (void)ri.custom_format;
 
+    (void)ida::debugger::AppcallValueKind::SignedInteger;
+    (void)ida::debugger::AppcallValueKind::UnsignedInteger;
+    (void)ida::debugger::AppcallValueKind::FloatingPoint;
+    (void)ida::debugger::AppcallValueKind::String;
+    (void)ida::debugger::AppcallValueKind::Address;
+    (void)ida::debugger::AppcallValueKind::Boolean;
+
+    ida::debugger::AppcallValue appcall_value;
+    (void)appcall_value.kind;
+    (void)appcall_value.signed_value;
+    (void)appcall_value.unsigned_value;
+    (void)appcall_value.floating_value;
+    (void)appcall_value.string_value;
+    (void)appcall_value.address_value;
+    (void)appcall_value.boolean_value;
+
+    ida::debugger::AppcallOptions appcall_options;
+    (void)appcall_options.thread_id;
+    (void)appcall_options.manual;
+    (void)appcall_options.include_debug_event;
+    (void)appcall_options.timeout_milliseconds;
+
+    ida::debugger::AppcallRequest appcall_request;
+    (void)appcall_request.function_address;
+    (void)appcall_request.function_type;
+    (void)appcall_request.arguments;
+    (void)appcall_request.options;
+
+    ida::debugger::AppcallResult appcall_result;
+    (void)appcall_result.return_value;
+    (void)appcall_result.diagnostics;
+
     using ThreadCountFn = ida::Result<std::size_t>(*)();
     using ThreadIdAtFn = ida::Result<int>(*)(std::size_t);
     using ThreadNameAtFn = ida::Result<std::string>(*)(std::size_t);
@@ -796,6 +828,11 @@ void check_debugger_surface() {
     using RegisterInfoFn = ida::Result<ida::debugger::RegisterInfo>(*)(std::string_view);
     using RegisterPredFn = ida::Result<bool>(*)(std::string_view);
     using RequestRunToFn = ida::Status(*)(ida::Address);
+    using AppcallFn = ida::Result<ida::debugger::AppcallResult>(*)(const ida::debugger::AppcallRequest&);
+    using CleanupAppcallFn = ida::Status(*)(std::optional<int>);
+    using RegisterExecutorFn = ida::Status(*)(std::string_view, std::shared_ptr<ida::debugger::AppcallExecutor>);
+    using UnregisterExecutorFn = ida::Status(*)(std::string_view);
+    using AppcallWithExecutorFn = ida::Result<ida::debugger::AppcallResult>(*)(std::string_view, const ida::debugger::AppcallRequest&);
 
     (void)&ida::debugger::is_request_running;
     (void)&ida::debugger::run_requests;
@@ -821,6 +858,11 @@ void check_debugger_surface() {
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_integer_register);
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_floating_register);
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_custom_register);
+    (void)static_cast<AppcallFn>(&ida::debugger::appcall);
+    (void)static_cast<CleanupAppcallFn>(&ida::debugger::cleanup_appcall);
+    (void)static_cast<RegisterExecutorFn>(&ida::debugger::register_executor);
+    (void)static_cast<UnregisterExecutorFn>(&ida::debugger::unregister_executor);
+    (void)static_cast<AppcallWithExecutorFn>(&ida::debugger::appcall_with_executor);
 
     static_assert(std::is_move_constructible_v<ida::debugger::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::debugger::ScopedSubscription>);

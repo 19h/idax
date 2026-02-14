@@ -518,6 +518,8 @@ Entries below summarize key findings to preserve as implementation guardrails.
 103. [2026-02-14] ida2py parity closure: `ida::type::TypeInfo` now includes decomposition + typedef-resolution helpers (`is_typedef`, `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`). Impact: recursive typed-value tooling can inspect pointer/array/typedef structure through pure idax APIs without SDK-side type peeling. Mitigation: keep integration + compile-only coverage and exercise decomposition output in `examples/tools/ida2py_port.cpp`.
 104. [2026-02-14] ida2py parity closure: `ida::decompiler::ExpressionView` now includes typed call-subexpression accessors (`call_callee`, `call_argument(index)`) in addition to `call_argument_count`. Impact: callsite argument workflows (for example extracting first `printf` argument expressions) are now portable through public visitor views without raw SDK ctree pointer access. Mitigation: keep integration + compile-only coverage and exercise rendered call callee/arg snippets in `examples/tools/ida2py_port.cpp`.
 105. [2026-02-14] ida2py parity closure: `ida::data` now includes generic typed-value read/write APIs (`read_typed`, `write_typed`, `TypedValue`, `TypedValueKind`) with recursive array support and byte-array/string write paths. Impact: ports can materialize and update values from `TypeInfo` through one wrapper-native path instead of hand-rolling per-width/per-kind decoders. Mitigation: keep integration + compile-only coverage and route `examples/tools/ida2py_port.cpp` typed previews through `read_typed` as a regression path.
+106. [2026-02-14] ida2py parity closure: `ida::debugger` now includes an Appcall + pluggable executor surface (`AppcallRequest`/`AppcallValue`, `appcall`, `cleanup_appcall`, `AppcallExecutor`, `register_executor`, `appcall_with_executor`). Impact: dynamic invocation flows can now be modeled through pure idax APIs, including external-engine dispatch hooks (for example angr-backed executors) without SDK escapes. Mitigation: keep compile-only + integration coverage and validate real Appcall execution paths on a known-good debugger runtime host.
+107. [2026-02-14] Matrix coverage drift risk for tool-port examples: validation automation previously propagated addon example toggles but not `IDAX_BUILD_EXAMPLE_TOOLS`, so idalib tool ports (`idalib_dump_port`, `idalib_lumina_port`, `ida2py_port`) could regress unnoticed in hosted compile/unit rows. Impact: medium for real-world portability confidence. Mitigation: plumb `IDAX_BUILD_EXAMPLE_TOOLS` through `scripts/run_validation_matrix.sh`, enable it in `.github/workflows/validation-matrix.yml`, and document the expanded matrix scope.
 
 ---
 
@@ -581,6 +583,8 @@ Format: `[date] decision - rationale`
 - [2026-02-14] Add `TypeInfo` decomposition and typedef-resolution helpers (`is_typedef`, `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`) - closes the next highest-leverage ida2py static-query gap with additive introspection APIs and no opacity regressions - alternatives considered: keep decomposition logic only in external port code (rejected, duplicated complexity), expose raw SDK `tinfo_t` utilities in public headers (rejected, breaks opaque conceptual surface) - impact: pointer/array/typedef peeling is now first-class in idax and available to migration tooling without SDK escape hatches.
 - [2026-02-14] Add typed decompiler call-subexpression accessors on `ExpressionView` (`call_callee`, `call_argument(index)`) - closes the ida2py callsite-argument inspection gap with additive visitor-view APIs and no SDK type leakage - alternatives considered: keep call parsing in external examples only (rejected, weak portability/discoverability), expose raw `cexpr_t*` in public callbacks (rejected, breaks opaque boundary) - impact: callsite workflows can now inspect callee/argument expressions directly through idax.
 - [2026-02-14] Add generic typed-value facade in `ida::data` (`TypedValue`, `TypedValueKind`, `read_typed`, `write_typed`) with recursive array materialization and byte-array/string write paths - closes the ida2py typed-value materialization gap without exposing raw SDK type/value plumbing - alternatives considered: keep typed decoding logic only in external ports (rejected, duplicated and less discoverable), expose SDK-level typed-value helpers directly (rejected, weakens opaque conceptual API) - impact: `TypeInfo`-driven value inspection/update is now a first-class idax workflow.
+- [2026-02-14] Add Appcall + pluggable executor facade in `ida::debugger` (`AppcallValue`, `AppcallRequest`, `appcall`, `cleanup_appcall`, `AppcallExecutor`, `register_executor`, `appcall_with_executor`) - closes the ida2py dynamic invocation API gap with both debugger-native and external-engine extension paths while preserving opaque boundaries - alternatives considered: keep dynamic execution out-of-scope (rejected, leaves ida2py parity gap open), expose raw SDK `idc_value_t`/`dbg_appcall` types in public API (rejected, breaks conceptual opacity) - impact: dynamic invocation is now first-class in idax API design and can be validated incrementally by host/runtime.
+- [2026-02-14] Expand matrix automation scope to compile idalib tool-port examples by default (`IDAX_BUILD_EXAMPLE_TOOLS`) - keeps real-world port probes (`ida2py`/`idalib_dump`/`idalib_lumina`) in the standard compile-only + unit regression path alongside addon examples - alternatives considered: keep tool examples out of matrix and rely on ad hoc local builds (rejected, higher drift risk), add a separate tools-only workflow (rejected, extra maintenance and slower signal) - impact: hosted/local matrix runs now catch tool-port compile regressions as part of baseline validation.
 
 ---
 
@@ -690,6 +694,8 @@ Format: `[YYYY-MM-DD HH:MM] scope - change - evidence`
 - [2026-02-14 05:55] Post-Phase-10 parity follow-up - Added `ida::type::TypeInfo` decomposition + typedef-resolution APIs (`is_typedef`, `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`), expanded compile-only + integration coverage (`api_surface_parity`, `type_roundtrip`), updated ida2py port probe output to use new type-peeling helpers, and refreshed ida2py gap docs to mark decomposition closure - Evidence: `cmake --build build --target idax_api_surface_check idax_type_roundtrip_test` (pass), `ctest --test-dir build --output-on-failure -R "api_surface_parity|type_roundtrip"` (2/2 pass), `cmake --build build-port-gap --target idax_ida2py_port` (pass), `build-port-gap/examples/idax_ida2py_port --help` (pass).
 - [2026-02-14 06:20] Post-Phase-10 parity follow-up - Added `ida::decompiler::ExpressionView` call-subexpression accessors (`call_callee`, `call_argument(index)`), expanded compile-only + integration coverage (`api_surface_parity`, `decompiler_storage_hardening`), updated ida2py port probe callsite rendering to include callee/arg details, and refreshed ida2py gap docs to mark call-expression access closure - Evidence: `cmake --build build --target idax_api_surface_check idax_decompiler_storage_hardening_test` (pass), `ctest --test-dir build --output-on-failure -R "api_surface_parity|decompiler_storage_hardening"` (2/2 pass), `cmake --build build-port-gap --target idax_ida2py_port` (pass), `build-port-gap/examples/idax_ida2py_port --help` (pass).
 - [2026-02-14 06:55] Post-Phase-10 parity follow-up - Added generic typed-value materialization/update APIs in `ida::data` (`TypedValue`, `TypedValueKind`, `read_typed`, `write_typed`) with recursive array handling and byte-array/string write support, wired typed previews in `ida2py_port`, expanded compile-only + integration coverage (`api_surface_parity`, `data_mutation_safety`), and refreshed ida2py gap docs to mark typed-value closure - Evidence: `cmake --build build --target idax_api_surface_check idax_data_mutation_safety_test` (pass), `ctest --test-dir build --output-on-failure -R "api_surface_parity|data_mutation_safety"` (2/2 pass), `ctest --test-dir build --output-on-failure` (16/16 pass), `cmake --build build-port-gap --target idax_ida2py_port` (pass), `build-port-gap/examples/idax_ida2py_port --help` (pass).
+- [2026-02-14 07:20] Post-Phase-10 parity follow-up - Added debugger dynamic-invocation APIs (`AppcallValueKind`, `AppcallValue`, `AppcallOptions`, `AppcallRequest`, `AppcallResult`, `AppcallExecutor`, `appcall`, `cleanup_appcall`, executor register/unregister/dispatch), integrated compile-only + integration coverage (`api_surface_parity`, `debugger_ui_graph_event`), and refreshed ida2py docs/probe messaging to mark Appcall/executor gap closure - Evidence: `cmake --build build --target idax_api_surface_check idax_debugger_ui_graph_event_test` (pass), `ctest --test-dir build --output-on-failure -R "api_surface_parity|debugger_ui_graph_event"` (2/2 pass), `ctest --test-dir build --output-on-failure` (16/16 pass), `cmake --build build-port-gap --target idax_ida2py_port` (pass), `build-port-gap/examples/idax_ida2py_port --help` (pass).
+- [2026-02-14 07:45] Validation-matrix hardening - Plumbed `IDAX_BUILD_EXAMPLE_TOOLS` through `scripts/run_validation_matrix.sh`, enabled it in `.github/workflows/validation-matrix.yml`, and updated compatibility docs so hosted compile-only + unit rows compile idalib tool-port examples (`idax_idalib_dump_port`, `idax_idalib_lumina_port`, `idax_ida2py_port`) in addition to addon modules - Evidence: `IDAX_BUILD_EXAMPLES=ON IDAX_BUILD_EXAMPLE_ADDONS=ON IDAX_BUILD_EXAMPLE_TOOLS=ON scripts/run_validation_matrix.sh compile-only build-matrix-tools-compile RelWithDebInfo` (pass), `IDAX_BUILD_EXAMPLES=ON IDAX_BUILD_EXAMPLE_ADDONS=ON IDAX_BUILD_EXAMPLE_TOOLS=ON scripts/run_validation_matrix.sh unit build-matrix-tools-unit RelWithDebInfo` (2/2 pass), docs updated (`docs/compatibility_matrix.md`).
 
 ---
 
@@ -703,7 +709,7 @@ Post-closure follow-ups (non-blocking):
 2. Continue host-specific hardening runs where licenses/toolchains permit: Linux Clang known-good pairing, plus Linux/Windows `full` rows with runtime installs.
 3. Continue validating the new JBC parity APIs against additional real-world procmod ports and expand typed analyze/output metadata only when concrete migration evidence requires deeper fidelity.
 4. Keep hardening `ida::lumina` behavior with real-server validation (credentialed hosts), especially close/disconnect semantics once portable runtime symbols are confirmed.
-5. Evaluate remaining additive APIs surfaced by the ida2py port audit (`docs/port_gap_audit_ida2py.md`): optional Appcall/executor abstractions.
+5. Validate new Appcall/executor flows on a known-good debugger runtime host and expand argument/return kind coverage only where concrete ports require additional fidelity.
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 
@@ -817,6 +823,7 @@ This section captures the intended public API semantics at a concrete level so i
 - Register/memory access wrappers
 - Breakpoint/tracing wrappers
 - Typed event callback model and async request bridging
+- Appcall + pluggable executor wrappers for dynamic invocation workflows
 
 ### 17.19 `ida::ui`
 - Typed action wrappers replacing unsafe vararg routes
@@ -1813,6 +1820,57 @@ Result<bool> has_breakpoint(Address ea);
 
 Result<std::vector<uint8_t>> read_memory(Address ea, AddressSize size);
 Status write_memory(Address ea, std::span<const uint8_t> bytes);
+
+enum class AppcallValueKind {
+  SignedInteger,
+  UnsignedInteger,
+  FloatingPoint,
+  String,
+  Address,
+  Boolean,
+};
+
+struct AppcallValue {
+  AppcallValueKind kind;
+  int64_t signed_value;
+  uint64_t unsigned_value;
+  double floating_value;
+  std::string string_value;
+  Address address_value;
+  bool boolean_value;
+};
+
+struct AppcallOptions {
+  std::optional<int> thread_id;
+  bool manual;
+  bool include_debug_event;
+  std::optional<uint32_t> timeout_milliseconds;
+};
+
+struct AppcallRequest {
+  Address function_address;
+  ida::type::TypeInfo function_type;
+  std::vector<AppcallValue> arguments;
+  AppcallOptions options;
+};
+
+struct AppcallResult {
+  AppcallValue return_value;
+  std::string diagnostics;
+};
+
+class AppcallExecutor {
+ public:
+  virtual ~AppcallExecutor() = default;
+  virtual Result<AppcallResult> execute(const AppcallRequest &request) = 0;
+};
+
+Result<AppcallResult> appcall(const AppcallRequest &request);
+Status cleanup_appcall(std::optional<int> thread_id = std::nullopt);
+Status register_executor(std::string_view name, std::shared_ptr<AppcallExecutor> executor);
+Status unregister_executor(std::string_view name);
+Result<AppcallResult> appcall_with_executor(std::string_view name,
+                                            const AppcallRequest &request);
 
 }  // namespace ida::debugger
 ```

@@ -155,7 +155,7 @@ void print_usage(const char* program) {
     std::printf("  -h, --help                     show this help\n\n");
     std::printf("Notes:\n");
     std::printf("  * This port intentionally focuses on ida2py's static-type/query workflows.\n");
-    std::printf("  * Dynamic execution (Appcall/angr) is reported as a parity gap in docs.\n");
+    std::printf("  * Dynamic execution is available via ida::debugger::appcall/executor hooks; this probe keeps runtime flow static-focused.\n");
 }
 
 bool parse_arguments(int argc, char* argv[]) {

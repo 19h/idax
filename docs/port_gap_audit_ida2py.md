@@ -36,14 +36,14 @@ to idax-first surfaces.
 - `ida::data` now exposes a generic typed-value facade:
   `read_typed(address, TypeInfo)` and `write_typed(address, TypeInfo, TypedValue)`
   with recursive array support and byte-array/string write paths.
+- `ida::debugger` now exposes appcall/executor primitives:
+  `appcall(AppcallRequest)`, `cleanup_appcall(...)`, and external executor hooks
+  (`AppcallExecutor`, `register_executor`, `appcall_with_executor`) for
+  debugger-native and pluggable execution backends.
 
 ## Confirmed parity gaps
 
-1. No Appcall/execution facade or executor-extension hook in idax.
-   - Impact: ida2py dynamic invocation flows (Appcall + angr executor swapping)
-   cannot be ported through idax-only APIs.
-   - Mitigation: add a debugger execution facade (for direct Appcall-style
-     invocation) and an optional pluggable external-executor interface.
+- None currently for the audited ida2py probe workflows.
 
 ## Notes
 
@@ -51,3 +51,6 @@ to idax-first surfaces.
   specific and was not treated as a required C++ wrapper parity goal.
 - The port probe intentionally focuses on static query/type/callsite workflows
   where idax is expected to be the primary abstraction layer.
+- Host runtime caveat remains: local execution of idalib tool examples on this
+  machine may still require a known-good runtime environment for functional
+  (non-help) validation.
