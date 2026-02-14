@@ -36,6 +36,10 @@ to idax-first surfaces.
   helper-fallback `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*`,
   helper-fallback `vblend*/vpblend*` + `vshuf*/vperm*` families,
   helper-fallback `vps*`/`vpror*`/`vprol*` shift-rotate families,
+  helper-fallback `vcmp*`/`vpcmp*` compare families,
+  helper-fallback `vdpps` + `vround*`/`vrcp*`/`vrsqrt*`/`vget*`/`vfixup*`/
+  `vscale*`/`vrange*`/`vreduce*` + `vbroadcast*`/`vextract*`/`vinsert*`/
+  `vunpck*`/`vmov*dup`/`vmaskmov*` families,
   `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
   `vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
   plus helper-fallback `vcvt*2dq/udq/qq/uqq` forms,

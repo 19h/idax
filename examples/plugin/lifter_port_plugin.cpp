@@ -73,6 +73,29 @@ ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
 
+bool is_packed_helper_misc_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vdpps",
+        "vrcpps", "vrsqrtps", "vrcp14ps", "vrsqrt14ps", "vrcp14pd", "vrsqrt14pd",
+        "vroundps", "vroundpd", "vrndscaleps", "vrndscalepd",
+        "vgetexpps", "vgetexppd", "vgetmantps", "vgetmantpd",
+        "vfixupimmps", "vfixupimmpd", "vscalefps", "vscalefpd",
+        "vrangeps", "vrangepd", "vreduceps", "vreducepd",
+        "vbroadcastss", "vbroadcastsd", "vbroadcastf128", "vbroadcasti128",
+        "vbroadcastf32x4", "vbroadcastf64x4", "vbroadcasti32x4", "vbroadcasti64x4",
+        "vextractf128", "vextracti128", "vextracti32x4", "vextracti32x8", "vextracti64x4",
+        "vinsertf128", "vinserti128", "vinserti32x4", "vinserti32x8", "vinserti64x4",
+        "vinsertf32x4", "vinsertf64x4",
+        "vmovshdup", "vmovsldup", "vmovddup",
+        "vunpckhps", "vunpcklps", "vunpckhpd", "vunpcklpd",
+        "vmaskmovps", "vmaskmovpd",
+        "vpalignr", "valignd", "valignq",
+        "vpermb", "vpermw", "vpermt2b", "vpermt2w", "vpermt2d", "vpermt2q", "vpermt2ps", "vpermt2pd",
+        "vpternlogd", "vpternlogq", "vpconflictd", "vpconflictq",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
 bool is_supported_vmx_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
         "vzeroupper",
@@ -96,6 +119,13 @@ bool is_supported_avx_scalar_mnemonic(std::string_view mnemonic) {
 }
 
 bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
+    if (mnemonic.starts_with("vcmp") || mnemonic.starts_with("vpcmp")) {
+        return true;
+    }
+    if (is_packed_helper_misc_mnemonic(mnemonic)) {
+        return true;
+    }
+
     static const std::unordered_set<std::string> kSupported{
         "vandps", "vandpd", "vandnps", "vandnpd",
         "vorps", "vorpd", "vxorps", "vxorpd",
@@ -237,7 +267,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
     const auto destination_reg = context.load_operand_register(0);
     if (!destination_reg) {
-        return std::unexpected(destination_reg.error());
+        return false;
     }
 
     const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
@@ -267,7 +297,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
         auto register_value = context.load_operand_register(static_cast<int>(index));
         if (!register_value) {
-            return std::unexpected(register_value.error());
+            return false;
         }
 
         const int argument_width = infer_operand_byte_width(instruction.address(),
@@ -663,6 +693,12 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return false;
     }
 
+    if (mnemonic_lower.starts_with("vcmp")
+        || mnemonic_lower.starts_with("vpcmp")
+        || is_packed_helper_misc_mnemonic(mnemonic_lower)) {
+        return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
+    }
+
     if (const auto conversion_opcode = packed_conversion_opcode(mnemonic_lower);
         conversion_opcode.has_value()) {
         const auto destination_reg = context.load_operand_register(0);
@@ -1027,7 +1063,7 @@ ida::Status show_gap_report() {
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
         "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
         "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion\n"
-        "               + helper-fallback bitwise/permute/blend subset,\n"
+        "               + helper-fallback bitwise/permute/blend/shift/compare/misc subset,\n"
         "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }
