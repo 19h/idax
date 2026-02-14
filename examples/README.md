@@ -93,9 +93,13 @@ are currently portable through idax: action registration, pseudocode popup
 attachment, decompiler pseudocode/microcode snapshot dumping, and
 outlined-flag/cache-invalidation helpers.
 
-It now also installs a VMX microcode lifter subset through
-`ida::decompiler::register_microcode_filter` and typed helper-call emission
-(`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`).
+It now installs a VMX + AVX scalar microcode lifter subset through
+`ida::decompiler::register_microcode_filter`, combining typed helper-call
+lowering (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`)
+with typed microcode emission for scalar AVX math/conversion
+(`vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
+`vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
+`vcvtss2sd`, `vcvtsd2ss`, `vmovss`, `vmovsd`).
 
 It also prints a gap report for the currently missing APIs needed for a full
 AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and
