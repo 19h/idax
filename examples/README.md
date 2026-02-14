@@ -121,7 +121,9 @@ listing. It also includes optional runtime `--appcall-smoke` coverage for
 debugger-capable hosts (`ida::debugger::appcall`); use
 `scripts/build_appcall_fixture.sh` to generate a host-native `ref4` fixture
 before running smoke checks. The smoke launch path now probes both
-`--wait` and default-argument startup variants for stronger diagnostics.
+`--wait` and default-argument startup variants for stronger diagnostics, and
+includes an external spawn+attach fallback probe when direct debugger launch
+fails.
 
 ## Building
 

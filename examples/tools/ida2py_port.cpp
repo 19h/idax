@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -16,6 +17,14 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
+#if !defined(_WIN32)
+#include <csignal>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 namespace {
 
@@ -188,10 +197,66 @@ std::vector<std::pair<std::string, std::string>> debugger_launch_candidates(
     return candidates;
 }
 
+#if !defined(_WIN32)
+ida::Result<int> spawn_debuggee_for_attach(std::string_view path,
+                                           std::string_view args,
+                                           std::string_view working_dir) {
+    if (path.empty()) {
+        return std::unexpected(ida::Error::validation(
+            "Cannot spawn debuggee: empty path"));
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        return std::unexpected(ida::Error::sdk(
+            "fork failed",
+            std::strerror(errno)));
+    }
+
+    if (pid == 0) {
+        if (!working_dir.empty()) {
+            if (chdir(std::string(working_dir).c_str()) != 0) {
+                _exit(127);
+            }
+        }
+
+        if (!args.empty()) {
+            execl(std::string(path).c_str(),
+                  std::string(path).c_str(),
+                  std::string(args).c_str(),
+                  static_cast<char*>(nullptr));
+        } else {
+            execl(std::string(path).c_str(),
+                  std::string(path).c_str(),
+                  static_cast<char*>(nullptr));
+        }
+        _exit(127);
+    }
+
+    return static_cast<int>(pid);
+}
+
+void cleanup_spawned_process_best_effort(int pid) {
+    if (pid <= 0)
+        return;
+
+    int status = 0;
+    pid_t waited = waitpid(static_cast<pid_t>(pid), &status, WNOHANG);
+    if (waited == 0) {
+        (void)kill(static_cast<pid_t>(pid), SIGTERM);
+        (void)waitpid(static_cast<pid_t>(pid), &status, 0);
+    }
+}
+#endif
+
 ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
-                                              bool* started_here) {
+                                              bool* started_here,
+                                              int* attached_spawned_pid) {
     if (started_here != nullptr) {
         *started_here = false;
+    }
+    if (attached_spawned_pid != nullptr) {
+        *attached_spawned_pid = -1;
     }
 
     auto state = ida::debugger::state();
@@ -243,6 +308,66 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
         }
 
         if (!started) {
+#if !defined(_WIN32)
+            std::string attach_errors;
+            for (const auto& candidate : candidates) {
+                for (const char* launch_args : launch_arg_candidates) {
+                    auto spawned_pid = spawn_debuggee_for_attach(candidate.first,
+                                                                 launch_args,
+                                                                 candidate.second);
+                    if (!spawned_pid) {
+                        if (!attach_errors.empty()) {
+                            attach_errors += " | ";
+                        }
+                        attach_errors += "spawn path='" + candidate.first + "'";
+                        if (launch_args != nullptr && launch_args[0] != '\0') {
+                            attach_errors += ", args='";
+                            attach_errors += launch_args;
+                            attach_errors += "'";
+                        }
+                        attach_errors += ": " + error_text(spawned_pid.error());
+                        continue;
+                    }
+
+                    auto attach_status = ida::debugger::attach(*spawned_pid);
+                    if (attach_status) {
+                        started = true;
+                        if (attached_spawned_pid != nullptr) {
+                            *attached_spawned_pid = *spawned_pid;
+                        }
+                        break;
+                    }
+
+                    cleanup_spawned_process_best_effort(*spawned_pid);
+
+                    if (!attach_errors.empty()) {
+                        attach_errors += " | ";
+                    }
+                    attach_errors += "attach pid=" + std::to_string(*spawned_pid)
+                                  + " path='" + candidate.first + "'";
+                    if (launch_args != nullptr && launch_args[0] != '\0') {
+                        attach_errors += ", args='";
+                        attach_errors += launch_args;
+                        attach_errors += "'";
+                    }
+                    attach_errors += ": " + error_text(attach_status.error());
+                }
+                if (started) {
+                    break;
+                }
+            }
+
+            if (!attach_errors.empty()) {
+                if (!launch_errors.empty()) {
+                    launch_errors += " | ";
+                }
+                launch_errors += "attach-fallback: " + attach_errors;
+            }
+#endif
+
+        }
+
+        if (!started) {
             return std::unexpected(ida::Error::sdk(
                 "Failed to launch debuggee for appcall smoke",
                 launch_errors));
@@ -290,11 +415,15 @@ class ScopedAppcallDebugSession {
 public:
     ida::Status prepare(std::string_view input_file) {
         bool started = false;
-        auto status = ensure_debugger_ready_for_appcall(input_file, &started);
+        int attached_spawned_pid = -1;
+        auto status = ensure_debugger_ready_for_appcall(input_file,
+                                                        &started,
+                                                        &attached_spawned_pid);
         if (!status) {
             return status;
         }
         started_here_ = started;
+        attached_spawned_pid_ = attached_spawned_pid;
         return ida::ok();
     }
 
@@ -304,12 +433,21 @@ public:
         }
         auto state = ida::debugger::state();
         if (state && *state != ida::debugger::ProcessState::NoProcess) {
-            (void)ida::debugger::terminate();
+            if (attached_spawned_pid_ > 0) {
+                (void)ida::debugger::detach();
+            } else {
+                (void)ida::debugger::terminate();
+            }
         }
+
+#if !defined(_WIN32)
+        cleanup_spawned_process_best_effort(attached_spawned_pid_);
+#endif
     }
 
 private:
     bool started_here_{false};
+    int attached_spawned_pid_{-1};
 };
 
 ida::Result<ida::debugger::AppcallResult> appcall_with_fallbacks(

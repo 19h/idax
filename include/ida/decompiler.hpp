@@ -180,6 +180,7 @@ struct MicrocodeCallOptions {
     std::optional<int> solid_argument_count{};
     std::optional<int> call_stack_pointer_delta{};
     std::optional<int> stack_arguments_top{};
+    std::string return_type_declaration{};
     MicrocodeCallingConvention calling_convention{MicrocodeCallingConvention::Unspecified};
     bool mark_final{false};
     bool mark_propagated{false};
