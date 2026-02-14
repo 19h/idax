@@ -218,6 +218,12 @@ be executed in small, testable API slices.
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
   counts.
+- Helper-call callinfo shaping now infers `solid_argument_count` from the
+  provided argument list when not explicitly set, reducing manual call-shape
+  boilerplate in lifter-style builders.
+- Auto stack-location assignment now supports optional start/alignment shaping
+  (`auto_stack_start_offset`, `auto_stack_alignment`) for deterministic
+  argument placement in helper-call paths.
 - Expanded helper-call option shaping with semantic role + return-location
   hinting (`function_role`, `return_location`) for additive callinfo depth
   without raw `mcallinfo_t` mutation in public APIs.

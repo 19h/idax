@@ -691,6 +691,44 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeCallOptions auto_stack_options;
+        auto_stack_options.auto_stack_argument_locations = true;
+        ida::decompiler::MicrocodeValue auto_stack_probe_argument;
+        auto_stack_probe_argument.kind = ida::decompiler::MicrocodeValueKind::ByteArray;
+        auto_stack_probe_argument.byte_width = 0;
+        std::vector<ida::decompiler::MicrocodeValue> auto_stack_probe_args{auto_stack_probe_argument};
+        auto auto_stack_probe = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", auto_stack_probe_args, auto_stack_options);
+        if (!auto_stack_probe
+            && auto_stack_probe.error().category == ida::ErrorCategory::Validation) {
+            if (auto_stack_probe.error().message.find("requires explicit location") != std::string::npos)
+                saw_auto_stack_location_validation = true;
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue auto_stack_known_size_argument;
+        auto_stack_known_size_argument.kind = ida::decompiler::MicrocodeValueKind::ByteArray;
+        auto_stack_known_size_argument.byte_width = 16;
+        std::vector<ida::decompiler::MicrocodeValue> auto_stack_known_size_args{auto_stack_known_size_argument};
+
+        ida::decompiler::MicrocodeCallOptions bad_auto_stack_alignment_options = auto_stack_options;
+        bad_auto_stack_alignment_options.auto_stack_alignment = 3;
+        auto bad_auto_stack_alignment = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", auto_stack_known_size_args, bad_auto_stack_alignment_options);
+        if (!bad_auto_stack_alignment
+            && bad_auto_stack_alignment.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeCallOptions bad_auto_stack_start_options = auto_stack_options;
+        bad_auto_stack_start_options.auto_stack_start_offset = -1;
+        auto bad_auto_stack_start = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", auto_stack_known_size_args, bad_auto_stack_start_options);
+        if (!bad_auto_stack_start
+            && bad_auto_stack_start.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_byte_array_width_argument;
         bad_byte_array_width_argument.kind = ida::decompiler::MicrocodeValueKind::ByteArray;
         bad_byte_array_width_argument.byte_width = 0;
@@ -1071,6 +1109,7 @@ public:
     bool saw_non_bad_address{false};
     bool saw_instruction_type{false};
     bool saw_emit_failure{false};
+    bool saw_auto_stack_location_validation{false};
 };
 
 void test_microcode_filter_registration(ida::Address fn_ea) {
@@ -1094,6 +1133,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->validation_hits >= 47);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
+        CHECK(!filter->saw_auto_stack_location_validation);
         CHECK(!filter->saw_emit_failure);
     }
 
