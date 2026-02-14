@@ -9,7 +9,9 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -47,12 +49,260 @@ struct PortState {
     bool actions_registered{false};
     std::unordered_set<std::string> popup_titles;
     std::vector<ida::ui::ScopedSubscription> ui_subscriptions;
+    ida::decompiler::ScopedMicrocodeFilter vmx_filter;
 };
 
 PortState g_state;
 
 bool is_pseudocode_widget_title(std::string_view title) {
     return title.find("Pseudocode") != std::string_view::npos;
+}
+
+std::string lower_copy(std::string text) {
+    std::transform(text.begin(),
+                   text.end(),
+                   text.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return text;
+}
+
+bool is_supported_vmx_mnemonic(std::string_view mnemonic) {
+    static const std::unordered_set<std::string> kSupported{
+        "vmxon", "vmxoff", "vmcall", "vmlaunch", "vmresume",
+        "vmptrld", "vmptrst", "vmclear", "vmread", "vmwrite",
+        "invept", "invvpid", "vmfunc",
+    };
+    return kSupported.contains(std::string(mnemonic));
+}
+
+int pointer_byte_width(ida::Address address) {
+    auto seg = ida::segment::at(address);
+    if (seg) {
+        switch (seg->bitness()) {
+            case 16: return 2;
+            case 32: return 4;
+            case 64: return 8;
+            default: break;
+        }
+    }
+    return sizeof(ida::Address) >= 8 ? 8 : 4;
+}
+
+ida::decompiler::MicrocodeCallOptions vmx_call_options() {
+    ida::decompiler::MicrocodeCallOptions options;
+    options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Fastcall;
+    options.mark_final = true;
+    options.mark_propagated = true;
+    options.mark_spoiled_lists_optimized = true;
+    return options;
+}
+
+ida::decompiler::MicrocodeValue register_argument(int register_id,
+                                                  int byte_width,
+                                                  bool unsigned_integer = true) {
+    ida::decompiler::MicrocodeValue value;
+    value.kind = ida::decompiler::MicrocodeValueKind::Register;
+    value.register_id = register_id;
+    value.byte_width = byte_width;
+    value.unsigned_integer = unsigned_integer;
+    return value;
+}
+
+ida::decompiler::MicrocodeValue pointer_argument(int register_id) {
+    ida::decompiler::MicrocodeValue value;
+    value.kind = ida::decompiler::MicrocodeValueKind::Register;
+    value.register_id = register_id;
+    value.byte_width = 0;
+    value.type_declaration = "void *";
+    return value;
+}
+
+ida::Status emit_vmx_no_operand_helper(ida::decompiler::MicrocodeContext& context,
+                                       std::string_view helper_name) {
+    return context.emit_helper_call_with_arguments_and_options(
+        helper_name,
+        {},
+        vmx_call_options());
+}
+
+ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& context,
+                                           const ida::instruction::Instruction& instruction,
+                                           std::string_view mnemonic_lower) {
+    const int integer_width = pointer_byte_width(instruction.address());
+
+    if (mnemonic_lower == "vmxoff") {
+        auto st = emit_vmx_no_operand_helper(context, "__vmxoff");
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+    if (mnemonic_lower == "vmcall") {
+        auto st = emit_vmx_no_operand_helper(context, "__vmcall");
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+    if (mnemonic_lower == "vmlaunch") {
+        auto st = emit_vmx_no_operand_helper(context, "__vmlaunch");
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+    if (mnemonic_lower == "vmresume") {
+        auto st = emit_vmx_no_operand_helper(context, "__vmresume");
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+    if (mnemonic_lower == "vmfunc") {
+        auto st = emit_vmx_no_operand_helper(context, "__vmfunc");
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+
+    if (mnemonic_lower == "vmxon" || mnemonic_lower == "vmptrld"
+        || mnemonic_lower == "vmclear" || mnemonic_lower == "vmptrst") {
+        auto address_reg = context.load_effective_address_register(0);
+        if (!address_reg) return std::unexpected(address_reg.error());
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(pointer_argument(*address_reg));
+
+        std::string helper = "__" + std::string(mnemonic_lower);
+        auto st = context.emit_helper_call_with_arguments_and_options(helper,
+                                                                      args,
+                                                                      vmx_call_options());
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+
+    if (mnemonic_lower == "vmread") {
+        auto destination_operand = instruction.operand(0);
+        if (!destination_operand) return std::unexpected(destination_operand.error());
+
+        auto encoding_reg = context.load_operand_register(1);
+        if (!encoding_reg) return std::unexpected(encoding_reg.error());
+
+        if (destination_operand->type() == ida::instruction::OperandType::Register) {
+            auto destination_reg = context.load_operand_register(0);
+            if (!destination_reg) return std::unexpected(destination_reg.error());
+
+            std::vector<ida::decompiler::MicrocodeValue> args;
+            args.push_back(register_argument(*encoding_reg, integer_width, true));
+
+            auto st = context.emit_helper_call_with_arguments_to_register_and_options(
+                "__vmread",
+                args,
+                *destination_reg,
+                integer_width,
+                true,
+                vmx_call_options());
+            if (!st) return std::unexpected(st.error());
+        } else {
+            auto destination_address_reg = context.load_effective_address_register(0);
+            if (!destination_address_reg) return std::unexpected(destination_address_reg.error());
+
+            std::vector<ida::decompiler::MicrocodeValue> args;
+            args.push_back(pointer_argument(*destination_address_reg));
+            args.push_back(register_argument(*encoding_reg, integer_width, true));
+
+            auto st = context.emit_helper_call_with_arguments_and_options(
+                "__vmread",
+                args,
+                vmx_call_options());
+            if (!st) return std::unexpected(st.error());
+        }
+        return true;
+    }
+
+    if (mnemonic_lower == "vmwrite") {
+        auto encoding_reg = context.load_operand_register(0);
+        if (!encoding_reg) return std::unexpected(encoding_reg.error());
+        auto source_reg = context.load_operand_register(1);
+        if (!source_reg) return std::unexpected(source_reg.error());
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*encoding_reg, integer_width, true));
+        args.push_back(register_argument(*source_reg, integer_width, true));
+
+        auto st = context.emit_helper_call_with_arguments_and_options(
+            "__vmwrite",
+            args,
+            vmx_call_options());
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+
+    if (mnemonic_lower == "invept" || mnemonic_lower == "invvpid") {
+        auto type_reg = context.load_operand_register(0);
+        if (!type_reg) return std::unexpected(type_reg.error());
+        auto descriptor_address_reg = context.load_effective_address_register(1);
+        if (!descriptor_address_reg) return std::unexpected(descriptor_address_reg.error());
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*type_reg, integer_width, true));
+        args.push_back(pointer_argument(*descriptor_address_reg));
+
+        const char* helper = mnemonic_lower == "invept" ? "__invept" : "__invvpid";
+        auto st = context.emit_helper_call_with_arguments_and_options(
+            helper,
+            args,
+            vmx_call_options());
+        if (!st) return std::unexpected(st.error());
+        return true;
+    }
+
+    return false;
+}
+
+class VmxLifterFilter final : public ida::decompiler::MicrocodeFilter {
+public:
+    bool match(const ida::decompiler::MicrocodeContext& context) override {
+        auto decoded = ida::instruction::decode(context.address());
+        if (!decoded) {
+            return false;
+        }
+        return is_supported_vmx_mnemonic(lower_copy(decoded->mnemonic()));
+    }
+
+    ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext& context) override {
+        auto decoded = ida::instruction::decode(context.address());
+        if (!decoded) {
+            return ida::decompiler::MicrocodeApplyResult::NotHandled;
+        }
+
+        auto lifted = try_lift_vmx_instruction(context,
+                                               *decoded,
+                                               lower_copy(decoded->mnemonic()));
+        if (!lifted) {
+            ida::ui::message(fmt("[lifter-port] vmx lift failed @ %#llx: %s\n",
+                                 static_cast<unsigned long long>(context.address()),
+                                 error_text(lifted.error()).c_str()));
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        return *lifted
+            ? ida::decompiler::MicrocodeApplyResult::Handled
+            : ida::decompiler::MicrocodeApplyResult::NotHandled;
+    }
+};
+
+ida::Status install_vmx_lifter_filter() {
+    if (g_state.vmx_filter.valid()) {
+        return ida::ok();
+    }
+
+    auto available = ida::decompiler::available();
+    if (!available) {
+        return std::unexpected(available.error());
+    }
+    if (!*available) {
+        return std::unexpected(ida::Error::unsupported(
+            "Hex-Rays decompiler is unavailable; VMX lifter filter is disabled"));
+    }
+
+    auto token = ida::decompiler::register_microcode_filter(std::make_shared<VmxLifterFilter>());
+    if (!token) {
+        return std::unexpected(token.error());
+    }
+
+    g_state.vmx_filter = ida::decompiler::ScopedMicrocodeFilter(*token);
+    return ida::ok();
 }
 
 ida::Result<ida::Address> resolve_action_address(const ida::plugin::ActionContext& context) {
@@ -97,9 +347,10 @@ ida::Result<std::size_t> count_call_expressions(const ida::decompiler::Decompile
 ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
-        "  1) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
+        "  1) VMX microcode lifting subset is now active via idax filter hooks + typed helper-call emission.\n"
+        "  2) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
-        "  2) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
+        "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
         "[lifter-port] Recently closed: hxe_maturity subscription, FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }
@@ -398,6 +649,7 @@ ida::Status install_widget_subscriptions() {
 }
 
 void reset_state() {
+    g_state.vmx_filter.reset();
     g_state.ui_subscriptions.clear();
     unregister_actions();
 }
@@ -428,6 +680,13 @@ public:
                                  error_text(subscription_status.error()).c_str()));
             reset_state();
             return false;
+        }
+
+        if (auto vmx_filter_status = install_vmx_lifter_filter(); !vmx_filter_status) {
+            ida::ui::message(fmt("[lifter-port] VMX lifter filter disabled: %s\n",
+                                 error_text(vmx_filter_status.error()).c_str()));
+        } else {
+            ida::ui::message("[lifter-port] VMX microcode lifter filter enabled (subset).\n");
         }
 
         ida::ui::message(

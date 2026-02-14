@@ -23,17 +23,23 @@ to idax-first surfaces.
   `for_each_expression`) for call-expression counting and microcode preview.
 - Outlining + cache invalidation flow via `ida::function::is_outlined` /
   `ida::function::set_outlined` and `ida::decompiler::mark_dirty_with_callers`.
+- VMX microcode lifting subset through idax filter APIs and typed helper-call
+  emission (`vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/
+  vmread/vmwrite/invept/invvpid/vmfunc`).
 
 ## Confirmed parity gaps
 
-1. Microcode filter hooks are now available but still minimal for lifter-class use
-   - idax now supports registration/unregistration and match/apply dispatch
-     (`register_microcode_filter`, `unregister_microcode_filter`,
-     `MicrocodeContext`, `MicrocodeApplyResult`).
-   - Current context now includes primitive operand/register/memory/helper
-     operations (`load_operand_register`, `store_operand_register`,
-     `emit_move_register`, `emit_load_memory_register`,
-     `emit_store_memory_register`, `emit_helper_call`), but still lacks rich
+1. Microcode filter hooks are now available and VMX subset lifting is wired,
+   but full lifter-class write-path depth is still incomplete
+    - idax now supports registration/unregistration and match/apply dispatch
+      (`register_microcode_filter`, `unregister_microcode_filter`,
+      `MicrocodeContext`, `MicrocodeApplyResult`).
+    - The port probe now uses those hooks for a concrete VMX instruction subset
+      with helper-call lowering.
+    - Current context now includes primitive operand/register/memory/helper
+      operations (`load_operand_register`, `store_operand_register`,
+      `emit_move_register`, `emit_load_memory_register`,
+      `emit_store_memory_register`, `emit_helper_call`), but still lacks rich
      typed instruction construction/mutation primitives.
 
 2. No rich public microcode write/emission surface
