@@ -538,6 +538,37 @@ public:
         if (!bad_store_mem && bad_store_mem.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        ida::decompiler::MicrocodeInstruction bad_typed_instruction;
+        bad_typed_instruction.opcode = ida::decompiler::MicrocodeOpcode::Move;
+        bad_typed_instruction.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_typed_instruction.left.register_id = 0;
+        bad_typed_instruction.left.byte_width = 0;
+        bad_typed_instruction.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_typed_instruction.destination.register_id = 0;
+        bad_typed_instruction.destination.byte_width = 4;
+
+        auto bad_emit_typed = context.emit_instruction(bad_typed_instruction);
+        if (!bad_emit_typed && bad_emit_typed.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        ida::decompiler::MicrocodeInstruction bad_memory_instruction;
+        bad_memory_instruction.opcode = ida::decompiler::MicrocodeOpcode::LoadMemory;
+        bad_memory_instruction.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_memory_instruction.left.register_id = 0;
+        bad_memory_instruction.left.byte_width = 4;
+        bad_memory_instruction.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_memory_instruction.destination.register_id = 1;
+        bad_memory_instruction.destination.byte_width = 4;
+
+        auto bad_emit_memory = context.emit_instruction(bad_memory_instruction);
+        if (!bad_emit_memory && bad_emit_memory.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        std::vector<ida::decompiler::MicrocodeInstruction> bad_instruction_batch{bad_typed_instruction};
+        auto bad_emit_batch = context.emit_instructions(bad_instruction_batch);
+        if (!bad_emit_batch && bad_emit_batch.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
         auto bad_helper = context.emit_helper_call("");
         if (!bad_helper && bad_helper.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
@@ -862,6 +893,27 @@ public:
             saw_emit_failure = true;
             return ida::decompiler::MicrocodeApplyResult::Error;
         }
+
+        ida::decompiler::MicrocodeInstruction typed_nop_instruction;
+        typed_nop_instruction.opcode = ida::decompiler::MicrocodeOpcode::NoOperation;
+
+        auto typed_nop = context.emit_instruction(typed_nop_instruction);
+        if (!typed_nop) {
+            if (typed_nop.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
+        std::vector<ida::decompiler::MicrocodeInstruction> typed_nop_batch{typed_nop_instruction};
+        auto typed_nop_batch_status = context.emit_instructions(typed_nop_batch);
+        if (!typed_nop_batch_status) {
+            if (typed_nop_batch_status.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
         return ida::decompiler::MicrocodeApplyResult::Handled;
     }
 
@@ -892,7 +944,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 32);
+        CHECK(filter->validation_hits >= 35);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

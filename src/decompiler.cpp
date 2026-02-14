@@ -128,6 +128,81 @@ callcnv_t to_sdk_calling_convention(MicrocodeCallingConvention convention) {
     return CM_CC_INVALID;
 }
 
+Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
+    switch (opcode) {
+        case MicrocodeOpcode::NoOperation:    return m_nop;
+        case MicrocodeOpcode::Move:           return m_mov;
+        case MicrocodeOpcode::Add:            return m_add;
+        case MicrocodeOpcode::ZeroExtend:     return m_xdu;
+        case MicrocodeOpcode::LoadMemory:     return m_ldx;
+        case MicrocodeOpcode::StoreMemory:    return m_stx;
+        case MicrocodeOpcode::FloatAdd:       return m_fadd;
+        case MicrocodeOpcode::FloatSub:       return m_fsub;
+        case MicrocodeOpcode::FloatMul:       return m_fmul;
+        case MicrocodeOpcode::FloatDiv:       return m_fdiv;
+        case MicrocodeOpcode::IntegerToFloat: return m_i2f;
+        case MicrocodeOpcode::FloatToFloat:   return m_f2f;
+    }
+    return std::unexpected(Error::validation("Unsupported microcode opcode"));
+}
+
+Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
+                                              ea_t instruction_address,
+                                              std::string_view role) {
+    mop_t result;
+    switch (operand.kind) {
+        case MicrocodeOperandKind::Empty:
+            break;
+
+        case MicrocodeOperandKind::Register:
+            if (operand.register_id < 0) {
+                return std::unexpected(Error::validation(
+                    "Register operand id cannot be negative",
+                    std::string(role)));
+            }
+            if (operand.byte_width <= 0) {
+                return std::unexpected(Error::validation(
+                    "Register operand byte width must be positive",
+                    std::string(role)));
+            }
+            result.make_reg(static_cast<mreg_t>(operand.register_id),
+                            operand.byte_width);
+            break;
+
+        case MicrocodeOperandKind::UnsignedImmediate:
+            if (operand.byte_width <= 0) {
+                return std::unexpected(Error::validation(
+                    "Immediate operand byte width must be positive",
+                    std::string(role)));
+            }
+            result.make_number(operand.unsigned_immediate,
+                               operand.byte_width,
+                               instruction_address,
+                               0);
+            break;
+
+        case MicrocodeOperandKind::SignedImmediate:
+            if (operand.byte_width <= 0) {
+                return std::unexpected(Error::validation(
+                    "Immediate operand byte width must be positive",
+                    std::string(role)));
+            }
+            result.make_number(static_cast<std::uint64_t>(operand.signed_immediate),
+                               operand.byte_width,
+                               instruction_address,
+                               0);
+            break;
+    }
+
+    if (operand.mark_user_defined_type)
+        result.set_udt();
+    return result;
+}
+
+[[nodiscard]] bool is_empty_operand(const MicrocodeOperand& operand) noexcept {
+    return operand.kind == MicrocodeOperandKind::Empty;
+}
+
 Status apply_call_options(minsn_t* root,
                           const MicrocodeCallOptions& options,
                           std::string_view helper_name) {
@@ -794,6 +869,83 @@ Status MicrocodeContext::emit_noop() {
         return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
     impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
     impl->emitted_noop = true;
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_instruction(const MicrocodeInstruction& instruction) {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    auto sdk_opcode = to_sdk_opcode(instruction.opcode);
+    if (!sdk_opcode)
+        return std::unexpected(sdk_opcode.error());
+
+    if (instruction.opcode == MicrocodeOpcode::LoadMemory
+        || instruction.opcode == MicrocodeOpcode::StoreMemory) {
+        if (is_empty_operand(instruction.left)
+            || is_empty_operand(instruction.right)
+            || is_empty_operand(instruction.destination)) {
+            return std::unexpected(Error::validation(
+                "Load/store memory instructions require non-empty left/right/destination operands"));
+        }
+    }
+
+    if (*sdk_opcode == m_nop) {
+        minsn_t* emitted = impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
+        if (emitted == nullptr)
+            return std::unexpected(Error::sdk("emit(m_nop) failed"));
+        if (instruction.floating_point_instruction)
+            emitted->set_fpinsn();
+        impl->emitted_noop = true;
+        return ida::ok();
+    }
+
+    auto left = build_typed_instruction_operand(instruction.left,
+                                                impl->codegen->insn.ea,
+                                                "left");
+    if (!left)
+        return std::unexpected(left.error());
+    auto right = build_typed_instruction_operand(instruction.right,
+                                                 impl->codegen->insn.ea,
+                                                 "right");
+    if (!right)
+        return std::unexpected(right.error());
+    auto destination = build_typed_instruction_operand(instruction.destination,
+                                                       impl->codegen->insn.ea,
+                                                       "destination");
+    if (!destination)
+        return std::unexpected(destination.error());
+
+    minsn_t* emitted = impl->codegen->emit(*sdk_opcode,
+                                           &*left,
+                                           &*right,
+                                           &*destination);
+    if (emitted == nullptr) {
+        return std::unexpected(Error::sdk(
+            "emit typed instruction failed",
+            std::to_string(static_cast<int>(instruction.opcode))));
+    }
+    if (instruction.floating_point_instruction)
+        emitted->set_fpinsn();
+    return ida::ok();
+}
+
+Status MicrocodeContext::emit_instructions(const std::vector<MicrocodeInstruction>& instructions) {
+    for (std::size_t index = 0; index < instructions.size(); ++index) {
+        auto st = emit_instruction(instructions[index]);
+        if (!st) {
+            Error error = st.error();
+            if (error.context.empty())
+                error.context = std::to_string(index);
+            else
+                error.context = std::to_string(index) + ":" + error.context;
+            return std::unexpected(std::move(error));
+        }
+    }
     return ida::ok();
 }
 
