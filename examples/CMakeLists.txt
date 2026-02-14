@@ -31,6 +31,7 @@ set(IDAX_EXAMPLE_SOURCES
     # idalib tool port examples.
     tools/idalib_dump_port.cpp
     tools/idalib_lumina_port.cpp
+    tools/ida2py_port.cpp
 )
 
 add_custom_target(idax_examples SOURCES ${IDAX_EXAMPLE_SOURCES})
@@ -107,6 +108,12 @@ if(IDAX_BUILD_EXAMPLE_TOOLS)
         ida_add_idalib(idax_idalib_lumina_port
             TYPE EXECUTABLE
             SOURCES tools/idalib_lumina_port.cpp
+            LIBRARIES idax::idax
+        )
+
+        ida_add_idalib(idax_ida2py_port
+            TYPE EXECUTABLE
+            SOURCES tools/ida2py_port.cpp
             LIBRARIES idax::idax
         )
     else()
