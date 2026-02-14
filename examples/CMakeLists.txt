@@ -17,6 +17,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/decompiler_plugin.cpp
     plugin/event_monitor_plugin.cpp
     plugin/storage_metadata_plugin.cpp
+    plugin/lifter_port_plugin.cpp
     plugin/qtform_renderer_plugin.cpp
     plugin/qtform_renderer_widget.hpp
     plugin/qtform_renderer_widget.cpp
@@ -73,6 +74,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_fingerprint_plugin
         SOURCES plugin/storage_metadata_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_lifter_port_plugin
+        SOURCES plugin/lifter_port_plugin.cpp
         LIBRARIES idax::idax
     )
 

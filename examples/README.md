@@ -86,6 +86,17 @@ renderer widget in a dock panel and parse IDA form markup into live controls.
 The original "Test in ask_form" flow now uses markup-only
 `ida::ui::ask_form(std::string_view)`.
 
+### `plugin/lifter_port_plugin.cpp` — lifter Port Probe
+
+Port probe of `/Users/int/dev/lifter` focused on plugin-shell workflows that
+are currently portable through idax: action registration, pseudocode popup
+attachment, decompiler pseudocode/microcode snapshot dumping, and an
+inline/outlining intent toggle fallback.
+
+It also prints a gap report for the currently missing APIs needed for a full
+AVX/VMX microcode-lifter migration (microcode filter install/mutate surfaces,
+Hex-Rays maturity callbacks, and FUNC_OUTLINE cache-invalidation parity).
+
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
 
 Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
