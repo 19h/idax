@@ -21,7 +21,44 @@
 #include <type_traits>
 #include <vector>
 
+namespace ida::type {
+class TypeInfo;
+}
+
 namespace ida::data {
+
+enum class TypedValueKind {
+    UnsignedInteger,
+    SignedInteger,
+    FloatingPoint,
+    Pointer,
+    String,
+    Bytes,
+    Array,
+};
+
+/// Generic typed value container used by read_typed()/write_typed().
+///
+/// Exactly one payload field is meaningful based on `kind`:
+/// - UnsignedInteger: `unsigned_value`
+/// - SignedInteger:   `signed_value`
+/// - FloatingPoint:   `floating_value`
+/// - Pointer:         `pointer_value`
+/// - String:          `string_value`
+/// - Bytes:           `bytes`
+/// - Array:           `elements`
+struct TypedValue {
+    TypedValueKind kind{TypedValueKind::Bytes};
+
+    std::uint64_t unsigned_value{0};
+    std::int64_t signed_value{0};
+    double floating_value{0.0};
+    Address pointer_value{BadAddress};
+
+    std::string string_value;
+    std::vector<std::uint8_t> bytes;
+    std::vector<TypedValue> elements;
+};
 
 // ── Read family ─────────────────────────────────────────────────────────
 
@@ -37,6 +74,12 @@ Result<std::string> read_string(Address address,
                                 AddressSize max_length = 0,
                                 std::int32_t string_type = 0,
                                 int conversion_flags = 0);
+
+/// Materialize a value at \\p address using the given semantic \\p type.
+///
+/// Supports integers, floating-point, pointers, byte arrays, and recursive
+/// array element materialization.
+Result<TypedValue> read_typed(Address address, const ida::type::TypeInfo& type);
 
 /// Read a trivially-copyable value from the database.
 template <typename T>
@@ -62,6 +105,14 @@ Status write_word(Address address, std::uint16_t value);
 Status write_dword(Address address, std::uint32_t value);
 Status write_qword(Address address, std::uint64_t value);
 Status write_bytes(Address address, std::span<const std::uint8_t> bytes);
+
+/// Write a semantic value at \\p address using the given \\p type.
+///
+/// Supports integers, floating-point, pointers, byte arrays/strings, and
+/// recursive array writes.
+Status write_typed(Address address,
+                   const ida::type::TypeInfo& type,
+                   const TypedValue& value);
 
 /// Write a trivially-copyable value into the database.
 template <typename T>

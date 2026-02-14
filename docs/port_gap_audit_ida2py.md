@@ -33,15 +33,13 @@ to idax-first surfaces.
 - `ida::decompiler::ExpressionView` now exposes typed call-subexpression helpers:
   `call_callee` and `call_argument(index)` in addition to
   `call_argument_count`, enabling direct callsite-argument workflows.
+- `ida::data` now exposes a generic typed-value facade:
+  `read_typed(address, TypeInfo)` and `write_typed(address, TypeInfo, TypedValue)`
+  with recursive array support and byte-array/string write paths.
 
 ## Confirmed parity gaps
 
-1. No generic typed-value reader/writer from `TypeInfo`.
-   - Impact: callers must hand-roll per-width/per-kind data decoding logic.
-   - Mitigation: add an optional `ida::data::read_typed(address, TypeInfo)` /
-     `write_typed(...)` facade that preserves opaque boundaries.
-
-2. No Appcall/execution facade or executor-extension hook in idax.
+1. No Appcall/execution facade or executor-extension hook in idax.
    - Impact: ida2py dynamic invocation flows (Appcall + angr executor swapping)
    cannot be ported through idax-only APIs.
    - Mitigation: add a debugger execution facade (for direct Appcall-style
