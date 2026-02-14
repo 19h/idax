@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <bit>
 #include <cstdarg>
 #include <memory>
 #include <mutex>
@@ -136,7 +137,8 @@ Status apply_call_options(minsn_t* root,
         || options.mark_propagated
         || options.mark_no_return
         || options.mark_pure
-        || options.mark_no_side_effects;
+        || options.mark_no_side_effects
+        || options.mark_explicit_locations;
     if (!has_options)
         return ida::ok();
 
@@ -166,6 +168,8 @@ Status apply_call_options(minsn_t* root,
         info->flags |= FCI_PURE;
     if (options.mark_no_side_effects)
         info->flags |= FCI_NOSIDE;
+    if (options.mark_explicit_locations)
+        info->flags |= FCI_EXPLOCS;
 
     return ida::ok();
 }
@@ -194,30 +198,42 @@ Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& argu
 
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
-        if (argument.byte_width <= 0) {
-            return std::unexpected(Error::validation("Microcode argument byte width must be positive",
-                                                     std::to_string(i)));
-        }
-
-        tinfo_t argument_type;
-        const bool is_unsigned = argument.kind == MicrocodeValueKind::SignedImmediate
-                                     ? false
-                                     : argument.unsigned_integer;
-        if (!make_integer_type(&argument_type, argument.byte_width, is_unsigned)) {
-            return std::unexpected(Error::unsupported(
-                "Microcode typed argument width unsupported",
-                std::to_string(argument.byte_width)));
-        }
-
         mcallarg_t callarg;
         switch (argument.kind) {
-            case MicrocodeValueKind::Register:
+            case MicrocodeValueKind::Register: {
+                if (argument.byte_width <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode register argument byte width must be positive",
+                        std::to_string(i)));
+                }
+                tinfo_t argument_type;
+                if (!make_integer_type(&argument_type,
+                                       argument.byte_width,
+                                       argument.unsigned_integer)) {
+                    return std::unexpected(Error::unsupported(
+                        "Microcode register argument width unsupported",
+                        std::to_string(argument.byte_width)));
+                }
                 callarg.set_regarg(static_cast<mreg_t>(argument.register_id),
                                    argument.byte_width,
                                    argument_type);
                 break;
+            }
 
             case MicrocodeValueKind::UnsignedImmediate: {
+                if (argument.byte_width <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode immediate argument byte width must be positive",
+                        std::to_string(i)));
+                }
+                tinfo_t argument_type;
+                if (!make_integer_type(&argument_type,
+                                       argument.byte_width,
+                                       true)) {
+                    return std::unexpected(Error::unsupported(
+                        "Microcode typed argument width unsupported",
+                        std::to_string(argument.byte_width)));
+                }
                 mop_t immediate;
                 immediate.make_number(argument.unsigned_immediate,
                                       argument.byte_width,
@@ -229,6 +245,19 @@ Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& argu
             }
 
             case MicrocodeValueKind::SignedImmediate: {
+                if (argument.byte_width <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode immediate argument byte width must be positive",
+                        std::to_string(i)));
+                }
+                tinfo_t argument_type;
+                if (!make_integer_type(&argument_type,
+                                       argument.byte_width,
+                                       false)) {
+                    return std::unexpected(Error::unsupported(
+                        "Microcode typed argument width unsupported",
+                        std::to_string(argument.byte_width)));
+                }
                 mop_t immediate;
                 immediate.make_number(static_cast<std::uint64_t>(argument.signed_immediate),
                                       argument.byte_width,
@@ -236,6 +265,47 @@ Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& argu
                                       0);
                 callarg.copy_mop(immediate);
                 callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::Float32Immediate: {
+                const int width = argument.byte_width == 0 ? 4 : argument.byte_width;
+                if (width != 4) {
+                    return std::unexpected(Error::validation(
+                        "Float32 argument width must be 4 bytes",
+                        std::to_string(i)));
+                }
+
+                const float value = static_cast<float>(argument.floating_immediate);
+                const std::uint32_t bits = std::bit_cast<std::uint32_t>(value);
+
+                mop_t immediate;
+                immediate.make_number(bits,
+                                      width,
+                                      instruction_address,
+                                      0);
+                callarg.copy_mop(immediate);
+                callarg.type = tinfo_t(BTF_FLOAT);
+                break;
+            }
+
+            case MicrocodeValueKind::Float64Immediate: {
+                const int width = argument.byte_width == 0 ? 8 : argument.byte_width;
+                if (width != 8) {
+                    return std::unexpected(Error::validation(
+                        "Float64 argument width must be 8 bytes",
+                        std::to_string(i)));
+                }
+
+                const std::uint64_t bits = std::bit_cast<std::uint64_t>(argument.floating_immediate);
+
+                mop_t immediate;
+                immediate.make_number(bits,
+                                      width,
+                                      instruction_address,
+                                      0);
+                callarg.copy_mop(immediate);
+                callarg.type = tinfo_t(BTF_DOUBLE);
                 break;
             }
         }
