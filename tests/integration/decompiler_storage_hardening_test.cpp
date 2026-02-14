@@ -630,6 +630,62 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_location_scattered_empty_argument;
+        bad_location_scattered_empty_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_location_scattered_empty_argument.register_id = 0;
+        bad_location_scattered_empty_argument.byte_width = 4;
+        bad_location_scattered_empty_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::Scattered;
+        std::vector<ida::decompiler::MicrocodeValue> bad_location_scattered_empty_args{
+            bad_location_scattered_empty_argument};
+
+        auto bad_location_scattered_empty_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_location_scattered_empty_args);
+        if (!bad_location_scattered_empty_helper
+            && bad_location_scattered_empty_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_location_scattered_nested_argument;
+        bad_location_scattered_nested_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_location_scattered_nested_argument.register_id = 0;
+        bad_location_scattered_nested_argument.byte_width = 4;
+        bad_location_scattered_nested_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::Scattered;
+        ida::decompiler::MicrocodeLocationPart nested_part;
+        nested_part.kind = ida::decompiler::MicrocodeValueLocationKind::Scattered;
+        nested_part.byte_offset = 0;
+        nested_part.byte_size = 4;
+        bad_location_scattered_nested_argument.location.scattered_parts.push_back(nested_part);
+        std::vector<ida::decompiler::MicrocodeValue> bad_location_scattered_nested_args{
+            bad_location_scattered_nested_argument};
+
+        auto bad_location_scattered_nested_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_location_scattered_nested_args);
+        if (!bad_location_scattered_nested_helper
+            && bad_location_scattered_nested_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_location_scattered_size_argument;
+        bad_location_scattered_size_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_location_scattered_size_argument.register_id = 0;
+        bad_location_scattered_size_argument.byte_width = 4;
+        bad_location_scattered_size_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::Scattered;
+        ida::decompiler::MicrocodeLocationPart bad_size_part;
+        bad_size_part.kind = ida::decompiler::MicrocodeValueLocationKind::Register;
+        bad_size_part.register_id = 1;
+        bad_size_part.byte_offset = 0;
+        bad_size_part.byte_size = 0;
+        bad_location_scattered_size_argument.location.scattered_parts.push_back(bad_size_part);
+        std::vector<ida::decompiler::MicrocodeValue> bad_location_scattered_size_args{
+            bad_location_scattered_size_argument};
+
+        auto bad_location_scattered_size_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_location_scattered_size_args);
+        if (!bad_location_scattered_size_helper
+            && bad_location_scattered_size_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_helper_to_reg = context.emit_helper_call_with_arguments_to_register(
             "idax_probe", {}, 0, 0, true);
         if (!bad_helper_to_reg
@@ -691,7 +747,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 17);
+        CHECK(filter->validation_hits >= 20);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

@@ -196,6 +196,69 @@ struct CallArgumentsBuildResult {
     bool has_explicit_locations{false};
 };
 
+Status apply_single_location_to_argloc(argloc_t* argloc,
+                                       MicrocodeValueLocationKind kind,
+                                       int register_id,
+                                       int second_register_id,
+                                       int register_offset,
+                                       std::int64_t stack_offset,
+                                       Address static_address,
+                                       std::string_view context) {
+    if (argloc == nullptr)
+        return std::unexpected(Error::internal("Null argument location output"));
+
+    switch (kind) {
+        case MicrocodeValueLocationKind::Register:
+            if (register_id < 0)
+                return std::unexpected(Error::validation(
+                    "Explicit register id cannot be negative",
+                    std::string(context)));
+            argloc->set_reg1(register_id);
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::RegisterWithOffset:
+            if (register_id < 0)
+                return std::unexpected(Error::validation(
+                    "Explicit register id cannot be negative",
+                    std::string(context)));
+            argloc->set_reg1(register_id, register_offset);
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::RegisterPair:
+            if (register_id < 0 || second_register_id < 0)
+                return std::unexpected(Error::validation(
+                    "Explicit register-pair ids cannot be negative",
+                    std::string(context)));
+            argloc->set_reg2(register_id, second_register_id);
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::StackOffset:
+            argloc->set_stkoff(static_cast<sval_t>(stack_offset));
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::StaticAddress:
+            if (static_address == BadAddress)
+                return std::unexpected(Error::validation(
+                    "Explicit static address cannot be BadAddress",
+                    std::string(context)));
+            argloc->set_ea(static_cast<ea_t>(static_address));
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::Unspecified:
+            return std::unexpected(Error::validation(
+                "Explicit location kind is unspecified",
+                std::string(context)));
+
+        case MicrocodeValueLocationKind::Scattered:
+            return std::unexpected(Error::validation(
+                "Nested scattered locations are not supported",
+                std::string(context)));
+    }
+
+    return std::unexpected(Error::validation("Unsupported explicit location kind",
+                                             std::string(context)));
+}
+
 Status apply_explicit_location(mcallarg_t* callarg,
                                const MicrocodeValueLocation& location,
                                std::size_t index,
@@ -208,49 +271,69 @@ Status apply_explicit_location(mcallarg_t* callarg,
             return ida::ok();
 
         case MicrocodeValueLocationKind::Register:
-            if (location.register_id < 0) {
-                return std::unexpected(Error::validation(
-                    "Argument explicit register id cannot be negative",
-                    std::to_string(index)));
-            }
-            callarg->argloc.set_reg1(location.register_id);
-            *has_explicit_locations = true;
-            return ida::ok();
-
         case MicrocodeValueLocationKind::RegisterWithOffset:
-            if (location.register_id < 0) {
-                return std::unexpected(Error::validation(
-                    "Argument explicit register id cannot be negative",
-                    std::to_string(index)));
-            }
-            callarg->argloc.set_reg1(location.register_id, location.register_offset);
-            *has_explicit_locations = true;
-            return ida::ok();
-
         case MicrocodeValueLocationKind::RegisterPair:
-            if (location.register_id < 0 || location.second_register_id < 0) {
-                return std::unexpected(Error::validation(
-                    "Argument explicit register-pair ids cannot be negative",
-                    std::to_string(index)));
-            }
-            callarg->argloc.set_reg2(location.register_id, location.second_register_id);
-            *has_explicit_locations = true;
-            return ida::ok();
-
         case MicrocodeValueLocationKind::StackOffset:
-            callarg->argloc.set_stkoff(static_cast<sval_t>(location.stack_offset));
+        case MicrocodeValueLocationKind::StaticAddress:
+            {
+                auto status = apply_single_location_to_argloc(&callarg->argloc,
+                                                              location.kind,
+                                                              location.register_id,
+                                                              location.second_register_id,
+                                                              location.register_offset,
+                                                              location.stack_offset,
+                                                              location.static_address,
+                                                              std::to_string(index));
+                if (!status)
+                    return status;
+            }
             *has_explicit_locations = true;
             return ida::ok();
 
-        case MicrocodeValueLocationKind::StaticAddress:
-            if (location.static_address == BadAddress) {
+        case MicrocodeValueLocationKind::Scattered: {
+            if (location.scattered_parts.empty()) {
                 return std::unexpected(Error::validation(
-                    "Argument explicit static address cannot be BadAddress",
+                    "Scattered explicit location requires at least one part",
                     std::to_string(index)));
             }
-            callarg->argloc.set_ea(static_cast<ea_t>(location.static_address));
+
+            auto scattered = std::make_unique<scattered_aloc_t>();
+            scattered->reserve(location.scattered_parts.size());
+
+            for (std::size_t part_index = 0; part_index < location.scattered_parts.size(); ++part_index) {
+                const auto& part = location.scattered_parts[part_index];
+                if (part.byte_offset < 0 || part.byte_offset > 0xFFFF) {
+                    return std::unexpected(Error::validation(
+                        "Scattered location part offset out of range",
+                        std::to_string(index) + ":" + std::to_string(part_index)));
+                }
+                if (part.byte_size <= 0 || part.byte_size > 0xFFFF) {
+                    return std::unexpected(Error::validation(
+                        "Scattered location part size out of range",
+                        std::to_string(index) + ":" + std::to_string(part_index)));
+                }
+
+                argpart_t argpart;
+                auto status = apply_single_location_to_argloc(&argpart,
+                                                              part.kind,
+                                                              part.register_id,
+                                                              part.second_register_id,
+                                                              part.register_offset,
+                                                              part.stack_offset,
+                                                              part.static_address,
+                                                              std::to_string(index) + ":" + std::to_string(part_index));
+                if (!status)
+                    return status;
+
+                argpart.off = static_cast<ushort>(part.byte_offset);
+                argpart.size = static_cast<ushort>(part.byte_size);
+                scattered->push_back(std::move(argpart));
+            }
+
+            callarg->argloc.consume_scattered(scattered.release());
             *has_explicit_locations = true;
             return ida::ok();
+        }
     }
 
     return std::unexpected(Error::validation("Unsupported argument location kind",

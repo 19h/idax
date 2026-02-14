@@ -115,6 +115,19 @@ enum class MicrocodeValueLocationKind : int {
     RegisterPair,
     StackOffset,
     StaticAddress,
+    Scattered,
+};
+
+/// One explicit location fragment for a scattered helper-call argument.
+struct MicrocodeLocationPart {
+    MicrocodeValueLocationKind kind{MicrocodeValueLocationKind::Unspecified};
+    int register_id{0};
+    int second_register_id{0};
+    int register_offset{0};
+    std::int64_t stack_offset{0};
+    Address static_address{BadAddress};
+    int byte_offset{0};
+    int byte_size{0};
 };
 
 /// Optional explicit location for a helper-call argument.
@@ -125,6 +138,7 @@ struct MicrocodeValueLocation {
     int register_offset{0};
     std::int64_t stack_offset{0};
     Address static_address{BadAddress};
+    std::vector<MicrocodeLocationPart> scattered_parts{};
 };
 
 /// Typed microcode value for helper-call argument construction.

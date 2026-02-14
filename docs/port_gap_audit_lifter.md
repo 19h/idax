@@ -41,7 +41,7 @@ to idax-first surfaces.
       helper-call construction, typed mop/reg orchestration).
    - idax currently exposes microcode text readout (`microcode_lines`) plus basic
      filter hooks, scalar typed helper-call argument builders (integer + float),
-     explicit argument-location hints (register/register-pair/register-offset/stack/static), and lightweight
+     explicit argument-location hints (register/register-pair/register-offset/stack/static/scattered), and lightweight
      helper call-shaping options, but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
