@@ -137,8 +137,9 @@ be executed in small, testable API slices.
     deterministic placement policy controls for typed instruction emission via
     `MicrocodeInsertPolicy` (`Tail`, `Beginning`, `BeforeTail`) and
     `emit_instruction_with_policy`/`emit_instructions_with_policy`.
-  - Remaining depth is placement control parity for helper-call and other
-    non-typed-emitter paths where concrete ports require it.
+  - Remaining depth is placement control parity for additional non-typed-
+    emitter paths. Helper-call insertion now also supports `insert_policy`
+    through `MicrocodeCallOptions`.
 - Migration impact:
   - medium. Some deterministic rewrite ordering patterns cannot be expressed
     through public APIs yet.
@@ -175,8 +176,9 @@ be executed in small, testable API slices.
 3. `P2` - Placement policy controls (baseline closure increment complete)
    - `MicrocodeInsertPolicy` + policy-aware typed emission APIs provide
      constrained insertion controls without exposing raw block internals.
-   - Remaining closure is demand-driven expansion to additional emission paths
-     beyond typed instruction emitters.
+   - Helper-call paths also support insertion policy via
+     `MicrocodeCallOptions::insert_policy`.
+   - Remaining closure is demand-driven expansion to additional emission paths.
 
 4. `P3` - Typed high-value decompiler-view helpers
    - Add first-class wrappers only for repeatedly observed flows from real ports
@@ -199,6 +201,8 @@ be executed in small, testable API slices.
 - Added constrained placement controls for typed instruction emission:
   `MicrocodeInsertPolicy`, `MicrocodeContext::emit_instruction_with_policy`,
   and `MicrocodeContext::emit_instructions_with_policy`.
+- Added helper-call insertion policy hinting via
+  `MicrocodeCallOptions::insert_policy`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
