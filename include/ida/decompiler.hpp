@@ -114,6 +114,7 @@ enum class MicrocodeValueLocationKind : int {
     Register,
     RegisterWithOffset,
     RegisterPair,
+    RegisterRelative,
     StackOffset,
     StaticAddress,
     Scattered,
@@ -125,6 +126,7 @@ struct MicrocodeLocationPart {
     int register_id{0};
     int second_register_id{0};
     int register_offset{0};
+    std::int64_t register_relative_offset{0};
     std::int64_t stack_offset{0};
     Address static_address{BadAddress};
     int byte_offset{0};
@@ -137,6 +139,7 @@ struct MicrocodeValueLocation {
     int register_id{0};
     int second_register_id{0};
     int register_offset{0};
+    std::int64_t register_relative_offset{0};
     std::int64_t stack_offset{0};
     Address static_address{BadAddress};
     std::vector<MicrocodeLocationPart> scattered_parts{};
