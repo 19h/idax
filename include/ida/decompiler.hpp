@@ -111,14 +111,20 @@ enum class MicrocodeValueKind : int {
 enum class MicrocodeValueLocationKind : int {
     Unspecified,
     Register,
+    RegisterWithOffset,
+    RegisterPair,
     StackOffset,
+    StaticAddress,
 };
 
 /// Optional explicit location for a helper-call argument.
 struct MicrocodeValueLocation {
     MicrocodeValueLocationKind kind{MicrocodeValueLocationKind::Unspecified};
     int register_id{0};
+    int second_register_id{0};
+    int register_offset{0};
     std::int64_t stack_offset{0};
+    Address static_address{BadAddress};
 };
 
 /// Typed microcode value for helper-call argument construction.

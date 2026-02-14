@@ -217,8 +217,38 @@ Status apply_explicit_location(mcallarg_t* callarg,
             *has_explicit_locations = true;
             return ida::ok();
 
+        case MicrocodeValueLocationKind::RegisterWithOffset:
+            if (location.register_id < 0) {
+                return std::unexpected(Error::validation(
+                    "Argument explicit register id cannot be negative",
+                    std::to_string(index)));
+            }
+            callarg->argloc.set_reg1(location.register_id, location.register_offset);
+            *has_explicit_locations = true;
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::RegisterPair:
+            if (location.register_id < 0 || location.second_register_id < 0) {
+                return std::unexpected(Error::validation(
+                    "Argument explicit register-pair ids cannot be negative",
+                    std::to_string(index)));
+            }
+            callarg->argloc.set_reg2(location.register_id, location.second_register_id);
+            *has_explicit_locations = true;
+            return ida::ok();
+
         case MicrocodeValueLocationKind::StackOffset:
             callarg->argloc.set_stkoff(static_cast<sval_t>(location.stack_offset));
+            *has_explicit_locations = true;
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::StaticAddress:
+            if (location.static_address == BadAddress) {
+                return std::unexpected(Error::validation(
+                    "Argument explicit static address cannot be BadAddress",
+                    std::to_string(index)));
+            }
+            callarg->argloc.set_ea(static_cast<ea_t>(location.static_address));
             *has_explicit_locations = true;
             return ida::ok();
     }
