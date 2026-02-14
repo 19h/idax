@@ -1112,6 +1112,16 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeValueLocationKind::RegisterWithOffset;
     (void)ida::decompiler::MicrocodeValueLocationKind::RegisterPair;
     (void)ida::decompiler::MicrocodeValueLocationKind::StaticAddress;
+    (void)ida::decompiler::MicrocodeValueLocationKind::Scattered;
+    ida::decompiler::MicrocodeLocationPart location_part;
+    (void)location_part.kind;
+    (void)location_part.register_id;
+    (void)location_part.second_register_id;
+    (void)location_part.register_offset;
+    (void)location_part.stack_offset;
+    (void)location_part.static_address;
+    (void)location_part.byte_offset;
+    (void)location_part.byte_size;
     ida::decompiler::MicrocodeValueLocation location;
     (void)location.kind;
     (void)location.register_id;
@@ -1119,6 +1129,7 @@ void check_decompiler_surface() {
     (void)location.register_offset;
     (void)location.stack_offset;
     (void)location.static_address;
+    (void)location.scattered_parts;
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
