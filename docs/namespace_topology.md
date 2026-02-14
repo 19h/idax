@@ -33,7 +33,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, request queue, events    [2 enums, 4 structs, 1 class, ~40 free fns]
-|-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [5 enums, 4 structs, 8 classes, ~11 free fns]
+|-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [6 enums, 5 structs, 8 classes, ~11 free fns]
 |-- ida::ui             Messages, dialogs, widgets, custom viewers       [1 enum, 4 structs, 2 classes, ~30 free fns]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
  |
@@ -105,7 +105,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
-| `ida::decompiler` | Decompilation | `DecompiledFunction` (pseudocode+microcode), `DecompileFailure`, `MaturityEvent`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
+| `ida::decompiler` | Decompilation | `DecompiledFunction` (pseudocode+microcode), `DecompileFailure`, `MaturityEvent`, `MicrocodeValue`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
 | `ida::ui` | User interface | `Widget`, `Chooser`, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |
 | `ida::event` | IDB event routing | `Event`, `EventKind`, `ScopedSubscription` |
