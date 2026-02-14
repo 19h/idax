@@ -52,9 +52,125 @@ to idax-first surfaces.
      (`with_widget_host`, `with_decompiler_view_host`) plus context host fields,
      which unblocks practical advanced interop without exposing SDK types in
      public headers.
-   - Impact: advanced workflows are now possible through opaque host bridges,
-     but typed first-class wrappers for high-value `vdui_t`/`cfunc_t` edit flows
-     are still additive follow-up work.
+    - Impact: advanced workflows are now possible through opaque host bridges,
+      but typed first-class wrappers for high-value `vdui_t`/`cfunc_t` edit flows
+      are still additive follow-up work.
+
+## Comprehensive source-backed gap matrix (current)
+
+The initial gap list above is directionally correct, but broad. This section
+maps concrete lifter usage patterns to idax coverage status so follow-up work can
+be executed in small, testable API slices.
+
+### A) Microcode instruction construction/emission depth
+
+- Source evidence (`/Users/int/dev/lifter`):
+  - `src/avx/handlers/handler_logic.cpp`
+  - `src/avx/handlers/handler_math.cpp`
+  - `src/avx/handlers/handler_mov.cpp`
+  - `src/avx/handlers/handler_cvt.cpp`
+  - `src/avx/avx_helpers.cpp`
+  - `src/vmx/vmx_lifter.cpp`
+- Pattern used in lifter:
+  - frequent direct `cdg.emit(...)` with explicit opcodes (`m_mov`, `m_ldx`,
+    `m_stx`, `m_xdu`, `m_fadd`, `m_fsub`, `m_fmul`, `m_fdiv`, `m_f2f`,
+    `m_i2f`, `m_add`, `m_call`, `m_nop`) and explicit operand wiring.
+- Current idax status:
+  - partial, with a new baseline closure increment. `MicrocodeContext` now
+    exposes generic typed instruction emission via
+    `MicrocodeOpcode`/`MicrocodeOperand`/`MicrocodeInstruction` and
+    `emit_instruction`/`emit_instructions` for the high-value opcode family
+    (`mov`, `add`, `xdu`, `ldx`, `stx`, `fadd`, `fsub`, `fmul`, `fdiv`,
+    `i2f`, `f2f`, `nop`).
+  - Remaining depth (rich typed operands/callinfo/tmop semantics) is still
+    additive follow-up.
+- Migration impact:
+  - high. Broad handler families cannot be ported one-to-one without raw SDK.
+
+### B) Typed microcode operand model and mutation controls
+
+- Source evidence (`/Users/int/dev/lifter`):
+  - `src/avx/avx_intrinsic.cpp`
+  - `src/vmx/vmx_lifter.cpp`
+  - `src/avx/avx_helpers.cpp`
+- Pattern used in lifter:
+  - direct `mop_t` construction and mutation (`make_reg`, immediate values,
+    helper refs, nested-insn refs, explicit sizes/UDT/flags), plus direct
+    `minsn_t` field updates.
+- Current idax status:
+  - partial. Typed helper-call arguments now cover integer/float/byte-array/
+    vector/type-declaration values and rich location hints, but there is no
+    first-class opaque `MicrocodeOperand` builder for generic instruction
+    operands outside helper-call argument paths.
+- Migration impact:
+  - high. Non-helper instruction rewrites remain blocked.
+
+### C) Callinfo/tmop richness beyond current option hints
+
+- Source evidence (`/Users/int/dev/lifter`):
+  - `src/avx/avx_intrinsic.cpp`
+  - `src/vmx/vmx_lifter.cpp`
+- Pattern used in lifter:
+  - direct `mcallinfo_t` and `mcallarg_t` shaping, including argument metadata,
+    per-arg placement details, and call-shape flags.
+- Current idax status:
+  - partial. `MicrocodeCallOptions` now covers useful flag and scalar hints
+    (calling convention, selected `FCI_*`, callee/SPD/stack/solid-arg hints,
+    return-type declaration), but does not yet provide full typed callinfo
+    authoring controls comparable to raw `mcallinfo_t` mutation.
+- Migration impact:
+  - medium/high. Many helper-call flows are now possible, but complex callinfo
+    parity still requires raw SDK.
+
+### D) Microblock placement/lifecycle editing
+
+- Source evidence (`/Users/int/dev/lifter`):
+  - `src/avx/avx_intrinsic.cpp`
+  - `src/vmx/vmx_lifter.cpp`
+- Pattern used in lifter:
+  - explicit insertion into microblocks (`insert_into_block(..., mb->tail)`),
+    and lifetime ownership transfer expectations for emitted instructions.
+- Current idax status:
+  - partial. `MicrocodeContext` emits supported operations, but does not yet
+    expose explicit placement policies or block-level insertion controls.
+- Migration impact:
+  - medium. Some deterministic rewrite ordering patterns cannot be expressed
+    through public APIs yet.
+
+### E) Typed decompiler-view edit ergonomics
+
+- Source evidence (`/Users/int/dev/lifter`):
+  - `src/plugin/lifter_plugin.cpp` (popup and decompiler-view driven flows)
+- Pattern used in lifter:
+  - direct `vdui_t*` context use in popup workflows.
+- Current idax status:
+  - partial but much improved. `ActionContext` now includes opaque view/widget
+    handles with scoped host callbacks; this is sufficient for advanced interop
+    without exposing SDK types. Pure typed first-class decompiler-view edit APIs
+    remain additive follow-up.
+- Migration impact:
+  - medium. Bridge path exists now; typed ergonomics remain a convenience gap.
+
+## Prioritized additive API slices for lifter closure
+
+1. `P0` - Generic typed microcode instruction builder/emitter (baseline closure increment complete)
+   - `MicrocodeInstruction` + `MicrocodeOperand` and
+     `emit_instruction(...)`/`emit_instructions(...)` are now available in
+     `MicrocodeContext` with strict validation + typed error mapping.
+   - Remaining closure for this slice is depth-oriented (richer typed operand
+     semantics, not basic opcode dispatch).
+
+2. `P1` - Extended typed callinfo authoring surface
+   - Add additive per-argument metadata controls and richer return/call shape
+     options beyond current scalar hints while keeping public SDK opacity.
+
+3. `P2` - Placement policy controls
+   - Add constrained insertion policy options (for example tail/current-before/
+     current-after style semantics) rather than exposing raw block internals.
+
+4. `P3` - Typed high-value decompiler-view helpers
+   - Add first-class wrappers only for repeatedly observed flows from real ports
+     (do not mirror all `vdui_t` breadth by default).
 
 ## Newly closed since initial audit
 
@@ -66,6 +182,10 @@ to idax-first surfaces.
   `ida::function::set_outlined`.
 - Added microcode-filter registration helpers: `ida::decompiler::register_microcode_filter`,
   `ida::decompiler::unregister_microcode_filter`, and RAII `ScopedMicrocodeFilter`.
+- Added generic typed microcode instruction emission helpers:
+  `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`,
+  `MicrocodeInstruction`, `MicrocodeContext::emit_instruction`, and
+  `MicrocodeContext::emit_instructions`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid

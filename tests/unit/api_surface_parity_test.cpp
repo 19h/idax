@@ -1083,6 +1083,10 @@ void check_decompiler_surface() {
     using MicrocodeContextEmitMoveFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
     using MicrocodeContextEmitLoadMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
     using MicrocodeContextEmitStoreMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
+    using MicrocodeContextEmitInstructionFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        const ida::decompiler::MicrocodeInstruction&);
+    using MicrocodeContextEmitInstructionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        const std::vector<ida::decompiler::MicrocodeInstruction>&);
     using MicrocodeContextEmitHelperFn = ida::Status(ida::decompiler::MicrocodeContext::*)(std::string_view);
     using MicrocodeContextEmitHelperArgsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         std::string_view,
@@ -1118,6 +1122,24 @@ void check_decompiler_surface() {
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSubscription>);
     (void)ida::decompiler::MicrocodeApplyResult::NotHandled;
     (void)ida::decompiler::MicrocodeApplyResult::Handled;
+    (void)ida::decompiler::MicrocodeOpcode::Move;
+    (void)ida::decompiler::MicrocodeOpcode::LoadMemory;
+    (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
+    (void)ida::decompiler::MicrocodeOperandKind::Empty;
+    (void)ida::decompiler::MicrocodeOperandKind::Register;
+    ida::decompiler::MicrocodeOperand typed_operand;
+    (void)typed_operand.kind;
+    (void)typed_operand.register_id;
+    (void)typed_operand.unsigned_immediate;
+    (void)typed_operand.signed_immediate;
+    (void)typed_operand.byte_width;
+    (void)typed_operand.mark_user_defined_type;
+    ida::decompiler::MicrocodeInstruction instruction;
+    (void)instruction.opcode;
+    (void)instruction.left;
+    (void)instruction.right;
+    (void)instruction.destination;
+    (void)instruction.floating_point_instruction;
     (void)ida::decompiler::MicrocodeValueKind::Register;
     (void)ida::decompiler::MicrocodeValueKind::Float32Immediate;
     (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
@@ -1211,6 +1233,8 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextEmitMoveFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
     (void)static_cast<MicrocodeContextEmitLoadMemoryFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register);
     (void)static_cast<MicrocodeContextEmitStoreMemoryFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register);
+    (void)static_cast<MicrocodeContextEmitInstructionFn>(&ida::decompiler::MicrocodeContext::emit_instruction);
+    (void)static_cast<MicrocodeContextEmitInstructionsFn>(&ida::decompiler::MicrocodeContext::emit_instructions);
     (void)static_cast<MicrocodeContextEmitHelperFn>(&ida::decompiler::MicrocodeContext::emit_helper_call);
     (void)static_cast<MicrocodeContextEmitHelperArgsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments);
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register);

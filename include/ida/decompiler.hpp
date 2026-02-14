@@ -99,6 +99,51 @@ enum class MicrocodeApplyResult : int {
     Error      = 2,  ///< Filter failed; SDK fallback is used.
 };
 
+/// Supported opcode set for generic typed microcode emission.
+enum class MicrocodeOpcode : int {
+    NoOperation,
+    Move,
+    Add,
+    ZeroExtend,
+    LoadMemory,
+    StoreMemory,
+    FloatAdd,
+    FloatSub,
+    FloatMul,
+    FloatDiv,
+    IntegerToFloat,
+    FloatToFloat,
+};
+
+/// Operand kind for generic typed microcode emission.
+enum class MicrocodeOperandKind : int {
+    Empty,
+    Register,
+    UnsignedImmediate,
+    SignedImmediate,
+};
+
+/// One typed microcode operand.
+struct MicrocodeOperand {
+    MicrocodeOperandKind kind{MicrocodeOperandKind::Empty};
+    int register_id{0};
+    std::uint64_t unsigned_immediate{0};
+    std::int64_t signed_immediate{0};
+    int byte_width{0};
+    bool mark_user_defined_type{false};
+};
+
+/// Generic typed microcode instruction model.
+///
+/// Operands map to SDK `l`, `r`, and `d` fields respectively.
+struct MicrocodeInstruction {
+    MicrocodeOpcode opcode{MicrocodeOpcode::NoOperation};
+    MicrocodeOperand left{};
+    MicrocodeOperand right{};
+    MicrocodeOperand destination{};
+    bool floating_point_instruction{false};
+};
+
 /// Kind of typed microcode value used for helper-call arguments.
 enum class MicrocodeValueKind : int {
     Register,
@@ -205,6 +250,15 @@ public:
 
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();
+
+    /// Emit one typed microcode instruction.
+    ///
+    /// This is the additive generic instruction path for lifter-style
+    /// opcode+operand emission without exposing SDK instruction types.
+    Status emit_instruction(const MicrocodeInstruction& instruction);
+
+    /// Emit multiple typed microcode instructions in order.
+    Status emit_instructions(const std::vector<MicrocodeInstruction>& instructions);
 
     /// Load an instruction operand into a temporary register.
     /// Returns the SDK register id on success.
