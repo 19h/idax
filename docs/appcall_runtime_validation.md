@@ -59,7 +59,8 @@ On a debugger-capable host, output includes:
 
 - Capture full stderr/stdout and the reported `ida::Error` context.
 - If startup fails with `start_process failed (return code: -1)` across all launch
-  candidates, classify as debugger-backend readiness gap on that host.
+  candidates (including `--wait` and default-arg launch attempts), classify as
+  debugger-backend readiness gap on that host.
 - On hosts without a usable debugger backend/session, a graceful
   `dbg_appcall failed` error (for example error code `1552`) is expected and
   should be tracked as environment/runtime readiness, not a wrapper crash.

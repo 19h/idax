@@ -26,6 +26,23 @@ action.handler_with_context = [](const ida::plugin::ActionContext& ctx) -> ida::
 action.enabled_with_context = [](const ida::plugin::ActionContext& ctx) {
   return ctx.current_address != ida::BadAddress;
 };
+
+// Optional advanced host access for plugin interop paths.
+action.handler_with_context = [](const ida::plugin::ActionContext& ctx) -> ida::Status {
+  auto host_status = ida::plugin::with_decompiler_view_host(
+    ctx,
+    [](void* view_host) -> ida::Status {
+      // view_host is an opaque handle (vdui_t* cast to void*) when available.
+      // Keep usage scoped inside this callback.
+      (void)view_host;
+      return ida::ok();
+    });
+
+  if (!host_status && host_status.error().category != ida::ErrorCategory::NotFound) {
+    return std::unexpected(host_status.error());
+  }
+  return ida::ok();
+};
 ```
 
 ## 2) Register and attach

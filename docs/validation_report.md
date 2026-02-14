@@ -26,7 +26,8 @@ Date: 2026-02-14 (updated after open-point closure automation run)
 - Matrix full+packaging profile: pass (`build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz`)
 - Open-point closure sweep (`scripts/run_open_points.sh`): full matrix pass,
   lumina smoke pass, appcall smoke blocked by debugger backend readiness
-  (`build-open-points-run2/logs/*`)
+  after expanded launch fallback attempts (`--wait` + default args)
+  (`build-open-points-surge2/logs/*`)
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 

@@ -56,8 +56,9 @@ to idax-first surfaces.
 - Local functional execution is now verified for non-debugger flows when tool
   examples are linked against real IDA runtime dylibs (not SDK stubs).
 - Appcall runtime validation still requires a debugger-capable host/session;
-  the current host run now attempts multi-path debuggee launch and fails cleanly
-  with `start_process failed (return code: -1)` when the debugger backend is not
+  the current host run now attempts multi-path debuggee launch with both
+  `--wait` and default args, and still fails cleanly with
+  `start_process failed (return code: -1)` when the debugger backend is not
   ready (no wrapper crash).
 - Runtime validation procedure is tracked in
   `docs/appcall_runtime_validation.md`.

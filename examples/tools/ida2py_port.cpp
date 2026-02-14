@@ -4,6 +4,7 @@
 #include <ida/idax.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -207,21 +208,38 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
         }
 
         std::string launch_errors;
+        static constexpr std::array<const char*, 2> launch_arg_candidates{
+            "--wait",
+            "",
+        };
+
         for (const auto& candidate : candidates) {
-            auto start_status = ida::debugger::start(candidate.first, "", candidate.second);
-            if (start_status) {
-                started = true;
+            for (const char* launch_args : launch_arg_candidates) {
+                auto start_status = ida::debugger::start(candidate.first,
+                                                         launch_args,
+                                                         candidate.second);
+                if (start_status) {
+                    started = true;
+                    break;
+                }
+
+                if (!launch_errors.empty()) {
+                    launch_errors += " | ";
+                }
+                launch_errors += "path='" + candidate.first + "'";
+                if (!candidate.second.empty()) {
+                    launch_errors += ", cwd='" + candidate.second + "'";
+                }
+                if (launch_args != nullptr && launch_args[0] != '\0') {
+                    launch_errors += ", args='";
+                    launch_errors += launch_args;
+                    launch_errors += "'";
+                }
+                launch_errors += ": " + error_text(start_status.error());
+            }
+            if (started) {
                 break;
             }
-
-            if (!launch_errors.empty()) {
-                launch_errors += " | ";
-            }
-            launch_errors += "path='" + candidate.first + "'";
-            if (!candidate.second.empty()) {
-                launch_errors += ", cwd='" + candidate.second + "'";
-            }
-            launch_errors += ": " + error_text(start_status.error());
         }
 
         if (!started) {
