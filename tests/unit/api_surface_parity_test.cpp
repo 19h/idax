@@ -1139,6 +1139,9 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeFunctionRole::Unknown;
     (void)ida::decompiler::MicrocodeFunctionRole::Memcpy;
     (void)ida::decompiler::MicrocodeFunctionRole::FastFail;
+    (void)ida::decompiler::MicrocodeArgumentFlag::HiddenArgument;
+    (void)ida::decompiler::MicrocodeArgumentFlag::ReturnValuePointer;
+    (void)ida::decompiler::MicrocodeArgumentFlag::UnusedArgument;
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
@@ -1196,6 +1199,8 @@ void check_decompiler_surface() {
     (void)value.vector_elements_unsigned;
     (void)value.vector_elements_floating;
     (void)value.type_declaration;
+    (void)value.argument_name;
+    (void)value.argument_flags;
     (void)value.location;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
     ida::decompiler::MicrocodeCallOptions call_options;

@@ -200,6 +200,15 @@ struct MicrocodeValueLocation {
     std::vector<MicrocodeLocationPart> scattered_parts{};
 };
 
+/// Optional per-argument semantic flags for helper-call arguments.
+enum class MicrocodeArgumentFlag : std::uint32_t {
+    HiddenArgument     = 0x0001,
+    ReturnValuePointer = 0x0002,
+    StructArgument     = 0x0004,
+    ArrayArgument      = 0x0008,
+    UnusedArgument     = 0x0010,
+};
+
 /// Typed microcode value for helper-call argument construction.
 struct MicrocodeValue {
     MicrocodeValueKind kind{MicrocodeValueKind::Register};
@@ -218,6 +227,13 @@ struct MicrocodeValue {
     /// - `TypeDeclarationView`: declaration of the argument type (required).
     /// - `Register`: optional declaration override for typed register arguments.
     std::string type_declaration{};
+
+    /// Optional formal argument name for helper-call metadata.
+    std::string argument_name{};
+
+    /// Optional bitmask of `MicrocodeArgumentFlag` values.
+    std::uint32_t argument_flags{0};
+
     MicrocodeValueLocation location{};
 };
 

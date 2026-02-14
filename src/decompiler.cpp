@@ -629,6 +629,9 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
     CallArgumentsBuildResult result;
     result.arguments.reserve(arguments.size());
 
+    constexpr std::uint32_t kSupportedArgumentFlags =
+        FAI_HIDDEN | FAI_RETPTR | FAI_STRUCT | FAI_ARRAY | FAI_UNUSED;
+
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
         mcallarg_t callarg;
@@ -880,6 +883,20 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 break;
             }
         }
+
+        if (!argument.argument_name.empty())
+            callarg.name = argument.argument_name.c_str();
+
+        if ((argument.argument_flags & ~kSupportedArgumentFlags) != 0) {
+            return std::unexpected(Error::validation(
+                "Microcode argument flags contain unsupported bits",
+                std::to_string(argument.argument_flags)));
+        }
+
+        std::uint32_t argument_flags = argument.argument_flags;
+        if ((argument_flags & FAI_RETPTR) != 0)
+            argument_flags |= FAI_HIDDEN;
+        callarg.flags = static_cast<uint32>(argument_flags);
 
         auto location_status = apply_explicit_location(&callarg,
                                                        argument.location,
