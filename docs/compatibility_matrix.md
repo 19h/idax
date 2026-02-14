@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-14 (updated after tool-port runtime linkage hardening)
+Date: 2026-02-14 (updated after Linux Clang matrix triage)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -52,7 +52,9 @@ Environment requirements:
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | compile-only | none | pass | local rerun with example addons ON (`build-matrix-jbc-compile/`, includes `idax_jbc_full_loader` + `idax_jbc_full_procmod`) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | unit | optional | pass | local rerun with example addons ON (`build-matrix-jbc-unit/`, 2/2 tests, examples built including JBC full pair) |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | build successful (`build-matrix-linux-gcc-docker/`) |
-| Linux | x86_64 | Clang 18.1.3 | RelWithDebInfo | compile-only | none | fail | default toolchain misses `std::expected` (`build-matrix-linux-clang-docker/`); libc++ attempt hits SDK `snprintf` macro clash (`build-matrix-linux-clang-libcpp/`) |
+| Linux | x86_64 | Clang 18.1.3 | RelWithDebInfo | compile-only | none | fail | baseline container run fails because `std::expected` is unavailable with this compiler/libstdc++ pairing (`build-matrix-linux-clang18-amd64-baseline/`) |
+| Linux | x86_64 | Clang 19.1.1 | RelWithDebInfo | compile-only | none | pass | baseline container run passes with `IDAX_BUILD_EXAMPLE_ADDONS=OFF` and `IDAX_BUILD_EXAMPLE_TOOLS=OFF` (`build-matrix-linux-clang19-amd64-baseline/`) |
+| Linux | x86_64 | Clang 19.1.1 | RelWithDebInfo | compile-only (+tools/addons) | none | fail | current SDK checkout lacks `x64_linux_clang_64` runtime libs needed for addon/tool linkage (`build-matrix-linux-clang19-amd64-docker/`, `build-matrix-linux-clang19-amd64-noaddons/`) |
 | Linux | x86_64 | GCC 13+ | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
 | Windows | x64 | MSVC v143 | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
 
@@ -84,13 +86,13 @@ scripts/run_validation_matrix.sh unit build-matrix-unit RelWithDebInfo
   runtime symbol-mismatch crashes in local functional runs.
 - Packaging output is pinned to the selected build dir via `cpack -B <build-dir>`
   in the matrix script.
-- Linux Clang row currently fails in the Ubuntu 24.04 container because the
-  selected C++ standard library/toolchain combo does not surface
-  `std::expected` for this build configuration, while the GCC row passes under
-  the same host setup.
-- Forcing libc++ with Clang in this container does not currently unblock the
-  row: IDA SDK `pro.h` stdio remaps (for example `snprintf`) conflict with
-  libc++ standard headers.
+- Linux Clang 18 in Ubuntu 24.04 fails baseline C++23 builds because
+  libstdc++'s `<expected>` guard requires `__cpp_concepts >= 202002L`, while
+  this compiler reports `201907L`.
+- Linux Clang 19 in Ubuntu 24.04 passes baseline compile-only validation
+  (`IDAX_BUILD_EXAMPLE_ADDONS=OFF`, `IDAX_BUILD_EXAMPLE_TOOLS=OFF`).
+- In the current SDK checkout, Linux Clang addon/tool rows fail when ON because
+  `x64_linux_clang_64` runtime libs are missing (`libida.so` / `libidalib.so`).
 - Full multi-OS completion requires Linux and Windows hosts with licensed IDA
   runtime installations available to the test harness.
 
@@ -104,6 +106,12 @@ export IDADIR=/path/to/ida
 
 # compile-only row(s)
 scripts/run_validation_matrix.sh compile-only build-matrix-linux-gcc RelWithDebInfo
+
+# Linux Clang baseline (current known-good in Ubuntu 24.04)
+export CC=clang-19
+export CXX=clang++-19
+IDAX_BUILD_EXAMPLE_ADDONS=OFF IDAX_BUILD_EXAMPLE_TOOLS=OFF \
+  scripts/run_validation_matrix.sh compile-only build-matrix-linux-clang19 RelWithDebInfo
 
 # full row(s)
 scripts/run_validation_matrix.sh full build-matrix-linux-gcc-full RelWithDebInfo

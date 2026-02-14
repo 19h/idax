@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-02-13 (updated after hosted validation-matrix log audit)
+Date: 2026-02-14 (updated after Linux Clang matrix triage)
 
 ## Test suite summary
 
@@ -61,7 +61,8 @@ Date: 2026-02-13 (updated after hosted validation-matrix log audit)
 - macOS arm64, AppleClang 15.0.0.15000309, RelWithDebInfo unit (GitHub Actions): pass, 2/2 (`job-logs5.txt`)
 - Windows x64, MSVC 19.44.35222.0, RelWithDebInfo compile-only (GitHub Actions): pass (`job-logs3.txt`)
 - Linux x86_64, GCC 13.3.0, RelWithDebInfo compile-only: pass (`build-matrix-linux-gcc-docker/`)
-- Linux x86_64, Clang 18.1.3, RelWithDebInfo compile-only: fail (default toolchain misses `std::expected` in current container setup, and libc++ retry fails on SDK `snprintf` macro clash; see `build-matrix-linux-clang-docker/` and `build-matrix-linux-clang-libcpp/`)
+- Linux x86_64, Clang 18.1.3, RelWithDebInfo compile-only: fail (baseline container run fails because `std::expected` is unavailable with this compiler/libstdc++ pairing; see `build-matrix-linux-clang18-amd64-baseline/`)
+- Linux x86_64, Clang 19.1.1, RelWithDebInfo compile-only: pass (baseline container run with `IDAX_BUILD_EXAMPLE_ADDONS=OFF` and `IDAX_BUILD_EXAMPLE_TOOLS=OFF`; see `build-matrix-linux-clang19-amd64-baseline/`)
 
 Remaining runtime-dependent `full` Linux/Windows rows and command profiles are
 tracked in `docs/compatibility_matrix.md`.
