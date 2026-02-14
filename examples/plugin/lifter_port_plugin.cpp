@@ -93,10 +93,17 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
         "vaddps", "vsubps", "vmulps", "vdivps",
         "vaddpd", "vsubpd", "vmulpd", "vdivpd",
+        "vaddsubps", "vaddsubpd",
+        "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
         "vminps", "vmaxps", "vminpd", "vmaxpd",
         "vsqrtps", "vsqrtpd",
         "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
         "vcvtdq2pd", "vcvtudq2pd",
+        "vcvttps2dq", "vcvtps2dq", "vcvttpd2dq", "vcvtpd2dq",
+        "vcvtps2udq", "vcvttps2udq", "vcvtpd2udq", "vcvttpd2udq",
+        "vcvtpd2qq", "vcvtpd2uqq", "vcvttpd2qq", "vcvttpd2uqq",
+        "vcvtps2qq", "vcvtps2uqq", "vcvttps2qq", "vcvttps2uqq",
+        "vcvtqq2pd", "vcvtqq2ps", "vcvtuqq2pd", "vcvtuqq2ps",
         "vmovaps", "vmovups", "vmovapd", "vmovupd",
         "vmovdqa", "vmovdqu", "vmovdqa32", "vmovdqa64",
         "vmovdqu8", "vmovdqu16", "vmovdqu32", "vmovdqu64",
@@ -145,6 +152,25 @@ std::optional<ida::decompiler::MicrocodeOpcode> packed_conversion_opcode(std::st
         return ida::decompiler::MicrocodeOpcode::IntegerToFloat;
     }
     return std::nullopt;
+}
+
+bool is_packed_helper_conversion_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vcvttps2dq", "vcvtps2dq", "vcvttpd2dq", "vcvtpd2dq",
+        "vcvtps2udq", "vcvttps2udq", "vcvtpd2udq", "vcvttpd2udq",
+        "vcvtpd2qq", "vcvtpd2uqq", "vcvttpd2qq", "vcvttpd2uqq",
+        "vcvtps2qq", "vcvtps2uqq", "vcvttps2qq", "vcvttps2uqq",
+        "vcvtqq2pd", "vcvtqq2ps", "vcvtuqq2pd", "vcvtuqq2ps",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_addsub_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vaddsubps", "vaddsubpd",
+        "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
 }
 
 int infer_operand_byte_width(ida::Address address, int operand_index, int fallback) {
@@ -555,6 +581,38 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     }
 
+    if (is_packed_helper_conversion_mnemonic(mnemonic_lower)) {
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return std::unexpected(destination_reg.error());
+        }
+        const auto source_reg = context.load_operand_register(1);
+        if (!source_reg) {
+            return std::unexpected(source_reg.error());
+        }
+
+        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int source_width = infer_operand_byte_width(instruction.address(), 1, destination_width);
+        const bool destination_unsigned = mnemonic_lower.find("udq") != std::string::npos
+            || mnemonic_lower.find("uqq") != std::string::npos;
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*source_reg, source_width, false));
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+            helper,
+            args,
+            *destination_reg,
+            destination_width,
+            destination_unsigned,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
+    }
+
     if (mnemonic_lower.starts_with("vmov")) {
         const auto destination_operand = instruction.operand(0);
         if (!destination_operand) {
@@ -620,6 +678,39 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
 
     if (operand_count < 3) {
         return false;
+    }
+
+    if (is_packed_helper_addsub_mnemonic(mnemonic_lower)) {
+        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return std::unexpected(destination_reg.error());
+        }
+        const auto source1_reg = context.load_operand_register(1);
+        if (!source1_reg) {
+            return std::unexpected(source1_reg.error());
+        }
+        const auto source2_reg = context.load_operand_register(2);
+        if (!source2_reg) {
+            return std::unexpected(source2_reg.error());
+        }
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*source1_reg, packed_width, false));
+        args.push_back(register_argument(*source2_reg, packed_width, false));
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+            helper,
+            args,
+            *destination_reg,
+            packed_width,
+            false,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
     }
 
     if (mnemonic_lower == "vminps" || mnemonic_lower == "vmaxps"
@@ -812,7 +903,7 @@ ida::Status show_gap_report() {
         "  2) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
         "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
-        "[lifter-port] Recently closed: VMX subset, AVX scalar math/conversion subset, hxe_maturity subscription,\n"
+        "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion subset,\n"
         "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
     return ida::ok();
 }

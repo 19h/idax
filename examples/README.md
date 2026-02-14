@@ -99,7 +99,9 @@ lowering (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/v
 with typed microcode emission for scalar/packed AVX lowering
 (`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
 `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
+`vaddsubps/vaddsubpd`, `vhaddps/vhaddpd`, `vhsubps/vhsubpd`,
 `vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
+`vcvt*2dq/udq/qq/uqq` (including truncating variants),
 `vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families,
 `vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
 `vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
