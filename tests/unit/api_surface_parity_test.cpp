@@ -1223,6 +1223,9 @@ void check_decompiler_surface() {
     (void)call_options.mark_spoiled_lists_optimized;
     (void)call_options.mark_synthetic_has_call;
     (void)call_options.mark_has_format_string;
+    (void)call_options.auto_stack_start_offset;
+    (void)call_options.auto_stack_alignment;
+    (void)call_options.auto_stack_argument_locations;
     (void)call_options.mark_explicit_locations;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);

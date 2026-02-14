@@ -625,12 +625,41 @@ Status apply_location_to_argloc(argloc_t* argloc,
 }
 
 Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<MicrocodeValue>& arguments,
+                                                      const MicrocodeCallOptions& options,
                                                       ea_t instruction_address) {
     CallArgumentsBuildResult result;
     result.arguments.reserve(arguments.size());
+    std::int64_t auto_stack_offset = options.auto_stack_start_offset.value_or(0);
 
     constexpr std::uint32_t kSupportedArgumentFlags =
         FAI_HIDDEN | FAI_RETPTR | FAI_STRUCT | FAI_ARRAY | FAI_UNUSED;
+
+    auto stack_alignment_for_size = [](int size) -> int {
+        int alignment = 8;
+        while (alignment < size && alignment < 64)
+            alignment <<= 1;
+        return alignment;
+    };
+
+    if (options.auto_stack_start_offset.has_value() && *options.auto_stack_start_offset < 0) {
+        return std::unexpected(Error::validation(
+            "Auto stack start offset cannot be negative",
+            std::to_string(*options.auto_stack_start_offset)));
+    }
+
+    if (options.auto_stack_alignment.has_value()) {
+        const int alignment = *options.auto_stack_alignment;
+        if (alignment <= 0) {
+            return std::unexpected(Error::validation(
+                "Auto stack alignment must be positive",
+                std::to_string(alignment)));
+        }
+        if ((alignment & (alignment - 1)) != 0) {
+            return std::unexpected(Error::validation(
+                "Auto stack alignment must be a power of two",
+                std::to_string(alignment)));
+        }
+    }
 
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
@@ -792,7 +821,8 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                         "ByteArray argument byte width must be positive",
                         std::to_string(i)));
                 }
-                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified
+                    && !options.auto_stack_argument_locations) {
                     return std::unexpected(Error::validation(
                         "ByteArray argument requires explicit location",
                         std::to_string(i)));
@@ -817,7 +847,8 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                         "Vector argument element byte width must be positive",
                         std::to_string(i)));
                 }
-                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified
+                    && !options.auto_stack_argument_locations) {
                     return std::unexpected(Error::validation(
                         "Vector argument requires explicit location",
                         std::to_string(i)));
@@ -857,7 +888,8 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                         "TypeDeclarationView argument requires a non-empty declaration",
                         std::to_string(i)));
                 }
-                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified
+                    && !options.auto_stack_argument_locations) {
                     return std::unexpected(Error::validation(
                         "TypeDeclarationView argument requires explicit location",
                         std::to_string(i)));
@@ -898,8 +930,31 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
             argument_flags |= FAI_HIDDEN;
         callarg.flags = static_cast<uint32>(argument_flags);
 
+        MicrocodeValueLocation effective_location = argument.location;
+        if (effective_location.kind == MicrocodeValueLocationKind::Unspecified
+            && options.auto_stack_argument_locations) {
+            int argument_size = static_cast<int>(callarg.type.get_size());
+            if (argument_size <= 0)
+                argument_size = static_cast<int>(callarg.size);
+            if (argument_size <= 0) {
+                return std::unexpected(Error::validation(
+                    "Cannot infer argument size for auto stack location",
+                    std::to_string(i)));
+            }
+
+            const int alignment = options.auto_stack_alignment.has_value()
+                ? *options.auto_stack_alignment
+                : stack_alignment_for_size(argument_size);
+            if (const std::int64_t remainder = auto_stack_offset % alignment; remainder != 0)
+                auto_stack_offset += (alignment - remainder);
+
+            effective_location.kind = MicrocodeValueLocationKind::StackOffset;
+            effective_location.stack_offset = auto_stack_offset;
+            auto_stack_offset += argument_size;
+        }
+
         auto location_status = apply_explicit_location(&callarg,
-                                                       argument.location,
+                                                       effective_location,
                                                        i,
                                                        &result.has_explicit_locations);
         if (!location_status)
@@ -1364,11 +1419,14 @@ Status MicrocodeContext::emit_helper_call_with_arguments_and_options(
     if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    auto callargs = build_call_arguments(arguments, impl->codegen->insn.ea);
+    auto callargs = build_call_arguments(arguments, options, impl->codegen->insn.ea);
     if (!callargs)
         return std::unexpected(callargs.error());
 
     MicrocodeCallOptions effective_options = options;
+    if (!effective_options.solid_argument_count.has_value()) {
+        effective_options.solid_argument_count = static_cast<int>(callargs->arguments.size());
+    }
     if (callargs->has_explicit_locations)
         effective_options.mark_explicit_locations = true;
 
@@ -1427,11 +1485,14 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
     if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    auto callargs = build_call_arguments(arguments, impl->codegen->insn.ea);
+    auto callargs = build_call_arguments(arguments, options, impl->codegen->insn.ea);
     if (!callargs)
         return std::unexpected(callargs.error());
 
     MicrocodeCallOptions effective_options = options;
+    if (!effective_options.solid_argument_count.has_value()) {
+        effective_options.solid_argument_count = static_cast<int>(callargs->arguments.size());
+    }
     if (callargs->has_explicit_locations)
         effective_options.mark_explicit_locations = true;
 

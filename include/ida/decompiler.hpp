@@ -311,6 +311,9 @@ struct MicrocodeCallOptions {
     bool mark_spoiled_lists_optimized{false};
     bool mark_synthetic_has_call{false};
     bool mark_has_format_string{false};
+    std::optional<std::int64_t> auto_stack_start_offset{};
+    std::optional<int> auto_stack_alignment{};
+    bool auto_stack_argument_locations{false};
     bool mark_explicit_locations{false};
 };
 
