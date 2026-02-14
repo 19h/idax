@@ -119,6 +119,9 @@ be executed in small, testable API slices.
   callee/SPD/stack/solid-arg hints, function-role hint,
   return-location hint, return-type declaration) and declaration-driven
   typed register argument/return emission with size validation.
+  - Per-argument metadata is now partially covered through
+    `MicrocodeValue::argument_name` and `MicrocodeValue::argument_flags`
+    (`MicrocodeArgumentFlag` bitmask values) mapped to callarg metadata.
   - Remaining depth is richer typed callinfo/tmop authoring controls beyond
   current option-hint shaping.
 - Migration impact:
@@ -217,6 +220,10 @@ be executed in small, testable API slices.
 - Expanded helper-call typed-argument shaping for register argument paths:
   declaration-driven register argument typing now supports non-integer
   declarations with explicit size validation.
+- Expanded helper-call per-argument metadata shaping:
+  arguments can now carry formal name/flag metadata via
+  `MicrocodeValue::argument_name` + `MicrocodeValue::argument_flags`
+  (`MicrocodeArgumentFlag`).
 - Added action-context host bridges for advanced decompiler popup workflows:
   `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
   plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.
