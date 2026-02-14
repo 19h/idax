@@ -128,6 +128,69 @@ callcnv_t to_sdk_calling_convention(MicrocodeCallingConvention convention) {
     return CM_CC_INVALID;
 }
 
+funcrole_t to_sdk_function_role(MicrocodeFunctionRole role) {
+    switch (role) {
+        case MicrocodeFunctionRole::Unknown:              return ROLE_UNK;
+        case MicrocodeFunctionRole::Empty:                return ROLE_EMPTY;
+        case MicrocodeFunctionRole::Memset:               return ROLE_MEMSET;
+        case MicrocodeFunctionRole::Memset32:             return ROLE_MEMSET32;
+        case MicrocodeFunctionRole::Memset64:             return ROLE_MEMSET64;
+        case MicrocodeFunctionRole::Memcpy:               return ROLE_MEMCPY;
+        case MicrocodeFunctionRole::Strcpy:               return ROLE_STRCPY;
+        case MicrocodeFunctionRole::Strlen:               return ROLE_STRLEN;
+        case MicrocodeFunctionRole::Strcat:               return ROLE_STRCAT;
+        case MicrocodeFunctionRole::Tail:                 return ROLE_TAIL;
+        case MicrocodeFunctionRole::Bug:                  return ROLE_BUG;
+        case MicrocodeFunctionRole::Alloca:               return ROLE_ALLOCA;
+        case MicrocodeFunctionRole::ByteSwap:             return ROLE_BSWAP;
+        case MicrocodeFunctionRole::Present:              return ROLE_PRESENT;
+        case MicrocodeFunctionRole::ContainingRecord:     return ROLE_CONTAINING_RECORD;
+        case MicrocodeFunctionRole::FastFail:             return ROLE_FASTFAIL;
+        case MicrocodeFunctionRole::ReadFlags:            return ROLE_READFLAGS;
+        case MicrocodeFunctionRole::IsMulOk:              return ROLE_IS_MUL_OK;
+        case MicrocodeFunctionRole::SaturatedMul:         return ROLE_SATURATED_MUL;
+        case MicrocodeFunctionRole::BitTest:              return ROLE_BITTEST;
+        case MicrocodeFunctionRole::BitTestAndSet:        return ROLE_BITTESTANDSET;
+        case MicrocodeFunctionRole::BitTestAndReset:      return ROLE_BITTESTANDRESET;
+        case MicrocodeFunctionRole::BitTestAndComplement: return ROLE_BITTESTANDCOMPLEMENT;
+        case MicrocodeFunctionRole::VaArg:                return ROLE_VA_ARG;
+        case MicrocodeFunctionRole::VaCopy:               return ROLE_VA_COPY;
+        case MicrocodeFunctionRole::VaStart:              return ROLE_VA_START;
+        case MicrocodeFunctionRole::VaEnd:                return ROLE_VA_END;
+        case MicrocodeFunctionRole::RotateLeft:           return ROLE_ROL;
+        case MicrocodeFunctionRole::RotateRight:          return ROLE_ROR;
+        case MicrocodeFunctionRole::CarryFlagSub3:        return ROLE_CFSUB3;
+        case MicrocodeFunctionRole::OverflowFlagSub3:     return ROLE_OFSUB3;
+        case MicrocodeFunctionRole::AbsoluteValue:        return ROLE_ABS;
+        case MicrocodeFunctionRole::ThreeWayCompare0:     return ROLE_3WAYCMP0;
+        case MicrocodeFunctionRole::ThreeWayCompare1:     return ROLE_3WAYCMP1;
+        case MicrocodeFunctionRole::WideMemCopy:          return ROLE_WMEMCPY;
+        case MicrocodeFunctionRole::WideMemSet:           return ROLE_WMEMSET;
+        case MicrocodeFunctionRole::WideStrCopy:          return ROLE_WCSCPY;
+        case MicrocodeFunctionRole::WideStrLen:           return ROLE_WCSLEN;
+        case MicrocodeFunctionRole::WideStrCat:           return ROLE_WCSCAT;
+        case MicrocodeFunctionRole::SseCompare4:          return ROLE_SSE_CMP4;
+        case MicrocodeFunctionRole::SseCompare8:          return ROLE_SSE_CMP8;
+    }
+    return ROLE_UNK;
+}
+
+Status apply_single_location_to_argloc(argloc_t* argloc,
+                                       MicrocodeValueLocationKind kind,
+                                       int register_id,
+                                       int second_register_id,
+                                       int register_offset,
+                                       std::int64_t register_relative_offset,
+                                       std::int64_t stack_offset,
+                                       Address static_address,
+                                       std::string_view context);
+
+Status apply_location_to_argloc(argloc_t* argloc,
+                                const MicrocodeValueLocation& location,
+                                std::string_view context,
+                                bool allow_unspecified,
+                                bool* has_explicit_location);
+
 Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
     switch (opcode) {
         case MicrocodeOpcode::NoOperation:    return m_nop;
@@ -211,6 +274,8 @@ Status apply_call_options(minsn_t* root,
         || options.solid_argument_count.has_value()
         || options.call_stack_pointer_delta.has_value()
         || options.stack_arguments_top.has_value()
+        || options.function_role.has_value()
+        || options.return_location.has_value()
         || !options.return_type_declaration.empty()
         ||
         options.calling_convention != MicrocodeCallingConvention::Unspecified
@@ -256,6 +321,20 @@ Status apply_call_options(minsn_t* root,
 
     if (options.stack_arguments_top.has_value())
         info->stkargs_top = *options.stack_arguments_top;
+
+    if (options.function_role.has_value())
+        info->role = to_sdk_function_role(*options.function_role);
+
+    if (options.return_location.has_value()) {
+        bool has_explicit_location = false;
+        auto location_status = apply_location_to_argloc(&info->return_argloc,
+                                                        *options.return_location,
+                                                        "return",
+                                                        false,
+                                                        &has_explicit_location);
+        if (!location_status)
+            return location_status;
+    }
 
     if (!options.return_type_declaration.empty()) {
         qstring declaration(options.return_type_declaration.c_str());
@@ -445,81 +524,99 @@ Status apply_explicit_location(mcallarg_t* callarg,
     if (callarg == nullptr || has_explicit_locations == nullptr)
         return std::unexpected(Error::internal("Null helper-call argument/location output"));
 
-    switch (location.kind) {
-        case MicrocodeValueLocationKind::Unspecified:
+    bool has_explicit = false;
+    auto status = apply_location_to_argloc(&callarg->argloc,
+                                           location,
+                                           std::to_string(index),
+                                           true,
+                                           &has_explicit);
+    if (!status)
+        return status;
+
+    if (has_explicit)
+        *has_explicit_locations = true;
+    return ida::ok();
+}
+
+Status apply_location_to_argloc(argloc_t* argloc,
+                                const MicrocodeValueLocation& location,
+                                std::string_view context,
+                                bool allow_unspecified,
+                                bool* has_explicit_location) {
+    if (argloc == nullptr)
+        return std::unexpected(Error::internal("Null explicit location output"));
+    if (has_explicit_location != nullptr)
+        *has_explicit_location = false;
+
+    if (location.kind == MicrocodeValueLocationKind::Unspecified) {
+        if (allow_unspecified)
             return ida::ok();
-
-        case MicrocodeValueLocationKind::Register:
-        case MicrocodeValueLocationKind::RegisterWithOffset:
-        case MicrocodeValueLocationKind::RegisterPair:
-        case MicrocodeValueLocationKind::RegisterRelative:
-        case MicrocodeValueLocationKind::StackOffset:
-        case MicrocodeValueLocationKind::StaticAddress:
-            {
-                auto status = apply_single_location_to_argloc(&callarg->argloc,
-                                                              location.kind,
-                                                              location.register_id,
-                                                              location.second_register_id,
-                                                              location.register_offset,
-                                                              location.register_relative_offset,
-                                                              location.stack_offset,
-                                                              location.static_address,
-                                                              std::to_string(index));
-                if (!status)
-                    return status;
-            }
-            *has_explicit_locations = true;
-            return ida::ok();
-
-        case MicrocodeValueLocationKind::Scattered: {
-            if (location.scattered_parts.empty()) {
-                return std::unexpected(Error::validation(
-                    "Scattered explicit location requires at least one part",
-                    std::to_string(index)));
-            }
-
-            auto scattered = std::make_unique<scattered_aloc_t>();
-            scattered->reserve(location.scattered_parts.size());
-
-            for (std::size_t part_index = 0; part_index < location.scattered_parts.size(); ++part_index) {
-                const auto& part = location.scattered_parts[part_index];
-                if (part.byte_offset < 0 || part.byte_offset > 0xFFFF) {
-                    return std::unexpected(Error::validation(
-                        "Scattered location part offset out of range",
-                        std::to_string(index) + ":" + std::to_string(part_index)));
-                }
-                if (part.byte_size <= 0 || part.byte_size > 0xFFFF) {
-                    return std::unexpected(Error::validation(
-                        "Scattered location part size out of range",
-                        std::to_string(index) + ":" + std::to_string(part_index)));
-                }
-
-                argpart_t argpart;
-                auto status = apply_single_location_to_argloc(&argpart,
-                                                              part.kind,
-                                                              part.register_id,
-                                                              part.second_register_id,
-                                                              part.register_offset,
-                                                              part.register_relative_offset,
-                                                              part.stack_offset,
-                                                              part.static_address,
-                                                              std::to_string(index) + ":" + std::to_string(part_index));
-                if (!status)
-                    return status;
-
-                argpart.off = static_cast<ushort>(part.byte_offset);
-                argpart.size = static_cast<ushort>(part.byte_size);
-                scattered->push_back(std::move(argpart));
-            }
-
-            callarg->argloc.consume_scattered(scattered.release());
-            *has_explicit_locations = true;
-            return ida::ok();
-        }
+        return std::unexpected(Error::validation(
+            "Explicit location kind is unspecified",
+            std::string(context)));
     }
 
-    return std::unexpected(Error::validation("Unsupported argument location kind",
-                                             std::to_string(index)));
+    if (location.kind == MicrocodeValueLocationKind::Scattered) {
+        if (location.scattered_parts.empty()) {
+            return std::unexpected(Error::validation(
+                "Scattered explicit location requires at least one part",
+                std::string(context)));
+        }
+
+        auto scattered = std::make_unique<scattered_aloc_t>();
+        scattered->reserve(location.scattered_parts.size());
+
+        for (std::size_t part_index = 0; part_index < location.scattered_parts.size(); ++part_index) {
+            const auto& part = location.scattered_parts[part_index];
+            if (part.byte_offset < 0 || part.byte_offset > 0xFFFF) {
+                return std::unexpected(Error::validation(
+                    "Scattered location part offset out of range",
+                    std::string(context) + ":" + std::to_string(part_index)));
+            }
+            if (part.byte_size <= 0 || part.byte_size > 0xFFFF) {
+                return std::unexpected(Error::validation(
+                    "Scattered location part size out of range",
+                    std::string(context) + ":" + std::to_string(part_index)));
+            }
+
+            argpart_t argpart;
+            auto status = apply_single_location_to_argloc(&argpart,
+                                                          part.kind,
+                                                          part.register_id,
+                                                          part.second_register_id,
+                                                          part.register_offset,
+                                                          part.register_relative_offset,
+                                                          part.stack_offset,
+                                                          part.static_address,
+                                                          std::string(context) + ":" + std::to_string(part_index));
+            if (!status)
+                return status;
+
+            argpart.off = static_cast<ushort>(part.byte_offset);
+            argpart.size = static_cast<ushort>(part.byte_size);
+            scattered->push_back(std::move(argpart));
+        }
+
+        argloc->consume_scattered(scattered.release());
+        if (has_explicit_location != nullptr)
+            *has_explicit_location = true;
+        return ida::ok();
+    }
+
+    auto status = apply_single_location_to_argloc(argloc,
+                                                  location.kind,
+                                                  location.register_id,
+                                                  location.second_register_id,
+                                                  location.register_offset,
+                                                  location.register_relative_offset,
+                                                  location.stack_offset,
+                                                  location.static_address,
+                                                  context);
+    if (!status)
+        return status;
+    if (has_explicit_location != nullptr)
+        *has_explicit_location = true;
+    return ida::ok();
 }
 
 Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<MicrocodeValue>& arguments,

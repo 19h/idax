@@ -114,10 +114,12 @@ be executed in small, testable API slices.
   - direct `mcallinfo_t` and `mcallarg_t` shaping, including argument metadata,
     per-arg placement details, and call-shape flags.
 - Current idax status:
-  - partial. `MicrocodeCallOptions` now covers useful flag and scalar hints
-    (calling convention, selected `FCI_*`, callee/SPD/stack/solid-arg hints,
-    return-type declaration), but does not yet provide full typed callinfo
-    authoring controls comparable to raw `mcallinfo_t` mutation.
+  - partial, with a baseline closure increment. `MicrocodeCallOptions` now
+    covers useful flag and scalar hints (calling convention, selected `FCI_*`,
+    callee/SPD/stack/solid-arg hints, function-role hint,
+    return-location hint, return-type declaration).
+  - Remaining depth is richer typed callinfo/tmop authoring controls beyond
+    current option-hint shaping.
 - Migration impact:
   - medium/high. Many helper-call flows are now possible, but complex callinfo
     parity still requires raw SDK.
@@ -164,9 +166,11 @@ be executed in small, testable API slices.
    - Remaining closure for this slice is depth-oriented (richer typed operand
      semantics, not basic opcode dispatch).
 
-2. `P1` - Extended typed callinfo authoring surface
-   - Add additive per-argument metadata controls and richer return/call shape
-     options beyond current scalar hints while keeping public SDK opacity.
+2. `P1` - Extended typed callinfo authoring surface (baseline closure increment complete)
+   - `MicrocodeCallOptions` now includes additive function-role and
+     return-location hinting in addition to existing scalar call-shape flags.
+   - Remaining closure is richer per-argument metadata and deeper typed
+     callinfo/tmop controls beyond option-hint shaping.
 
 3. `P2` - Placement policy controls (baseline closure increment complete)
    - `MicrocodeInsertPolicy` + policy-aware typed emission APIs provide
@@ -199,6 +203,9 @@ be executed in small, testable API slices.
   now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
   `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
   counts.
+- Expanded helper-call option shaping with semantic role + return-location
+  hinting (`function_role`, `return_location`) for additive callinfo depth
+  without raw `mcallinfo_t` mutation in public APIs.
 - Added action-context host bridges for advanced decompiler popup workflows:
   `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
   plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.

@@ -226,12 +226,59 @@ enum class MicrocodeCallingConvention : int {
     Thiscall,
 };
 
+/// Optional semantic role hint for emitted helper calls.
+enum class MicrocodeFunctionRole : int {
+    Unknown,
+    Empty,
+    Memset,
+    Memset32,
+    Memset64,
+    Memcpy,
+    Strcpy,
+    Strlen,
+    Strcat,
+    Tail,
+    Bug,
+    Alloca,
+    ByteSwap,
+    Present,
+    ContainingRecord,
+    FastFail,
+    ReadFlags,
+    IsMulOk,
+    SaturatedMul,
+    BitTest,
+    BitTestAndSet,
+    BitTestAndReset,
+    BitTestAndComplement,
+    VaArg,
+    VaCopy,
+    VaStart,
+    VaEnd,
+    RotateLeft,
+    RotateRight,
+    CarryFlagSub3,
+    OverflowFlagSub3,
+    AbsoluteValue,
+    ThreeWayCompare0,
+    ThreeWayCompare1,
+    WideMemCopy,
+    WideMemSet,
+    WideStrCopy,
+    WideStrLen,
+    WideStrCat,
+    SseCompare4,
+    SseCompare8,
+};
+
 /// Additional call-shaping options for emitted helper calls.
 struct MicrocodeCallOptions {
     std::optional<Address> callee_address{};
     std::optional<int> solid_argument_count{};
     std::optional<int> call_stack_pointer_delta{};
     std::optional<int> stack_arguments_top{};
+    std::optional<MicrocodeFunctionRole> function_role{};
+    std::optional<MicrocodeValueLocation> return_location{};
     std::string return_type_declaration{};
     MicrocodeCallingConvention calling_convention{MicrocodeCallingConvention::Unspecified};
     bool mark_final{false};
