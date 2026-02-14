@@ -16,6 +16,17 @@
   - Suitable for decompiler testing (Hex-Rays)
   - Contains enough complexity for xref, comment, name, type, and fixup tests
 
+### `simple_appcall_host.c` -> `simple_appcall_host`
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/simple_appcall_host.c`
+- **Build helper**: `scripts/build_appcall_fixture.sh`
+- **Used by**: debugger Appcall runtime smoke (`examples/tools/ida2py_port.cpp`)
+- **Key characteristics**:
+  - Exports `ref4(int *p)` used by `--appcall-smoke`
+  - Small and portable so host/runtime debugger checks can be repeated quickly
+  - Avoids architecture-mismatch ambiguity during Appcall validation
+
 ## Scenario Fixture Directories
 
 ### `loader/`

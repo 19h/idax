@@ -107,7 +107,9 @@ Port of `/Users/int/Downloads/plo/ida2py-main` static query workflows to pure
 idax calls: user-defined symbol discovery, type apply/retrieve checks,
 symbol-centric value/xref inspection, and decompiler-backed callsite text
 listing. It also includes optional runtime `--appcall-smoke` coverage for
-debugger-capable hosts (`ida::debugger::appcall`).
+debugger-capable hosts (`ida::debugger::appcall`); use
+`scripts/build_appcall_fixture.sh` to generate a host-native `ref4` fixture
+before running smoke checks.
 
 ## Building
 
