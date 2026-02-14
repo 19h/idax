@@ -116,6 +116,60 @@ bool make_integer_type(tinfo_t* out, int byte_width, bool is_unsigned) {
     return true;
 }
 
+callcnv_t to_sdk_calling_convention(MicrocodeCallingConvention convention) {
+    switch (convention) {
+        case MicrocodeCallingConvention::Unspecified: return CM_CC_INVALID;
+        case MicrocodeCallingConvention::Cdecl:       return CM_CC_CDECL;
+        case MicrocodeCallingConvention::Stdcall:     return CM_CC_STDCALL;
+        case MicrocodeCallingConvention::Fastcall:    return CM_CC_FASTCALL;
+        case MicrocodeCallingConvention::Thiscall:    return CM_CC_THISCALL;
+    }
+    return CM_CC_INVALID;
+}
+
+Status apply_call_options(minsn_t* root,
+                          const MicrocodeCallOptions& options,
+                          std::string_view helper_name) {
+    const bool has_options =
+        options.calling_convention != MicrocodeCallingConvention::Unspecified
+        || options.mark_final
+        || options.mark_propagated
+        || options.mark_no_return
+        || options.mark_pure
+        || options.mark_no_side_effects;
+    if (!has_options)
+        return ida::ok();
+
+    if (root == nullptr)
+        return std::unexpected(Error::sdk("Helper-call root instruction missing",
+                                          std::string(helper_name)));
+
+    minsn_t* call_insn = root->find_call(true);
+    if (call_insn == nullptr || call_insn->opcode != m_call || call_insn->d.t != mop_f || call_insn->d.f == nullptr) {
+        return std::unexpected(Error::sdk("Helper-call instruction shape not recognized",
+                                          std::string(helper_name)));
+    }
+
+    mcallinfo_t* info = call_insn->d.f;
+
+    const callcnv_t calling_convention = to_sdk_calling_convention(options.calling_convention);
+    if (calling_convention != CM_CC_INVALID)
+        info->cc = calling_convention;
+
+    if (options.mark_final)
+        info->flags |= FCI_FINAL;
+    if (options.mark_propagated)
+        info->flags |= FCI_PROP;
+    if (options.mark_no_return)
+        info->flags |= FCI_NORET;
+    if (options.mark_pure)
+        info->flags |= FCI_PURE;
+    if (options.mark_no_side_effects)
+        info->flags |= FCI_NOSIDE;
+
+    return ida::ok();
+}
+
 Status insert_call_instruction(MicrocodeContextImpl* impl,
                                minsn_t* call,
                                std::string_view helper_name) {
@@ -510,6 +564,15 @@ Status MicrocodeContext::emit_helper_call(std::string_view helper_name) {
 Status MicrocodeContext::emit_helper_call_with_arguments(
     std::string_view helper_name,
     const std::vector<MicrocodeValue>& arguments) {
+    return emit_helper_call_with_arguments_and_options(helper_name,
+                                                       arguments,
+                                                       MicrocodeCallOptions{});
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_and_options(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    const MicrocodeCallOptions& options) {
     if (helper_name.empty())
         return std::unexpected(Error::validation("Helper name cannot be empty"));
     if (raw_ == nullptr)
@@ -529,6 +592,14 @@ Status MicrocodeContext::emit_helper_call_with_arguments(
                                                             nullptr,
                                                             callargs->empty() ? nullptr : &*callargs,
                                                             nullptr);
+
+    auto st = apply_call_options(call, options, helper);
+    if (!st) {
+        if (call != nullptr)
+            delete call;
+        return st;
+    }
+
     return insert_call_instruction(impl, call, helper);
 }
 
@@ -538,6 +609,21 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register(
     int destination_register,
     int destination_byte_width,
     bool destination_unsigned) {
+    return emit_helper_call_with_arguments_to_register_and_options(helper_name,
+                                                                   arguments,
+                                                                   destination_register,
+                                                                   destination_byte_width,
+                                                                   destination_unsigned,
+                                                                   MicrocodeCallOptions{});
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    int destination_register,
+    int destination_byte_width,
+    bool destination_unsigned,
+    const MicrocodeCallOptions& options) {
     if (helper_name.empty())
         return std::unexpected(Error::validation("Helper name cannot be empty"));
     if (destination_byte_width <= 0)
@@ -569,6 +655,14 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register(
                                                             &return_type,
                                                             callargs->empty() ? nullptr : &*callargs,
                                                             &destination);
+
+    auto st = apply_call_options(call, options, helper);
+    if (!st) {
+        if (call != nullptr)
+            delete call;
+        return st;
+    }
+
     return insert_call_instruction(impl, call, helper);
 }
 

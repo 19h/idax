@@ -115,6 +115,25 @@ struct MicrocodeValue {
     bool unsigned_integer{true};
 };
 
+/// Calling-convention override for helper calls.
+enum class MicrocodeCallingConvention : int {
+    Unspecified,
+    Cdecl,
+    Stdcall,
+    Fastcall,
+    Thiscall,
+};
+
+/// Additional call-shaping options for emitted helper calls.
+struct MicrocodeCallOptions {
+    MicrocodeCallingConvention calling_convention{MicrocodeCallingConvention::Unspecified};
+    bool mark_final{false};
+    bool mark_propagated{false};
+    bool mark_no_return{false};
+    bool mark_pure{false};
+    bool mark_no_side_effects{false};
+};
+
 /// Opaque mutable context passed to microcode-filter callbacks.
 class MicrocodeContext {
 public:
@@ -165,6 +184,12 @@ public:
         std::string_view helper_name,
         const std::vector<MicrocodeValue>& arguments);
 
+    /// Emit helper call with typed arguments and additional call options.
+    Status emit_helper_call_with_arguments_and_options(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        const MicrocodeCallOptions& options);
+
     /// Emit helper call with typed arguments and move the return value to a register.
     ///
     /// Current typed support is integer-oriented (`destination_byte_width` 1/2/4/8).
@@ -174,6 +199,15 @@ public:
         int destination_register,
         int destination_byte_width,
         bool destination_unsigned = true);
+
+    /// Emit helper call with typed arguments/return and additional call options.
+    Status emit_helper_call_with_arguments_to_register_and_options(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        int destination_register,
+        int destination_byte_width,
+        bool destination_unsigned,
+        const MicrocodeCallOptions& options);
 
     struct Tag {};
     explicit MicrocodeContext(Tag, void* raw) noexcept : raw_(raw) {}

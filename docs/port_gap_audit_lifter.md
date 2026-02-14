@@ -40,8 +40,8 @@ to idax-first surfaces.
    - lifter emits and rewrites microcode instructions (`m_call`, `m_nop`, `m_ldx`,
       helper-call construction, typed mop/reg orchestration).
    - idax currently exposes microcode text readout (`microcode_lines`) plus basic
-     filter hooks and integer-typed helper-call argument builders, but not a
-     comprehensive writable IR API.
+     filter hooks, integer-typed helper-call argument builders, and lightweight
+     helper call-shaping options, but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
 3. Action context is intentionally normalized and SDK-opaque
