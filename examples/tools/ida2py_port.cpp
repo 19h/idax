@@ -336,6 +336,38 @@ ida::Status inspect_symbol(ida::Address address, std::string_view token) {
         auto type_text = type_info->to_string();
         std::printf("Type: %s\n",
                     type_text ? type_text->c_str() : "<print failed>");
+
+        if (type_info->is_typedef()) {
+            auto resolved = type_info->resolve_typedef();
+            if (resolved) {
+                auto resolved_text = resolved->to_string();
+                if (resolved_text) {
+                    std::printf("Resolved typedef: %s\n", resolved_text->c_str());
+                }
+            }
+        }
+
+        if (type_info->is_pointer()) {
+            auto pointee = type_info->pointee_type();
+            if (pointee) {
+                auto pointee_text = pointee->to_string();
+                if (pointee_text)
+                    std::printf("Pointee type: %s\n", pointee_text->c_str());
+            }
+        }
+
+        if (type_info->is_array()) {
+            auto element = type_info->array_element_type();
+            auto length = type_info->array_length();
+            if (element && length) {
+                auto element_text = element->to_string();
+                if (element_text) {
+                    std::printf("Array element: %s[%zu]\n",
+                                element_text->c_str(),
+                                *length);
+                }
+            }
+        }
     } else {
         std::printf("Type: <none>\n");
     }
@@ -558,7 +590,25 @@ ida::Status run_callsites() {
                             }
                             auto rendered = expr.to_string();
                             if (rendered) {
-                                rendered_calls[address] = *rendered;
+                                std::string line = *rendered;
+                                auto argc = expr.call_argument_count();
+                                if (argc) {
+                                    line += fmt(" [argc=%zu]", *argc);
+                                    if (auto callee = expr.call_callee(); callee) {
+                                        if (auto callee_text = callee->to_string(); callee_text) {
+                                            line += fmt(" [callee=%s]", callee_text->c_str());
+                                        }
+                                    }
+                                    if (*argc > 0) {
+                                        auto arg0 = expr.call_argument(0);
+                                        if (arg0) {
+                                            if (auto arg_text = arg0->to_string(); arg_text) {
+                                                line += fmt(" [arg0=%s]", arg_text->c_str());
+                                            }
+                                        }
+                                    }
+                                }
+                                rendered_calls[address] = std::move(line);
                             }
                             return ida::decompiler::VisitAction::Continue;
                         });

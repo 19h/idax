@@ -132,6 +132,90 @@ void test_composite_factories() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: pointer/array decomposition + typedef resolution helpers
+// ---------------------------------------------------------------------------
+void test_type_decomposition_helpers() {
+    std::cout << "--- type decomposition helpers ---\n";
+
+    auto i32 = ida::type::TypeInfo::int32();
+    auto ptr = ida::type::TypeInfo::pointer_to(i32);
+    auto arr = ida::type::TypeInfo::array_of(i32, 7);
+
+    auto pointee = ptr.pointee_type();
+    CHECK_OK(pointee);
+    if (pointee)
+        CHECK(pointee->is_integer());
+
+    auto element = arr.array_element_type();
+    CHECK_OK(element);
+    if (element)
+        CHECK(element->is_integer());
+
+    auto length = arr.array_length();
+    CHECK_OK(length);
+    if (length)
+        CHECK(*length == 7);
+
+    auto non_ptr = i32.pointee_type();
+    CHECK(!non_ptr.has_value());
+    if (!non_ptr)
+        CHECK(non_ptr.error().category == ida::ErrorCategory::Validation);
+
+    auto non_array_element = i32.array_element_type();
+    CHECK(!non_array_element.has_value());
+    if (!non_array_element)
+        CHECK(non_array_element.error().category == ida::ErrorCategory::Validation);
+
+    auto non_array_length = i32.array_length();
+    CHECK(!non_array_length.has_value());
+    if (!non_array_length)
+        CHECK(non_array_length.error().category == ida::ErrorCategory::Validation);
+
+    // Non-typedef input should return unchanged type information.
+    auto resolved_int = i32.resolve_typedef();
+    CHECK_OK(resolved_int);
+    if (resolved_int)
+        CHECK(resolved_int->is_integer());
+
+    // Try to find at least one typedef in local types and resolve it.
+    auto local_count = ida::type::local_type_count();
+    CHECK_OK(local_count);
+    if (local_count) {
+        bool found_typedef = false;
+        std::size_t scan_limit = *local_count;
+        if (scan_limit > 256)
+            scan_limit = 256;
+
+        for (std::size_t ordinal = 1; ordinal <= scan_limit; ++ordinal) {
+            auto type_name = ida::type::local_type_name(ordinal);
+            if (!type_name)
+                continue;
+
+            auto type = ida::type::TypeInfo::by_name(*type_name);
+            if (!type || !type->is_typedef())
+                continue;
+
+            found_typedef = true;
+            auto resolved = type->resolve_typedef();
+            CHECK_OK(resolved);
+            if (resolved) {
+                auto rendered = resolved->to_string();
+                CHECK_OK(rendered);
+                if (rendered)
+                    CHECK(!rendered->empty());
+            }
+            break;
+        }
+
+        if (!found_typedef) {
+            std::cout << "  (no typedef found in first " << scan_limit
+                      << " local types; typedef-chain path skipped)\n";
+            ++g_pass;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Test: from_declaration roundtrip
 // ---------------------------------------------------------------------------
 void test_from_declaration() {
@@ -642,6 +726,7 @@ int main(int argc, char* argv[]) {
 
     test_primitive_factories();
     test_composite_factories();
+    test_type_decomposition_helpers();
     test_from_declaration();
     test_function_type_workflows();
     test_enum_workflows();

@@ -222,6 +222,7 @@ void test_expression_view_accessors(ida::Address fn_ea) {
 
     bool tested_number = false;
     bool tested_call = false;
+    bool tested_call_parts = false;
     bool tested_variable = false;
 
     auto result = ida::decompiler::for_each_expression(*decomp,
@@ -239,6 +240,22 @@ void test_expression_view_accessors(ida::Address fn_ea) {
             if (t == ida::decompiler::ItemType::ExprCall && !tested_call) {
                 auto argc = expr.call_argument_count();
                 CHECK_OK(argc);
+                auto callee = expr.call_callee();
+                CHECK_OK(callee);
+                if (callee) {
+                    auto callee_text = callee->to_string();
+                    (void)callee_text;
+                }
+
+                if (argc && *argc > 0) {
+                    auto arg0 = expr.call_argument(0);
+                    CHECK_OK(arg0);
+                    if (arg0) {
+                        auto arg_text = arg0->to_string();
+                        (void)arg_text;
+                    }
+                    tested_call_parts = true;
+                }
                 tested_call = true;
             }
 
@@ -265,6 +282,7 @@ void test_expression_view_accessors(ida::Address fn_ea) {
 
     std::cout << "  tested number_value: " << (tested_number ? "yes" : "no")
               << ", call_argument_count: " << (tested_call ? "yes" : "no")
+              << ", call parts: " << (tested_call_parts ? "yes" : "no")
               << ", variable_index: " << (tested_variable ? "yes" : "no") << "\n";
 
     // number_value() on a non-number expression should fail
@@ -278,6 +296,19 @@ void test_expression_view_accessors(ida::Address fn_ea) {
             return ida::decompiler::VisitAction::Continue;
         });
     CHECK_OK(non_number_result);
+
+    auto non_call_result = ida::decompiler::for_each_expression(*decomp,
+        [&](ida::decompiler::ExpressionView expr) -> ida::decompiler::VisitAction {
+            if (expr.type() == ida::decompiler::ItemType::ExprVariable) {
+                auto bad_callee = expr.call_callee();
+                CHECK(!bad_callee.has_value());
+                auto bad_arg = expr.call_argument(0);
+                CHECK(!bad_arg.has_value());
+                return ida::decompiler::VisitAction::Stop;
+            }
+            return ida::decompiler::VisitAction::Continue;
+        });
+    CHECK_OK(non_call_result);
 }
 
 // ---------------------------------------------------------------------------

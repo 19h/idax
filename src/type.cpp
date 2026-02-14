@@ -238,6 +238,7 @@ bool TypeInfo::is_function()       const { return impl_ && impl_->ti.is_func(); 
 bool TypeInfo::is_struct()         const { return impl_ && impl_->ti.is_struct(); }
 bool TypeInfo::is_union()          const { return impl_ && impl_->ti.is_union(); }
 bool TypeInfo::is_enum()           const { return impl_ && impl_->ti.is_enum(); }
+bool TypeInfo::is_typedef()        const { return impl_ && impl_->ti.is_typedef(); }
 
 Result<std::size_t> TypeInfo::size() const {
     if (!impl_)
@@ -255,6 +256,83 @@ Result<std::string> TypeInfo::to_string() const {
     if (!impl_->ti.print(&buf))
         return std::unexpected(Error::sdk("Failed to print type"));
     return ida::detail::to_string(buf);
+}
+
+Result<TypeInfo> TypeInfo::pointee_type() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_ptr())
+        return std::unexpected(Error::validation("Type is not a pointer"));
+
+    tinfo_t pointee = impl_->ti.get_pointed_object();
+    if (!pointee.present())
+        return std::unexpected(Error::sdk("Failed to get pointer target type"));
+
+    TypeInfo result;
+    TypeInfoAccess::get(result)->ti = pointee;
+    return result;
+}
+
+Result<TypeInfo> TypeInfo::array_element_type() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_array())
+        return std::unexpected(Error::validation("Type is not an array"));
+
+    tinfo_t element = impl_->ti.get_array_element();
+    if (!element.present())
+        return std::unexpected(Error::sdk("Failed to get array element type"));
+
+    TypeInfo result;
+    TypeInfoAccess::get(result)->ti = element;
+    return result;
+}
+
+Result<std::size_t> TypeInfo::array_length() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_array())
+        return std::unexpected(Error::validation("Type is not an array"));
+
+    int count = impl_->ti.get_array_nelems();
+    if (count < 0)
+        return std::unexpected(Error::sdk("Failed to get array element count"));
+    return static_cast<std::size_t>(count);
+}
+
+Result<TypeInfo> TypeInfo::resolve_typedef() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    if (!impl_->ti.is_typedef()) {
+        TypeInfo result;
+        TypeInfoAccess::get(result)->ti = impl_->ti;
+        return result;
+    }
+
+    qstring final_name;
+    if (!impl_->ti.get_final_type_name(&final_name) || final_name.empty()) {
+        return std::unexpected(Error::sdk("Failed to resolve typedef chain"));
+    }
+
+    const std::string final_name_string = ida::detail::to_string(final_name);
+    tinfo_t resolved;
+    til_t* source_til = impl_->ti.get_til();
+    if (!resolved.get_named_type(source_til, final_name.c_str(), BTF_TYPEDEF, true, true)
+        && !resolved.get_named_type(get_idati(), final_name.c_str(), BTF_TYPEDEF, true, true)
+        && !resolved.get_named_type(nullptr, final_name.c_str(), BTF_TYPEDEF, true, true)) {
+        return std::unexpected(Error::not_found("Failed to resolve typedef target",
+                                                final_name_string));
+    }
+
+    if (!resolved.present()) {
+        return std::unexpected(Error::sdk("Resolved typedef target is invalid",
+                                          final_name_string));
+    }
+
+    TypeInfo result;
+    TypeInfoAccess::get(result)->ti = resolved;
+    return result;
 }
 
 Result<TypeInfo> TypeInfo::function_return_type() const {

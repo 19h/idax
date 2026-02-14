@@ -103,6 +103,24 @@ Result<std::size_t> ExpressionView::call_argument_count() const {
     return static_cast<std::size_t>(e->a->size());
 }
 
+Result<ExpressionView> ExpressionView::call_callee() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->op != cot_call || e->x == nullptr)
+        return std::unexpected(Error::validation("Expression is not a call"));
+    return ExpressionView(ExpressionView::Tag{}, e->x);
+}
+
+Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->op != cot_call || e->a == nullptr)
+        return std::unexpected(Error::validation("Expression is not a call"));
+    if (index >= e->a->size())
+        return std::unexpected(Error::validation("Call argument index out of range"));
+    return ExpressionView(ExpressionView::Tag{}, &(*e->a)[index]);
+}
+
 Result<std::uint32_t> ExpressionView::member_offset() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);

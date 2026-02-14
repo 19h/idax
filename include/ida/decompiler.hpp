@@ -177,6 +177,12 @@ public:
     /// For ExprCall: return the number of arguments. Error otherwise.
     [[nodiscard]] Result<std::size_t> call_argument_count() const;
 
+    /// For ExprCall: return the callee expression. Error otherwise.
+    [[nodiscard]] Result<ExpressionView> call_callee() const;
+
+    /// For ExprCall: return the argument expression at index. Error otherwise.
+    [[nodiscard]] Result<ExpressionView> call_argument(std::size_t index) const;
+
     /// For ExprMemberRef/ExprMemberPtr: return the member offset. Error otherwise.
     [[nodiscard]] Result<std::uint32_t> member_offset() const;
 
