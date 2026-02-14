@@ -93,6 +93,10 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
     static const std::unordered_set<std::string> kSupported{
         "vaddps", "vsubps", "vmulps", "vdivps",
         "vaddpd", "vsubpd", "vmulpd", "vdivpd",
+        "vminps", "vmaxps", "vminpd", "vmaxpd",
+        "vsqrtps", "vsqrtpd",
+        "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
+        "vcvtdq2pd", "vcvtudq2pd",
         "vmovaps", "vmovups", "vmovapd", "vmovupd",
         "vmovdqa", "vmovdqu", "vmovdqa32", "vmovdqa64",
         "vmovdqu8", "vmovdqu16", "vmovdqu32", "vmovdqu64",
@@ -128,6 +132,17 @@ std::optional<ida::decompiler::MicrocodeOpcode> packed_math_opcode(std::string_v
     }
     if (mnemonic_lower == "vdivps" || mnemonic_lower == "vdivpd") {
         return ida::decompiler::MicrocodeOpcode::FloatDiv;
+    }
+    return std::nullopt;
+}
+
+std::optional<ida::decompiler::MicrocodeOpcode> packed_conversion_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower == "vcvtps2pd" || mnemonic_lower == "vcvtpd2ps") {
+        return ida::decompiler::MicrocodeOpcode::FloatToFloat;
+    }
+    if (mnemonic_lower == "vcvtdq2ps" || mnemonic_lower == "vcvtudq2ps"
+        || mnemonic_lower == "vcvtdq2pd" || mnemonic_lower == "vcvtudq2pd") {
+        return ida::decompiler::MicrocodeOpcode::IntegerToFloat;
     }
     return std::nullopt;
 }
@@ -505,6 +520,41 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return false;
     }
 
+    if (const auto conversion_opcode = packed_conversion_opcode(mnemonic_lower);
+        conversion_opcode.has_value()) {
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return std::unexpected(destination_reg.error());
+        }
+        const auto source_reg = context.load_operand_register(1);
+        if (!source_reg) {
+            return std::unexpected(source_reg.error());
+        }
+
+        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int source_width = infer_operand_byte_width(instruction.address(), 1, destination_width);
+
+        ida::decompiler::MicrocodeInstruction instruction_ir;
+        instruction_ir.opcode = *conversion_opcode;
+        instruction_ir.floating_point_instruction = true;
+
+        instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.left.register_id = *source_reg;
+        instruction_ir.left.byte_width = source_width;
+        instruction_ir.left.mark_user_defined_type = source_width > 8;
+
+        instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.destination.register_id = *destination_reg;
+        instruction_ir.destination.byte_width = destination_width;
+        instruction_ir.destination.mark_user_defined_type = destination_width > 8;
+
+        auto emit_status = context.emit_instruction(instruction_ir);
+        if (!emit_status) {
+            return std::unexpected(emit_status.error());
+        }
+        return true;
+    }
+
     if (mnemonic_lower.starts_with("vmov")) {
         const auto destination_operand = instruction.operand(0);
         if (!destination_operand) {
@@ -540,8 +590,70 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     }
 
+    if (mnemonic_lower == "vsqrtps" || mnemonic_lower == "vsqrtpd") {
+        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return std::unexpected(destination_reg.error());
+        }
+        const auto source_reg = context.load_operand_register(1);
+        if (!source_reg) {
+            return std::unexpected(source_reg.error());
+        }
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*source_reg, packed_width, false));
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+            helper,
+            args,
+            *destination_reg,
+            packed_width,
+            false,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
+    }
+
     if (operand_count < 3) {
         return false;
+    }
+
+    if (mnemonic_lower == "vminps" || mnemonic_lower == "vmaxps"
+        || mnemonic_lower == "vminpd" || mnemonic_lower == "vmaxpd") {
+        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return std::unexpected(destination_reg.error());
+        }
+        const auto source1_reg = context.load_operand_register(1);
+        if (!source1_reg) {
+            return std::unexpected(source1_reg.error());
+        }
+        const auto source2_reg = context.load_operand_register(2);
+        if (!source2_reg) {
+            return std::unexpected(source2_reg.error());
+        }
+
+        std::vector<ida::decompiler::MicrocodeValue> args;
+        args.push_back(register_argument(*source1_reg, packed_width, false));
+        args.push_back(register_argument(*source2_reg, packed_width, false));
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+            helper,
+            args,
+            *destination_reg,
+            packed_width,
+            false,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
     }
 
     const auto opcode = packed_math_opcode(mnemonic_lower);

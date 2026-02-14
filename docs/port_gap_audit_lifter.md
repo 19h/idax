@@ -32,6 +32,8 @@ to idax-first surfaces.
   `vcvtss2sd`, `vcvtsd2ss`, `vmovss`, `vmovsd`).
 - AVX packed math/move subset through typed microcode emission
   (`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
+  `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
+  `vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
   `vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families).
 
 ## Confirmed parity gaps

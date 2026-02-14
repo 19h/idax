@@ -98,6 +98,8 @@ It now installs a VMX + AVX scalar/packed microcode lifter subset through
 lowering (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`)
 with typed microcode emission for scalar/packed AVX lowering
 (`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
+`vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
+`vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
 `vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families,
 `vaddss/vsubss/vmulss/vdivss`, `vaddsd/vsubsd/vmulsd/vdivsd`,
 `vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
