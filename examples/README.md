@@ -106,6 +106,7 @@ with typed microcode emission for scalar/packed AVX lowering
 `vcmp*`/`vpcmp*` compare helper-fallback families,
 `vdpps`/`vround*`/`vrcp*`/`vrsqrt*`/`vget*`/`vfixup*`/`vscale*`/`vrange*`/`vreduce*`,
 `vbroadcast*`/`vextract*`/`vinsert*`/`vunpck*`/`vmov*dup`/`vmaskmov*` helper-fallback families,
+with mixed register/immediate/memory-source forwarding and compare mask-destination no-op tolerance,
 `vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
 `vcvt*2dq/udq/qq/uqq` (including truncating variants),
 `vmovaps/vmovups/vmovapd/vmovupd`, `vmovdqa/vmovdqu` families,

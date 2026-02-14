@@ -72,8 +72,37 @@ ida::decompiler::MicrocodeCallOptions vmx_call_options();
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
+ida::decompiler::MicrocodeValue pointer_argument(int register_id);
 
 bool is_packed_helper_misc_mnemonic(std::string_view mnemonic_lower) {
+    if (mnemonic_lower.starts_with("vgather")
+        || mnemonic_lower.starts_with("vpgather")
+        || mnemonic_lower.starts_with("vscatter")
+        || mnemonic_lower.starts_with("vpscatter")
+        || mnemonic_lower.starts_with("vcompress")
+        || mnemonic_lower.starts_with("vexpand")
+        || mnemonic_lower.starts_with("vpcompress")
+        || mnemonic_lower.starts_with("vpexpand")
+        || mnemonic_lower.starts_with("vpopcnt")
+        || mnemonic_lower.starts_with("vplzcnt")
+        || mnemonic_lower.starts_with("vgf2")
+        || mnemonic_lower.starts_with("vpclmul")
+        || mnemonic_lower.starts_with("vaes")
+        || mnemonic_lower.starts_with("sha")
+        || mnemonic_lower.starts_with("vmovmsk")
+        || mnemonic_lower.starts_with("vmovnt")
+        || mnemonic_lower.starts_with("vpmov")
+        || mnemonic_lower.starts_with("vpinsr")
+        || mnemonic_lower.starts_with("vextractps")
+        || mnemonic_lower.starts_with("vinsertps")
+        || mnemonic_lower.starts_with("vphsub")
+        || mnemonic_lower.starts_with("vpack")
+        || mnemonic_lower.starts_with("vpbroadcast")
+        || mnemonic_lower.starts_with("vfmaddsub")
+        || mnemonic_lower.starts_with("vfmsubadd")) {
+        return true;
+    }
+
     static const std::unordered_set<std::string> kSupported{
         "vdpps",
         "vrcpps", "vrsqrtps", "vrcp14ps", "vrsqrt14ps", "vrcp14pd", "vrsqrt14pd",
@@ -267,6 +296,13 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
     const auto destination_reg = context.load_operand_register(0);
     if (!destination_reg) {
+        if (mnemonic_lower.starts_with("vcmp") || mnemonic_lower.starts_with("vpcmp")) {
+            auto noop_status = context.emit_noop();
+            if (!noop_status) {
+                return std::unexpected(noop_status.error());
+            }
+            return true;
+        }
         return false;
     }
 
@@ -297,6 +333,14 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
         auto register_value = context.load_operand_register(static_cast<int>(index));
         if (!register_value) {
+            if (operand->is_memory()) {
+                auto address_register = context.load_effective_address_register(static_cast<int>(index));
+                if (!address_register) {
+                    return false;
+                }
+                args.push_back(pointer_argument(*address_register));
+                continue;
+            }
             return false;
         }
 
