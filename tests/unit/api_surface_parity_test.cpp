@@ -1080,6 +1080,17 @@ void check_decompiler_surface() {
         int,
         int,
         bool);
+    using MicrocodeContextEmitHelperArgsWithOptionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        const ida::decompiler::MicrocodeCallOptions&);
+    using MicrocodeContextEmitHelperArgsToRegWithOptionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        int,
+        int,
+        bool,
+        const ida::decompiler::MicrocodeCallOptions&);
 
     ida::decompiler::DecompileFailure failure;
     (void)failure.request_address;
@@ -1102,6 +1113,14 @@ void check_decompiler_surface() {
     (void)value.signed_immediate;
     (void)value.byte_width;
     (void)value.unsigned_integer;
+    (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
+    ida::decompiler::MicrocodeCallOptions call_options;
+    (void)call_options.calling_convention;
+    (void)call_options.mark_final;
+    (void)call_options.mark_propagated;
+    (void)call_options.mark_no_return;
+    (void)call_options.mark_pure;
+    (void)call_options.mark_no_side_effects;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
 
@@ -1135,6 +1154,8 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextEmitHelperFn>(&ida::decompiler::MicrocodeContext::emit_helper_call);
     (void)static_cast<MicrocodeContextEmitHelperArgsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments);
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register);
+    (void)static_cast<MicrocodeContextEmitHelperArgsWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_and_options);
+    (void)static_cast<MicrocodeContextEmitHelperArgsToRegWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────
