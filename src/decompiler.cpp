@@ -494,6 +494,51 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 callarg.type = array_type;
                 break;
             }
+
+            case MicrocodeValueKind::Vector: {
+                if (argument.vector_element_count <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Vector argument element count must be positive",
+                        std::to_string(i)));
+                }
+                if (argument.vector_element_byte_width <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Vector argument element byte width must be positive",
+                        std::to_string(i)));
+                }
+                if (argument.location.kind == MicrocodeValueLocationKind::Unspecified) {
+                    return std::unexpected(Error::validation(
+                        "Vector argument requires explicit location",
+                        std::to_string(i)));
+                }
+
+                tinfo_t element_type;
+                if (argument.vector_elements_floating) {
+                    if (argument.vector_element_byte_width == 4) {
+                        element_type = tinfo_t(BTF_FLOAT);
+                    } else if (argument.vector_element_byte_width == 8) {
+                        element_type = tinfo_t(BTF_DOUBLE);
+                    } else {
+                        return std::unexpected(Error::validation(
+                            "Floating vector elements must be 4 or 8 bytes",
+                            std::to_string(i)));
+                    }
+                } else {
+                    if (!make_integer_type(&element_type,
+                                           argument.vector_element_byte_width,
+                                           argument.vector_elements_unsigned)) {
+                        return std::unexpected(Error::unsupported(
+                            "Vector integer element width unsupported",
+                            std::to_string(argument.vector_element_byte_width)));
+                    }
+                }
+
+                tinfo_t vector_type;
+                vector_type.create_array(element_type,
+                                         static_cast<uint32_t>(argument.vector_element_count));
+                callarg.type = vector_type;
+                break;
+            }
         }
 
         auto location_status = apply_explicit_location(&callarg,

@@ -597,6 +597,36 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_vector_argument;
+        bad_vector_argument.kind = ida::decompiler::MicrocodeValueKind::Vector;
+        bad_vector_argument.vector_element_byte_width = 4;
+        bad_vector_argument.vector_element_count = 0;
+        bad_vector_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::StackOffset;
+        bad_vector_argument.location.stack_offset = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_vector_args{bad_vector_argument};
+
+        auto bad_vector_helper = context.emit_helper_call_with_arguments("idax_probe", bad_vector_args);
+        if (!bad_vector_helper
+            && bad_vector_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_vector_float_argument;
+        bad_vector_float_argument.kind = ida::decompiler::MicrocodeValueKind::Vector;
+        bad_vector_float_argument.vector_element_byte_width = 2;
+        bad_vector_float_argument.vector_element_count = 4;
+        bad_vector_float_argument.vector_elements_floating = true;
+        bad_vector_float_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::StackOffset;
+        bad_vector_float_argument.location.stack_offset = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_vector_float_args{bad_vector_float_argument};
+
+        auto bad_vector_float_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_vector_float_args);
+        if (!bad_vector_float_helper
+            && bad_vector_float_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_location_argument;
         bad_location_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
         bad_location_argument.register_id = 0;
@@ -787,7 +817,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 23);
+        CHECK(filter->validation_hits >= 25);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

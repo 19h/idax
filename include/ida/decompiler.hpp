@@ -106,6 +106,7 @@ enum class MicrocodeValueKind : int {
     Float32Immediate,
     Float64Immediate,
     ByteArray,
+    Vector,
 };
 
 /// Explicit argument-location hint for helper-call arguments.
@@ -154,6 +155,10 @@ struct MicrocodeValue {
     double floating_immediate{0.0};
     int byte_width{0};
     bool unsigned_integer{true};
+    int vector_element_byte_width{0};
+    int vector_element_count{0};
+    bool vector_elements_unsigned{true};
+    bool vector_elements_floating{false};
     MicrocodeValueLocation location{};
 };
 
