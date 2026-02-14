@@ -104,7 +104,9 @@ Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, sh
 
 Real-world port parity notes are tracked in
 [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md)
-and [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md).
+and [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md), with
+additional decompiler-write-path findings in
+[`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md).
 
 ---
 
@@ -517,6 +519,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
 | [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md) | Real-world port gap findings (ida-qtform + idalib-dump) |
 | [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md) | Real-world port gap findings (ida2py) |
+| [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md) | Real-world port gap findings (lifter AVX/VMX microcode plugin) |
 
 ---
 
