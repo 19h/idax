@@ -88,9 +88,24 @@ public:
     [[nodiscard]] bool is_struct()         const;
     [[nodiscard]] bool is_union()          const;
     [[nodiscard]] bool is_enum()           const;
+    [[nodiscard]] bool is_typedef()        const;
 
     [[nodiscard]] Result<std::size_t> size() const;
     [[nodiscard]] Result<std::string> to_string() const;
+
+    /// For pointer types, return the pointee type.
+    [[nodiscard]] Result<TypeInfo> pointee_type() const;
+
+    /// For array types, return the array element type.
+    [[nodiscard]] Result<TypeInfo> array_element_type() const;
+
+    /// For array types, return the number of elements.
+    [[nodiscard]] Result<std::size_t> array_length() const;
+
+    /// Resolve one or more typedef links to the final target type.
+    /// If this type is not a typedef, returns an unchanged copy.
+    [[nodiscard]] Result<TypeInfo> resolve_typedef() const;
+
     [[nodiscard]] Result<TypeInfo> function_return_type() const;
     [[nodiscard]] Result<std::vector<TypeInfo>> function_argument_types() const;
     [[nodiscard]] Result<CallingConvention> calling_convention() const;

@@ -317,6 +317,11 @@ void check_type_surface() {
     using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
     using VariadicFn = ida::Result<bool>(ida::type::TypeInfo::*)() const;
     using EnumMembersFn = ida::Result<std::vector<ida::type::EnumMember>>(ida::type::TypeInfo::*)() const;
+    using IsTypedefFn = bool(ida::type::TypeInfo::*)() const;
+    using PointeeTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
+    using ArrayElementTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
+    using ArrayLengthFn = ida::Result<std::size_t>(ida::type::TypeInfo::*)() const;
+    using ResolveTypedefFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
 
     (void)static_cast<FunctionTypeFactoryFn>(&ida::type::TypeInfo::function_type);
     (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
@@ -325,6 +330,11 @@ void check_type_surface() {
     (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);
     (void)static_cast<VariadicFn>(&ida::type::TypeInfo::is_variadic_function);
     (void)static_cast<EnumMembersFn>(&ida::type::TypeInfo::enum_members);
+    (void)static_cast<IsTypedefFn>(&ida::type::TypeInfo::is_typedef);
+    (void)static_cast<PointeeTypeFn>(&ida::type::TypeInfo::pointee_type);
+    (void)static_cast<ArrayElementTypeFn>(&ida::type::TypeInfo::array_element_type);
+    (void)static_cast<ArrayLengthFn>(&ida::type::TypeInfo::array_length);
+    (void)static_cast<ResolveTypedefFn>(&ida::type::TypeInfo::resolve_typedef);
 }
 
 // ─── ida::fixup ─────────────────────────────────────────────────────────
@@ -967,6 +977,9 @@ void check_decompiler_surface() {
         std::size_t, const ida::type::TypeInfo&);
     using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
     using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
+    using ExprCallArgCountFn = ida::Result<std::size_t>(ida::decompiler::ExpressionView::*)() const;
+    using ExprCallCalleeFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)() const;
+    using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
 
     ida::decompiler::DecompileFailure failure;
     (void)failure.request_address;
@@ -982,6 +995,9 @@ void check_decompiler_surface() {
     (void)static_cast<RetypeByIndexFn>(&ida::decompiler::DecompiledFunction::retype_variable);
     (void)static_cast<HasOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::has_orphan_comments);
     (void)static_cast<RemoveOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::remove_orphan_comments);
+    (void)static_cast<ExprCallArgCountFn>(&ida::decompiler::ExpressionView::call_argument_count);
+    (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::call_callee);
+    (void)static_cast<ExprCallArgFn>(&ida::decompiler::ExpressionView::call_argument);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────

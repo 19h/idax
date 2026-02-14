@@ -27,31 +27,23 @@ to idax-first surfaces.
 - User-name inventory is now first-class via `ida::name::all` and
   `ida::name::all_user_defined`, so ports no longer need full-address-space
   fallback scans for common name enumeration flows.
+- `ida::type::TypeInfo` now exposes decomposition helpers:
+  `pointee_type`, `array_element_type`, `array_length`, `is_typedef`, and
+  `resolve_typedef`.
+- `ida::decompiler::ExpressionView` now exposes typed call-subexpression helpers:
+  `call_callee` and `call_argument(index)` in addition to
+  `call_argument_count`, enabling direct callsite-argument workflows.
 
 ## Confirmed parity gaps
 
-1. `ida::type::TypeInfo` lacks public decomposition helpers for pointer/array
-   inner types and lengths.
-   - Impact: generic `ida2py`-style recursive value materialization cannot be
-     implemented cleanly in pure public API.
-   - Mitigation: add additive introspection helpers (for example `pointee()`,
-     `array_element_type()`, `array_length()`, typedef-resolution helpers).
-
-2. No generic typed-value reader/writer from `TypeInfo`.
+1. No generic typed-value reader/writer from `TypeInfo`.
    - Impact: callers must hand-roll per-width/per-kind data decoding logic.
    - Mitigation: add an optional `ida::data::read_typed(address, TypeInfo)` /
      `write_typed(...)` facade that preserves opaque boundaries.
 
-3. Decompiler expression views do not expose call callee/argument subexpressions
-   directly.
-   - Impact: `ida2py` callsite-argument workflows (for example extracting first
-     `printf` argument object addresses) are only partially portable.
-   - Mitigation: add typed call-expression accessors for callee and argument
-     expression views.
-
-4. No Appcall/execution facade or executor-extension hook in idax.
+2. No Appcall/execution facade or executor-extension hook in idax.
    - Impact: ida2py dynamic invocation flows (Appcall + angr executor swapping)
-     cannot be ported through idax-only APIs.
+   cannot be ported through idax-only APIs.
    - Mitigation: add a debugger execution facade (for direct Appcall-style
      invocation) and an optional pluggable external-executor interface.
 
