@@ -12,6 +12,7 @@
 #include <ida/address.hpp>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -88,6 +89,83 @@ Status mark_dirty(Address function_address, bool close_views = false);
 /// Mark a function and all caller functions dirty in decompiler cache.
 /// This is useful after transformations that affect callsite-level decompilation.
 Status mark_dirty_with_callers(Address function_address, bool close_views = false);
+
+/// Result returned from microcode-filter apply callbacks.
+enum class MicrocodeApplyResult : int {
+    NotHandled = 0,  ///< Let the SDK use default lifting.
+    Handled    = 1,  ///< Filter generated microcode.
+    Error      = 2,  ///< Filter failed; SDK fallback is used.
+};
+
+/// Opaque mutable context passed to microcode-filter callbacks.
+class MicrocodeContext {
+public:
+    /// Instruction address currently being lifted.
+    [[nodiscard]] Address address() const noexcept;
+
+    /// Processor-specific instruction type code (`insn_t::itype`).
+    [[nodiscard]] int instruction_type() const noexcept;
+
+    /// Emit a no-op microcode instruction for the current instruction.
+    Status emit_noop();
+
+    struct Tag {};
+    explicit MicrocodeContext(Tag, void* raw) noexcept : raw_(raw) {}
+
+private:
+    void* raw_{nullptr};
+};
+
+/// Microcode filter interface.
+///
+/// Filters run during microcode generation and can override lifting for
+/// selected instructions.
+class MicrocodeFilter {
+public:
+    virtual ~MicrocodeFilter() = default;
+    virtual bool match(const MicrocodeContext& context) = 0;
+    virtual MicrocodeApplyResult apply(MicrocodeContext& context) = 0;
+};
+
+/// Opaque token for a registered microcode filter.
+using FilterToken = std::uint64_t;
+
+/// Register a microcode filter.
+Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter);
+
+/// Unregister a previously registered microcode filter.
+Status unregister_microcode_filter(FilterToken token);
+
+/// RAII wrapper for microcode-filter registrations.
+class ScopedMicrocodeFilter {
+public:
+    ScopedMicrocodeFilter() = default;
+    explicit ScopedMicrocodeFilter(FilterToken token) : token_(token) {}
+    ~ScopedMicrocodeFilter();
+
+    ScopedMicrocodeFilter(const ScopedMicrocodeFilter&) = delete;
+    ScopedMicrocodeFilter& operator=(const ScopedMicrocodeFilter&) = delete;
+
+    ScopedMicrocodeFilter(ScopedMicrocodeFilter&& other) noexcept
+        : token_(other.token_) {
+        other.token_ = 0;
+    }
+    ScopedMicrocodeFilter& operator=(ScopedMicrocodeFilter&& other) noexcept {
+        if (this != &other) {
+            reset();
+            token_ = other.token_;
+            other.token_ = 0;
+        }
+        return *this;
+    }
+
+    void reset();
+    [[nodiscard]] FilterToken token() const noexcept { return token_; }
+    [[nodiscard]] bool valid() const noexcept { return token_ != 0; }
+
+private:
+    FilterToken token_{0};
+};
 
 /// Check whether a Hex-Rays decompiler is available.
 /// Must be called before other decompiler functions.

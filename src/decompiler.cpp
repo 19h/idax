@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdarg>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
@@ -32,6 +33,56 @@ std::mutex g_subscription_mutex;
 std::unordered_map<Token, std::function<void(const MaturityEvent&)>> g_maturity_callbacks;
 std::atomic<std::uint64_t> g_next_token{1};
 bool g_hexrays_callback_installed = false;
+
+struct MicrocodeContextImpl {
+    codegen_t* codegen{nullptr};
+    bool emitted_noop{false};
+};
+
+class MicrocodeFilterBridge final : public microcode_filter_t {
+public:
+    explicit MicrocodeFilterBridge(std::shared_ptr<MicrocodeFilter> filter)
+        : filter_(std::move(filter)) {}
+
+    bool match(codegen_t& cdg) override {
+        MicrocodeContextImpl impl;
+        impl.codegen = &cdg;
+        MicrocodeContext context(MicrocodeContext::Tag{}, &impl);
+        try {
+            return filter_->match(context);
+        } catch (...) {
+            return false;
+        }
+    }
+
+    merror_t apply(codegen_t& cdg) override {
+        MicrocodeContextImpl impl;
+        impl.codegen = &cdg;
+        MicrocodeContext context(MicrocodeContext::Tag{}, &impl);
+
+        MicrocodeApplyResult result = MicrocodeApplyResult::Error;
+        try {
+            result = filter_->apply(context);
+        } catch (...) {
+            result = MicrocodeApplyResult::Error;
+        }
+        if (result == MicrocodeApplyResult::Handled) {
+            if (!impl.emitted_noop)
+                cdg.emit(m_nop, 0, 0, 0, 0, 0);
+            return MERR_OK;
+        }
+        if (result == MicrocodeApplyResult::Error)
+            return MERR_INSN;
+        return MERR_INSN;
+    }
+
+private:
+    std::shared_ptr<MicrocodeFilter> filter_;
+};
+
+std::mutex g_microcode_filter_mutex;
+std::unordered_map<FilterToken, std::unique_ptr<MicrocodeFilterBridge>> g_microcode_filters;
+std::atomic<std::uint64_t> g_next_filter_token{1};
 
 Maturity to_maturity(int value) {
     switch (value) {
@@ -173,6 +224,81 @@ Status mark_dirty_with_callers(Address function_address, bool close_views) {
             return st;
     }
     return ida::ok();
+}
+
+Address MicrocodeContext::address() const noexcept {
+    if (raw_ == nullptr)
+        return BadAddress;
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return BadAddress;
+    return static_cast<Address>(impl->codegen->insn.ea);
+}
+
+int MicrocodeContext::instruction_type() const noexcept {
+    if (raw_ == nullptr)
+        return 0;
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return 0;
+    return static_cast<int>(impl->codegen->insn.itype);
+}
+
+Status MicrocodeContext::emit_noop() {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+    impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
+    impl->emitted_noop = true;
+    return ida::ok();
+}
+
+Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter) {
+    if (!filter)
+        return std::unexpected(Error::validation("Microcode filter cannot be null"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    auto bridge = std::make_unique<MicrocodeFilterBridge>(std::move(filter));
+    if (!::install_microcode_filter(bridge.get(), true))
+        return std::unexpected(Error::sdk("install_microcode_filter failed"));
+
+    const FilterToken token = g_next_filter_token.fetch_add(1, std::memory_order_relaxed);
+    std::lock_guard<std::mutex> lock(g_microcode_filter_mutex);
+    g_microcode_filters.emplace(token, std::move(bridge));
+    return token;
+}
+
+Status unregister_microcode_filter(FilterToken token) {
+    if (token == 0)
+        return std::unexpected(Error::validation("Invalid microcode-filter token"));
+
+    std::lock_guard<std::mutex> lock(g_microcode_filter_mutex);
+    auto it = g_microcode_filters.find(token);
+    if (it == g_microcode_filters.end())
+        return std::unexpected(Error::not_found("Microcode filter token not found",
+                                                std::to_string(token)));
+
+    if (!::install_microcode_filter(it->second.get(), false))
+        return std::unexpected(Error::sdk("uninstall_microcode_filter failed",
+                                          std::to_string(token)));
+    g_microcode_filters.erase(it);
+    return ida::ok();
+}
+
+void ScopedMicrocodeFilter::reset() {
+    if (token_ == 0)
+        return;
+    (void)unregister_microcode_filter(token_);
+    token_ = 0;
+}
+
+ScopedMicrocodeFilter::~ScopedMicrocodeFilter() {
+    reset();
 }
 
 // ── Helper: ensure decompiler is initialized ────────────────────────────

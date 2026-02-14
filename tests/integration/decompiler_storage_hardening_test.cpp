@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -495,6 +496,53 @@ void test_maturity_subscription_and_dirty(ida::Address fn_ea) {
     }
 
     CHECK(event_count >= 0);
+}
+
+class CountingMicrocodeFilter final : public ida::decompiler::MicrocodeFilter {
+public:
+    bool match(const ida::decompiler::MicrocodeContext& context) override {
+        (void)context.address();
+        (void)context.instruction_type();
+        ++match_count;
+        return false;
+    }
+
+    ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext&) override {
+        ++apply_count;
+        return ida::decompiler::MicrocodeApplyResult::NotHandled;
+    }
+
+    int match_count{0};
+    int apply_count{0};
+};
+
+void test_microcode_filter_registration(ida::Address fn_ea) {
+    std::cout << "--- microcode filter registration ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    auto filter = std::make_shared<CountingMicrocodeFilter>();
+    auto token = ida::decompiler::register_microcode_filter(filter);
+    CHECK_OK(token);
+    if (!token) return;
+
+    ida::decompiler::ScopedMicrocodeFilter guard(*token);
+
+    auto decomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(decomp);
+    if (decomp) {
+        CHECK(filter->match_count > 0);
+        CHECK(filter->apply_count == 0);
+    }
+
+    guard.reset();
+
+    auto second_remove = ida::decompiler::unregister_microcode_filter(*token);
+    CHECK(!second_remove.has_value());
+
+    auto invalid_remove = ida::decompiler::unregister_microcode_filter(0);
+    CHECK(!invalid_remove.has_value());
 }
 
 // ---------------------------------------------------------------------------
@@ -1041,6 +1089,7 @@ int main(int argc, char* argv[]) {
         test_address_mapping(fn_ea);
         test_microcode_output(fn_ea);
         test_maturity_subscription_and_dirty(fn_ea);
+        test_microcode_filter_registration(fn_ea);
         test_decompiler_comments(fn_ea);
         test_decompiler_retype_variable(fn_ea);
     } else {
