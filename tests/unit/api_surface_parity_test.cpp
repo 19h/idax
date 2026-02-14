@@ -1152,6 +1152,10 @@ void check_decompiler_surface() {
     (void)value.location;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
     ida::decompiler::MicrocodeCallOptions call_options;
+    (void)call_options.callee_address;
+    (void)call_options.solid_argument_count;
+    (void)call_options.call_stack_pointer_delta;
+    (void)call_options.stack_arguments_top;
     (void)call_options.calling_convention;
     (void)call_options.mark_final;
     (void)call_options.mark_propagated;

@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -175,6 +176,10 @@ enum class MicrocodeCallingConvention : int {
 
 /// Additional call-shaping options for emitted helper calls.
 struct MicrocodeCallOptions {
+    std::optional<Address> callee_address{};
+    std::optional<int> solid_argument_count{};
+    std::optional<int> call_stack_pointer_delta{};
+    std::optional<int> stack_arguments_top{};
     MicrocodeCallingConvention calling_convention{MicrocodeCallingConvention::Unspecified};
     bool mark_final{false};
     bool mark_propagated{false};

@@ -132,6 +132,11 @@ Status apply_call_options(minsn_t* root,
                           const MicrocodeCallOptions& options,
                           std::string_view helper_name) {
     const bool has_options =
+        options.callee_address.has_value()
+        || options.solid_argument_count.has_value()
+        || options.call_stack_pointer_delta.has_value()
+        || options.stack_arguments_top.has_value()
+        ||
         options.calling_convention != MicrocodeCallingConvention::Unspecified
         || options.mark_final
         || options.mark_propagated
@@ -157,6 +162,24 @@ Status apply_call_options(minsn_t* root,
     }
 
     mcallinfo_t* info = call_insn->d.f;
+
+    if (options.callee_address.has_value())
+        info->callee = static_cast<ea_t>(*options.callee_address);
+
+    if (options.solid_argument_count.has_value()) {
+        if (*options.solid_argument_count < 0) {
+            return std::unexpected(Error::validation(
+                "Solid argument count cannot be negative",
+                std::to_string(*options.solid_argument_count)));
+        }
+        info->solid_args = *options.solid_argument_count;
+    }
+
+    if (options.call_stack_pointer_delta.has_value())
+        info->call_spd = *options.call_stack_pointer_delta;
+
+    if (options.stack_arguments_top.has_value())
+        info->stkargs_top = *options.stack_arguments_top;
 
     const callcnv_t calling_convention = to_sdk_calling_convention(options.calling_convention);
     if (calling_convention != CM_CC_INVALID)

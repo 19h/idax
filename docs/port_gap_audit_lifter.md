@@ -41,8 +41,8 @@ to idax-first surfaces.
       helper-call construction, typed mop/reg orchestration).
    - idax currently exposes microcode text readout (`microcode_lines`) plus basic
      filter hooks, typed helper-call argument builders (integer + float + byte-array/vector/type-declaration views),
-     explicit argument-location hints (register/register-pair/register-offset/register-relative/stack/static/scattered), and lightweight
-     helper call-shaping options, but not a comprehensive writable IR API.
+      explicit argument-location hints (register/register-pair/register-offset/register-relative/stack/static/scattered), and lightweight
+      helper call-shaping options (calling-convention/flags plus scalar callinfo fields like callee/spd/solid-arg hints), but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
 3. Action context is intentionally normalized and SDK-opaque
@@ -61,6 +61,10 @@ to idax-first surfaces.
   `ida::function::set_outlined`.
 - Added microcode-filter registration helpers: `ida::decompiler::register_microcode_filter`,
   `ida::decompiler::unregister_microcode_filter`, and RAII `ScopedMicrocodeFilter`.
+- Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
+  now includes scalar callinfo hints (`callee_address`, `solid_argument_count`,
+  `call_stack_pointer_delta`, `stack_arguments_top`) with validation on invalid
+  counts.
 
 ## Notes
 
