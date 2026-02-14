@@ -22,8 +22,9 @@ GitHub Actions helper:
 - `.github/workflows/validation-matrix.yml` runs `compile-only` + `unit`
   profiles across Linux, macOS arm64, and Windows.
 - Hosted matrix sets `IDAX_BUILD_EXAMPLES=ON` and
-  `IDAX_BUILD_EXAMPLE_ADDONS=ON` so plugin/loader/procmod example targets are
-  compiled on every row.
+  `IDAX_BUILD_EXAMPLE_ADDONS=ON` plus `IDAX_BUILD_EXAMPLE_TOOLS=ON` so
+  plugin/loader/procmod addons and idalib tool-port examples are compiled on
+  every row.
 
 Environment requirements:
 

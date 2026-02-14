@@ -7,6 +7,7 @@
 
 #include <ida/idax.hpp>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -452,6 +453,98 @@ void test_debugger_request_and_introspection() {
           "run_requests returns success or SdkFailure");
 }
 
+class TestAppcallExecutor : public ida::debugger::AppcallExecutor {
+public:
+    ida::Result<ida::debugger::AppcallResult> execute(
+        const ida::debugger::AppcallRequest& request) override
+    {
+        (void)request;
+        ida::debugger::AppcallResult out;
+        out.return_value.kind = ida::debugger::AppcallValueKind::SignedInteger;
+        out.return_value.signed_value = 1337;
+        out.return_value.unsigned_value = 1337;
+        out.diagnostics = "test-executor";
+        return out;
+    }
+};
+
+void test_debugger_appcall_and_executor_hooks() {
+    std::printf("[section] debugger: appcall + executor hooks\n");
+
+    std::vector<ida::type::TypeInfo> argument_types;
+    argument_types.push_back(ida::type::TypeInfo::int32());
+    auto function_type = ida::type::TypeInfo::function_type(
+        ida::type::TypeInfo::int32(), argument_types);
+    CHECK(function_type.has_value(), "function_type(int32 -> int32) created");
+    if (!function_type)
+        return;
+
+    ida::debugger::AppcallRequest invalid_request;
+    invalid_request.function_address = ida::BadAddress;
+    invalid_request.function_type = *function_type;
+
+    auto bad_appcall = ida::debugger::appcall(invalid_request);
+    CHECK(!bad_appcall.has_value(), "appcall rejects BadAddress");
+    if (!bad_appcall)
+        CHECK(bad_appcall.error().category == ida::ErrorCategory::Validation,
+              "appcall(BadAddress) => Validation");
+
+    auto bad_executor_name = ida::debugger::appcall_with_executor("", invalid_request);
+    CHECK(!bad_executor_name.has_value(), "appcall_with_executor rejects empty name");
+
+    auto missing_executor = ida::debugger::appcall_with_executor("__missing__", invalid_request);
+    CHECK(!missing_executor.has_value(), "appcall_with_executor rejects unknown executor");
+    if (!missing_executor)
+        CHECK(missing_executor.error().category == ida::ErrorCategory::NotFound,
+              "unknown executor => NotFound");
+
+    auto reg_empty = ida::debugger::register_executor("", std::make_shared<TestAppcallExecutor>());
+    CHECK(!reg_empty.has_value(), "register_executor rejects empty name");
+
+    auto reg_null = ida::debugger::register_executor("idax.test.executor", nullptr);
+    CHECK(!reg_null.has_value(), "register_executor rejects null executor");
+
+    auto reg_ok = ida::debugger::register_executor(
+        "idax.test.executor", std::make_shared<TestAppcallExecutor>());
+    CHECK(reg_ok.has_value(), "register_executor succeeds");
+
+    auto reg_duplicate = ida::debugger::register_executor(
+        "idax.test.executor", std::make_shared<TestAppcallExecutor>());
+    CHECK(!reg_duplicate.has_value(), "register_executor rejects duplicates");
+    if (!reg_duplicate)
+        CHECK(reg_duplicate.error().category == ida::ErrorCategory::Conflict,
+              "duplicate executor => Conflict");
+
+    ida::debugger::AppcallRequest external_request;
+    external_request.function_address = 0x1000;
+    external_request.function_type = *function_type;
+
+    auto external_result = ida::debugger::appcall_with_executor(
+        "idax.test.executor", external_request);
+    CHECK(external_result.has_value(), "appcall_with_executor dispatches to executor");
+    if (external_result) {
+        CHECK(external_result->return_value.kind == ida::debugger::AppcallValueKind::SignedInteger,
+              "executor result kind is signed integer");
+        CHECK(external_result->return_value.signed_value == 1337,
+              "executor result payload preserved");
+    }
+
+    auto unregister_ok = ida::debugger::unregister_executor("idax.test.executor");
+    CHECK(unregister_ok.has_value(), "unregister_executor succeeds");
+
+    auto unregister_missing = ida::debugger::unregister_executor("idax.test.executor");
+    CHECK(!unregister_missing.has_value(), "unregister_executor rejects missing executor");
+    if (!unregister_missing)
+        CHECK(unregister_missing.error().category == ida::ErrorCategory::NotFound,
+              "unregister missing => NotFound");
+
+    auto cleanup_invalid = ida::debugger::cleanup_appcall(0);
+    CHECK(!cleanup_invalid.has_value(), "cleanup_appcall rejects thread_id=0");
+    if (!cleanup_invalid)
+        CHECK(cleanup_invalid.error().category == ida::ErrorCategory::Validation,
+              "cleanup_appcall(0) => Validation");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // UI — headless-safe checks
 // ═══════════════════════════════════════════════════════════════════════════
@@ -679,6 +772,7 @@ int main(int argc, char** argv) {
     test_debugger_event_lifecycle();
     test_debugger_scoped_subscription();
     test_debugger_request_and_introspection();
+    test_debugger_appcall_and_executor_hooks();
 
     // ── UI subscription tests ───────────────────────────────────────────
     test_ui_subscriptions();

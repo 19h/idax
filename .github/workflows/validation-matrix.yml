@@ -15,6 +15,7 @@ env:
   BUILD_TYPE: RelWithDebInfo
   IDAX_BUILD_EXAMPLES: ON
   IDAX_BUILD_EXAMPLE_ADDONS: ON
+  IDAX_BUILD_EXAMPLE_TOOLS: ON
 
 jobs:
   validation:
@@ -127,6 +128,7 @@ jobs:
         env:
           IDAX_BUILD_EXAMPLES: ${{ env.IDAX_BUILD_EXAMPLES }}
           IDAX_BUILD_EXAMPLE_ADDONS: ${{ env.IDAX_BUILD_EXAMPLE_ADDONS }}
+          IDAX_BUILD_EXAMPLE_TOOLS: ${{ env.IDAX_BUILD_EXAMPLE_TOOLS }}
         run: |
           chmod +x scripts/run_validation_matrix.sh
           scripts/run_validation_matrix.sh "${{ matrix.profile }}" "${{ matrix.build_dir }}" "${{ env.BUILD_TYPE }}"

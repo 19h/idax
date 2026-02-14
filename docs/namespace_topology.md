@@ -104,7 +104,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
-| `ida::debugger` | Debugging | `ProcessState`, `ThreadInfo`, `RegisterInfo`, `ScopedSubscription` |
+| `ida::debugger` | Debugging | `ProcessState`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
 | `ida::decompiler` | Decompilation | `DecompiledFunction` (pseudocode+microcode), `DecompileFailure`, `CtreeVisitor`, `ExpressionView` |
 | `ida::ui` | User interface | `Widget`, `Chooser`, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |

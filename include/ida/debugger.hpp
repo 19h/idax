@@ -6,8 +6,11 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <ida/type.hpp>
 #include <cstdint>
 #include <functional>
+#include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -106,6 +109,70 @@ Result<RegisterInfo> register_info(std::string_view register_name);
 Result<bool> is_integer_register(std::string_view register_name);
 Result<bool> is_floating_register(std::string_view register_name);
 Result<bool> is_custom_register(std::string_view register_name);
+
+// ── Appcall + external executor surface ────────────────────────────────
+
+enum class AppcallValueKind {
+    SignedInteger,
+    UnsignedInteger,
+    FloatingPoint,
+    String,
+    Address,
+    Boolean,
+};
+
+struct AppcallValue {
+    AppcallValueKind kind{AppcallValueKind::SignedInteger};
+
+    std::int64_t  signed_value{0};
+    std::uint64_t unsigned_value{0};
+    double        floating_value{0.0};
+    std::string   string_value;
+    Address       address_value{BadAddress};
+    bool          boolean_value{false};
+};
+
+struct AppcallOptions {
+    std::optional<int> thread_id;
+    bool               manual{false};
+    bool               include_debug_event{false};
+    std::optional<std::uint32_t> timeout_milliseconds;
+};
+
+struct AppcallRequest {
+    Address            function_address{BadAddress};
+    ida::type::TypeInfo function_type;
+    std::vector<AppcallValue> arguments;
+    AppcallOptions      options;
+};
+
+struct AppcallResult {
+    AppcallValue return_value;
+    std::string  diagnostics;
+};
+
+class AppcallExecutor {
+public:
+    virtual ~AppcallExecutor() = default;
+    virtual Result<AppcallResult> execute(const AppcallRequest& request) = 0;
+};
+
+/// Execute a debugger appcall through IDA's debugger backend.
+Result<AppcallResult> appcall(const AppcallRequest& request);
+
+/// Cleanup a manual appcall frame.
+Status cleanup_appcall(std::optional<int> thread_id = std::nullopt);
+
+/// Register an external appcall-style executor (for example emulation engines).
+Status register_executor(std::string_view name,
+                         std::shared_ptr<AppcallExecutor> executor);
+
+/// Unregister a previously registered external executor.
+Status unregister_executor(std::string_view name);
+
+/// Execute through a named external executor.
+Result<AppcallResult> appcall_with_executor(std::string_view name,
+                                            const AppcallRequest& request);
 
 // ── Debugger event subscriptions ────────────────────────────────────────
 
