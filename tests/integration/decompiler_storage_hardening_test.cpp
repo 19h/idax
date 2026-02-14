@@ -522,6 +522,10 @@ public:
         if (!bad_lea && bad_lea.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_alloc = context.allocate_temporary_register(0);
+        if (!bad_alloc && bad_alloc.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
         auto bad_store = context.store_operand_register(-1, 0, 1);
         if (!bad_store && bad_store.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
@@ -1087,7 +1091,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 46);
+        CHECK(filter->validation_hits >= 47);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

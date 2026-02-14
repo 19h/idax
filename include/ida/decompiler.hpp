@@ -351,6 +351,10 @@ public:
     /// Returns the SDK register id on success.
     Result<int> load_effective_address_register(int operand_index);
 
+    /// Allocate a temporary register in the current microcode context.
+    /// Returns the SDK register id on success.
+    Result<int> allocate_temporary_register(int byte_width);
+
     /// Store a register value back to an instruction operand.
     Status store_operand_register(int operand_index, int source_register, int byte_width);
 

@@ -95,7 +95,7 @@ outlined-flag/cache-invalidation helpers.
 
 It now also installs a VMX microcode lifter subset through
 `ida::decompiler::register_microcode_filter` and typed helper-call emission
-(`vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`).
+(`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`).
 
 It also prints a gap report for the currently missing APIs needed for a full
 AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and

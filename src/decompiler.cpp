@@ -1200,6 +1200,26 @@ Result<int> MicrocodeContext::load_effective_address_register(int operand_index)
     return static_cast<int>(reg);
 }
 
+Result<int> MicrocodeContext::allocate_temporary_register(int byte_width) {
+    if (byte_width <= 0) {
+        return std::unexpected(Error::validation("Byte width must be positive",
+                                                 std::to_string(byte_width)));
+    }
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    const mreg_t reg = impl->codegen->mba->alloc_kreg(byte_width);
+    if (reg == mr_none) {
+        return std::unexpected(Error::sdk("alloc_kreg failed",
+                                          std::to_string(byte_width)));
+    }
+    return static_cast<int>(reg);
+}
+
 Status MicrocodeContext::store_operand_register(int operand_index,
                                                 int source_register,
                                                 int byte_width) {
