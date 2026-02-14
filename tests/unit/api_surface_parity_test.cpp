@@ -1136,6 +1136,9 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeInsertPolicy::Tail;
     (void)ida::decompiler::MicrocodeInsertPolicy::Beginning;
     (void)ida::decompiler::MicrocodeInsertPolicy::BeforeTail;
+    (void)ida::decompiler::MicrocodeFunctionRole::Unknown;
+    (void)ida::decompiler::MicrocodeFunctionRole::Memcpy;
+    (void)ida::decompiler::MicrocodeFunctionRole::FastFail;
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
@@ -1200,6 +1203,8 @@ void check_decompiler_surface() {
     (void)call_options.solid_argument_count;
     (void)call_options.call_stack_pointer_delta;
     (void)call_options.stack_arguments_top;
+    (void)call_options.function_role;
+    (void)call_options.return_location;
     (void)call_options.return_type_declaration;
     (void)call_options.calling_convention;
     (void)call_options.mark_final;
