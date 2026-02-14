@@ -30,8 +30,11 @@ to idax-first surfaces.
    - idax now supports registration/unregistration and match/apply dispatch
      (`register_microcode_filter`, `unregister_microcode_filter`,
      `MicrocodeContext`, `MicrocodeApplyResult`).
-   - Current emit surface is intentionally small (`emit_noop`) and does not yet
-     provide rich instruction construction/mutation primitives.
+   - Current context now includes primitive operand/register/memory/helper
+     operations (`load_operand_register`, `store_operand_register`,
+     `emit_move_register`, `emit_load_memory_register`,
+     `emit_store_memory_register`, `emit_helper_call`), but still lacks rich
+     typed instruction construction/mutation primitives.
 
 2. No rich public microcode write/emission surface
    - lifter emits and rewrites microcode instructions (`m_call`, `m_nop`, `m_ldx`,

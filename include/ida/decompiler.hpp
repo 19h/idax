@@ -14,6 +14,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace ida::type {
@@ -108,6 +109,37 @@ public:
 
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();
+
+    /// Load an instruction operand into a temporary register.
+    /// Returns the SDK register id on success.
+    Result<int> load_operand_register(int operand_index);
+
+    /// Load effective address of a memory operand into a temporary register.
+    /// Returns the SDK register id on success.
+    Result<int> load_effective_address_register(int operand_index);
+
+    /// Store a register value back to an instruction operand.
+    Status store_operand_register(int operand_index, int source_register, int byte_width);
+
+    /// Emit register-to-register move.
+    Status emit_move_register(int source_register, int destination_register, int byte_width);
+
+    /// Emit memory load (`m_ldx`) from selector+offset into destination register.
+    Status emit_load_memory_register(int selector_register,
+                                     int offset_register,
+                                     int destination_register,
+                                     int byte_width,
+                                     int offset_byte_width);
+
+    /// Emit memory store (`m_stx`) from source register into selector+offset.
+    Status emit_store_memory_register(int source_register,
+                                      int selector_register,
+                                      int offset_register,
+                                      int byte_width,
+                                      int offset_byte_width);
+
+    /// Emit helper call with no explicit arguments.
+    Status emit_helper_call(std::string_view helper_name);
 
     struct Tag {};
     explicit MicrocodeContext(Tag, void* raw) noexcept : raw_(raw) {}
