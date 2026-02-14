@@ -1108,6 +1108,11 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeValueKind::Register;
     (void)ida::decompiler::MicrocodeValueKind::Float32Immediate;
     (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
+    (void)ida::decompiler::MicrocodeValueLocationKind::Register;
+    ida::decompiler::MicrocodeValueLocation location;
+    (void)location.kind;
+    (void)location.register_id;
+    (void)location.stack_offset;
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
@@ -1116,6 +1121,7 @@ void check_decompiler_surface() {
     (void)value.floating_immediate;
     (void)value.byte_width;
     (void)value.unsigned_integer;
+    (void)value.location;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
     ida::decompiler::MicrocodeCallOptions call_options;
     (void)call_options.calling_convention;

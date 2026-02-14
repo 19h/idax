@@ -191,10 +191,46 @@ Status insert_call_instruction(MicrocodeContextImpl* impl,
     return ida::ok();
 }
 
-Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& arguments,
-                                         ea_t instruction_address) {
-    mcallargs_t callargs;
-    callargs.reserve(arguments.size());
+struct CallArgumentsBuildResult {
+    mcallargs_t arguments;
+    bool has_explicit_locations{false};
+};
+
+Status apply_explicit_location(mcallarg_t* callarg,
+                               const MicrocodeValueLocation& location,
+                               std::size_t index,
+                               bool* has_explicit_locations) {
+    if (callarg == nullptr || has_explicit_locations == nullptr)
+        return std::unexpected(Error::internal("Null helper-call argument/location output"));
+
+    switch (location.kind) {
+        case MicrocodeValueLocationKind::Unspecified:
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::Register:
+            if (location.register_id < 0) {
+                return std::unexpected(Error::validation(
+                    "Argument explicit register id cannot be negative",
+                    std::to_string(index)));
+            }
+            callarg->argloc.set_reg1(location.register_id);
+            *has_explicit_locations = true;
+            return ida::ok();
+
+        case MicrocodeValueLocationKind::StackOffset:
+            callarg->argloc.set_stkoff(static_cast<sval_t>(location.stack_offset));
+            *has_explicit_locations = true;
+            return ida::ok();
+    }
+
+    return std::unexpected(Error::validation("Unsupported argument location kind",
+                                             std::to_string(index)));
+}
+
+Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<MicrocodeValue>& arguments,
+                                                      ea_t instruction_address) {
+    CallArgumentsBuildResult result;
+    result.arguments.reserve(arguments.size());
 
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
@@ -310,10 +346,17 @@ Result<mcallargs_t> build_call_arguments(const std::vector<MicrocodeValue>& argu
             }
         }
 
-        callargs.push_back(std::move(callarg));
+        auto location_status = apply_explicit_location(&callarg,
+                                                       argument.location,
+                                                       i,
+                                                       &result.has_explicit_locations);
+        if (!location_status)
+            return std::unexpected(location_status.error());
+
+        result.arguments.push_back(std::move(callarg));
     }
 
-    return callargs;
+    return result;
 }
 
 ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
@@ -656,14 +699,20 @@ Status MicrocodeContext::emit_helper_call_with_arguments_and_options(
     if (!callargs)
         return std::unexpected(callargs.error());
 
+    MicrocodeCallOptions effective_options = options;
+    if (callargs->has_explicit_locations)
+        effective_options.mark_explicit_locations = true;
+
     std::string helper(helper_name);
     minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
                                                             helper.c_str(),
                                                             nullptr,
-                                                            callargs->empty() ? nullptr : &*callargs,
+                                                            callargs->arguments.empty()
+                                                                ? nullptr
+                                                                : &callargs->arguments,
                                                             nullptr);
 
-    auto st = apply_call_options(call, options, helper);
+    auto st = apply_call_options(call, effective_options, helper);
     if (!st) {
         if (call != nullptr)
             delete call;
@@ -710,6 +759,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
     if (!callargs)
         return std::unexpected(callargs.error());
 
+    MicrocodeCallOptions effective_options = options;
+    if (callargs->has_explicit_locations)
+        effective_options.mark_explicit_locations = true;
+
     tinfo_t return_type;
     if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
         return std::unexpected(Error::unsupported("Microcode typed return width unsupported",
@@ -723,10 +776,12 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
     minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
                                                             helper.c_str(),
                                                             &return_type,
-                                                            callargs->empty() ? nullptr : &*callargs,
+                                                            callargs->arguments.empty()
+                                                                ? nullptr
+                                                                : &callargs->arguments,
                                                             &destination);
 
-    auto st = apply_call_options(call, options, helper);
+    auto st = apply_call_options(call, effective_options, helper);
     if (!st) {
         if (call != nullptr)
             delete call;

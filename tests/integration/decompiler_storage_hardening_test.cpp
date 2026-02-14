@@ -572,6 +572,20 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_location_argument;
+        bad_location_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
+        bad_location_argument.register_id = 0;
+        bad_location_argument.byte_width = 4;
+        bad_location_argument.location.kind = ida::decompiler::MicrocodeValueLocationKind::Register;
+        bad_location_argument.location.register_id = -1;
+        std::vector<ida::decompiler::MicrocodeValue> bad_location_args{bad_location_argument};
+
+        auto bad_location_helper = context.emit_helper_call_with_arguments("idax_probe", bad_location_args);
+        if (!bad_location_helper
+            && bad_location_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_helper_to_reg = context.emit_helper_call_with_arguments_to_register(
             "idax_probe", {}, 0, 0, true);
         if (!bad_helper_to_reg
@@ -633,7 +647,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 13);
+        CHECK(filter->validation_hits >= 14);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

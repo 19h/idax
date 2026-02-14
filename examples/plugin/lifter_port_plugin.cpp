@@ -97,7 +97,7 @@ ida::Result<std::size_t> count_call_expressions(const ida::decompiler::Decompile
 ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
-        "  1) Microcode filter/hooks + scalar helper-call modeling are present, but\n"
+        "  1) Microcode filter/hooks + scalar helper-call modeling/location hints are present, but\n"
         "     rich IR mutation depth is still missing (vector/UDT args, advanced callinfo/tmop).\n"
         "  2) Popup action context is normalized but does not expose vdui/cfunc-level handles.\n"
         "[lifter-port] Recently closed: hxe_maturity subscription and FUNC_OUTLINE + cache-dirty helpers.\n");
