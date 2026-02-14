@@ -42,7 +42,7 @@ to idax-first surfaces.
    - idax currently exposes microcode text readout (`microcode_lines`) plus basic
      filter hooks, typed helper-call argument builders (integer + float + byte-array/vector/type-declaration views),
       explicit argument-location hints (register/register-pair/register-offset/register-relative/stack/static/scattered), and lightweight
-      helper call-shaping options (calling-convention/flags plus scalar callinfo fields like callee/spd/solid-arg hints), but not a comprehensive writable IR API.
+      helper call-shaping options (calling-convention/flags, scalar callinfo fields like callee/spd/solid-arg hints, and return-type declaration hints), but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
 3. Action context now has opaque host bridges, but typed decompiler-view

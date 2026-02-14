@@ -61,6 +61,9 @@ On a debugger-capable host, output includes:
 - If startup fails with `start_process failed (return code: -1)` across all launch
   candidates (including `--wait` and default-arg launch attempts), classify as
   debugger-backend readiness gap on that host.
+- If external spawn+attach fallback is attempted and fails with
+  `attach_process failed (return code: -4)`, classify as debugger-backend
+  readiness on that host (not a wrapper crash).
 - On hosts without a usable debugger backend/session, a graceful
   `dbg_appcall failed` error (for example error code `1552`) is expected and
   should be tracked as environment/runtime readiness, not a wrapper crash.

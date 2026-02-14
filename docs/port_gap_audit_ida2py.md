@@ -57,8 +57,8 @@ to idax-first surfaces.
   examples are linked against real IDA runtime dylibs (not SDK stubs).
 - Appcall runtime validation still requires a debugger-capable host/session;
   the current host run now attempts multi-path debuggee launch with both
-  `--wait` and default args, and still fails cleanly with
-  `start_process failed (return code: -1)` when the debugger backend is not
-  ready (no wrapper crash).
+  `--wait` and default args, then external spawn+attach fallback, and still
+  fails cleanly (`start_process` return `-1`, `attach_process` return `-4`)
+  when the debugger backend is not ready (no wrapper crash).
 - Runtime validation procedure is tracked in
   `docs/appcall_runtime_validation.md`.

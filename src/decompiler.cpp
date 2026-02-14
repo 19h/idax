@@ -136,6 +136,7 @@ Status apply_call_options(minsn_t* root,
         || options.solid_argument_count.has_value()
         || options.call_stack_pointer_delta.has_value()
         || options.stack_arguments_top.has_value()
+        || !options.return_type_declaration.empty()
         ||
         options.calling_convention != MicrocodeCallingConvention::Unspecified
         || options.mark_final
@@ -180,6 +181,25 @@ Status apply_call_options(minsn_t* root,
 
     if (options.stack_arguments_top.has_value())
         info->stkargs_top = *options.stack_arguments_top;
+
+    if (!options.return_type_declaration.empty()) {
+        qstring declaration(options.return_type_declaration.c_str());
+        if (!declaration.empty() && declaration.last() != ';')
+            declaration.append(';');
+
+        qstring name;
+        tinfo_t return_type;
+        if (!parse_decl(&return_type,
+                        &name,
+                        nullptr,
+                        declaration.c_str(),
+                        PT_SIL)) {
+            return std::unexpected(Error::validation(
+                "Failed to parse helper-call return type declaration",
+                options.return_type_declaration));
+        }
+        info->return_type = return_type;
+    }
 
     const callcnv_t calling_convention = to_sdk_calling_convention(options.calling_convention);
     if (calling_convention != CM_CC_INVALID)

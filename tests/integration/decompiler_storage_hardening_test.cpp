@@ -825,6 +825,22 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeCallOptions bad_return_type_options = options;
+        bad_return_type_options.return_type_declaration = "int(";
+        auto bad_helper_return_type = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, bad_return_type_options);
+        if (!bad_helper_return_type
+            && bad_helper_return_type.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_helper_to_reg_return_type = context.emit_helper_call_with_arguments_to_register_and_options(
+            "idax_probe", {}, 0, 4, true, bad_return_type_options);
+        if (!bad_helper_to_reg_return_type
+            && bad_helper_to_reg_return_type.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeCallOptions bad_options = options;
         bad_options.solid_argument_count = -1;
         auto bad_helper_negative_solid_args = context.emit_helper_call_with_arguments_and_options(
@@ -876,7 +892,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 30);
+        CHECK(filter->validation_hits >= 32);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(!filter->saw_emit_failure);

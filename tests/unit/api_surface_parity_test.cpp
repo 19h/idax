@@ -1169,6 +1169,7 @@ void check_decompiler_surface() {
     (void)call_options.solid_argument_count;
     (void)call_options.call_stack_pointer_delta;
     (void)call_options.stack_arguments_top;
+    (void)call_options.return_type_declaration;
     (void)call_options.calling_convention;
     (void)call_options.mark_final;
     (void)call_options.mark_propagated;

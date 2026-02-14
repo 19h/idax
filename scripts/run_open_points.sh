@@ -143,7 +143,7 @@ if [[ -z "${APPCALL_STATUS}" || "${APPCALL_STATUS}" == "skipped" ]]; then
       APPCALL_STATUS="pass"
       APPCALL_NOTE="appcall smoke succeeded (${APPCALL_FIXTURE})"
     else
-      if grep -E "error_code=1552|dbg_appcall failed|start_process failed|Failed to launch debuggee" "${APPCALL_LOG}" >/dev/null 2>&1; then
+      if grep -E "error_code=1552|dbg_appcall failed|start_process failed|attach_process failed|Failed to launch debuggee" "${APPCALL_LOG}" >/dev/null 2>&1; then
         APPCALL_STATUS="blocked"
         APPCALL_NOTE="debugger backend/session not ready (see ${APPCALL_LOG})"
       else
