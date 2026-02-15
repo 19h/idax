@@ -1409,6 +1409,34 @@ public:
                 && bad_callinfo_global_location.error().category == ida::ErrorCategory::Validation) {
                 ++validation_hits;
             }
+
+            ida::decompiler::MicrocodeCallOptions bad_callinfo_global_return_type_size_options =
+                global_callinfo_options;
+            bad_callinfo_global_return_type_size_options.return_type_declaration = "int";
+            auto bad_callinfo_global_return_type_size =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe",
+                    {},
+                    global_destination,
+                    true,
+                    bad_callinfo_global_return_type_size_options);
+            if (!bad_callinfo_global_return_type_size
+                && bad_callinfo_global_return_type_size.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            auto bad_callinfo_global_return_type_size_operand =
+                context.emit_helper_call_with_arguments_to_operand_and_options(
+                    "idax_probe",
+                    {},
+                    0,
+                    8,
+                    true,
+                    bad_callinfo_global_return_type_size_options);
+            if (!bad_callinfo_global_return_type_size_operand
+                && bad_callinfo_global_return_type_size_operand.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
         }
 
         ida::decompiler::MicrocodeOperand bad_micro_destination;

@@ -382,10 +382,16 @@ be executed in small, testable API slices.
   with explicit register `return_location` hints on stable register-destination
   helper flows. Compare helper routing now attempts typed register-destination
   micro-operand emission from structured operand register ids before fallback,
+  retries register-location hints without explicit location metadata on
+  validation-level rejection,
   applies static-address `return_location` hints on resolved-memory destination
   micro-routes (with validation-safe fallback when unsupported),
   and hardening coverage now validates static-location `BadAddress` rejection on
-  `to_operand` helper routes for cross-route contract consistency,
+  `to_operand` helper routes for cross-route contract consistency plus
+  global-destination return-type-size mismatch validation (including
+  `to_operand` route checks). For unresolved compare destinations, helper-return
+  routing now also attempts temporary-register helper emission +
+  `store_operand_register` writeback before direct `to_operand` fallback,
   and operand-index writeback fallback is now
   constrained to unresolved destination shapes only (mask-register destination
   or memory destination without resolvable target address).
