@@ -765,6 +765,36 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_unsigned_immediate_decl_parse_argument;
+        bad_unsigned_immediate_decl_parse_argument.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
+        bad_unsigned_immediate_decl_parse_argument.unsigned_immediate = 1;
+        bad_unsigned_immediate_decl_parse_argument.byte_width = 4;
+        bad_unsigned_immediate_decl_parse_argument.type_declaration = "int(";
+        std::vector<ida::decompiler::MicrocodeValue> bad_unsigned_immediate_decl_parse_args{
+            bad_unsigned_immediate_decl_parse_argument};
+
+        auto bad_unsigned_immediate_decl_parse_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_unsigned_immediate_decl_parse_args);
+        if (!bad_unsigned_immediate_decl_parse_helper
+            && bad_unsigned_immediate_decl_parse_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_signed_immediate_decl_size_argument;
+        bad_signed_immediate_decl_size_argument.kind = ida::decompiler::MicrocodeValueKind::SignedImmediate;
+        bad_signed_immediate_decl_size_argument.signed_immediate = -1;
+        bad_signed_immediate_decl_size_argument.byte_width = 8;
+        bad_signed_immediate_decl_size_argument.type_declaration = "int";
+        std::vector<ida::decompiler::MicrocodeValue> bad_signed_immediate_decl_size_args{
+            bad_signed_immediate_decl_size_argument};
+
+        auto bad_signed_immediate_decl_size_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_signed_immediate_decl_size_args);
+        if (!bad_signed_immediate_decl_size_helper
+            && bad_signed_immediate_decl_size_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_register_id_argument;
         bad_register_id_argument.kind = ida::decompiler::MicrocodeValueKind::Register;
         bad_register_id_argument.register_id = -1;

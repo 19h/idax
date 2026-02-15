@@ -1316,22 +1316,48 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
             }
 
             case MicrocodeValueKind::UnsignedImmediate: {
-                if (argument.byte_width <= 0) {
-                    return std::unexpected(Error::validation(
-                        "Microcode immediate argument byte width must be positive",
-                        std::to_string(i)));
-                }
+                int argument_width = argument.byte_width;
                 tinfo_t argument_type;
-                if (!make_integer_type(&argument_type,
-                                       argument.byte_width,
-                                       true)) {
-                    return std::unexpected(Error::unsupported(
-                        "Microcode typed argument width unsupported",
-                        std::to_string(argument.byte_width)));
+
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "unsigned_immediate");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size == 0) {
+                        return std::unexpected(Error::validation(
+                            "Parsed immediate argument type has unknown size",
+                            argument.type_declaration));
+                    }
+
+                    if (argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    else if (static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Immediate argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    if (argument_width <= 0) {
+                        return std::unexpected(Error::validation(
+                            "Microcode immediate argument byte width must be positive",
+                            std::to_string(i)));
+                    }
+                    if (!make_integer_type(&argument_type,
+                                           argument_width,
+                                           true)) {
+                        return std::unexpected(Error::unsupported(
+                            "Microcode typed argument width unsupported",
+                            std::to_string(argument_width)));
+                    }
                 }
+
                 mop_t immediate;
                 immediate.make_number(argument.unsigned_immediate,
-                                      argument.byte_width,
+                                      argument_width,
                                       instruction_address,
                                       0);
                 callarg.copy_mop(immediate);
@@ -1340,22 +1366,48 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
             }
 
             case MicrocodeValueKind::SignedImmediate: {
-                if (argument.byte_width <= 0) {
-                    return std::unexpected(Error::validation(
-                        "Microcode immediate argument byte width must be positive",
-                        std::to_string(i)));
-                }
+                int argument_width = argument.byte_width;
                 tinfo_t argument_type;
-                if (!make_integer_type(&argument_type,
-                                       argument.byte_width,
-                                       false)) {
-                    return std::unexpected(Error::unsupported(
-                        "Microcode typed argument width unsupported",
-                        std::to_string(argument.byte_width)));
+
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "signed_immediate");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size == 0) {
+                        return std::unexpected(Error::validation(
+                            "Parsed immediate argument type has unknown size",
+                            argument.type_declaration));
+                    }
+
+                    if (argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    else if (static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Immediate argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    if (argument_width <= 0) {
+                        return std::unexpected(Error::validation(
+                            "Microcode immediate argument byte width must be positive",
+                            std::to_string(i)));
+                    }
+                    if (!make_integer_type(&argument_type,
+                                           argument_width,
+                                           false)) {
+                        return std::unexpected(Error::unsupported(
+                            "Microcode typed argument width unsupported",
+                            std::to_string(argument_width)));
+                    }
                 }
+
                 mop_t immediate;
                 immediate.make_number(static_cast<std::uint64_t>(argument.signed_immediate),
-                                      argument.byte_width,
+                                      argument_width,
                                       instruction_address,
                                       0);
                 callarg.copy_mop(immediate);
