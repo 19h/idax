@@ -210,6 +210,7 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
         case MicrocodeOpcode::NoOperation:    return m_nop;
         case MicrocodeOpcode::Move:           return m_mov;
         case MicrocodeOpcode::Add:            return m_add;
+        case MicrocodeOpcode::Subtract:       return m_sub;
         case MicrocodeOpcode::ZeroExtend:     return m_xdu;
         case MicrocodeOpcode::LoadMemory:     return m_ldx;
         case MicrocodeOpcode::StoreMemory:    return m_stx;

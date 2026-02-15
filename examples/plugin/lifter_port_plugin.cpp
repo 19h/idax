@@ -175,6 +175,8 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
         "vaddpd", "vsubpd", "vmulpd", "vdivpd",
         "vaddsubps", "vaddsubpd",
         "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
+        "vpaddb", "vpaddw", "vpaddd", "vpaddq",
+        "vpsubb", "vpsubw", "vpsubd", "vpsubq",
         "vminps", "vmaxps", "vminpd", "vmaxpd",
         "vsqrtps", "vsqrtpd",
         "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
@@ -219,6 +221,18 @@ std::optional<ida::decompiler::MicrocodeOpcode> packed_math_opcode(std::string_v
     }
     if (mnemonic_lower == "vdivps" || mnemonic_lower == "vdivpd") {
         return ida::decompiler::MicrocodeOpcode::FloatDiv;
+    }
+    return std::nullopt;
+}
+
+std::optional<ida::decompiler::MicrocodeOpcode> packed_integer_arithmetic_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower == "vpaddb" || mnemonic_lower == "vpaddw"
+        || mnemonic_lower == "vpaddd" || mnemonic_lower == "vpaddq") {
+        return ida::decompiler::MicrocodeOpcode::Add;
+    }
+    if (mnemonic_lower == "vpsubb" || mnemonic_lower == "vpsubw"
+        || mnemonic_lower == "vpsubd" || mnemonic_lower == "vpsubq") {
+        return ida::decompiler::MicrocodeOpcode::Subtract;
     }
     return std::nullopt;
 }
@@ -809,8 +823,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     }
 
     if (mnemonic_lower.starts_with("vcmp")
-        || mnemonic_lower.starts_with("vpcmp")
-        || is_packed_helper_misc_mnemonic(mnemonic_lower)) {
+        || mnemonic_lower.starts_with("vpcmp")) {
         return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
     }
 
@@ -911,6 +924,17 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     };
 
+    if (const auto integer_opcode = packed_integer_arithmetic_opcode(mnemonic_lower);
+        integer_opcode.has_value()) {
+        auto emitted = try_emit_typed_binary(*integer_opcode);
+        if (!emitted) {
+            return std::unexpected(emitted.error());
+        }
+        if (*emitted) {
+            return true;
+        }
+    }
+
     if (const auto bitwise_opcode = packed_bitwise_opcode(mnemonic_lower);
         bitwise_opcode.has_value()) {
         auto emitted = try_emit_typed_binary(*bitwise_opcode);
@@ -967,7 +991,8 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
 
     if (is_packed_helper_bitwise_mnemonic(mnemonic_lower)
         || is_packed_helper_permute_blend_mnemonic(mnemonic_lower)
-        || is_packed_helper_shift_mnemonic(mnemonic_lower)) {
+        || is_packed_helper_shift_mnemonic(mnemonic_lower)
+        || is_packed_helper_misc_mnemonic(mnemonic_lower)) {
         return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
     }
 
