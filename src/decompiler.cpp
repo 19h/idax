@@ -231,10 +231,85 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
     return std::unexpected(Error::validation("Unsupported microcode opcode"));
 }
 
+constexpr int kMaxNestedInstructionDepth = 32;
+
 Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
                                               mba_t* mba,
                                               ea_t instruction_address,
-                                              std::string_view role) {
+                                              std::string_view role,
+                                              int depth);
+
+[[nodiscard]] bool is_empty_operand(const MicrocodeOperand& operand) noexcept;
+
+Result<minsn_t> build_typed_nested_instruction(const MicrocodeInstruction& instruction,
+                                               mba_t* mba,
+                                               ea_t instruction_address,
+                                               std::string_view role,
+                                               int depth) {
+    if (depth > kMaxNestedInstructionDepth) {
+        return std::unexpected(Error::validation(
+            "Nested instruction depth exceeds limit",
+            std::string(role)));
+    }
+
+    auto sdk_opcode = to_sdk_opcode(instruction.opcode);
+    if (!sdk_opcode)
+        return std::unexpected(sdk_opcode.error());
+
+    if (instruction.opcode == MicrocodeOpcode::LoadMemory
+        || instruction.opcode == MicrocodeOpcode::StoreMemory) {
+        if (is_empty_operand(instruction.left)
+            || is_empty_operand(instruction.right)
+            || is_empty_operand(instruction.destination)) {
+            return std::unexpected(Error::validation(
+                "Nested load/store memory instructions require non-empty left/right/destination operands",
+                std::string(role)));
+        }
+    }
+
+    auto left = build_typed_instruction_operand(instruction.left,
+                                                mba,
+                                                instruction_address,
+                                                std::string(role) + ":left",
+                                                depth + 1);
+    if (!left)
+        return std::unexpected(left.error());
+    auto right = build_typed_instruction_operand(instruction.right,
+                                                 mba,
+                                                 instruction_address,
+                                                 std::string(role) + ":right",
+                                                 depth + 1);
+    if (!right)
+        return std::unexpected(right.error());
+    auto destination = build_typed_instruction_operand(instruction.destination,
+                                                       mba,
+                                                       instruction_address,
+                                                       std::string(role) + ":destination",
+                                                       depth + 1);
+    if (!destination)
+        return std::unexpected(destination.error());
+
+    minsn_t nested(instruction_address);
+    nested.opcode = *sdk_opcode;
+    nested.l = *left;
+    nested.r = *right;
+    nested.d = *destination;
+    if (instruction.floating_point_instruction)
+        nested.set_fpinsn();
+    return nested;
+}
+
+Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
+                                              mba_t* mba,
+                                              ea_t instruction_address,
+                                              std::string_view role,
+                                              int depth) {
+    if (depth > kMaxNestedInstructionDepth) {
+        return std::unexpected(Error::validation(
+            "Nested instruction depth exceeds limit",
+            std::string(role)));
+    }
+
     mop_t result;
     switch (operand.kind) {
         case MicrocodeOperandKind::Empty:
@@ -311,6 +386,26 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
                     std::string(role)));
             }
             result.make_blkref(operand.block_index);
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
+            break;
+
+        case MicrocodeOperandKind::NestedInstruction:
+            if (!operand.nested_instruction) {
+                return std::unexpected(Error::validation(
+                    "Nested-instruction operand requires nested_instruction payload",
+                    std::string(role)));
+            }
+            {
+                auto nested = build_typed_nested_instruction(*operand.nested_instruction,
+                                                             mba,
+                                                             instruction_address,
+                                                             role,
+                                                             depth + 1);
+                if (!nested)
+                    return std::unexpected(nested.error());
+                result.create_from_insn(&*nested);
+            }
             if (operand.byte_width > 0)
                 result.size = operand.byte_width;
             break;
@@ -1637,19 +1732,22 @@ Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction
     auto left = build_typed_instruction_operand(instruction.left,
                                                 impl->codegen->mba,
                                                 impl->codegen->insn.ea,
-                                                "left");
+                                                "left",
+                                                0);
     if (!left)
         return std::unexpected(left.error());
     auto right = build_typed_instruction_operand(instruction.right,
                                                  impl->codegen->mba,
                                                  impl->codegen->insn.ea,
-                                                 "right");
+                                                 "right",
+                                                 0);
     if (!right)
         return std::unexpected(right.error());
     auto destination = build_typed_instruction_operand(instruction.destination,
                                                        impl->codegen->mba,
                                                        impl->codegen->insn.ea,
-                                                       "destination");
+                                                       "destination",
+                                                       0);
     if (!destination)
         return std::unexpected(destination.error());
 

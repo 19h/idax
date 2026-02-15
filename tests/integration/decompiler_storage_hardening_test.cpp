@@ -1119,6 +1119,19 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeInstruction bad_nested_instruction_emit;
+        bad_nested_instruction_emit.opcode = ida::decompiler::MicrocodeOpcode::Move;
+        bad_nested_instruction_emit.left.kind = ida::decompiler::MicrocodeOperandKind::NestedInstruction;
+        bad_nested_instruction_emit.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_nested_instruction_emit.destination.register_id = 0;
+        bad_nested_instruction_emit.destination.byte_width = 4;
+
+        auto bad_nested_emit = context.emit_instruction(bad_nested_instruction_emit);
+        if (!bad_nested_emit
+            && bad_nested_emit.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeCallOptions bad_visible_memory_combo_options;
         bad_visible_memory_combo_options.visible_memory_all = true;
         ida::decompiler::MicrocodeMemoryRange bad_visible_memory_combo_range;
