@@ -4,6 +4,9 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/instruction.hpp>
 
+#include <algorithm>
+#include <cctype>
+
 namespace ida::instruction {
 
 // ── Internal helpers ────────────────────────────────────────────────────
@@ -31,6 +34,119 @@ OperandType map_operand_type(optype_t t) {
     }
 }
 
+std::string to_lower_ascii(std::string text) {
+    std::transform(text.begin(),
+                   text.end(),
+                   text.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return text;
+}
+
+bool starts_with(std::string_view text, std::string_view prefix) {
+    return text.size() >= prefix.size()
+        && text.compare(0, prefix.size(), prefix) == 0;
+}
+
+bool is_decimal_suffix(std::string_view text, std::size_t start) {
+    if (start >= text.size())
+        return false;
+    for (std::size_t index = start; index < text.size(); ++index) {
+        if (!std::isdigit(static_cast<unsigned char>(text[index])))
+            return false;
+    }
+    return true;
+}
+
+RegisterClass classify_register_name(std::string_view register_name) {
+    if (register_name.empty())
+        return RegisterClass::Unknown;
+
+    const std::string lowered = to_lower_ascii(std::string(register_name));
+
+    if (lowered == "cs" || lowered == "ds" || lowered == "es"
+        || lowered == "fs" || lowered == "gs" || lowered == "ss") {
+        return RegisterClass::Segment;
+    }
+
+    if (starts_with(lowered, "xmm") || starts_with(lowered, "ymm")
+        || starts_with(lowered, "zmm") || starts_with(lowered, "mm")
+        || starts_with(lowered, "q")) {
+        return RegisterClass::Vector;
+    }
+
+    if (starts_with(lowered, "k") && is_decimal_suffix(lowered, 1))
+        return RegisterClass::Mask;
+
+    if (starts_with(lowered, "st") || starts_with(lowered, "fp")
+        || starts_with(lowered, "fpr")) {
+        return RegisterClass::FloatingPoint;
+    }
+
+    if (starts_with(lowered, "cr"))
+        return RegisterClass::Control;
+
+    if (starts_with(lowered, "dr"))
+        return RegisterClass::Debug;
+
+    if (starts_with(lowered, "r") || starts_with(lowered, "e")
+        || starts_with(lowered, "a") || starts_with(lowered, "b")
+        || starts_with(lowered, "c") || starts_with(lowered, "d")
+        || starts_with(lowered, "s") || starts_with(lowered, "t")
+        || starts_with(lowered, "x") || starts_with(lowered, "w")) {
+        return RegisterClass::GeneralPurpose;
+    }
+
+    return RegisterClass::Other;
+}
+
+int width_from_register_name(std::string_view register_name) {
+    const std::string lowered = to_lower_ascii(std::string(register_name));
+
+    if (starts_with(lowered, "zmm") || starts_with(lowered, "q"))
+        return 64;
+    if (starts_with(lowered, "ymm"))
+        return 32;
+    if (starts_with(lowered, "xmm"))
+        return 16;
+    if (starts_with(lowered, "mm"))
+        return 8;
+    if (starts_with(lowered, "k") && is_decimal_suffix(lowered, 1))
+        return 8;
+    if (starts_with(lowered, "st") || starts_with(lowered, "fp"))
+        return 10;
+
+    return 0;
+}
+
+int operand_byte_width(const op_t& op) {
+    const size_t width = get_dtype_size(op.dtype);
+    return width == 0 || width == BADSIZE ? 0 : static_cast<int>(width);
+}
+
+std::string decode_register_name(Address address,
+                                 int operand_index,
+                                 const op_t& op,
+                                 int byte_width) {
+    if (op.type != o_reg)
+        return {};
+
+    qstring text;
+    const size_t width = byte_width > 0 ? static_cast<size_t>(byte_width) : 1;
+    if (get_reg_name(&text, op.reg, width, -1) <= 0)
+        return {};
+
+    tag_remove(&text);
+    std::string register_name = ida::detail::to_string(text);
+    if (register_name.empty()) {
+        qstring operand_text;
+        if (!print_operand(&operand_text, address, operand_index))
+            return {};
+        tag_remove(&operand_text);
+        register_name = ida::detail::to_string(operand_text);
+    }
+    return register_name;
+}
+
 } // anonymous namespace
 
 // ── Internal access helper ──────────────────────────────────────────────
@@ -55,6 +171,14 @@ struct InstructionAccess {
             operand.reg_   = op.reg;
             operand.value_ = static_cast<std::uint64_t>(op.value);
             operand.addr_  = static_cast<Address>(op.addr);
+            operand.byte_width_ = operand_byte_width(op);
+
+            if (operand.type_ == OperandType::Register) {
+                operand.register_name_ = decode_register_name(insn.ea_, i, op, operand.byte_width_);
+                operand.register_class_ = classify_register_name(operand.register_name_);
+                if (operand.byte_width_ <= 0)
+                    operand.byte_width_ = width_from_register_name(operand.register_name_);
+            }
 
             insn.operands_.push_back(operand);
         }
@@ -214,6 +338,51 @@ Result<std::string> operand_text(Address ea, int n) {
         return std::unexpected(Error::sdk("print_operand failed",
                                           std::to_string(ea) + ":" + std::to_string(n)));
     return ida::detail::to_string(text);
+}
+
+Result<int> operand_byte_width(Address ea, int n) {
+    auto insn = decode(ea);
+    if (!insn)
+        return std::unexpected(insn.error());
+
+    auto op = insn->operand(static_cast<std::size_t>(n));
+    if (!op)
+        return std::unexpected(op.error());
+    return op->byte_width();
+}
+
+Result<std::string> operand_register_name(Address ea, int n) {
+    auto insn = decode(ea);
+    if (!insn)
+        return std::unexpected(insn.error());
+
+    auto op = insn->operand(static_cast<std::size_t>(n));
+    if (!op)
+        return std::unexpected(op.error());
+    if (!op->is_register()) {
+        return std::unexpected(Error::not_found("Operand is not a register",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    if (op->register_name().empty()) {
+        return std::unexpected(Error::not_found("Register name is unavailable",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    return op->register_name();
+}
+
+Result<RegisterClass> operand_register_class(Address ea, int n) {
+    auto insn = decode(ea);
+    if (!insn)
+        return std::unexpected(insn.error());
+
+    auto op = insn->operand(static_cast<std::size_t>(n));
+    if (!op)
+        return std::unexpected(op.error());
+    if (!op->is_register()) {
+        return std::unexpected(Error::not_found("Operand is not a register",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    return op->register_class();
 }
 
 Status toggle_operand_sign(Address ea, int n) {

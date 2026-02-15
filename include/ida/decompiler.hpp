@@ -382,6 +382,15 @@ public:
     /// Number of local variables available in current microcode context.
     [[nodiscard]] Result<int> local_variable_count() const;
 
+    /// Number of microcode instructions currently present in the active block.
+    [[nodiscard]] Result<int> block_instruction_count() const;
+
+    /// Whether this context has tracked at least one emitted instruction.
+    [[nodiscard]] Result<bool> has_last_emitted_instruction() const;
+
+    /// Remove the most recently emitted instruction tracked by this context.
+    Status remove_last_emitted_instruction();
+
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();
 
@@ -543,6 +552,23 @@ public:
         std::string_view helper_name,
         const std::vector<MicrocodeValue>& arguments,
         int destination_register,
+        int destination_byte_width,
+        bool destination_unsigned,
+        const MicrocodeCallOptions& options);
+
+    /// Emit helper call with typed arguments and store return into operand index.
+    Status emit_helper_call_with_arguments_to_operand(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        int destination_operand_index,
+        int destination_byte_width,
+        bool destination_unsigned = true);
+
+    /// Emit helper call with typed arguments/return, options, and operand writeback.
+    Status emit_helper_call_with_arguments_to_operand_and_options(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        int destination_operand_index,
         int destination_byte_width,
         bool destination_unsigned,
         const MicrocodeCallOptions& options);

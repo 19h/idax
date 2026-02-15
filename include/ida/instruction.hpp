@@ -43,6 +43,18 @@ enum class OperandFormat {
     StackVariable,
 };
 
+enum class RegisterClass {
+    Unknown,
+    GeneralPurpose,
+    Segment,
+    FloatingPoint,
+    Vector,
+    Mask,
+    Control,
+    Debug,
+    Other,
+};
+
 // ── Operand value object ────────────────────────────────────────────────
 
 class Operand {
@@ -62,6 +74,15 @@ public:
     [[nodiscard]] std::uint64_t value()          const noexcept { return value_; }
     [[nodiscard]] Address       target_address() const noexcept { return addr_; }
     [[nodiscard]] std::int64_t  displacement()   const noexcept { return static_cast<std::int64_t>(value_); }
+    [[nodiscard]] int           byte_width()     const noexcept { return byte_width_; }
+    [[nodiscard]] std::string   register_name()  const { return register_name_; }
+    [[nodiscard]] RegisterClass register_class() const noexcept { return register_class_; }
+    [[nodiscard]] bool is_vector_register() const noexcept {
+        return register_class_ == RegisterClass::Vector;
+    }
+    [[nodiscard]] bool is_mask_register() const noexcept {
+        return register_class_ == RegisterClass::Mask;
+    }
 
 private:
     friend class Instruction;
@@ -71,6 +92,9 @@ private:
     std::uint16_t  reg_{};
     std::uint64_t  value_{};
     Address        addr_{};
+    int            byte_width_{};
+    std::string    register_name_;
+    RegisterClass  register_class_{RegisterClass::Unknown};
 };
 
 // ── Instruction value object ────────────────────────────────────────────
@@ -149,6 +173,17 @@ Result<std::string> get_forced_operand(Address address, int n);
 
 /// Render only the operand text for operand index \p n.
 Result<std::string> operand_text(Address address, int n);
+
+/// Structured byte-width query for operand index \p n.
+Result<int> operand_byte_width(Address address, int n);
+
+/// Register name for operand index \p n.
+/// Returns NotFound when the operand is not a register.
+Result<std::string> operand_register_name(Address address, int n);
+
+/// Structured register classification for operand index \p n.
+/// Returns NotFound when the operand is not a register.
+Result<RegisterClass> operand_register_class(Address address, int n);
 
 /// Toggle sign inversion on operand display.
 Status toggle_operand_sign(Address address, int n);

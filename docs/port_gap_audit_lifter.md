@@ -47,8 +47,8 @@ to idax-first surfaces.
   helper-fallback `vdpps` + `vround*`/`vrcp*`/`vrsqrt*`/`vget*`/`vfixup*`/
   `vscale*`/`vrange*`/`vreduce*` + `vbroadcast*`/`vextract*`/`vinsert*`/
   `vunpck*`/`vmov*dup`/`vmaskmov*` families,
-  with mixed register/immediate/memory-source forwarding and compare
-  mask-destination no-op tolerance,
+  with mixed register/immediate/memory-source forwarding and deterministic
+  compare mask-destination operand writeback,
   `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
   `vcvtps2pd/vcvtpd2ps`, `vcvtdq2ps/vcvtudq2ps`, `vcvtdq2pd/vcvtudq2pd`,
   plus helper-fallback `vcvt*2dq/udq/qq/uqq` forms,
@@ -331,6 +331,15 @@ be executed in small, testable API slices.
   `passthrough_registers` must always be a subset of
   `spoiled_registers` (not only when both lists were explicitly provided),
   preventing contradictory pass/spoil combinations.
+- Added structured instruction operand metadata for lifter-class lowering
+  (`Operand::byte_width`, `Operand::register_name`,
+  `Operand::register_class`, `Operand::is_vector_register`,
+  `Operand::is_mask_register`, plus address-index helpers), replacing
+  operand-text-width heuristics in the lifter probe.
+- Added helper-call return writeback to arbitrary instruction operands via
+  `MicrocodeContext::emit_helper_call_with_arguments_to_operand[_and_options]`,
+  enabling deterministic compare/mask-destination lowering without no-op
+  tolerance paths.
 - Expanded executable probe coverage from VMX-only lowering to include AVX
   scalar and packed math/move flows (`vadd*`/`vsub*`/`vmul*`/`vdiv*`, `vcvt*`,
   `vmin*`/`vmax*`, `vsqrt*`, `vmov*`) through typed instruction emission,

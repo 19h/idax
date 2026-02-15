@@ -63,6 +63,21 @@ void test_decode_basics() {
     if (insn->operand_count() > 0) {
         auto op0 = insn->operand(0);
         CHECK_OK(op0);
+        if (op0) {
+            CHECK(op0->byte_width() >= 0);
+            if (op0->is_register()) {
+                auto name = ida::instruction::operand_register_name(start, 0);
+                CHECK_OK(name);
+                auto reg_class = ida::instruction::operand_register_class(start, 0);
+                CHECK_OK(reg_class);
+            } else {
+                auto name = ida::instruction::operand_register_name(start, 0);
+                CHECK(!name.has_value());
+            }
+
+            auto width = ida::instruction::operand_byte_width(start, 0);
+            CHECK_OK(width);
+        }
 
         auto op_text = ida::instruction::operand_text(start, 0);
         CHECK_OK(op_text);

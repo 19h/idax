@@ -222,16 +222,26 @@ void check_instruction_surface() {
     (void)ida::instruction::OperandType::MemoryDirect;
     (void)ida::instruction::OperandFormat::Default;
     (void)ida::instruction::OperandFormat::Hex;
+    (void)ida::instruction::RegisterClass::Unknown;
+    (void)ida::instruction::RegisterClass::GeneralPurpose;
+    (void)ida::instruction::RegisterClass::Vector;
+    (void)ida::instruction::RegisterClass::Mask;
 
     using InstructionSetOperandFormatFn = ida::Status(*)(ida::Address,
                                                          int,
                                                          ida::instruction::OperandFormat,
                                                          ida::Address);
     using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
+    using InstructionOperandByteWidthFn = ida::Result<int>(*)(ida::Address, int);
+    using InstructionOperandRegisterNameFn = ida::Result<std::string>(*)(ida::Address, int);
+    using InstructionOperandRegisterClassFn = ida::Result<ida::instruction::RegisterClass>(*)(ida::Address, int);
     using InstructionPredicateFn = bool(*)(ida::Address);
 
     (void)static_cast<InstructionSetOperandFormatFn>(&ida::instruction::set_operand_format);
     (void)static_cast<InstructionOperandTextFn>(&ida::instruction::operand_text);
+    (void)static_cast<InstructionOperandByteWidthFn>(&ida::instruction::operand_byte_width);
+    (void)static_cast<InstructionOperandRegisterNameFn>(&ida::instruction::operand_register_name);
+    (void)static_cast<InstructionOperandRegisterClassFn>(&ida::instruction::operand_register_class);
     (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_jump);
     (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_conditional_jump);
 }
@@ -1095,6 +1105,9 @@ void check_decompiler_surface() {
     using MicrocodeContextAddressFn = ida::Address(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextLocalVariableCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextBlockInstructionCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextHasLastEmittedFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextRemoveLastEmittedFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
     using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
     using MicrocodeContextEmitNopWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         ida::decompiler::MicrocodeInsertPolicy);
@@ -1187,6 +1200,19 @@ void check_decompiler_surface() {
         const std::vector<ida::decompiler::MicrocodeValue>&,
         const ida::decompiler::MicrocodeCallOptions&);
     using MicrocodeContextEmitHelperArgsToRegWithOptionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        int,
+        int,
+        bool,
+        const ida::decompiler::MicrocodeCallOptions&);
+    using MicrocodeContextEmitHelperArgsToOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        int,
+        int,
+        bool);
+    using MicrocodeContextEmitHelperArgsToOperandWithOptionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         std::string_view,
         const std::vector<ida::decompiler::MicrocodeValue>&,
         int,
@@ -1376,6 +1402,9 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextAddressFn>(&ida::decompiler::MicrocodeContext::address);
     (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
     (void)static_cast<MicrocodeContextLocalVariableCountFn>(&ida::decompiler::MicrocodeContext::local_variable_count);
+    (void)static_cast<MicrocodeContextBlockInstructionCountFn>(&ida::decompiler::MicrocodeContext::block_instruction_count);
+    (void)static_cast<MicrocodeContextHasLastEmittedFn>(&ida::decompiler::MicrocodeContext::has_last_emitted_instruction);
+    (void)static_cast<MicrocodeContextRemoveLastEmittedFn>(&ida::decompiler::MicrocodeContext::remove_last_emitted_instruction);
     (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);
     (void)static_cast<MicrocodeContextEmitNopWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_noop_with_policy);
     (void)static_cast<MicrocodeContextLoadOperandFn>(&ida::decompiler::MicrocodeContext::load_operand_register);
@@ -1404,6 +1433,8 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register);
     (void)static_cast<MicrocodeContextEmitHelperArgsWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_and_options);
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options);
+    (void)static_cast<MicrocodeContextEmitHelperArgsToOperandFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_operand);
+    (void)static_cast<MicrocodeContextEmitHelperArgsToOperandWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_operand_and_options);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────
