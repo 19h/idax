@@ -383,15 +383,23 @@ be executed in small, testable API slices.
   helper flows. Compare helper routing now attempts typed register-destination
   micro-operand emission from structured operand register ids before fallback,
   retries register-location hints without explicit location metadata on
-  validation-level rejection,
+  validation-level rejection, and falls back to base compare call options
+  (without declaration/location hints) if validation rejection persists,
   applies static-address `return_location` hints on resolved-memory destination
-  micro-routes (with validation-safe fallback when unsupported),
+  micro-routes (with validation-safe fallback when unsupported, including
+  fallback to base compare call options on repeated validation rejection),
   and hardening coverage now validates static-location `BadAddress` rejection on
   `to_operand` helper routes for cross-route contract consistency plus
   global-destination return-type-size mismatch validation (including
   `to_operand` route checks). For unresolved compare destinations, helper-return
   routing now also attempts temporary-register helper emission +
-  `store_operand_register` writeback before direct `to_operand` fallback,
+  `store_operand_register` writeback before direct `to_operand` fallback;
+  resolved-memory micro routes, register micro routes, temporary-register bridge
+  routes, and degraded `to_operand` routes now all apply validation-safe retry
+  with base compare options when hint-rich options are rejected. Temporary
+  writeback now degrades `store_operand_register` `Validation`/`NotFound`
+  outcomes to non-fatal not-handled behavior while preserving hard
+  SDK/internal failures,
   and operand-index writeback fallback is now
   constrained to unresolved destination shapes only (mask-register destination
   or memory destination without resolvable target address).

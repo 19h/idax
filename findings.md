@@ -215,5 +215,10 @@ Format note: use a numbered list with one concrete technical finding per item; k
 210. Compare helper register-destination micro routes benefit from the same validation-safe retry pattern as resolved-memory routes: if explicit register `return_location` hints are rejected with validation, retrying with no location hint preserves stable handling.
 211. Callinfo hardening should validate return-type-size mismatch behavior on global-destination routes as well, including `to_operand` checks, to keep type-size contracts consistent across helper emission APIs.
 212. For unresolved compare destinations, an intermediate helper-to-temporary-register route plus operand store writeback can be attempted before direct `to_operand` helper fallback, reducing reliance on the direct operand route while preserving degraded-path stability.
+213. Compare helper micro-routes can use a three-step validation-safe retry ladder (full typed options with location+declaration -> reduced options without location -> base compare options without declaration/location) to preserve semantic richness first while degrading safely when backends reject advanced callinfo hints.
+214. Direct `to_operand` compare fallback can also use validation-safe retry with base compare options (dropping declaration/location hints) to reduce avoidable validation failures on backend variance while preserving unresolved-shape degraded handling.
+215. After all degraded compare `to_operand` retries are exhausted, treating residual `Validation` failures as non-fatal (`NotHandled`) improves backend variance tolerance while keeping hard SDK/internal failures explicit.
+
+216. Compare helper stability improves when all destination routes (resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand`) retry with base compare options on validation rejection, and temporary-register writeback treats `Validation`/`NotFound` store failures as degradable while preserving hard SDK/internal failure signaling.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
