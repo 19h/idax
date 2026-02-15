@@ -33,9 +33,10 @@ to idax-first surfaces.
 - AVX packed math/move subset through typed microcode emission
   (`vaddps/vsubps/vmulps/vdivps`, `vaddpd/vsubpd/vmulpd/vdivpd`,
   `vaddsubps/vaddsubpd`, `vhaddps/vhaddpd`, `vhsubps/vhsubpd`,
-  helper-fallback `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*`,
+  typed `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*`
+  (with helper fallback for `*andn*` forms),
   helper-fallback `vblend*/vpblend*` + `vshuf*/vperm*` families,
-  helper-fallback `vps*`/`vpror*`/`vprol*` shift-rotate families,
+  typed `vps*` shift forms with helper fallback for rotate/mixed variants,
   helper-fallback `vcmp*`/`vpcmp*` compare families,
   helper-fallback `vdpps` + `vround*`/`vrcp*`/`vrsqrt*`/`vget*`/`vfixup*`/
   `vscale*`/`vrange*`/`vreduce*` + `vbroadcast*`/`vextract*`/`vinsert*`/

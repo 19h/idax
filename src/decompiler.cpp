@@ -213,6 +213,12 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
         case MicrocodeOpcode::ZeroExtend:     return m_xdu;
         case MicrocodeOpcode::LoadMemory:     return m_ldx;
         case MicrocodeOpcode::StoreMemory:    return m_stx;
+        case MicrocodeOpcode::BitwiseOr:      return m_or;
+        case MicrocodeOpcode::BitwiseAnd:     return m_and;
+        case MicrocodeOpcode::BitwiseXor:     return m_xor;
+        case MicrocodeOpcode::ShiftLeft:      return m_shl;
+        case MicrocodeOpcode::ShiftRightLogical: return m_shr;
+        case MicrocodeOpcode::ShiftRightArithmetic: return m_sar;
         case MicrocodeOpcode::FloatAdd:       return m_fadd;
         case MicrocodeOpcode::FloatSub:       return m_fsub;
         case MicrocodeOpcode::FloatMul:       return m_fmul;
