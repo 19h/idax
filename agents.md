@@ -1031,356 +1031,1587 @@ Note:
 
 ## 13) Decision Log (Live)
 
-Format note: keep one decision per bullet; briefly capture rationale and (when relevant) explicit rejected alternatives and impact.
+### 1. Architecture & Core Design Principles
 
-- Target C++23 for modern error handling and API ergonomics.
-- Hybrid library architecture balancing ease of use with implementation flexibility.
-- Fully opaque public API enforcing consistency and preventing legacy leakage.
-- Public string model uses `std::string`.
-- Scope includes plugins, loaders, and processor modules (full ecosystem).
-- Keep detailed interface blueprints in `agents.md` for concrete implementation guidance.
-- Link idalib tests against real IDA installation dylibs, not SDK stubs. SDK stub `libidalib.dylib` has different symbol exports causing two-level namespace crashes. Rejected: `-flat_namespace` (too broad), `IDABIN` cmake variable (ida-cmake doesn't use it for lib paths).
-- Expose processor switch/function-heuristic callbacks through SDK-free public structs and virtuals. Keeps procmod authoring opaque while preserving advanced capabilities. Rejected: expose raw `switch_info_t`/`insn_t` (violates opacity), defer until full event bridge rewrite (blocks progressive adoption).
-- Add generic IDB event routing (`ida::event::Event`, `on_event`, `on_event_filtered`) on top of typed subscriptions. Enables reusable filtering without raw SDK vararg notifications. Rejected: many narrowly-scoped filtered helpers (API bloat), raw `idb_event` codes (leaks SDK).
-- Standardize compatibility validation into three profiles (`full`, `unit`, `compile-only`) with `scripts/run_validation_matrix.sh`. Enables consistent multi-OS/compiler execution without full IDA runtime. Rejected: ad hoc per-host docs (drift-prone), CI-only matrix (licensing constraints).
-- Pin matrix packaging artifacts via `cpack -B <build-dir>` for reproducible artifact locations. Rejected: CPack default output path (drifts by working directory).
-- Add opaque dock widget host API (`Widget` handle, `create_widget`/`show_widget`/`activate_widget`/`find_widget`/`close_widget`/`is_widget_visible`, `DockPosition`, `ShowWidgetOptions`) to `ida::ui`. Rejected: expose `TWidget*` (violates opacity), title-only API (fragile for multi-panel). Closes entropyx P0 gaps #1/#2.
-- Add handle-based widget event subscriptions (`on_widget_visible/invisible/closing(Widget&, cb)`) alongside title-based variants, plus `on_cursor_changed(cb)` for HT_VIEW `view_curpos`. Rejected: title-based only (fragile for multi-instance). Closes entropyx P0 gaps #2/#3.
-- Implement `IDAX_PLUGIN(ClassName)` macro with `plugmod_t` bridge, static char buffers for `plugin_t PLUGIN`, factory registration via `detail::make_plugin_export()`. Rejected: require users write own PLUGIN struct (defeats wrapper), put PLUGIN in user TU via macro (requires SDK includes). Closes entropyx P0 gap #6.
-- Add `Segment::type()` getter, `set_type()`, expanded `Type` enum (Import, InternalMemory, Group). Rejected: raw `uchar` (violates opaque naming). Closes entropyx P0 gap #5.
-- Add `ui::jump_to(Address)` wrapping SDK `jumpto()`. Rejected: manual screen_address+navigate (missing core operation). Closes entropyx P0 gap #4.
-- Add opaque widget host bridge (`WidgetHost`, `widget_host()`, `with_widget_host()`) for Qt/content embedding without exposing SDK/Qt types. Scoped callback over raw getter reduces accidental long-lived pointer storage. Rejected: expose `TWidget*` (breaks opacity), raw getter only (encourages long-lived storage).
-- Add `plugin::ActionContext` and context-aware callbacks (`handler_with_context`, `enabled_with_context`). Rejected: raw `action_activation_ctx_t*` (breaks opacity), replace existing no-arg callbacks (unnecessary migration breakage).
-- Add generic UI/VIEW routing in `ida::ui` (`EventKind`, `Event`, `on_event`, `on_event_filtered`) with composite-token unsubscribe. Rejected: many discrete handlers (cumbersome), raw notification codes + `va_list` (unsafe/non-opaque).
-- Formalize SDK parity closure as Phase 10 with matrix-driven domain-by-domain checklist and evidence gates. Rejected: ad hoc parity fixes only (poor visibility), docs snapshot without TODO graph (weak progress control).
-- Use dual-axis coverage matrix (`docs/sdk_domain_coverage_matrix.md`) with domain rows and SDK capability-family rows. Rejected: domain-only (hides cross-domain gaps), capability-only (weak ownership mapping).
-- Store diagnostics counters as atomics, return snapshot copies. Rejected: global mutex (unnecessary contention), plain struct (undefined behavior under concurrency).
-- Treat compile-only parity test as mandatory for every new public symbol including overload disambiguation. Rejected: integration tests only (insufficient compile-surface guarantees).
-- Add predicate-based traversal ranges (`code_items`, `data_items`, `unknown_bytes`) and discoverability aliases (`next_defined`, `prev_defined`) in `ida::address`. Rejected: only predicate search primitives (less ergonomic for range-for).
-- Add data patch-revert and load-intent convenience wrappers (`revert_patch`, `revert_patches`, `database::OpenMode`, `LoadIntent`, `open_binary`, `open_non_binary`). Rejected: raw bool/patch APIs only (low discoverability), raw loader entrypoints (leaks complexity).
-- Close P10.3 with additive segment/function/instruction parity (resize/move/comments/traversal; update/reanalysis/address iteration/frame+regvar; jump classifiers + operand text/format unification). Rejected: defer to P10.8 (leaves rows partial), raw SDK classifier/comment entrypoints (violates opacity).
-- Close P10.4 with additive metadata parity in name/xref/comment/type/entry/fixup (identifier validation, xref range+typed filters, indexed comment editing, function/cc/enum type workflows, entry forwarder management, expanded fixup descriptor + signed/range helpers). Rejected: defer to docs-only sweep (leaves rows partial), raw SDK enums/flags (weakens conceptual API).
-- Close P10.5 with additive search/analysis parity (typed immediate/binary options, `next_error`/`next_defined`, explicit schedule-intent APIs, cancel/revert wrappers). Rejected: minimal direction-only + AU_CODE-only (low intent clarity), raw `SEARCH_*`/`AU_*` constants (leaks SDK encoding).
-- Close P10.6 with additive module-authoring parity in plugin/loader/processor (action detach helpers, typed loader request/flag models, processor `OutputContext` + context-driven hooks, advanced descriptor/assembler checks). Rejected: replace legacy callbacks outright (migration breakage), raw SDK callback structs/flag bitmasks (violates opacity).
-- Close P10.7.e storage parity with node-identity helpers (`Node::open_by_id`, `Node::id`, `Node::name`). Rejected: name-only open (weaker lifecycle ergonomics), raw `netnode` ids/constructors (leaks SDK).
-- Close P10.7.a debugger parity with async/request and introspection helpers (`request_*`, `run_requests`, `is_request_running`, thread enumeration/control, register introspection). Rejected: raw `request_*` SDK calls only (inconsistent error model), defer to P10.8 (leaves row partial).
-- Close P10.7.b UI parity with custom-viewer and broader UI/VIEW event routing (`create_custom_viewer`, line/count/jump/current/refresh/close, `on_database_inited`, `on_current_widget_changed`, `on_view_*`, expanded `EventKind`/`Event`). Rejected: defer to P10.8 (leaves rows partial), raw SDK custom-viewer structs (weakens opaque boundary).
-- Close P10.7.c graph parity with viewer lifecycle/query helpers (`has_graph_viewer`, `is_graph_viewer_visible`, `activate_graph_viewer`, `close_graph_viewer`) and layout-state introspection (`Graph::current_layout`). Rejected: title-only refresh/show (insufficient lifecycle), UI-only layout effects without state introspection (brittle in headless).
-- Close P10.7.d decompiler parity with variable-retype and expanded comment/ctree workflows (`retype_variable` by name/index, orphan-comment query/cleanup). Rejected: raw Hex-Rays lvar/user-info structs (breaks opacity), defer to P10.8 (leaves row partial).
-- Resolve P10.9.a via explicit intentional-abstraction notes for cross-cutting/event rows (`ida::core`, `ida::diagnostics`, `ida::event`). Rejected: force all rows `covered` by broad raw-SDK mirroring (API bloat).
-- Add GitHub Actions validation matrix workflow for multi-OS `compile-only` + `unit` with SDK checkout. Rejected: manual host-only execution (slower feedback), `full` profile in hosted CI (requires licensed runtime).
-- Make SDK bootstrap tolerant to variant layouts (`ida-cmake/`, `cmake/`, `src/cmake/`) with recursive submodule checkout. Rejected: pin to one layout (fragile), require manual path overrides (error-prone).
-- Always pass build config to both build and test commands (`cmake --build --config`, `ctest -C`) for cross-generator compatibility. Rejected: conditional branch by generator (higher complexity).
-- Enable example addon compilation in hosted validation (`IDAX_BUILD_EXAMPLES=ON`, `IDAX_BUILD_EXAMPLE_ADDONS=ON`). Rejected: keep examples disabled (misses regressions), separate examples-only workflow (extra maintenance).
-- Add paired JBC full-port example (loader + procmod + shared header) validating idax against real production migration. Rejected: hypothetical-only examples (weaker parity pressure), port only loader or procmod (misses cross-module interactions).
-- Close P10.8.d/P10.9.d using hosted matrix evidence + local full/packaging evidence. Rejected: keep open until every runtime row is host-complete (scope creep), ignore hosted evidence (weaker reproducibility).
-- Close JBC parity gaps (#80-#82) with additive processor/segment APIs (typed analyze operand model, default segment-register seeding, tokenized output, mnemonic hook). Rejected: keep minimal analyze/output + raw SDK escapes (weaker fidelity), replace callbacks outright (migration breakage).
-- Add real-world port artifacts for ida-qtform + idalib-dump with dedicated audit doc. Rejected: synthetic parity-only checks (miss workflow edges), ad hoc notes only (poor traceability).
-- Add markup-only `ida::ui::ask_form(std::string_view)`. Rejected: defer (leaves flow blocked), raw vararg `ask_form` (unsafe/non-opaque).
-- Add microcode retrieval APIs (`DecompiledFunction::microcode()`, `microcode_lines()`). Rejected: keep raw SDK for microcode (weak parity), expose `mba_t`/raw printer (breaks opacity).
-- Add structured decompile-failure details (`DecompileFailure` + `decompile(address, &failure)`). Rejected: context only in `ida::Error` strings (weakly structured), raw `hexrays_failure_t` (breaks opacity).
-- Align README with matrix-backed coverage artifacts. Replace absolute completeness phrasing with tracked-gap language, pin packaging commands, refresh examples.
-- Add headless plugin-load policy via `RuntimeOptions` + `PluginLoadPolicy`. Rejected: environment-variable workarounds only (weak portability), standalone plugin-policy APIs outside init (weaker lifecycle).
-- Add database metadata helpers (`file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`). Rejected: keep metadata in external tools via raw SDK (inconsistent migration), new diagnostics namespace (weaker discoverability).
-- Add `ida::lumina` facade with pull/push wrappers (`has_connection`, `pull`, `push`, typed `BatchResult`/`OperationCode`). Rejected: keep raw SDK for external tools (inconsistent ergonomics), raw `lumina_client_t` (breaks opacity).
-- Keep Lumina close APIs as explicit `Unsupported` — runtime dylibs don't export `close_server_connection2`/`close_server_connections` despite SDK declarations. Rejected: call non-exported symbols (link failure), remove close APIs (weaker discoverability).
-- Add ida2py port probe (`examples/tools/ida2py_port.cpp`) plus standalone audit doc. Rejected: fold into existing audit only (weak traceability), treat as out-of-scope (misses API ergonomics signals).
-- Add typed name inventory APIs (`Entry`, `ListOptions`, `all`, `all_user_defined`). Rejected: keep fallback address scanning (weaker discoverability/performance), raw SDK nlist APIs (leaks SDK concepts).
-- Add `TypeInfo` decomposition and typedef-resolution helpers (`is_typedef`, `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`). Rejected: keep decomposition in external code (duplicated complexity), raw SDK `tinfo_t` utilities (breaks opacity).
-- Add typed decompiler call-subexpression accessors (`call_callee`, `call_argument(index)`). Rejected: keep call parsing in external examples (weak portability), raw `cexpr_t*` (breaks opacity).
-- Add generic typed-value facade (`TypedValue`, `TypedValueKind`, `read_typed`, `write_typed`) with recursive array materialization. Rejected: keep typed decoding in external ports (duplicated), SDK-level typed-value helpers (weakens opacity).
-- Add Appcall + pluggable executor facade (`AppcallValue`, `AppcallRequest`, `appcall`, `cleanup_appcall`, `AppcallExecutor`, `register_executor`, `appcall_with_executor`). Rejected: keep dynamic execution out-of-scope (leaves gap open), raw SDK `idc_value_t`/`dbg_appcall` (breaks opacity).
-- Expand matrix automation to compile tool-port examples by default (`IDAX_BUILD_EXAMPLE_TOOLS`). Rejected: keep out of matrix (higher drift), separate tools-only workflow (extra maintenance).
-- Add fixture-backed Appcall runtime validation (`--appcall-smoke`) plus checklist doc. Rejected: keep as ad hoc notes (low reproducibility), standalone new tool binary (target sprawl).
-- Prefer real IDA runtime dylibs for idalib tool examples when available, fallback to stubs. Rejected: `ida_add_idalib`-only (runtime crashes), require `IDADIR` unconditionally (breaks no-runtime compile rows).
-- Adopt Linux Clang 19 + libstdc++ as known-good compile-only pairing; keep addon/tool toggles OFF until `x64_linux_clang_64` SDK runtime libs available. Rejected: Clang 18 + libc++ (SDK macro collisions), force addon/tool ON immediately (deterministic failures).
-- Add open-point closure automation (`scripts/run_open_points.sh`) + host-native fixture build helper + multi-path Appcall launch bootstrap. Rejected: manual command checklist only (high friction), direct `dbg_appcall` without launch bootstrap (weaker diagnostics).
-- Add lifter port probe plugin (`examples/plugin/lifter_port_plugin.cpp`) plus gap audit doc. Rejected: full direct lifter port (blocked by missing write-path APIs), docs-only without executable probe (weaker regression signal).
-- Close lifter maturity/outline/cache gaps with additive APIs (`on_maturity_changed`, `mark_dirty`, `mark_dirty_with_callers`, `is_outlined`, `set_outlined`). Rejected: keep as audit-only gaps (delays value), raw Hex-Rays callbacks (breaks opacity).
-- Add baseline microcode-filter registration (`register_microcode_filter`, `unregister_microcode_filter`, `MicrocodeContext`, `MicrocodeApplyResult`, `ScopedMicrocodeFilter`). Rejected: keep raw SDK-only (blocks migration), expose raw `codegen_t`/`microcode_filter_t` (breaks opacity).
-- Expand `MicrocodeContext` with operand/register/memory/helper emit helpers. Rejected: keep only `emit_noop` until full typed-IR design (too limiting), expose raw `codegen_t` (opacity break).
-- Add typed helper-call argument builders (`MicrocodeValueKind`, `MicrocodeValue`, `emit_helper_call_with_arguments[_to_register]`). Rejected: raw `mcallarg_t`/`mcallinfo_t` (opacity break), defer until full vector/UDT design (delays value).
-- Add helper-call option shaping (`MicrocodeCallOptions`, `MicrocodeCallingConvention`, `emit_helper_call_with_arguments_and_options[_to_register_and_options]`). Rejected: raw `mcallinfo_t` mutators (opacity break), defer all callinfo shaping (delays value).
-- Expand with scalar FP immediates (`Float32Immediate`/`Float64Immediate`) + explicit-location hinting. Rejected: jump to vector/UDT (too large for one slice), raw `mcallarg_t`/`argloc_t` (opacity break).
-- Add basic explicit argument-location hints (`MicrocodeValueLocation` register/stack-offset) with auto-promotion. Rejected: raw `argloc_t` (opacity break), defer all location-shaping (delays value).
-- Expand `MicrocodeValueLocation` with register-pair and register-with-offset forms. Rejected: register/stack-only (too limiting), raw `argloc_t` (opacity break).
-- Add static-address location hints (`StaticAddress` → `argloc_t::set_ea`). Rejected: keep without global-location patterns (misses common patterns), raw `argloc_t` (opacity break).
-- Add scattered/multi-part location hints (`Scattered` + `MicrocodeLocationPart`). Rejected: single-location only (insufficient for split-placement), raw `argpart_t`/`scattered_aloc_t` (opacity break).
-- Add byte-array helper-call argument modeling (`MicrocodeValueKind::ByteArray`) with explicit-location enforcement. Rejected: defer all non-scalar (delays value), raw `mcallarg_t` (opacity break).
-- Add register-relative location hints (`RegisterRelative` → `consume_rrel`). Rejected: keep without `ALOC_RREL` (misses practical cases), raw `rrel_t` (opacity break).
-- Add vector helper-call argument modeling (`MicrocodeValueKind::Vector`) with typed element controls. Rejected: defer until full UDT abstraction (delays value), raw `mcallarg_t`/type plumbing (opacity break).
-- Add declaration-driven argument modeling (`MicrocodeValueKind::TypeDeclarationView`) via `parse_decl`. Rejected: defer until full UDT APIs (delays value), raw `tinfo_t`/`mcallarg_t` (opacity break).
-- Expand callinfo flags (`mark_dead_return_registers`, `mark_spoiled_lists_optimized`, `mark_synthetic_has_call`, `mark_has_format_string` → `FCI_DEAD`/`FCI_SPLOK`/`FCI_HASCALL`/`FCI_HASFMT`). Rejected: minimal flags only (too restrictive), raw `mcallinfo_t` flag mutation (opacity break).
-- Expand callinfo with scalar field hints (`callee_address`, `solid_argument_count`, `call_stack_pointer_delta`, `stack_arguments_top`). Rejected: keep field-level shaping internal (insufficient fidelity), raw `mcallinfo_t` mutators (opacity break).
-- Add action-context host bridges (`ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`, scoped callbacks). Rejected: normalized context only (blocks lifter popup flows), raw SDK types (breaks opacity).
-- Expand appcall-smoke with hold-mode + default launches across path/cwd permutations. Rejected: default-args-only (weaker diagnosis), attach-only first (requires additional orchestration).
-- Add spawn+attach fallback to appcall smoke for better root-cause classification. Rejected: launch-only probes (ambiguous classification), standalone attach utility (target sprawl).
-- Expand callinfo with declaration-based return-type hints (`return_type_declaration` via `parse_decl`). Rejected: implicit return via destination register only (insufficient fidelity), raw `mcallinfo_t`/`tinfo_t` mutation (opacity break).
-- Execute lifter follow-up via source-backed gap matrix with closure slices (P0 generic instruction builder, P1 callinfo depth, P2 placement, P3 typed view ergonomics). Rejected: broad blocker-only wording (weak guidance), large raw-SDK mirror (opacity/stability risk).
-- Add baseline generic typed instruction emission (`MicrocodeOpcode`/`MicrocodeOperandKind`/`MicrocodeOperand`/`MicrocodeInstruction`, `emit_instruction`, `emit_instructions`). Rejected: helper-call-only expansion (insufficient for AVX/VMX handlers), raw `minsn_t`/`mop_t` (opacity break).
-- Add constrained placement-policy controls (`MicrocodeInsertPolicy`, `emit_instruction_with_policy`, `emit_instructions_with_policy`). Rejected: raw `mblock_t::insert_into_block`/`minsn_t*` (opacity break), tail-only insertion (insufficient for real ordering).
-- Expand callinfo with semantic role + return-location hints (`MicrocodeFunctionRole`, `function_role`, `return_location`). Rejected: raw `funcrole_t`/`argloc_t`/`mcallinfo_t` (opacity break), scalar hints only (insufficient parity).
-- Extend helper-call with insertion-policy hinting (`MicrocodeCallOptions::insert_policy`). Rejected: separate helper-call-with-policy overload family (API bloat), raw block/anchor handles (opacity break).
-- Expand helper-call register-return with declaration-driven non-integer widths + size validation. Rejected: integer-only returns (insufficient for wider types), raw `mcallinfo_t`/`mop_t` return mutation (opacity break).
-- Expand helper-call register-argument with declaration-driven non-integer widths + size validation. Rejected: integer-only arguments (insufficient), require `TypeDeclarationView` + explicit location for all (less ergonomic).
-- Expand arguments with optional metadata (`argument_name`, `argument_flags`, `MicrocodeArgumentFlag`). Rejected: implicit metadata only (insufficient callinfo fidelity), raw `mcallarg_t` mutation (opacity break).
-- Add VMX subset to lifter probe using public microcode-filter APIs (no-op `vzeroupper`, helper-call lowering for `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`). Rejected: keep probe read-only (weaker evidence), full port in one step (blocked by deep write-path APIs).
-- Add `MicrocodeContext::allocate_temporary_register(byte_width)` mirroring `mba->alloc_kreg`. Rejected: keep raw-SDK-only (preserves escape hatches), infer indirectly via load helpers (insufficient).
-- Add default `solid_argument_count` inference from argument lists. Rejected: keep all explicit at call sites (repetitive), hardcode one value (incorrect for variable arity).
-- Add auto-stack placement controls (`auto_stack_start_offset`, `auto_stack_alignment`). Rejected: fixed internal heuristic only (limited control), require explicit location for every non-scalar (heavier boilerplate).
-- Extend lifter probe with AVX scalar math/conversion lowering (`vadd/sub/mul/div ss/sd`, `vcvtss2sd`, `vcvtsd2ss`). Rejected: VMX-only until broader vector API (weaker signal), jump to packed directly (higher risk).
-- Keep AVX scalar subset XMM-oriented — decoded `Operand` value objects lack rendered width text. Rejected: parse disassembly text ad hoc (brittle), overgeneralize wider widths (correctness risk).
-- Expand with scalar min/max/sqrt/move families (`vmin/vmax/vsqrt/vmov ss/sd`). Rejected: keep only add/sub/mul/div (leaves common families unexercised), jump to packed (larger surface per change).
-- Handle `vmovss`/`vmovsd` memory-destination before destination-register loading. Rejected: one-path destination-register-first (brittle for memory), skip memory-destination moves (leaves common pattern unlifted).
-- Expand to packed math/move (`vadd/sub/mul/div ps/pd`, `vmov*`) with operand-text width heuristics. Rejected: jump to masked packed (larger surface), keep scalar-only until deeper IR (weaker pressure).
-- Expand helper-call register-return fallback for wider destinations with byte-array `tinfo_t` synthesis. Rejected: `Unsupported` for widths >8 (blocks packed patterns), require explicit declaration everywhere (excessive boilerplate).
-- Expand packed subset with min/max/sqrt (`vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`). Rejected: postpone until deeper IR (slows coverage), typed-emitter-only (missing opcode parity for these).
-- Expand with packed conversions (`vcvtps2pd`/`vcvtpd2ps`, `vcvtdq2ps`/`vcvtudq2ps`, `vcvtdq2pd`/`vcvtudq2pd`). Rejected: defer until full vector/tmop DSL (delays high-frequency patterns), helper-call-only for all (less direct parity).
-- Expand with helper-fallback conversions (`vcvt*2dq/udq/qq/uqq`, truncating). Rejected: postpone until new typed opcodes (delays parity), force inaccurate typed mappings (semantic risk).
-- Expand with addsub/horizontal (`vaddsub*`, `vhadd*`, `vhsub*`) via helper-call. Rejected: skip until lane-aware IR (weaker coverage), approximate through plain opcodes (semantic mismatch).
-- Expand with variadic helper-fallback bitwise/permute/blend. Rejected: wait for typed opcodes first (slower parity), per-mnemonic bespoke handlers (maintenance churn).
-- Expand with variadic helper-fallback shift/rotate (`vps*`, `vprol*`, `vpror*`). Rejected: postpone until typed shift/rotate opcodes (slower parity), per-mnemonic handlers (maintenance-heavy).
-- Keep variadic helper fallback tolerant (`NotHandled` over hard error) for broader compare/misc coverage. Rejected: strict erroring on unsupported loads (brittle), delay broad matching until full typed-IR (slower gains).
-- Extend helper fallback to accept memory-source operands via effective-address extraction + pointer arguments. Rejected: register-only fallback (misses many forms), fail hard on memory sources (unnecessary instability).
-- Treat unsupported compare mask-destinations as no-op in fallback. Rejected: hard-fail on non-register (destabilizing), defer compare expansion entirely (slower parity).
-- Add typed packed bitwise/shift opcodes (`BitwiseAnd`/`BitwiseOr`/`BitwiseXor`/`ShiftLeft`/`ShiftRightLogical`/`ShiftRightArithmetic`). Rejected: keep all in helper fallback (weaker typed-IR parity), very broad opcode set in one step (higher regression risk).
-- Add `MicrocodeOpcode::Subtract`, route `vpadd*`/`vpsub*` through typed emission first. Rejected: keep in helper fallback only (weaker parity), broader integer/vector opcode surface in one pass (higher risk).
-- Keep packed integer dual-path (typed first, helper fallback second) with saturating-family helper routing. Rejected: map saturating onto plain Add/Subtract (semantic mismatch), typed-only for integer add/sub (misses memory/saturating).
-- Add `MicrocodeOpcode::Multiply`, route `vpmulld`/`vpmullq` through typed emission. Other variants (`vpmullw`/`vpmuludq`/`vpmaddwd`) use helper-call fallback. Rejected: keep all multiply in helper (weaker parity), map all variants to typed multiply (semantic mismatch).
-- Treat two-operand packed binary encodings as destination-implicit-left-source. Rejected: three-operand-only typed path (unnecessary fallback churn), force helper for all two-operand (weaker parity).
-- Expand writable IR with richer non-scalar/callinfo/tmop semantics (declaration-driven vector element typing, `RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference` mop builders, callinfo list shaping for return/spoiled/passthrough/dead registers + visible-memory ranges). Rejected: option-hint-only callinfo (insufficient parity), raw `mop_t`/`mcallinfo_t` mutators (opacity break).
-- Add `MicrocodeOperandKind::BlockReference` with validated `block_index`. Rejected: keep raw-SDK-only (unnecessary gap), expose raw block handles (opacity break).
-- Add `MicrocodeOperandKind::NestedInstruction` with recursive typed payload + depth limiting. Rejected: keep raw-SDK-only (unnecessary gap), expose raw `minsn_t*` (opacity/ownership break).
-- Add `MicrocodeOperandKind::LocalVariable` with `local_variable_index`/`offset`. Rejected: keep raw-SDK-only (unnecessary gap), expose raw `mop_t`/`lvar_t` (opacity break).
-- Expand local-variable shaping with value-side modeling + `MicrocodeContext::local_variable_count()` guard + no-op fallback. Rejected: instruction-only local-variable support (leaves helper/value incomplete), hardcode indices (brittle).
-- Consolidate local-variable self-move emission into shared helper (`try_emit_local_variable_self_move`). Rejected: duplicate per-mnemonic logic (drift-prone), limit to one mnemonic (weaker parity pressure).
-- Add debugger backend discovery (`BackendInfo`, `available_backends`, `current_backend`, `load_backend`) + queued launch/attach (`request_start`, `request_attach`). Rejected: keep backend logic private in examples (weak discoverability), synchronous start/attach only (misses async path).
-- Upgrade appcall-smoke to backend-aware + multi-path execution (load backend → start → request_start → attach → request_attach with state checks). Rejected: launch-only fallback (less diagnostic depth), host-specific debugger hacks (non-portable).
-- Add bounded queue-drain settling for request fallbacks (`run_requests` cycles + delays + state checks). Rejected: one-shot `run_requests` (noisy under async hosts), unbounded polling (can hang).
-- Add policy-aware placement for low-level emit helpers (`emit_noop/move/load/store_with_policy`). Rejected: keep low-level helpers tail-only (uneven placement parity), bespoke per-call-site placement (brittle/non-discoverable).
-- Add optional UDT-marking to low-level move/load/store emit helpers (including policy-aware overloads). Rejected: UDT shaping limited to typed-instruction builders (leaves low-level gap), require raw SDK post-emit mutation (weakens migration path).
-- Add `store_operand_register(..., mark_user_defined_type)` overload. Rejected: keep integer/default-only (leaves residual gap), route all writebacks through lower-level helpers (loses ergonomic path).
-- Expand immediate typed arguments with optional `type_declaration` + parse/size validation + width inference. Rejected: keep immediates integer-only (loses declaration intent), separate immediate-declaration kind (unnecessary surface growth).
-- Tighten `passthrough_registers` to always require subset of `spoiled_registers`. Rejected: conditional validation only when both specified (permits inconsistent states), auto-promote into spoiled silently (obscures intent/errors).
-- Validate callinfo coherence via validation-first probes rather than success-path emissions. Rejected: success-path emissions in filter tests (flaky), drop coherence assertions (weaker coverage).
-- Add structured operand introspection in `ida::instruction` (`Operand::byte_width`, `register_name`, `register_class`, vector/mask predicates, address-index helpers) and migrate lifter probe away from operand-text heuristics. Rejected: keep probe-local text parsing (drift-prone), expose raw SDK `op_t` in public API (breaks opacity).
-- Add helper-call return writeback to instruction operands (`emit_helper_call_with_arguments_to_operand[_and_options]`) for compare/mask-destination flows. Rejected: keep compare mask destinations as no-op tolerance (semantic loss), require raw SDK call/mop plumbing in ports (migration friction).
-- Add microcode lifecycle convenience helpers (`block_instruction_count`, `has_last_emitted_instruction`, `remove_last_emitted_instruction`) on `MicrocodeContext`. Rejected: expose raw `mblock_t`/`minsn_t*` publicly (opacity/ownership hazards), leave lifecycle bookkeeping to ports (duplicated fragile logic).
-- Expand microblock lifecycle ergonomics with index-based query/removal (`has_instruction_at_index`, `remove_instruction_at_index`). Rejected: expose raw `mblock_t` iterators/links (opacity break), keep last-emitted-only removal (insufficient for deterministic rewrites).
-- Expand helper-call tmop shaping with typed micro-operand destinations (`emit_helper_call_with_arguments_to_micro_operand[_and_options]`) and argument value kinds (`BlockReference`, `NestedInstruction`). Rejected: keep register/instruction-operand-only helper returns (limits richer callarg modeling), expose raw `mop_t`/`mcallarg_t` APIs (opacity break).
-- Add typed decompiler-view edit/session wrappers (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`) that operate through stable function identity. Rejected: continue raw host-pointer callback-only workflows (ergonomic gap), expose `vdui_t`/`cfunc_t` in public API (opacity break).
-- Harden decompiler-view integration checks around backend variance by asserting failure semantics (for missing locals) instead of fixed error category. Rejected: strict `NotFound` category checks (flaky across runtimes), dropping missing-local coverage (weaker validation).
-- Keep decompiler-view helper integration coverage non-persisting to avoid fixture drift. Rejected: save-comment roundtrips in helper tests (mutates `.i64` fixtures), fixture rewrite-only cleanup without test hardening (repeat churn).
+- **1.1. Language Standard**
+  - 1.1.1. **Decision:** Target C++23 for modern error handling and API ergonomics
+
+- **1.2. Library Architecture**
+  - 1.2.1. **Decision:** Hybrid library architecture balancing ease of use with implementation flexibility
+
+- **1.3. API Opacity**
+  - 1.3.1. **Decision:** Fully opaque public API enforcing consistency and preventing legacy leakage
+
+- **1.4. String Model**
+  - 1.4.1. **Decision:** Public string model uses `std::string`
+
+- **1.5. Ecosystem Scope**
+  - 1.5.1. **Decision:** Scope includes plugins, loaders, and processor modules (full ecosystem)
+
+- **1.6. Documentation**
+  - 1.6.1. **Decision:** Keep detailed interface blueprints in `agents.md` for concrete implementation guidance
+
+- **1.7. Diagnostics & Concurrency**
+  - 1.7.1. **Decision:** Store diagnostics counters as atomics, return snapshot copies
+    - Rejected: Global mutex (unnecessary contention)
+    - Rejected: Plain struct (undefined behavior under concurrency)
+
+- **1.8. README Alignment**
+  - 1.8.1. **Decision:** Align README with matrix-backed coverage artifacts — replace absolute completeness phrasing with tracked-gap language, pin packaging commands, refresh examples
 
 ---
 
-## 14) Blockers (Live)
+### 2. Build, Linking & Validation Infrastructure
 
-- Blocker ID: B-LIFTER-MICROCODE
-- Scope: Full idax-first port of `/Users/int/dev/lifter` (AVX/VMX microcode transformations)
-- Severity: High
-- Description: Public wrapper now has: baseline generic typed instruction emission, placement/callinfo shaping (role + return-location + insert-policy + declaration-driven typed register-argument/return + argument name/flag metadata), temporary-register allocation, local-variable context query (`local_variable_count`), typed packed bitwise/shift/add/sub/mul opcode emission, richer typed operand/value mop builders (`LocalVariable`/`RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference`/`BlockReference`/`NestedInstruction`), declaration-driven vector element typing, advanced callinfo list shaping (return/spoiled/passthrough/dead registers + visible-memory), structured instruction operand metadata (`byte_width`/`register_name`/`register_class`), helper-call return writeback to operands for compare/mask destinations, typed helper-call micro-operand destinations + tmop-oriented callarg value kinds, microcode lifecycle convenience (`block_instruction_count`, tracked last-emitted remove, index query/remove), and typed decompiler-view edit/session wrappers (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`). Lifter probe includes working VMX + AVX scalar/packed subset with broad helper-fallback families (conversion/integer-arithmetic/multiply/bitwise/permute/blend/shift/compare/misc) plus mixed register/immediate/memory-source forwarding and deterministic compare/mask writeback paths. Remaining gap: deeper callinfo/tmop semantics beyond current option-hint shaping, fuller typed microcode mutation coverage for non-helper rewrites, and stability hardening for aggressive success-path callinfo shaping (`INTERR: 50765` risk).
-- Immediate mitigation: Keep partial executable probe (`examples/plugin/lifter_port_plugin.cpp`) and gap audit (`docs/port_gap_audit_lifter.md`).
-- Long-term: Add additive decompiler write-path APIs (richer typed microcode value/argument/callinfo beyond current support) while preserving public opacity.
-- Owner: idax wrapper core
+- **2.1. idalib Linking**
+  - 2.1.1. **Decision:** Link idalib tests against real IDA installation dylibs, not SDK stubs
+    - 2.1.1.1. **Rationale:** SDK stub `libidalib.dylib` has different symbol exports causing two-level namespace crashes
+    - Rejected: `-flat_namespace` (too broad)
+    - Rejected: `IDABIN` cmake variable (ida-cmake doesn't use it for lib paths)
 
-Blocker template:
-- Blocker ID:
-- Scope:
-- Severity:
-- Description:
-- Mitigation:
-- Next checkpoint:
+- **2.2. Compatibility Validation Profiles**
+  - 2.2.1. **Decision:** Standardize into three profiles (`full`, `unit`, `compile-only`) with `scripts/run_validation_matrix.sh`
+    - 2.2.1.1. Enables consistent multi-OS/compiler execution without full IDA runtime
+    - Rejected: Ad hoc per-host docs (drift-prone)
+    - Rejected: CI-only matrix (licensing constraints)
 
----
+- **2.3. Packaging Artifacts**
+  - 2.3.1. **Decision:** Pin matrix packaging artifacts via `cpack -B <build-dir>` for reproducible artifact locations
+    - Rejected: CPack default output path (drifts by working directory)
 
-## 15) Progress Ledger
+- **2.4. Compile-Only Parity Testing**
+  - 2.4.1. **Decision:** Treat compile-only parity test as mandatory for every new public symbol including overload disambiguation
+    - Rejected: Integration tests only (insufficient compile-surface guarantees)
 
-Format note: append-only bullets in `scope - change - evidence` form; keep chronological by insertion order and include concrete artifacts (tests, builds, docs, scripts).
+- **2.5. GitHub Actions CI**
+  - 2.5.1. **Decision:** Add GitHub Actions validation matrix workflow for multi-OS `compile-only` + `unit` with SDK checkout
+    - Rejected: Manual host-only execution (slower feedback)
+    - Rejected: `full` profile in hosted CI (requires licensed runtime)
 
-- Program planning - Comprehensive architecture and roadmap captured - Initial `agents.md` with phased TODOs, findings, decisions.
-- Documentation baseline - Detailed interface blueprints (Parts 1-5 + module interfaces) - Section 22 with namespace-level API sketches.
-- P0-P5 implementation - All 24 public headers, 19 impl files, SDK bridge, smoke test - `libidax.a` (168K), 19 .cpp compile.
-- Blocker resolved - Two-level namespace crash diagnosed/fixed - SDK stub libidalib.dylib exports `qvector_reserve` but real one doesn't; link tests against real IDA dylibs. Smoke 48/48.
-- P4.2.c, P4.4.c-d, P5.2, P7.4 - Function callers/callees, type struct/member/retrieve, operand representation controls, event system - Smoke 58/58.
-- P4.2.b, P4.3.a-b-d - Function chunks (Chunk, chunks/tail_chunks/add_tail/remove_tail), stack frames (StackFrame, sp_delta_at, define_stack_variable); TypeInfo pimpl extracted to `detail/type_impl.hpp` - Smoke 68/68.
-- P6.1, P6.2.b-c, P6.3.c - Plugin base class (PLUGIN_MULTI), loader InputFile, processor descriptors (RegisterInfo, InstructionDescriptor, AssemblerInfo) - Smoke 68/68.
-- P8.1.a-c, P8.2.a-d, P5.3 - Full decompiler (init_hexrays_plugin, decompile_func, pseudocode/lines/declaration/variables/rename_variable); instruction xref conveniences confirmed - Smoke 73/73 including decompiler pseudocode, variable enumeration, declarations.
-- P6.2.a-d-e, P6.3.a-b-e, P7.2.b-d, P7.3.a-d - Loader base class (accept/load/save/move_segment, IDAX_LOADER); Processor base class (analyze/emulate/output_instruction/output_operand, IDAX_PROCESSOR); UI chooser (Chooser, Column/Row/RowStyle/ChooserOptions); simple dialogs; screen_address/selection; timers; Graph (adjacency-list, node/edge CRUD, BFS, show_graph, flowchart) - Smoke 95/95 with flowchart and graph tests.
-- P8.1.d-e, P8.2.b-c - Ctree visitor (CtreeVisitor, ExpressionView/StatementView, ItemType, VisitAction/VisitOptions, for_each_expression/for_each_item); user comments (set_comment/get_comment/save_comments, CommentPosition); refresh/invalidation; address mapping (entry_address, line_to_address, address_map) - Smoke 121/121 (21 exprs + 4 stmts, post-order/skip-children working, comments verified, 16 address mapping entries).
-- P7.2.c, P4.4.e, P4.3.c, P8.3.c - Fixed `get_widget_title` (2-arg SDK); UI event subscriptions (on_database_closed/on_ready_to_run/on_screen_ea_changed/on_widget_visible/on_widget_closing + ScopedUiSubscription); type library access (load/unload/count/name/import/apply_named); register variables; storage blob ops - Smoke 162/162.
-- P7.1.d, P6.3.d - Debugger event subscription (HT_DBG, typed callbacks, ScopedDebuggerSubscription); processor switch/function-heuristic wrappers (SwitchDescription/SwitchCase) - Smoke 187/187.
-- P7.4.d - Generic IDB event filtering/routing (`ida::event::Event`, `on_event`, `on_event_filtered`) - Smoke 193/193 ("generic route fired: yes", "filtered route fired: yes").
-- P2.2.d-e - Data string extraction (`read_string`), typed value helpers (`read_value<T>`, `write_value<T>`), binary pattern search (`find_binary_pattern`) - Smoke 201/201.
-- P3.4.d - Regex/options text-search wrapper (`TextOptions`) - Smoke 203/203.
-- P2.3.c - Database snapshot wrappers (`Snapshot`, `snapshots()`, `set_snapshot_description()`, `is_snapshot_database()`) - Smoke 205/205.
-- P4.6.d - Custom fixup registration (`CustomHandler`, `register_custom`, `find_custom`, `unregister_custom`) - Smoke 210/210.
-- P2.3.b - Database file/memory transfer wrappers (`file_to_database`, `memory_to_database`) - Smoke 213/213.
-- P3.2.c-d - Bulk comment APIs (set/get/clear anterior/posterior lines), rendering helper (`render`) - Smoke 227/227.
-- P2.1.d - Address search predicate helpers (`Predicate`, `find_first`, `find_next`) - Smoke 232/232.
-- P0.1.d, P6.4.a-d - Concrete example sources (action_plugin, minimal_loader, minimal_procmod) + examples CMake; verified no compiler-intrinsic usage - Example targets build cleanly.
-- P6.5, P3.6.b-d, P4.5.d, P8.3.d, P9.2 - Documentation bundle (quickstart, cookbook, migration, api_reference, tutorial, storage caveats, docs checklist); synced migration maps.
-- P1.1.c, P1.2.c, P1.3, P1.4 - Shared option structs, diagnostics/logging/counters, master include, unit test target covering error model, diagnostics, handle/range/iterator contracts - Unit 22/22; smoke 232/232.
-- P3.6.a - Integration test suite for name/comment/xref/search behavior - CTest 3/3.
-- P2.4.b - Integration mutation-safety test for `ida::data` - CTest 4/4.
-- P4.7.a - Integration segment/function edge-case suite - CTest 5/5.
-- P5.4.a - Integration instruction decode behavior suite - CTest 6/6.
-- P4.7.b - Type roundtrip and apply test suite (primitive factories, pointer/array, from_declaration, struct lifecycle, union, save_as/by_name, apply/retrieve, local type library, to_string, copy/move) - CTest 10/10.
-- P4.7.c - Fixup relocation test suite (set/get roundtrip, multiple types, contains, traversal, FixupRange, error paths, custom lifecycle) - CTest 10/10.
-- P5.4.b+c - Combined operand conversion and text snapshot suite (operand classification, immediate/register properties, representation controls, forced operand roundtrip, xref conveniences, disassembly text, instruction create) - CTest 10/10.
-- P8.4.a-d - Combined decompiler and storage hardening suite (availability, ctree traversal, expression view accessors, for_each_item, error paths, address mapping, user comments, storage alt/sup/hash/blob roundtrips, node semantics) - CTest 10/10.
-- CMake - Refactored integration test CMake with `idax_add_integration_test()` helper.
-- P9.1.a-d - All Phase 9 audits completed and applied: renamed `delete_register_variable`→`remove_register_variable`, unified subscription naming, fixed polarity (`is_visible()`), fixed `line_to_address()` error return, `Plugin::run()` → `Status`, added `EmulateResult`/`OutputOperandResult`, renamed ~135 `ea`→`address`, renamed `idx`→`index`/`cmt`→`comment`/`set_op_*`→`set_operand_*`/`del_*`→`remove_*`, made `impl()` private, replaced `raw_type` with `ReferenceType`, added error context strings, changed UI dialog cancellation to `Validation` - Build clean, 10/10.
-- P0.3.d, P4.7.d, P7.5, P6.5, P9.3, P9.4 - All release-blocking items: CMake install/export/CPack; compile-only API surface parity test; advanced debugger/ui/graph/event validation (60 checks); loader/processor scenario test; fixture README; opaque boundary cleanup; full validation (13/13 CTest); release readiness artifacts - 13/13 tests, CPack `idax-0.1.0-Darwin.tar.gz`.
-- Backlog - 3 new integration suites + 1 expanded: decompiler_edge_cases (837 lines, 7 sections), event_stress (473 lines, 8 sections), performance_benchmark (537 lines, 10 benchmarks); expanded loader_processor_scenario (+7 sections); expanded migration docs - 16/16 tests.
-- Documentation audit - Fixed 14 API mismatches across 6 doc files; updated api_reference, validation_report, README test counts, storage caveats - 16/16 tests.
-- Documentation polish - Created namespace_topology.md; merged snippets into legacy_to_wrapper.md; expanded quick reference; added Section 22 deviation disclaimer; full doc snippet audit confirmed 0 compile-affecting mismatches - 16/16 tests.
-- Compatibility matrix expansion - Added `scripts/run_validation_matrix.sh` + `docs/compatibility_matrix.md`; executed macOS arm64 AppleClang 17 (Release/RelWithDebInfo/compile-only/unit profiles); updated docs - 16/16 full, 2/2 unit, compile-only pass.
-- Matrix packaging hardening - Updated scripts for `cpack -B <build-dir>`; executed full+packaging profile - 16/16 + `idax-0.1.0-Darwin.tar.gz`.
-- Plugin API gap audit - Compared idax with `/Users/int/dev/entropyx/ida-port`; documented hard blockers for custom dock widgets, HT_VIEW/UI events, jump-to-address, segment type, plugin bootstrap.
-- Complex-plugin parity planning - Prioritized P0/P1 closure plan mapping entropyx usage.
-- Complex-plugin parity implementation - All 6 P0 gaps closed: (1) opaque `Widget` with dock widget APIs + `DockPosition` + `ShowWidgetOptions`; (2) handle-based widget event subscriptions; (3) `on_cursor_changed` for `view_curpos`; (4) `ui::jump_to`; (5) `Segment::type()`/`set_type()` + expanded `Type` enum; (6) `IDAX_PLUGIN` macro + `Action::icon` + `attach_to_popup()`. Refactored UI events to parameterized `EventListener` with token-range partitioning. Added `Plugin::init()` - 16/16 tests.
-- Follow-up entropyx audit - One remaining gap: no SDK-opaque API for Qt content attachment to `ida::ui::Widget` host panels.
-- Widget host bridge - `WidgetHost`, `widget_host()`, `with_widget_host()` + headless-safe integration coverage - 16/16 tests.
-- P1 closure - `plugin::ActionContext` + context-aware callbacks; generic `ida::ui` routing (`EventKind`, `Event`, `on_event`, `on_event_filtered`) with composite token unsubscribe - 16/16 tests.
-- Phase 10 planning - Comprehensive domain-by-domain SDK parity checklist (P10.0-P10.9) with matrix governance and evidence gates.
-- P10.0 - Created `docs/sdk_domain_coverage_matrix.md` with dual-axis coverage matrices.
-- P10.1 - Audited error/core/diagnostics; fixed diagnostics counter data-race (atomic counters); expanded compile-only parity for UI/plugin symbols - 16/16 tests.
-- P10.2 - Address traversal ranges (`code_items`/`data_items`/`unknown_bytes`, `next_defined`/`prev_defined`); data patch revert + expanded define helpers; database open/load intent + metadata parity - 16/16 tests.
-- P10.3 - Segment parity (resize/move/comments/traversal); function parity (update/reanalyze/item_addresses/frame_variable_by_name+offset/register_variables); instruction parity (OperandFormat, set_operand_format, operand_text, jump classifiers) - 16/16 tests.
-- P10.4 - Metadata parity: name (is_user_defined, identifier validation), xref (ReferenceRange, typed filters, range APIs), comment (indexed edit/remove), type (CallingConvention, function-type/enum construction, introspection, enum members), entry forwarder management, fixup (flags/base/target, signed types, in_range) - 16/16 tests.
-- P10.5 - Search parity (ImmediateOptions, BinaryPatternOptions, next_defined, next_error); analysis intent/rollback (schedule_code/function/reanalysis/reanalysis_range, cancel, revert_decisions) - 16/16 tests.
-- P10.6 - Module-authoring parity: plugin action detach helpers; typed loader request/flag models (LoadFlags, LoadRequest, SaveRequest, MoveSegmentRequest, ArchiveMemberRequest); processor OutputContext + context-driven hooks + descriptor/assembler checks - 16/16 tests.
-- P10.7.e - Storage node-identity (`open_by_id`, `id`, `name`) - 16/16 tests.
-- P10.7.a - Debugger parity: request-queue helpers, thread introspection/control, register introspection - 16/16 tests.
-- P10.7.b - UI parity: custom-viewer wrappers, expanded UI/VIEW routing (`on_database_inited`, `on_current_widget_changed`, `on_view_*`, expanded `EventKind`/`Event`) - 16/16 tests.
-- P10.7.c - Graph parity: viewer lifecycle/query helpers, `Graph::current_layout` - 16/16 tests.
-- P10.7.d - Decompiler parity: `retype_variable` by name/index, orphan-comment helpers - 16/16 tests.
-- P10.8.a-c, P10.9.c - Docs/validation closure + re-ran matrix profiles (full/unit/compile-only) on macOS arm64 AppleClang 17.
-- P10.9.a-b - Intentional-abstraction notes for remaining partial cross-cutting/event rows; confirmed no high-severity migration blockers.
-- Matrix packaging evidence refresh - Re-ran full+packaging after P10.7.d changes - 16/16 + `idax-0.1.0-Darwin.tar.gz`.
-- P10.8.d Linux matrix - GCC 13.3.0 passes; Clang 18.1.3 fails (`std::expected` missing); Clang libc++ fallback also fails (SDK `pro.h` `snprintf` remap collision).
-- P10.8.d CI automation - GitHub Actions matrix workflow added for multi-OS compile-only + unit.
-- P10.8.d CI hardening - Multi-layout `IDASDK` resolution, recursive SDK submodule checkout, tolerant bootstrap in CMake.
-- P10.8.d CI diagnostics - Bootstrap failure path printing for faster triage.
-- P10.8.d CI submodule - Recursive submodule checkout for project repo too.
-- P10.8.d hosted-matrix stabilization - Removed retired `macos-13`, fixed cross-generator test invocation (`--config/-C`), hardened SDK bridge include order (`<functional>`, `<locale>`, `<vector>`, `<type_traits>` before `pro.h`).
-- P10.8.d matrix coverage expansion - Wired `IDAX_BUILD_EXAMPLE_ADDONS` through scripts and CI; validated locally.
-- Tracker rename - Renamed to `agents.md`, updated all references.
-- JBC full-port example - Ported ida-jam into idax full examples (loader + procmod + shared header); validated addon compilation.
-- JBC matrix evidence refresh - Re-ran validation with JBC examples enabled - compile-only pass, 2/2 unit pass.
-- P10.8.d/P10.9.d closure - Audited hosted logs (Linux/macOS compile-only + unit, Windows compile-only); all confirmed pass. Phase 10 100% complete.
-- JBC parity follow-up - Implemented #80-#82: `AnalyzeDetails`/`AnalyzeOperand` + `analyze_with_details`, `OutputTokenKind`/`OutputToken` + `OutputContext::tokens()`, `output_mnemonic_with_context`, default segment-register seeding helpers; updated JBC examples - 16/16 tests.
-- Post-Phase-10 port audit - Ported ida-qtform + idalib-dump into examples/tools; documented gaps in `docs/port_gap_audit_ida_qtform_idalib_dump.md` - 16/16 tests, tool targets compile.
-- ask_form parity - Added markup-only `ida::ui::ask_form(std::string_view)` - compile-only parity pass.
-- Microcode retrieval - Added `DecompiledFunction::microcode()`/`microcode_lines()`; wired in idalib-dump port - 16/16 tests, dump port compiles.
-- Decompile-failure details - Added `DecompileFailure` + `decompile(address, &failure)` - 16/16 tests.
-- README alignment - Updated positioning, commands, examples, coverage messaging to match matrix artifacts.
-- Plugin-load policy - Added `RuntimeOptions` + `PluginLoadPolicy` with allowlist wildcards; wired in idalib-dump port - compile-only parity pass.
-- Database metadata - Added `file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`; wired in idalib-dump port - smoke + parity pass.
-- Lumina facade - Added `ida::lumina` with `has_connection`/`pull`/`push`/`BatchResult`/`OperationCode`; mapped close APIs to `Unsupported` - smoke + parity pass.
-- ida2py port audit - Added `examples/tools/ida2py_port.cpp` + `docs/port_gap_audit_ida2py.md`; recorded gaps (name enumeration, type decomposition, typed-value, call arguments, Appcall) - tool compiles + --help pass.
-- ida2py runtime attempt - `exit:139` on both ida2py and idalib-dump ports; deferred runtime checks to known-good host.
-- Name inventory parity - Added `Entry`, `ListOptions`, `all`, `all_user_defined` to `ida::name` - 2/2 targeted tests pass.
-- TypeInfo decomposition - Added `is_typedef`/`pointee_type`/`array_element_type`/`array_length`/`resolve_typedef` - 2/2 targeted tests pass.
-- Call-subexpression accessors - Added `call_callee`/`call_argument(index)` on `ExpressionView` - 2/2 targeted tests pass.
-- Typed-value facade - Added `TypedValue`/`TypedValueKind`/`read_typed`/`write_typed` with recursive array + byte-array/string write - 16/16 tests.
-- Appcall + executor facade - Added `AppcallValue`/`AppcallRequest`/`appcall`/`cleanup_appcall`/`AppcallExecutor`/register/unregister/dispatch - 16/16 tests.
-- Matrix tool-port expansion - Plumbed `IDAX_BUILD_EXAMPLE_TOOLS` through scripts + CI - compile-only + 2/2 unit pass.
-- Appcall runtime-evidence - Added `--appcall-smoke` flow + `docs/appcall_runtime_validation.md` - tool compiles + --help pass.
-- Tool-port runtime linkage hardening - Prefer real IDA dylibs, fallback to stubs; appcall-smoke now fails gracefully (error 1552, not signal-11) - non-debugger runtime pass.
-- Linux Clang triage - Clang 18 fails (`__cpp_concepts=201907`); Clang 19 passes (`202002`); addon/tool linkage blocked by missing `x64_linux_clang_64` SDK libs.
-- Open-point closure automation - Added `scripts/run_open_points.sh` + `scripts/build_appcall_fixture.sh` + multi-path Appcall launch bootstrap; full matrix pass, Lumina pass, Appcall blocked (`start_process failed (-1)`).
-- Lifter port audit - Added `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_lifter.md` with plugin-shell/action/pseudocode-popup workflows.
-- Lifter maturity/outline/cache - Added `on_maturity_changed`/`unsubscribe`/`ScopedSubscription`, `mark_dirty`/`mark_dirty_with_callers`, `is_outlined`/`set_outlined` - targeted tests pass.
-- Lifter microcode-filter baseline - Added `register_microcode_filter`/`unregister_microcode_filter`/`MicrocodeContext`/`MicrocodeApplyResult`/`ScopedMicrocodeFilter` - 16/16 tests.
-- MicrocodeContext emit helpers - Added `load_operand_register`/`load_effective_address_register`/`store_operand_register`/`emit_move_register`/`emit_load_memory_register`/`emit_store_memory_register`/`emit_helper_call` - 16/16 tests.
-- Typed helper-call arguments - Added `MicrocodeValueKind`/`MicrocodeValue`/`emit_helper_call_with_arguments[_to_register]` for integer widths - 16/16 tests.
-- Helper-call option shaping - Added `MicrocodeCallOptions`/`MicrocodeCallingConvention`/`emit_helper_call_with_arguments_and_options[_to_register_and_options]` - 16/16 tests.
-- Scalar FP + explicit-location - Added `Float32Immediate`/`Float64Immediate` + `mark_explicit_locations` - 16/16 tests.
-- Explicit argument-location hints - Added `MicrocodeValueLocation` (register/stack-offset) with auto-promotion - 16/16 tests.
-- Register-pair + register-with-offset location - 16/16 tests.
-- Static-address location hints - `BadAddress` validation - 16/16 tests.
-- Scattered/multi-part location hints - `MicrocodeLocationPart` + per-part validation - 16/16 tests.
-- Byte-array argument modeling - `MicrocodeValueKind::ByteArray` with explicit-location enforcement - 16/16 tests.
-- Register-relative location - `ALOC_RREL` via `consume_rrel` - 16/16 tests.
-- Vector argument modeling - `MicrocodeValueKind::Vector` with element controls - 16/16 tests.
-- Declaration-driven argument modeling - `MicrocodeValueKind::TypeDeclarationView` via `parse_decl` - 16/16 tests.
-- Callinfo FCI flags - `mark_dead_return_registers`/`mark_spoiled_lists_optimized`/`mark_synthetic_has_call`/`mark_has_format_string` - 16/16 tests.
-- Callinfo scalar field hints - `callee_address`/`solid_argument_count`/`call_stack_pointer_delta`/`stack_arguments_top` + validation - 16/16 tests.
-- Action-context host bridges - `widget_handle`/`focused_widget_handle`/`decompiler_view_handle` + scoped callbacks - 16/16 tests.
-- Appcall hold-mode expansion - `--wait` fixture mode; still blocked (`start_process failed (-1)`). Full + Lumina pass.
-- Lifter probe update - Consuming `with_decompiler_view_host` in snapshot flow.
-- Appcall spawn+attach fallback - `attach_process` returns `-4`; host blocked at attach readiness too.
-- Callinfo return-type declaration - `return_type_declaration` via `parse_decl` + malformed-declaration validation - 16/16 tests.
-- Lifter source-backed gap matrix - P0 instruction builder, P1 callinfo depth, P2 placement, P3 view ergonomics.
-- Generic typed instruction emission - `MicrocodeOpcode`/`MicrocodeOperandKind`/`MicrocodeOperand`/`MicrocodeInstruction`/`emit_instruction`/`emit_instructions` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` - 16/16 tests.
-- Placement-policy controls - `MicrocodeInsertPolicy`/`emit_instruction_with_policy`/`emit_instructions_with_policy` - 16/16 tests.
-- Callinfo role + return-location - `MicrocodeFunctionRole`/`function_role`/`return_location` - 16/16 tests.
-- Helper-call insert-policy - `MicrocodeCallOptions::insert_policy` - 16/16 tests.
-- Decompiler hardening stabilization - Aggressive callinfo hints triggered `INTERR: 50765`; adjusted tests to validation-focused paths - 16/16 tests.
-- Helper-call typed register-return - Declaration-driven return types + size matching + wider-register UDT marking - 16/16 tests.
-- Helper-call typed register-argument - Declaration-driven types + parse validation + size-match + integer-width fallback - 16/16 tests.
-- Helper-call argument metadata - `argument_name`/`argument_flags`/`MicrocodeArgumentFlag` + `FAI_RETPTR` → `FAI_HIDDEN` normalization - 16/16 tests.
-- Lifter VMX subset - Real instruction-to-helper lowering (no-op `vzeroupper`, helper-call VMX family) via public APIs - plugin builds, 16/16 tests.
-- Temporary-register allocation - `allocate_temporary_register` - 16/16 tests.
-- Lifter AVX `vzeroupper` - No-op lowering via typed emission.
-- Helper-call solid-arg inference - Default from argument list when omitted - 16/16 tests.
-- Auto-stack placement - `auto_stack_start_offset`/`auto_stack_alignment` with validation - 16/16 tests.
-- AVX scalar math/conversion - `vadd/sub/mul/div ss/sd`, `vcvtss2sd`, `vcvtsd2ss` via typed emission - 16/16 tests.
-- Operand-width constraint - Scalar subset constrained to XMM-width; docs updated.
-- AVX scalar expansion - `vmin/vmax/vsqrt/vmov ss/sd` via typed emission + helper-return - 16/16 tests.
-- Scalar move memory-dest - Reordered to handle store before register-load - 16/16 tests.
-- AVX packed math/move - `vadd/sub/mul/div ps/pd`, `vmov*` packed via typed emission + width heuristics - 16/16 tests.
-- Helper-call return fallback - Byte-array `tinfo_t` for widths > integer scalar - 16/16 tests.
-- Packed min/max/sqrt - `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd` via helper-return - 16/16 tests.
-- Packed conversions - `vcvtps2pd`/`vcvtpd2ps`, `vcvtdq2ps`/`vcvtudq2ps`, `vcvtdq2pd`/`vcvtudq2pd` via typed emission - 16/16 tests.
-- Helper-fallback conversions - `vcvt*2dq/udq/qq/uqq` + truncating via helper-call return - 16/16 tests.
-- Addsub/horizontal - `vaddsub*`/`vhadd*`/`vhsub*` via helper-call - 16/16 tests.
-- Variadic helper bitwise/permute/blend - Mixed register/immediate forwarding - 16/16 tests.
-- Variadic helper shift/rotate - `vps*`/`vprol*`/`vpror*` - 16/16 tests.
-- Tolerant variadic compare/misc - Broad families (`vcmp*`/`vpcmp*`/`vdpps`/`vround*`/`vbroadcast*`/`vextract*`/`vinsert*`/`vunpck*` etc.) with `NotHandled` degradation - 16/16 tests.
-- Helper memory-source + compare dest - EA pointer args for memory sources; no-op for unsupported mask destinations; widened misc families (gather/scatter/compress/expand/popcnt/lzcnt/gfni/pclmul/aes/sha/movnt/movmsk/pmov/pinsert/extractps/insertps/pack/phsub/fmaddsub) - 16/16 tests.
-- Typed packed bitwise/shift opcodes - `BitwiseAnd`/`BitwiseOr`/`BitwiseXor`/`ShiftLeft`/`ShiftRightLogical`/`ShiftRightArithmetic`; probe uses typed before helper fallback - 16/16 tests.
-- Typed packed integer add/sub - `MicrocodeOpcode::Subtract`; `vpadd*`/`vpsub*` typed-first + helper fallback - 16/16 tests.
-- Packed integer saturating routing - `vpadds*`/`vpaddus*`/`vpsubs*`/`vpsubus*` via helper fallback alongside typed direct - 16/16 tests.
-- Typed packed integer multiply - `MicrocodeOpcode::Multiply`; `vpmulld`/`vpmullq` typed + non-direct variants (`vpmullw`/`vpmuludq`/`vpmaddwd`) via helper - 16/16 tests.
-- Two-operand packed binary fix - Destination-implicit-left-source for add/sub/mul/bitwise/shift - 16/16 tests.
-- Richer writable IR - `RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference` operand/value kinds; declaration-driven vector element typing; callinfo list shaping (return/spoiled/passthrough/dead registers + visible-memory) with subset validation - 16/16 tests.
-- BlockReference operand - `MicrocodeOperandKind::BlockReference` + `block_index` validation - 16/16 tests.
-- NestedInstruction operand - `MicrocodeOperandKind::NestedInstruction` + recursive/depth-limited validation - 16/16 tests.
-- LocalVariable operand - `MicrocodeOperandKind::LocalVariable` + `local_variable_index`/`offset` validation - 16/16 tests.
-- LocalVariable value-path - `MicrocodeValueKind::LocalVariable` + `local_variable_count()` guard; probe uses in `vzeroupper` with no-op fallback - 16/16 tests.
-- LocalVariable rewrite consolidation - Shared `try_emit_local_variable_self_move` applied to `vzeroupper` + `vmxoff` - 16/16 tests.
-- Debugger backend APIs - `BackendInfo`/`available_backends`/`current_backend`/`load_backend` + `request_start`/`request_attach`; upgraded appcall-smoke to backend-aware + multi-path - 2/2 targeted tests pass.
-- Open-point refresh - Full pass, Lumina pass, Appcall blocked (backend loaded, `start_process` rc `0` + still `NoProcess`, `attach_process` rc `-1` + still `NoProcess`).
-- Appcall queue-drain settling - Bounded multi-cycle `run_requests` + delays before classifying `NoProcess`; host remains blocked.
-- Open-point sweep refresh - `build-open-points-surge6`: full=pass, appcall=blocked, lumina=pass.
-- Policy-aware low-level emit - `emit_noop/move/load/store_with_policy`; routed existing helpers through policy defaults - 2/2 targeted tests pass.
-- Low-level UDT semantics - `mark_user_defined_type` overloads for move/load/store emit (with and without policy variants) - 16/16 tests.
-- Store-operand UDT - `store_operand_register(..., mark_user_defined_type)` overload - 16/16 tests.
-- Immediate typed-argument declaration - `UnsignedImmediate`/`SignedImmediate` with optional `type_declaration` + parse/size validation + width inference - 16/16 tests.
-- Passthrough-subset validation - Tightened to always require subset of spoiled; return registers auto-merged into spoiled - 16/16 tests.
-- Callinfo coherence test hardening - Validation-first probes with combined pass-through + return-register shaping + post-subset validation - 16/16 tests.
-- Blocker precision update - Expanded `B-LIFTER-MICROCODE` description with concrete remaining closure points (callinfo/tmop depth, typed view ergonomics, operand-width metadata, fallback elimination, microblock mutation parity, stability hardening) - `AGENTS.md` blocker section updated.
-- Lifter microcode follow-up validation - Re-ran targeted (`api_surface_parity`, `instruction_decode_behavior`, `decompiler_storage_hardening`) and full CTest suite; all passing after structured operand metadata + helper-call operand-writeback + lifecycle helper additions - 16/16 tests.
-- Lifter write-path closure increment - Added helper-call tmop shaping (`BlockReference`/`NestedInstruction` args + micro-operand destinations), microblock index lifecycle (`has_instruction_at_index`/`remove_instruction_at_index`), and typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`); updated lifter probe + docs - targeted + full CTest pass (16/16).
-- Decompiler-view helper test hardening - Switched missing-local assertions to failure-semantics and removed persisting comment roundtrips to prevent fixture drift; restored fixture side effects and revalidated targeted + full suites - 16/16 tests.
+- **2.6. SDK Bootstrap Tolerance**
+  - 2.6.1. **Decision:** Make SDK bootstrap tolerant to variant layouts (`ida-cmake/`, `cmake/`, `src/cmake/`) with recursive submodule checkout
+    - Rejected: Pin to one layout (fragile)
+    - Rejected: Require manual path overrides (error-prone)
+
+- **2.7. Cross-Generator Config Passing**
+  - 2.7.1. **Decision:** Always pass build config to both build and test commands (`cmake --build --config`, `ctest -C`)
+    - Rejected: Conditional branch by generator (higher complexity)
+
+- **2.8. Example Addon Compilation in CI**
+  - 2.8.1. **Decision:** Enable example addon compilation in hosted validation (`IDAX_BUILD_EXAMPLES=ON`, `IDAX_BUILD_EXAMPLE_ADDONS=ON`)
+    - Rejected: Keep examples disabled (misses regressions)
+    - Rejected: Separate examples-only workflow (extra maintenance)
+
+- **2.9. Tool-Port Example Compilation**
+  - 2.9.1. **Decision:** Expand matrix automation to compile tool-port examples by default (`IDAX_BUILD_EXAMPLE_TOOLS`)
+    - Rejected: Keep out of matrix (higher drift)
+    - Rejected: Separate tools-only workflow (extra maintenance)
+
+- **2.10. Linux Compiler Pairing**
+  - 2.10.1. **Decision:** Adopt Linux Clang 19 + libstdc++ as known-good compile-only pairing; keep addon/tool toggles OFF until `x64_linux_clang_64` SDK runtime libs available
+    - Rejected: Clang 18 + libc++ (SDK macro collisions)
+    - Rejected: Force addon/tool ON immediately (deterministic failures)
+
+- **2.11. Open-Point Closure Automation**
+  - 2.11.1. **Decision:** Add `scripts/run_open_points.sh` + host-native fixture build helper + multi-path Appcall launch bootstrap
+    - Rejected: Manual command checklist only (high friction)
+    - Rejected: Direct `dbg_appcall` without launch bootstrap (weaker diagnostics)
+
+- **2.12. idalib Tool Linking Policy**
+  - 2.12.1. **Decision:** Prefer real IDA runtime dylibs for idalib tool examples when available, fallback to stubs
+    - Rejected: `ida_add_idalib`-only (runtime crashes)
+    - Rejected: Require `IDADIR` unconditionally (breaks no-runtime compile rows)
 
 ---
 
-## 16) Immediate Next Actions
+### 3. Event System
 
-Phase 10 closure is complete. All original P0 complex-plugin parity gaps are closed (including widget-host portability), and P10.0-P10.9 are now fully complete.
+- **3.1. Generic IDB Event Routing**
+  - 3.1.1. **Decision:** Add generic IDB event routing (`ida::event::Event`, `on_event`, `on_event_filtered`) on top of typed subscriptions
+    - 3.1.1.1. Enables reusable filtering without raw SDK vararg notifications
+    - Rejected: Many narrowly-scoped filtered helpers (API bloat)
+    - Rejected: Raw `idb_event` codes (leaks SDK)
 
-Post-closure follow-ups (non-blocking):
+- **3.2. Generic UI/VIEW Event Routing**
+  - 3.2.1. **Decision:** Add generic UI/VIEW routing in `ida::ui` (`EventKind`, `Event`, `on_event`, `on_event_filtered`) with composite-token unsubscribe
+    - Rejected: Many discrete handlers (cumbersome)
+    - Rejected: Raw notification codes + `va_list` (unsafe/non-opaque)
 
-1. Keep `.github/workflows/validation-matrix.yml` as the default cross-OS evidence path for `compile-only` + `unit` on every release-significant change.
-2. Continue host-specific hardening runs where licenses/toolchains permit: keep Linux Clang evidence on Clang 19 baseline for now, and execute Linux/Windows `full` rows with runtime installs.
-3. Continue validating the new JBC parity APIs against additional real-world procmod ports and expand typed analyze/output metadata only when concrete migration evidence requires deeper fidelity.
-4. Keep hardening `ida::lumina` behavior beyond the now-passing pull/push smoke baseline, especially close/disconnect semantics once portable runtime symbols are confirmed.
-5. Execute `docs/appcall_runtime_validation.md` on a debugger-capable host to convert the current backend/session block (backend loads, but `start_process` `0` + `request_start` no-process and `attach_process` `-1` + `request_attach` no-process) into pass evidence, then expand Appcall argument/return kind coverage only where concrete ports require additional fidelity.
-6. Prioritize post-P0/P1/P2 additive decompiler write-path depth for lifter-class ports: extend beyond current baseline (generic instruction emission + typed/helper-call placement controls + callinfo role/return-location shaping + declaration-driven typed register-argument/return modeling + optional argument metadata + temporary-register allocation + structured operand metadata + helper-call operand writeback + microblock index lifecycle helpers + typed decompiler-view sessions) into richer typed IR value/argument/call builders (advanced vector/UDT semantics + deeper callinfo/tmop semantics + broader non-helper mutation parity + in-view advanced edit ergonomics).
+---
+
+### 4. UI & Widget System
+
+- **4.1. Dock Widget Host API**
+  - 4.1.1. **Decision:** Add opaque dock widget host API (`Widget` handle, `create_widget`/`show_widget`/`activate_widget`/`find_widget`/`close_widget`/`is_widget_visible`, `DockPosition`, `ShowWidgetOptions`) to `ida::ui`
+    - 4.1.1.1. Closes entropyx P0 gaps #1/#2
+    - Rejected: Expose `TWidget*` (violates opacity)
+    - Rejected: Title-only API (fragile for multi-panel)
+
+- **4.2. Widget Event Subscriptions**
+  - 4.2.1. **Decision:** Add handle-based widget event subscriptions (`on_widget_visible/invisible/closing(Widget&, cb)`) alongside title-based variants, plus `on_cursor_changed(cb)` for HT_VIEW `view_curpos`
+    - 4.2.1.1. Closes entropyx P0 gaps #2/#3
+    - Rejected: Title-based only (fragile for multi-instance)
+
+- **4.3. Widget Host Bridge**
+  - 4.3.1. **Decision:** Add opaque widget host bridge (`WidgetHost`, `widget_host()`, `with_widget_host()`) for Qt/content embedding without exposing SDK/Qt types
+    - 4.3.1.1. Scoped callback over raw getter reduces accidental long-lived pointer storage
+    - Rejected: Expose `TWidget*` (breaks opacity)
+    - Rejected: Raw getter only (encourages long-lived storage)
+
+- **4.4. Navigation**
+  - 4.4.1. **Decision:** Add `ui::jump_to(Address)` wrapping SDK `jumpto()`
+    - 4.4.1.1. Closes entropyx P0 gap #4
+    - Rejected: Manual screen_address+navigate (missing core operation)
+
+- **4.5. Form API**
+  - 4.5.1. **Decision:** Add markup-only `ida::ui::ask_form(std::string_view)`
+    - Rejected: Defer (leaves flow blocked)
+    - Rejected: Raw vararg `ask_form` (unsafe/non-opaque)
+
+---
+
+### 5. Plugin / Loader / Processor Module Authoring
+
+- **5.1. Plugin Macro**
+  - 5.1.1. **Decision:** Implement `IDAX_PLUGIN(ClassName)` macro with `plugmod_t` bridge, static char buffers for `plugin_t PLUGIN`, factory registration via `detail::make_plugin_export()`
+    - 5.1.1.1. Closes entropyx P0 gap #6
+    - Rejected: Require users write own PLUGIN struct (defeats wrapper)
+    - Rejected: Put PLUGIN in user TU via macro (requires SDK includes)
+
+- **5.2. Processor Callbacks**
+  - 5.2.1. **Decision:** Expose processor switch/function-heuristic callbacks through SDK-free public structs and virtuals
+    - 5.2.1.1. Keeps procmod authoring opaque while preserving advanced capabilities
+    - Rejected: Expose raw `switch_info_t`/`insn_t` (violates opacity)
+    - Rejected: Defer until full event bridge rewrite (blocks progressive adoption)
+
+- **5.3. Action Context**
+  - 5.3.1. **Decision:** Add `plugin::ActionContext` and context-aware callbacks (`handler_with_context`, `enabled_with_context`)
+    - Rejected: Raw `action_activation_ctx_t*` (breaks opacity)
+    - Rejected: Replace existing no-arg callbacks (unnecessary migration breakage)
+
+- **5.4. Action Context Host Bridges**
+  - 5.4.1. **Decision:** Add `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}` with scoped callbacks
+    - Rejected: Normalized context only (blocks lifter popup flows)
+    - Rejected: Raw SDK types (breaks opacity)
+
+- **5.5. Headless Plugin-Load Policy**
+  - 5.5.1. **Decision:** Add headless plugin-load policy via `RuntimeOptions` + `PluginLoadPolicy`
+    - Rejected: Environment-variable workarounds only (weak portability)
+    - Rejected: Standalone plugin-policy APIs outside init (weaker lifecycle)
+
+---
+
+### 6. Segment, Function, Address & Instruction APIs
+
+- **6.1. Segment Type**
+  - 6.1.1. **Decision:** Add `Segment::type()` getter, `set_type()`, expanded `Type` enum (Import, InternalMemory, Group)
+    - 6.1.1.1. Closes entropyx P0 gap #5
+    - Rejected: Raw `uchar` (violates opaque naming)
+
+- **6.2. Predicate-Based Traversal Ranges**
+  - 6.2.1. **Decision:** Add predicate-based traversal ranges (`code_items`, `data_items`, `unknown_bytes`) and discoverability aliases (`next_defined`, `prev_defined`) in `ida::address`
+    - Rejected: Only predicate search primitives (less ergonomic for range-for)
+
+- **6.3. Patch & Load Convenience Wrappers**
+  - 6.3.1. **Decision:** Add data patch-revert and load-intent convenience wrappers (`revert_patch`, `revert_patches`, `database::OpenMode`, `LoadIntent`, `open_binary`, `open_non_binary`)
+    - Rejected: Raw bool/patch APIs only (low discoverability)
+    - Rejected: Raw loader entrypoints (leaks complexity)
+
+- **6.4. Structured Operand Introspection**
+  - 6.4.1. **Decision:** Add structured operand introspection in `ida::instruction` (`Operand::byte_width`, `register_name`, `register_class`, vector/mask predicates, address-index helpers) and migrate lifter probe away from operand-text heuristics
+    - Rejected: Keep probe-local text parsing (drift-prone)
+    - Rejected: Expose raw SDK `op_t` in public API (breaks opacity)
+
+---
+
+### 7. Name, Xref, Comment, Type & Entry APIs
+
+- **7.1. Typed Name Inventory**
+  - 7.1.1. **Decision:** Add typed name inventory APIs (`Entry`, `ListOptions`, `all`, `all_user_defined`)
+    - Rejected: Keep fallback address scanning (weaker discoverability/performance)
+    - Rejected: Raw SDK nlist APIs (leaks SDK concepts)
+
+- **7.2. TypeInfo Decomposition**
+  - 7.2.1. **Decision:** Add `TypeInfo` decomposition and typedef-resolution helpers (`is_typedef`, `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`)
+    - Rejected: Keep decomposition in external code (duplicated complexity)
+    - Rejected: Raw SDK `tinfo_t` utilities (breaks opacity)
+
+---
+
+### 8. Database & Storage
+
+- **8.1. Database Metadata Helpers**
+  - 8.1.1. **Decision:** Add database metadata helpers (`file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`)
+    - Rejected: Keep metadata in external tools via raw SDK (inconsistent migration)
+    - Rejected: New diagnostics namespace (weaker discoverability)
+
+- **8.2. Node-Identity Helpers (P10.7.e)**
+  - 8.2.1. **Decision:** Add node-identity helpers (`Node::open_by_id`, `Node::id`, `Node::name`)
+    - Rejected: Name-only open (weaker lifecycle ergonomics)
+    - Rejected: Raw `netnode` ids/constructors (leaks SDK)
+
+---
+
+### 9. Lumina Integration
+
+- **9.1. Lumina Facade**
+  - 9.1.1. **Decision:** Add `ida::lumina` facade with pull/push wrappers (`has_connection`, `pull`, `push`, typed `BatchResult`/`OperationCode`)
+    - Rejected: Keep raw SDK for external tools (inconsistent ergonomics)
+    - Rejected: Raw `lumina_client_t` (breaks opacity)
+
+- **9.2. Close API Unsupported**
+  - 9.2.1. **Decision:** Keep Lumina close APIs as explicit `Unsupported` — runtime dylibs don't export `close_server_connection2`/`close_server_connections` despite SDK declarations
+    - Rejected: Call non-exported symbols (link failure)
+    - Rejected: Remove close APIs (weaker discoverability)
+
+---
+
+### 10. SDK Parity Closure (Phase 10)
+
+- **10.1. Parity Strategy**
+  - 10.1.1. **Decision:** Formalize SDK parity closure as Phase 10 with matrix-driven domain-by-domain checklist and evidence gates
+    - Rejected: Ad hoc parity fixes only (poor visibility)
+    - Rejected: Docs snapshot without TODO graph (weak progress control)
+  - 10.1.2. **Decision:** Use dual-axis coverage matrix (`docs/sdk_domain_coverage_matrix.md`) with domain rows and SDK capability-family rows
+    - Rejected: Domain-only (hides cross-domain gaps)
+    - Rejected: Capability-only (weak ownership mapping)
+
+- **10.2. Intentional Abstraction Notes (P10.9.a)**
+  - 10.2.1. **Decision:** Resolve via explicit intentional-abstraction notes for cross-cutting/event rows (`ida::core`, `ida::diagnostics`, `ida::event`)
+    - Rejected: Force all rows `covered` by broad raw-SDK mirroring (API bloat)
+
+- **10.3. Segment/Function/Instruction Parity (P10.3)**
+  - 10.3.1. **Decision:** Close P10.3 with additive segment/function/instruction parity
+    - 10.3.1.1. Segment: resize/move/comments/traversal
+    - 10.3.1.2. Function: update/reanalysis/address iteration/frame+regvar
+    - 10.3.1.3. Instruction: jump classifiers + operand text/format unification
+    - Rejected: Defer to P10.8 (leaves rows partial)
+    - Rejected: Raw SDK classifier/comment entrypoints (violates opacity)
+
+- **10.4. Metadata Parity (P10.4)**
+  - 10.4.1. **Decision:** Close P10.4 with additive metadata parity in name/xref/comment/type/entry/fixup
+    - 10.4.1.1. Name: identifier validation
+    - 10.4.1.2. Xref: range+typed filters
+    - 10.4.1.3. Comment: indexed comment editing
+    - 10.4.1.4. Type: function/cc/enum type workflows
+    - 10.4.1.5. Entry: forwarder management
+    - 10.4.1.6. Fixup: expanded descriptor + signed/range helpers
+    - Rejected: Defer to docs-only sweep (leaves rows partial)
+    - Rejected: Raw SDK enums/flags (weakens conceptual API)
+
+- **10.5. Search/Analysis Parity (P10.5)**
+  - 10.5.1. **Decision:** Close P10.5 with additive search/analysis parity
+    - 10.5.1.1. Typed immediate/binary options
+    - 10.5.1.2. `next_error`/`next_defined`
+    - 10.5.1.3. Explicit schedule-intent APIs
+    - 10.5.1.4. Cancel/revert wrappers
+    - Rejected: Minimal direction-only + AU_CODE-only (low intent clarity)
+    - Rejected: Raw `SEARCH_*`/`AU_*` constants (leaks SDK encoding)
+
+- **10.6. Module-Authoring Parity (P10.6)**
+  - 10.6.1. **Decision:** Close P10.6 with additive module-authoring parity in plugin/loader/processor
+    - 10.6.1.1. Plugin: action detach helpers
+    - 10.6.1.2. Loader: typed loader request/flag models
+    - 10.6.1.3. Processor: `OutputContext` + context-driven hooks, advanced descriptor/assembler checks
+    - Rejected: Replace legacy callbacks outright (migration breakage)
+    - Rejected: Raw SDK callback structs/flag bitmasks (violates opacity)
+
+- **10.7. Domain-Specific Parity Sub-Phases**
+  - **10.7.1. Debugger Parity (P10.7.a)**
+    - 10.7.1.1. **Decision:** Close with async/request and introspection helpers (`request_*`, `run_requests`, `is_request_running`, thread enumeration/control, register introspection)
+      - Rejected: Raw `request_*` SDK calls only (inconsistent error model)
+      - Rejected: Defer to P10.8 (leaves row partial)
+  - **10.7.2. UI Parity (P10.7.b)**
+    - 10.7.2.1. **Decision:** Close with custom-viewer and broader UI/VIEW event routing
+      - 10.7.2.1.1. Custom viewer: `create_custom_viewer`, line/count/jump/current/refresh/close
+      - 10.7.2.1.2. Events: `on_database_inited`, `on_current_widget_changed`, `on_view_*`, expanded `EventKind`/`Event`
+      - Rejected: Defer to P10.8 (leaves rows partial)
+      - Rejected: Raw SDK custom-viewer structs (weakens opaque boundary)
+  - **10.7.3. Graph Parity (P10.7.c)**
+    - 10.7.3.1. **Decision:** Close with viewer lifecycle/query helpers (`has_graph_viewer`, `is_graph_viewer_visible`, `activate_graph_viewer`, `close_graph_viewer`) and layout-state introspection (`Graph::current_layout`)
+      - Rejected: Title-only refresh/show (insufficient lifecycle)
+      - Rejected: UI-only layout effects without state introspection (brittle in headless)
+  - **10.7.4. Decompiler Parity (P10.7.d)**
+    - 10.7.4.1. **Decision:** Close with variable-retype and expanded comment/ctree workflows (`retype_variable` by name/index, orphan-comment query/cleanup)
+      - Rejected: Raw Hex-Rays lvar/user-info structs (breaks opacity)
+      - Rejected: Defer to P10.8 (leaves row partial)
+  - **10.7.5. Storage Parity (P10.7.e)**
+    - *(See §8.2 — Node-identity helpers)*
+
+- **10.8. Evidence Closure (P10.8.d / P10.9.d)**
+  - 10.8.1. **Decision:** Close using hosted matrix evidence + local full/packaging evidence
+    - Rejected: Keep open until every runtime row is host-complete (scope creep)
+    - Rejected: Ignore hosted evidence (weaker reproducibility)
+
+---
+
+### 11. Decompiler Integration
+
+- **11.1. Typed Call-Subexpression Accessors**
+  - 11.1.1. **Decision:** Add typed decompiler call-subexpression accessors (`call_callee`, `call_argument(index)`)
+    - Rejected: Keep call parsing in external examples (weak portability)
+    - Rejected: Raw `cexpr_t*` (breaks opacity)
+
+- **11.2. Generic Typed-Value Facade**
+  - 11.2.1. **Decision:** Add generic typed-value facade (`TypedValue`, `TypedValueKind`, `read_typed`, `write_typed`) with recursive array materialization
+    - Rejected: Keep typed decoding in external ports (duplicated)
+    - Rejected: SDK-level typed-value helpers (weakens opacity)
+
+- **11.3. Structured Decompile-Failure Details**
+  - 11.3.1. **Decision:** Add structured decompile-failure details (`DecompileFailure` + `decompile(address, &failure)`)
+    - Rejected: Context only in `ida::Error` strings (weakly structured)
+    - Rejected: Raw `hexrays_failure_t` (breaks opacity)
+
+- **11.4. Microcode Retrieval**
+  - 11.4.1. **Decision:** Add microcode retrieval APIs (`DecompiledFunction::microcode()`, `microcode_lines()`)
+    - Rejected: Keep raw SDK for microcode (weak parity)
+    - Rejected: Expose `mba_t`/raw printer (breaks opacity)
+
+- **11.5. Lifter Maturity/Outline/Cache Gaps**
+  - 11.5.1. **Decision:** Close with additive APIs (`on_maturity_changed`, `mark_dirty`, `mark_dirty_with_callers`, `is_outlined`, `set_outlined`)
+    - Rejected: Keep as audit-only gaps (delays value)
+    - Rejected: Raw Hex-Rays callbacks (breaks opacity)
+
+- **11.6. Typed Decompiler-View Wrappers**
+  - 11.6.1. **Decision:** Add typed decompiler-view edit/session wrappers (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`) operating through stable function identity
+    - Rejected: Continue raw host-pointer callback-only workflows (ergonomic gap)
+    - Rejected: Expose `vdui_t`/`cfunc_t` in public API (opacity break)
+  - 11.6.2. **Decision:** Harden decompiler-view integration checks around backend variance by asserting failure semantics (for missing locals) instead of fixed error category
+    - Rejected: Strict `NotFound` category checks (flaky across runtimes)
+  - 11.6.3. **Decision:** Keep decompiler-view helper integration coverage non-persisting to avoid fixture drift
+    - Rejected: Save-comment roundtrips in helper tests (mutates `.i64` fixtures)
+    - Rejected: Fixture rewrite-only cleanup without test hardening (repeat churn)
+
+---
+
+### 12. Microcode Filter & Emission System
+
+- **12.1. Baseline Filter Registration**
+  - 12.1.1. **Decision:** Add baseline microcode-filter registration (`register_microcode_filter`, `unregister_microcode_filter`, `MicrocodeContext`, `MicrocodeApplyResult`, `ScopedMicrocodeFilter`)
+    - Rejected: Keep raw SDK-only (blocks migration)
+    - Rejected: Expose raw `codegen_t`/`microcode_filter_t` (breaks opacity)
+
+- **12.2. Operand/Register/Memory Emit Helpers**
+  - 12.2.1. **Decision:** Expand `MicrocodeContext` with operand/register/memory/helper emit helpers
+    - Rejected: Keep only `emit_noop` until full typed-IR design (too limiting)
+    - Rejected: Expose raw `codegen_t` (opacity break)
+
+- **12.3. Temporary Register Allocation**
+  - 12.3.1. **Decision:** Add `MicrocodeContext::allocate_temporary_register(byte_width)` mirroring `mba->alloc_kreg`
+    - Rejected: Keep raw-SDK-only (preserves escape hatches)
+    - Rejected: Infer indirectly via load helpers (insufficient)
+
+- **12.4. Helper-Call System**
+  - **12.4.1. Typed Helper-Call Argument Builders**
+    - 12.4.1.1. **Decision:** Add typed helper-call argument builders (`MicrocodeValueKind`, `MicrocodeValue`, `emit_helper_call_with_arguments[_to_register]`)
+      - Rejected: Raw `mcallarg_t`/`mcallinfo_t` (opacity break)
+      - Rejected: Defer until full vector/UDT design (delays value)
+  - **12.4.2. Helper-Call Option Shaping**
+    - 12.4.2.1. **Decision:** Add helper-call option shaping (`MicrocodeCallOptions`, `MicrocodeCallingConvention`, `emit_helper_call_with_arguments_and_options[_to_register_and_options]`)
+      - Rejected: Raw `mcallinfo_t` mutators (opacity break)
+      - Rejected: Defer all callinfo shaping (delays value)
+  - **12.4.3. Scalar FP Immediates & Location Hinting**
+    - 12.4.3.1. **Decision:** Expand with scalar FP immediates (`Float32Immediate`/`Float64Immediate`) + explicit-location hinting
+      - Rejected: Jump to vector/UDT (too large for one slice)
+      - Rejected: Raw `mcallarg_t`/`argloc_t` (opacity break)
+  - **12.4.4. Default `solid_argument_count` Inference**
+    - 12.4.4.1. **Decision:** Add default inference from argument lists
+      - Rejected: Keep all explicit at call sites (repetitive)
+      - Rejected: Hardcode one value (incorrect for variable arity)
+  - **12.4.5. Auto-Stack Placement Controls**
+    - 12.4.5.1. **Decision:** Add `auto_stack_start_offset`, `auto_stack_alignment`
+      - Rejected: Fixed internal heuristic only (limited control)
+      - Rejected: Require explicit location for every non-scalar (heavier boilerplate)
+  - **12.4.6. Insertion Policy Extension**
+    - 12.4.6.1. **Decision:** Extend helper-call with insertion-policy hinting (`MicrocodeCallOptions::insert_policy`)
+      - Rejected: Separate helper-call-with-policy overload family (API bloat)
+      - Rejected: Raw block/anchor handles (opacity break)
+  - **12.4.7. Register Return — Wider Widths**
+    - 12.4.7.1. **Decision:** Expand helper-call register-return fallback for wider destinations with byte-array `tinfo_t` synthesis
+      - Rejected: `Unsupported` for widths >8 (blocks packed patterns)
+      - Rejected: Require explicit declaration everywhere (excessive boilerplate)
+  - **12.4.8. Register Arguments — Wider Widths**
+    - 12.4.8.1. **Decision:** Expand helper-call register-argument with declaration-driven non-integer widths + size validation
+      - Rejected: Integer-only arguments (insufficient)
+      - Rejected: Require `TypeDeclarationView` + explicit location for all (less ergonomic)
+  - **12.4.9. Register Return — Non-Integer**
+    - 12.4.9.1. **Decision:** Expand helper-call register-return with declaration-driven non-integer widths + size validation
+      - Rejected: Integer-only returns (insufficient for wider types)
+      - Rejected: Raw `mcallinfo_t`/`mop_t` return mutation (opacity break)
+  - **12.4.10. Argument Metadata**
+    - 12.4.10.1. **Decision:** Add optional metadata (`argument_name`, `argument_flags`, `MicrocodeArgumentFlag`)
+      - Rejected: Implicit metadata only (insufficient callinfo fidelity)
+      - Rejected: Raw `mcallarg_t` mutation (opacity break)
+  - **12.4.11. Return Writeback to Instruction Operands**
+    - 12.4.11.1. **Decision:** Add `emit_helper_call_with_arguments_to_operand[_and_options]` for compare/mask-destination flows
+      - Rejected: Keep compare mask destinations as no-op tolerance (semantic loss)
+      - Rejected: Require raw SDK call/mop plumbing in ports (migration friction)
+  - **12.4.12. tmop Destinations**
+    - 12.4.12.1. **Decision:** Expand helper-call tmop shaping with typed micro-operand destinations (`emit_helper_call_with_arguments_to_micro_operand[_and_options]`) and argument value kinds (`BlockReference`, `NestedInstruction`)
+      - Rejected: Keep register/instruction-operand-only helper returns (limits richer callarg modeling)
+      - Rejected: Expose raw `mop_t`/`mcallarg_t` APIs (opacity break)
+  - **12.4.13. Memory-Source Operand Forwarding**
+    - 12.4.13.1. **Decision:** Extend helper fallback to accept memory-source operands via effective-address extraction + pointer arguments
+      - Rejected: Register-only fallback (misses many forms)
+      - Rejected: Fail hard on memory sources (unnecessary instability)
+
+- **12.5. Argument Location Hints**
+  - **12.5.1. Basic Register/Stack**
+    - 12.5.1.1. **Decision:** Add basic explicit argument-location hints (`MicrocodeValueLocation` register/stack-offset) with auto-promotion
+      - Rejected: Raw `argloc_t` (opacity break)
+      - Rejected: Defer all location-shaping (delays value)
+  - **12.5.2. Register-Pair & Register-with-Offset**
+    - 12.5.2.1. **Decision:** Expand `MicrocodeValueLocation` with register-pair and register-with-offset forms
+      - Rejected: Register/stack-only (too limiting)
+      - Rejected: Raw `argloc_t` (opacity break)
+  - **12.5.3. Static Address**
+    - 12.5.3.1. **Decision:** Add static-address location hints (`StaticAddress` → `argloc_t::set_ea`)
+      - Rejected: Keep without global-location patterns (misses common patterns)
+      - Rejected: Raw `argloc_t` (opacity break)
+  - **12.5.4. Scattered/Multi-Part**
+    - 12.5.4.1. **Decision:** Add scattered/multi-part location hints (`Scattered` + `MicrocodeLocationPart`)
+      - Rejected: Single-location only (insufficient for split-placement)
+      - Rejected: Raw `argpart_t`/`scattered_aloc_t` (opacity break)
+  - **12.5.5. Register-Relative**
+    - 12.5.5.1. **Decision:** Add register-relative location hints (`RegisterRelative` → `consume_rrel`)
+      - Rejected: Keep without `ALOC_RREL` (misses practical cases)
+      - Rejected: Raw `rrel_t` (opacity break)
+
+- **12.6. Argument Value Kinds**
+  - **12.6.1. Byte-Array**
+    - 12.6.1.1. **Decision:** Add byte-array helper-call argument modeling (`MicrocodeValueKind::ByteArray`) with explicit-location enforcement
+      - Rejected: Defer all non-scalar (delays value)
+      - Rejected: Raw `mcallarg_t` (opacity break)
+  - **12.6.2. Vector**
+    - 12.6.2.1. **Decision:** Add vector helper-call argument modeling (`MicrocodeValueKind::Vector`) with typed element controls
+      - Rejected: Defer until full UDT abstraction (delays value)
+      - Rejected: Raw `mcallarg_t`/type plumbing (opacity break)
+  - **12.6.3. TypeDeclarationView**
+    - 12.6.3.1. **Decision:** Add declaration-driven argument modeling (`MicrocodeValueKind::TypeDeclarationView`) via `parse_decl`
+      - Rejected: Defer until full UDT APIs (delays value)
+      - Rejected: Raw `tinfo_t`/`mcallarg_t` (opacity break)
+  - **12.6.4. Immediate Type Declaration**
+    - 12.6.4.1. **Decision:** Expand immediate typed arguments with optional `type_declaration` + parse/size validation + width inference
+      - Rejected: Keep immediates integer-only (loses declaration intent)
+      - Rejected: Separate immediate-declaration kind (unnecessary surface growth)
+
+- **12.7. Callinfo Flags & Fields**
+  - **12.7.1. Flags**
+    - 12.7.1.1. **Decision:** Expand callinfo flags (`mark_dead_return_registers`, `mark_spoiled_lists_optimized`, `mark_synthetic_has_call`, `mark_has_format_string` → `FCI_DEAD`/`FCI_SPLOK`/`FCI_HASCALL`/`FCI_HASFMT`)
+      - Rejected: Minimal flags only (too restrictive)
+      - Rejected: Raw `mcallinfo_t` flag mutation (opacity break)
+  - **12.7.2. Scalar Field Hints**
+    - 12.7.2.1. **Decision:** Expand callinfo with scalar field hints (`callee_address`, `solid_argument_count`, `call_stack_pointer_delta`, `stack_arguments_top`)
+      - Rejected: Keep field-level shaping internal (insufficient fidelity)
+      - Rejected: Raw `mcallinfo_t` mutators (opacity break)
+  - **12.7.3. Semantic Role & Return-Location**
+    - 12.7.3.1. **Decision:** Expand callinfo with semantic role + return-location hints (`MicrocodeFunctionRole`, `function_role`, `return_location`)
+      - Rejected: Raw `funcrole_t`/`argloc_t`/`mcallinfo_t` (opacity break)
+      - Rejected: Scalar hints only (insufficient parity)
+  - **12.7.4. Declaration-Based Return-Type**
+    - 12.7.4.1. **Decision:** Expand callinfo with declaration-based return-type hints (`return_type_declaration` via `parse_decl`)
+      - Rejected: Implicit return via destination register only (insufficient fidelity)
+      - Rejected: Raw `mcallinfo_t`/`tinfo_t` mutation (opacity break)
+  - **12.7.5. Passthrough/Spoiled Validation**
+    - 12.7.5.1. **Decision:** Tighten `passthrough_registers` to always require subset of `spoiled_registers`
+      - Rejected: Conditional validation only when both specified (permits inconsistent states)
+      - Rejected: Auto-promote into spoiled silently (obscures intent/errors)
+  - **12.7.6. Coherence Validation**
+    - 12.7.6.1. **Decision:** Validate callinfo coherence via validation-first probes rather than success-path emissions
+      - Rejected: Success-path emissions in filter tests (flaky)
+      - Rejected: Drop coherence assertions (weaker coverage)
+  - **12.7.7. Advanced List Shaping**
+    - 12.7.7.1. **Decision:** Expand writable IR with richer non-scalar/callinfo/tmop semantics: declaration-driven vector element typing, `RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference` mop builders, callinfo list shaping for return/spoiled/passthrough/dead registers + visible-memory ranges
+      - Rejected: Option-hint-only callinfo (insufficient parity)
+      - Rejected: Raw `mop_t`/`mcallinfo_t` mutators (opacity break)
+
+- **12.8. Generic Typed Instruction Emission**
+  - **12.8.1. Baseline**
+    - 12.8.1.1. **Decision:** Add baseline generic typed instruction emission (`MicrocodeOpcode`/`MicrocodeOperandKind`/`MicrocodeOperand`/`MicrocodeInstruction`, `emit_instruction`, `emit_instructions`)
+      - Rejected: Helper-call-only expansion (insufficient for AVX/VMX handlers)
+      - Rejected: Raw `minsn_t`/`mop_t` (opacity break)
+  - **12.8.2. Placement Policy**
+    - 12.8.2.1. **Decision:** Add constrained placement-policy controls (`MicrocodeInsertPolicy`, `emit_instruction_with_policy`, `emit_instructions_with_policy`)
+      - Rejected: Raw `mblock_t::insert_into_block`/`minsn_t*` (opacity break)
+      - Rejected: Tail-only insertion (insufficient for real ordering)
+  - **12.8.3. Typed Operand Kinds**
+    - 12.8.3.1. **Decision:** Add `MicrocodeOperandKind::BlockReference` with validated `block_index`
+      - Rejected: Keep raw-SDK-only (unnecessary gap)
+      - Rejected: Expose raw block handles (opacity break)
+    - 12.8.3.2. **Decision:** Add `MicrocodeOperandKind::NestedInstruction` with recursive typed payload + depth limiting
+      - Rejected: Keep raw-SDK-only (unnecessary gap)
+      - Rejected: Expose raw `minsn_t*` (opacity/ownership break)
+    - 12.8.3.3. **Decision:** Add `MicrocodeOperandKind::LocalVariable` with `local_variable_index`/`offset`
+      - Rejected: Keep raw-SDK-only (unnecessary gap)
+      - Rejected: Expose raw `mop_t`/`lvar_t` (opacity break)
+  - **12.8.4. Local-Variable Shaping**
+    - 12.8.4.1. **Decision:** Expand local-variable shaping with value-side modeling + `MicrocodeContext::local_variable_count()` guard + no-op fallback
+      - Rejected: Instruction-only local-variable support (leaves helper/value incomplete)
+      - Rejected: Hardcode indices (brittle)
+    - 12.8.4.2. **Decision:** Consolidate local-variable self-move emission into shared helper (`try_emit_local_variable_self_move`)
+      - Rejected: Duplicate per-mnemonic logic (drift-prone)
+      - Rejected: Limit to one mnemonic (weaker parity pressure)
+
+- **12.9. Typed Opcode Expansion**
+  - **12.9.1. Packed Bitwise/Shift**
+    - 12.9.1.1. **Decision:** Add typed packed bitwise/shift opcodes (`BitwiseAnd`/`BitwiseOr`/`BitwiseXor`/`ShiftLeft`/`ShiftRightLogical`/`ShiftRightArithmetic`)
+      - Rejected: Keep all in helper fallback (weaker typed-IR parity)
+      - Rejected: Very broad opcode set in one step (higher regression risk)
+  - **12.9.2. Subtract**
+    - 12.9.2.1. **Decision:** Add `MicrocodeOpcode::Subtract`, route `vpadd*`/`vpsub*` through typed emission first
+      - Rejected: Keep in helper fallback only (weaker parity)
+      - Rejected: Broader integer/vector opcode surface in one pass (higher risk)
+  - **12.9.3. Packed Integer Dual-Path**
+    - 12.9.3.1. **Decision:** Keep packed integer dual-path (typed first, helper fallback second) with saturating-family helper routing
+      - Rejected: Map saturating onto plain Add/Subtract (semantic mismatch)
+      - Rejected: Typed-only for integer add/sub (misses memory/saturating)
+  - **12.9.4. Multiply**
+    - 12.9.4.1. **Decision:** Add `MicrocodeOpcode::Multiply`, route `vpmulld`/`vpmullq` through typed emission; other variants (`vpmullw`/`vpmuludq`/`vpmaddwd`) use helper-call fallback
+      - Rejected: Keep all multiply in helper (weaker parity)
+      - Rejected: Map all variants to typed multiply (semantic mismatch)
+  - **12.9.5. Two-Operand Implicit-Source**
+    - 12.9.5.1. **Decision:** Treat two-operand packed binary encodings as destination-implicit-left-source
+      - Rejected: Three-operand-only typed path (unnecessary fallback churn)
+      - Rejected: Force helper for all two-operand (weaker parity)
+
+- **12.10. Low-Level Emit Helpers**
+  - **12.10.1. Policy-Aware Placement**
+    - 12.10.1.1. **Decision:** Add policy-aware placement for low-level emit helpers (`emit_noop/move/load/store_with_policy`)
+      - Rejected: Keep low-level helpers tail-only (uneven placement parity)
+      - Rejected: Bespoke per-call-site placement (brittle/non-discoverable)
+  - **12.10.2. Optional UDT-Marking**
+    - 12.10.2.1. **Decision:** Add optional UDT-marking to low-level move/load/store emit helpers (including policy-aware overloads)
+      - Rejected: UDT shaping limited to typed-instruction builders (leaves low-level gap)
+      - Rejected: Require raw SDK post-emit mutation (weakens migration path)
+  - **12.10.3. Store Operand Register UDT Overload**
+    - 12.10.3.1. **Decision:** Add `store_operand_register(..., mark_user_defined_type)` overload
+      - Rejected: Keep integer/default-only (leaves residual gap)
+      - Rejected: Route all writebacks through lower-level helpers (loses ergonomic path)
+
+- **12.11. Microcode Lifecycle Helpers**
+  - 12.11.1. **Decision:** Add microcode lifecycle convenience helpers (`block_instruction_count`, `has_last_emitted_instruction`, `remove_last_emitted_instruction`) on `MicrocodeContext`
+    - Rejected: Expose raw `mblock_t`/`minsn_t*` publicly (opacity/ownership hazards)
+    - Rejected: Leave lifecycle bookkeeping to ports (duplicated fragile logic)
+  - 12.11.2. **Decision:** Expand microblock lifecycle ergonomics with index-based query/removal (`has_instruction_at_index`, `remove_instruction_at_index`)
+    - Rejected: Expose raw `mblock_t` iterators/links (opacity break)
+    - Rejected: Keep last-emitted-only removal (insufficient for deterministic rewrites)
+
+- **12.12. Lifter Follow-Up Strategy**
+  - 12.12.1. **Decision:** Execute lifter follow-up via source-backed gap matrix with closure slices
+    - 12.12.1.1. P0: Generic instruction builder
+    - 12.12.1.2. P1: Callinfo depth
+    - 12.12.1.3. P2: Placement
+    - 12.12.1.4. P3: Typed view ergonomics
+    - Rejected: Broad blocker-only wording (weak guidance)
+    - Rejected: Large raw-SDK mirror (opacity/stability risk)
+
+---
+
+### 13. Debugger Integration
+
+- **13.1. Backend Discovery**
+  - 13.1.1. **Decision:** Add debugger backend discovery (`BackendInfo`, `available_backends`, `current_backend`, `load_backend`) + queued launch/attach (`request_start`, `request_attach`)
+    - Rejected: Keep backend logic private in examples (weak discoverability)
+    - Rejected: Synchronous start/attach only (misses async path)
+
+- **13.2. Appcall Facade**
+  - 13.2.1. **Decision:** Add Appcall + pluggable executor facade (`AppcallValue`, `AppcallRequest`, `appcall`, `cleanup_appcall`, `AppcallExecutor`, `register_executor`, `appcall_with_executor`)
+    - Rejected: Keep dynamic execution out-of-scope (leaves gap open)
+    - Rejected: Raw SDK `idc_value_t`/`dbg_appcall` (breaks opacity)
+
+- **13.3. Appcall Smoke Testing**
+  - 13.3.1. **Decision:** Add fixture-backed Appcall runtime validation (`--appcall-smoke`) plus checklist doc
+    - Rejected: Keep as ad hoc notes (low reproducibility)
+    - Rejected: Standalone new tool binary (target sprawl)
+  - 13.3.2. **Decision:** Expand appcall-smoke with hold-mode + default launches across path/cwd permutations
+    - Rejected: Default-args-only (weaker diagnosis)
+    - Rejected: Attach-only first (requires additional orchestration)
+  - 13.3.3. **Decision:** Add spawn+attach fallback to appcall smoke for better root-cause classification
+    - Rejected: Launch-only probes (ambiguous classification)
+    - Rejected: Standalone attach utility (target sprawl)
+  - 13.3.4. **Decision:** Upgrade appcall-smoke to backend-aware + multi-path execution (load backend → start → request_start → attach → request_attach with state checks)
+    - Rejected: Launch-only fallback (less diagnostic depth)
+    - Rejected: Host-specific debugger hacks (non-portable)
+
+- **13.4. Queue-Drain Settling**
+  - 13.4.1. **Decision:** Add bounded queue-drain settling for request fallbacks (`run_requests` cycles + delays + state checks)
+    - Rejected: One-shot `run_requests` (noisy under async hosts)
+    - Rejected: Unbounded polling (can hang)
+
+---
+
+### 14. Example Ports & Audit Probes
+
+- **14.1. JBC Full-Port Example**
+  - 14.1.1. **Decision:** Add paired JBC full-port example (loader + procmod + shared header) validating idax against real production migration
+    - Rejected: Hypothetical-only examples (weaker parity pressure)
+    - Rejected: Port only loader or procmod (misses cross-module interactions)
+  - 14.1.2. **Decision:** Close JBC parity gaps (#80–#82) with additive processor/segment APIs (typed analyze operand model, default segment-register seeding, tokenized output, mnemonic hook)
+    - Rejected: Keep minimal analyze/output + raw SDK escapes (weaker fidelity)
+    - Rejected: Replace callbacks outright (migration breakage)
+
+- **14.2. ida-qtform + idalib-dump Ports**
+  - 14.2.1. **Decision:** Add real-world port artifacts for ida-qtform + idalib-dump with dedicated audit doc
+    - Rejected: Synthetic parity-only checks (miss workflow edges)
+    - Rejected: Ad hoc notes only (poor traceability)
+
+- **14.3. ida2py Port Probe**
+  - 14.3.1. **Decision:** Add ida2py port probe (`examples/tools/ida2py_port.cpp`) plus standalone audit doc
+    - Rejected: Fold into existing audit only (weak traceability)
+    - Rejected: Treat as out-of-scope (misses API ergonomics signals)
+
+- **14.4. Lifter Port Probe**
+  - 14.4.1. **Decision:** Add lifter port probe plugin (`examples/plugin/lifter_port_plugin.cpp`) plus gap audit doc
+    - Rejected: Full direct lifter port (blocked by missing write-path APIs)
+    - Rejected: Docs-only without executable probe (weaker regression signal)
+
+- **14.5. VMX Subset Probe**
+  - 14.5.1. **Decision:** Add VMX subset to lifter probe using public microcode-filter APIs (no-op `vzeroupper`, helper-call lowering for `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`)
+    - Rejected: Keep probe read-only (weaker evidence)
+    - Rejected: Full port in one step (blocked by deep write-path APIs)
+
+- **14.6. AVX Scalar Subset**
+  - **14.6.1. Basic Arithmetic/Conversion**
+    - 14.6.1.1. **Decision:** Extend lifter probe with AVX scalar math/conversion lowering (`vadd/sub/mul/div ss/sd`, `vcvtss2sd`, `vcvtsd2ss`)
+      - Rejected: VMX-only until broader vector API (weaker signal)
+      - Rejected: Jump to packed directly (higher risk)
+  - **14.6.2. XMM Width Handling**
+    - 14.6.2.1. **Decision:** Keep AVX scalar subset XMM-oriented — decoded `Operand` value objects lack rendered width text
+      - Rejected: Parse disassembly text ad hoc (brittle)
+      - Rejected: Overgeneralize wider widths (correctness risk)
+  - **14.6.3. Min/Max/Sqrt/Move**
+    - 14.6.3.1. **Decision:** Expand with scalar min/max/sqrt/move families (`vmin/vmax/vsqrt/vmov ss/sd`)
+      - Rejected: Keep only add/sub/mul/div (leaves common families unexercised)
+      - Rejected: Jump to packed (larger surface per change)
+  - **14.6.4. Memory-Destination Moves**
+    - 14.6.4.1. **Decision:** Handle `vmovss`/`vmovsd` memory-destination before destination-register loading
+      - Rejected: One-path destination-register-first (brittle for memory)
+      - Rejected: Skip memory-destination moves (leaves common pattern unlifted)
+
+- **14.7. AVX Packed Subset**
+  - **14.7.1. Packed Math/Move**
+    - 14.7.1.1. **Decision:** Expand to packed math/move (`vadd/sub/mul/div ps/pd`, `vmov*`) with operand-text width heuristics
+      - Rejected: Jump to masked packed (larger surface)
+      - Rejected: Keep scalar-only until deeper IR (weaker pressure)
+  - **14.7.2. Packed Min/Max/Sqrt**
+    - 14.7.2.1. **Decision:** Expand packed subset with min/max/sqrt (`vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`)
+      - Rejected: Postpone until deeper IR (slows coverage)
+      - Rejected: Typed-emitter-only (missing opcode parity for these)
+  - **14.7.3. Packed Conversions**
+    - 14.7.3.1. **Decision:** Expand with packed conversions (`vcvtps2pd`/`vcvtpd2ps`, `vcvtdq2ps`/`vcvtudq2ps`, `vcvtdq2pd`/`vcvtudq2pd`)
+      - Rejected: Defer until full vector/tmop DSL (delays high-frequency patterns)
+      - Rejected: Helper-call-only for all (less direct parity)
+  - **14.7.4. Helper-Fallback Conversions**
+    - 14.7.4.1. **Decision:** Expand with helper-fallback conversions (`vcvt*2dq/udq/qq/uqq`, truncating)
+      - Rejected: Postpone until new typed opcodes (delays parity)
+      - Rejected: Force inaccurate typed mappings (semantic risk)
+  - **14.7.5. Addsub/Horizontal**
+    - 14.7.5.1. **Decision:** Expand with addsub/horizontal (`vaddsub*`, `vhadd*`, `vhsub*`) via helper-call
+      - Rejected: Skip until lane-aware IR (weaker coverage)
+      - Rejected: Approximate through plain opcodes (semantic mismatch)
+  - **14.7.6. Variadic Bitwise/Permute/Blend**
+    - 14.7.6.1. **Decision:** Expand with variadic helper-fallback bitwise/permute/blend
+      - Rejected: Wait for typed opcodes first (slower parity)
+      - Rejected: Per-mnemonic bespoke handlers (maintenance churn)
+  - **14.7.7. Variadic Shift/Rotate**
+    - 14.7.7.1. **Decision:** Expand with variadic helper-fallback shift/rotate (`vps*`, `vprol*`, `vpror*`)
+      - Rejected: Postpone until typed shift/rotate opcodes (slower parity)
+      - Rejected: Per-mnemonic handlers (maintenance-heavy)
+  - **14.7.8. Fallback Tolerance**
+    - 14.7.8.1. **Decision:** Keep variadic helper fallback tolerant (`NotHandled` over hard error) for broader compare/misc coverage
+      - Rejected: Strict erroring on unsupported loads (brittle)
+      - Rejected: Delay broad matching until full typed-IR (slower gains)
+  - **14.7.9. Compare Mask-Destination Tolerance**
+    - 14.7.9.1. **Decision:** Treat unsupported compare mask-destinations as no-op in fallback
+      - Rejected: Hard-fail on non-register (destabilizing)
+      - Rejected: Defer compare expansion entirely (slower parity)
+
+---
+
+### 15. Blockers (Live)
+
+- **15.1. B-LIFTER-MICROCODE**
+  - 15.1.1. **Scope:** Full idax-first port of `/Users/int/dev/lifter` (AVX/VMX microcode transformations)
+  - 15.1.2. **Severity:** High
+  - **15.1.3. Current Capabilities**
+    - 15.1.3.1. Baseline generic typed instruction emission
+    - 15.1.3.2. Placement/callinfo shaping (role, return-location, insert-policy, declaration-driven typed register-argument/return, argument name/flag metadata)
+    - 15.1.3.3. Temporary-register allocation
+    - 15.1.3.4. Local-variable context query (`local_variable_count`)
+    - 15.1.3.5. Typed packed bitwise/shift/add/sub/mul opcode emission
+    - 15.1.3.6. Richer typed operand/value mop builders (`LocalVariable`/`RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference`/`BlockReference`/`NestedInstruction`)
+    - 15.1.3.7. Declaration-driven vector element typing
+    - 15.1.3.8. Advanced callinfo list shaping (return/spoiled/passthrough/dead registers + visible-memory)
+    - 15.1.3.9. Structured instruction operand metadata (`byte_width`/`register_name`/`register_class`)
+    - 15.1.3.10. Helper-call return writeback to operands for compare/mask destinations
+    - 15.1.3.11. Typed helper-call micro-operand destinations + tmop-oriented callarg value kinds
+    - 15.1.3.12. Microcode lifecycle convenience (`block_instruction_count`, tracked last-emitted remove, index query/remove)
+    - 15.1.3.13. Typed decompiler-view edit/session wrappers (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`)
+  - **15.1.4. Lifter Probe Coverage**
+    - 15.1.4.1. Working VMX + AVX scalar/packed subset
+    - 15.1.4.2. Broad helper-fallback families (conversion/integer-arithmetic/multiply/bitwise/permute/blend/shift/compare/misc)
+    - 15.1.4.3. Mixed register/immediate/memory-source forwarding
+    - 15.1.4.4. Deterministic compare/mask writeback paths
+  - **15.1.5. Remaining Gaps**
+    - 15.1.5.1. Deeper callinfo/tmop semantics beyond current option-hint shaping
+    - 15.1.5.2. Fuller typed microcode mutation coverage for non-helper rewrites
+    - 15.1.5.3. Stability hardening for aggressive success-path callinfo shaping (`INTERR: 50765` risk)
+  - 15.1.6. **Immediate Mitigation:** Keep partial executable probe (`examples/plugin/lifter_port_plugin.cpp`) + gap audit (`docs/port_gap_audit_lifter.md`)
+  - 15.1.7. **Long-Term:** Add additive decompiler write-path APIs (richer typed microcode value/argument/callinfo beyond current support) while preserving public opacity
+  - 15.1.8. **Owner:** idax wrapper core
+
+---
+
+## 15) Progress Ledger (Live)
+
+# IDAX Progress Ledger — Hierarchical Knowledge Base
+
+---
+
+### 1. Foundation (Planning, Documentation, Core Build)
+
+- **1.1. Program Planning**
+  - 1.1.1. Comprehensive architecture and roadmap captured
+  - 1.1.2. Initial `agents.md` with phased TODOs, findings, decisions
+  - 1.1.3. Later renamed tracker → `agents.md`, updated all references
+
+- **1.2. Documentation Baseline**
+  - 1.2.1. Detailed interface blueprints (Parts 1–5 + module interfaces)
+  - 1.2.2. Section 21 with namespace-level API sketches
+
+- **1.3. P0–P5 Core Implementation**
+  - 1.3.1. **Artifact:** 24 public headers, 19 impl files, SDK bridge, smoke test
+  - 1.3.2. **Artifact:** `libidax.a` (168K), 19 `.cpp` compile
+  - 1.3.3. **Evidence:** Smoke 48/48
+
+- **1.4. Two-Level Namespace Blocker**
+  - 1.4.1. **Diagnosis:** SDK stub `libidalib.dylib` exports `qvector_reserve` but real dylib doesn't
+  - 1.4.2. **Resolution:** Link tests against real IDA installation dylibs
+  - 1.4.3. **Evidence:** Smoke 48/48
+
+---
+
+### 2. Core API Build-Out (P2–P5, P7–P8)
+
+- **2.1. Function & Type System (P4)**
+  - **2.1.1. Function Callers/Callees (P4.2.c)**
+    - Evidence: Smoke 58/58
+  - **2.1.2. Function Chunks (P4.2.b)**
+    - `Chunk`, `chunks`/`tail_chunks`/`add_tail`/`remove_tail`
+    - Evidence: Smoke 68/68
+  - **2.1.3. Stack Frames (P4.3.a-b-d)**
+    - `StackFrame`, `sp_delta_at`, `define_stack_variable`
+    - TypeInfo pimpl extracted to `detail/type_impl.hpp`
+    - Evidence: Smoke 68/68
+  - **2.1.4. Type Struct/Member/Retrieve (P4.4.c-d)**
+    - Evidence: Smoke 58/58
+  - **2.1.5. Operand Representation Controls (P4.4.e)**
+    - Evidence: Smoke 162/162
+  - **2.1.6. Register Variables (P4.3.c)**
+    - Evidence: Smoke 162/162
+  - **2.1.7. Custom Fixup Registration (P4.6.d)**
+    - `CustomHandler`, `register_custom`, `find_custom`, `unregister_custom`
+    - Evidence: Smoke 210/210
+  - **2.1.8. Type Library Access (P4.7 — via P7.2.c)**
+    - `load`/`unload`/`count`/`name`/`import`/`apply_named`
+    - Evidence: Smoke 162/162
+
+- **2.2. Data & Address (P2)**
+  - **2.2.1. Data String Extraction (P2.2.d-e)**
+    - `read_string`, `read_value<T>`, `write_value<T>`, `find_binary_pattern`
+    - Evidence: Smoke 201/201
+  - **2.2.2. Database Snapshots (P2.3.c)**
+    - `Snapshot`, `snapshots()`, `set_snapshot_description()`, `is_snapshot_database()`
+    - Evidence: Smoke 205/205
+  - **2.2.3. Database File/Memory Transfer (P2.3.b)**
+    - `file_to_database`, `memory_to_database`
+    - Evidence: Smoke 213/213
+  - **2.2.4. Address Search Predicates (P2.1.d)**
+    - `Predicate`, `find_first`, `find_next`
+    - Evidence: Smoke 232/232
+
+- **2.3. Search (P3)**
+  - **2.3.1. Bulk Comment APIs (P3.2.c-d)**
+    - `set`/`get`/`clear` anterior/posterior lines; `render`
+    - Evidence: Smoke 227/227
+  - **2.3.2. Regex/Options Text-Search (P3.4.d)**
+    - `TextOptions`
+    - Evidence: Smoke 203/203
+
+- **2.4. Instruction & Operand (P5)**
+  - **2.4.1. Instruction Xref Conveniences (P5.3)**
+    - Confirmed via decompiler smoke
+    - Evidence: Smoke 73/73
+
+- **2.5. Event System (P7)**
+  - **2.5.1. Core Event System (P5.2)**
+    - Evidence: Smoke 58/58
+  - **2.5.2. Generic IDB Event Filtering (P7.4.d)**
+    - `ida::event::Event`, `on_event`, `on_event_filtered`
+    - Evidence: Smoke 193/193 ("generic route fired: yes", "filtered route fired: yes")
+
+- **2.6. Decompiler (P8)**
+  - **2.6.1. Hex-Rays Init + Core Decompilation (P8.1.a-c)**
+    - `init_hexrays_plugin`, `decompile_func`, pseudocode/lines/declaration/variables/rename_variable
+    - Evidence: Smoke 73/73 (pseudocode, variable enumeration, declarations)
+  - **2.6.2. Ctree Visitor (P8.1.d-e)**
+    - `CtreeVisitor`, `ExpressionView`/`StatementView`, `ItemType`, `VisitAction`/`VisitOptions`
+    - `for_each_expression`/`for_each_item`
+    - Evidence: Smoke 121/121 (21 exprs + 4 stmts, post-order/skip-children working)
+  - **2.6.3. User Comments (P8.2.b-c)**
+    - `set_comment`/`get_comment`/`save_comments`, `CommentPosition`
+    - Refresh/invalidation; address mapping (`entry_address`, `line_to_address`, `address_map`)
+    - Evidence: Smoke 121/121 (comments verified, 16 address mapping entries)
+  - **2.6.4. Storage Blob Ops (P8.3.c)**
+    - Evidence: Smoke 162/162
+
+---
+
+### 3. Module Authoring (P6)
+
+- **3.1. Plugin System (P6.1)**
+  - 3.1.1. Plugin base class (`PLUGIN_MULTI`)
+  - 3.1.2. Evidence: Smoke 68/68
+
+- **3.2. Loader System (P6.2)**
+  - **3.2.1. Loader InputFile (P6.2.b-c)**
+    - Evidence: Smoke 68/68
+  - **3.2.2. Loader Base Class (P6.2.a-d-e)**
+    - `accept`/`load`/`save`/`move_segment`, `IDAX_LOADER`
+    - Evidence: Smoke 95/95
+
+- **3.3. Processor System (P6.3)**
+  - **3.3.1. Processor Descriptors (P6.3.c)**
+    - `RegisterInfo`, `InstructionDescriptor`, `AssemblerInfo`
+    - Evidence: Smoke 68/68
+  - **3.3.2. Processor Base Class (P6.3.a-b-e)**
+    - `analyze`/`emulate`/`output_instruction`/`output_operand`, `IDAX_PROCESSOR`
+    - Evidence: Smoke 95/95
+  - **3.3.3. Switch/Function-Heuristic Wrappers (P6.3.d)**
+    - `SwitchDescription`/`SwitchCase`
+    - Evidence: Smoke 187/187
+
+- **3.4. UI Components (P7.2–P7.3)**
+  - **3.4.1. Chooser (P7.2.b-d)**
+    - `Chooser`, `Column`/`Row`/`RowStyle`/`ChooserOptions`
+    - Evidence: Smoke 95/95
+  - **3.4.2. Simple Dialogs, Screen Address/Selection, Timers**
+    - Evidence: Smoke 95/95
+  - **3.4.3. Graph (P7.3.a-d)**
+    - Adjacency-list, node/edge CRUD, BFS, `show_graph`, flowchart
+    - Evidence: Smoke 95/95 (flowchart and graph tests)
+  - **3.4.4. Widget Title Fix (P7.2.c)**
+    - Fixed `get_widget_title` (2-arg SDK)
+    - Evidence: Smoke 162/162
+  - **3.4.5. UI Event Subscriptions**
+    - `on_database_closed`/`on_ready_to_run`/`on_screen_ea_changed`/`on_widget_visible`/`on_widget_closing` + `ScopedUiSubscription`
+    - Evidence: Smoke 162/162
+
+- **3.5. Debugger Events (P7.1.d)**
+  - 3.5.1. HT_DBG, typed callbacks, `ScopedDebuggerSubscription`
+  - 3.5.2. Evidence: Smoke 187/187
+
+- **3.6. Concrete Examples (P0.1.d, P6.4.a-d)**
+  - 3.6.1. `action_plugin`, `minimal_loader`, `minimal_procmod` + examples CMake
+  - 3.6.2. Verified no compiler-intrinsic usage
+  - 3.6.3. Example targets build cleanly
+
+---
+
+### 4. Documentation, Testing & Infrastructure Hardening (P1, P3, P6, P9)
+
+- **4.1. Documentation Bundle (P6.5, P3.6.b-d, P4.5.d, P8.3.d, P9.2)**
+  - 4.1.1. quickstart, cookbook, migration, api_reference, tutorial, storage caveats, docs checklist
+  - 4.1.2. Synced migration maps
+
+- **4.2. Shared Options & Diagnostics (P1.1.c–P1.4)**
+  - 4.2.1. Shared option structs, diagnostics/logging/counters, master include
+  - 4.2.2. Unit test target covering error model, diagnostics, handle/range/iterator contracts
+  - 4.2.3. Evidence: Unit 22/22; Smoke 232/232
+
+- **4.3. Integration Test Suites**
+  - **4.3.1. Name/Comment/Xref/Search (P3.6.a)**
+    - Evidence: CTest 3/3
+  - **4.3.2. Data Mutation Safety (P2.4.b)**
+    - Evidence: CTest 4/4
+  - **4.3.3. Segment/Function Edge Cases (P4.7.a)**
+    - Evidence: CTest 5/5
+  - **4.3.4. Instruction Decode Behavior (P5.4.a)**
+    - Evidence: CTest 6/6
+  - **4.3.5. Type Roundtrip & Apply (P4.7.b)**
+    - Primitive factories, pointer/array, `from_declaration`, struct lifecycle, union, `save_as`/`by_name`, `apply`/`retrieve`, local type library, `to_string`, copy/move
+    - Evidence: CTest 10/10
+  - **4.3.6. Fixup Relocation (P4.7.c)**
+    - Set/get roundtrip, multiple types, contains, traversal, `FixupRange`, error paths, custom lifecycle
+    - Evidence: CTest 10/10
+  - **4.3.7. Operand Conversion & Text Snapshot (P5.4.b+c)**
+    - Operand classification, immediate/register properties, representation controls, forced operand roundtrip, xref conveniences, disassembly text, instruction create
+    - Evidence: CTest 10/10
+  - **4.3.8. Decompiler & Storage Hardening (P8.4.a-d)**
+    - Availability, ctree traversal, expression view accessors, `for_each_item`, error paths, address mapping, user comments, storage alt/sup/hash/blob roundtrips, node semantics
+    - Evidence: CTest 10/10
+  - **4.3.9. CMake Refactor**
+    - `idax_add_integration_test()` helper
+
+- **4.4. API Audit & Rename Pass (P9.1.a-d)**
+  - 4.4.1. `delete_register_variable` → `remove_register_variable`
+  - 4.4.2. Unified subscription naming
+  - 4.4.3. Fixed polarity (`is_visible()`)
+  - 4.4.4. Fixed `line_to_address()` error return
+  - 4.4.5. `Plugin::run()` → `Status`
+  - 4.4.6. Added `EmulateResult`/`OutputOperandResult`
+  - 4.4.7. ~135 renames: `ea` → `address`, `idx` → `index`, `cmt` → `comment`, `set_op_*` → `set_operand_*`, `del_*` → `remove_*`
+  - 4.4.8. `impl()` made private
+  - 4.4.9. `raw_type` → `ReferenceType`
+  - 4.4.10. Error context strings added
+  - 4.4.11. UI dialog cancellation → `Validation`
+  - 4.4.12. Evidence: Build clean, 10/10
+
+- **4.5. Backlog Test Expansion**
+  - 4.5.1. `decompiler_edge_cases` (837 lines, 7 sections)
+  - 4.5.2. `event_stress` (473 lines, 8 sections)
+  - 4.5.3. `performance_benchmark` (537 lines, 10 benchmarks)
+  - 4.5.4. Expanded `loader_processor_scenario` (+7 sections)
+  - 4.5.5. Expanded migration docs
+  - 4.5.6. Evidence: 16/16 tests
+
+- **4.6. Documentation Audit & Polish**
+  - **4.6.1. API Mismatch Fixes**
+    - Fixed 14 API mismatches across 6 doc files
+    - Updated `api_reference`, `validation_report`, README test counts, storage caveats
+    - Evidence: 16/16 tests
+  - **4.6.2. Namespace Topology**
+    - Created `namespace_topology.md`
+    - Merged snippets into `legacy_to_wrapper.md`
+    - Expanded quick reference
+    - Added Section 21 deviation disclaimer
+    - Full doc snippet audit: 0 compile-affecting mismatches
+    - Evidence: 16/16 tests
+
+---
+
+### 5. Release Engineering & Compatibility Matrix (P0.3, P9.3–P9.4, P10.8)
+
+- **5.1. Release Artifacts (P0.3.d, P4.7.d, P7.5, P6.5, P9.3, P9.4)**
+  - 5.1.1. CMake install/export/CPack
+  - 5.1.2. Compile-only API surface parity test
+  - 5.1.3. Advanced debugger/ui/graph/event validation (60 checks)
+  - 5.1.4. Loader/processor scenario test
+  - 5.1.5. Fixture README
+  - 5.1.6. Opaque boundary cleanup
+  - 5.1.7. Evidence: 13/13 CTest; CPack `idax-0.1.0-Darwin.tar.gz`
+
+- **5.2. Compatibility Matrix Baseline**
+  - 5.2.1. `scripts/run_validation_matrix.sh` + `docs/compatibility_matrix.md`
+  - 5.2.2. macOS arm64 AppleClang 17 (Release/RelWithDebInfo/compile-only/unit profiles)
+  - 5.2.3. Evidence: 16/16 full, 2/2 unit, compile-only pass
+
+- **5.3. Matrix Packaging Hardening**
+  - 5.3.1. Updated scripts for `cpack -B <build-dir>`
+  - 5.3.2. Evidence: 16/16 + `idax-0.1.0-Darwin.tar.gz`
+
+- **5.4. GitHub Actions CI (P10.8.d)**
+  - **5.4.1. Initial Workflow**
+    - Multi-OS `compile-only` + `unit` with SDK checkout
+  - **5.4.2. Multi-Layout Bootstrap**
+    - `IDASDK` resolution (`ida-cmake/`, `cmake/`, `src/cmake/`), recursive submodule checkout
+  - **5.4.3. Diagnostics**
+    - Bootstrap failure path printing for faster triage
+  - **5.4.4. Submodule Fix**
+    - Recursive submodule checkout for project repo too
+  - **5.4.5. Hosted-Matrix Stabilization**
+    - Removed retired `macos-13`
+    - Fixed cross-generator test invocation (`--config`/`-C`)
+    - Hardened SDK bridge include order (`<functional>`, `<locale>`, `<vector>`, `<type_traits>` before `pro.h`)
+  - **5.4.6. Example Addon Wiring**
+    - `IDAX_BUILD_EXAMPLE_ADDONS` through scripts and CI; validated locally
+  - **5.4.7. Tool-Port Wiring**
+    - `IDAX_BUILD_EXAMPLE_TOOLS` through scripts + CI
+    - Evidence: compile-only + 2/2 unit pass
+
+- **5.5. Linux Compiler Matrix**
+  - **5.5.1. P10.8.d Initial**
+    - GCC 13.3.0: pass
+    - Clang 18.1.3: fail (`std::expected` missing)
+    - Clang libc++ fallback: fail (SDK `pro.h` `snprintf` remap collision)
+  - **5.5.2. Clang Triage**
+    - Clang 18: fail (`__cpp_concepts=201907`)
+    - Clang 19: pass (`202002`)
+    - Addon/tool linkage blocked by missing `x64_linux_clang_64` SDK libs
+
+---
+
+### 6. Complex-Plugin Parity (entropyx)
+
+- **6.1. Gap Audit**
+  - 6.1.1. Compared idax with `/Users/int/dev/entropyx/ida-port`
+  - 6.1.2. Documented hard blockers: custom dock widgets, HT_VIEW/UI events, jump-to-address, segment type, plugin bootstrap
+
+- **6.2. Parity Planning**
+  - 6.2.1. Prioritized P0/P1 closure plan mapping entropyx usage
+
+- **6.3. P0 Gap Closure (6 gaps)**
+  - 6.3.1. **(#1)** Opaque `Widget` + dock widget APIs + `DockPosition` + `ShowWidgetOptions`
+  - 6.3.2. **(#2)** Handle-based widget event subscriptions
+  - 6.3.3. **(#3)** `on_cursor_changed` for `view_curpos`
+  - 6.3.4. **(#4)** `ui::jump_to`
+  - 6.3.5. **(#5)** `Segment::type()`/`set_type()` + expanded `Type` enum
+  - 6.3.6. **(#6)** `IDAX_PLUGIN` macro + `Action::icon` + `attach_to_popup()`
+  - 6.3.7. Refactored UI events to parameterized `EventListener` with token-range partitioning
+  - 6.3.8. Added `Plugin::init()`
+  - 6.3.9. Evidence: 16/16 tests
+
+- **6.4. Follow-Up Audit**
+  - 6.4.1. One remaining gap: no SDK-opaque API for Qt content attachment to `ida::ui::Widget` host panels
+
+- **6.5. Widget Host Bridge**
+  - 6.5.1. `WidgetHost`, `widget_host()`, `with_widget_host()` + headless-safe integration
+  - 6.5.2. Evidence: 16/16 tests
+
+- **6.6. P1 Closure**
+  - 6.6.1. `plugin::ActionContext` + context-aware callbacks
+  - 6.6.2. Generic `ida::ui` routing (`EventKind`, `Event`, `on_event`, `on_event_filtered`) with composite token unsubscribe
+  - 6.6.3. Evidence: 16/16 tests
+
+---
+
+### 7. SDK Parity Closure (Phase 10)
+
+- **7.1. Planning**
+  - 7.1.1. Comprehensive domain-by-domain SDK parity checklist (P10.0–P10.9) with matrix governance and evidence gates
+
+- **7.2. P10.0 — Coverage Matrix**
+  - 7.2.1. Created `docs/sdk_domain_coverage_matrix.md` with dual-axis matrices
+
+- **7.3. P10.1 — Error/Core/Diagnostics**
+  - 7.3.1. Fixed diagnostics counter data-race (atomic counters)
+  - 7.3.2. Expanded compile-only parity for UI/plugin symbols
+  - 7.3.3. Evidence: 16/16 tests
+
+- **7.4. P10.2 — Address/Data/Database**
+  - 7.4.1. Address traversal ranges (`code_items`/`data_items`/`unknown_bytes`, `next_defined`/`prev_defined`)
+  - 7.4.2. Data patch revert + expanded define helpers
+  - 7.4.3. Database open/load intent + metadata parity
+  - 7.4.4. Evidence: 16/16 tests
+
+- **7.5. P10.3 — Segment/Function/Instruction**
+  - 7.5.1. Segment: resize/move/comments/traversal
+  - 7.5.2. Function: update/reanalyze/item_addresses/frame_variable_by_name+offset/register_variables
+  - 7.5.3. Instruction: `OperandFormat`, `set_operand_format`, `operand_text`, jump classifiers
+  - 7.5.4. Evidence: 16/16 tests
+
+- **7.6. P10.4 — Metadata**
+  - 7.6.1. Name: `is_user_defined`, identifier validation
+  - 7.6.2. Xref: `ReferenceRange`, typed filters, range APIs
+  - 7.6.3. Comment: indexed edit/remove
+  - 7.6.4. Type: `CallingConvention`, function-type/enum construction, introspection, enum members
+  - 7.6.5. Entry: forwarder management
+  - 7.6.6. Fixup: flags/base/target, signed types, `in_range`
+  - 7.6.7. Evidence: 16/16 tests
+
+- **7.7. P10.5 — Search/Analysis**
+  - 7.7.1. `ImmediateOptions`, `BinaryPatternOptions`, `next_defined`, `next_error`
+  - 7.7.2. `schedule_code`/`schedule_function`/`schedule_reanalysis`/`schedule_reanalysis_range`, `cancel`, `revert_decisions`
+  - 7.7.3. Evidence: 16/16 tests
+
+- **7.8. P10.6 — Module Authoring**
+  - 7.8.1. Plugin: action detach helpers
+  - 7.8.2. Loader: `LoadFlags`/`LoadRequest`/`SaveRequest`/`MoveSegmentRequest`/`ArchiveMemberRequest`
+  - 7.8.3. Processor: `OutputContext` + context-driven hooks + descriptor/assembler checks
+  - 7.8.4. Evidence: 16/16 tests
+
+- **7.9. P10.7 — Domain-Specific Parity**
+  - **7.9.1. Storage (P10.7.e)**
+    - `open_by_id`, `id`, `name`
+    - Evidence: 16/16 tests
+  - **7.9.2. Debugger (P10.7.a)**
+    - Request-queue helpers, thread introspection/control, register introspection
+    - Evidence: 16/16 tests
+  - **7.9.3. UI (P10.7.b)**
+    - Custom-viewer wrappers, expanded UI/VIEW routing (`on_database_inited`, `on_current_widget_changed`, `on_view_*`, expanded `EventKind`/`Event`)
+    - Evidence: 16/16 tests
+  - **7.9.4. Graph (P10.7.c)**
+    - Viewer lifecycle/query helpers, `Graph::current_layout`
+    - Evidence: 16/16 tests
+  - **7.9.5. Decompiler (P10.7.d)**
+    - `retype_variable` by name/index, orphan-comment helpers
+    - Evidence: 16/16 tests
+
+- **7.10. P10.8–P10.9 — Closure & Evidence**
+  - **7.10.1. Docs/Validation (P10.8.a-c, P10.9.c)**
+    - Re-ran matrix profiles (full/unit/compile-only) on macOS arm64 AppleClang 17
+  - **7.10.2. Intentional Abstraction (P10.9.a-b)**
+    - Notes for cross-cutting/event rows (`ida::core`, `ida::diagnostics`, `ida::event`)
+    - No high-severity migration blockers confirmed
+  - **7.10.3. Matrix Packaging Refresh**
+    - Re-ran full+packaging after P10.7.d
+    - Evidence: 16/16 + `idax-0.1.0-Darwin.tar.gz`
+  - **7.10.4. Final Closure (P10.8.d/P10.9.d)**
+    - Audited hosted logs (Linux/macOS compile-only + unit, Windows compile-only)
+    - All confirmed pass
+    - **Phase 10: 100% complete**
+
+---
+
+### 8. Post-Phase-10: Port Audits & Parity Expansion
+
+- **8.1. JBC Full-Port Example**
+  - **8.1.1. Initial Port**
+    - Ported `ida-jam` into idax full examples (loader + procmod + shared header)
+    - Validated addon compilation
+  - **8.1.2. Matrix Evidence**
+    - compile-only pass, 2/2 unit pass
+  - **8.1.3. Parity Gaps (#80–#82)**
+    - `AnalyzeDetails`/`AnalyzeOperand` + `analyze_with_details`
+    - `OutputTokenKind`/`OutputToken` + `OutputContext::tokens()`
+    - `output_mnemonic_with_context`
+    - Default segment-register seeding helpers
+    - Updated JBC examples
+    - Evidence: 16/16 tests
+
+- **8.2. ida-qtform + idalib-dump Ports**
+  - 8.2.1. Ported into `examples/tools`
+  - 8.2.2. Gaps in `docs/port_gap_audit_ida_qtform_idalib_dump.md`
+  - 8.2.3. Evidence: 16/16 tests, tool targets compile
+
+- **8.3. ida2py Port**
+  - **8.3.1. Probe**
+    - `examples/tools/ida2py_port.cpp` + `docs/port_gap_audit_ida2py.md`
+    - Recorded gaps: name enumeration, type decomposition, typed-value, call arguments, Appcall
+    - Evidence: tool compiles + `--help` pass
+  - **8.3.2. Runtime Attempt**
+    - `exit:139` on both ida2py and idalib-dump ports
+    - Deferred runtime checks to known-good host
+
+- **8.4. Post-Port API Additions**
+  - **8.4.1. ask_form**
+    - Markup-only `ida::ui::ask_form(std::string_view)`
+    - Evidence: compile-only parity pass
+  - **8.4.2. Microcode Retrieval**
+    - `DecompiledFunction::microcode()`/`microcode_lines()`
+    - Wired in idalib-dump port
+    - Evidence: 16/16 tests
+  - **8.4.3. Decompile-Failure Details**
+    - `DecompileFailure` + `decompile(address, &failure)`
+    - Evidence: 16/16 tests
+  - **8.4.4. Plugin-Load Policy**
+    - `RuntimeOptions` + `PluginLoadPolicy` with allowlist wildcards
+    - Wired in idalib-dump port
+    - Evidence: compile-only parity pass
+  - **8.4.5. Database Metadata**
+    - `file_type_name`, `loader_format_name`, `compiler_info`, `import_modules`
+    - Wired in idalib-dump port
+    - Evidence: smoke + parity pass
+  - **8.4.6. Lumina Facade**
+    - `has_connection`/`pull`/`push`/`BatchResult`/`OperationCode`
+    - Close APIs → `Unsupported` (runtime dylibs don't export them)
+    - Evidence: smoke + parity pass
+  - **8.4.7. Name Inventory**
+    - `Entry`, `ListOptions`, `all`, `all_user_defined`
+    - Evidence: 2/2 targeted tests
+  - **8.4.8. TypeInfo Decomposition**
+    - `is_typedef`/`pointee_type`/`array_element_type`/`array_length`/`resolve_typedef`
+    - Evidence: 2/2 targeted tests
+  - **8.4.9. Call-Subexpression Accessors**
+    - `call_callee`/`call_argument(index)` on `ExpressionView`
+    - Evidence: 2/2 targeted tests
+  - **8.4.10. Typed-Value Facade**
+    - `TypedValue`/`TypedValueKind`/`read_typed`/`write_typed` with recursive array + byte-array/string write
+    - Evidence: 16/16 tests
+  - **8.4.11. Appcall + Executor Facade**
+    - `AppcallValue`/`AppcallRequest`/`appcall`/`cleanup_appcall`/`AppcallExecutor`/register/unregister/dispatch
+    - Evidence: 16/16 tests
+
+- **8.5. README Alignment**
+  - 8.5.1. Updated positioning, commands, examples, coverage messaging to match matrix artifacts
+
+---
+
+### 9. Lifter Port & Microcode Filter System
+
+- **9.1. Lifter Port Probe**
+  - 9.1.1. `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_lifter.md`
+  - 9.1.2. Plugin-shell/action/pseudocode-popup workflows
+
+- **9.2. Decompiler Maturity/Outline/Cache**
+  - 9.2.1. `on_maturity_changed`/`unsubscribe`/`ScopedSubscription`
+  - 9.2.2. `mark_dirty`/`mark_dirty_with_callers`
+  - 9.2.3. `is_outlined`/`set_outlined`
+  - 9.2.4. Evidence: targeted tests pass
+
+- **9.3. Microcode Filter Baseline**
+  - 9.3.1. `register_microcode_filter`/`unregister_microcode_filter`/`MicrocodeContext`/`MicrocodeApplyResult`/`ScopedMicrocodeFilter`
+  - 9.3.2. Evidence: 16/16 tests
+
+- **9.4. MicrocodeContext Emit Helpers**
+  - 9.4.1. `load_operand_register`/`load_effective_address_register`/`store_operand_register`
+  - 9.4.2. `emit_move_register`/`emit_load_memory_register`/`emit_store_memory_register`/`emit_helper_call`
+  - 9.4.3. Evidence: 16/16 tests
+
+- **9.5. Helper-Call Argument System**
+  - **9.5.1. Typed Arguments**
+    - `MicrocodeValueKind`/`MicrocodeValue`/`emit_helper_call_with_arguments[_to_register]` (integer widths)
+    - Evidence: 16/16 tests
+  - **9.5.2. Option Shaping**
+    - `MicrocodeCallOptions`/`MicrocodeCallingConvention`/`emit_helper_call_with_arguments_and_options[_to_register_and_options]`
+    - Evidence: 16/16 tests
+  - **9.5.3. Scalar FP + Explicit-Location**
+    - `Float32Immediate`/`Float64Immediate` + `mark_explicit_locations`
+    - Evidence: 16/16 tests
+  - **9.5.4. Argument-Location Hints (Progressive)**
+    - Register/stack-offset with auto-promotion → 16/16
+    - Register-pair + register-with-offset → 16/16
+    - Static-address (`BadAddress` validation) → 16/16
+    - Scattered/multi-part (`MicrocodeLocationPart`) → 16/16
+    - Register-relative (`ALOC_RREL` via `consume_rrel`) → 16/16
+  - **9.5.5. Value Kind Expansion**
+    - `ByteArray` (explicit-location enforcement) → 16/16
+    - `Vector` (element controls) → 16/16
+    - `TypeDeclarationView` (via `parse_decl`) → 16/16
+  - **9.5.6. Solid-Arg Inference**
+    - Default from argument list when omitted
+    - Evidence: 16/16 tests
+  - **9.5.7. Auto-Stack Placement**
+    - `auto_stack_start_offset`/`auto_stack_alignment` + validation
+    - Evidence: 16/16 tests
+  - **9.5.8. Insert-Policy Extension**
+    - `MicrocodeCallOptions::insert_policy`
+    - Evidence: 16/16 tests
+  - **9.5.9. Declaration-Driven Register Return**
+    - Return types + size matching + wider-register UDT marking
+    - Evidence: 16/16 tests
+  - **9.5.10. Declaration-Driven Register Arguments**
+    - Parse validation + size-match + integer-width fallback
+    - Evidence: 16/16 tests
+  - **9.5.11. Argument Metadata**
+    - `argument_name`/`argument_flags`/`MicrocodeArgumentFlag` + `FAI_RETPTR` → `FAI_HIDDEN` normalization
+    - Evidence: 16/16 tests
+  - **9.5.12. Return-Type Declaration**
+    - `return_type_declaration` via `parse_decl` + malformed-declaration validation
+    - Evidence: 16/16 tests
+  - **9.5.13. Return Fallback (Wider Widths)**
+    - Byte-array `tinfo_t` for widths > integer scalar
+    - Evidence: 16/16 tests
+  - **9.5.14. Memory-Source + Compare Dest**
+    - EA pointer args for memory sources; no-op for unsupported mask destinations
+    - Widened misc families (gather/scatter/compress/expand/popcnt/lzcnt/gfni/pclmul/aes/sha/movnt/movmsk/pmov/pinsert/extractps/insertps/pack/phsub/fmaddsub)
+    - Evidence: 16/16 tests
+  - **9.5.15. Operand Writeback**
+    - `emit_helper_call_with_arguments_to_operand[_and_options]` for compare/mask-destination flows
+    - Evidence: (via lifter follow-up validation)
+  - **9.5.16. tmop Destinations**
+    - `BlockReference`/`NestedInstruction` args + micro-operand destinations
+    - Evidence: (via lifter write-path closure)
+
+- **9.6. Callinfo Shaping**
+  - **9.6.1. FCI Flags**
+    - `mark_dead_return_registers`/`mark_spoiled_lists_optimized`/`mark_synthetic_has_call`/`mark_has_format_string`
+    - Evidence: 16/16 tests
+  - **9.6.2. Scalar Field Hints**
+    - `callee_address`/`solid_argument_count`/`call_stack_pointer_delta`/`stack_arguments_top` + validation
+    - Evidence: 16/16 tests
+  - **9.6.3. Role + Return-Location**
+    - `MicrocodeFunctionRole`/`function_role`/`return_location`
+    - Evidence: 16/16 tests
+  - **9.6.4. Passthrough-Subset Validation**
+    - Tightened to require subset of spoiled; return registers auto-merged
+    - Evidence: 16/16 tests
+  - **9.6.5. Coherence Test Hardening**
+    - Validation-first probes with combined pass-through + return-register shaping
+    - Evidence: 16/16 tests
+  - **9.6.6. Advanced List Shaping**
+    - Return/spoiled/passthrough/dead registers + visible-memory
+    - Subset validation
+    - Evidence: 16/16 tests
+
+- **9.7. Generic Typed Instruction Emission**
+  - **9.7.1. Baseline**
+    - `MicrocodeOpcode`/`MicrocodeOperandKind`/`MicrocodeOperand`/`MicrocodeInstruction`/`emit_instruction`/`emit_instructions`
+    - Covering: `mov`/`add`/`xdu`/`ldx`/`stx`/`fadd`/`fsub`/`fmul`/`fdiv`/`i2f`/`f2f`/`nop`
+    - Evidence: 16/16 tests
+  - **9.7.2. Placement-Policy Controls**
+    - `MicrocodeInsertPolicy`/`emit_instruction_with_policy`/`emit_instructions_with_policy`
+    - Evidence: 16/16 tests
+  - **9.7.3. Typed Operand Kinds (Progressive)**
+    - `BlockReference` + `block_index` validation → 16/16
+    - `NestedInstruction` + recursive/depth-limited → 16/16
+    - `LocalVariable` + `local_variable_index`/`offset` → 16/16
+  - **9.7.4. LocalVariable Value-Path**
+    - `MicrocodeValueKind::LocalVariable` + `local_variable_count()` guard; probe uses in `vzeroupper` with no-op fallback
+    - Evidence: 16/16 tests
+  - **9.7.5. LocalVariable Rewrite Consolidation**
+    - Shared `try_emit_local_variable_self_move` applied to `vzeroupper` + `vmxoff`
+    - Evidence: 16/16 tests
+
+- **9.8. Typed Opcode Expansion**
+  - **9.8.1. Packed Bitwise/Shift**
+    - `BitwiseAnd`/`BitwiseOr`/`BitwiseXor`/`ShiftLeft`/`ShiftRightLogical`/`ShiftRightArithmetic`
+    - Probe uses typed before helper fallback
+    - Evidence: 16/16 tests
+  - **9.8.2. Packed Integer Add/Sub**
+    - `MicrocodeOpcode::Subtract`; `vpadd*`/`vpsub*` typed-first + helper fallback
+    - Evidence: 16/16 tests
+  - **9.8.3. Packed Integer Saturating**
+    - `vpadds*`/`vpaddus*`/`vpsubs*`/`vpsubus*` via helper fallback alongside typed direct
+    - Evidence: 16/16 tests
+  - **9.8.4. Packed Integer Multiply**
+    - `MicrocodeOpcode::Multiply`; `vpmulld`/`vpmullq` typed + non-direct (`vpmullw`/`vpmuludq`/`vpmaddwd`) via helper
+    - Evidence: 16/16 tests
+  - **9.8.5. Two-Operand Binary Fix**
+    - Destination-implicit-left-source for add/sub/mul/bitwise/shift
+    - Evidence: 16/16 tests
+
+- **9.9. Richer Writable IR**
+  - 9.9.1. `RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference` operand/value kinds
+  - 9.9.2. Declaration-driven vector element typing
+  - 9.9.3. Callinfo list shaping (return/spoiled/passthrough/dead registers + visible-memory) with subset validation
+  - 9.9.4. Evidence: 16/16 tests
+
+- **9.10. Temporary Register Allocation**
+  - 9.10.1. `allocate_temporary_register`
+  - 9.10.2. Evidence: 16/16 tests
+
+- **9.11. Immediate Typed-Argument Declaration**
+  - 9.11.1. `UnsignedImmediate`/`SignedImmediate` with optional `type_declaration` + parse/size validation + width inference
+  - 9.11.2. Evidence: 16/16 tests
+
+- **9.12. Low-Level Emit Helpers**
+  - **9.12.1. Policy-Aware Placement**
+    - `emit_noop`/`move`/`load`/`store_with_policy`; routed existing helpers through policy defaults
+    - Evidence: 2/2 targeted tests
+  - **9.12.2. UDT Semantics**
+    - `mark_user_defined_type` overloads for move/load/store emit (with and without policy)
+    - Evidence: 16/16 tests
+  - **9.12.3. Store-Operand UDT**
+    - `store_operand_register(..., mark_user_defined_type)` overload
+    - Evidence: 16/16 tests
+
+- **9.13. Microcode Lifecycle Helpers**
+  - 9.13.1. `block_instruction_count`/`has_last_emitted_instruction`/`remove_last_emitted_instruction`
+  - 9.13.2. Index-based: `has_instruction_at_index`/`remove_instruction_at_index`
+  - 9.13.3. Evidence: (via lifter write-path closure 16/16)
+
+- **9.14. Decompiler-View Wrappers**
+  - 9.14.1. `DecompilerView`, `view_from_host`, `view_for_function`, `current_view`
+  - 9.14.2. Hardened missing-local assertions to failure-semantics
+  - 9.14.3. Removed persisting comment roundtrips to prevent fixture drift
+  - 9.14.4. Evidence: 16/16 tests
+
+- **9.15. Action-Context Host Bridges**
+  - 9.15.1. `widget_handle`/`focused_widget_handle`/`decompiler_view_handle` + scoped callbacks
+  - 9.15.2. Evidence: 16/16 tests
+
+- **9.16. INTERR: 50765 Stabilization**
+  - 9.16.1. Aggressive callinfo hints triggered decompiler internal error
+  - 9.16.2. Adjusted tests to validation-focused paths
+  - 9.16.3. Evidence: 16/16 tests
+
+---
+
+### 10. Lifter Probe: VMX + AVX Coverage
+
+- **10.1. VMX Subset**
+  - 10.1.1. No-op `vzeroupper` via typed emission
+  - 10.1.2. Helper-call lowering: `vmxon`/`vmxoff`/`vmcall`/`vmlaunch`/`vmresume`/`vmptrld`/`vmptrst`/`vmclear`/`vmread`/`vmwrite`/`invept`/`invvpid`/`vmfunc`
+  - 10.1.3. Evidence: plugin builds, 16/16 tests
+
+- **10.2. AVX Scalar Subset**
+  - **10.2.1. Basic Arithmetic/Conversion**
+    - `vadd`/`vsub`/`vmul`/`vdiv` `ss`/`sd`, `vcvtss2sd`, `vcvtsd2ss` via typed emission
+    - Evidence: 16/16 tests
+  - **10.2.2. Width Constraint**
+    - Constrained to XMM-width; docs updated
+  - **10.2.3. Min/Max/Sqrt/Move**
+    - `vmin`/`vmax`/`vsqrt`/`vmov` `ss`/`sd` via typed emission + helper-return
+    - Evidence: 16/16 tests
+  - **10.2.4. Memory-Destination Moves**
+    - Reordered to handle store before register-load
+    - Evidence: 16/16 tests
+
+- **10.3. AVX Packed Subset**
+  - **10.3.1. Math/Move**
+    - `vadd`/`vsub`/`vmul`/`vdiv` `ps`/`pd`, `vmov*` via typed emission + width heuristics
+    - Evidence: 16/16 tests
+  - **10.3.2. Min/Max/Sqrt**
+    - `vminps`/`vmaxps`/`vminpd`/`vmaxpd`, `vsqrtps`/`vsqrtpd` via helper-return
+    - Evidence: 16/16 tests
+  - **10.3.3. Conversions (Typed)**
+    - `vcvtps2pd`/`vcvtpd2ps`, `vcvtdq2ps`/`vcvtudq2ps`, `vcvtdq2pd`/`vcvtudq2pd`
+    - Evidence: 16/16 tests
+  - **10.3.4. Conversions (Helper-Fallback)**
+    - `vcvt*2dq/udq/qq/uqq` + truncating
+    - Evidence: 16/16 tests
+  - **10.3.5. Addsub/Horizontal**
+    - `vaddsub*`/`vhadd*`/`vhsub*` via helper-call
+    - Evidence: 16/16 tests
+  - **10.3.6. Variadic Bitwise/Permute/Blend**
+    - Mixed register/immediate forwarding
+    - Evidence: 16/16 tests
+  - **10.3.7. Variadic Shift/Rotate**
+    - `vps*`/`vprol*`/`vpror*`
+    - Evidence: 16/16 tests
+  - **10.3.8. Tolerant Compare/Misc**
+    - Broad families (`vcmp*`/`vpcmp*`/`vdpps`/`vround*`/`vbroadcast*`/`vextract*`/`vinsert*`/`vunpck*` etc.) with `NotHandled` degradation
+    - Evidence: 16/16 tests
+
+---
+
+### 11. Debugger & Appcall Runtime
+
+- **11.1. Debugger Backend APIs**
+  - 11.1.1. `BackendInfo`/`available_backends`/`current_backend`/`load_backend`
+  - 11.1.2. `request_start`/`request_attach`
+  - 11.1.3. Upgraded appcall-smoke to backend-aware + multi-path
+  - 11.1.4. Evidence: 2/2 targeted tests
+
+- **11.2. Appcall Runtime Evidence**
+  - **11.2.1. Initial Smoke**
+    - `--appcall-smoke` flow + `docs/appcall_runtime_validation.md`
+    - Evidence: tool compiles + `--help` pass
+  - **11.2.2. Tool-Port Linkage Hardening**
+    - Prefer real IDA dylibs, fallback to stubs
+    - Appcall-smoke fails gracefully (error 1552, not signal-11)
+  - **11.2.3. Hold-Mode Expansion**
+    - `--wait` fixture mode; still blocked (`start_process failed (-1)`)
+  - **11.2.4. Spawn+Attach Fallback**
+    - `attach_process` returns `-4`; host blocked at attach readiness
+  - **11.2.5. Queue-Drain Settling**
+    - Bounded multi-cycle `run_requests` + delays; host remains blocked
+
+- **11.3. Open-Point Automation**
+  - 11.3.1. `scripts/run_open_points.sh` + `scripts/build_appcall_fixture.sh` + multi-path Appcall launch bootstrap
+  - 11.3.2. Full matrix pass, Lumina pass
+  - 11.3.3. Appcall blocked: `start_process failed (-1)`
+  - **11.3.4. Refresh Sweeps**
+    - `build-open-points-surge6`: full=pass, appcall=blocked, lumina=pass
+    - Backend loaded, `start_process` rc `0` + still `NoProcess`, `attach_process` rc `-1` + still `NoProcess`
+
+---
+
+### 12. Blocker Status & Gap Tracking
+
+- **12.1. Blocker Precision Update**
+  - 12.1.1. Expanded `B-LIFTER-MICROCODE` description with concrete remaining closure points
+    - Callinfo/tmop depth
+    - Typed view ergonomics
+    - Operand-width metadata
+    - Fallback elimination
+    - Microblock mutation parity
+    - Stability hardening
+  - 12.1.2. `AGENTS.md` blocker section updated
+
+- **12.2. Lifter Source-Backed Gap Matrix**
+  - 12.2.1. P0: Generic instruction builder
+  - 12.2.2. P1: Callinfo depth
+  - 12.2.3. P2: Placement
+  - 12.2.4. P3: Typed view ergonomics
+
+- **12.3. Lifter Follow-Up Validation**
+  - 12.3.1. Re-ran targeted suites (`api_surface_parity`, `instruction_decode_behavior`, `decompiler_storage_hardening`) + full CTest
+  - 12.3.2. All passing after structured operand metadata + helper-call operand-writeback + lifecycle helpers
+  - 12.3.3. Evidence: 16/16 tests
+
+- **12.4. Lifter Write-Path Closure Increment**
+  - 12.4.1. Helper-call tmop shaping (`BlockReference`/`NestedInstruction` args + micro-operand destinations)
+  - 12.4.2. Microblock index lifecycle (`has_instruction_at_index`/`remove_instruction_at_index`)
+  - 12.4.3. Typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`)
+  - 12.4.4. Updated lifter probe + docs
+  - 12.4.5. Evidence: targeted + full CTest pass (16/16)
+
+- **12.5. Decompiler-View Test Hardening**
+  - 12.5.1. Missing-local assertions → failure-semantics (backend variance tolerance)
+  - 12.5.2. Removed persisting comment roundtrips → prevent fixture drift
+  - 12.5.3. Restored fixture side effects and revalidated
+  - 12.5.4. Evidence: 16/16 tests
+
+---
+
+## 16) In-Progress and Immediate Next Actions
+
+> **Tracking Policy:** This list tracks *active* and *queued* work items only. Once an item reaches completion (pass evidence recorded, docs updated, ledger entry written), it **must be removed** from this list and migrated to the Progress Ledger KB. Stale entries degrade signal — prune aggressively.
+
+---
+
+### 1. CI & Validation Infrastructure
+
+- **1.1. GitHub Actions Matrix (Default Path)**
+  - 1.1.1. **Action:** Keep `.github/workflows/validation-matrix.yml` as default cross-OS evidence path
+  - 1.1.2. **Scope:** `compile-only` + `unit` on every release-significant change
+  - 1.1.3. **Status:** Active / ongoing
+
+- **1.2. Host-Specific Hardening**
+  - 1.2.1. **Action:** Continue host-specific hardening runs where licenses/toolchains permit
+  - **1.2.2. Linux**
+    - 1.2.2.1. Keep Clang 19 as baseline evidence
+    - 1.2.2.2. Execute `full` rows with runtime installs when available
+  - **1.2.3. Windows**
+    - 1.2.3.1. Execute `full` rows with runtime installs when available
+  - 1.2.4. **Status:** Ongoing / license-gated
+
+---
+
+### 2. JBC & Processor Module Parity
+
+- **2.1. Validation Continuation**
+  - 2.1.1. **Action:** Continue validating JBC parity APIs against additional real-world procmod ports
+  - 2.1.2. **Scope:** Expand typed analyze/output metadata only when concrete migration evidence requires deeper fidelity
+  - 2.1.3. **Status:** Ongoing / evidence-driven
+
+---
+
+### 3. Lumina Hardening
+
+- **3.1. Beyond Pull/Push Baseline**
+  - 3.1.1. **Action:** Keep hardening `ida::lumina` behavior beyond now-passing pull/push smoke baseline
+  - 3.1.2. **Focus:** Close/disconnect semantics once portable runtime symbols are confirmed
+  - 3.1.3. **Blocker:** Runtime dylibs don't export `close_server_connection2`/`close_server_connections`
+  - 3.1.4. **Status:** Blocked on runtime symbol availability
+
+---
+
+### 4. Appcall Runtime Evidence
+
+- **4.1. Debugger-Capable Host Execution**
+  - 4.1.1. **Action:** Execute `docs/appcall_runtime_validation.md` on a debugger-capable host
+  - **4.1.2. Current Block State**
+    - 4.1.2.1. Backend loads successfully
+    - 4.1.2.2. `start_process` returns `0` + still `NoProcess`
+    - 4.1.2.3. `request_start` → no-process
+    - 4.1.2.4. `attach_process` returns `-1` + still `NoProcess`
+    - 4.1.2.5. `request_attach` → no-process
+  - 4.1.3. **Goal:** Convert block into pass evidence
+  - 4.1.4. **Follow-Up:** Expand Appcall argument/return kind coverage only where concrete ports require additional fidelity
+  - 4.1.5. **Status:** Blocked on debugger-capable host
+
+---
+
+### 5. Decompiler Write-Path Depth (Lifter-Class Ports)
+
+- **5.1. Strategic Priority**
+  - 5.1.1. **Action:** Prioritize post-P0/P1/P2 additive decompiler write-path depth for lifter-class ports
+
+- **5.2. Current Baseline (Achieved)**
+  - 5.2.1. Generic instruction emission
+  - 5.2.2. Typed/helper-call placement controls
+  - 5.2.3. Callinfo role/return-location shaping
+  - 5.2.4. Declaration-driven typed register-argument/return modeling
+  - 5.2.5. Optional argument metadata
+  - 5.2.6. Temporary-register allocation
+  - 5.2.7. Structured operand metadata
+  - 5.2.8. Helper-call operand writeback
+  - 5.2.9. Microblock index lifecycle helpers
+  - 5.2.10. Typed decompiler-view sessions
+
+- **5.3. Target Extension Surface**
+  - 5.3.1. Advanced vector/UDT semantics
+  - 5.3.2. Deeper callinfo/tmop semantics
+  - 5.3.3. Broader non-helper mutation parity
+  - 5.3.4. In-view advanced edit ergonomics
+
+- **5.4. Immediate Next Step**
+  - 5.4.1. Apply new tmop APIs directly to additional AVX/VMX handler branches in `examples/plugin/lifter_port_plugin.cpp`
+  - 5.4.2. **Goal:** Reduce helper fallback paths further
+  - 5.4.3. **Status:** Queued
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 
@@ -1604,54 +2835,7 @@ Normalization policy:
 
 ---
 
-## 20) Tracking Templates (Use Exactly)
-
-### 20.1 TODO Status Template
-
-Use this line format inside phase lists when status changes:
-- `[status] ID - short task summary - owner - timestamp`
-
-Status values:
-- `[ ]` pending
-- `[~]` in progress
-- `[x]` done
-- `[!]` blocked
-
-### 20.2 Progress Ledger Template
-
-`[YYYY-MM-DD HH:MM] scope - change - evidence`
-
-Examples:
-- `[2026-02-14 10:32] P2.2 - added patch/read wrappers - tests: data_patch_test.cpp passed`
-- `[2026-02-14 11:05] P3.3 - introduced iterable xref range - benchmark: 6.3% faster than baseline`
-
-### 20.3 Findings Template
-
-`[YYYY-MM-DD] domain - finding - impact - mitigation`
-
-Examples:
-- `[2026-02-14] function - chunk invalidation after resize - high - moved to stable ID handles`
-- `[2026-02-14] type - typedef recursion edge case - medium - add cycle detection in adapter`
-
-### 20.4 Decision Template
-
-`[YYYY-MM-DD] decision - rationale - alternatives considered - impact`
-
-### 20.5 Blocker Template
-
-- Blocker ID:
-- Date raised:
-- Scope impacted:
-- Severity:
-- Description:
-- Immediate mitigation:
-- Long-term mitigation:
-- Owner:
-- Next checkpoint:
-
----
-
-## 21) Compliance Reminder (Hard Requirement)
+## 20) Compliance Reminder (Hard Requirement)
 
 No task is complete until this file is updated.
 
@@ -1667,7 +2851,7 @@ If any of the above changes and `agents.md` is not updated immediately, the work
 
 ---
 
-## 22) Comprehensive Interface Blueprint (Detailed)
+## 21) Comprehensive Interface Blueprint (Detailed)
 
 This section explicitly records the interface-level design that was discussed. It is intentionally detailed so implementation can proceed with minimal ambiguity.
 
@@ -1695,7 +2879,7 @@ Scope and constraints for this section:
 - `ida::ui::message()` takes single `std::string_view`, not printf-style format args.
 - See `docs/namespace_topology.md` for the complete, authoritative type/function inventory.
 
-### 22.1 Diagnosis - Why the SDK feels unintuitive
+### 21.1 Diagnosis - Why the SDK feels unintuitive
 
 Core issues to solve:
 1. Naming chaos: mixed abbreviations (`segm`, `func`, `cmt`) and inconsistent prefixes.
@@ -1704,7 +2888,7 @@ Core issues to solve:
 4. Hidden dependencies: include-order constraints, pointer invalidation rules, sentinel-heavy semantics.
 5. Redundancy: multiple enumeration and access paths for the same concepts.
 
-### 22.2 Design philosophy
+### 21.2 Design philosophy
 
 1. Domain-driven namespacing.
 2. Self-documenting names and full words.
@@ -1713,7 +2897,7 @@ Core issues to solve:
 5. Iterable/range-first API for traversal-heavy tasks.
 6. Progressive disclosure: simple default path plus advanced options.
 
-### 22.3 Namespace architecture (detailed)
+### 21.3 Namespace architecture (detailed)
 
 ```text
 ida::
@@ -1726,7 +2910,7 @@ ida::
   storage (advanced)
 ```
 
-### 22.4 Cross-cutting public primitives
+### 21.4 Cross-cutting public primitives
 
 ```cpp
 namespace ida {
@@ -1759,9 +2943,9 @@ struct Error {
 }  // namespace ida
 ```
 
-### 22.5 Detailed interface sketches by namespace
+### 21.5 Detailed interface sketches by namespace
 
-#### 22.5.1 `ida::address`
+#### 21.5.1 `ida::address`
 
 ```cpp
 namespace ida::address {
@@ -1799,7 +2983,7 @@ UnknownRange unknown_bytes(Address start, Address end);
 }  // namespace ida::address
 ```
 
-#### 22.5.2 `ida::segment`
+#### 21.5.2 `ida::segment`
 
 ```cpp
 namespace ida::segment {
@@ -1868,7 +3052,7 @@ SegmentRange all();
 }  // namespace ida::segment
 ```
 
-#### 22.5.3 `ida::function`
+#### 21.5.3 `ida::function`
 
 ```cpp
 namespace ida::function {
@@ -1919,7 +3103,7 @@ FunctionRange all();
 }  // namespace ida::function
 ```
 
-#### 22.5.4 `ida::instruction`
+#### 21.5.4 `ida::instruction`
 
 ```cpp
 namespace ida::instruction {
@@ -1992,7 +3176,7 @@ Result<Instruction> create(Address ea);   // DB mutation
 }  // namespace ida::instruction
 ```
 
-#### 22.5.5 `ida::data`
+#### 21.5.5 `ida::data`
 
 ```cpp
 namespace ida::data {
@@ -2032,7 +3216,7 @@ Status undefine(Address ea, AddressSize count = 1);
 }  // namespace ida::data
 ```
 
-#### 22.5.6 `ida::name`
+#### 21.5.6 `ida::name`
 
 ```cpp
 namespace ida::name {
@@ -2065,7 +3249,7 @@ Result<std::string> sanitize_identifier(std::string_view text);
 }  // namespace ida::name
 ```
 
-#### 22.5.7 `ida::xref`
+#### 21.5.7 `ida::xref`
 
 ```cpp
 namespace ida::xref {
@@ -2108,7 +3292,7 @@ ReferenceRange data_refs_to(Address ea);
 }  // namespace ida::xref
 ```
 
-#### 22.5.8 `ida::type`
+#### 21.5.8 `ida::type`
 
 ```cpp
 namespace ida::type {
@@ -2161,7 +3345,7 @@ class TypeInfo {
 }  // namespace ida::type
 ```
 
-#### 22.5.9 `ida::comment`
+#### 21.5.9 `ida::comment`
 
 ```cpp
 namespace ida::comment {
@@ -2179,7 +3363,7 @@ Result<std::vector<std::string>> posterior_lines(Address ea);
 }  // namespace ida::comment
 ```
 
-#### 22.5.10 `ida::search`
+#### 21.5.10 `ida::search`
 
 ```cpp
 namespace ida::search {
@@ -2210,7 +3394,7 @@ Result<Address> next_error(Address ea);
 }  // namespace ida::search
 ```
 
-#### 22.5.11 `ida::analysis`
+#### 21.5.11 `ida::analysis`
 
 ```cpp
 namespace ida::analysis {
@@ -2232,7 +3416,7 @@ Status revert_decisions(Address start, Address end);
 }  // namespace ida::analysis
 ```
 
-#### 22.5.12 `ida::database`
+#### 21.5.12 `ida::database`
 
 ```cpp
 namespace ida::database {
@@ -2253,7 +3437,7 @@ Result<Address> maximum_address();
 }  // namespace ida::database
 ```
 
-#### 22.5.13 `ida::fixup`
+#### 21.5.13 `ida::fixup`
 
 ```cpp
 namespace ida::fixup {
@@ -2296,7 +3480,7 @@ FixupRange in_range(Address start, Address end);
 }  // namespace ida::fixup
 ```
 
-#### 22.5.14 `ida::entry`
+#### 21.5.14 `ida::entry`
 
 ```cpp
 namespace ida::entry {
@@ -2320,7 +3504,7 @@ Status set_forwarder(uint64_t ordinal, std::string_view target);
 }  // namespace ida::entry
 ```
 
-#### 22.5.15 `ida::plugin`
+#### 21.5.15 `ida::plugin`
 
 ```cpp
 namespace ida::plugin {
@@ -2360,7 +3544,7 @@ Status attach_action_to_toolbar(std::string_view toolbar,
 }  // namespace ida::plugin
 ```
 
-#### 22.5.16 `ida::loader`
+#### 21.5.16 `ida::loader`
 
 ```cpp
 namespace ida::loader {
@@ -2398,7 +3582,7 @@ Status register_loader(std::unique_ptr<Loader> loader);
 }  // namespace ida::loader
 ```
 
-#### 22.5.17 `ida::processor`
+#### 21.5.17 `ida::processor`
 
 ```cpp
 namespace ida::processor {
@@ -2453,7 +3637,7 @@ Status register_processor(std::unique_ptr<Processor> processor);
 }  // namespace ida::processor
 ```
 
-#### 22.5.18 `ida::debugger`
+#### 21.5.18 `ida::debugger`
 
 ```cpp
 namespace ida::debugger {
@@ -2546,7 +3730,7 @@ Result<AppcallResult> appcall_with_executor(std::string_view name,
 }  // namespace ida::debugger
 ```
 
-#### 22.5.19 `ida::ui`, `ida::graph`, `ida::event`
+#### 21.5.19 `ida::ui`, `ida::graph`, `ida::event`
 
 ```cpp
 namespace ida::event {
@@ -2569,7 +3753,7 @@ class ScopedSubscription {
 }  // namespace ida::event
 ```
 
-#### 22.5.20 `ida::decompiler`
+#### 21.5.20 `ida::decompiler`
 
 ```cpp
 namespace ida::decompiler {
@@ -2605,7 +3789,7 @@ class CtreeVisitor {
 }  // namespace ida::decompiler
 ```
 
-#### 22.5.21 `ida::storage` (advanced)
+#### 21.5.21 `ida::storage` (advanced)
 
 ```cpp
 namespace ida::storage {
@@ -2635,13 +3819,13 @@ class Node {
 }  // namespace ida::storage
 ```
 
-### 22.6 Refined implementation phasing (interface-first)
+### 21.6 Refined implementation phasing (interface-first)
 
 1. Core end-user analysis domains first (`address`, `data`, `segment`, `function`, `instruction`, `name`, `xref`, `comment`, `type`, `search`, `analysis`, `database`).
 2. Module-author domains next (`plugin`, `loader`, `processor`).
 3. High-complexity/interactive domains after (`debugger`, `decompiler`, `ui`, `graph`, `event`, `storage`).
 
-### 22.7 Proposed implementation layout (hybrid)
+### 21.7 Proposed implementation layout (hybrid)
 
 ```text
 include/ida/
@@ -2663,7 +3847,7 @@ examples/
   procmod/
 ```
 
-### 22.8 Compliance note for this section
+### 21.8 Compliance note for this section
 
 This section is part of the mandatory baseline. If interfaces evolve, this section must be updated immediately and corresponding updates must be logged in:
 - Phase TODO status
