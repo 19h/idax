@@ -297,9 +297,9 @@ be executed in small, testable API slices.
   `MicrocodeContext::local_variable_count`) for additive local-variable-aware
   rewrite paths.
 - Updated `examples/plugin/lifter_port_plugin.cpp` to consume
-  `MicrocodeOperandKind::LocalVariable` in a real rewrite path (`vzeroupper`)
-  by emitting a local-variable self-move when local variables are available,
-  with no-op fallback when not available.
+  `MicrocodeOperandKind::LocalVariable` in real rewrite paths
+  (`vzeroupper`, `vmxoff`) via a shared local-variable self-move helper,
+  preserving no-op/helper fallback behavior when locals are unavailable.
 - Expanded vector helper-call typing with declaration-driven element types,
   enabling richer non-scalar/UDT-style element modeling when concrete widths are
   validated.

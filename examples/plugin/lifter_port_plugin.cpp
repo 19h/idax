@@ -535,6 +535,35 @@ ida::decompiler::MicrocodeValue pointer_argument(int register_id) {
     return value;
 }
 
+ida::Result<bool> try_emit_local_variable_self_move(ida::decompiler::MicrocodeContext& context,
+                                                    int byte_width,
+                                                    std::int64_t local_variable_offset) {
+    auto local_variable_count = context.local_variable_count();
+    if (!local_variable_count) {
+        return std::unexpected(local_variable_count.error());
+    }
+    if (*local_variable_count <= 0) {
+        return false;
+    }
+
+    ida::decompiler::MicrocodeInstruction local_variable_echo;
+    local_variable_echo.opcode = ida::decompiler::MicrocodeOpcode::Move;
+    local_variable_echo.left.kind = ida::decompiler::MicrocodeOperandKind::LocalVariable;
+    local_variable_echo.left.local_variable_index = 0;
+    local_variable_echo.left.local_variable_offset = local_variable_offset;
+    local_variable_echo.left.byte_width = byte_width;
+    local_variable_echo.destination = local_variable_echo.left;
+
+    auto local_variable_status = context.emit_instruction(local_variable_echo);
+    if (local_variable_status) {
+        return true;
+    }
+    if (local_variable_status.error().category == ida::ErrorCategory::SdkFailure) {
+        return false;
+    }
+    return std::unexpected(local_variable_status.error());
+}
+
 ida::Status emit_vmx_no_operand_helper(ida::decompiler::MicrocodeContext& context,
                                        std::string_view helper_name) {
     return context.emit_helper_call_with_arguments_and_options(
@@ -549,23 +578,12 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
     const int integer_width = pointer_byte_width(instruction.address());
 
     if (mnemonic_lower == "vzeroupper") {
-        auto local_variable_count = context.local_variable_count();
-        if (local_variable_count && *local_variable_count > 0) {
-            ida::decompiler::MicrocodeInstruction local_variable_echo;
-            local_variable_echo.opcode = ida::decompiler::MicrocodeOpcode::Move;
-            local_variable_echo.left.kind = ida::decompiler::MicrocodeOperandKind::LocalVariable;
-            local_variable_echo.left.local_variable_index = 0;
-            local_variable_echo.left.local_variable_offset = 0;
-            local_variable_echo.left.byte_width = 1;
-            local_variable_echo.destination = local_variable_echo.left;
-
-            auto local_variable_status = context.emit_instruction(local_variable_echo);
-            if (local_variable_status) {
-                return true;
-            }
-            if (local_variable_status.error().category != ida::ErrorCategory::SdkFailure) {
-                return std::unexpected(local_variable_status.error());
-            }
+        auto local_variable_rewrite = try_emit_local_variable_self_move(context, 1, 0);
+        if (!local_variable_rewrite) {
+            return std::unexpected(local_variable_rewrite.error());
+        }
+        if (*local_variable_rewrite) {
+            return true;
         }
 
         auto st = context.emit_noop();
@@ -574,6 +592,11 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
     }
 
     if (mnemonic_lower == "vmxoff") {
+        auto local_variable_rewrite = try_emit_local_variable_self_move(context, 1, 0);
+        if (!local_variable_rewrite) {
+            return std::unexpected(local_variable_rewrite.error());
+        }
+
         auto st = emit_vmx_no_operand_helper(context, "__vmxoff");
         if (!st) return std::unexpected(st.error());
         return true;
