@@ -327,6 +327,10 @@ be executed in small, testable API slices.
   register-list and visible-memory controls (`return_registers`,
   `spoiled_registers`, `passthrough_registers`, `dead_registers`,
   `visible_memory_ranges`, `visible_memory_all`).
+- Tightened callinfo register-list validation semantics so
+  `passthrough_registers` must always be a subset of
+  `spoiled_registers` (not only when both lists were explicitly provided),
+  preventing contradictory pass/spoil combinations.
 - Expanded executable probe coverage from VMX-only lowering to include AVX
   scalar and packed math/move flows (`vadd*`/`vsub*`/`vmul*`/`vdiv*`, `vcvt*`,
   `vmin*`/`vmax*`, `vsqrt*`, `vmov*`) through typed instruction emission,

@@ -677,7 +677,6 @@ Status apply_call_options(minsn_t* root,
     }
 
     if (!options.passthrough_registers.empty()
-        && !options.spoiled_registers.empty()
         && !info->spoiled.includes(info->pass_regs)) {
         return std::unexpected(Error::validation(
             "passthrough_registers must be a subset of spoiled_registers",
