@@ -1053,6 +1053,115 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_register_pair_argument;
+        bad_register_pair_argument.kind = ida::decompiler::MicrocodeValueKind::RegisterPair;
+        bad_register_pair_argument.register_id = 0;
+        bad_register_pair_argument.second_register_id = -1;
+        bad_register_pair_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_register_pair_args{bad_register_pair_argument};
+
+        auto bad_register_pair_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_register_pair_args);
+        if (!bad_register_pair_helper
+            && bad_register_pair_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_global_address_argument;
+        bad_global_address_argument.kind = ida::decompiler::MicrocodeValueKind::GlobalAddress;
+        bad_global_address_argument.global_address = ida::BadAddress;
+        bad_global_address_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_global_address_args{bad_global_address_argument};
+
+        auto bad_global_address_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_global_address_args);
+        if (!bad_global_address_helper
+            && bad_global_address_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_stack_variable_argument;
+        bad_stack_variable_argument.kind = ida::decompiler::MicrocodeValueKind::StackVariable;
+        bad_stack_variable_argument.stack_offset = 0;
+        bad_stack_variable_argument.byte_width = 0;
+        std::vector<ida::decompiler::MicrocodeValue> bad_stack_variable_args{bad_stack_variable_argument};
+
+        auto bad_stack_variable_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_stack_variable_args);
+        if (!bad_stack_variable_helper
+            && bad_stack_variable_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_helper_reference_argument;
+        bad_helper_reference_argument.kind = ida::decompiler::MicrocodeValueKind::HelperReference;
+        bad_helper_reference_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_helper_reference_args{bad_helper_reference_argument};
+
+        auto bad_helper_reference_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_helper_reference_args);
+        if (!bad_helper_reference_helper
+            && bad_helper_reference_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeInstruction bad_block_reference_instruction;
+        bad_block_reference_instruction.opcode = ida::decompiler::MicrocodeOpcode::Move;
+        bad_block_reference_instruction.left.kind = ida::decompiler::MicrocodeOperandKind::BlockReference;
+        bad_block_reference_instruction.left.block_index = -1;
+        bad_block_reference_instruction.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_block_reference_instruction.destination.register_id = 0;
+        bad_block_reference_instruction.destination.byte_width = 4;
+
+        auto bad_block_reference_emit = context.emit_instruction(bad_block_reference_instruction);
+        if (!bad_block_reference_emit
+            && bad_block_reference_emit.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeCallOptions bad_visible_memory_combo_options;
+        bad_visible_memory_combo_options.visible_memory_all = true;
+        ida::decompiler::MicrocodeMemoryRange bad_visible_memory_combo_range;
+        bad_visible_memory_combo_range.address = 0x1000;
+        bad_visible_memory_combo_range.byte_size = 16;
+        bad_visible_memory_combo_options.visible_memory_ranges.push_back(
+            bad_visible_memory_combo_range);
+
+        auto bad_visible_memory_combo = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, bad_visible_memory_combo_options);
+        if (!bad_visible_memory_combo
+            && bad_visible_memory_combo.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeCallOptions bad_visible_memory_range_options;
+        ida::decompiler::MicrocodeMemoryRange bad_visible_memory_range_entry;
+        bad_visible_memory_range_entry.address = ida::BadAddress;
+        bad_visible_memory_range_entry.byte_size = 16;
+        bad_visible_memory_range_options.visible_memory_ranges.push_back(
+            bad_visible_memory_range_entry);
+
+        auto bad_visible_memory_range = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, bad_visible_memory_range_options);
+        if (!bad_visible_memory_range
+            && bad_visible_memory_range.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeCallOptions bad_register_range_options;
+        ida::decompiler::MicrocodeRegisterRange bad_register_range_entry;
+        bad_register_range_entry.register_id = -1;
+        bad_register_range_entry.byte_width = 8;
+        bad_register_range_options.return_registers.push_back(
+            bad_register_range_entry);
+
+        auto bad_register_range = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, bad_register_range_options);
+        if (!bad_register_range
+            && bad_register_range.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto nop = context.emit_noop();
         if (!nop) {
             saw_emit_failure = true;
