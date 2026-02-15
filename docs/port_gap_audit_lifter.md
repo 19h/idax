@@ -35,6 +35,8 @@ to idax-first surfaces.
   `vaddsubps/vaddsubpd`, `vhaddps/vhaddpd`, `vhsubps/vhsubpd`,
   typed `vpadd*`/`vpsub*` integer add/sub direct forms
   (with helper fallback for memory-source and saturating variants),
+  typed `vpmulld`/`vpmullq` integer multiply direct forms
+  (with helper fallback for `vpmullw`/`vpmuludq`/`vpmaddwd` variants),
   typed `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*`
   (with helper fallback for `*andn*` forms),
   helper-fallback `vblend*/vpblend*` + `vshuf*/vperm*` families,

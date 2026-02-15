@@ -1129,6 +1129,9 @@ void check_decompiler_surface() {
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSubscription>);
     (void)ida::decompiler::MicrocodeApplyResult::NotHandled;
     (void)ida::decompiler::MicrocodeApplyResult::Handled;
+    (void)ida::decompiler::MicrocodeOpcode::Add;
+    (void)ida::decompiler::MicrocodeOpcode::Subtract;
+    (void)ida::decompiler::MicrocodeOpcode::Multiply;
     (void)ida::decompiler::MicrocodeOpcode::Move;
     (void)ida::decompiler::MicrocodeOpcode::LoadMemory;
     (void)ida::decompiler::MicrocodeOpcode::BitwiseOr;

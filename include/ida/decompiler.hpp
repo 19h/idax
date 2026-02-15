@@ -105,6 +105,7 @@ enum class MicrocodeOpcode : int {
     Move,
     Add,
     Subtract,
+    Multiply,
     ZeroExtend,
     LoadMemory,
     StoreMemory,

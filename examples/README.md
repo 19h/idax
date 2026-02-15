@@ -101,6 +101,8 @@ with typed microcode emission for scalar/packed AVX lowering
 `vminps/vmaxps/vminpd/vmaxpd`, `vsqrtps/vsqrtpd`,
 `vaddsubps/vaddsubpd`, `vhaddps/vhaddpd`, `vhsubps/vhsubpd`,
 typed `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*` (with helper fallback for `*andn*` forms),
+typed `vpadd*`/`vpsub*` integer add/sub direct forms (with helper fallback for memory-source/saturating variants),
+typed `vpmulld`/`vpmullq` integer multiply direct forms (with helper fallback for `vpmullw`/`vpmuludq`/`vpmaddwd` variants),
 `vblend*/vpblend*`, `vshuf*/vperm*` helper-fallback families,
 typed `vps*` shift forms with helper fallback for `vpror*`/`vprol*` and mixed variants,
 `vcmp*`/`vpcmp*` compare helper-fallback families,
