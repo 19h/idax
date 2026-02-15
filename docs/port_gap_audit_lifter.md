@@ -37,6 +37,8 @@ to idax-first surfaces.
   (with helper fallback for memory-source and saturating variants),
   typed `vpmulld`/`vpmullq` integer multiply direct forms
   (with helper fallback for `vpmullw`/`vpmuludq`/`vpmaddwd` variants),
+  with typed binary paths accepting both three-operand and destination-implicit
+  two-operand encodings,
   typed `vand*/vor*/vxor*`, `vpand*/vpor*/vpxor*`
   (with helper fallback for `*andn*` forms),
   helper-fallback `vblend*/vpblend*` + `vshuf*/vperm*` families,

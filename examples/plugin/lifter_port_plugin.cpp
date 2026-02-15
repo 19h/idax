@@ -890,7 +890,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     }
 
     auto try_emit_typed_binary = [&](ida::decompiler::MicrocodeOpcode opcode) -> ida::Result<bool> {
-        if (operand_count < 3) {
+        if (operand_count < 2) {
             return false;
         }
 
@@ -898,11 +898,19 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         if (!destination_reg) {
             return false;
         }
-        const auto source1_reg = context.load_operand_register(1);
-        if (!source1_reg) {
-            return false;
+
+        int source1_register = *destination_reg;
+        std::size_t source2_index = 1;
+        if (operand_count >= 3) {
+            const auto source1_reg = context.load_operand_register(1);
+            if (!source1_reg) {
+                return false;
+            }
+            source1_register = *source1_reg;
+            source2_index = 2;
         }
-        auto source2_operand = instruction.operand(2);
+
+        auto source2_operand = instruction.operand(source2_index);
         if (!source2_operand) {
             return false;
         }
@@ -910,7 +918,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
 
         ida::decompiler::MicrocodeOperand right{};
-        const auto source2_reg = context.load_operand_register(2);
+        const auto source2_reg = context.load_operand_register(static_cast<int>(source2_index));
         if (source2_reg) {
             right.kind = ida::decompiler::MicrocodeOperandKind::Register;
             right.register_id = *source2_reg;
@@ -919,7 +927,9 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         } else if (source2_operand->is_immediate()) {
             right.kind = ida::decompiler::MicrocodeOperandKind::UnsignedImmediate;
             right.unsigned_immediate = source2_operand->value();
-            int immediate_width = infer_operand_byte_width(instruction.address(), 2, 1);
+            int immediate_width = infer_operand_byte_width(instruction.address(),
+                                                           static_cast<int>(source2_index),
+                                                           1);
             if (immediate_width <= 0) {
                 immediate_width = 1;
             }
@@ -933,7 +943,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         instruction_ir.floating_point_instruction = false;
 
         instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
-        instruction_ir.left.register_id = *source1_reg;
+        instruction_ir.left.register_id = source1_register;
         instruction_ir.left.byte_width = destination_width;
         instruction_ir.left.mark_user_defined_type = destination_width > 8;
 
