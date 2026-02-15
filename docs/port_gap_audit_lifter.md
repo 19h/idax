@@ -372,9 +372,11 @@ be executed in small, testable API slices.
   `GlobalAddress`) before operand writeback fallback.
 - Began additive callinfo/tmop depth in executable probe helper paths:
   compare-family helper calls now use semantic role hints
-  (`MicrocodeFunctionRole::SseCompare4`/`SseCompare8` for `vcmp*` forms), and
-  variadic/VMX helper arguments now carry `argument_name` metadata for clearer
-  typed call-argument semantics.
+  (`MicrocodeFunctionRole::SseCompare4`/`SseCompare8` for
+  `vcmp*`/`vpcmp*` forms), rotate-family helper calls now use
+  `RotateLeft`/`RotateRight` role hints, and helper arguments across variadic,
+  VMX, and explicit scalar/packed helper paths carry `argument_name` metadata
+  for clearer typed call-argument semantics.
 
 ## Notes
 

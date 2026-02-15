@@ -788,7 +788,7 @@ Note:
     - 7.6.9.2. Derive missing count from total width when possible
   - 7.6.10. Coherence testing: success-path helper-call emissions in filters can trigger `INTERR` [F186]
     - 7.6.10.1. Prefer validation-first probes for deterministic assertions
-  - 7.6.11. Probe-level callinfo enrichment now applies compare semantic role hints and helper argument-name metadata across AVX/VMX helper paths [F199]
+  - 7.6.11. Probe-level callinfo enrichment now applies compare/rotate semantic role hints and helper argument-name metadata across variadic, AVX scalar/packed, and VMX helper paths [F199, F200]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -1736,6 +1736,10 @@ Note:
     - 14.7.11.1. **Decision:** Begin 5.3.2 depth work by adding semantic compare roles (`SseCompare4`/`SseCompare8` for `vcmp*`) and helper argument-name metadata in lifter probe helper-call paths
       - Rejected: Add aggressive purity/no-side-effect call flags during this slice (higher `INTERR` risk)
       - Rejected: Keep helper-call metadata absent until full callinfo DSL closure (slower parity progress)
+  - **14.7.12. Rotate/Metadata Callinfo Enrichment**
+    - 14.7.12.1. **Decision:** Extend additive callinfo hints with rotate semantic roles (`RotateLeft`/`RotateRight` for `vprol*`/`vpror*`) and broaden `argument_name` coverage to explicit scalar/packed helper-call paths in addition to variadic/VMX flows
+      - Rejected: Add return-location/value-location hints in this slice (higher mismatch risk without dedicated runtime probes)
+      - Rejected: Keep metadata scoped to variadic-only paths (slower callarg intent coverage)
 
 ---
 
@@ -2553,6 +2557,12 @@ Note:
   - 12.9.3. Updated lifter gap audit notes to record callinfo-depth kickoff semantics and metadata usage (`docs/port_gap_audit_lifter.md`).
   - 12.9.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
+- **12.10. Callinfo/tmop Depth Continuation (5.4.2/5.3.2)**
+  - 12.10.1. Extended `compare_call_options(...)` semantics in `examples/plugin/lifter_port_plugin.cpp` to include `vpcmp*` role mapping and rotate-family role hints (`RotateLeft`/`RotateRight` for `vprol*`/`vpror*`).
+  - 12.10.2. Expanded helper argument metadata (`argument_name`) across explicit scalar/packed helper-call flows (`vmin*`/`vmax*`/`vsqrt*`, helper-fallback packed conversions, packed addsub, packed min/max), complementing existing variadic/VMX metadata coverage.
+  - 12.10.3. Updated gap audit wording for broadened callinfo-depth semantics (`docs/port_gap_audit_lifter.md`).
+  - 12.10.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2637,9 +2647,9 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.3)**
+- **5.4. Immediate Execution Queue (Post-5.4.4)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
-  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond the initial compare-role/argument-metadata kickoff (per-family return typing, richer semantic role/location hints where concretely useful).
+  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata coverage (per-family return typing, richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
   - 5.4.4. **Status:** Queued
 

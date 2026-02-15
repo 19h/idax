@@ -498,10 +498,11 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
         }
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        const auto helper_options = compare_call_options(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_and_options(
             helper,
             store_args,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }
@@ -520,12 +521,13 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     }
 
     const std::string helper = "__" + std::string(mnemonic_lower);
+    const auto helper_options = compare_call_options(mnemonic_lower);
     auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
         helper,
         args,
         register_destination_operand(*destination_reg, destination_width),
         false,
-        vmx_call_options());
+        helper_options);
     if (!helper_status) {
         return std::unexpected(helper_status.error());
     }
@@ -583,15 +585,26 @@ ida::decompiler::MicrocodeCallOptions vmx_call_options() {
 
 ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower) {
     auto options = vmx_call_options();
-    if (mnemonic_lower.starts_with("vcmp")) {
+    if (mnemonic_lower.starts_with("vcmp") || mnemonic_lower.starts_with("vpcmp")) {
         if (mnemonic_lower.find("pd") != std::string_view::npos
-            || mnemonic_lower.find("sd") != std::string_view::npos) {
+            || mnemonic_lower.find("sd") != std::string_view::npos
+            || mnemonic_lower.find('q') != std::string_view::npos) {
             options.function_role = ida::decompiler::MicrocodeFunctionRole::SseCompare8;
         } else if (mnemonic_lower.find("ps") != std::string_view::npos
-                   || mnemonic_lower.find("ss") != std::string_view::npos) {
+                   || mnemonic_lower.find("ss") != std::string_view::npos
+                   || mnemonic_lower.find('d') != std::string_view::npos
+                   || mnemonic_lower.find('w') != std::string_view::npos
+                   || mnemonic_lower.find('b') != std::string_view::npos) {
             options.function_role = ida::decompiler::MicrocodeFunctionRole::SseCompare4;
         }
     }
+
+    if (mnemonic_lower.starts_with("vprol")) {
+        options.function_role = ida::decompiler::MicrocodeFunctionRole::RotateLeft;
+    } else if (mnemonic_lower.starts_with("vpror")) {
+        options.function_role = ida::decompiler::MicrocodeFunctionRole::RotateRight;
+    }
+
     return options;
 }
 
@@ -962,9 +975,17 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
         std::vector<ida::decompiler::MicrocodeValue> args;
         if (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
             || mnemonic_lower == "vminsd" || mnemonic_lower == "vmaxsd") {
-            args.push_back(register_argument(*source1_reg, scalar_width, false));
+            auto left_argument = register_argument(*source1_reg, scalar_width, false);
+            left_argument.argument_name = "left";
+            args.push_back(left_argument);
         }
-        args.push_back(register_argument(*source2_reg, scalar_width, false));
+        auto right_argument = register_argument(*source2_reg, scalar_width, false);
+        right_argument.argument_name =
+            (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
+             || mnemonic_lower == "vminsd" || mnemonic_lower == "vmaxsd")
+                ? "right"
+                : "source";
+        args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
@@ -1189,7 +1210,9 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             || mnemonic_lower.find("uqq") != std::string::npos;
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*source_reg, source_width, false));
+        auto source_argument = register_argument(*source_reg, source_width, false);
+        source_argument.argument_name = "source";
+        args.push_back(source_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
@@ -1260,7 +1283,9 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         }
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*source_reg, packed_width, false));
+        auto source_argument = register_argument(*source_reg, packed_width, false);
+        source_argument.argument_name = "source";
+        args.push_back(source_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
@@ -1295,8 +1320,12 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         }
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*source1_reg, packed_width, false));
-        args.push_back(register_argument(*source2_reg, packed_width, false));
+        auto left_argument = register_argument(*source1_reg, packed_width, false);
+        left_argument.argument_name = "left";
+        args.push_back(left_argument);
+        auto right_argument = register_argument(*source2_reg, packed_width, false);
+        right_argument.argument_name = "right";
+        args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
@@ -1328,8 +1357,12 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         }
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*source1_reg, packed_width, false));
-        args.push_back(register_argument(*source2_reg, packed_width, false));
+        auto left_argument = register_argument(*source1_reg, packed_width, false);
+        left_argument.argument_name = "left";
+        args.push_back(left_argument);
+        auto right_argument = register_argument(*source2_reg, packed_width, false);
+        right_argument.argument_name = "right";
+        args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
