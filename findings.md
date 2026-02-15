@@ -208,5 +208,9 @@ Format note: use a numbered list with one concrete technical finding per item; k
 203. Callinfo hardening should probe both positive and negative hint paths: success/backend-failure tolerance for micro/register destination routes, plus validation checks for negative register return locations and return-type-size mismatches.
 204. Compare helper operand-index writeback fallback should be constrained to unresolved destination shapes only (mask-register destinations and memory destinations lacking resolvable target addresses), while resolved destinations prefer typed micro-operand routing.
 205. Callinfo hardening coverage should include cross-route validation checks (`to_micro_operand`, `to_register`, `to_operand`) for invalid return-location register ids and return-type-size mismatches to prevent contract drift between helper emission APIs.
+206. When compare destinations are register-shaped but `load_operand_register(0)` fails, attempting a typed micro-operand register route using structured `Operand::register_id()` before operand-writeback fallback can recover additional handled cases while preserving unresolved-shape gating.
+207. For compare helper flows with resolved memory destinations, static-address `return_location` hints can be applied to typed `GlobalAddress` micro-destination routes; if a backend rejects the hint as validation, retrying without the hint preserves stable behavior.
+208. Callinfo hardening can extend positive/negative location validation to global-destination micro routes by asserting success-or-backend-failure for valid static-address hints and explicit `Validation` for `BadAddress` static return locations.
+209. Static-address return-location validation should be asserted across helper emission routes including `to_operand`; `BadAddress` static-location hints must fail with `Validation` consistently.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

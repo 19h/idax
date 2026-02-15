@@ -380,7 +380,13 @@ be executed in small, testable API slices.
   now also apply declaration-driven return typing (`vmread` register destination
   integer widths and scalar `vmin*`/`vmax*`/`vsqrt*` float/double returns),
   with explicit register `return_location` hints on stable register-destination
-  helper flows. Compare helper operand-index writeback fallback is now
+  helper flows. Compare helper routing now attempts typed register-destination
+  micro-operand emission from structured operand register ids before fallback,
+  applies static-address `return_location` hints on resolved-memory destination
+  micro-routes (with validation-safe fallback when unsupported),
+  and hardening coverage now validates static-location `BadAddress` rejection on
+  `to_operand` helper routes for cross-route contract consistency,
+  and operand-index writeback fallback is now
   constrained to unresolved destination shapes only (mask-register destination
   or memory destination without resolvable target address).
 
