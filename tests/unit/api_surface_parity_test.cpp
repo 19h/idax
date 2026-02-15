@@ -1092,6 +1092,26 @@ void check_decompiler_surface() {
         std::size_t, const ida::type::TypeInfo&);
     using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
     using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
+    using DecompilerViewFunctionNameFn = ida::Result<std::string>(ida::decompiler::DecompilerView::*)() const;
+    using DecompilerViewDecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(ida::decompiler::DecompilerView::*)() const;
+    using DecompilerViewRenameVariableFn = ida::Status(ida::decompiler::DecompilerView::*)(std::string_view, std::string_view) const;
+    using DecompilerViewRetypeByNameFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        std::string_view,
+        const ida::type::TypeInfo&) const;
+    using DecompilerViewRetypeByIndexFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        std::size_t,
+        const ida::type::TypeInfo&) const;
+    using DecompilerViewSetCommentFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        ida::Address,
+        std::string_view,
+        ida::decompiler::CommentPosition) const;
+    using DecompilerViewGetCommentFn = ida::Result<std::string>(ida::decompiler::DecompilerView::*)(
+        ida::Address,
+        ida::decompiler::CommentPosition) const;
+    using DecompilerViewStatusFn = ida::Status(ida::decompiler::DecompilerView::*)() const;
+    using ViewFromHostFn = ida::Result<ida::decompiler::DecompilerView>(*)(void*);
+    using ViewForFunctionFn = ida::Result<ida::decompiler::DecompilerView>(*)(ida::Address);
+    using CurrentViewFn = ida::Result<ida::decompiler::DecompilerView>(*)();
     using ExprCallArgCountFn = ida::Result<std::size_t>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallCalleeFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
@@ -1106,8 +1126,10 @@ void check_decompiler_surface() {
     using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextLocalVariableCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextBlockInstructionCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextHasInstructionAtIndexFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)(int) const;
     using MicrocodeContextHasLastEmittedFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextRemoveLastEmittedFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
+    using MicrocodeContextRemoveInstructionAtIndexFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
     using MicrocodeContextEmitNopWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         ida::decompiler::MicrocodeInsertPolicy);
@@ -1206,6 +1228,17 @@ void check_decompiler_surface() {
         int,
         bool,
         const ida::decompiler::MicrocodeCallOptions&);
+    using MicrocodeContextEmitHelperArgsToMicroOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        const ida::decompiler::MicrocodeOperand&,
+        bool);
+    using MicrocodeContextEmitHelperArgsToMicroOperandWithOptionsFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        std::string_view,
+        const std::vector<ida::decompiler::MicrocodeValue>&,
+        const ida::decompiler::MicrocodeOperand&,
+        bool,
+        const ida::decompiler::MicrocodeCallOptions&);
     using MicrocodeContextEmitHelperArgsToOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         std::string_view,
         const std::vector<ida::decompiler::MicrocodeValue>&,
@@ -1290,6 +1323,8 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeValueKind::GlobalAddress;
     (void)ida::decompiler::MicrocodeValueKind::StackVariable;
     (void)ida::decompiler::MicrocodeValueKind::HelperReference;
+    (void)ida::decompiler::MicrocodeValueKind::BlockReference;
+    (void)ida::decompiler::MicrocodeValueKind::NestedInstruction;
     (void)ida::decompiler::MicrocodeValueKind::Float32Immediate;
     (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
     (void)ida::decompiler::MicrocodeValueKind::ByteArray;
@@ -1329,6 +1364,8 @@ void check_decompiler_surface() {
     (void)value.global_address;
     (void)value.stack_offset;
     (void)value.helper_name;
+    (void)value.block_index;
+    (void)value.nested_instruction;
     (void)value.unsigned_immediate;
     (void)value.signed_immediate;
     (void)value.floating_immediate;
@@ -1403,8 +1440,10 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
     (void)static_cast<MicrocodeContextLocalVariableCountFn>(&ida::decompiler::MicrocodeContext::local_variable_count);
     (void)static_cast<MicrocodeContextBlockInstructionCountFn>(&ida::decompiler::MicrocodeContext::block_instruction_count);
+    (void)static_cast<MicrocodeContextHasInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::has_instruction_at_index);
     (void)static_cast<MicrocodeContextHasLastEmittedFn>(&ida::decompiler::MicrocodeContext::has_last_emitted_instruction);
     (void)static_cast<MicrocodeContextRemoveLastEmittedFn>(&ida::decompiler::MicrocodeContext::remove_last_emitted_instruction);
+    (void)static_cast<MicrocodeContextRemoveInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::remove_instruction_at_index);
     (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);
     (void)static_cast<MicrocodeContextEmitNopWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_noop_with_policy);
     (void)static_cast<MicrocodeContextLoadOperandFn>(&ida::decompiler::MicrocodeContext::load_operand_register);
@@ -1433,8 +1472,26 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register);
     (void)static_cast<MicrocodeContextEmitHelperArgsWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_and_options);
     (void)static_cast<MicrocodeContextEmitHelperArgsToRegWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options);
+    (void)static_cast<MicrocodeContextEmitHelperArgsToMicroOperandFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_micro_operand);
+    (void)static_cast<MicrocodeContextEmitHelperArgsToMicroOperandWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_micro_operand_and_options);
     (void)static_cast<MicrocodeContextEmitHelperArgsToOperandFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_operand);
     (void)static_cast<MicrocodeContextEmitHelperArgsToOperandWithOptionsFn>(&ida::decompiler::MicrocodeContext::emit_helper_call_with_arguments_to_operand_and_options);
+
+    ida::decompiler::DecompilerView view(ida::decompiler::DecompilerView::Tag{}, ida::BadAddress);
+    (void)view.function_address();
+    (void)static_cast<DecompilerViewFunctionNameFn>(&ida::decompiler::DecompilerView::function_name);
+    (void)static_cast<DecompilerViewDecompileFn>(&ida::decompiler::DecompilerView::decompiled_function);
+    (void)static_cast<DecompilerViewRenameVariableFn>(&ida::decompiler::DecompilerView::rename_variable);
+    (void)static_cast<DecompilerViewRetypeByNameFn>(&ida::decompiler::DecompilerView::retype_variable);
+    (void)static_cast<DecompilerViewRetypeByIndexFn>(&ida::decompiler::DecompilerView::retype_variable);
+    (void)static_cast<DecompilerViewSetCommentFn>(&ida::decompiler::DecompilerView::set_comment);
+    (void)static_cast<DecompilerViewGetCommentFn>(&ida::decompiler::DecompilerView::get_comment);
+    (void)static_cast<DecompilerViewStatusFn>(&ida::decompiler::DecompilerView::save_comments);
+    (void)static_cast<DecompilerViewStatusFn>(&ida::decompiler::DecompilerView::refresh);
+
+    (void)static_cast<ViewFromHostFn>(&ida::decompiler::view_from_host);
+    (void)static_cast<ViewForFunctionFn>(&ida::decompiler::view_for_function);
+    (void)static_cast<CurrentViewFn>(&ida::decompiler::current_view);
 }
 
 // ─── ida::storage ───────────────────────────────────────────────────────

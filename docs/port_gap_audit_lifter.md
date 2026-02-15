@@ -86,16 +86,16 @@ to idax-first surfaces.
       callinfo list shaping), but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
-3. Action context now has opaque host bridges, but typed decompiler-view
-   ergonomics are still pending
+3. Action context now has opaque host bridges and typed decompiler-view
+   session helpers for high-value edit/read workflows
    - lifter popup handlers rely on direct `vdui_t` / `cfunc_t` level handles.
-   - idax now provides scoped host access from action callbacks
-     (`with_widget_host`, `with_decompiler_view_host`) plus context host fields,
-     which unblocks practical advanced interop without exposing SDK types in
-     public headers.
-    - Impact: advanced workflows are now possible through opaque host bridges,
-      but typed first-class wrappers for high-value `vdui_t`/`cfunc_t` edit flows
-      are still additive follow-up work.
+    - idax now provides scoped host access from action callbacks
+      (`with_widget_host`, `with_decompiler_view_host`) plus context host fields,
+      and first-class typed wrappers (`DecompilerView`, `view_from_host`,
+      `view_for_function`, `current_view`) for variable/comment/refresh flows.
+    - Impact: advanced workflows no longer require raw host-pointer handling for
+      common edit/read tasks. Remaining work is deeper in-view mutation breadth,
+      not baseline typed access.
 
 ## Comprehensive source-backed gap matrix (current)
 
@@ -171,8 +171,12 @@ be executed in small, testable API slices.
   - Per-argument metadata is now partially covered through
     `MicrocodeValue::argument_name` and `MicrocodeValue::argument_flags`
     (`MicrocodeArgumentFlag` bitmask values) mapped to callarg metadata.
+  - `MicrocodeValue` now also supports tmop-oriented helper-call arguments via
+    `BlockReference` and `NestedInstruction`, and helper-call destinations can
+    be authored with typed micro-operands through
+    `emit_helper_call_with_arguments_to_micro_operand[_and_options]`.
   - Remaining depth is richer typed callinfo/tmop authoring controls beyond
-  current option-hint shaping.
+    current option-hint shaping (especially broader non-helper rewrite parity).
 - Migration impact:
   - medium/high. Many helper-call flows are now possible, but complex callinfo
     parity still requires raw SDK.
@@ -187,9 +191,9 @@ be executed in small, testable API slices.
     and lifetime ownership transfer expectations for emitted instructions.
 - Current idax status:
   - partial, with a baseline closure increment. `MicrocodeContext` now exposes
-    deterministic placement policy controls for typed instruction emission via
-    `MicrocodeInsertPolicy` (`Tail`, `Beginning`, `BeforeTail`) and
-    `emit_instruction_with_policy`/`emit_instructions_with_policy`.
+  deterministic placement policy controls for typed instruction emission via
+  `MicrocodeInsertPolicy` (`Tail`, `Beginning`, `BeforeTail`) and
+  `emit_instruction_with_policy`/`emit_instructions_with_policy`.
   - Placement controls now also cover key low-level emit helpers through
     `emit_noop_with_policy`, `emit_move_register_with_policy`,
     `emit_load_memory_register_with_policy`, and
@@ -200,6 +204,9 @@ be executed in small, testable API slices.
   - Remaining depth is demand-driven parity expansion for any additional
     emission paths not yet policy-aware. Helper-call insertion also supports
     `insert_policy` through `MicrocodeCallOptions`.
+  - Lifecycle ergonomics now include block index query/removal
+    (`has_instruction_at_index`, `remove_instruction_at_index`) in addition to
+    tracked-last-emitted helpers.
 - Migration impact:
   - medium. Some deterministic rewrite ordering patterns cannot be expressed
     through public APIs yet.
@@ -211,12 +218,13 @@ be executed in small, testable API slices.
 - Pattern used in lifter:
   - direct `vdui_t*` context use in popup workflows.
 - Current idax status:
-  - partial but much improved. `ActionContext` now includes opaque view/widget
-    handles with scoped host callbacks; this is sufficient for advanced interop
-    without exposing SDK types. Pure typed first-class decompiler-view edit APIs
-    remain additive follow-up.
+  - partially closed with typed baseline coverage. `ActionContext` includes
+    opaque view/widget handles with scoped host callbacks, and
+    `ida::decompiler::DecompilerView` now provides typed wrappers for
+    high-value edit/read workflows without exposing SDK view types.
 - Migration impact:
-  - medium. Bridge path exists now; typed ergonomics remain a convenience gap.
+  - low/medium. Bridge path + typed wrappers cover common flows; remaining work
+    is deeper in-view mutation breadth for specialized ports.
 
 ## Prioritized additive API slices for lifter closure
 
@@ -347,6 +355,16 @@ be executed in small, testable API slices.
 - Added action-context host bridges for advanced decompiler popup workflows:
   `ActionContext::{widget_handle, focused_widget_handle, decompiler_view_handle}`
   plus scoped helpers `with_widget_host` / `with_decompiler_view_host`.
+- Added typed decompiler-view session wrappers for high-value edit/read flows:
+  `DecompilerView`, `view_from_host`, `view_for_function`, `current_view`
+  with wrappers for rename/retype/comment/save/refresh operations.
+- Added microblock index-level lifecycle helpers:
+  `MicrocodeContext::has_instruction_at_index` and
+  `MicrocodeContext::remove_instruction_at_index`.
+- Expanded helper-call tmop shaping with typed micro-operand destinations
+  (`emit_helper_call_with_arguments_to_micro_operand[_and_options]`) and
+  additional typed call-argument value kinds (`BlockReference`,
+  `NestedInstruction`).
 
 ## Notes
 
@@ -354,6 +372,7 @@ be executed in small, testable API slices.
   (pseudocode text, ctree traversal, variable edits, comments, microcode text
   extraction) and supports partial lifter diagnostics.
 - The blocker set is concentrated in decompiler write-path depth and advanced
-  per-view handle access, not in plugin bootstrapping or basic action ergonomics.
+  decompiler write-path depth and deeper in-view mutation breadth, not in plugin
+  bootstrapping or basic action ergonomics.
 - The port probe intentionally keeps all interactions SDK-opaque and additive,
   so every listed gap corresponds to a concrete missing public wrapper surface.

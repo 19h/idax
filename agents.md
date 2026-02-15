@@ -1764,10 +1764,6 @@ Note:
 
 ## 15) Progress Ledger (Live)
 
-# IDAX Progress Ledger — Hierarchical Knowledge Base
-
----
-
 ### 1. Foundation (Planning, Documentation, Core Build)
 
 - **1.1. Program Planning**
