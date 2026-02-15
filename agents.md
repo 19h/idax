@@ -879,7 +879,7 @@ Note:
   - 8.7.6. Widened misc families [extended]
     - 8.7.6.1. gather/scatter/compress/expand/popcnt/lzcnt/gfni/pclmul/aes/sha
     - 8.7.6.2. movnt/movmsk/pmov/pinsert/extractps/insertps/pack/phsub/fmaddsub
-  - 8.7.7. Helper-return destination routing now prefers typed micro-operands (register/direct-memory `GlobalAddress`) with operand-writeback fallback for unresolved shapes [F196]
+  - 8.7.7. Helper-return destination routing now prefers typed micro-operands (register/resolved-memory `GlobalAddress`) with operand-writeback fallback for unresolved shapes [F196, F198]
     - 8.7.7.1. Integration hardening now exercises both typed helper-return destination success routes (`Register`, `GlobalAddress`) in `decompiler_storage_hardening` with post-emit cleanup via `remove_last_emitted_instruction` [F197]
 
 ---
@@ -1727,6 +1727,10 @@ Note:
     - 14.7.9.1. **Decision:** Treat unsupported compare mask-destinations as no-op in fallback
       - Rejected: Hard-fail on non-register (destabilizing)
       - Rejected: Defer compare expansion entirely (slower parity)
+  - **14.7.10. Resolved-Memory Destination Routing**
+    - 14.7.10.1. **Decision:** Expand helper-return micro-operand destination routing from `MemoryDirect`-only to any memory operand with a resolved target address (`target_address != BadAddress`) mapped as `GlobalAddress`
+      - Rejected: Keep `MemoryDirect`-only routing (unnecessary operand-writeback fallback)
+      - Rejected: Force all memory destinations through operand-index writeback (weaker typed destination coverage)
 
 ---
 
@@ -2533,6 +2537,11 @@ Note:
   - 12.7.3. Added post-emit cleanup checks (`remove_last_emitted_instruction`) to keep mutation flows deterministic while exercising success paths.
   - 12.7.4. Evidence: `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` → `196 passed, 0 failed`.
 
+- **12.8. Lifter tmop Adoption (5.4.2) — Resolved-Memory Expansion**
+  - 12.8.1. Expanded `examples/plugin/lifter_port_plugin.cpp` helper-return destination routing to treat any memory operand with a resolved target address as typed `GlobalAddress` (not just `MemoryDirect`) before operand-index writeback fallback.
+  - 12.8.2. Updated lifter gap documentation wording to reflect resolved-memory destination routing (`docs/port_gap_audit_lifter.md`) and refreshed plugin gap report text.
+  - 12.8.3. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin`, `cmake --build build-matrix-unit-examples-local --target idax_api_surface_check idax_decompiler_storage_hardening_test`, and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` all pass (`196 passed, 0 failed`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2617,7 +2626,7 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.2)**
+- **5.4. Immediate Execution Queue (Post-5.4.3)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
   - 5.4.2. Begin 5.3.2 depth work with additive callinfo/tmop semantics for AVX/VMX helper paths (per-family return typing, argument metadata, semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).

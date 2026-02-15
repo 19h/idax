@@ -611,8 +611,7 @@ std::optional<ida::decompiler::MicrocodeOperand> global_destination_operand(
     if (!operand) {
         return std::nullopt;
     }
-    if (operand->type() != ida::instruction::OperandType::MemoryDirect
-        || operand->target_address() == ida::BadAddress) {
+    if (!operand->is_memory() || operand->target_address() == ida::BadAddress) {
         return std::nullopt;
     }
 
@@ -1461,7 +1460,7 @@ ida::Status show_gap_report() {
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
         "  1) VMX + AVX scalar/packed microcode lifting subsets are now active via idax filter hooks.\n"
         "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and helper-return\n"
-        "     destinations now prefer typed micro-operands (register/direct-memory) with deterministic operand-writeback fallback.\n"
+        "     destinations now prefer typed micro-operands (register/resolved-memory) with deterministic operand-writeback fallback.\n"
         "  3) Rich IR mutation depth is still additive follow-up (deeper vector/UDT semantics + advanced callinfo/tmop).\n"
         "  4) Typed decompiler-view helpers now bridge host handles to edit/read flows; deeper in-view mutation ergonomics\n"
         "     remain additive follow-up.\n"
