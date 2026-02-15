@@ -234,6 +234,35 @@ std::optional<ida::decompiler::MicrocodeOpcode> packed_conversion_opcode(std::st
     return std::nullopt;
 }
 
+std::optional<ida::decompiler::MicrocodeOpcode> packed_bitwise_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower == "vandps" || mnemonic_lower == "vandpd"
+        || mnemonic_lower == "vpand" || mnemonic_lower == "vpandd" || mnemonic_lower == "vpandq") {
+        return ida::decompiler::MicrocodeOpcode::BitwiseAnd;
+    }
+    if (mnemonic_lower == "vorps" || mnemonic_lower == "vorpd"
+        || mnemonic_lower == "vpor" || mnemonic_lower == "vpord" || mnemonic_lower == "vporq") {
+        return ida::decompiler::MicrocodeOpcode::BitwiseOr;
+    }
+    if (mnemonic_lower == "vxorps" || mnemonic_lower == "vxorpd"
+        || mnemonic_lower == "vpxor" || mnemonic_lower == "vpxord" || mnemonic_lower == "vpxorq") {
+        return ida::decompiler::MicrocodeOpcode::BitwiseXor;
+    }
+    return std::nullopt;
+}
+
+std::optional<ida::decompiler::MicrocodeOpcode> packed_shift_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower.starts_with("vpsll") || mnemonic_lower.starts_with("vpshld")) {
+        return ida::decompiler::MicrocodeOpcode::ShiftLeft;
+    }
+    if (mnemonic_lower.starts_with("vpsrl") || mnemonic_lower.starts_with("vpshrd")) {
+        return ida::decompiler::MicrocodeOpcode::ShiftRightLogical;
+    }
+    if (mnemonic_lower.starts_with("vpsra")) {
+        return ida::decompiler::MicrocodeOpcode::ShiftRightArithmetic;
+    }
+    return std::nullopt;
+}
+
 bool is_packed_helper_conversion_mnemonic(std::string_view mnemonic_lower) {
     static const std::unordered_set<std::string> kSupported{
         "vcvttps2dq", "vcvtps2dq", "vcvttpd2dq", "vcvtpd2dq",
@@ -286,6 +315,15 @@ bool is_packed_helper_shift_mnemonic(std::string_view mnemonic_lower) {
     return kSupported.contains(std::string(mnemonic_lower));
 }
 
+bool is_packed_helper_store_like_mnemonic(std::string_view mnemonic_lower) {
+    return mnemonic_lower.starts_with("vscatter")
+        || mnemonic_lower.starts_with("vpscatter")
+        || mnemonic_lower.starts_with("vmaskmov")
+        || mnemonic_lower.starts_with("vmovnt")
+        || mnemonic_lower.starts_with("vcompress")
+        || mnemonic_lower.starts_with("vpcompress");
+}
+
 ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext& context,
                                               const ida::instruction::Instruction& instruction,
                                               std::string_view mnemonic_lower) {
@@ -293,6 +331,51 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     if (operand_count < 2) {
         return false;
     }
+
+    auto append_argument = [&](std::vector<ida::decompiler::MicrocodeValue>& args,
+                               std::size_t index,
+                               int fallback_width) -> bool {
+        auto operand = instruction.operand(index);
+        if (!operand) {
+            return false;
+        }
+
+        if (operand->is_immediate()) {
+            ida::decompiler::MicrocodeValue value;
+            value.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
+            value.unsigned_immediate = operand->value();
+            int immediate_width = infer_operand_byte_width(instruction.address(),
+                                                           static_cast<int>(index),
+                                                           4);
+            if (immediate_width <= 0) {
+                immediate_width = 4;
+            }
+            value.byte_width = immediate_width;
+            value.unsigned_integer = true;
+            args.push_back(value);
+            return true;
+        }
+
+        auto register_value = context.load_operand_register(static_cast<int>(index));
+        if (register_value) {
+            const int argument_width = infer_operand_byte_width(instruction.address(),
+                                                                static_cast<int>(index),
+                                                                fallback_width);
+            args.push_back(register_argument(*register_value, argument_width, false));
+            return true;
+        }
+
+        if (operand->is_memory()) {
+            auto address_register = context.load_effective_address_register(static_cast<int>(index));
+            if (!address_register) {
+                return false;
+            }
+            args.push_back(pointer_argument(*address_register));
+            return true;
+        }
+
+        return false;
+    };
 
     const auto destination_reg = context.load_operand_register(0);
     if (!destination_reg) {
@@ -303,7 +386,28 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
             return true;
         }
-        return false;
+
+        if (!is_packed_helper_store_like_mnemonic(mnemonic_lower)) {
+            return false;
+        }
+
+        std::vector<ida::decompiler::MicrocodeValue> store_args;
+        store_args.reserve(operand_count);
+        for (std::size_t index = 0; index < operand_count; ++index) {
+            if (!append_argument(store_args, index, 16)) {
+                return false;
+            }
+        }
+
+        const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_status = context.emit_helper_call_with_arguments_and_options(
+            helper,
+            store_args,
+            vmx_call_options());
+        if (!helper_status) {
+            return std::unexpected(helper_status.error());
+        }
+        return true;
     }
 
     const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
@@ -312,42 +416,9 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     args.reserve(operand_count > 0 ? operand_count - 1 : 0);
 
     for (std::size_t index = 1; index < operand_count; ++index) {
-        auto operand = instruction.operand(index);
-        if (!operand) {
-            return std::unexpected(operand.error());
-        }
-
-        if (operand->is_immediate()) {
-            ida::decompiler::MicrocodeValue value;
-            value.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
-            value.unsigned_immediate = operand->value();
-            int immediate_width = infer_operand_byte_width(instruction.address(), static_cast<int>(index), 4);
-            if (immediate_width <= 0) {
-                immediate_width = 4;
-            }
-            value.byte_width = immediate_width;
-            value.unsigned_integer = true;
-            args.push_back(value);
-            continue;
-        }
-
-        auto register_value = context.load_operand_register(static_cast<int>(index));
-        if (!register_value) {
-            if (operand->is_memory()) {
-                auto address_register = context.load_effective_address_register(static_cast<int>(index));
-                if (!address_register) {
-                    return false;
-                }
-                args.push_back(pointer_argument(*address_register));
-                continue;
-            }
+        if (!append_argument(args, index, destination_width)) {
             return false;
         }
-
-        const int argument_width = infer_operand_byte_width(instruction.address(),
-                                                            static_cast<int>(index),
-                                                            destination_width);
-        args.push_back(register_argument(*register_value, argument_width, false));
     }
 
     const std::string helper = "__" + std::string(mnemonic_lower);
@@ -776,6 +847,90 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return std::unexpected(emit_status.error());
         }
         return true;
+    }
+
+    auto try_emit_typed_binary = [&](ida::decompiler::MicrocodeOpcode opcode) -> ida::Result<bool> {
+        if (operand_count < 3) {
+            return false;
+        }
+
+        const auto destination_reg = context.load_operand_register(0);
+        if (!destination_reg) {
+            return false;
+        }
+        const auto source1_reg = context.load_operand_register(1);
+        if (!source1_reg) {
+            return false;
+        }
+        auto source2_operand = instruction.operand(2);
+        if (!source2_operand) {
+            return false;
+        }
+
+        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+
+        ida::decompiler::MicrocodeOperand right{};
+        const auto source2_reg = context.load_operand_register(2);
+        if (source2_reg) {
+            right.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            right.register_id = *source2_reg;
+            right.byte_width = destination_width;
+            right.mark_user_defined_type = destination_width > 8;
+        } else if (source2_operand->is_immediate()) {
+            right.kind = ida::decompiler::MicrocodeOperandKind::UnsignedImmediate;
+            right.unsigned_immediate = source2_operand->value();
+            int immediate_width = infer_operand_byte_width(instruction.address(), 2, 1);
+            if (immediate_width <= 0) {
+                immediate_width = 1;
+            }
+            right.byte_width = immediate_width;
+        } else {
+            return false;
+        }
+
+        ida::decompiler::MicrocodeInstruction instruction_ir;
+        instruction_ir.opcode = opcode;
+        instruction_ir.floating_point_instruction = false;
+
+        instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.left.register_id = *source1_reg;
+        instruction_ir.left.byte_width = destination_width;
+        instruction_ir.left.mark_user_defined_type = destination_width > 8;
+
+        instruction_ir.right = right;
+
+        instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        instruction_ir.destination.register_id = *destination_reg;
+        instruction_ir.destination.byte_width = destination_width;
+        instruction_ir.destination.mark_user_defined_type = destination_width > 8;
+
+        auto emit_status = context.emit_instruction(instruction_ir);
+        if (!emit_status) {
+            return std::unexpected(emit_status.error());
+        }
+        return true;
+    };
+
+    if (const auto bitwise_opcode = packed_bitwise_opcode(mnemonic_lower);
+        bitwise_opcode.has_value()) {
+        auto emitted = try_emit_typed_binary(*bitwise_opcode);
+        if (!emitted) {
+            return std::unexpected(emitted.error());
+        }
+        if (*emitted) {
+            return true;
+        }
+    }
+
+    if (const auto shift_opcode = packed_shift_opcode(mnemonic_lower);
+        shift_opcode.has_value()) {
+        auto emitted = try_emit_typed_binary(*shift_opcode);
+        if (!emitted) {
+            return std::unexpected(emitted.error());
+        }
+        if (*emitted) {
+            return true;
+        }
     }
 
     if (is_packed_helper_conversion_mnemonic(mnemonic_lower)) {

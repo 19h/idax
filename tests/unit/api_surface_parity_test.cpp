@@ -1131,6 +1131,12 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeApplyResult::Handled;
     (void)ida::decompiler::MicrocodeOpcode::Move;
     (void)ida::decompiler::MicrocodeOpcode::LoadMemory;
+    (void)ida::decompiler::MicrocodeOpcode::BitwiseOr;
+    (void)ida::decompiler::MicrocodeOpcode::BitwiseAnd;
+    (void)ida::decompiler::MicrocodeOpcode::BitwiseXor;
+    (void)ida::decompiler::MicrocodeOpcode::ShiftLeft;
+    (void)ida::decompiler::MicrocodeOpcode::ShiftRightLogical;
+    (void)ida::decompiler::MicrocodeOpcode::ShiftRightArithmetic;
     (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
     (void)ida::decompiler::MicrocodeOperandKind::Empty;
     (void)ida::decompiler::MicrocodeOperandKind::Register;
