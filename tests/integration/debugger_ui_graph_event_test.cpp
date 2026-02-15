@@ -364,6 +364,31 @@ void test_debugger_scoped_subscription() {
 void test_debugger_request_and_introspection() {
     std::printf("[section] debugger: request queue + introspection\n");
 
+    auto backends = ida::debugger::available_backends();
+    CHECK(backends.has_value(), "available_backends query ok");
+    if (backends) {
+        std::size_t loaded_count = 0;
+        for (const auto& backend : *backends) {
+            if (backend.loaded) {
+                ++loaded_count;
+            }
+        }
+        CHECK(loaded_count <= 1, "at most one debugger backend marked loaded");
+    }
+
+    auto current_backend = ida::debugger::current_backend();
+    CHECK(current_backend.has_value()
+              || (!current_backend
+                  && current_backend.error().category == ida::ErrorCategory::NotFound),
+          "current_backend returns backend or NotFound");
+
+    auto bad_backend = ida::debugger::load_backend("", false);
+    CHECK(!bad_backend.has_value(), "load_backend(empty) fails validation");
+    if (!bad_backend) {
+        CHECK(bad_backend.error().category == ida::ErrorCategory::Validation,
+              "load_backend(empty) => Validation");
+    }
+
     CHECK(!ida::debugger::request_run_to(ida::BadAddress).has_value(),
           "request_run_to rejects BadAddress");
 

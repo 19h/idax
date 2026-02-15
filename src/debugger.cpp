@@ -8,11 +8,140 @@
 #include <dbg.hpp>
 #include <expr.hpp>
 #include <idd.hpp>
+#include <loader.hpp>
+
+#include <cstring>
 #include <limits>
 #include <mutex>
 #include <unordered_map>
 
 namespace ida::debugger {
+
+namespace {
+
+std::string copy_cstr(const char* text) {
+    return text != nullptr ? std::string(text) : std::string();
+}
+
+bool backend_name_matches(const BackendInfo& backend, std::string_view name) {
+    if (!backend.name.empty() && name == backend.name)
+        return true;
+    return !backend.display_name.empty() && name == backend.display_name;
+}
+
+BackendInfo make_backend_info(const dbg_info_t& info, const debugger_t* current_dbg) {
+    BackendInfo out;
+    if (info.dbg != nullptr)
+        out.name = copy_cstr(info.dbg->name);
+    if (info.pi != nullptr)
+        out.display_name = copy_cstr(info.pi->name);
+    if (out.display_name.empty())
+        out.display_name = out.name;
+
+    if (info.dbg != nullptr) {
+        out.remote = (info.dbg->flags & DBG_FLAG_REMOTE) != 0;
+        out.supports_appcall = (info.dbg->flags & DBG_HAS_APPCALL) != 0;
+        out.supports_attach = (info.dbg->flags & DBG_HAS_ATTACH_PROCESS) != 0;
+    }
+
+    if (current_dbg != nullptr
+        && current_dbg->name != nullptr
+        && info.dbg != nullptr
+        && info.dbg->name != nullptr)
+    {
+        out.loaded = std::strcmp(current_dbg->name, info.dbg->name) == 0;
+        if (out.loaded) {
+            const bool current_remote = (current_dbg->flags & DBG_FLAG_REMOTE) != 0;
+            if (current_remote != out.remote)
+                out.loaded = false;
+        }
+    }
+
+    return out;
+}
+
+} // namespace
+
+Result<std::vector<BackendInfo>> available_backends() {
+    const dbg_info_t* infos = nullptr;
+    const size_t count = get_debugger_plugins(&infos);
+
+    std::vector<BackendInfo> out;
+    out.reserve(count);
+
+    if (infos == nullptr || count == 0)
+        return out;
+
+    for (size_t index = 0; index < count; ++index) {
+        const dbg_info_t& info = infos[index];
+        if (info.dbg == nullptr)
+            continue;
+        out.push_back(make_backend_info(info, dbg));
+    }
+
+    return out;
+}
+
+Result<BackendInfo> current_backend() {
+    if (dbg == nullptr)
+        return std::unexpected(Error::not_found("No debugger backend loaded"));
+
+    auto backends = available_backends();
+    if (!backends)
+        return std::unexpected(backends.error());
+
+    for (const BackendInfo& backend : *backends) {
+        if (backend.loaded)
+            return backend;
+    }
+
+    BackendInfo fallback;
+    fallback.name = copy_cstr(dbg->name);
+    fallback.display_name = fallback.name;
+    fallback.remote = (dbg->flags & DBG_FLAG_REMOTE) != 0;
+    fallback.supports_appcall = (dbg->flags & DBG_HAS_APPCALL) != 0;
+    fallback.supports_attach = (dbg->flags & DBG_HAS_ATTACH_PROCESS) != 0;
+    fallback.loaded = true;
+    return fallback;
+}
+
+Status load_backend(std::string_view backend_name, bool use_remote) {
+    if (backend_name.empty())
+        return std::unexpected(Error::validation("backend_name cannot be empty"));
+
+    std::string sdk_name(backend_name);
+    if (auto backends = available_backends(); backends) {
+        const BackendInfo* matched_exact = nullptr;
+        const BackendInfo* matched_any = nullptr;
+        for (const BackendInfo& backend : *backends) {
+            if (!backend_name_matches(backend, backend_name))
+                continue;
+            if (backend.remote == use_remote) {
+                matched_exact = &backend;
+                break;
+            }
+            if (matched_any == nullptr)
+                matched_any = &backend;
+        }
+
+        const BackendInfo* chosen = matched_exact != nullptr ? matched_exact : matched_any;
+        if (chosen != nullptr && !chosen->name.empty())
+            sdk_name = chosen->name;
+    }
+
+    if (sdk_name.empty()) {
+        return std::unexpected(Error::validation(
+            "Resolved debugger backend name is empty",
+            std::string(backend_name)));
+    }
+
+    if (!load_debugger(sdk_name.c_str(), use_remote)) {
+        return std::unexpected(Error::sdk(
+            "load_debugger failed",
+            "name='" + sdk_name + "' remote=" + (use_remote ? "true" : "false")));
+    }
+    return ida::ok();
+}
 
 // ── Session lifecycle ───────────────────────────────────────────────────
 
@@ -30,10 +159,32 @@ Status start(std::string_view path, std::string_view args,
     return ida::ok();
 }
 
+Status request_start(std::string_view path,
+                     std::string_view args,
+                     std::string_view working_dir) {
+    std::string sp(path), sa(args), sd(working_dir);
+    int rc = request_start_process(
+        sp.empty() ? nullptr : sp.c_str(),
+        sa.empty() ? nullptr : sa.c_str(),
+        sd.empty() ? nullptr : sd.c_str());
+    if (rc <= 0)
+        return std::unexpected(Error::sdk("request_start_process failed",
+                                          "return code: " + std::to_string(rc)));
+    return ida::ok();
+}
+
 Status attach(int pid) {
     int rc = attach_process(pid, -1);
     if (rc <= 0)
         return std::unexpected(Error::sdk("attach_process failed",
+                                          "return code: " + std::to_string(rc)));
+    return ida::ok();
+}
+
+Status request_attach(int pid, int event_id) {
+    int rc = request_attach_process(pid, event_id);
+    if (rc <= 0)
+        return std::unexpected(Error::sdk("request_attach_process failed",
                                           "return code: " + std::to_string(rc)));
     return ida::ok();
 }

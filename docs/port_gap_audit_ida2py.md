@@ -1,6 +1,6 @@
 # Port Gap Audit: ida2py
 
-Date: 2026-02-14
+Date: 2026-02-15
 
 This audit records findings from porting:
 
@@ -56,9 +56,11 @@ to idax-first surfaces.
 - Local functional execution is now verified for non-debugger flows when tool
   examples are linked against real IDA runtime dylibs (not SDK stubs).
 - Appcall runtime validation still requires a debugger-capable host/session;
-  the current host run now attempts multi-path debuggee launch with both
-  `--wait` and default args, then external spawn+attach fallback, and still
-  fails cleanly (`start_process` return `-1`, `attach_process` return `-4`)
-  when the debugger backend is not ready (no wrapper crash).
+  the current host run now auto-selects/loads an appcall-capable debugger
+  backend, attempts multi-path debuggee launch with both `--wait` and default
+  args, then external spawn+attach fallback, and still fails cleanly
+  (`start_process` return `0` with request-start no-process, `attach_process`
+  return `-1` with request-attach no-process) when the backend/session is not
+  ready (no wrapper crash).
 - Runtime validation procedure is tracked in
   `docs/appcall_runtime_validation.md`.

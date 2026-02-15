@@ -799,6 +799,14 @@ void check_debugger_surface() {
     (void)ri.may_contain_address;
     (void)ri.custom_format;
 
+    ida::debugger::BackendInfo bi;
+    (void)bi.name;
+    (void)bi.display_name;
+    (void)bi.remote;
+    (void)bi.supports_appcall;
+    (void)bi.supports_attach;
+    (void)bi.loaded;
+
     (void)ida::debugger::AppcallValueKind::SignedInteger;
     (void)ida::debugger::AppcallValueKind::UnsignedInteger;
     (void)ida::debugger::AppcallValueKind::FloatingPoint;
@@ -844,7 +852,12 @@ void check_debugger_surface() {
     using RequestResumeThreadFn = ida::Status(*)(int);
     using RegisterInfoFn = ida::Result<ida::debugger::RegisterInfo>(*)(std::string_view);
     using RegisterPredFn = ida::Result<bool>(*)(std::string_view);
+    using RequestStartFn = ida::Status(*)(std::string_view, std::string_view, std::string_view);
+    using RequestAttachFn = ida::Status(*)(int, int);
     using RequestRunToFn = ida::Status(*)(ida::Address);
+    using AvailableBackendsFn = ida::Result<std::vector<ida::debugger::BackendInfo>>(*)();
+    using CurrentBackendFn = ida::Result<ida::debugger::BackendInfo>(*)();
+    using LoadBackendFn = ida::Status(*)(std::string_view, bool);
     using AppcallFn = ida::Result<ida::debugger::AppcallResult>(*)(const ida::debugger::AppcallRequest&);
     using CleanupAppcallFn = ida::Status(*)(std::optional<int>);
     using RegisterExecutorFn = ida::Status(*)(std::string_view, std::shared_ptr<ida::debugger::AppcallExecutor>);
@@ -858,6 +871,8 @@ void check_debugger_surface() {
     (void)&ida::debugger::request_step_into;
     (void)&ida::debugger::request_step_over;
     (void)&ida::debugger::request_step_out;
+    (void)static_cast<RequestStartFn>(&ida::debugger::request_start);
+    (void)static_cast<RequestAttachFn>(&ida::debugger::request_attach);
     (void)static_cast<RequestRunToFn>(&ida::debugger::request_run_to);
 
     (void)static_cast<ThreadCountFn>(&ida::debugger::thread_count);
@@ -875,6 +890,9 @@ void check_debugger_surface() {
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_integer_register);
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_floating_register);
     (void)static_cast<RegisterPredFn>(&ida::debugger::is_custom_register);
+    (void)static_cast<AvailableBackendsFn>(&ida::debugger::available_backends);
+    (void)static_cast<CurrentBackendFn>(&ida::debugger::current_backend);
+    (void)static_cast<LoadBackendFn>(&ida::debugger::load_backend);
     (void)static_cast<AppcallFn>(&ida::debugger::appcall);
     (void)static_cast<CleanupAppcallFn>(&ida::debugger::cleanup_appcall);
     (void)static_cast<RegisterExecutorFn>(&ida::debugger::register_executor);

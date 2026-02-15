@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-02-14 (updated after open-point closure automation run)
+Date: 2026-02-15 (updated after debugger-backend fallback sweep)
 
 ## Test suite summary
 
@@ -25,10 +25,11 @@ Date: 2026-02-14 (updated after open-point closure automation run)
 - Hosted validation matrix (provided log bundle): all jobs passed for Linux/macOS `compile-only` + `unit`, plus Windows `compile-only`
 - Matrix full+packaging profile: pass (`build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz`)
 - Open-point closure sweep (`scripts/run_open_points.sh`): full matrix pass,
-  lumina smoke pass, appcall smoke blocked by debugger backend readiness
-  after expanded launch + attach fallback attempts
-  (`start_process` `-1`, `attach_process` `-4`)
-  (`build-open-points-surge4/logs/*`)
+  lumina smoke pass, appcall smoke blocked by debugger backend/session
+  readiness even after backend auto-selection + request-path fallbacks
+  with bounded request-settle cycles (`start_process` `0` + `request_start`
+  no-process, `attach_process` `-1` + `request_attach` no-process)
+  (`build-open-points-surge6/logs/*`)
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 

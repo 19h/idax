@@ -26,7 +26,7 @@ Public headers:
 | `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar/popup attachment, action-context host bridges |
 | `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
 | `include/ida/processor.hpp` | Processor base class, typed analysis details, tokenized output context, switch detection |
-| `include/ida/debugger.hpp` | Process lifecycle, breakpoints, memory, registers, appcall/executor APIs, typed event subscriptions |
+| `include/ida/debugger.hpp` | Process lifecycle, backend discovery/selection, breakpoints, memory, registers, appcall/executor APIs, typed event subscriptions |
 | `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
