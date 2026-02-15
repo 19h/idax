@@ -376,7 +376,9 @@ be executed in small, testable API slices.
   `vcmp*`/`vpcmp*` forms), rotate-family helper calls now use
   `RotateLeft`/`RotateRight` role hints, and helper arguments across variadic,
   VMX, and explicit scalar/packed helper paths carry `argument_name` metadata
-  for clearer typed call-argument semantics.
+  for clearer typed call-argument semantics. Selected destination-helper paths
+  now also apply declaration-driven return typing (`vmread` register destination
+  integer widths and scalar `vmin*`/`vmax*`/`vsqrt*` float/double returns).
 
 ## Notes
 
