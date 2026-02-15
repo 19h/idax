@@ -567,6 +567,10 @@ public:
         if (!bad_store && bad_store.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_store_udt = context.store_operand_register(-1, 0, 1, true);
+        if (!bad_store_udt && bad_store_udt.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
         auto bad_move = context.emit_move_register(0, 0, 0);
         if (!bad_move && bad_move.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;

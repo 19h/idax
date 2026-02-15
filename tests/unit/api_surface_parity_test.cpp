@@ -1102,6 +1102,7 @@ void check_decompiler_surface() {
     using MicrocodeContextLoadEaFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextAllocTempFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextStoreOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
+    using MicrocodeContextStoreOperandUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, bool);
     using MicrocodeContextEmitMoveFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
     using MicrocodeContextEmitMoveUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, bool);
     using MicrocodeContextEmitMoveWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
@@ -1381,6 +1382,7 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextLoadEaFn>(&ida::decompiler::MicrocodeContext::load_effective_address_register);
     (void)static_cast<MicrocodeContextAllocTempFn>(&ida::decompiler::MicrocodeContext::allocate_temporary_register);
     (void)static_cast<MicrocodeContextStoreOperandFn>(&ida::decompiler::MicrocodeContext::store_operand_register);
+    (void)static_cast<MicrocodeContextStoreOperandUdtFn>(&ida::decompiler::MicrocodeContext::store_operand_register);
     (void)static_cast<MicrocodeContextEmitMoveFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
     (void)static_cast<MicrocodeContextEmitMoveUdtFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
     (void)static_cast<MicrocodeContextEmitMoveWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_move_register_with_policy);
