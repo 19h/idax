@@ -199,5 +199,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 194. Decompiler variable-edit error categories can vary by backend/runtime (`NotFound` vs `SdkFailure`) for missing locals. Tests should assert failure semantics unless category is contractually stable.
 195. Integration tests that persist decompiler edits can mutate fixture `.i64` files. Prefer non-persisting validation probes (or explicit fixture restore) for deterministic worktree hygiene.
 196. AVX/VMX helper-return routing: prefer `emit_helper_call_with_arguments_to_micro_operand_and_options` for register and direct-memory (`MemoryDirect` -> `GlobalAddress`) destinations; keep operand-index writeback as fallback for unresolved destination shapes.
+197. Integration hardening can safely exercise helper-return micro-operand success routes by targeting temporary-register and current-address `GlobalAddress` destinations, then removing emitted instructions to keep mutation checks deterministic.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
