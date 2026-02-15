@@ -1143,6 +1143,11 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
     (void)ida::decompiler::MicrocodeOperandKind::Empty;
     (void)ida::decompiler::MicrocodeOperandKind::Register;
+    (void)ida::decompiler::MicrocodeOperandKind::RegisterPair;
+    (void)ida::decompiler::MicrocodeOperandKind::GlobalAddress;
+    (void)ida::decompiler::MicrocodeOperandKind::StackVariable;
+    (void)ida::decompiler::MicrocodeOperandKind::HelperReference;
+    (void)ida::decompiler::MicrocodeOperandKind::BlockReference;
     (void)ida::decompiler::MicrocodeInsertPolicy::Tail;
     (void)ida::decompiler::MicrocodeInsertPolicy::Beginning;
     (void)ida::decompiler::MicrocodeInsertPolicy::BeforeTail;
@@ -1155,6 +1160,11 @@ void check_decompiler_surface() {
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
+    (void)typed_operand.second_register_id;
+    (void)typed_operand.global_address;
+    (void)typed_operand.stack_offset;
+    (void)typed_operand.helper_name;
+    (void)typed_operand.block_index;
     (void)typed_operand.unsigned_immediate;
     (void)typed_operand.signed_immediate;
     (void)typed_operand.byte_width;
@@ -1166,6 +1176,10 @@ void check_decompiler_surface() {
     (void)instruction.destination;
     (void)instruction.floating_point_instruction;
     (void)ida::decompiler::MicrocodeValueKind::Register;
+    (void)ida::decompiler::MicrocodeValueKind::RegisterPair;
+    (void)ida::decompiler::MicrocodeValueKind::GlobalAddress;
+    (void)ida::decompiler::MicrocodeValueKind::StackVariable;
+    (void)ida::decompiler::MicrocodeValueKind::HelperReference;
     (void)ida::decompiler::MicrocodeValueKind::Float32Immediate;
     (void)ida::decompiler::MicrocodeValueKind::Float64Immediate;
     (void)ida::decompiler::MicrocodeValueKind::ByteArray;
@@ -1199,6 +1213,10 @@ void check_decompiler_surface() {
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
+    (void)value.second_register_id;
+    (void)value.global_address;
+    (void)value.stack_offset;
+    (void)value.helper_name;
     (void)value.unsigned_immediate;
     (void)value.signed_immediate;
     (void)value.floating_immediate;
@@ -1213,6 +1231,12 @@ void check_decompiler_surface() {
     (void)value.argument_flags;
     (void)value.location;
     (void)ida::decompiler::MicrocodeCallingConvention::Fastcall;
+    ida::decompiler::MicrocodeRegisterRange register_range;
+    (void)register_range.register_id;
+    (void)register_range.byte_width;
+    ida::decompiler::MicrocodeMemoryRange memory_range;
+    (void)memory_range.address;
+    (void)memory_range.byte_size;
     ida::decompiler::MicrocodeCallOptions call_options;
     (void)call_options.insert_policy;
     (void)call_options.callee_address;
@@ -1236,6 +1260,12 @@ void check_decompiler_surface() {
     (void)call_options.auto_stack_alignment;
     (void)call_options.auto_stack_argument_locations;
     (void)call_options.mark_explicit_locations;
+    (void)call_options.return_registers;
+    (void)call_options.spoiled_registers;
+    (void)call_options.passthrough_registers;
+    (void)call_options.dead_registers;
+    (void)call_options.visible_memory_ranges;
+    (void)call_options.visible_memory_all;
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedMicrocodeFilter>);
 

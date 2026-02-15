@@ -117,6 +117,11 @@ with mixed register/immediate/memory-source forwarding and compare mask-destinat
 `vminss/vmaxss/vminsd/vmaxsd`, `vsqrtss/vsqrtsd`,
 `vcvtss2sd`, `vcvtsd2ss`, `vmovss`, `vmovsd`).
 
+Helper-call modeling in the probe also exercises richer typed non-scalar/write
+semantics (register-pair/global-address/stack-variable/helper-reference values,
+declaration-driven vector element typing, and advanced register-list/
+visible-memory callinfo shaping).
+
 It also prints a gap report for the currently missing APIs needed for a full
 AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and
 raw decompiler-view handle context for advanced per-view manipulations).

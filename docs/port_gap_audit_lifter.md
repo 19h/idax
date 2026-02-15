@@ -63,19 +63,27 @@ to idax-first surfaces.
       `MicrocodeContext`, `MicrocodeApplyResult`).
     - The port probe now uses those hooks for concrete VMX + AVX scalar/packed
       instruction subsets with helper-call and typed microcode lowering.
-    - Current context now includes primitive operand/register/memory/helper
+    - Current context includes primitive operand/register/memory/helper
       operations (`load_operand_register`, `store_operand_register`,
       `emit_move_register`, `emit_load_memory_register`,
-      `emit_store_memory_register`, `emit_helper_call`), but still lacks rich
-     typed instruction construction/mutation primitives.
+      `emit_store_memory_register`, `emit_helper_call`) plus richer typed
+      instruction operand/mop kinds (`RegisterPair`, `GlobalAddress`,
+      `StackVariable`, `HelperReference`, `BlockReference`), but deep mutation
+      breadth is still additive follow-up.
 
 2. No rich public microcode write/emission surface
    - lifter emits and rewrites microcode instructions (`m_call`, `m_nop`, `m_ldx`,
       helper-call construction, typed mop/reg orchestration).
    - idax currently exposes microcode text readout (`microcode_lines`) plus basic
-     filter hooks, typed helper-call argument builders (integer + float + byte-array/vector/type-declaration views),
-      explicit argument-location hints (register/register-pair/register-offset/register-relative/stack/static/scattered), and lightweight
-      helper call-shaping options (calling-convention/flags, scalar callinfo fields like callee/spd/solid-arg hints, and return-type declaration hints), but not a comprehensive writable IR API.
+      filter hooks, typed helper-call argument builders (integer + float +
+      byte-array/vector/type-declaration views, plus register-pair/
+      global-address/stack-variable/helper-reference argument forms and
+      declaration-driven vector element typing), explicit argument-location hints
+      (register/register-pair/register-offset/register-relative/stack/static/
+      scattered), and expanded helper call-shaping options (calling-convention/
+      flags, scalar callinfo fields like callee/spd/solid-arg hints,
+      return-type/return-location hints, and register-list/visible-memory
+      callinfo list shaping), but not a comprehensive writable IR API.
    - Impact: instruction-to-intrinsic lowering cannot be implemented.
 
 3. Action context now has opaque host bridges, but typed decompiler-view
@@ -132,10 +140,14 @@ be executed in small, testable API slices.
     `minsn_t` field updates.
 - Current idax status:
   - partial. Typed helper-call arguments now cover integer/float/byte-array/
-    vector/type-declaration values and rich location hints; temporary register
-    allocation is now available via `MicrocodeContext::allocate_temporary_register`.
-  - There is still no first-class opaque `MicrocodeOperand` builder for generic
-    instruction operands outside helper-call argument paths.
+    vector/type-declaration values, plus register-pair/global-address/
+    stack-variable/helper-reference forms and rich location hints; temporary
+    register allocation is available via
+    `MicrocodeContext::allocate_temporary_register`.
+  - Generic typed instruction operands now include richer opaque mop builders
+    (`RegisterPair`, `GlobalAddress`, `StackVariable`, `HelperReference`,
+    `BlockReference`), but deeper nested-insn/tmop-specialized builder breadth
+    is still additive follow-up.
 - Migration impact:
   - high. Non-helper instruction rewrites remain blocked.
 
@@ -148,11 +160,14 @@ be executed in small, testable API slices.
   - direct `mcallinfo_t` and `mcallarg_t` shaping, including argument metadata,
     per-arg placement details, and call-shape flags.
 - Current idax status:
-  - partial, with a baseline closure increment. `MicrocodeCallOptions` now
+  - partial, with baseline closure increments. `MicrocodeCallOptions` now
   covers useful flag and scalar hints (calling convention, selected `FCI_*`,
   callee/SPD/stack/solid-arg hints, function-role hint,
-  return-location hint, return-type declaration) and declaration-driven
-  typed register argument/return emission with size validation.
+  return-location hint, return-type declaration), advanced register-list and
+  visible-memory callinfo shaping (`return_registers`, `spoiled_registers`,
+  `passthrough_registers`, `dead_registers`, `visible_memory_ranges`,
+  `visible_memory_all`), and declaration-driven typed register argument/return
+  emission with size validation.
   - Per-argument metadata is now partially covered through
     `MicrocodeValue::argument_name` and `MicrocodeValue::argument_flags`
     (`MicrocodeArgumentFlag` bitmask values) mapped to callarg metadata.
@@ -264,6 +279,17 @@ be executed in small, testable API slices.
   arguments can now carry formal name/flag metadata via
   `MicrocodeValue::argument_name` + `MicrocodeValue::argument_flags`
   (`MicrocodeArgumentFlag`).
+- Expanded typed microcode operand/mop builders for generic instruction
+  emission and helper arguments:
+  `RegisterPair`, `GlobalAddress`, `StackVariable`, `HelperReference`, and
+  `BlockReference`.
+- Expanded vector helper-call typing with declaration-driven element types,
+  enabling richer non-scalar/UDT-style element modeling when concrete widths are
+  validated.
+- Expanded advanced callinfo list shaping in `MicrocodeCallOptions` with
+  register-list and visible-memory controls (`return_registers`,
+  `spoiled_registers`, `passthrough_registers`, `dead_registers`,
+  `visible_memory_ranges`, `visible_memory_all`).
 - Expanded executable probe coverage from VMX-only lowering to include AVX
   scalar and packed math/move flows (`vadd*`/`vsub*`/`vmul*`/`vdiv*`, `vcvt*`,
   `vmin*`/`vmax*`, `vsqrt*`, `vmov*`) through typed instruction emission,

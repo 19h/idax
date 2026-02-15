@@ -127,6 +127,11 @@ enum class MicrocodeOpcode : int {
 enum class MicrocodeOperandKind : int {
     Empty,
     Register,
+    RegisterPair,
+    GlobalAddress,
+    StackVariable,
+    HelperReference,
+    BlockReference,
     UnsignedImmediate,
     SignedImmediate,
 };
@@ -135,6 +140,11 @@ enum class MicrocodeOperandKind : int {
 struct MicrocodeOperand {
     MicrocodeOperandKind kind{MicrocodeOperandKind::Empty};
     int register_id{0};
+    int second_register_id{0};
+    Address global_address{BadAddress};
+    std::int64_t stack_offset{0};
+    std::string helper_name{};
+    int block_index{0};
     std::uint64_t unsigned_immediate{0};
     std::int64_t signed_immediate{0};
     int byte_width{0};
@@ -162,6 +172,10 @@ enum class MicrocodeInsertPolicy : int {
 /// Kind of typed microcode value used for helper-call arguments.
 enum class MicrocodeValueKind : int {
     Register,
+    RegisterPair,
+    GlobalAddress,
+    StackVariable,
+    HelperReference,
     UnsignedImmediate,
     SignedImmediate,
     Float32Immediate,
@@ -221,6 +235,10 @@ enum class MicrocodeArgumentFlag : std::uint32_t {
 struct MicrocodeValue {
     MicrocodeValueKind kind{MicrocodeValueKind::Register};
     int register_id{0};
+    int second_register_id{0};
+    Address global_address{BadAddress};
+    std::int64_t stack_offset{0};
+    std::string helper_name{};
     std::uint64_t unsigned_immediate{0};
     std::int64_t signed_immediate{0};
     double floating_immediate{0.0};
@@ -234,6 +252,7 @@ struct MicrocodeValue {
     ///
     /// - `TypeDeclarationView`: declaration of the argument type (required).
     /// - `Register`: optional declaration override for typed register arguments.
+    /// - `Vector`: optional declaration override for element type.
     std::string type_declaration{};
 
     /// Optional formal argument name for helper-call metadata.
@@ -300,6 +319,16 @@ enum class MicrocodeFunctionRole : int {
 };
 
 /// Additional call-shaping options for emitted helper calls.
+struct MicrocodeRegisterRange {
+    int register_id{0};
+    int byte_width{0};
+};
+
+struct MicrocodeMemoryRange {
+    Address address{BadAddress};
+    std::uint64_t byte_size{0};
+};
+
 struct MicrocodeCallOptions {
     std::optional<MicrocodeInsertPolicy> insert_policy{};
     std::optional<Address> callee_address{};
@@ -323,6 +352,12 @@ struct MicrocodeCallOptions {
     std::optional<int> auto_stack_alignment{};
     bool auto_stack_argument_locations{false};
     bool mark_explicit_locations{false};
+    std::vector<MicrocodeRegisterRange> return_registers{};
+    std::vector<MicrocodeRegisterRange> spoiled_registers{};
+    std::vector<MicrocodeRegisterRange> passthrough_registers{};
+    std::vector<MicrocodeRegisterRange> dead_registers{};
+    std::vector<MicrocodeMemoryRange> visible_memory_ranges{};
+    bool visible_memory_all{false};
 };
 
 /// Opaque mutable context passed to microcode-filter callbacks.

@@ -232,6 +232,7 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
 }
 
 Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
+                                              mba_t* mba,
                                               ea_t instruction_address,
                                               std::string_view role) {
     mop_t result;
@@ -252,6 +253,66 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
             }
             result.make_reg(static_cast<mreg_t>(operand.register_id),
                             operand.byte_width);
+            break;
+
+        case MicrocodeOperandKind::RegisterPair:
+            if (operand.register_id < 0 || operand.second_register_id < 0) {
+                return std::unexpected(Error::validation(
+                    "Register-pair operand ids cannot be negative",
+                    std::string(role)));
+            }
+            if (operand.byte_width <= 0 || (operand.byte_width % 2) != 0) {
+                return std::unexpected(Error::validation(
+                    "Register-pair operand byte width must be a positive even value",
+                    std::string(role)));
+            }
+            result.make_reg_pair(operand.register_id,
+                                 operand.second_register_id,
+                                 operand.byte_width / 2);
+            break;
+
+        case MicrocodeOperandKind::GlobalAddress:
+            if (operand.global_address == BadAddress) {
+                return std::unexpected(Error::validation(
+                    "Global-address operand cannot use BadAddress",
+                    std::string(role)));
+            }
+            result.make_gvar(static_cast<ea_t>(operand.global_address));
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
+            break;
+
+        case MicrocodeOperandKind::StackVariable:
+            if (mba == nullptr) {
+                return std::unexpected(Error::internal(
+                    "Stack-variable operand requires microcode context",
+                    std::string(role)));
+            }
+            result.make_stkvar(mba, static_cast<sval_t>(operand.stack_offset));
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
+            break;
+
+        case MicrocodeOperandKind::HelperReference:
+            if (operand.helper_name.empty()) {
+                return std::unexpected(Error::validation(
+                    "Helper-reference operand requires helper_name",
+                    std::string(role)));
+            }
+            result.make_helper(operand.helper_name.c_str());
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
+            break;
+
+        case MicrocodeOperandKind::BlockReference:
+            if (operand.block_index < 0) {
+                return std::unexpected(Error::validation(
+                    "Block-reference operand index cannot be negative",
+                    std::string(role)));
+            }
+            result.make_blkref(operand.block_index);
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
             break;
 
         case MicrocodeOperandKind::UnsignedImmediate:
@@ -288,6 +349,67 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
     return operand.kind == MicrocodeOperandKind::Empty;
 }
 
+Status apply_register_ranges(mlist_t* output,
+                             const std::vector<MicrocodeRegisterRange>& ranges,
+                             std::string_view context) {
+    if (output == nullptr)
+        return std::unexpected(Error::internal("Null microcode register-range output",
+                                               std::string(context)));
+
+    output->clear();
+    for (std::size_t index = 0; index < ranges.size(); ++index) {
+        const auto& range = ranges[index];
+        if (range.register_id < 0) {
+            return std::unexpected(Error::validation(
+                "Microcode register range id cannot be negative",
+                std::string(context) + ":" + std::to_string(index)));
+        }
+        if (range.byte_width <= 0) {
+            return std::unexpected(Error::validation(
+                "Microcode register range width must be positive",
+                std::string(context) + ":" + std::to_string(index)));
+        }
+        output->add(static_cast<mreg_t>(range.register_id), range.byte_width);
+    }
+    return ida::ok();
+}
+
+Status apply_visible_memory_ranges(ivlset_t* output,
+                                   const std::vector<MicrocodeMemoryRange>& ranges,
+                                   bool all_values,
+                                   std::string_view context) {
+    if (output == nullptr)
+        return std::unexpected(Error::internal("Null microcode visible-memory output",
+                                               std::string(context)));
+    if (all_values && !ranges.empty()) {
+        return std::unexpected(Error::validation(
+            "visible_memory_all cannot be combined with explicit visible memory ranges",
+            std::string(context)));
+    }
+
+    output->clear();
+    if (all_values) {
+        output->set_all_values();
+        return ida::ok();
+    }
+
+    for (std::size_t index = 0; index < ranges.size(); ++index) {
+        const auto& range = ranges[index];
+        if (range.address == BadAddress) {
+            return std::unexpected(Error::validation(
+                "Visible memory range address cannot be BadAddress",
+                std::string(context) + ":" + std::to_string(index)));
+        }
+        if (range.byte_size == 0) {
+            return std::unexpected(Error::validation(
+                "Visible memory range byte size must be positive",
+                std::string(context) + ":" + std::to_string(index)));
+        }
+        output->add(static_cast<ea_t>(range.address), static_cast<asize_t>(range.byte_size));
+    }
+    return ida::ok();
+}
+
 Status apply_call_options(minsn_t* root,
                           const MicrocodeCallOptions& options,
                           std::string_view helper_name) {
@@ -310,7 +432,13 @@ Status apply_call_options(minsn_t* root,
         || options.mark_spoiled_lists_optimized
         || options.mark_synthetic_has_call
         || options.mark_has_format_string
-        || options.mark_explicit_locations;
+        || options.mark_explicit_locations
+        || !options.return_registers.empty()
+        || !options.spoiled_registers.empty()
+        || !options.passthrough_registers.empty()
+        || !options.dead_registers.empty()
+        || !options.visible_memory_ranges.empty()
+        || options.visible_memory_all;
     if (!has_options)
         return ida::ok();
 
@@ -401,6 +529,56 @@ Status apply_call_options(minsn_t* root,
         info->flags |= FCI_HASFMT;
     if (options.mark_explicit_locations)
         info->flags |= FCI_EXPLOCS;
+
+    Status status = ida::ok();
+    if (!options.return_registers.empty()) {
+        status = apply_register_ranges(&info->return_regs,
+                                       options.return_registers,
+                                       "return_registers");
+        if (!status)
+            return status;
+    }
+
+    if (!options.spoiled_registers.empty()) {
+        status = apply_register_ranges(&info->spoiled,
+                                       options.spoiled_registers,
+                                       "spoiled_registers");
+        if (!status)
+            return status;
+    }
+
+    if (!options.passthrough_registers.empty()) {
+        status = apply_register_ranges(&info->pass_regs,
+                                       options.passthrough_registers,
+                                       "passthrough_registers");
+        if (!status)
+            return status;
+    }
+
+    if (!options.dead_registers.empty()) {
+        status = apply_register_ranges(&info->dead_regs,
+                                       options.dead_registers,
+                                       "dead_registers");
+        if (!status)
+            return status;
+    }
+
+    if (!options.passthrough_registers.empty()
+        && !options.spoiled_registers.empty()
+        && !info->spoiled.includes(info->pass_regs)) {
+        return std::unexpected(Error::validation(
+            "passthrough_registers must be a subset of spoiled_registers",
+            std::string(helper_name)));
+    }
+
+    if (options.visible_memory_all || !options.visible_memory_ranges.empty()) {
+        status = apply_visible_memory_ranges(&info->visible_memory,
+                                             options.visible_memory_ranges,
+                                             options.visible_memory_all,
+                                             "visible_memory");
+        if (!status)
+            return status;
+    }
 
     return ida::ok();
 }
@@ -648,7 +826,8 @@ Status apply_location_to_argloc(argloc_t* argloc,
 
 Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<MicrocodeValue>& arguments,
                                                       const MicrocodeCallOptions& options,
-                                                      ea_t instruction_address) {
+                                                      ea_t instruction_address,
+                                                      mba_t* mba) {
     CallArgumentsBuildResult result;
     result.arguments.reserve(arguments.size());
     std::int64_t auto_stack_offset = options.auto_stack_start_offset.value_or(0);
@@ -683,6 +862,52 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
         }
     }
 
+    auto parse_declaration_type = [](std::string_view declaration_text,
+                                     std::string_view context) -> Result<tinfo_t> {
+        if (declaration_text.empty()) {
+            return std::unexpected(Error::validation(
+                "Type declaration cannot be empty",
+                std::string(context)));
+        }
+
+        qstring declaration(declaration_text.data());
+        if (!declaration.empty() && declaration.last() != ';')
+            declaration.append(';');
+
+        qstring name;
+        tinfo_t parsed;
+        if (!parse_decl(&parsed,
+                        &name,
+                        nullptr,
+                        declaration.c_str(),
+                        PT_SIL)) {
+            return std::unexpected(Error::validation(
+                "Failed to parse type declaration",
+                std::string(declaration_text)));
+        }
+        return parsed;
+    };
+
+    auto infer_typed_value_type = [](int byte_width,
+                                     bool unsigned_integer,
+                                     std::string_view context) -> Result<tinfo_t> {
+        if (byte_width <= 0) {
+            return std::unexpected(Error::validation(
+                "Typed value byte width must be positive",
+                std::string(context)));
+        }
+
+        tinfo_t type;
+        if (make_integer_type(&type, byte_width, unsigned_integer))
+            return type;
+        if (make_byte_array_type(&type, byte_width))
+            return type;
+
+        return std::unexpected(Error::unsupported(
+            "Typed value byte width unsupported",
+            std::to_string(byte_width)));
+    };
+
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
         mcallarg_t callarg;
@@ -698,20 +923,11 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
 
                 if (!argument.type_declaration.empty()) {
-                    qstring declaration(argument.type_declaration.c_str());
-                    if (!declaration.empty() && declaration.last() != ';')
-                        declaration.append(';');
-
-                    qstring name;
-                    if (!parse_decl(&argument_type,
-                                    &name,
-                                    nullptr,
-                                    declaration.c_str(),
-                                    PT_SIL)) {
-                        return std::unexpected(Error::validation(
-                            "Failed to parse register argument type declaration",
-                            argument.type_declaration));
-                    }
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "register");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
 
                     const size_t declared_size = argument_type.get_size();
                     if (declared_size == 0) {
@@ -733,18 +949,200 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                             "Microcode register argument byte width must be positive",
                             std::to_string(i)));
                     }
-                    if (!make_integer_type(&argument_type,
-                                           argument_width,
-                                           argument.unsigned_integer)) {
-                        return std::unexpected(Error::unsupported(
-                            "Microcode register argument width unsupported",
-                            std::to_string(argument_width)));
-                    }
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "register");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
                 }
 
                 callarg.set_regarg(static_cast<mreg_t>(argument.register_id),
                                    argument_width,
                                    argument_type);
+                break;
+            }
+
+            case MicrocodeValueKind::RegisterPair: {
+                if (argument.register_id < 0 || argument.second_register_id < 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode register-pair argument ids cannot be negative",
+                        std::to_string(i)));
+                }
+                if (argument.byte_width <= 0 || (argument.byte_width % 2) != 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode register-pair argument width must be a positive even value",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "register_pair");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size == 0) {
+                        return std::unexpected(Error::validation(
+                            "Parsed register-pair argument type has unknown size",
+                            argument.type_declaration));
+                    }
+                    if (static_cast<int>(declared_size) != argument.byte_width) {
+                        return std::unexpected(Error::validation(
+                            "Register-pair argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument.byte_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument.byte_width,
+                                                                argument.unsigned_integer,
+                                                                "register_pair");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t pair;
+                pair.make_reg_pair(argument.register_id,
+                                   argument.second_register_id,
+                                   argument.byte_width / 2);
+                if (argument.byte_width > 8)
+                    pair.set_udt();
+                callarg.copy_mop(pair);
+                callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::GlobalAddress: {
+                if (argument.global_address == BadAddress) {
+                    return std::unexpected(Error::validation(
+                        "Microcode global-address argument cannot be BadAddress",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                int argument_width = argument.byte_width;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "global_address");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Global-address argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "global_address");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t gvar;
+                gvar.make_gvar(static_cast<ea_t>(argument.global_address));
+                if (argument_width > 0)
+                    gvar.size = argument_width;
+                callarg.copy_mop(gvar);
+                callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::StackVariable: {
+                if (mba == nullptr) {
+                    return std::unexpected(Error::internal(
+                        "Stack-variable argument requires microcode context",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                int argument_width = argument.byte_width;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "stack_variable");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Stack-variable argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "stack_variable");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t stack_variable;
+                stack_variable.make_stkvar(mba, static_cast<sval_t>(argument.stack_offset));
+                if (argument_width > 0)
+                    stack_variable.size = argument_width;
+                callarg.copy_mop(stack_variable);
+                callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::HelperReference: {
+                if (argument.helper_name.empty()) {
+                    return std::unexpected(Error::validation(
+                        "Helper-reference argument requires helper_name",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                int argument_width = argument.byte_width;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "helper_reference");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Helper-reference argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "helper_reference");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t helper;
+                helper.make_helper(argument.helper_name.c_str());
+                if (argument_width > 0)
+                    helper.size = argument_width;
+                callarg.copy_mop(helper);
+                callarg.type = argument_type;
                 break;
             }
 
@@ -859,16 +1257,6 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
             }
 
             case MicrocodeValueKind::Vector: {
-                if (argument.vector_element_count <= 0) {
-                    return std::unexpected(Error::validation(
-                        "Vector argument element count must be positive",
-                        std::to_string(i)));
-                }
-                if (argument.vector_element_byte_width <= 0) {
-                    return std::unexpected(Error::validation(
-                        "Vector argument element byte width must be positive",
-                        std::to_string(i)));
-                }
                 if (argument.location.kind == MicrocodeValueLocationKind::Unspecified
                     && !options.auto_stack_argument_locations) {
                     return std::unexpected(Error::validation(
@@ -876,30 +1264,90 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                         std::to_string(i)));
                 }
 
+                int element_count = argument.vector_element_count;
+                int element_byte_width = argument.vector_element_byte_width;
                 tinfo_t element_type;
-                if (argument.vector_elements_floating) {
-                    if (argument.vector_element_byte_width == 4) {
-                        element_type = tinfo_t(BTF_FLOAT);
-                    } else if (argument.vector_element_byte_width == 8) {
-                        element_type = tinfo_t(BTF_DOUBLE);
-                    } else {
+
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "vector_element");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    element_type = *parsed_type;
+
+                    const size_t declared_size = element_type.get_size();
+                    if (declared_size == 0) {
                         return std::unexpected(Error::validation(
-                            "Floating vector elements must be 4 or 8 bytes",
+                            "Vector element type declaration has unknown size",
                             std::to_string(i)));
                     }
+
+                    if (element_byte_width <= 0)
+                        element_byte_width = static_cast<int>(declared_size);
+                    else if (static_cast<int>(declared_size) != element_byte_width) {
+                        return std::unexpected(Error::validation(
+                            "Vector element declaration size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(element_byte_width)));
+                    }
                 } else {
-                    if (!make_integer_type(&element_type,
-                                           argument.vector_element_byte_width,
-                                           argument.vector_elements_unsigned)) {
-                        return std::unexpected(Error::unsupported(
-                            "Vector integer element width unsupported",
-                            std::to_string(argument.vector_element_byte_width)));
+                    if (element_byte_width <= 0) {
+                        return std::unexpected(Error::validation(
+                            "Vector argument element byte width must be positive",
+                            std::to_string(i)));
+                    }
+
+                    if (argument.vector_elements_floating) {
+                        if (element_byte_width == 4) {
+                            element_type = tinfo_t(BTF_FLOAT);
+                        } else if (element_byte_width == 8) {
+                            element_type = tinfo_t(BTF_DOUBLE);
+                        } else {
+                            return std::unexpected(Error::validation(
+                                "Floating vector elements must be 4 or 8 bytes",
+                                std::to_string(i)));
+                        }
+                    } else {
+                        if (!make_integer_type(&element_type,
+                                               element_byte_width,
+                                               argument.vector_elements_unsigned)) {
+                            return std::unexpected(Error::unsupported(
+                                "Vector integer element width unsupported",
+                                std::to_string(element_byte_width)));
+                        }
+                    }
+                }
+
+                if (element_count <= 0) {
+                    if (argument.byte_width <= 0) {
+                        return std::unexpected(Error::validation(
+                            "Vector argument element count must be positive",
+                            std::to_string(i)));
+                    }
+                    if (element_byte_width <= 0 || (argument.byte_width % element_byte_width) != 0) {
+                        return std::unexpected(Error::validation(
+                            "Vector argument byte width must be divisible by element width",
+                            std::to_string(i)));
+                    }
+                    element_count = argument.byte_width / element_byte_width;
+                }
+                if (element_count <= 0) {
+                    return std::unexpected(Error::validation(
+                        "Vector argument element count must be positive",
+                        std::to_string(i)));
+                }
+
+                if (argument.byte_width > 0 && element_byte_width > 0) {
+                    const int expected_width = element_count * element_byte_width;
+                    if (expected_width != argument.byte_width) {
+                        return std::unexpected(Error::validation(
+                            "Vector argument byte width does not match element count/size",
+                            std::to_string(expected_width) + ":" + std::to_string(argument.byte_width)));
                     }
                 }
 
                 tinfo_t vector_type;
                 vector_type.create_array(element_type,
-                                         static_cast<uint32_t>(argument.vector_element_count));
+                                         static_cast<uint32_t>(element_count));
                 callarg.type = vector_type;
                 break;
             }
@@ -1187,16 +1635,19 @@ Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction
     }
 
     auto left = build_typed_instruction_operand(instruction.left,
+                                                impl->codegen->mba,
                                                 impl->codegen->insn.ea,
                                                 "left");
     if (!left)
         return std::unexpected(left.error());
     auto right = build_typed_instruction_operand(instruction.right,
+                                                 impl->codegen->mba,
                                                  impl->codegen->insn.ea,
                                                  "right");
     if (!right)
         return std::unexpected(right.error());
     auto destination = build_typed_instruction_operand(instruction.destination,
+                                                       impl->codegen->mba,
                                                        impl->codegen->insn.ea,
                                                        "destination");
     if (!destination)
@@ -1441,7 +1892,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_and_options(
     if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    auto callargs = build_call_arguments(arguments, options, impl->codegen->insn.ea);
+    auto callargs = build_call_arguments(arguments,
+                                         options,
+                                         impl->codegen->insn.ea,
+                                         impl->codegen->mba);
     if (!callargs)
         return std::unexpected(callargs.error());
 
@@ -1507,7 +1961,10 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
     if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    auto callargs = build_call_arguments(arguments, options, impl->codegen->insn.ea);
+    auto callargs = build_call_arguments(arguments,
+                                         options,
+                                         impl->codegen->insn.ea,
+                                         impl->codegen->mba);
     if (!callargs)
         return std::unexpected(callargs.error());
 
