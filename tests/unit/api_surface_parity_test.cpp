@@ -1103,12 +1103,26 @@ void check_decompiler_surface() {
     using MicrocodeContextAllocTempFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextStoreOperandFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
     using MicrocodeContextEmitMoveFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int);
+    using MicrocodeContextEmitMoveUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, bool);
     using MicrocodeContextEmitMoveWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         int,
         int,
         int,
         ida::decompiler::MicrocodeInsertPolicy);
+    using MicrocodeContextEmitMoveWithPolicyUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        int,
+        int,
+        int,
+        ida::decompiler::MicrocodeInsertPolicy,
+        bool);
     using MicrocodeContextEmitLoadMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
+    using MicrocodeContextEmitLoadMemoryUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        int,
+        int,
+        int,
+        int,
+        int,
+        bool);
     using MicrocodeContextEmitLoadMemoryWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         int,
         int,
@@ -1116,7 +1130,22 @@ void check_decompiler_surface() {
         int,
         int,
         ida::decompiler::MicrocodeInsertPolicy);
+    using MicrocodeContextEmitLoadMemoryWithPolicyUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        int,
+        int,
+        int,
+        int,
+        int,
+        ida::decompiler::MicrocodeInsertPolicy,
+        bool);
     using MicrocodeContextEmitStoreMemoryFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int, int, int, int, int);
+    using MicrocodeContextEmitStoreMemoryUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        int,
+        int,
+        int,
+        int,
+        int,
+        bool);
     using MicrocodeContextEmitStoreMemoryWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         int,
         int,
@@ -1124,6 +1153,14 @@ void check_decompiler_surface() {
         int,
         int,
         ida::decompiler::MicrocodeInsertPolicy);
+    using MicrocodeContextEmitStoreMemoryWithPolicyUdtFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
+        int,
+        int,
+        int,
+        int,
+        int,
+        ida::decompiler::MicrocodeInsertPolicy,
+        bool);
     using MicrocodeContextEmitInstructionFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
         const ida::decompiler::MicrocodeInstruction&);
     using MicrocodeContextEmitInstructionWithPolicyFn = ida::Status(ida::decompiler::MicrocodeContext::*)(
@@ -1345,11 +1382,17 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextAllocTempFn>(&ida::decompiler::MicrocodeContext::allocate_temporary_register);
     (void)static_cast<MicrocodeContextStoreOperandFn>(&ida::decompiler::MicrocodeContext::store_operand_register);
     (void)static_cast<MicrocodeContextEmitMoveFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
+    (void)static_cast<MicrocodeContextEmitMoveUdtFn>(&ida::decompiler::MicrocodeContext::emit_move_register);
     (void)static_cast<MicrocodeContextEmitMoveWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_move_register_with_policy);
+    (void)static_cast<MicrocodeContextEmitMoveWithPolicyUdtFn>(&ida::decompiler::MicrocodeContext::emit_move_register_with_policy);
     (void)static_cast<MicrocodeContextEmitLoadMemoryFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register);
+    (void)static_cast<MicrocodeContextEmitLoadMemoryUdtFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register);
     (void)static_cast<MicrocodeContextEmitLoadMemoryWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register_with_policy);
+    (void)static_cast<MicrocodeContextEmitLoadMemoryWithPolicyUdtFn>(&ida::decompiler::MicrocodeContext::emit_load_memory_register_with_policy);
     (void)static_cast<MicrocodeContextEmitStoreMemoryFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register);
+    (void)static_cast<MicrocodeContextEmitStoreMemoryUdtFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register);
     (void)static_cast<MicrocodeContextEmitStoreMemoryWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register_with_policy);
+    (void)static_cast<MicrocodeContextEmitStoreMemoryWithPolicyUdtFn>(&ida::decompiler::MicrocodeContext::emit_store_memory_register_with_policy);
     (void)static_cast<MicrocodeContextEmitInstructionFn>(&ida::decompiler::MicrocodeContext::emit_instruction);
     (void)static_cast<MicrocodeContextEmitInstructionWithPolicyFn>(&ida::decompiler::MicrocodeContext::emit_instruction_with_policy);
     (void)static_cast<MicrocodeContextEmitInstructionsFn>(&ida::decompiler::MicrocodeContext::emit_instructions);

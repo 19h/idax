@@ -571,6 +571,10 @@ public:
         if (!bad_move && bad_move.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_move_udt = context.emit_move_register(0, 0, 0, true);
+        if (!bad_move_udt && bad_move_udt.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
         auto bad_move_with_policy = context.emit_move_register_with_policy(
             0,
             0,
@@ -581,8 +585,23 @@ public:
             ++validation_hits;
         }
 
+        auto bad_move_with_policy_udt = context.emit_move_register_with_policy(
+            0,
+            0,
+            0,
+            ida::decompiler::MicrocodeInsertPolicy::Beginning,
+            true);
+        if (!bad_move_with_policy_udt
+            && bad_move_with_policy_udt.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_load_mem = context.emit_load_memory_register(0, 0, 0, 0, 1);
         if (!bad_load_mem && bad_load_mem.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_load_mem_udt = context.emit_load_memory_register(0, 0, 0, 0, 1, true);
+        if (!bad_load_mem_udt && bad_load_mem_udt.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
         auto bad_load_mem_with_policy = context.emit_load_memory_register_with_policy(
@@ -597,8 +616,25 @@ public:
             ++validation_hits;
         }
 
+        auto bad_load_mem_with_policy_udt = context.emit_load_memory_register_with_policy(
+            0,
+            0,
+            0,
+            0,
+            1,
+            ida::decompiler::MicrocodeInsertPolicy::BeforeTail,
+            true);
+        if (!bad_load_mem_with_policy_udt
+            && bad_load_mem_with_policy_udt.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_store_mem = context.emit_store_memory_register(0, 0, 0, 1, 0);
         if (!bad_store_mem && bad_store_mem.error().category == ida::ErrorCategory::Validation)
+            ++validation_hits;
+
+        auto bad_store_mem_udt = context.emit_store_memory_register(0, 0, 0, 1, 0, true);
+        if (!bad_store_mem_udt && bad_store_mem_udt.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
         auto bad_store_mem_with_policy = context.emit_store_memory_register_with_policy(
@@ -610,6 +646,19 @@ public:
             ida::decompiler::MicrocodeInsertPolicy::Tail);
         if (!bad_store_mem_with_policy
             && bad_store_mem_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_store_mem_with_policy_udt = context.emit_store_memory_register_with_policy(
+            0,
+            0,
+            0,
+            1,
+            0,
+            ida::decompiler::MicrocodeInsertPolicy::Tail,
+            true);
+        if (!bad_store_mem_with_policy_udt
+            && bad_store_mem_with_policy_udt.error().category == ida::ErrorCategory::Validation) {
             ++validation_hits;
         }
 

@@ -194,6 +194,9 @@ be executed in small, testable API slices.
     `emit_noop_with_policy`, `emit_move_register_with_policy`,
     `emit_load_memory_register_with_policy`, and
     `emit_store_memory_register_with_policy`.
+  - Low-level move/load/store helpers now also expose optional UDT operand
+    marking (`mark_user_defined_type`) so wide non-scalar operand flows can be
+    modeled without dropping to raw SDK calls.
   - Remaining depth is demand-driven parity expansion for any additional
     emission paths not yet policy-aware. Helper-call insertion also supports
     `insert_policy` through `MicrocodeCallOptions`.
@@ -263,6 +266,10 @@ be executed in small, testable API slices.
   `MicrocodeContext::emit_move_register_with_policy`,
   `MicrocodeContext::emit_load_memory_register_with_policy`, and
   `MicrocodeContext::emit_store_memory_register_with_policy`.
+- Added optional UDT operand marking to low-level move/load/store helpers
+  (`emit_move_register*`, `emit_load_memory_register*`,
+  `emit_store_memory_register*`) for wider typed operand semantics in additive
+  rewrite paths.
 - Added helper-call insertion policy hinting via
   `MicrocodeCallOptions::insert_policy`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`

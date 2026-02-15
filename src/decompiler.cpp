@@ -1970,16 +1970,39 @@ Status MicrocodeContext::store_operand_register(int operand_index,
 Status MicrocodeContext::emit_move_register(int source_register,
                                             int destination_register,
                                             int byte_width) {
+    return emit_move_register(source_register,
+                              destination_register,
+                              byte_width,
+                              false);
+}
+
+Status MicrocodeContext::emit_move_register(int source_register,
+                                            int destination_register,
+                                            int byte_width,
+                                            bool mark_user_defined_type) {
     return emit_move_register_with_policy(source_register,
                                           destination_register,
                                           byte_width,
-                                          MicrocodeInsertPolicy::Tail);
+                                          MicrocodeInsertPolicy::Tail,
+                                          mark_user_defined_type);
 }
 
 Status MicrocodeContext::emit_move_register_with_policy(int source_register,
                                                         int destination_register,
                                                         int byte_width,
                                                         MicrocodeInsertPolicy policy) {
+    return emit_move_register_with_policy(source_register,
+                                          destination_register,
+                                          byte_width,
+                                          policy,
+                                          false);
+}
+
+Status MicrocodeContext::emit_move_register_with_policy(int source_register,
+                                                        int destination_register,
+                                                        int byte_width,
+                                                        MicrocodeInsertPolicy policy,
+                                                        bool mark_user_defined_type) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -1999,6 +2022,11 @@ Status MicrocodeContext::emit_move_register_with_policy(int source_register,
     if (emitted == nullptr)
         return std::unexpected(Error::sdk("emit(m_mov) failed"));
 
+    if (mark_user_defined_type) {
+        emitted->l.set_udt();
+        emitted->d.set_udt();
+    }
+
     auto reposition = reposition_emitted_instruction(impl, emitted, policy);
     if (!reposition)
         return reposition;
@@ -2011,12 +2039,27 @@ Status MicrocodeContext::emit_load_memory_register(int selector_register,
                                                     int destination_register,
                                                     int byte_width,
                                                     int offset_byte_width) {
+    return emit_load_memory_register(selector_register,
+                                     offset_register,
+                                     destination_register,
+                                     byte_width,
+                                     offset_byte_width,
+                                     false);
+}
+
+Status MicrocodeContext::emit_load_memory_register(int selector_register,
+                                                   int offset_register,
+                                                   int destination_register,
+                                                   int byte_width,
+                                                   int offset_byte_width,
+                                                   bool mark_user_defined_type) {
     return emit_load_memory_register_with_policy(selector_register,
                                                  offset_register,
                                                  destination_register,
                                                  byte_width,
                                                  offset_byte_width,
-                                                 MicrocodeInsertPolicy::Tail);
+                                                 MicrocodeInsertPolicy::Tail,
+                                                 mark_user_defined_type);
 }
 
 Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_register,
@@ -2025,6 +2068,22 @@ Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_regi
                                                                int byte_width,
                                                                int offset_byte_width,
                                                                MicrocodeInsertPolicy policy) {
+    return emit_load_memory_register_with_policy(selector_register,
+                                                 offset_register,
+                                                 destination_register,
+                                                 byte_width,
+                                                 offset_byte_width,
+                                                 policy,
+                                                 false);
+}
+
+Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_register,
+                                                               int offset_register,
+                                                               int destination_register,
+                                                               int byte_width,
+                                                               int offset_byte_width,
+                                                               MicrocodeInsertPolicy policy,
+                                                               bool mark_user_defined_type) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -2047,6 +2106,9 @@ Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_regi
     if (emitted == nullptr)
         return std::unexpected(Error::sdk("emit(m_ldx) failed"));
 
+    if (mark_user_defined_type)
+        emitted->d.set_udt();
+
     auto reposition = reposition_emitted_instruction(impl, emitted, policy);
     if (!reposition)
         return reposition;
@@ -2059,12 +2121,27 @@ Status MicrocodeContext::emit_store_memory_register(int source_register,
                                                      int offset_register,
                                                      int byte_width,
                                                      int offset_byte_width) {
+    return emit_store_memory_register(source_register,
+                                      selector_register,
+                                      offset_register,
+                                      byte_width,
+                                      offset_byte_width,
+                                      false);
+}
+
+Status MicrocodeContext::emit_store_memory_register(int source_register,
+                                                    int selector_register,
+                                                    int offset_register,
+                                                    int byte_width,
+                                                    int offset_byte_width,
+                                                    bool mark_user_defined_type) {
     return emit_store_memory_register_with_policy(source_register,
                                                   selector_register,
                                                   offset_register,
                                                   byte_width,
                                                   offset_byte_width,
-                                                  MicrocodeInsertPolicy::Tail);
+                                                  MicrocodeInsertPolicy::Tail,
+                                                  mark_user_defined_type);
 }
 
 Status MicrocodeContext::emit_store_memory_register_with_policy(int source_register,
@@ -2073,6 +2150,22 @@ Status MicrocodeContext::emit_store_memory_register_with_policy(int source_regis
                                                                 int byte_width,
                                                                 int offset_byte_width,
                                                                 MicrocodeInsertPolicy policy) {
+    return emit_store_memory_register_with_policy(source_register,
+                                                  selector_register,
+                                                  offset_register,
+                                                  byte_width,
+                                                  offset_byte_width,
+                                                  policy,
+                                                  false);
+}
+
+Status MicrocodeContext::emit_store_memory_register_with_policy(int source_register,
+                                                                int selector_register,
+                                                                int offset_register,
+                                                                int byte_width,
+                                                                int offset_byte_width,
+                                                                MicrocodeInsertPolicy policy,
+                                                                bool mark_user_defined_type) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -2094,6 +2187,9 @@ Status MicrocodeContext::emit_store_memory_register_with_policy(int source_regis
                                            offset_byte_width);
     if (emitted == nullptr)
         return std::unexpected(Error::sdk("emit(m_stx) failed"));
+
+    if (mark_user_defined_type)
+        emitted->l.set_udt();
 
     auto reposition = reposition_emitted_instruction(impl, emitted, policy);
     if (!reposition)

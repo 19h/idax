@@ -423,11 +423,24 @@ public:
     /// Emit register-to-register move.
     Status emit_move_register(int source_register, int destination_register, int byte_width);
 
+    /// Emit register-to-register move and optionally mark operands as UDT.
+    Status emit_move_register(int source_register,
+                              int destination_register,
+                              int byte_width,
+                              bool mark_user_defined_type);
+
     /// Emit register-to-register move with explicit placement policy.
     Status emit_move_register_with_policy(int source_register,
                                           int destination_register,
                                           int byte_width,
                                           MicrocodeInsertPolicy policy);
+
+    /// Emit register-to-register move with explicit placement policy and optional UDT marking.
+    Status emit_move_register_with_policy(int source_register,
+                                          int destination_register,
+                                          int byte_width,
+                                          MicrocodeInsertPolicy policy,
+                                          bool mark_user_defined_type);
 
     /// Emit memory load (`m_ldx`) from selector+offset into destination register.
     Status emit_load_memory_register(int selector_register,
@@ -435,6 +448,14 @@ public:
                                      int destination_register,
                                      int byte_width,
                                      int offset_byte_width);
+
+    /// Emit memory load and optionally mark destination operand as UDT.
+    Status emit_load_memory_register(int selector_register,
+                                     int offset_register,
+                                     int destination_register,
+                                     int byte_width,
+                                     int offset_byte_width,
+                                     bool mark_user_defined_type);
 
     /// Emit memory load with explicit placement policy.
     Status emit_load_memory_register_with_policy(int selector_register,
@@ -444,12 +465,29 @@ public:
                                                  int offset_byte_width,
                                                  MicrocodeInsertPolicy policy);
 
+    /// Emit memory load with explicit placement policy and optional UDT marking.
+    Status emit_load_memory_register_with_policy(int selector_register,
+                                                 int offset_register,
+                                                 int destination_register,
+                                                 int byte_width,
+                                                 int offset_byte_width,
+                                                 MicrocodeInsertPolicy policy,
+                                                 bool mark_user_defined_type);
+
     /// Emit memory store (`m_stx`) from source register into selector+offset.
     Status emit_store_memory_register(int source_register,
                                       int selector_register,
                                       int offset_register,
                                       int byte_width,
                                       int offset_byte_width);
+
+    /// Emit memory store and optionally mark source operand as UDT.
+    Status emit_store_memory_register(int source_register,
+                                      int selector_register,
+                                      int offset_register,
+                                      int byte_width,
+                                      int offset_byte_width,
+                                      bool mark_user_defined_type);
 
     /// Emit memory store with explicit placement policy.
     Status emit_store_memory_register_with_policy(int source_register,
@@ -458,6 +496,15 @@ public:
                                                   int byte_width,
                                                   int offset_byte_width,
                                                   MicrocodeInsertPolicy policy);
+
+    /// Emit memory store with explicit placement policy and optional UDT marking.
+    Status emit_store_memory_register_with_policy(int source_register,
+                                                  int selector_register,
+                                                  int offset_register,
+                                                  int byte_width,
+                                                  int offset_byte_width,
+                                                  MicrocodeInsertPolicy policy,
+                                                  bool mark_user_defined_type);
 
     /// Emit helper call with no explicit arguments.
     Status emit_helper_call(std::string_view helper_name);
