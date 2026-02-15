@@ -528,6 +528,13 @@ public:
         }
         saw_block_instruction_count_query = true;
 
+        auto has_instruction_zero = context.has_instruction_at_index(0);
+        if (!has_instruction_zero) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        saw_instruction_index_query = true;
+
         auto has_last_emitted = context.has_last_emitted_instruction();
         if (!has_last_emitted) {
             saw_emit_failure = true;
@@ -582,6 +589,24 @@ public:
         auto bad_alloc = context.allocate_temporary_register(0);
         if (!bad_alloc && bad_alloc.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
+
+        auto bad_has_instruction_index = context.has_instruction_at_index(-1);
+        if (!bad_has_instruction_index
+            && bad_has_instruction_index.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_remove_instruction_index = context.remove_instruction_at_index(-1);
+        if (!bad_remove_instruction_index
+            && bad_remove_instruction_index.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto missing_remove_instruction = context.remove_instruction_at_index(std::numeric_limits<int>::max());
+        if (!missing_remove_instruction
+            && missing_remove_instruction.error().category == ida::ErrorCategory::NotFound) {
+            ++validation_hits;
+        }
 
         auto bad_store = context.store_operand_register(-1, 0, 1);
         if (!bad_store && bad_store.error().category == ida::ErrorCategory::Validation)
@@ -1136,6 +1161,27 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeOperand bad_micro_destination;
+        bad_micro_destination.kind = ida::decompiler::MicrocodeOperandKind::Empty;
+        auto bad_helper_to_micro_operand = context.emit_helper_call_with_arguments_to_micro_operand(
+            "idax_probe", {}, bad_micro_destination, true);
+        if (!bad_helper_to_micro_operand
+            && bad_helper_to_micro_operand.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeOperand bad_micro_destination_width;
+        bad_micro_destination_width.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_micro_destination_width.register_id = 0;
+        bad_micro_destination_width.byte_width = 0;
+        auto bad_helper_to_micro_operand_width =
+            context.emit_helper_call_with_arguments_to_micro_operand(
+                "idax_probe", {}, bad_micro_destination_width, true);
+        if (!bad_helper_to_micro_operand_width
+            && bad_helper_to_micro_operand_width.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeCallOptions options;
         options.insert_policy = ida::decompiler::MicrocodeInsertPolicy::Tail;
         options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Stdcall;
@@ -1238,6 +1284,31 @@ public:
             "idax_probe", {}, 0, 4, true, bad_options);
         if (!bad_helper_to_reg_negative_solid_args
             && bad_helper_to_reg_negative_solid_args.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_block_reference_argument;
+        bad_block_reference_argument.kind = ida::decompiler::MicrocodeValueKind::BlockReference;
+        bad_block_reference_argument.block_index = -1;
+        bad_block_reference_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_block_reference_args{bad_block_reference_argument};
+
+        auto bad_block_reference_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_block_reference_args);
+        if (!bad_block_reference_helper
+            && bad_block_reference_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        ida::decompiler::MicrocodeValue bad_nested_argument;
+        bad_nested_argument.kind = ida::decompiler::MicrocodeValueKind::NestedInstruction;
+        bad_nested_argument.byte_width = 8;
+        std::vector<ida::decompiler::MicrocodeValue> bad_nested_args{bad_nested_argument};
+
+        auto bad_nested_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_nested_args);
+        if (!bad_nested_helper
+            && bad_nested_helper.error().category == ida::ErrorCategory::Validation) {
             ++validation_hits;
         }
 
@@ -1547,6 +1618,7 @@ public:
     bool saw_auto_stack_location_validation{false};
     bool saw_local_variable_count_query{false};
     bool saw_block_instruction_count_query{false};
+    bool saw_instruction_index_query{false};
     bool saw_last_emitted_query{false};
     bool saw_last_emitted_remove{false};
     bool saw_local_variable_rewrite_attempt{false};
@@ -1576,6 +1648,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->saw_instruction_type);
         CHECK(filter->saw_local_variable_count_query);
         CHECK(filter->saw_block_instruction_count_query);
+        CHECK(filter->saw_instruction_index_query);
         CHECK(filter->saw_last_emitted_query);
         CHECK(!filter->saw_local_variable_rewrite_attempt
               || filter->saw_second_local_variable_rewrite_attempt);
@@ -1736,6 +1809,60 @@ void test_decompiler_retype_variable(ida::Address fn_ea) {
             }
         }
         CHECK(found);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Post-phase parity: typed decompiler-view helpers
+// ---------------------------------------------------------------------------
+void test_decompiler_view_helpers(ida::Address fn_ea) {
+    std::cout << "--- decompiler view helpers ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    CHECK_ERR(ida::decompiler::view_from_host(nullptr), ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::decompiler::view_for_function(ida::BadAddress), ida::ErrorCategory::Validation);
+
+    auto view = ida::decompiler::view_for_function(fn_ea);
+    CHECK_HAS_VALUE(view);
+    if (view) {
+        CHECK(view->function_address() != ida::BadAddress);
+
+        auto function_name = view->function_name();
+        CHECK_OK(function_name);
+
+        auto decompiled = view->decompiled_function();
+        CHECK_HAS_VALUE(decompiled);
+
+        ida::Address comment_ea = view->function_address();
+        auto address_map = decompiled ? decompiled->address_map()
+                                      : ida::Result<std::vector<ida::decompiler::AddressMapping>>{};
+        if (address_map && !address_map->empty())
+            comment_ea = address_map->front().address;
+
+        auto comment = view->get_comment(comment_ea);
+        CHECK_OK(comment);
+
+        auto rename_missing = view->rename_variable("__idax_missing_lvar__",
+                                                    "idax_view_helper_var");
+        CHECK(!rename_missing.has_value());
+
+        auto retype_missing = view->retype_variable("__idax_missing_lvar__",
+                                                    ida::type::TypeInfo::int32());
+        CHECK(!retype_missing.has_value());
+        CHECK_OK(view->refresh());
+    }
+
+    auto current = ida::decompiler::current_view();
+    if (!current) {
+        const auto category = current.error().category;
+        CHECK(category == ida::ErrorCategory::NotFound
+              || category == ida::ErrorCategory::Validation
+              || category == ida::ErrorCategory::SdkFailure
+              || category == ida::ErrorCategory::Unsupported);
+    } else {
+        CHECK(current->function_address() != ida::BadAddress);
     }
 }
 
@@ -2139,6 +2266,7 @@ int main(int argc, char* argv[]) {
         test_microcode_filter_registration(fn_ea);
         test_decompiler_comments(fn_ea);
         test_decompiler_retype_variable(fn_ea);
+        test_decompiler_view_helpers(fn_ea);
     } else {
         std::cout << "  (no suitable function for decompiler tests)\n";
     }

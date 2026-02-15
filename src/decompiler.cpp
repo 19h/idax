@@ -9,6 +9,7 @@
 #include "detail/type_impl.hpp"
 #include <ida/decompiler.hpp>
 #include <ida/function.hpp>
+#include <ida/ui.hpp>
 
 // hexrays.hpp is part of the IDA SDK and provides all decompiler APIs
 // through a single runtime dispatch pointer (no link dependencies).
@@ -130,6 +131,52 @@ bool make_byte_array_type(tinfo_t* out, int byte_width) {
 
     *out = array;
     return true;
+}
+
+Result<tinfo_t> parse_type_declaration(std::string_view declaration_text,
+                                       std::string_view context) {
+    if (declaration_text.empty()) {
+        return std::unexpected(Error::validation(
+            "Type declaration cannot be empty",
+            std::string(context)));
+    }
+
+    qstring declaration(declaration_text.data());
+    if (!declaration.empty() && declaration.last() != ';')
+        declaration.append(';');
+
+    qstring name;
+    tinfo_t parsed;
+    if (!parse_decl(&parsed,
+                    &name,
+                    nullptr,
+                    declaration.c_str(),
+                    PT_SIL)) {
+        return std::unexpected(Error::validation(
+            "Failed to parse type declaration",
+            std::string(declaration_text)));
+    }
+    return parsed;
+}
+
+Result<tinfo_t> infer_typed_value_type(int byte_width,
+                                       bool unsigned_integer,
+                                       std::string_view context) {
+    if (byte_width <= 0) {
+        return std::unexpected(Error::validation(
+            "Typed value byte width must be positive",
+            std::string(context)));
+    }
+
+    tinfo_t type;
+    if (make_integer_type(&type, byte_width, unsigned_integer))
+        return type;
+    if (make_byte_array_type(&type, byte_width))
+        return type;
+
+    return std::unexpected(Error::unsupported(
+        "Typed value byte width unsupported",
+        std::to_string(byte_width)));
 }
 
 callcnv_t to_sdk_calling_convention(MicrocodeCallingConvention convention) {
@@ -758,6 +805,20 @@ Status reposition_emitted_instruction(MicrocodeContextImpl* impl,
     return ida::ok();
 }
 
+minsn_t* instruction_at_index(mblock_t* block, int instruction_index) {
+    if (block == nullptr || instruction_index < 0)
+        return nullptr;
+
+    int current_index = 0;
+    for (minsn_t* instruction = block->head;
+         instruction != nullptr;
+         instruction = instruction->next, ++current_index) {
+        if (current_index == instruction_index)
+            return instruction;
+    }
+    return nullptr;
+}
+
 struct CallArgumentsBuildResult {
     mcallargs_t arguments;
     bool has_explicit_locations{false};
@@ -980,52 +1041,6 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
         }
     }
 
-    auto parse_declaration_type = [](std::string_view declaration_text,
-                                     std::string_view context) -> Result<tinfo_t> {
-        if (declaration_text.empty()) {
-            return std::unexpected(Error::validation(
-                "Type declaration cannot be empty",
-                std::string(context)));
-        }
-
-        qstring declaration(declaration_text.data());
-        if (!declaration.empty() && declaration.last() != ';')
-            declaration.append(';');
-
-        qstring name;
-        tinfo_t parsed;
-        if (!parse_decl(&parsed,
-                        &name,
-                        nullptr,
-                        declaration.c_str(),
-                        PT_SIL)) {
-            return std::unexpected(Error::validation(
-                "Failed to parse type declaration",
-                std::string(declaration_text)));
-        }
-        return parsed;
-    };
-
-    auto infer_typed_value_type = [](int byte_width,
-                                     bool unsigned_integer,
-                                     std::string_view context) -> Result<tinfo_t> {
-        if (byte_width <= 0) {
-            return std::unexpected(Error::validation(
-                "Typed value byte width must be positive",
-                std::string(context)));
-        }
-
-        tinfo_t type;
-        if (make_integer_type(&type, byte_width, unsigned_integer))
-            return type;
-        if (make_byte_array_type(&type, byte_width))
-            return type;
-
-        return std::unexpected(Error::unsupported(
-            "Typed value byte width unsupported",
-            std::to_string(byte_width)));
-    };
-
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         const auto& argument = arguments[i];
         mcallarg_t callarg;
@@ -1041,7 +1056,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
 
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "register");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1101,7 +1116,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
                 int argument_width = argument.byte_width;
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "local_variable");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1151,7 +1166,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
 
                 tinfo_t argument_type;
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "register_pair");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1198,7 +1213,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
                 int argument_width = argument.byte_width;
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "global_address");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1242,7 +1257,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
                 int argument_width = argument.byte_width;
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "stack_variable");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1286,7 +1301,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
                 int argument_width = argument.byte_width;
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "helper_reference");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1320,12 +1335,112 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 break;
             }
 
+            case MicrocodeValueKind::BlockReference: {
+                if (argument.block_index < 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode block-reference argument index cannot be negative",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                int argument_width = argument.byte_width;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
+                                                              "block_reference");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Block-reference argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "block_reference");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t block_reference;
+                block_reference.make_blkref(argument.block_index);
+                if (argument_width > 0)
+                    block_reference.size = argument_width;
+                callarg.copy_mop(block_reference);
+                callarg.type = argument_type;
+                break;
+            }
+
+            case MicrocodeValueKind::NestedInstruction: {
+                if (!argument.nested_instruction) {
+                    return std::unexpected(Error::validation(
+                        "Nested-instruction argument requires nested_instruction payload",
+                        std::to_string(i)));
+                }
+
+                auto nested = build_typed_nested_instruction(*argument.nested_instruction,
+                                                             mba,
+                                                             instruction_address,
+                                                             "call_argument_nested:" + std::to_string(i),
+                                                             0);
+                if (!nested)
+                    return std::unexpected(nested.error());
+
+                mop_t nested_instruction;
+                nested_instruction.create_from_insn(&*nested);
+
+                int argument_width = argument.byte_width;
+                if (argument_width <= 0)
+                    argument_width = nested_instruction.size;
+
+                tinfo_t argument_type;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
+                                                              "nested_instruction");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Nested-instruction argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "nested_instruction");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                if (argument_width > 0)
+                    nested_instruction.size = argument_width;
+                callarg.copy_mop(nested_instruction);
+                callarg.type = argument_type;
+                break;
+            }
+
             case MicrocodeValueKind::UnsignedImmediate: {
                 int argument_width = argument.byte_width;
                 tinfo_t argument_type;
 
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "unsigned_immediate");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1375,7 +1490,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t argument_type;
 
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "signed_immediate");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1495,7 +1610,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 tinfo_t element_type;
 
                 if (!argument.type_declaration.empty()) {
-                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                    auto parsed_type = parse_type_declaration(argument.type_declaration,
                                                               "vector_element");
                     if (!parsed_type)
                         return std::unexpected(parsed_type.error());
@@ -1835,6 +1950,21 @@ Result<int> MicrocodeContext::block_instruction_count() const {
     return count;
 }
 
+Result<bool> MicrocodeContext::has_instruction_at_index(int instruction_index) const {
+    if (instruction_index < 0) {
+        return std::unexpected(Error::validation("Instruction index cannot be negative",
+                                                 std::to_string(instruction_index)));
+    }
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    return instruction_at_index(impl->codegen->mb, instruction_index) != nullptr;
+}
+
 Result<bool> MicrocodeContext::has_last_emitted_instruction() const {
     if (raw_ == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext is empty"));
@@ -1858,6 +1988,31 @@ Status MicrocodeContext::remove_last_emitted_instruction() {
 
     impl->codegen->mb->remove_from_block(impl->last_emitted);
     impl->last_emitted = nullptr;
+    return ida::ok();
+}
+
+Status MicrocodeContext::remove_instruction_at_index(int instruction_index) {
+    if (instruction_index < 0) {
+        return std::unexpected(Error::validation("Instruction index cannot be negative",
+                                                 std::to_string(instruction_index)));
+    }
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    minsn_t* instruction = instruction_at_index(impl->codegen->mb, instruction_index);
+    if (instruction == nullptr) {
+        return std::unexpected(Error::not_found(
+            "No microcode instruction at index",
+            std::to_string(instruction_index)));
+    }
+
+    if (impl->last_emitted == instruction)
+        impl->last_emitted = nullptr;
+    impl->codegen->mb->remove_from_block(instruction);
     return ida::ok();
 }
 
@@ -2489,6 +2644,138 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
                                                                 ? nullptr
                                                                 : &callargs->arguments,
                                                             &destination);
+
+    auto st = apply_call_options(call, effective_options, helper);
+    if (!st) {
+        if (call != nullptr)
+            delete call;
+        return st;
+    }
+
+    const MicrocodeInsertPolicy insert_policy = effective_options.insert_policy.has_value()
+        ? *effective_options.insert_policy
+        : MicrocodeInsertPolicy::Tail;
+    return insert_call_instruction(impl, call, helper, insert_policy);
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_micro_operand(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    const MicrocodeOperand& destination,
+    bool destination_unsigned) {
+    return emit_helper_call_with_arguments_to_micro_operand_and_options(
+        helper_name,
+        arguments,
+        destination,
+        destination_unsigned,
+        MicrocodeCallOptions{});
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_micro_operand_and_options(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    const MicrocodeOperand& destination,
+    bool destination_unsigned,
+    const MicrocodeCallOptions& options) {
+    if (helper_name.empty())
+        return std::unexpected(Error::validation("Helper name cannot be empty"));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    switch (destination.kind) {
+        case MicrocodeOperandKind::Register:
+        case MicrocodeOperandKind::LocalVariable:
+        case MicrocodeOperandKind::RegisterPair:
+        case MicrocodeOperandKind::GlobalAddress:
+        case MicrocodeOperandKind::StackVariable:
+            break;
+        default:
+            return std::unexpected(Error::validation(
+                "Micro-operand destination kind is not writable",
+                std::to_string(static_cast<int>(destination.kind))));
+    }
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    auto callargs = build_call_arguments(arguments,
+                                         options,
+                                         impl->codegen->insn.ea,
+                                         impl->codegen->mba);
+    if (!callargs)
+        return std::unexpected(callargs.error());
+
+    MicrocodeCallOptions effective_options = options;
+    if (!effective_options.solid_argument_count.has_value()) {
+        effective_options.solid_argument_count = static_cast<int>(callargs->arguments.size());
+    }
+    if (callargs->has_explicit_locations)
+        effective_options.mark_explicit_locations = true;
+
+    auto destination_operand = build_typed_instruction_operand(destination,
+                                                               impl->codegen->mba,
+                                                               impl->codegen->insn.ea,
+                                                               "helper_destination",
+                                                               0);
+    if (!destination_operand)
+        return std::unexpected(destination_operand.error());
+
+    int destination_byte_width = destination.byte_width;
+    if (destination_byte_width <= 0)
+        destination_byte_width = destination_operand->size;
+
+    tinfo_t return_type;
+    if (!effective_options.return_type_declaration.empty()) {
+        auto parsed = parse_type_declaration(effective_options.return_type_declaration,
+                                             "helper_return_type");
+        if (!parsed)
+            return std::unexpected(parsed.error());
+        return_type = *parsed;
+
+        const size_t return_size = return_type.get_size();
+        if (return_size == 0) {
+            return std::unexpected(Error::validation(
+                "Parsed helper-call return type has unknown size",
+                effective_options.return_type_declaration));
+        }
+
+        if (destination_byte_width <= 0)
+            destination_byte_width = static_cast<int>(return_size);
+
+        if (static_cast<int>(return_size) != destination_byte_width) {
+            return std::unexpected(Error::validation(
+                "Return type size does not match destination byte width",
+                std::to_string(return_size) + ":" + std::to_string(destination_byte_width)));
+        }
+    } else {
+        if (destination_byte_width <= 0) {
+            return std::unexpected(Error::validation(
+                "Destination micro-operand byte width must be positive",
+                std::to_string(destination_byte_width)));
+        }
+        if (!make_integer_type(&return_type, destination_byte_width, destination_unsigned)) {
+            if (!make_byte_array_type(&return_type, destination_byte_width)) {
+                return std::unexpected(Error::unsupported(
+                    "Microcode typed return width unsupported",
+                    std::to_string(destination_byte_width)));
+            }
+        }
+    }
+
+    if (destination_byte_width > 0)
+        destination_operand->size = destination_byte_width;
+    if (destination.mark_user_defined_type || destination_byte_width > 8)
+        destination_operand->set_udt();
+
+    std::string helper(helper_name);
+    minsn_t* call = impl->codegen->mba->create_helper_call(impl->codegen->insn.ea,
+                                                            helper.c_str(),
+                                                            &return_type,
+                                                            callargs->arguments.empty()
+                                                                ? nullptr
+                                                                : &callargs->arguments,
+                                                            &*destination_operand);
 
     auto st = apply_call_options(call, effective_options, helper);
     if (!st) {
@@ -3245,6 +3532,119 @@ Result<DecompiledFunction> decompile(Address ea, DecompileFailure* failure) {
 
 Result<DecompiledFunction> decompile(Address ea) {
     return decompile(ea, nullptr);
+}
+
+Result<std::string> DecompilerView::function_name() const {
+    if (function_address_ == BadAddress)
+        return std::unexpected(Error::validation("DecompilerView has invalid function address"));
+    return ida::function::name_at(function_address_);
+}
+
+Result<DecompiledFunction> DecompilerView::decompiled_function() const {
+    if (function_address_ == BadAddress)
+        return std::unexpected(Error::validation("DecompilerView has invalid function address"));
+    return decompile(function_address_);
+}
+
+Status DecompilerView::rename_variable(std::string_view old_name,
+                                       std::string_view new_name) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->rename_variable(old_name, new_name);
+}
+
+Status DecompilerView::retype_variable(std::string_view variable_name,
+                                       const ida::type::TypeInfo& new_type) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->retype_variable(variable_name, new_type);
+}
+
+Status DecompilerView::retype_variable(std::size_t variable_index,
+                                       const ida::type::TypeInfo& new_type) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->retype_variable(variable_index, new_type);
+}
+
+Status DecompilerView::set_comment(Address address,
+                                   std::string_view text,
+                                   CommentPosition pos) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->set_comment(address, text, pos);
+}
+
+Result<std::string> DecompilerView::get_comment(Address address,
+                                                CommentPosition pos) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->get_comment(address, pos);
+}
+
+Status DecompilerView::save_comments() const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->save_comments();
+}
+
+Status DecompilerView::refresh() const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->refresh();
+}
+
+Result<DecompilerView> view_from_host(void* decompiler_view_host) {
+    if (decompiler_view_host == nullptr)
+        return std::unexpected(Error::validation("Decompiler view host cannot be null"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    auto* view = static_cast<vdui_t*>(decompiler_view_host);
+    if (view->cfunc == nullptr) {
+        return std::unexpected(Error::not_found(
+            "Decompiler view host has no active decompiled function"));
+    }
+
+    return DecompilerView(DecompilerView::Tag{},
+                          static_cast<Address>(view->cfunc->entry_ea));
+}
+
+Result<DecompilerView> view_for_function(Address address) {
+    if (address == BadAddress) {
+        return std::unexpected(Error::validation(
+            "Function address cannot be BadAddress"));
+    }
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    func_t* fn = get_func(address);
+    if (fn == nullptr) {
+        return std::unexpected(Error::not_found(
+            "No function at address",
+            std::to_string(address)));
+    }
+
+    return DecompilerView(DecompilerView::Tag{},
+                          static_cast<Address>(fn->start_ea));
+}
+
+Result<DecompilerView> current_view() {
+    auto current_address = ida::ui::screen_address();
+    if (!current_address)
+        return std::unexpected(current_address.error());
+    return view_for_function(*current_address);
 }
 
 // ── Functional-style visitor helpers ────────────────────────────────────

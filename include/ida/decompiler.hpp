@@ -184,6 +184,8 @@ enum class MicrocodeValueKind : int {
     GlobalAddress,
     StackVariable,
     HelperReference,
+    BlockReference,
+    NestedInstruction,
     UnsignedImmediate,
     SignedImmediate,
     Float32Immediate,
@@ -249,6 +251,8 @@ struct MicrocodeValue {
     Address global_address{BadAddress};
     std::int64_t stack_offset{0};
     std::string helper_name{};
+    int block_index{0};
+    std::shared_ptr<MicrocodeInstruction> nested_instruction{};
     std::uint64_t unsigned_immediate{0};
     std::int64_t signed_immediate{0};
     double floating_immediate{0.0};
@@ -385,11 +389,17 @@ public:
     /// Number of microcode instructions currently present in the active block.
     [[nodiscard]] Result<int> block_instruction_count() const;
 
+    /// Return true when an instruction exists at the specified block index.
+    [[nodiscard]] Result<bool> has_instruction_at_index(int instruction_index) const;
+
     /// Whether this context has tracked at least one emitted instruction.
     [[nodiscard]] Result<bool> has_last_emitted_instruction() const;
 
     /// Remove the most recently emitted instruction tracked by this context.
     Status remove_last_emitted_instruction();
+
+    /// Remove an instruction by its current zero-based index in the active block.
+    Status remove_instruction_at_index(int instruction_index);
 
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();
@@ -553,6 +563,24 @@ public:
         const std::vector<MicrocodeValue>& arguments,
         int destination_register,
         int destination_byte_width,
+        bool destination_unsigned,
+        const MicrocodeCallOptions& options);
+
+    /// Emit helper call with typed arguments and move return to a typed microcode operand.
+    ///
+    /// Destination supports writable operand forms (register/local-variable/
+    /// register-pair/global-address/stack-variable).
+    Status emit_helper_call_with_arguments_to_micro_operand(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        const MicrocodeOperand& destination,
+        bool destination_unsigned = true);
+
+    /// Emit helper call with typed arguments/return options and micro-operand destination.
+    Status emit_helper_call_with_arguments_to_micro_operand_and_options(
+        std::string_view helper_name,
+        const std::vector<MicrocodeValue>& arguments,
+        const MicrocodeOperand& destination,
         bool destination_unsigned,
         const MicrocodeCallOptions& options);
 
@@ -991,6 +1019,64 @@ public:
 private:
     Impl* impl_{nullptr};
 };
+
+/// Typed decompiler-view edit/session helper.
+///
+/// This class stores only stable function-address identity and exposes
+/// high-value edit/read flows without leaking SDK `vdui_t`/`cfunc_t` types.
+class DecompilerView {
+public:
+    /// Function entry address represented by this view/session.
+    [[nodiscard]] Address function_address() const noexcept { return function_address_; }
+
+    /// Resolve the current function name.
+    [[nodiscard]] Result<std::string> function_name() const;
+
+    /// Decompile the represented function.
+    [[nodiscard]] Result<DecompiledFunction> decompiled_function() const;
+
+    /// Rename local variable by name.
+    Status rename_variable(std::string_view old_name, std::string_view new_name) const;
+
+    /// Retype local variable by name.
+    Status retype_variable(std::string_view variable_name,
+                           const ida::type::TypeInfo& new_type) const;
+
+    /// Retype local variable by index.
+    Status retype_variable(std::size_t variable_index,
+                           const ida::type::TypeInfo& new_type) const;
+
+    /// Set user comment for represented function pseudocode.
+    Status set_comment(Address address,
+                       std::string_view text,
+                       CommentPosition pos = CommentPosition::Default) const;
+
+    /// Get user comment for represented function pseudocode.
+    [[nodiscard]] Result<std::string> get_comment(Address address,
+                                                  CommentPosition pos = CommentPosition::Default) const;
+
+    /// Persist user comments.
+    Status save_comments() const;
+
+    /// Refresh decompiler state for represented function.
+    Status refresh() const;
+
+    struct Tag {};
+    explicit DecompilerView(Tag, Address function_address) noexcept
+        : function_address_(function_address) {}
+
+private:
+    Address function_address_{BadAddress};
+};
+
+/// Build a typed decompiler-view session from an opaque host (`vdui_t*` as `void*`).
+Result<DecompilerView> view_from_host(void* decompiler_view_host);
+
+/// Build a typed decompiler-view session for the function containing `address`.
+Result<DecompilerView> view_for_function(Address address);
+
+/// Build a typed decompiler-view session from the current pseudocode widget.
+Result<DecompilerView> current_view();
 
 /// Decompile the function at \p ea.
 /// The decompiler must be available (call available() first or handle the error).

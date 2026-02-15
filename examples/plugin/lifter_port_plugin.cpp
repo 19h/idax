@@ -1411,10 +1411,11 @@ ida::Status show_gap_report() {
         "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and compare/mask\n"
         "     flows use deterministic helper-call operand writeback instead of no-op tolerance.\n"
         "  3) Rich IR mutation depth is still additive follow-up (deeper vector/UDT semantics + advanced callinfo/tmop).\n"
-        "  4) Action-context host bridges expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers remain additive work.\n"
+        "  4) Typed decompiler-view helpers now bridge host handles to edit/read flows; deeper in-view mutation ergonomics\n"
+        "     remain additive follow-up.\n"
         "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion\n"
         "               + helper-fallback bitwise/permute/blend/shift/compare/misc subset,\n"
-        "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");
+        "               FUNC_OUTLINE + cache-dirty helpers, and typed decompiler-view wrappers.\n");
     return ida::ok();
 }
 
@@ -1424,10 +1425,16 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
     }
 
     bool has_view_host = false;
+    std::optional<ida::decompiler::DecompilerView> typed_view;
     auto view_host_status = ida::plugin::with_decompiler_view_host(
         context,
-        [&](void*) -> ida::Status {
+        [&](void* host) -> ida::Status {
             has_view_host = true;
+            auto view = ida::decompiler::view_from_host(host);
+            if (!view) {
+                return std::unexpected(view.error());
+            }
+            typed_view = *view;
             return ida::ok();
         });
     if (!view_host_status
@@ -1435,18 +1442,35 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
         return std::unexpected(view_host_status.error());
     }
 
-    auto address = resolve_action_address(context);
-    if (!address) {
-        return std::unexpected(address.error());
-    }
-
-    auto function = ida::function::at(*address);
-    if (!function) {
-        return std::unexpected(function.error());
-    }
-
     ida::decompiler::DecompileFailure failure;
-    auto decompiled = ida::decompiler::decompile(function->start(), &failure);
+    ida::Address function_start = ida::BadAddress;
+    std::string function_name;
+
+    auto decompiled = [&]() -> ida::Result<ida::decompiler::DecompiledFunction> {
+        if (typed_view.has_value()) {
+            function_start = typed_view->function_address();
+            auto view_name = typed_view->function_name();
+            if (view_name) {
+                function_name = *view_name;
+            }
+            return typed_view->decompiled_function();
+        }
+
+        auto address = resolve_action_address(context);
+        if (!address) {
+            return std::unexpected(address.error());
+        }
+
+        auto function = ida::function::at(*address);
+        if (!function) {
+            return std::unexpected(function.error());
+        }
+
+        function_start = function->start();
+        function_name = function->name();
+        return ida::decompiler::decompile(function_start, &failure);
+    }();
+
     if (!decompiled) {
         std::string details = error_text(decompiled.error());
         if (!failure.description.empty()) {
@@ -1474,10 +1498,18 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
         return std::unexpected(call_count.error());
     }
 
+    if (function_start == ida::BadAddress)
+        function_start = decompiled->entry_address();
+    if (function_name.empty()) {
+        auto name = ida::function::name_at(function_start);
+        if (name)
+            function_name = *name;
+    }
+
     ida::ui::message(fmt(
         "[lifter-port] snapshot %s @ %#llx : pseudo=%zu lines, microcode=%zu lines, calls=%zu, view_host=%s\n",
-        function->name().c_str(),
-        static_cast<unsigned long long>(function->start()),
+        function_name.empty() ? "<unknown>" : function_name.c_str(),
+        static_cast<unsigned long long>(function_start),
         pseudocode_lines->size(),
         microcode_lines->size(),
         *call_count,
