@@ -204,5 +204,7 @@ Format note: use a numbered list with one concrete technical finding per item; k
 199. Lifter helper-call depth can progress safely by adding semantic call-role hints (`SseCompare4`/`SseCompare8` for `vcmp*`) plus `argument_name` metadata on helper arguments; this enriches callinfo/tmop intent without aggressive side-effect flags.
 200. Additive callinfo enrichment scales cleanly when semantic roles also cover rotate helper families (`RotateLeft`/`RotateRight`) and `argument_name` metadata is applied consistently across variadic, VMX, and explicit scalar/packed helper-call paths.
 201. Declaration-driven return typing can be applied incrementally to stable helper-return families (integer-width `vmread` register destinations and scalar float/double helper returns) to improve callinfo fidelity without broad vector-type assumptions.
+202. Register-destination helper flows can safely carry explicit callinfo `return_location` hints when mapped to the same destination register used for helper-return writeback; this composes with declaration-driven return typing.
+203. Callinfo hardening should probe both positive and negative hint paths: success/backend-failure tolerance for micro/register destination routes, plus validation checks for negative register return locations and return-type-size mismatches.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

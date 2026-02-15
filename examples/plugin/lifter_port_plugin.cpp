@@ -74,6 +74,7 @@ ida::decompiler::MicrocodeCallOptions vmx_call_options();
 ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower);
 std::string integer_type_declaration(int byte_width, bool unsigned_integer);
 std::string floating_type_declaration(int byte_width);
+ida::decompiler::MicrocodeValueLocation register_return_location(int register_id);
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
@@ -449,7 +450,11 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
 
             const std::string helper = "__" + std::string(mnemonic_lower);
-            const auto helper_options = compare_call_options(mnemonic_lower);
+            auto helper_options = compare_call_options(mnemonic_lower);
+            auto return_type = integer_type_declaration(destination_width, true);
+            if (!return_type.empty()) {
+                helper_options.return_type_declaration = std::move(return_type);
+            }
 
             if (auto global_destination = global_destination_operand(instruction,
                                                                      0,
@@ -523,7 +528,12 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     }
 
     const std::string helper = "__" + std::string(mnemonic_lower);
-    const auto helper_options = compare_call_options(mnemonic_lower);
+    auto helper_options = compare_call_options(mnemonic_lower);
+    helper_options.return_location = register_return_location(*destination_reg);
+    auto return_type = integer_type_declaration(destination_width, true);
+    if (!return_type.empty()) {
+        helper_options.return_type_declaration = std::move(return_type);
+    }
     auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
         helper,
         args,
@@ -634,6 +644,13 @@ std::string floating_type_declaration(int byte_width) {
         default:
             return {};
     }
+}
+
+ida::decompiler::MicrocodeValueLocation register_return_location(int register_id) {
+    ida::decompiler::MicrocodeValueLocation location;
+    location.kind = ida::decompiler::MicrocodeValueLocationKind::Register;
+    location.register_id = register_id;
+    return location;
 }
 
 ida::decompiler::MicrocodeValue register_argument(int register_id,
@@ -814,6 +831,7 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
             if (!return_type.empty()) {
                 options.return_type_declaration = std::move(return_type);
             }
+            options.return_location = register_return_location(*destination_reg);
 
             auto st = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                 "__vmread",
@@ -1027,6 +1045,7 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
         if (!return_type.empty()) {
             helper_options.return_type_declaration = std::move(return_type);
         }
+        helper_options.return_location = register_return_location(*destination_reg);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
@@ -1254,12 +1273,18 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(source_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_options = vmx_call_options();
+        helper_options.return_location = register_return_location(*destination_reg);
+        auto return_type = integer_type_declaration(destination_width, destination_unsigned);
+        if (!return_type.empty()) {
+            helper_options.return_type_declaration = std::move(return_type);
+        }
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
             register_destination_operand(*destination_reg, destination_width),
             destination_unsigned,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }
@@ -1327,12 +1352,14 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(source_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_options = vmx_call_options();
+        helper_options.return_location = register_return_location(*destination_reg);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
             register_destination_operand(*destination_reg, packed_width),
             false,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }
@@ -1367,12 +1394,14 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_options = vmx_call_options();
+        helper_options.return_location = register_return_location(*destination_reg);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
             register_destination_operand(*destination_reg, packed_width),
             false,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }
@@ -1404,12 +1433,14 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_options = vmx_call_options();
+        helper_options.return_location = register_return_location(*destination_reg);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
             register_destination_operand(*destination_reg, packed_width),
             false,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }

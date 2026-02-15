@@ -378,7 +378,9 @@ be executed in small, testable API slices.
   VMX, and explicit scalar/packed helper paths carry `argument_name` metadata
   for clearer typed call-argument semantics. Selected destination-helper paths
   now also apply declaration-driven return typing (`vmread` register destination
-  integer widths and scalar `vmin*`/`vmax*`/`vsqrt*` float/double returns).
+  integer widths and scalar `vmin*`/`vmax*`/`vsqrt*` float/double returns),
+  with explicit register `return_location` hints on stable register-destination
+  helper flows.
 
 ## Notes
 
