@@ -179,6 +179,7 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
         "vpsubb", "vpsubw", "vpsubd", "vpsubq",
         "vpaddsb", "vpaddsw", "vpaddusb", "vpaddusw",
         "vpsubsb", "vpsubsw", "vpsubusb", "vpsubusw",
+        "vpmulld", "vpmullq", "vpmullw", "vpmuludq", "vpmaddwd",
         "vminps", "vmaxps", "vminpd", "vmaxpd",
         "vsqrtps", "vsqrtpd",
         "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
@@ -235,6 +236,13 @@ std::optional<ida::decompiler::MicrocodeOpcode> packed_integer_arithmetic_opcode
     if (mnemonic_lower == "vpsubb" || mnemonic_lower == "vpsubw"
         || mnemonic_lower == "vpsubd" || mnemonic_lower == "vpsubq") {
         return ida::decompiler::MicrocodeOpcode::Subtract;
+    }
+    return std::nullopt;
+}
+
+std::optional<ida::decompiler::MicrocodeOpcode> packed_integer_multiply_opcode(std::string_view mnemonic_lower) {
+    if (mnemonic_lower == "vpmulld" || mnemonic_lower == "vpmullq") {
+        return ida::decompiler::MicrocodeOpcode::Multiply;
     }
     return std::nullopt;
 }
@@ -304,6 +312,13 @@ bool is_packed_helper_integer_arithmetic_mnemonic(std::string_view mnemonic_lowe
         "vpsubb", "vpsubw", "vpsubd", "vpsubq",
         "vpaddsb", "vpaddsw", "vpaddusb", "vpaddusw",
         "vpsubsb", "vpsubsw", "vpsubusb", "vpsubusw",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_integer_multiply_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vpmulld", "vpmullq", "vpmullw", "vpmuludq", "vpmaddwd",
     };
     return kSupported.contains(std::string(mnemonic_lower));
 }
@@ -947,6 +962,17 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         }
     }
 
+    if (const auto integer_multiply_opcode = packed_integer_multiply_opcode(mnemonic_lower);
+        integer_multiply_opcode.has_value()) {
+        auto emitted = try_emit_typed_binary(*integer_multiply_opcode);
+        if (!emitted) {
+            return std::unexpected(emitted.error());
+        }
+        if (*emitted) {
+            return true;
+        }
+    }
+
     if (const auto bitwise_opcode = packed_bitwise_opcode(mnemonic_lower);
         bitwise_opcode.has_value()) {
         auto emitted = try_emit_typed_binary(*bitwise_opcode);
@@ -1002,6 +1028,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     }
 
     if (is_packed_helper_integer_arithmetic_mnemonic(mnemonic_lower)
+        || is_packed_helper_integer_multiply_mnemonic(mnemonic_lower)
         || is_packed_helper_bitwise_mnemonic(mnemonic_lower)
         || is_packed_helper_permute_blend_mnemonic(mnemonic_lower)
         || is_packed_helper_shift_mnemonic(mnemonic_lower)
