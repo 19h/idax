@@ -13,16 +13,16 @@ Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper o
 3. Any findings, learnings, caveats, gotchas, and behavioral discoveries must be logged in this file immediately.
 4. No TODO transition is valid until both are updated:
    - The TODO status in the relevant phase section
-   - The timestamped entry in the Progress Ledger
+   - The corresponding entry in the Progress Ledger
 5. No discovery is valid until both are updated:
    - The Findings and Learnings section
-   - The timestamped entry in the Progress Ledger
+   - The corresponding entry in the Progress Ledger
 6. Any blocker must be captured with impact and mitigation plan in the Blockers section.
 7. Any design change must be captured in the Decision Log with rationale.
 
 MANDATORY UPDATE PROTOCOL (must always be followed):
 - Step 1: Update task checkbox/status as soon as it changes.
-- Step 2: Add a Progress Ledger entry with timestamp and scope.
+- Step 2: Add a Progress Ledger entry with scope.
 - Step 3: If a technical insight was discovered, add it to Findings and Learnings.
 - Step 4: If architecture changed, add it to Decision Log.
 - Step 5: If blocked, add/update Blockers with next action.
@@ -879,6 +879,7 @@ Note:
   - 8.7.6. Widened misc families [extended]
     - 8.7.6.1. gather/scatter/compress/expand/popcnt/lzcnt/gfni/pclmul/aes/sha
     - 8.7.6.2. movnt/movmsk/pmov/pinsert/extractps/insertps/pack/phsub/fmaddsub
+  - 8.7.7. Helper-return destination routing now prefers typed micro-operands (register/direct-memory `GlobalAddress`) with operand-writeback fallback for unresolved shapes [F196]
 
 ---
 
@@ -2520,6 +2521,11 @@ Note:
   - 12.5.3. Restored fixture side effects and revalidated
   - 12.5.4. Evidence: 16/16 tests
 
+- **12.6. Lifter tmop Adoption (5.4.1)**
+  - 12.6.1. Applied micro-operand helper-return routing across additional AVX/VMX branches in `examples/plugin/lifter_port_plugin.cpp`.
+  - 12.6.2. Converted register-destination helper returns to `emit_helper_call_with_arguments_to_micro_operand_and_options` and added direct-memory compare destination routing (`MemoryDirect` → `GlobalAddress`) before operand-writeback fallback.
+  - 12.6.3. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin` passes.
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2604,10 +2610,12 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Next Step**
-  - 5.4.1. Apply new tmop APIs directly to additional AVX/VMX handler branches in `examples/plugin/lifter_port_plugin.cpp`
-  - 5.4.2. **Goal:** Reduce helper fallback paths further
-  - 5.4.3. **Status:** Queued
+- **5.4. Immediate Execution Queue (Post-5.4.1)**
+  - 5.4.1. Add regression coverage for helper-call micro-operand destination routing in `tests/integration/decompiler_storage_hardening_test.cpp` (register + direct-memory `GlobalAddress` destination success paths).
+  - 5.4.2. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
+  - 5.4.3. Begin 5.3.2 depth work with additive callinfo/tmop semantics for AVX/VMX helper paths (per-family return typing, argument metadata, semantic role/location hints where concretely useful).
+  - 5.4.4. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
+  - 5.4.5. **Status:** Queued
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 

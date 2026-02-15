@@ -75,6 +75,12 @@ ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
 ida::decompiler::MicrocodeValue pointer_argument(int register_id);
+ida::decompiler::MicrocodeOperand register_destination_operand(int register_id,
+                                                               int byte_width);
+std::optional<ida::decompiler::MicrocodeOperand> global_destination_operand(
+    const ida::instruction::Instruction& instruction,
+    std::size_t operand_index,
+    int fallback_byte_width);
 
 bool is_packed_helper_misc_mnemonic(std::string_view mnemonic_lower) {
     if (mnemonic_lower.starts_with("vgather")
@@ -434,6 +440,26 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
 
             const std::string helper = "__" + std::string(mnemonic_lower);
+
+            if (auto global_destination = global_destination_operand(instruction,
+                                                                     0,
+                                                                     destination_width);
+                global_destination.has_value()) {
+                auto micro_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    helper,
+                    compare_args,
+                    *global_destination,
+                    false,
+                    vmx_call_options());
+                if (micro_status) {
+                    return true;
+                }
+                if (micro_status.error().category == ida::ErrorCategory::SdkFailure
+                    || micro_status.error().category == ida::ErrorCategory::Internal) {
+                    return false;
+                }
+            }
+
             auto helper_status = context.emit_helper_call_with_arguments_to_operand_and_options(
                 helper,
                 compare_args,
@@ -486,11 +512,10 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     }
 
     const std::string helper = "__" + std::string(mnemonic_lower);
-    auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+    auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
         helper,
         args,
-        *destination_reg,
-        destination_width,
+        register_destination_operand(*destination_reg, destination_width),
         false,
         vmx_call_options());
     if (!helper_status) {
@@ -566,6 +591,39 @@ ida::decompiler::MicrocodeValue pointer_argument(int register_id) {
     value.byte_width = 0;
     value.type_declaration = "void *";
     return value;
+}
+
+ida::decompiler::MicrocodeOperand register_destination_operand(int register_id,
+                                                               int byte_width) {
+    ida::decompiler::MicrocodeOperand destination;
+    destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+    destination.register_id = register_id;
+    destination.byte_width = byte_width;
+    destination.mark_user_defined_type = byte_width > 8;
+    return destination;
+}
+
+std::optional<ida::decompiler::MicrocodeOperand> global_destination_operand(
+    const ida::instruction::Instruction& instruction,
+    std::size_t operand_index,
+    int fallback_byte_width) {
+    auto operand = instruction.operand(operand_index);
+    if (!operand) {
+        return std::nullopt;
+    }
+    if (operand->type() != ida::instruction::OperandType::MemoryDirect
+        || operand->target_address() == ida::BadAddress) {
+        return std::nullopt;
+    }
+
+    ida::decompiler::MicrocodeOperand destination;
+    destination.kind = ida::decompiler::MicrocodeOperandKind::GlobalAddress;
+    destination.global_address = operand->target_address();
+    destination.byte_width = infer_operand_byte_width(instruction,
+                                                      operand_index,
+                                                      fallback_byte_width);
+    destination.mark_user_defined_type = destination.byte_width > 8;
+    return destination;
 }
 
 ida::Result<bool> try_emit_local_variable_self_move(ida::decompiler::MicrocodeContext& context,
@@ -685,11 +743,10 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
             std::vector<ida::decompiler::MicrocodeValue> args;
             args.push_back(register_argument(*encoding_reg, integer_width, true));
 
-            auto st = context.emit_helper_call_with_arguments_to_register_and_options(
+            auto st = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                 "__vmread",
                 args,
-                *destination_reg,
-                integer_width,
+                register_destination_operand(*destination_reg, integer_width),
                 true,
                 vmx_call_options());
             if (!st) return std::unexpected(st.error());
@@ -873,11 +930,10 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
         args.push_back(register_argument(*source2_reg, scalar_width, false));
 
         const std::string helper = "__" + std::string(mnemonic_lower);
-        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
-            *destination_reg,
-            scalar_width,
+            register_destination_operand(*destination_reg, scalar_width),
             false,
             vmx_call_options());
         if (!helper_status) {
@@ -1099,11 +1155,10 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(register_argument(*source_reg, source_width, false));
 
         const std::string helper = "__" + std::string(mnemonic_lower);
-        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
-            *destination_reg,
-            destination_width,
+            register_destination_operand(*destination_reg, destination_width),
             destination_unsigned,
             vmx_call_options());
         if (!helper_status) {
@@ -1171,11 +1226,10 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(register_argument(*source_reg, packed_width, false));
 
         const std::string helper = "__" + std::string(mnemonic_lower);
-        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
-            *destination_reg,
-            packed_width,
+            register_destination_operand(*destination_reg, packed_width),
             false,
             vmx_call_options());
         if (!helper_status) {
@@ -1208,11 +1262,10 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(register_argument(*source2_reg, packed_width, false));
 
         const std::string helper = "__" + std::string(mnemonic_lower);
-        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
-            *destination_reg,
-            packed_width,
+            register_destination_operand(*destination_reg, packed_width),
             false,
             vmx_call_options());
         if (!helper_status) {
@@ -1242,11 +1295,10 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         args.push_back(register_argument(*source2_reg, packed_width, false));
 
         const std::string helper = "__" + std::string(mnemonic_lower);
-        auto helper_status = context.emit_helper_call_with_arguments_to_register_and_options(
+        auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
-            *destination_reg,
-            packed_width,
+            register_destination_operand(*destination_reg, packed_width),
             false,
             vmx_call_options());
         if (!helper_status) {
@@ -1408,8 +1460,8 @@ ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
         "  1) VMX + AVX scalar/packed microcode lifting subsets are now active via idax filter hooks.\n"
-        "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and compare/mask\n"
-        "     flows use deterministic helper-call operand writeback instead of no-op tolerance.\n"
+        "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and helper-return\n"
+        "     destinations now prefer typed micro-operands (register/direct-memory) with deterministic operand-writeback fallback.\n"
         "  3) Rich IR mutation depth is still additive follow-up (deeper vector/UDT semantics + advanced callinfo/tmop).\n"
         "  4) Typed decompiler-view helpers now bridge host handles to edit/read flows; deeper in-view mutation ergonomics\n"
         "     remain additive follow-up.\n"
