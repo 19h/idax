@@ -1357,6 +1357,27 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeCallOptions bad_passthrough_subset_options = options;
+        ida::decompiler::MicrocodeRegisterRange bad_passthrough_range_entry;
+        bad_passthrough_range_entry.register_id = 0;
+        bad_passthrough_range_entry.byte_width = 8;
+        bad_passthrough_subset_options.passthrough_registers.push_back(
+            bad_passthrough_range_entry);
+
+        auto bad_passthrough_subset = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, bad_passthrough_subset_options);
+        if (!bad_passthrough_subset
+            && bad_passthrough_subset.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_passthrough_subset_to_reg = context.emit_helper_call_with_arguments_to_register_and_options(
+            "idax_probe", {}, 0, 4, true, bad_passthrough_subset_options);
+        if (!bad_passthrough_subset_to_reg
+            && bad_passthrough_subset_to_reg.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto nop = context.emit_noop();
         if (!nop) {
             if (nop.error().category != ida::ErrorCategory::SdkFailure
