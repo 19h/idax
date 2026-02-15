@@ -177,6 +177,8 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
         "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
         "vpaddb", "vpaddw", "vpaddd", "vpaddq",
         "vpsubb", "vpsubw", "vpsubd", "vpsubq",
+        "vpaddsb", "vpaddsw", "vpaddusb", "vpaddusw",
+        "vpsubsb", "vpsubsw", "vpsubusb", "vpsubusw",
         "vminps", "vmaxps", "vminpd", "vmaxpd",
         "vsqrtps", "vsqrtpd",
         "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
@@ -292,6 +294,16 @@ bool is_packed_helper_addsub_mnemonic(std::string_view mnemonic_lower) {
     static const std::unordered_set<std::string> kSupported{
         "vaddsubps", "vaddsubpd",
         "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
+    };
+    return kSupported.contains(std::string(mnemonic_lower));
+}
+
+bool is_packed_helper_integer_arithmetic_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kSupported{
+        "vpaddb", "vpaddw", "vpaddd", "vpaddq",
+        "vpsubb", "vpsubw", "vpsubd", "vpsubq",
+        "vpaddsb", "vpaddsw", "vpaddusb", "vpaddusw",
+        "vpsubsb", "vpsubsw", "vpsubusb", "vpsubusw",
     };
     return kSupported.contains(std::string(mnemonic_lower));
 }
@@ -989,7 +1001,8 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     }
 
-    if (is_packed_helper_bitwise_mnemonic(mnemonic_lower)
+    if (is_packed_helper_integer_arithmetic_mnemonic(mnemonic_lower)
+        || is_packed_helper_bitwise_mnemonic(mnemonic_lower)
         || is_packed_helper_permute_blend_mnemonic(mnemonic_lower)
         || is_packed_helper_shift_mnemonic(mnemonic_lower)
         || is_packed_helper_misc_mnemonic(mnemonic_lower)) {
