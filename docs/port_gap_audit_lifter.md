@@ -291,6 +291,10 @@ be executed in small, testable API slices.
 - Expanded helper-call typed-argument shaping for register argument paths:
   declaration-driven register argument typing now supports non-integer
   declarations with explicit size validation.
+- Expanded helper-call typed-argument shaping for immediate argument paths:
+  unsigned/signed immediates now accept optional declaration-driven typing with
+  parse/size validation and declaration-derived width inference when byte width
+  is omitted.
 - Expanded helper-call per-argument metadata shaping:
   arguments can now carry formal name/flag metadata via
   `MicrocodeValue::argument_name` + `MicrocodeValue::argument_flags`
