@@ -515,6 +515,16 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                             register_destination,
                             false,
                             register_helper_options);
+                    if (!register_micro_status
+                        && register_micro_status.error().category == ida::ErrorCategory::Validation) {
+                        register_micro_status =
+                            context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                                helper,
+                                compare_args,
+                                register_destination,
+                                false,
+                                helper_options);
+                    }
                     if (register_micro_status) {
                         return true;
                     }
@@ -534,6 +544,53 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
             if (!unresolved_destination_shape) {
                 return false;
+            }
+
+            auto temporary_destination = context.allocate_temporary_register(destination_width);
+            if (temporary_destination) {
+                auto temporary_helper_options = helper_options;
+                temporary_helper_options.return_location =
+                    register_return_location(*temporary_destination);
+
+                auto temporary_helper_status =
+                    context.emit_helper_call_with_arguments_to_register_and_options(
+                        helper,
+                        compare_args,
+                        *temporary_destination,
+                        destination_width,
+                        false,
+                        temporary_helper_options);
+                if (!temporary_helper_status
+                    && temporary_helper_status.error().category == ida::ErrorCategory::Validation) {
+                    temporary_helper_status =
+                        context.emit_helper_call_with_arguments_to_register_and_options(
+                            helper,
+                            compare_args,
+                            *temporary_destination,
+                            destination_width,
+                            false,
+                            helper_options);
+                }
+
+                if (temporary_helper_status) {
+                    auto store_status = context.store_operand_register(
+                        0,
+                        *temporary_destination,
+                        destination_width);
+                    if (store_status) {
+                        return true;
+                    }
+                    if (store_status.error().category == ida::ErrorCategory::SdkFailure
+                        || store_status.error().category == ida::ErrorCategory::Internal) {
+                        return false;
+                    }
+                    return std::unexpected(store_status.error());
+                }
+
+                if (temporary_helper_status.error().category == ida::ErrorCategory::SdkFailure
+                    || temporary_helper_status.error().category == ida::ErrorCategory::Internal) {
+                    return false;
+                }
             }
 
             auto helper_status = context.emit_helper_call_with_arguments_to_operand_and_options(

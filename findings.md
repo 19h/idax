@@ -212,5 +212,8 @@ Format note: use a numbered list with one concrete technical finding per item; k
 207. For compare helper flows with resolved memory destinations, static-address `return_location` hints can be applied to typed `GlobalAddress` micro-destination routes; if a backend rejects the hint as validation, retrying without the hint preserves stable behavior.
 208. Callinfo hardening can extend positive/negative location validation to global-destination micro routes by asserting success-or-backend-failure for valid static-address hints and explicit `Validation` for `BadAddress` static return locations.
 209. Static-address return-location validation should be asserted across helper emission routes including `to_operand`; `BadAddress` static-location hints must fail with `Validation` consistently.
+210. Compare helper register-destination micro routes benefit from the same validation-safe retry pattern as resolved-memory routes: if explicit register `return_location` hints are rejected with validation, retrying with no location hint preserves stable handling.
+211. Callinfo hardening should validate return-type-size mismatch behavior on global-destination routes as well, including `to_operand` checks, to keep type-size contracts consistent across helper emission APIs.
+212. For unresolved compare destinations, an intermediate helper-to-temporary-register route plus operand store writeback can be attempted before direct `to_operand` helper fallback, reducing reliance on the direct operand route while preserving degraded-path stability.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
