@@ -420,6 +420,12 @@ public:
     /// Store a register value back to an instruction operand.
     Status store_operand_register(int operand_index, int source_register, int byte_width);
 
+    /// Store a register value back to an instruction operand and optionally mark source as UDT.
+    Status store_operand_register(int operand_index,
+                                  int source_register,
+                                  int byte_width,
+                                  bool mark_user_defined_type);
+
     /// Emit register-to-register move.
     Status emit_move_register(int source_register, int destination_register, int byte_width);
 

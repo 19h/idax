@@ -1946,6 +1946,16 @@ Result<int> MicrocodeContext::allocate_temporary_register(int byte_width) {
 Status MicrocodeContext::store_operand_register(int operand_index,
                                                 int source_register,
                                                 int byte_width) {
+    return store_operand_register(operand_index,
+                                  source_register,
+                                  byte_width,
+                                  false);
+}
+
+Status MicrocodeContext::store_operand_register(int operand_index,
+                                                int source_register,
+                                                int byte_width,
+                                                bool mark_user_defined_type) {
     if (operand_index < 0)
         return std::unexpected(Error::validation("Operand index cannot be negative",
                                                  std::to_string(operand_index)));
@@ -1961,6 +1971,8 @@ Status MicrocodeContext::store_operand_register(int operand_index,
 
     mop_t source;
     source.make_reg(static_cast<mreg_t>(source_register), byte_width);
+    if (mark_user_defined_type)
+        source.set_udt();
     if (!impl->codegen->store_operand(operand_index, source, 0, nullptr))
         return std::unexpected(Error::sdk("store_operand failed",
                                           std::to_string(operand_index)));

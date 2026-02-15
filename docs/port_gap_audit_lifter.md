@@ -267,9 +267,9 @@ be executed in small, testable API slices.
   `MicrocodeContext::emit_load_memory_register_with_policy`, and
   `MicrocodeContext::emit_store_memory_register_with_policy`.
 - Added optional UDT operand marking to low-level move/load/store helpers
-  (`emit_move_register*`, `emit_load_memory_register*`,
-  `emit_store_memory_register*`) for wider typed operand semantics in additive
-  rewrite paths.
+  (`store_operand_register`, `emit_move_register*`,
+  `emit_load_memory_register*`, `emit_store_memory_register*`) for wider typed
+  operand semantics in additive rewrite paths.
 - Added helper-call insertion policy hinting via
   `MicrocodeCallOptions::insert_policy`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
