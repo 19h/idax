@@ -1359,6 +1359,56 @@ public:
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
+
+            ida::decompiler::MicrocodeCallOptions global_callinfo_options;
+            global_callinfo_options.function_role = ida::decompiler::MicrocodeFunctionRole::RotateRight;
+            global_callinfo_options.return_type_declaration = "unsigned long long";
+            global_callinfo_options.return_location = ida::decompiler::MicrocodeValueLocation{};
+            global_callinfo_options.return_location->kind =
+                ida::decompiler::MicrocodeValueLocationKind::StaticAddress;
+            global_callinfo_options.return_location->static_address = context.address();
+
+            saw_callinfo_global_route_attempt = true;
+            auto callinfo_global_route_status =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, global_destination, true, global_callinfo_options);
+            if (callinfo_global_route_status) {
+                saw_callinfo_global_route_success = true;
+
+                auto remove_callinfo_global_route = context.remove_last_emitted_instruction();
+                if (!remove_callinfo_global_route
+                    && remove_callinfo_global_route.error().category != ida::ErrorCategory::SdkFailure
+                    && remove_callinfo_global_route.error().category != ida::ErrorCategory::Internal
+                    && remove_callinfo_global_route.error().category != ida::ErrorCategory::NotFound) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
+            } else if (callinfo_global_route_status.error().category == ida::ErrorCategory::SdkFailure
+                       || callinfo_global_route_status.error().category == ida::ErrorCategory::Internal) {
+                saw_callinfo_global_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+
+            ida::decompiler::MicrocodeCallOptions bad_callinfo_global_location_options =
+                global_callinfo_options;
+            bad_callinfo_global_location_options.return_location =
+                ida::decompiler::MicrocodeValueLocation{};
+            bad_callinfo_global_location_options.return_location->kind =
+                ida::decompiler::MicrocodeValueLocationKind::StaticAddress;
+            bad_callinfo_global_location_options.return_location->static_address = ida::BadAddress;
+            auto bad_callinfo_global_location =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe",
+                    {},
+                    global_destination,
+                    true,
+                    bad_callinfo_global_location_options);
+            if (!bad_callinfo_global_location
+                && bad_callinfo_global_location.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
         }
 
         ida::decompiler::MicrocodeOperand bad_micro_destination;
@@ -1468,6 +1518,14 @@ public:
                 "idax_probe", {}, 0, 4, true, bad_return_location_static_options);
         if (!bad_helper_to_reg_return_location_static
             && bad_helper_to_reg_return_location_static.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_helper_to_operand_return_location_static =
+            context.emit_helper_call_with_arguments_to_operand_and_options(
+                "idax_probe", {}, 0, 4, true, bad_return_location_static_options);
+        if (!bad_helper_to_operand_return_location_static
+            && bad_helper_to_operand_return_location_static.error().category == ida::ErrorCategory::Validation) {
             ++validation_hits;
         }
 
@@ -1832,6 +1890,9 @@ public:
     bool saw_callinfo_register_route_attempt{false};
     bool saw_callinfo_register_route_success{false};
     bool saw_callinfo_register_route_backend_failure{false};
+    bool saw_callinfo_global_route_attempt{false};
+    bool saw_callinfo_global_route_success{false};
+    bool saw_callinfo_global_route_backend_failure{false};
     bool saw_micro_operand_global_route_attempt{false};
     bool saw_micro_operand_global_route_success{false};
     bool saw_micro_operand_global_route_backend_failure{false};
@@ -1874,6 +1935,9 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->saw_callinfo_register_route_attempt);
         CHECK(filter->saw_callinfo_register_route_success
               || filter->saw_callinfo_register_route_backend_failure);
+        CHECK(filter->saw_callinfo_global_route_attempt);
+        CHECK(filter->saw_callinfo_global_route_success
+              || filter->saw_callinfo_global_route_backend_failure);
         CHECK(filter->saw_micro_operand_global_route_success
               || filter->saw_micro_operand_global_route_backend_failure);
         CHECK(!filter->saw_auto_stack_location_validation);

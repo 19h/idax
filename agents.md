@@ -793,6 +793,8 @@ Note:
   - 7.6.13. Probe-level helper-return location hints now apply explicit register `return_location` metadata on stable register-destination helper flows [F202]
   - 7.6.14. Hardening probes now validate callinfo hint routes (micro/register success-or-backend-failure tolerance + explicit invalid-location/type-size validation checks) [F203]
   - 7.6.15. Hardening validation now asserts cross-route callinfo contracts (`to_micro_operand`, `to_register`, `to_operand`) for invalid return-location and return-type-size inputs [F205]
+  - 7.6.16. Hardening validation now covers global-destination location contracts (valid static-address success-or-backend-failure tolerance + invalid `BadAddress` static-location validation checks) [F208]
+  - 7.6.17. Cross-route hardening now includes static-location `BadAddress` validation in `to_operand` helper routes to keep location contracts consistent across emission APIs [F209]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -887,6 +889,8 @@ Note:
   - 8.7.7. Helper-return destination routing now prefers typed micro-operands (register/resolved-memory `GlobalAddress`) with operand-writeback fallback for unresolved shapes [F196, F198]
     - 8.7.7.1. Integration hardening now exercises both typed helper-return destination success routes (`Register`, `GlobalAddress`) in `decompiler_storage_hardening` with post-emit cleanup via `remove_last_emitted_instruction` [F197]
     - 8.7.7.2. Compare helper operand-writeback fallback is now explicitly constrained to unresolved destination shapes (mask register or unresolved-memory target) [F204]
+    - 8.7.7.3. Compare helper routing now attempts typed register-destination micro-operand emission from structured `Operand::register_id()` before unresolved-shape operand-writeback fallback [F206]
+    - 8.7.7.4. Compare helper routing now applies static-address `return_location` hints for resolved-memory `GlobalAddress` micro-routes with validation-safe retry fallback to no-location options [F207]
 
 ---
 
@@ -1765,6 +1769,14 @@ Note:
     - 14.7.17.1. **Decision:** Expand hardening validations to assert invalid callinfo return-location/type-size behavior across helper emission routes (`to_micro_operand`, `to_register`, `to_operand`)
       - Rejected: Route-local validation checks only (contract drift risk)
       - Rejected: Positive-path-only callinfo assertions (insufficient validation coverage)
+  - **14.7.18. Structured Register-Destination Recovery**
+    - 14.7.18.1. **Decision:** For compare helper flows where `load_operand_register(0)` fails, attempt a typed register-destination micro-operand route using structured `Operand::register_id()` before operand-writeback fallback
+      - Rejected: Immediate fallback to operand-index writeback (misses recoverable typed routes)
+      - Rejected: Hard-fail when register-load helper rejects destination class (drops stable degraded handling)
+  - **14.7.19. Resolved-Memory Location-Hint Retry**
+    - 14.7.19.1. **Decision:** For compare helper resolved-memory micro-routes, apply static-address `return_location` hints first, then retry without location hints if backend returns validation-level rejection
+      - Rejected: Never apply static return-location hints on resolved-memory routes (lower callinfo fidelity)
+      - Rejected: Fail hard on location-hint validation rejection (reduced stability)
 
 ---
 
@@ -2609,6 +2621,19 @@ Note:
   - 12.13.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F204], [F205].
   - 12.13.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`; `EXIT:0`).
 
+- **12.14. Structured Register Recovery Continuation (5.4.1)**
+  - 12.14.1. Extended `examples/plugin/lifter_port_plugin.cpp` compare-helper routing to attempt typed register micro-operand destinations from structured `instruction::Operand::register_id()` when `load_operand_register(0)` fails.
+  - 12.14.2. Kept unresolved-shape fallback gating intact so operand-index writeback remains limited to mask-register or unresolved-memory destination shapes only.
+  - 12.14.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F206].
+  - 12.14.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`; `EXIT:0`).
+
+- **12.15. Resolved-Memory Location-Hint Retry (5.3.2)**
+  - 12.15.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare-helper resolved-memory route to apply static-address `return_location` callinfo hints on typed `GlobalAddress` micro-destination emissions.
+  - 12.15.2. Added validation-safe retry behavior: when backend rejects static location hints with validation, re-emit without location hints before falling through.
+  - 12.15.3. Extended hardening in `tests/integration/decompiler_storage_hardening_test.cpp` with global-destination callinfo location checks (valid static-address success-or-backend-failure tolerance + invalid `BadAddress` static-location validation assertion), plus `to_operand` static-location `BadAddress` validation coverage.
+  - 12.15.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F207], [F208], [F209].
+  - 12.15.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2693,9 +2718,9 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.7)**
+- **5.4. Immediate Execution Queue (Post-5.4.9)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
-  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + return-typing/location + cross-route hardening coverage (richer semantic role/location hints where concretely useful).
+  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + return-typing/location + cross-route/global-route hardening coverage (richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
   - 5.4.4. **Status:** Queued
 

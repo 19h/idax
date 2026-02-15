@@ -465,18 +465,63 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                                                                      0,
                                                                      destination_width);
                 global_destination.has_value()) {
+                auto global_helper_options = helper_options;
+                ida::decompiler::MicrocodeValueLocation global_return_location;
+                global_return_location.kind = ida::decompiler::MicrocodeValueLocationKind::StaticAddress;
+                global_return_location.static_address = global_destination->global_address;
+                global_helper_options.return_location = global_return_location;
+
                 auto micro_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                     helper,
                     compare_args,
                     *global_destination,
                     false,
-                    helper_options);
+                    global_helper_options);
+                if (!micro_status
+                    && micro_status.error().category == ida::ErrorCategory::Validation) {
+                    micro_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                        helper,
+                        compare_args,
+                        *global_destination,
+                        false,
+                        helper_options);
+                }
                 if (micro_status) {
                     return true;
                 }
                 if (micro_status.error().category == ida::ErrorCategory::SdkFailure
                     || micro_status.error().category == ida::ErrorCategory::Internal) {
                     return false;
+                }
+            }
+
+            if (destination_operand->is_register()) {
+                const int destination_register_id =
+                    static_cast<int>(destination_operand->register_id());
+                if (destination_register_id >= 0) {
+                    ida::decompiler::MicrocodeOperand register_destination;
+                    register_destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+                    register_destination.register_id = destination_register_id;
+                    register_destination.byte_width = destination_width;
+
+                    auto register_helper_options = helper_options;
+                    register_helper_options.return_location =
+                        register_return_location(destination_register_id);
+
+                    auto register_micro_status =
+                        context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                            helper,
+                            compare_args,
+                            register_destination,
+                            false,
+                            register_helper_options);
+                    if (register_micro_status) {
+                        return true;
+                    }
+                    if (register_micro_status.error().category == ida::ErrorCategory::SdkFailure
+                        || register_micro_status.error().category == ida::ErrorCategory::Internal) {
+                        return false;
+                    }
                 }
             }
 
