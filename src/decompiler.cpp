@@ -1762,12 +1762,24 @@ Result<int> MicrocodeContext::local_variable_count() const {
 }
 
 Status MicrocodeContext::emit_noop() {
+    return emit_noop_with_policy(MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_noop_with_policy(MicrocodeInsertPolicy policy) {
     if (raw_ == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext is empty"));
     auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
     if (impl->codegen == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
-    impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
+
+    minsn_t* emitted = impl->codegen->emit(m_nop, 0, 0, 0, 0, 0);
+    if (emitted == nullptr)
+        return std::unexpected(Error::sdk("emit(m_nop) failed"));
+
+    auto reposition = reposition_emitted_instruction(impl, emitted, policy);
+    if (!reposition)
+        return reposition;
+
     impl->emitted_noop = true;
     return ida::ok();
 }
@@ -1782,8 +1794,8 @@ Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction
         return std::unexpected(Error::internal("MicrocodeContext is empty"));
 
     auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
-    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
-        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
 
     auto sdk_opcode = to_sdk_opcode(instruction.opcode);
     if (!sdk_opcode)
@@ -1958,6 +1970,16 @@ Status MicrocodeContext::store_operand_register(int operand_index,
 Status MicrocodeContext::emit_move_register(int source_register,
                                             int destination_register,
                                             int byte_width) {
+    return emit_move_register_with_policy(source_register,
+                                          destination_register,
+                                          byte_width,
+                                          MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_move_register_with_policy(int source_register,
+                                                        int destination_register,
+                                                        int byte_width,
+                                                        MicrocodeInsertPolicy policy) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -1968,20 +1990,41 @@ Status MicrocodeContext::emit_move_register(int source_register,
     if (impl->codegen == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
 
-    (void)impl->codegen->emit(m_mov,
-                              byte_width,
-                              static_cast<uval_t>(source_register),
-                              0,
-                              static_cast<uval_t>(destination_register),
-                              0);
+    minsn_t* emitted = impl->codegen->emit(m_mov,
+                                           byte_width,
+                                           static_cast<uval_t>(source_register),
+                                           0,
+                                           static_cast<uval_t>(destination_register),
+                                           0);
+    if (emitted == nullptr)
+        return std::unexpected(Error::sdk("emit(m_mov) failed"));
+
+    auto reposition = reposition_emitted_instruction(impl, emitted, policy);
+    if (!reposition)
+        return reposition;
+
     return ida::ok();
 }
 
 Status MicrocodeContext::emit_load_memory_register(int selector_register,
-                                                   int offset_register,
-                                                   int destination_register,
-                                                   int byte_width,
-                                                   int offset_byte_width) {
+                                                    int offset_register,
+                                                    int destination_register,
+                                                    int byte_width,
+                                                    int offset_byte_width) {
+    return emit_load_memory_register_with_policy(selector_register,
+                                                 offset_register,
+                                                 destination_register,
+                                                 byte_width,
+                                                 offset_byte_width,
+                                                 MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_register,
+                                                               int offset_register,
+                                                               int destination_register,
+                                                               int byte_width,
+                                                               int offset_byte_width,
+                                                               MicrocodeInsertPolicy policy) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -2003,14 +2046,33 @@ Status MicrocodeContext::emit_load_memory_register(int selector_register,
                                            offset_byte_width);
     if (emitted == nullptr)
         return std::unexpected(Error::sdk("emit(m_ldx) failed"));
+
+    auto reposition = reposition_emitted_instruction(impl, emitted, policy);
+    if (!reposition)
+        return reposition;
+
     return ida::ok();
 }
 
 Status MicrocodeContext::emit_store_memory_register(int source_register,
-                                                    int selector_register,
-                                                    int offset_register,
-                                                    int byte_width,
-                                                    int offset_byte_width) {
+                                                     int selector_register,
+                                                     int offset_register,
+                                                     int byte_width,
+                                                     int offset_byte_width) {
+    return emit_store_memory_register_with_policy(source_register,
+                                                  selector_register,
+                                                  offset_register,
+                                                  byte_width,
+                                                  offset_byte_width,
+                                                  MicrocodeInsertPolicy::Tail);
+}
+
+Status MicrocodeContext::emit_store_memory_register_with_policy(int source_register,
+                                                                int selector_register,
+                                                                int offset_register,
+                                                                int byte_width,
+                                                                int offset_byte_width,
+                                                                MicrocodeInsertPolicy policy) {
     if (byte_width <= 0)
         return std::unexpected(Error::validation("Byte width must be positive",
                                                  std::to_string(byte_width)));
@@ -2021,8 +2083,8 @@ Status MicrocodeContext::emit_store_memory_register(int source_register,
         return std::unexpected(Error::internal("MicrocodeContext is empty"));
 
     auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
-    if (impl->codegen == nullptr)
-        return std::unexpected(Error::internal("MicrocodeContext has null codegen"));
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
     minsn_t* emitted = impl->codegen->emit(m_stx,
                                            byte_width,
@@ -2032,6 +2094,11 @@ Status MicrocodeContext::emit_store_memory_register(int source_register,
                                            offset_byte_width);
     if (emitted == nullptr)
         return std::unexpected(Error::sdk("emit(m_stx) failed"));
+
+    auto reposition = reposition_emitted_instruction(impl, emitted, policy);
+    if (!reposition)
+        return reposition;
+
     return ida::ok();
 }
 

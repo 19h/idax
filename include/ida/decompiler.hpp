@@ -385,6 +385,9 @@ public:
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();
 
+    /// Emit a no-op with explicit placement policy.
+    Status emit_noop_with_policy(MicrocodeInsertPolicy policy);
+
     /// Emit one typed microcode instruction.
     ///
     /// This is the additive generic instruction path for lifter-style
@@ -420,6 +423,12 @@ public:
     /// Emit register-to-register move.
     Status emit_move_register(int source_register, int destination_register, int byte_width);
 
+    /// Emit register-to-register move with explicit placement policy.
+    Status emit_move_register_with_policy(int source_register,
+                                          int destination_register,
+                                          int byte_width,
+                                          MicrocodeInsertPolicy policy);
+
     /// Emit memory load (`m_ldx`) from selector+offset into destination register.
     Status emit_load_memory_register(int selector_register,
                                      int offset_register,
@@ -427,12 +436,28 @@ public:
                                      int byte_width,
                                      int offset_byte_width);
 
+    /// Emit memory load with explicit placement policy.
+    Status emit_load_memory_register_with_policy(int selector_register,
+                                                 int offset_register,
+                                                 int destination_register,
+                                                 int byte_width,
+                                                 int offset_byte_width,
+                                                 MicrocodeInsertPolicy policy);
+
     /// Emit memory store (`m_stx`) from source register into selector+offset.
     Status emit_store_memory_register(int source_register,
                                       int selector_register,
                                       int offset_register,
                                       int byte_width,
                                       int offset_byte_width);
+
+    /// Emit memory store with explicit placement policy.
+    Status emit_store_memory_register_with_policy(int source_register,
+                                                  int selector_register,
+                                                  int offset_register,
+                                                  int byte_width,
+                                                  int offset_byte_width,
+                                                  MicrocodeInsertPolicy policy);
 
     /// Emit helper call with no explicit arguments.
     Status emit_helper_call(std::string_view helper_name);

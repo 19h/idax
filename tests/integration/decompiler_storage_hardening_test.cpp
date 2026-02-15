@@ -533,7 +533,8 @@ public:
 
             auto local_variable_echo_status = context.emit_instruction(local_variable_echo);
             if (!local_variable_echo_status
-                && local_variable_echo_status.error().category != ida::ErrorCategory::SdkFailure) {
+                && local_variable_echo_status.error().category != ida::ErrorCategory::SdkFailure
+                && local_variable_echo_status.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -543,7 +544,8 @@ public:
                 local_variable_echo,
                 ida::decompiler::MicrocodeInsertPolicy::Beginning);
             if (!local_variable_echo_with_policy_status
-                && local_variable_echo_with_policy_status.error().category != ida::ErrorCategory::SdkFailure) {
+                && local_variable_echo_with_policy_status.error().category != ida::ErrorCategory::SdkFailure
+                && local_variable_echo_with_policy_status.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -569,13 +571,47 @@ public:
         if (!bad_move && bad_move.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_move_with_policy = context.emit_move_register_with_policy(
+            0,
+            0,
+            0,
+            ida::decompiler::MicrocodeInsertPolicy::Beginning);
+        if (!bad_move_with_policy
+            && bad_move_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_load_mem = context.emit_load_memory_register(0, 0, 0, 0, 1);
         if (!bad_load_mem && bad_load_mem.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
 
+        auto bad_load_mem_with_policy = context.emit_load_memory_register_with_policy(
+            0,
+            0,
+            0,
+            0,
+            1,
+            ida::decompiler::MicrocodeInsertPolicy::BeforeTail);
+        if (!bad_load_mem_with_policy
+            && bad_load_mem_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         auto bad_store_mem = context.emit_store_memory_register(0, 0, 0, 1, 0);
         if (!bad_store_mem && bad_store_mem.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
+
+        auto bad_store_mem_with_policy = context.emit_store_memory_register_with_policy(
+            0,
+            0,
+            0,
+            1,
+            0,
+            ida::decompiler::MicrocodeInsertPolicy::Tail);
+        if (!bad_store_mem_with_policy
+            && bad_store_mem_with_policy.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
 
         ida::decompiler::MicrocodeInstruction bad_typed_instruction;
         bad_typed_instruction.opcode = ida::decompiler::MicrocodeOpcode::Move;
@@ -1240,8 +1276,20 @@ public:
 
         auto nop = context.emit_noop();
         if (!nop) {
-            saw_emit_failure = true;
-            return ida::decompiler::MicrocodeApplyResult::Error;
+            if (nop.error().category != ida::ErrorCategory::SdkFailure
+                && nop.error().category != ida::ErrorCategory::Internal) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
+        auto nop_with_policy = context.emit_noop_with_policy(ida::decompiler::MicrocodeInsertPolicy::Beginning);
+        if (!nop_with_policy) {
+            if (nop_with_policy.error().category != ida::ErrorCategory::SdkFailure
+                && nop_with_policy.error().category != ida::ErrorCategory::Internal) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
         }
 
         ida::decompiler::MicrocodeInstruction typed_nop_instruction;
@@ -1249,7 +1297,8 @@ public:
 
         auto typed_nop = context.emit_instruction(typed_nop_instruction);
         if (!typed_nop) {
-            if (typed_nop.error().category != ida::ErrorCategory::SdkFailure) {
+            if (typed_nop.error().category != ida::ErrorCategory::SdkFailure
+                && typed_nop.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -1259,7 +1308,8 @@ public:
             typed_nop_instruction,
             ida::decompiler::MicrocodeInsertPolicy::Beginning);
         if (!typed_nop_with_policy) {
-            if (typed_nop_with_policy.error().category != ida::ErrorCategory::SdkFailure) {
+            if (typed_nop_with_policy.error().category != ida::ErrorCategory::SdkFailure
+                && typed_nop_with_policy.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -1268,7 +1318,8 @@ public:
         std::vector<ida::decompiler::MicrocodeInstruction> typed_nop_batch{typed_nop_instruction};
         auto typed_nop_batch_status = context.emit_instructions(typed_nop_batch);
         if (!typed_nop_batch_status) {
-            if (typed_nop_batch_status.error().category != ida::ErrorCategory::SdkFailure) {
+            if (typed_nop_batch_status.error().category != ida::ErrorCategory::SdkFailure
+                && typed_nop_batch_status.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
@@ -1278,7 +1329,8 @@ public:
             typed_nop_batch,
             ida::decompiler::MicrocodeInsertPolicy::BeforeTail);
         if (!typed_nop_batch_with_policy_status) {
-            if (typed_nop_batch_with_policy_status.error().category != ida::ErrorCategory::SdkFailure) {
+            if (typed_nop_batch_with_policy_status.error().category != ida::ErrorCategory::SdkFailure
+                && typed_nop_batch_with_policy_status.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
