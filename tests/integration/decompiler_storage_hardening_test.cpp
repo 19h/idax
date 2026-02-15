@@ -1378,6 +1378,46 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeCallOptions passthrough_via_return_options;
+        ida::decompiler::MicrocodeRegisterRange passthrough_via_return_register;
+        passthrough_via_return_register.register_id = 0;
+        passthrough_via_return_register.byte_width = 8;
+        passthrough_via_return_options.return_registers.push_back(
+            passthrough_via_return_register);
+        passthrough_via_return_options.passthrough_registers.push_back(
+            passthrough_via_return_register);
+        ida::decompiler::MicrocodeMemoryRange passthrough_via_return_bad_visible_range;
+        passthrough_via_return_bad_visible_range.address = ida::BadAddress;
+        passthrough_via_return_bad_visible_range.byte_size = 16;
+        passthrough_via_return_options.visible_memory_ranges.push_back(
+            passthrough_via_return_bad_visible_range);
+
+        auto passthrough_via_return = context.emit_helper_call_with_arguments_and_options(
+            "idax_probe", {}, passthrough_via_return_options);
+        if (!passthrough_via_return
+            && passthrough_via_return.error().category == ida::ErrorCategory::Validation) {
+            if (passthrough_via_return.error().message.find(
+                    "Visible memory range address cannot be BadAddress")
+                == std::string::npos) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            ++validation_hits;
+        }
+
+        auto passthrough_via_return_to_reg = context.emit_helper_call_with_arguments_to_register_and_options(
+            "idax_probe", {}, 0, 4, true, passthrough_via_return_options);
+        if (!passthrough_via_return_to_reg
+            && passthrough_via_return_to_reg.error().category == ida::ErrorCategory::Validation) {
+            if (passthrough_via_return_to_reg.error().message.find(
+                    "Visible memory range address cannot be BadAddress")
+                == std::string::npos) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            ++validation_hits;
+        }
+
         auto nop = context.emit_noop();
         if (!nop) {
             if (nop.error().category != ida::ErrorCategory::SdkFailure
