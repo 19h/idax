@@ -24,10 +24,36 @@ enum class ProcessState {
     Suspended,
 };
 
+struct BackendInfo {
+    std::string name;
+    std::string display_name;
+    bool remote{false};
+    bool supports_appcall{false};
+    bool supports_attach{false};
+    bool loaded{false};
+};
+
+/// Enumerate available debugger backends discovered by IDA.
+Result<std::vector<BackendInfo>> available_backends();
+
+/// Return the currently loaded debugger backend.
+///
+/// Returns `NotFound` when no backend is loaded.
+Result<BackendInfo> current_backend();
+
+/// Load a debugger backend by name.
+///
+/// \p backend_name can match either backend short name or display name.
+Status load_backend(std::string_view backend_name, bool use_remote = false);
+
 Status start(std::string_view path = {},
              std::string_view args = {},
              std::string_view working_dir = {});
+Status request_start(std::string_view path = {},
+                     std::string_view args = {},
+                     std::string_view working_dir = {});
 Status attach(int pid);
+Status request_attach(int pid, int event_id = -1);
 Status detach();
 Status terminate();
 

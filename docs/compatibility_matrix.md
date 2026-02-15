@@ -1,6 +1,6 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-14 (updated after open-point closure automation run)
+Date: 2026-02-15 (updated after debugger-backend fallback sweep)
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -43,8 +43,8 @@ Environment requirements:
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | full + packaging | IDA 9.3 | pass | 16/16 + `build-matrix-full-pack/idax-0.1.0-Darwin.tar.gz` |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | Release | full | IDA 9.3 | pass | 16/16 tests (`build-release/`) |
 | macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port runtime (non-debugger flows) | IDA 9.3 | pass | `build-port-gap/examples/idax_ida2py_port --list-user-symbols ...`, `build-port-gap/examples/idax_idalib_dump_port --list ...`, `build-port-gap/examples/idax_idalib_lumina_port ...` |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port appcall smoke | IDA 9.3 | blocked | launch attempts (`--wait` + default args) fail with `start_process failed (return code: -1)` and external spawn+attach fallback fails with `attach_process failed (return code: -4)` (`build-open-points-surge4/logs/appcall-smoke.log`) |
-| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port lumina smoke | IDA 9.3 + Lumina service | pass | `pull: requested=1 succeeded=1 failed=0`, `push: requested=1 succeeded=1 failed=0` (`build-open-points-surge4/logs/lumina-smoke.log`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port appcall smoke | IDA 9.3 | blocked | appcall-capable backend auto-load succeeds (`arm_mac` local), but launch attempts still stay `NoProcess` after bounded request-settle cycles (`start_process` rc `0`; `request_start` succeeds with no-process) and spawn+attach fallback stays `NoProcess` after request-settle cycles (`attach_process` rc `-1`; `request_attach` succeeds with no-process) (`build-open-points-surge6/logs/appcall-smoke.log`) |
+| macOS 14 | arm64 | AppleClang 17.0.0.17000603 | RelWithDebInfo | tool-port lumina smoke | IDA 9.3 + Lumina service | pass | `pull: requested=1 succeeded=1 failed=0`, `push: requested=1 succeeded=1 failed=0` (`build-open-points-surge6/logs/lumina-smoke.log`) |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - linux-x86_64` (`job-logs1.txt`), profile complete |
 | Linux | x86_64 | GCC 13.3.0 | RelWithDebInfo | unit | none | pass | GitHub Actions `unit - linux-x86_64` (`job-logs4.txt`), 2/2 tests passed |
 | macOS 14 | arm64 | AppleClang 15.0.0.15000309 | RelWithDebInfo | compile-only | none | pass | GitHub Actions `compile-only - macos-arm64` (`job-logs2.txt`), profile complete |
@@ -100,12 +100,13 @@ scripts/run_open_points.sh build-open-points RelWithDebInfo
   (`IDAX_BUILD_EXAMPLE_ADDONS=OFF`, `IDAX_BUILD_EXAMPLE_TOOLS=OFF`).
 - In the current SDK checkout, Linux Clang addon/tool rows fail when ON because
   `x64_linux_clang_64` runtime libs are missing (`libida.so` / `libidalib.so`).
-- On the current macOS host/runtime, appcall smoke is blocked by debugger
-  backend readiness: launch attempts fail with `start_process` return code `-1`,
-  and external spawn+attach fallback attempts fail with `attach_process`
-  return code `-4`.
+- On the current macOS host/runtime, appcall smoke is still blocked by
+  debugger backend/session readiness even after backend auto-selection:
+  `start_process` returns `0`, `request_start` succeeds but debugger state
+  remains `NoProcess`, and spawn+attach fallback reports
+  `attach_process` return `-1` with `request_attach` still leaving `NoProcess`.
 - On the current macOS host/runtime, Lumina pull/push smoke succeeds against the
-  configured service (`build-open-points-surge4/logs/lumina-smoke.log`).
+  configured service (`build-open-points-surge6/logs/lumina-smoke.log`).
 - Full multi-OS completion requires Linux and Windows hosts with licensed IDA
   runtime installations available to the test harness.
 

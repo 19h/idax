@@ -197,6 +197,153 @@ std::vector<std::pair<std::string, std::string>> debugger_launch_candidates(
     return candidates;
 }
 
+void append_diagnostic(std::string* buffer, std::string_view detail) {
+    if (buffer == nullptr || detail.empty()) {
+        return;
+    }
+    if (!buffer->empty()) {
+        *buffer += " | ";
+    }
+    buffer->append(detail.data(), detail.size());
+}
+
+std::string backend_label(const ida::debugger::BackendInfo& backend) {
+    std::string label = backend.name.empty() ? backend.display_name : backend.name;
+    if (label.empty()) {
+        label = "<unnamed>";
+    }
+    if (!backend.display_name.empty() && backend.display_name != label) {
+        label += " (" + backend.display_name + ")";
+    }
+    label += backend.remote ? " [remote]" : " [local]";
+    return label;
+}
+
+ida::Result<bool> wait_for_debugger_process_after_request(
+    int max_cycles,
+    int delay_milliseconds,
+    std::string_view request_label)
+{
+    if (max_cycles <= 0) {
+        return std::unexpected(ida::Error::validation(
+            "Invalid request wait configuration",
+            std::string(request_label)));
+    }
+
+    for (int cycle = 0; cycle < max_cycles; ++cycle) {
+        if (auto run_requests = ida::debugger::run_requests(); !run_requests) {
+            return std::unexpected(ida::Error::sdk(
+                "Failed to run queued debugger requests",
+                std::string(request_label) + " cycle=" + std::to_string(cycle + 1)
+                    + ": " + error_text(run_requests.error())));
+        }
+
+        auto state = ida::debugger::state();
+        if (!state) {
+            return std::unexpected(state.error());
+        }
+        if (*state != ida::debugger::ProcessState::NoProcess) {
+            return true;
+        }
+
+        const bool request_running = ida::debugger::is_request_running();
+        const bool last_cycle = (cycle + 1) >= max_cycles;
+        if (!request_running && last_cycle) {
+            break;
+        }
+
+#if !defined(_WIN32)
+        usleep(static_cast<useconds_t>(delay_milliseconds * 1000));
+#endif
+    }
+
+    return false;
+}
+
+ida::Status ensure_appcall_backend(std::string* selected_backend) {
+    auto current = ida::debugger::current_backend();
+    if (current && current->supports_appcall) {
+        if (selected_backend != nullptr) {
+            *selected_backend = backend_label(*current);
+        }
+        return ida::ok();
+    }
+
+    auto backends = ida::debugger::available_backends();
+    if (!backends) {
+        return std::unexpected(backends.error());
+    }
+
+    std::vector<ida::debugger::BackendInfo> appcall_backends;
+    appcall_backends.reserve(backends->size());
+    for (const auto& backend : *backends) {
+        if (backend.supports_appcall) {
+            appcall_backends.push_back(backend);
+        }
+    }
+
+    if (appcall_backends.empty()) {
+        std::string details;
+        if (current && !current->supports_appcall) {
+            append_diagnostic(
+                &details,
+                "current backend lacks appcall support: " + backend_label(*current));
+        }
+        for (const auto& backend : *backends) {
+            append_diagnostic(
+                &details,
+                backend_label(backend)
+                    + " appcall=" + (backend.supports_appcall ? "yes" : "no"));
+        }
+        if (details.empty()) {
+            details = "no debugger plugins discovered";
+        }
+        return std::unexpected(ida::Error::unsupported(
+            "No debugger backend with appcall support",
+            details));
+    }
+
+    std::stable_sort(
+        appcall_backends.begin(),
+        appcall_backends.end(),
+        [](const ida::debugger::BackendInfo& lhs,
+           const ida::debugger::BackendInfo& rhs) {
+            if (lhs.loaded != rhs.loaded) {
+                return lhs.loaded;
+            }
+            if (lhs.remote != rhs.remote) {
+                return !lhs.remote;
+            }
+            return lhs.name < rhs.name;
+        });
+
+    std::string load_errors;
+    for (const auto& backend : appcall_backends) {
+        if (backend.loaded) {
+            if (selected_backend != nullptr) {
+                *selected_backend = backend_label(backend);
+            }
+            return ida::ok();
+        }
+
+        auto load = ida::debugger::load_backend(backend.name, backend.remote);
+        if (load) {
+            if (selected_backend != nullptr) {
+                *selected_backend = backend_label(backend);
+            }
+            return ida::ok();
+        }
+
+        append_diagnostic(
+            &load_errors,
+            backend_label(backend) + ": " + error_text(load.error()));
+    }
+
+    return std::unexpected(ida::Error::sdk(
+        "Failed to load debugger backend for appcall smoke",
+        load_errors));
+}
+
 #if !defined(_WIN32)
 ida::Result<int> spawn_debuggee_for_attach(std::string_view path,
                                            std::string_view args,
@@ -264,6 +411,25 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
         return std::unexpected(state.error());
     }
 
+    std::string selected_backend;
+    if (*state == ida::debugger::ProcessState::NoProcess) {
+        auto backend_ready = ensure_appcall_backend(&selected_backend);
+        if (!backend_ready) {
+            return std::unexpected(backend_ready.error());
+        }
+    } else {
+        auto current_backend = ida::debugger::current_backend();
+        if (!current_backend) {
+            return std::unexpected(current_backend.error());
+        }
+        selected_backend = backend_label(*current_backend);
+        if (!current_backend->supports_appcall) {
+            return std::unexpected(ida::Error::unsupported(
+                "Current debugger backend does not support appcall",
+                selected_backend));
+        }
+    }
+
     bool started = false;
     if (*state == ida::debugger::ProcessState::NoProcess) {
         const auto candidates = debugger_launch_candidates(input_file);
@@ -273,6 +439,9 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
         }
 
         std::string launch_errors;
+        if (!selected_backend.empty()) {
+            append_diagnostic(&launch_errors, "backend='" + selected_backend + "'");
+        }
         static constexpr std::array<const char*, 2> launch_arg_candidates{
             "--wait",
             "",
@@ -280,6 +449,16 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
 
         for (const auto& candidate : candidates) {
             for (const char* launch_args : launch_arg_candidates) {
+                std::string attempt = "path='" + candidate.first + "'";
+                if (!candidate.second.empty()) {
+                    attempt += ", cwd='" + candidate.second + "'";
+                }
+                if (launch_args != nullptr && launch_args[0] != '\0') {
+                    attempt += ", args='";
+                    attempt += launch_args;
+                    attempt += "'";
+                }
+
                 auto start_status = ida::debugger::start(candidate.first,
                                                          launch_args,
                                                          candidate.second);
@@ -288,19 +467,40 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
                     break;
                 }
 
-                if (!launch_errors.empty()) {
-                    launch_errors += " | ";
+                auto request_start = ida::debugger::request_start(candidate.first,
+                                                                  launch_args,
+                                                                  candidate.second);
+                if (request_start) {
+                    auto request_settled = wait_for_debugger_process_after_request(
+                        6,
+                        150,
+                        "request_start");
+                    if (request_settled && *request_settled) {
+                        started = true;
+                        break;
+                    }
+                    if (request_settled && !*request_settled) {
+                        append_diagnostic(
+                            &launch_errors,
+                            attempt
+                                + ": start failed ("
+                                + error_text(start_status.error())
+                                + "), request_start succeeded but debugger state remained NoProcess after wait");
+                        continue;
+                    }
+                    append_diagnostic(
+                        &launch_errors,
+                        attempt
+                            + ": start failed ("
+                            + error_text(start_status.error())
+                            + "), request_start succeeded but wait failed ("
+                            + error_text(request_settled.error()) + ")");
+                    continue;
                 }
-                launch_errors += "path='" + candidate.first + "'";
-                if (!candidate.second.empty()) {
-                    launch_errors += ", cwd='" + candidate.second + "'";
-                }
-                if (launch_args != nullptr && launch_args[0] != '\0') {
-                    launch_errors += ", args='";
-                    launch_errors += launch_args;
-                    launch_errors += "'";
-                }
-                launch_errors += ": " + error_text(start_status.error());
+
+                attempt += ": start failed (" + error_text(start_status.error())
+                        + "), request_start failed (" + error_text(request_start.error()) + ")";
+                append_diagnostic(&launch_errors, attempt);
             }
             if (started) {
                 break;
@@ -316,16 +516,14 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
                                                                  launch_args,
                                                                  candidate.second);
                     if (!spawned_pid) {
-                        if (!attach_errors.empty()) {
-                            attach_errors += " | ";
-                        }
-                        attach_errors += "spawn path='" + candidate.first + "'";
+                        std::string attempt = "spawn path='" + candidate.first + "'";
                         if (launch_args != nullptr && launch_args[0] != '\0') {
-                            attach_errors += ", args='";
-                            attach_errors += launch_args;
-                            attach_errors += "'";
+                            attempt += ", args='";
+                            attempt += launch_args;
+                            attempt += "'";
                         }
-                        attach_errors += ": " + error_text(spawned_pid.error());
+                        attempt += ": " + error_text(spawned_pid.error());
+                        append_diagnostic(&attach_errors, attempt);
                         continue;
                     }
 
@@ -338,19 +536,47 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
                         break;
                     }
 
+                    std::string request_attach_detail;
+                    auto request_attach = ida::debugger::request_attach(*spawned_pid, -1);
+                    if (request_attach) {
+                        auto request_settled = wait_for_debugger_process_after_request(
+                            6,
+                            150,
+                            "request_attach");
+                        if (request_settled && *request_settled) {
+                            started = true;
+                            if (attached_spawned_pid != nullptr) {
+                                *attached_spawned_pid = *spawned_pid;
+                            }
+                            break;
+                        }
+                        if (request_settled && !*request_settled) {
+                            request_attach_detail =
+                                "request_attach succeeded but debugger state remained NoProcess after wait";
+                        } else {
+                            request_attach_detail =
+                                "request_attach succeeded but wait failed ("
+                                + error_text(request_settled.error()) + ")";
+                        }
+                    } else {
+                        request_attach_detail =
+                            "request_attach failed (" + error_text(request_attach.error()) + ")";
+                    }
+
                     cleanup_spawned_process_best_effort(*spawned_pid);
 
-                    if (!attach_errors.empty()) {
-                        attach_errors += " | ";
-                    }
-                    attach_errors += "attach pid=" + std::to_string(*spawned_pid)
-                                  + " path='" + candidate.first + "'";
+                    std::string attempt = "attach pid=" + std::to_string(*spawned_pid)
+                                        + " path='" + candidate.first + "'";
                     if (launch_args != nullptr && launch_args[0] != '\0') {
-                        attach_errors += ", args='";
-                        attach_errors += launch_args;
-                        attach_errors += "'";
+                        attempt += ", args='";
+                        attempt += launch_args;
+                        attempt += "'";
                     }
-                    attach_errors += ": " + error_text(attach_status.error());
+                    attempt += ": attach failed (" + error_text(attach_status.error()) + ")";
+                    if (!request_attach_detail.empty()) {
+                        attempt += ", " + request_attach_detail;
+                    }
+                    append_diagnostic(&attach_errors, attempt);
                 }
                 if (started) {
                     break;
@@ -358,10 +584,7 @@ ida::Status ensure_debugger_ready_for_appcall(std::string_view input_file,
             }
 
             if (!attach_errors.empty()) {
-                if (!launch_errors.empty()) {
-                    launch_errors += " | ";
-                }
-                launch_errors += "attach-fallback: " + attach_errors;
+                append_diagnostic(&launch_errors, "attach-fallback: " + attach_errors);
             }
 #endif
 
@@ -982,6 +1205,10 @@ ida::Status run_appcall_smoke() {
     ScopedAppcallDebugSession debug_session;
     if (auto ready = debug_session.prepare(g_options.input_file); !ready) {
         return std::unexpected(ready.error());
+    }
+
+    if (auto backend = ida::debugger::current_backend(); backend) {
+        std::printf("Backend: %s\n", backend_label(*backend).c_str());
     }
 
     auto target = ida::name::resolve("ref4");
