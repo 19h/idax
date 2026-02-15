@@ -179,6 +179,7 @@ enum class MicrocodeInsertPolicy : int {
 /// Kind of typed microcode value used for helper-call arguments.
 enum class MicrocodeValueKind : int {
     Register,
+    LocalVariable,
     RegisterPair,
     GlobalAddress,
     StackVariable,
@@ -242,6 +243,8 @@ enum class MicrocodeArgumentFlag : std::uint32_t {
 struct MicrocodeValue {
     MicrocodeValueKind kind{MicrocodeValueKind::Register};
     int register_id{0};
+    int local_variable_index{0};
+    std::int64_t local_variable_offset{0};
     int second_register_id{0};
     Address global_address{BadAddress};
     std::int64_t stack_offset{0};
@@ -375,6 +378,9 @@ public:
 
     /// Processor-specific instruction type code (`insn_t::itype`).
     [[nodiscard]] int instruction_type() const noexcept;
+
+    /// Number of local variables available in current microcode context.
+    [[nodiscard]] Result<int> local_variable_count() const;
 
     /// Emit a no-op microcode instruction for the current instruction.
     Status emit_noop();

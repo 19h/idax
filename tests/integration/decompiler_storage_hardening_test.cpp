@@ -514,6 +514,31 @@ public:
         saw_non_bad_address = context.address() != ida::BadAddress;
         saw_instruction_type = context.instruction_type() >= 0;
 
+        auto local_variable_count = context.local_variable_count();
+        if (!local_variable_count) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        saw_local_variable_count_query = true;
+        if (*local_variable_count > 0) {
+            saw_local_variable_rewrite_attempt = true;
+
+            ida::decompiler::MicrocodeInstruction local_variable_echo;
+            local_variable_echo.opcode = ida::decompiler::MicrocodeOpcode::Move;
+            local_variable_echo.left.kind = ida::decompiler::MicrocodeOperandKind::LocalVariable;
+            local_variable_echo.left.local_variable_index = 0;
+            local_variable_echo.left.local_variable_offset = 0;
+            local_variable_echo.left.byte_width = 1;
+            local_variable_echo.destination = local_variable_echo.left;
+
+            auto local_variable_echo_status = context.emit_instruction(local_variable_echo);
+            if (!local_variable_echo_status
+                && local_variable_echo_status.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
         auto bad_load = context.load_operand_register(-1);
         if (!bad_load && bad_load.error().category == ida::ErrorCategory::Validation)
             ++validation_hits;
@@ -1067,6 +1092,20 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeValue bad_local_variable_argument;
+        bad_local_variable_argument.kind = ida::decompiler::MicrocodeValueKind::LocalVariable;
+        bad_local_variable_argument.local_variable_index = -1;
+        bad_local_variable_argument.local_variable_offset = 0;
+        bad_local_variable_argument.byte_width = 4;
+        std::vector<ida::decompiler::MicrocodeValue> bad_local_variable_args{bad_local_variable_argument};
+
+        auto bad_local_variable_helper = context.emit_helper_call_with_arguments(
+            "idax_probe", bad_local_variable_args);
+        if (!bad_local_variable_helper
+            && bad_local_variable_helper.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeValue bad_global_address_argument;
         bad_global_address_argument.kind = ida::decompiler::MicrocodeValueKind::GlobalAddress;
         bad_global_address_argument.global_address = ida::BadAddress;
@@ -1246,6 +1285,8 @@ public:
     bool saw_instruction_type{false};
     bool saw_emit_failure{false};
     bool saw_auto_stack_location_validation{false};
+    bool saw_local_variable_count_query{false};
+    bool saw_local_variable_rewrite_attempt{false};
 };
 
 void test_microcode_filter_registration(ida::Address fn_ea) {
@@ -1269,6 +1310,7 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->validation_hits >= 47);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
+        CHECK(filter->saw_local_variable_count_query);
         CHECK(!filter->saw_auto_stack_location_validation);
         CHECK(!filter->saw_emit_failure);
     }

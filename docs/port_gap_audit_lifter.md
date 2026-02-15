@@ -291,6 +291,15 @@ be executed in small, testable API slices.
   (`MicrocodeOperandKind::LocalVariable` +
   `MicrocodeOperand::{local_variable_index, local_variable_offset}`) mapped to
   SDK local-variable mop construction with validation.
+- Added local-variable helper-argument and context-query support
+  (`MicrocodeValueKind::LocalVariable`,
+  `MicrocodeValue::{local_variable_index, local_variable_offset}`,
+  `MicrocodeContext::local_variable_count`) for additive local-variable-aware
+  rewrite paths.
+- Updated `examples/plugin/lifter_port_plugin.cpp` to consume
+  `MicrocodeOperandKind::LocalVariable` in a real rewrite path (`vzeroupper`)
+  by emitting a local-variable self-move when local variables are available,
+  with no-op fallback when not available.
 - Expanded vector helper-call typing with declaration-driven element types,
   enabling richer non-scalar/UDT-style element modeling when concrete widths are
   validated.

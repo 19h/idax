@@ -1076,6 +1076,62 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 break;
             }
 
+            case MicrocodeValueKind::LocalVariable: {
+                if (mba == nullptr) {
+                    return std::unexpected(Error::internal(
+                        "Local-variable argument requires microcode context",
+                        std::to_string(i)));
+                }
+                if (argument.local_variable_index < 0) {
+                    return std::unexpected(Error::validation(
+                        "Microcode local-variable argument index cannot be negative",
+                        std::to_string(i)));
+                }
+                if (static_cast<std::size_t>(argument.local_variable_index) >= mba->vars.size()) {
+                    return std::unexpected(Error::validation(
+                        "Microcode local-variable argument index out of range",
+                        std::to_string(i)));
+                }
+
+                tinfo_t argument_type;
+                int argument_width = argument.byte_width;
+                if (!argument.type_declaration.empty()) {
+                    auto parsed_type = parse_declaration_type(argument.type_declaration,
+                                                              "local_variable");
+                    if (!parsed_type)
+                        return std::unexpected(parsed_type.error());
+                    argument_type = *parsed_type;
+
+                    const size_t declared_size = argument_type.get_size();
+                    if (declared_size != 0 && argument_width <= 0)
+                        argument_width = static_cast<int>(declared_size);
+                    if (declared_size != 0
+                        && argument_width > 0
+                        && static_cast<int>(declared_size) != argument_width) {
+                        return std::unexpected(Error::validation(
+                            "Local-variable argument type size does not match byte width",
+                            std::to_string(declared_size) + ":" + std::to_string(argument_width)));
+                    }
+                } else {
+                    auto inferred_type = infer_typed_value_type(argument_width,
+                                                                argument.unsigned_integer,
+                                                                "local_variable");
+                    if (!inferred_type)
+                        return std::unexpected(inferred_type.error());
+                    argument_type = *inferred_type;
+                }
+
+                mop_t local_variable;
+                local_variable._make_lvar(mba,
+                                          argument.local_variable_index,
+                                          static_cast<sval_t>(argument.local_variable_offset));
+                if (argument_width > 0)
+                    local_variable.size = argument_width;
+                callarg.copy_mop(local_variable);
+                callarg.type = argument_type;
+                break;
+            }
+
             case MicrocodeValueKind::RegisterPair: {
                 if (argument.register_id < 0 || argument.second_register_id < 0) {
                     return std::unexpected(Error::validation(
@@ -1692,6 +1748,17 @@ int MicrocodeContext::instruction_type() const noexcept {
     if (impl->codegen == nullptr)
         return 0;
     return static_cast<int>(impl->codegen->insn.itype);
+}
+
+Result<int> MicrocodeContext::local_variable_count() const {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mba == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    return static_cast<int>(impl->codegen->mba->vars.size());
 }
 
 Status MicrocodeContext::emit_noop() {

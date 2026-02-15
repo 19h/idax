@@ -549,6 +549,25 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
     const int integer_width = pointer_byte_width(instruction.address());
 
     if (mnemonic_lower == "vzeroupper") {
+        auto local_variable_count = context.local_variable_count();
+        if (local_variable_count && *local_variable_count > 0) {
+            ida::decompiler::MicrocodeInstruction local_variable_echo;
+            local_variable_echo.opcode = ida::decompiler::MicrocodeOpcode::Move;
+            local_variable_echo.left.kind = ida::decompiler::MicrocodeOperandKind::LocalVariable;
+            local_variable_echo.left.local_variable_index = 0;
+            local_variable_echo.left.local_variable_offset = 0;
+            local_variable_echo.left.byte_width = 1;
+            local_variable_echo.destination = local_variable_echo.left;
+
+            auto local_variable_status = context.emit_instruction(local_variable_echo);
+            if (local_variable_status) {
+                return true;
+            }
+            if (local_variable_status.error().category != ida::ErrorCategory::SdkFailure) {
+                return std::unexpected(local_variable_status.error());
+            }
+        }
+
         auto st = context.emit_noop();
         if (!st) return std::unexpected(st.error());
         return true;

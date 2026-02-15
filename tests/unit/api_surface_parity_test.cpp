@@ -1076,6 +1076,7 @@ void check_decompiler_surface() {
     using UnregisterMicrocodeFilterFn = ida::Status(*)(ida::decompiler::FilterToken);
     using MicrocodeContextAddressFn = ida::Address(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextLocalVariableCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
     using MicrocodeContextLoadOperandFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextLoadEaFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)(int);
@@ -1181,6 +1182,7 @@ void check_decompiler_surface() {
     (void)instruction.destination;
     (void)instruction.floating_point_instruction;
     (void)ida::decompiler::MicrocodeValueKind::Register;
+    (void)ida::decompiler::MicrocodeValueKind::LocalVariable;
     (void)ida::decompiler::MicrocodeValueKind::RegisterPair;
     (void)ida::decompiler::MicrocodeValueKind::GlobalAddress;
     (void)ida::decompiler::MicrocodeValueKind::StackVariable;
@@ -1218,6 +1220,8 @@ void check_decompiler_surface() {
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
+    (void)value.local_variable_index;
+    (void)value.local_variable_offset;
     (void)value.second_register_id;
     (void)value.global_address;
     (void)value.stack_offset;
@@ -1294,6 +1298,7 @@ void check_decompiler_surface() {
     (void)static_cast<UnregisterMicrocodeFilterFn>(&ida::decompiler::unregister_microcode_filter);
     (void)static_cast<MicrocodeContextAddressFn>(&ida::decompiler::MicrocodeContext::address);
     (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
+    (void)static_cast<MicrocodeContextLocalVariableCountFn>(&ida::decompiler::MicrocodeContext::local_variable_count);
     (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);
     (void)static_cast<MicrocodeContextLoadOperandFn>(&ida::decompiler::MicrocodeContext::load_operand_register);
     (void)static_cast<MicrocodeContextLoadEaFn>(&ida::decompiler::MicrocodeContext::load_effective_address_register);
