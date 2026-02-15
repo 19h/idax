@@ -1199,6 +1199,82 @@ public:
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
+
+            ida::decompiler::MicrocodeCallOptions callinfo_options;
+            callinfo_options.function_role = ida::decompiler::MicrocodeFunctionRole::RotateLeft;
+            callinfo_options.return_type_declaration = "unsigned long long";
+            callinfo_options.return_location = ida::decompiler::MicrocodeValueLocation{};
+            callinfo_options.return_location->kind = ida::decompiler::MicrocodeValueLocationKind::Register;
+            callinfo_options.return_location->register_id = *helper_destination_register;
+
+            saw_callinfo_micro_route_attempt = true;
+            auto callinfo_micro_route_status =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, register_destination, true, callinfo_options);
+            if (callinfo_micro_route_status) {
+                saw_callinfo_micro_route_success = true;
+
+                auto remove_callinfo_micro_route = context.remove_last_emitted_instruction();
+                if (!remove_callinfo_micro_route
+                    && remove_callinfo_micro_route.error().category != ida::ErrorCategory::SdkFailure
+                    && remove_callinfo_micro_route.error().category != ida::ErrorCategory::Internal
+                    && remove_callinfo_micro_route.error().category != ida::ErrorCategory::NotFound) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
+            } else if (callinfo_micro_route_status.error().category == ida::ErrorCategory::SdkFailure
+                       || callinfo_micro_route_status.error().category == ida::ErrorCategory::Internal) {
+                saw_callinfo_micro_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+
+            saw_callinfo_register_route_attempt = true;
+            auto callinfo_register_route_status =
+                context.emit_helper_call_with_arguments_to_register_and_options(
+                    "idax_probe", {}, *helper_destination_register, 8, true, callinfo_options);
+            if (callinfo_register_route_status) {
+                saw_callinfo_register_route_success = true;
+
+                auto remove_callinfo_register_route = context.remove_last_emitted_instruction();
+                if (!remove_callinfo_register_route
+                    && remove_callinfo_register_route.error().category != ida::ErrorCategory::SdkFailure
+                    && remove_callinfo_register_route.error().category != ida::ErrorCategory::Internal
+                    && remove_callinfo_register_route.error().category != ida::ErrorCategory::NotFound) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
+            } else if (callinfo_register_route_status.error().category == ida::ErrorCategory::SdkFailure
+                       || callinfo_register_route_status.error().category == ida::ErrorCategory::Internal) {
+                saw_callinfo_register_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+
+            ida::decompiler::MicrocodeCallOptions bad_callinfo_location_options = callinfo_options;
+            bad_callinfo_location_options.return_location = ida::decompiler::MicrocodeValueLocation{};
+            bad_callinfo_location_options.return_location->kind =
+                ida::decompiler::MicrocodeValueLocationKind::Register;
+            bad_callinfo_location_options.return_location->register_id = -1;
+            auto bad_callinfo_location_micro =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, register_destination, true, bad_callinfo_location_options);
+            if (!bad_callinfo_location_micro
+                && bad_callinfo_location_micro.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            ida::decompiler::MicrocodeCallOptions bad_callinfo_return_type_size_options = callinfo_options;
+            bad_callinfo_return_type_size_options.return_type_declaration = "int";
+            auto bad_callinfo_return_type_size_micro =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, register_destination, true, bad_callinfo_return_type_size_options);
+            if (!bad_callinfo_return_type_size_micro
+                && bad_callinfo_return_type_size_micro.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
         }
 
         if (context.address() != ida::BadAddress) {
@@ -1697,6 +1773,12 @@ public:
     bool saw_micro_operand_register_route_attempt{false};
     bool saw_micro_operand_register_route_success{false};
     bool saw_micro_operand_register_route_backend_failure{false};
+    bool saw_callinfo_micro_route_attempt{false};
+    bool saw_callinfo_micro_route_success{false};
+    bool saw_callinfo_micro_route_backend_failure{false};
+    bool saw_callinfo_register_route_attempt{false};
+    bool saw_callinfo_register_route_success{false};
+    bool saw_callinfo_register_route_backend_failure{false};
     bool saw_micro_operand_global_route_attempt{false};
     bool saw_micro_operand_global_route_success{false};
     bool saw_micro_operand_global_route_backend_failure{false};
@@ -1733,6 +1815,12 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->saw_micro_operand_global_route_attempt);
         CHECK(filter->saw_micro_operand_register_route_success
               || filter->saw_micro_operand_register_route_backend_failure);
+        CHECK(filter->saw_callinfo_micro_route_attempt);
+        CHECK(filter->saw_callinfo_micro_route_success
+              || filter->saw_callinfo_micro_route_backend_failure);
+        CHECK(filter->saw_callinfo_register_route_attempt);
+        CHECK(filter->saw_callinfo_register_route_success
+              || filter->saw_callinfo_register_route_backend_failure);
         CHECK(filter->saw_micro_operand_global_route_success
               || filter->saw_micro_operand_global_route_backend_failure);
         CHECK(!filter->saw_auto_stack_location_validation);

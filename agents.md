@@ -790,6 +790,8 @@ Note:
     - 7.6.10.1. Prefer validation-first probes for deterministic assertions
   - 7.6.11. Probe-level callinfo enrichment now applies compare/rotate semantic role hints and helper argument-name metadata across variadic, AVX scalar/packed, and VMX helper paths [F199, F200]
   - 7.6.12. Probe-level helper-return typing now applies declaration-driven return types for stable scalar/integer helper families (`vmread` register destinations, scalar `vmin*`/`vmax*`/`vsqrt*`) [F201]
+  - 7.6.13. Probe-level helper-return location hints now apply explicit register `return_location` metadata on stable register-destination helper flows [F202]
+  - 7.6.14. Hardening probes now validate callinfo hint routes (micro/register success-or-backend-failure tolerance + explicit invalid-location/type-size validation checks) [F203]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -1745,6 +1747,14 @@ Note:
     - 14.7.13.1. **Decision:** Apply declaration-driven return typing only to stable helper-return families (integer-width `vmread` register destinations + scalar float/double helper returns)
       - Rejected: Broad vector return-type declaration in this slice (higher declaration/size mismatch risk)
       - Rejected: Leave all helper-return typing implicit (slower callinfo fidelity gains)
+  - **14.7.14. Helper Return-Location Enrichment**
+    - 14.7.14.1. **Decision:** Apply explicit register `return_location` hints only where helper-return destinations are stable and already modeled as register-target writeback
+      - Rejected: Blanket return-location hinting for all helper families (higher mismatch risk)
+      - Rejected: Keep return-location unset on stable register paths (lower callinfo intent fidelity)
+  - **14.7.15. Callinfo Hardening Assertions**
+    - 14.7.15.1. **Decision:** Expand hardening probes to assert both positive callinfo-hint application paths and negative validation paths for location/type-size contracts
+      - Rejected: Validation-only checks without positive-path probes (weaker runtime confidence)
+      - Rejected: Positive-only checks without invalid-hint validation (weaker contract enforcement)
 
 ---
 
@@ -2574,6 +2584,15 @@ Note:
   - 12.11.3. Updated lifter gap audit wording for return-typing enrichment (`docs/port_gap_audit_lifter.md`) and recorded finding [F201].
   - 12.11.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
+- **12.12. Return-Location + Hardening Continuation (5.4.2/5.3.2)**
+  - 12.12.1. Expanded `examples/plugin/lifter_port_plugin.cpp` helper-call options with explicit register `return_location` hints on stable register-destination helper paths (variadic helper register destinations, `vmread` register route, scalar/packed helper-return families).
+  - 12.12.2. Extended additive return-typing coverage for compare/variadic register-destination helper routes when destination widths map cleanly to integer declarations.
+  - 12.12.3. Added callinfo hint hardening assertions in `tests/integration/decompiler_storage_hardening_test.cpp` covering:
+    - Positive-path micro/register destination hint application (success-or-backend-failure tolerance)
+    - Negative-path validation (`return_location` register id < 0, return-type-size mismatch)
+  - 12.12.4. Updated lifter gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F202], [F203].
+  - 12.12.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2658,9 +2677,9 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.5)**
+- **5.4. Immediate Execution Queue (Post-5.4.6)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
-  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + initial return-typing coverage (richer semantic role/location hints where concretely useful).
+  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + return-typing/location + hardening coverage (richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
   - 5.4.4. **Status:** Queued
 
