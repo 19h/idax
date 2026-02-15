@@ -365,6 +365,11 @@ be executed in small, testable API slices.
   (`emit_helper_call_with_arguments_to_micro_operand[_and_options]`) and
   additional typed call-argument value kinds (`BlockReference`,
   `NestedInstruction`).
+- Applied typed micro-operand destination routing in additional AVX/VMX helper
+  branches (`vmread`, scalar/packed min/max/sqrt, packed conversion, and
+  variadic helper register destinations), and now prefer direct-memory compare
+  destinations (`MemoryDirect` -> `GlobalAddress`) before operand writeback
+  fallback.
 
 ## Notes
 
