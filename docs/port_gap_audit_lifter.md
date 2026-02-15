@@ -190,9 +190,13 @@ be executed in small, testable API slices.
     deterministic placement policy controls for typed instruction emission via
     `MicrocodeInsertPolicy` (`Tail`, `Beginning`, `BeforeTail`) and
     `emit_instruction_with_policy`/`emit_instructions_with_policy`.
-  - Remaining depth is placement control parity for additional non-typed-
-    emitter paths. Helper-call insertion now also supports `insert_policy`
-    through `MicrocodeCallOptions`.
+  - Placement controls now also cover key low-level emit helpers through
+    `emit_noop_with_policy`, `emit_move_register_with_policy`,
+    `emit_load_memory_register_with_policy`, and
+    `emit_store_memory_register_with_policy`.
+  - Remaining depth is demand-driven parity expansion for any additional
+    emission paths not yet policy-aware. Helper-call insertion also supports
+    `insert_policy` through `MicrocodeCallOptions`.
 - Migration impact:
   - medium. Some deterministic rewrite ordering patterns cannot be expressed
     through public APIs yet.
@@ -254,6 +258,11 @@ be executed in small, testable API slices.
 - Added constrained placement controls for typed instruction emission:
   `MicrocodeInsertPolicy`, `MicrocodeContext::emit_instruction_with_policy`,
   and `MicrocodeContext::emit_instructions_with_policy`.
+- Added placement-aware low-level emit helpers for deterministic ordering in
+  additive rewrite paths: `MicrocodeContext::emit_noop_with_policy`,
+  `MicrocodeContext::emit_move_register_with_policy`,
+  `MicrocodeContext::emit_load_memory_register_with_policy`, and
+  `MicrocodeContext::emit_store_memory_register_with_policy`.
 - Added helper-call insertion policy hinting via
   `MicrocodeCallOptions::insert_policy`.
 - Expanded helper-call option shaping: `ida::decompiler::MicrocodeCallOptions`
