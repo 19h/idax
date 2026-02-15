@@ -789,6 +789,7 @@ Note:
   - 7.6.10. Coherence testing: success-path helper-call emissions in filters can trigger `INTERR` [F186]
     - 7.6.10.1. Prefer validation-first probes for deterministic assertions
   - 7.6.11. Probe-level callinfo enrichment now applies compare/rotate semantic role hints and helper argument-name metadata across variadic, AVX scalar/packed, and VMX helper paths [F199, F200]
+  - 7.6.12. Probe-level helper-return typing now applies declaration-driven return types for stable scalar/integer helper families (`vmread` register destinations, scalar `vmin*`/`vmax*`/`vsqrt*`) [F201]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -1740,6 +1741,10 @@ Note:
     - 14.7.12.1. **Decision:** Extend additive callinfo hints with rotate semantic roles (`RotateLeft`/`RotateRight` for `vprol*`/`vpror*`) and broaden `argument_name` coverage to explicit scalar/packed helper-call paths in addition to variadic/VMX flows
       - Rejected: Add return-location/value-location hints in this slice (higher mismatch risk without dedicated runtime probes)
       - Rejected: Keep metadata scoped to variadic-only paths (slower callarg intent coverage)
+  - **14.7.13. Helper Return-Type Enrichment**
+    - 14.7.13.1. **Decision:** Apply declaration-driven return typing only to stable helper-return families (integer-width `vmread` register destinations + scalar float/double helper returns)
+      - Rejected: Broad vector return-type declaration in this slice (higher declaration/size mismatch risk)
+      - Rejected: Leave all helper-return typing implicit (slower callinfo fidelity gains)
 
 ---
 
@@ -2563,6 +2568,12 @@ Note:
   - 12.10.3. Updated gap audit wording for broadened callinfo-depth semantics (`docs/port_gap_audit_lifter.md`).
   - 12.10.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
+- **12.11. Callinfo/tmop Return-Typing Continuation (5.4.2/5.3.2)**
+  - 12.11.1. Added declaration-driven helper-return typing in `examples/plugin/lifter_port_plugin.cpp` for stable helper-return families: integer-width `vmread` register destinations (`unsigned char/short/int/long long`) and scalar float-helper destinations (`float`/`double` for `vmin*`/`vmax*`/`vsqrt*`).
+  - 12.11.2. Kept scope intentionally narrow (no broad vector return declarations) to avoid declaration-size mismatch risk while increasing callinfo fidelity.
+  - 12.11.3. Updated lifter gap audit wording for return-typing enrichment (`docs/port_gap_audit_lifter.md`) and recorded finding [F201].
+  - 12.11.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2647,9 +2658,9 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.4)**
+- **5.4. Immediate Execution Queue (Post-5.4.5)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
-  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata coverage (per-family return typing, richer semantic role/location hints where concretely useful).
+  - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + initial return-typing coverage (richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
   - 5.4.4. **Status:** Queued
 

@@ -203,5 +203,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 198. Helper-return destination routing can reduce operand-index writeback fallback further by treating any memory operand with a resolved `target_address` as a typed `GlobalAddress` micro-operand destination (not only `MemoryDirect`).
 199. Lifter helper-call depth can progress safely by adding semantic call-role hints (`SseCompare4`/`SseCompare8` for `vcmp*`) plus `argument_name` metadata on helper arguments; this enriches callinfo/tmop intent without aggressive side-effect flags.
 200. Additive callinfo enrichment scales cleanly when semantic roles also cover rotate helper families (`RotateLeft`/`RotateRight`) and `argument_name` metadata is applied consistently across variadic, VMX, and explicit scalar/packed helper-call paths.
+201. Declaration-driven return typing can be applied incrementally to stable helper-return families (integer-width `vmread` register destinations and scalar float/double helper returns) to improve callinfo fidelity without broad vector-type assumptions.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

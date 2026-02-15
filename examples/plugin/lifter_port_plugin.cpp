@@ -72,6 +72,8 @@ int infer_operand_byte_width(const ida::instruction::Instruction& instruction,
                              int fallback);
 ida::decompiler::MicrocodeCallOptions vmx_call_options();
 ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower);
+std::string integer_type_declaration(int byte_width, bool unsigned_integer);
+std::string floating_type_declaration(int byte_width);
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
@@ -608,6 +610,32 @@ ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnem
     return options;
 }
 
+std::string integer_type_declaration(int byte_width, bool unsigned_integer) {
+    switch (byte_width) {
+        case 1:
+            return unsigned_integer ? "unsigned char" : "signed char";
+        case 2:
+            return unsigned_integer ? "unsigned short" : "short";
+        case 4:
+            return unsigned_integer ? "unsigned int" : "int";
+        case 8:
+            return unsigned_integer ? "unsigned long long" : "long long";
+        default:
+            return {};
+    }
+}
+
+std::string floating_type_declaration(int byte_width) {
+    switch (byte_width) {
+        case 4:
+            return "float";
+        case 8:
+            return "double";
+        default:
+            return {};
+    }
+}
+
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer = true) {
@@ -781,12 +809,18 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
             encoding_argument.argument_name = "encoding";
             args.push_back(encoding_argument);
 
+            auto options = vmx_call_options();
+            auto return_type = integer_type_declaration(integer_width, true);
+            if (!return_type.empty()) {
+                options.return_type_declaration = std::move(return_type);
+            }
+
             auto st = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                 "__vmread",
                 args,
                 register_destination_operand(*destination_reg, integer_width),
                 true,
-                vmx_call_options());
+                options);
             if (!st) return std::unexpected(st.error());
         } else {
             auto destination_address_reg = context.load_effective_address_register(0);
@@ -988,12 +1022,17 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
         args.push_back(right_argument);
 
         const std::string helper = "__" + std::string(mnemonic_lower);
+        auto helper_options = compare_call_options(mnemonic_lower);
+        auto return_type = floating_type_declaration(scalar_width);
+        if (!return_type.empty()) {
+            helper_options.return_type_declaration = std::move(return_type);
+        }
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
             register_destination_operand(*destination_reg, scalar_width),
             false,
-            vmx_call_options());
+            helper_options);
         if (!helper_status) {
             return std::unexpected(helper_status.error());
         }
