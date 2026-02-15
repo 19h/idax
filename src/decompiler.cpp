@@ -676,6 +676,9 @@ Status apply_call_options(minsn_t* root,
             return status;
     }
 
+    if (!info->return_regs.empty())
+        info->spoiled.add(info->return_regs);
+
     if (!options.passthrough_registers.empty()
         && !info->spoiled.includes(info->pass_regs)) {
         return std::unexpected(Error::validation(
