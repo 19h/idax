@@ -520,6 +520,26 @@ public:
             return ida::decompiler::MicrocodeApplyResult::Error;
         }
         saw_local_variable_count_query = true;
+
+        auto block_instruction_count = context.block_instruction_count();
+        if (!block_instruction_count) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        saw_block_instruction_count_query = true;
+
+        auto has_last_emitted = context.has_last_emitted_instruction();
+        if (!has_last_emitted) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        saw_last_emitted_query = true;
+
+        auto remove_before_emit = context.remove_last_emitted_instruction();
+        if (!remove_before_emit
+            && remove_before_emit.error().category == ida::ErrorCategory::NotFound) {
+            ++validation_hits;
+        }
         if (*local_variable_count > 0) {
             saw_local_variable_rewrite_attempt = true;
 
@@ -1102,6 +1122,20 @@ public:
             ++validation_hits;
         }
 
+        auto bad_helper_to_operand_index = context.emit_helper_call_with_arguments_to_operand(
+            "idax_probe", {}, -1, 4, true);
+        if (!bad_helper_to_operand_index
+            && bad_helper_to_operand_index.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
+        auto bad_helper_to_operand_width = context.emit_helper_call_with_arguments_to_operand(
+            "idax_probe", {}, 0, 0, true);
+        if (!bad_helper_to_operand_width
+            && bad_helper_to_operand_width.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeCallOptions options;
         options.insert_policy = ida::decompiler::MicrocodeInsertPolicy::Tail;
         options.calling_convention = ida::decompiler::MicrocodeCallingConvention::Stdcall;
@@ -1480,6 +1514,26 @@ public:
             }
         }
 
+        auto has_last_after_emit = context.has_last_emitted_instruction();
+        if (!has_last_after_emit) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+        saw_last_emitted_query = true;
+        if (*has_last_after_emit) {
+            auto remove_last = context.remove_last_emitted_instruction();
+            if (!remove_last
+                && remove_last.error().category != ida::ErrorCategory::SdkFailure
+                && remove_last.error().category != ida::ErrorCategory::Internal
+                && remove_last.error().category != ida::ErrorCategory::NotFound) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            if (remove_last) {
+                saw_last_emitted_remove = true;
+            }
+        }
+
         return ida::decompiler::MicrocodeApplyResult::Handled;
     }
 
@@ -1492,6 +1546,9 @@ public:
     bool saw_emit_failure{false};
     bool saw_auto_stack_location_validation{false};
     bool saw_local_variable_count_query{false};
+    bool saw_block_instruction_count_query{false};
+    bool saw_last_emitted_query{false};
+    bool saw_last_emitted_remove{false};
     bool saw_local_variable_rewrite_attempt{false};
     bool saw_second_local_variable_rewrite_attempt{false};
 };
@@ -1514,10 +1571,12 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
     if (decomp) {
         CHECK(filter->match_count > 0);
         CHECK(filter->apply_count == 1);
-        CHECK(filter->validation_hits >= 47);
+        CHECK(filter->validation_hits >= 50);
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(filter->saw_local_variable_count_query);
+        CHECK(filter->saw_block_instruction_count_query);
+        CHECK(filter->saw_last_emitted_query);
         CHECK(!filter->saw_local_variable_rewrite_attempt
               || filter->saw_second_local_variable_rewrite_attempt);
         CHECK(!filter->saw_auto_stack_location_validation);

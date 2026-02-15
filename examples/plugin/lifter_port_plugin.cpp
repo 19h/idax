@@ -67,7 +67,9 @@ std::string lower_copy(std::string text) {
     return text;
 }
 
-int infer_operand_byte_width(ida::Address address, int operand_index, int fallback);
+int infer_operand_byte_width(const ida::instruction::Instruction& instruction,
+                             std::size_t operand_index,
+                             int fallback);
 ida::decompiler::MicrocodeCallOptions vmx_call_options();
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
@@ -385,8 +387,8 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             ida::decompiler::MicrocodeValue value;
             value.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
             value.unsigned_immediate = operand->value();
-            int immediate_width = infer_operand_byte_width(instruction.address(),
-                                                           static_cast<int>(index),
+            int immediate_width = infer_operand_byte_width(instruction,
+                                                           index,
                                                            4);
             if (immediate_width <= 0) {
                 immediate_width = 4;
@@ -399,8 +401,8 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
         auto register_value = context.load_operand_register(static_cast<int>(index));
         if (register_value) {
-            const int argument_width = infer_operand_byte_width(instruction.address(),
-                                                                static_cast<int>(index),
+            const int argument_width = infer_operand_byte_width(instruction,
+                                                                index,
                                                                 fallback_width);
             args.push_back(register_argument(*register_value, argument_width, false));
             return true;
@@ -421,9 +423,30 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     const auto destination_reg = context.load_operand_register(0);
     if (!destination_reg) {
         if (mnemonic_lower.starts_with("vcmp") || mnemonic_lower.starts_with("vpcmp")) {
-            auto noop_status = context.emit_noop();
-            if (!noop_status) {
-                return std::unexpected(noop_status.error());
+            const int destination_width = infer_operand_byte_width(instruction, 0, 8);
+
+            std::vector<ida::decompiler::MicrocodeValue> compare_args;
+            compare_args.reserve(operand_count > 0 ? operand_count - 1 : 0);
+            for (std::size_t index = 1; index < operand_count; ++index) {
+                if (!append_argument(compare_args, index, destination_width)) {
+                    return false;
+                }
+            }
+
+            const std::string helper = "__" + std::string(mnemonic_lower);
+            auto helper_status = context.emit_helper_call_with_arguments_to_operand_and_options(
+                helper,
+                compare_args,
+                0,
+                destination_width,
+                false,
+                vmx_call_options());
+            if (!helper_status) {
+                if (helper_status.error().category == ida::ErrorCategory::SdkFailure
+                    || helper_status.error().category == ida::ErrorCategory::Internal) {
+                    return false;
+                }
+                return std::unexpected(helper_status.error());
             }
             return true;
         }
@@ -451,7 +474,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
         return true;
     }
 
-    const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+    const int destination_width = infer_operand_byte_width(instruction, 0, 16);
 
     std::vector<ida::decompiler::MicrocodeValue> args;
     args.reserve(operand_count > 0 ? operand_count - 1 : 0);
@@ -476,20 +499,30 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     return true;
 }
 
-int infer_operand_byte_width(ida::Address address, int operand_index, int fallback) {
-    auto text = ida::instruction::operand_text(address, operand_index);
-    if (!text) {
+int infer_operand_byte_width(const ida::instruction::Instruction& instruction,
+                             std::size_t operand_index,
+                             int fallback) {
+    auto operand = instruction.operand(operand_index);
+    if (!operand) {
         return fallback;
     }
 
-    const std::string lowered = lower_copy(*text);
-    if (lowered.rfind("zmm", 0) == 0 || lowered.find("zmmword") != std::string::npos) return 64;
-    if (lowered.rfind("ymm", 0) == 0 || lowered.find("ymmword") != std::string::npos) return 32;
-    if (lowered.rfind("xmm", 0) == 0 || lowered.find("xmmword") != std::string::npos) return 16;
-    if (lowered.find("qword") != std::string::npos) return 8;
-    if (lowered.find("dword") != std::string::npos) return 4;
-    if (lowered.find("word") != std::string::npos) return 2;
-    if (lowered.find("byte") != std::string::npos) return 1;
+    if (operand->byte_width() > 0) {
+        return operand->byte_width();
+    }
+
+    if (operand->is_vector_register()) {
+        const std::string register_name = lower_copy(operand->register_name());
+        if (register_name.starts_with("zmm")) return 64;
+        if (register_name.starts_with("ymm")) return 32;
+        if (register_name.starts_with("xmm")) return 16;
+        if (register_name.starts_with("mm")) return 8;
+    }
+
+    if (operand->is_mask_register()) {
+        return 8;
+    }
+
     return fallback;
 }
 
@@ -907,8 +940,8 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return std::unexpected(source_reg.error());
         }
 
-        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
-        const int source_width = infer_operand_byte_width(instruction.address(), 1, destination_width);
+        const int destination_width = infer_operand_byte_width(instruction, 0, 16);
+        const int source_width = infer_operand_byte_width(instruction, 1, destination_width);
 
         ida::decompiler::MicrocodeInstruction instruction_ir;
         instruction_ir.opcode = *conversion_opcode;
@@ -957,7 +990,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return false;
         }
 
-        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int destination_width = infer_operand_byte_width(instruction, 0, 16);
 
         ida::decompiler::MicrocodeOperand right{};
         const auto source2_reg = context.load_operand_register(static_cast<int>(source2_index));
@@ -969,8 +1002,8 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         } else if (source2_operand->is_immediate()) {
             right.kind = ida::decompiler::MicrocodeOperandKind::UnsignedImmediate;
             right.unsigned_immediate = source2_operand->value();
-            int immediate_width = infer_operand_byte_width(instruction.address(),
-                                                           static_cast<int>(source2_index),
+            int immediate_width = infer_operand_byte_width(instruction,
+                                                           source2_index,
                                                            1);
             if (immediate_width <= 0) {
                 immediate_width = 1;
@@ -1057,8 +1090,8 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return std::unexpected(source_reg.error());
         }
 
-        const int destination_width = infer_operand_byte_width(instruction.address(), 0, 16);
-        const int source_width = infer_operand_byte_width(instruction.address(), 1, destination_width);
+        const int destination_width = infer_operand_byte_width(instruction, 0, 16);
+        const int source_width = infer_operand_byte_width(instruction, 1, destination_width);
         const bool destination_unsigned = mnemonic_lower.find("udq") != std::string::npos
             || mnemonic_lower.find("uqq") != std::string::npos;
 
@@ -1094,7 +1127,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return std::unexpected(destination_operand.error());
         }
 
-        const int move_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int move_width = infer_operand_byte_width(instruction, 0, 16);
         if (destination_operand->is_memory()) {
             const auto source_reg = context.load_operand_register(1);
             if (!source_reg) {
@@ -1124,7 +1157,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     }
 
     if (mnemonic_lower == "vsqrtps" || mnemonic_lower == "vsqrtpd") {
-        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int packed_width = infer_operand_byte_width(instruction, 0, 16);
         const auto destination_reg = context.load_operand_register(0);
         if (!destination_reg) {
             return std::unexpected(destination_reg.error());
@@ -1156,7 +1189,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     }
 
     if (is_packed_helper_addsub_mnemonic(mnemonic_lower)) {
-        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int packed_width = infer_operand_byte_width(instruction, 0, 16);
         const auto destination_reg = context.load_operand_register(0);
         if (!destination_reg) {
             return std::unexpected(destination_reg.error());
@@ -1190,7 +1223,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
 
     if (mnemonic_lower == "vminps" || mnemonic_lower == "vmaxps"
         || mnemonic_lower == "vminpd" || mnemonic_lower == "vmaxpd") {
-        const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+        const int packed_width = infer_operand_byte_width(instruction, 0, 16);
         const auto destination_reg = context.load_operand_register(0);
         if (!destination_reg) {
             return std::unexpected(destination_reg.error());
@@ -1240,7 +1273,7 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return std::unexpected(source2_reg.error());
     }
 
-    const int packed_width = infer_operand_byte_width(instruction.address(), 0, 16);
+    const int packed_width = infer_operand_byte_width(instruction, 0, 16);
 
     ida::decompiler::MicrocodeInstruction instruction_ir;
     instruction_ir.opcode = *opcode;
@@ -1375,9 +1408,10 @@ ida::Status show_gap_report() {
     ida::ui::message(
         "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
         "  1) VMX + AVX scalar/packed microcode lifting subsets are now active via idax filter hooks.\n"
-        "  2) Microcode filter/hooks + scalar/byte-array/vector/type-declaration helper-call modeling/location hints are present, but\n"
-        "     rich IR mutation depth is still missing (richer vector/UDT semantics, advanced callinfo/tmop).\n"
-        "  3) Action-context host bridges now expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers are still additive follow-up work.\n"
+        "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and compare/mask\n"
+        "     flows use deterministic helper-call operand writeback instead of no-op tolerance.\n"
+        "  3) Rich IR mutation depth is still additive follow-up (deeper vector/UDT semantics + advanced callinfo/tmop).\n"
+        "  4) Action-context host bridges expose opaque widget/decompiler-view handles, but typed vdui/cfunc helpers remain additive work.\n"
         "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion\n"
         "               + helper-fallback bitwise/permute/blend/shift/compare/misc subset,\n"
         "               FUNC_OUTLINE + cache-dirty helpers, and action-context host bridges.\n");

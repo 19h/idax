@@ -38,6 +38,7 @@ bool g_hexrays_callback_installed = false;
 struct MicrocodeContextImpl {
     codegen_t* codegen{nullptr};
     bool emitted_noop{false};
+    minsn_t* last_emitted{nullptr};
 };
 
 class MicrocodeFilterBridge final : public microcode_filter_t {
@@ -712,11 +713,13 @@ Status insert_call_instruction(MicrocodeContextImpl* impl,
                                           std::string(helper_name)));
 
     minsn_t* anchor = anchor_for_insert_policy(impl->codegen->mb, policy);
-    if (impl->codegen->mb->insert_into_block(call, anchor) == nullptr) {
+    minsn_t* inserted = impl->codegen->mb->insert_into_block(call, anchor);
+    if (inserted == nullptr) {
         delete call;
         return std::unexpected(Error::sdk("insert_into_block failed",
                                           std::string(helper_name)));
     }
+    impl->last_emitted = inserted;
     return ida::ok();
 }
 
@@ -1815,6 +1818,49 @@ Result<int> MicrocodeContext::local_variable_count() const {
     return static_cast<int>(impl->codegen->mba->vars.size());
 }
 
+Result<int> MicrocodeContext::block_instruction_count() const {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    int count = 0;
+    for (const minsn_t* instruction = impl->codegen->mb->head;
+         instruction != nullptr;
+         instruction = instruction->next) {
+        ++count;
+    }
+    return count;
+}
+
+Result<bool> MicrocodeContext::has_last_emitted_instruction() const {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    return impl->last_emitted != nullptr;
+}
+
+Status MicrocodeContext::remove_last_emitted_instruction() {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+    if (impl->last_emitted == nullptr)
+        return std::unexpected(Error::not_found("No tracked emitted instruction to remove"));
+
+    impl->codegen->mb->remove_from_block(impl->last_emitted);
+    impl->last_emitted = nullptr;
+    return ida::ok();
+}
+
 Status MicrocodeContext::emit_noop() {
     return emit_noop_with_policy(MicrocodeInsertPolicy::Tail);
 }
@@ -1834,6 +1880,7 @@ Status MicrocodeContext::emit_noop_with_policy(MicrocodeInsertPolicy policy) {
     if (!reposition)
         return reposition;
 
+    impl->last_emitted = emitted;
     impl->emitted_noop = true;
     return ida::ok();
 }
@@ -1876,6 +1923,7 @@ Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction
 
         if (instruction.floating_point_instruction)
             emitted->set_fpinsn();
+        impl->last_emitted = emitted;
         impl->emitted_noop = true;
         return ida::ok();
     }
@@ -1918,6 +1966,7 @@ Status MicrocodeContext::emit_instruction_with_policy(const MicrocodeInstruction
 
     if (instruction.floating_point_instruction)
         emitted->set_fpinsn();
+    impl->last_emitted = emitted;
     return ida::ok();
 }
 
@@ -2097,6 +2146,7 @@ Status MicrocodeContext::emit_move_register_with_policy(int source_register,
     if (!reposition)
         return reposition;
 
+    impl->last_emitted = emitted;
     return ida::ok();
 }
 
@@ -2179,6 +2229,7 @@ Status MicrocodeContext::emit_load_memory_register_with_policy(int selector_regi
     if (!reposition)
         return reposition;
 
+    impl->last_emitted = emitted;
     return ida::ok();
 }
 
@@ -2261,6 +2312,7 @@ Status MicrocodeContext::emit_store_memory_register_with_policy(int source_regis
     if (!reposition)
         return reposition;
 
+    impl->last_emitted = emitted;
     return ida::ok();
 }
 
@@ -2449,6 +2501,56 @@ Status MicrocodeContext::emit_helper_call_with_arguments_to_register_and_options
         ? *effective_options.insert_policy
         : MicrocodeInsertPolicy::Tail;
     return insert_call_instruction(impl, call, helper, insert_policy);
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_operand(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    int destination_operand_index,
+    int destination_byte_width,
+    bool destination_unsigned) {
+    return emit_helper_call_with_arguments_to_operand_and_options(helper_name,
+                                                                  arguments,
+                                                                  destination_operand_index,
+                                                                  destination_byte_width,
+                                                                  destination_unsigned,
+                                                                  MicrocodeCallOptions{});
+}
+
+Status MicrocodeContext::emit_helper_call_with_arguments_to_operand_and_options(
+    std::string_view helper_name,
+    const std::vector<MicrocodeValue>& arguments,
+    int destination_operand_index,
+    int destination_byte_width,
+    bool destination_unsigned,
+    const MicrocodeCallOptions& options) {
+    if (destination_operand_index < 0) {
+        return std::unexpected(Error::validation("Destination operand index cannot be negative",
+                                                 std::to_string(destination_operand_index)));
+    }
+    if (destination_byte_width <= 0) {
+        return std::unexpected(Error::validation("Destination byte width must be positive",
+                                                 std::to_string(destination_byte_width)));
+    }
+
+    auto temporary_register = allocate_temporary_register(destination_byte_width);
+    if (!temporary_register)
+        return std::unexpected(temporary_register.error());
+
+    auto helper_status = emit_helper_call_with_arguments_to_register_and_options(
+        helper_name,
+        arguments,
+        *temporary_register,
+        destination_byte_width,
+        destination_unsigned,
+        options);
+    if (!helper_status)
+        return helper_status;
+
+    return store_operand_register(destination_operand_index,
+                                  *temporary_register,
+                                  destination_byte_width,
+                                  destination_byte_width > 8);
 }
 
 Result<FilterToken> register_microcode_filter(std::shared_ptr<MicrocodeFilter> filter) {
