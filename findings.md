@@ -206,5 +206,7 @@ Format note: use a numbered list with one concrete technical finding per item; k
 201. Declaration-driven return typing can be applied incrementally to stable helper-return families (integer-width `vmread` register destinations and scalar float/double helper returns) to improve callinfo fidelity without broad vector-type assumptions.
 202. Register-destination helper flows can safely carry explicit callinfo `return_location` hints when mapped to the same destination register used for helper-return writeback; this composes with declaration-driven return typing.
 203. Callinfo hardening should probe both positive and negative hint paths: success/backend-failure tolerance for micro/register destination routes, plus validation checks for negative register return locations and return-type-size mismatches.
+204. Compare helper operand-index writeback fallback should be constrained to unresolved destination shapes only (mask-register destinations and memory destinations lacking resolvable target addresses), while resolved destinations prefer typed micro-operand routing.
+205. Callinfo hardening coverage should include cross-route validation checks (`to_micro_operand`, `to_register`, `to_operand`) for invalid return-location register ids and return-type-size mismatches to prevent contract drift between helper emission APIs.
 
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

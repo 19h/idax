@@ -1258,11 +1258,38 @@ public:
             bad_callinfo_location_options.return_location->kind =
                 ida::decompiler::MicrocodeValueLocationKind::Register;
             bad_callinfo_location_options.return_location->register_id = -1;
+
             auto bad_callinfo_location_micro =
                 context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                     "idax_probe", {}, register_destination, true, bad_callinfo_location_options);
             if (!bad_callinfo_location_micro
                 && bad_callinfo_location_micro.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            auto bad_callinfo_location_register =
+                context.emit_helper_call_with_arguments_to_register_and_options(
+                    "idax_probe",
+                    {},
+                    *helper_destination_register,
+                    8,
+                    true,
+                    bad_callinfo_location_options);
+            if (!bad_callinfo_location_register
+                && bad_callinfo_location_register.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            auto bad_callinfo_location_operand =
+                context.emit_helper_call_with_arguments_to_operand_and_options(
+                    "idax_probe",
+                    {},
+                    0,
+                    8,
+                    true,
+                    bad_callinfo_location_options);
+            if (!bad_callinfo_location_operand
+                && bad_callinfo_location_operand.error().category == ida::ErrorCategory::Validation) {
                 ++validation_hits;
             }
 
@@ -1273,6 +1300,32 @@ public:
                     "idax_probe", {}, register_destination, true, bad_callinfo_return_type_size_options);
             if (!bad_callinfo_return_type_size_micro
                 && bad_callinfo_return_type_size_micro.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            auto bad_callinfo_return_type_size_register =
+                context.emit_helper_call_with_arguments_to_register_and_options(
+                    "idax_probe",
+                    {},
+                    *helper_destination_register,
+                    8,
+                    true,
+                    bad_callinfo_return_type_size_options);
+            if (!bad_callinfo_return_type_size_register
+                && bad_callinfo_return_type_size_register.error().category == ida::ErrorCategory::Validation) {
+                ++validation_hits;
+            }
+
+            auto bad_callinfo_return_type_size_operand =
+                context.emit_helper_call_with_arguments_to_operand_and_options(
+                    "idax_probe",
+                    {},
+                    0,
+                    8,
+                    true,
+                    bad_callinfo_return_type_size_options);
+            if (!bad_callinfo_return_type_size_operand
+                && bad_callinfo_return_type_size_operand.error().category == ida::ErrorCategory::Validation) {
                 ++validation_hits;
             }
         }

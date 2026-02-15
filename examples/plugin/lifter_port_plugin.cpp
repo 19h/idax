@@ -439,6 +439,11 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     const auto destination_reg = context.load_operand_register(0);
     if (!destination_reg) {
         if (mnemonic_lower.starts_with("vcmp") || mnemonic_lower.starts_with("vpcmp")) {
+            const auto destination_operand = instruction.operand(0);
+            if (!destination_operand) {
+                return false;
+            }
+
             const int destination_width = infer_operand_byte_width(instruction, 0, 8);
 
             std::vector<ida::decompiler::MicrocodeValue> compare_args;
@@ -473,6 +478,17 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                     || micro_status.error().category == ida::ErrorCategory::Internal) {
                     return false;
                 }
+            }
+
+            bool unresolved_destination_shape = false;
+            if (destination_operand->is_register()) {
+                unresolved_destination_shape = destination_operand->is_mask_register();
+            } else if (destination_operand->is_memory()) {
+                unresolved_destination_shape = destination_operand->target_address() == ida::BadAddress;
+            }
+
+            if (!unresolved_destination_shape) {
+                return false;
             }
 
             auto helper_status = context.emit_helper_call_with_arguments_to_operand_and_options(

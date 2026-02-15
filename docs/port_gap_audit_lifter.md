@@ -380,7 +380,9 @@ be executed in small, testable API slices.
   now also apply declaration-driven return typing (`vmread` register destination
   integer widths and scalar `vmin*`/`vmax*`/`vsqrt*` float/double returns),
   with explicit register `return_location` hints on stable register-destination
-  helper flows.
+  helper flows. Compare helper operand-index writeback fallback is now
+  constrained to unresolved destination shapes only (mask-register destination
+  or memory destination without resolvable target address).
 
 ## Notes
 
