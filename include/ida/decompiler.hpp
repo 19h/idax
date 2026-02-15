@@ -123,6 +123,8 @@ enum class MicrocodeOpcode : int {
     FloatToFloat,
 };
 
+struct MicrocodeInstruction;
+
 /// Operand kind for generic typed microcode emission.
 enum class MicrocodeOperandKind : int {
     Empty,
@@ -132,6 +134,7 @@ enum class MicrocodeOperandKind : int {
     StackVariable,
     HelperReference,
     BlockReference,
+    NestedInstruction,
     UnsignedImmediate,
     SignedImmediate,
 };
@@ -145,6 +148,7 @@ struct MicrocodeOperand {
     std::int64_t stack_offset{0};
     std::string helper_name{};
     int block_index{0};
+    std::shared_ptr<MicrocodeInstruction> nested_instruction{};
     std::uint64_t unsigned_immediate{0};
     std::int64_t signed_immediate{0};
     int byte_width{0};

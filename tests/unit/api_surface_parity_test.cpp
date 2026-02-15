@@ -1148,6 +1148,7 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOperandKind::StackVariable;
     (void)ida::decompiler::MicrocodeOperandKind::HelperReference;
     (void)ida::decompiler::MicrocodeOperandKind::BlockReference;
+    (void)ida::decompiler::MicrocodeOperandKind::NestedInstruction;
     (void)ida::decompiler::MicrocodeInsertPolicy::Tail;
     (void)ida::decompiler::MicrocodeInsertPolicy::Beginning;
     (void)ida::decompiler::MicrocodeInsertPolicy::BeforeTail;
@@ -1165,6 +1166,7 @@ void check_decompiler_surface() {
     (void)typed_operand.stack_offset;
     (void)typed_operand.helper_name;
     (void)typed_operand.block_index;
+    (void)typed_operand.nested_instruction;
     (void)typed_operand.unsigned_immediate;
     (void)typed_operand.signed_immediate;
     (void)typed_operand.byte_width;

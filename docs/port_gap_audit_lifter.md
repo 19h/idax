@@ -283,6 +283,10 @@ be executed in small, testable API slices.
   emission and helper arguments:
   `RegisterPair`, `GlobalAddress`, `StackVariable`, `HelperReference`, and
   `BlockReference`.
+- Added typed nested-instruction operand support for generic instruction
+  emission (`MicrocodeOperandKind::NestedInstruction` +
+  `MicrocodeOperand::nested_instruction`) with recursive validation and depth
+  limiting.
 - Expanded vector helper-call typing with declaration-driven element types,
   enabling richer non-scalar/UDT-style element modeling when concrete widths are
   validated.
