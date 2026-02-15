@@ -880,6 +880,7 @@ Note:
     - 8.7.6.1. gather/scatter/compress/expand/popcnt/lzcnt/gfni/pclmul/aes/sha
     - 8.7.6.2. movnt/movmsk/pmov/pinsert/extractps/insertps/pack/phsub/fmaddsub
   - 8.7.7. Helper-return destination routing now prefers typed micro-operands (register/direct-memory `GlobalAddress`) with operand-writeback fallback for unresolved shapes [F196]
+    - 8.7.7.1. Integration hardening now exercises both typed helper-return destination success routes (`Register`, `GlobalAddress`) in `decompiler_storage_hardening` with post-emit cleanup via `remove_last_emitted_instruction` [F197]
 
 ---
 
@@ -2526,6 +2527,12 @@ Note:
   - 12.6.2. Converted register-destination helper returns to `emit_helper_call_with_arguments_to_micro_operand_and_options` and added direct-memory compare destination routing (`MemoryDirect` → `GlobalAddress`) before operand-writeback fallback.
   - 12.6.3. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin` passes.
 
+- **12.7. Regression Coverage Closure (5.4.1)**
+  - 12.7.1. Added hardening regression coverage in `tests/integration/decompiler_storage_hardening_test.cpp` for helper-return micro-operand destination routing success paths (`Register`, direct-memory `GlobalAddress`).
+  - 12.7.2. Added explicit assertions to ensure routes are attempted and either succeed or degrade only through backend/runtime categories (`SdkFailure`/`Internal`), never validation misuse.
+  - 12.7.3. Added post-emit cleanup checks (`remove_last_emitted_instruction`) to keep mutation flows deterministic while exercising success paths.
+  - 12.7.4. Evidence: `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` → `196 passed, 0 failed`.
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2610,12 +2617,11 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.1)**
-  - 5.4.1. Add regression coverage for helper-call micro-operand destination routing in `tests/integration/decompiler_storage_hardening_test.cpp` (register + direct-memory `GlobalAddress` destination success paths).
-  - 5.4.2. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
-  - 5.4.3. Begin 5.3.2 depth work with additive callinfo/tmop semantics for AVX/VMX helper paths (per-family return typing, argument metadata, semantic role/location hints where concretely useful).
-  - 5.4.4. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
-  - 5.4.5. **Status:** Queued
+- **5.4. Immediate Execution Queue (Post-5.4.2)**
+  - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
+  - 5.4.2. Begin 5.3.2 depth work with additive callinfo/tmop semantics for AVX/VMX helper paths (per-family return typing, argument metadata, semantic role/location hints where concretely useful).
+  - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
+  - 5.4.4. **Status:** Queued
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 

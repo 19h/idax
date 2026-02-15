@@ -1161,6 +1161,77 @@ public:
             ++validation_hits;
         }
 
+        auto helper_destination_register = context.allocate_temporary_register(8);
+        if (!helper_destination_register) {
+            if (helper_destination_register.error().category == ida::ErrorCategory::SdkFailure
+                || helper_destination_register.error().category == ida::ErrorCategory::Internal) {
+                saw_micro_operand_register_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        } else {
+            saw_micro_operand_register_route_attempt = true;
+
+            ida::decompiler::MicrocodeOperand register_destination;
+            register_destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            register_destination.register_id = *helper_destination_register;
+            register_destination.byte_width = 8;
+
+            auto register_route_status =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, register_destination, true, ida::decompiler::MicrocodeCallOptions{});
+            if (register_route_status) {
+                saw_micro_operand_register_route_success = true;
+
+                auto remove_register_route = context.remove_last_emitted_instruction();
+                if (!remove_register_route
+                    && remove_register_route.error().category != ida::ErrorCategory::SdkFailure
+                    && remove_register_route.error().category != ida::ErrorCategory::Internal
+                    && remove_register_route.error().category != ida::ErrorCategory::NotFound) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
+            } else if (register_route_status.error().category == ida::ErrorCategory::SdkFailure
+                       || register_route_status.error().category == ida::ErrorCategory::Internal) {
+                saw_micro_operand_register_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
+        if (context.address() != ida::BadAddress) {
+            saw_micro_operand_global_route_attempt = true;
+
+            ida::decompiler::MicrocodeOperand global_destination;
+            global_destination.kind = ida::decompiler::MicrocodeOperandKind::GlobalAddress;
+            global_destination.global_address = context.address();
+            global_destination.byte_width = 8;
+
+            auto global_route_status =
+                context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                    "idax_probe", {}, global_destination, true, ida::decompiler::MicrocodeCallOptions{});
+            if (global_route_status) {
+                saw_micro_operand_global_route_success = true;
+
+                auto remove_global_route = context.remove_last_emitted_instruction();
+                if (!remove_global_route
+                    && remove_global_route.error().category != ida::ErrorCategory::SdkFailure
+                    && remove_global_route.error().category != ida::ErrorCategory::Internal
+                    && remove_global_route.error().category != ida::ErrorCategory::NotFound) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
+            } else if (global_route_status.error().category == ida::ErrorCategory::SdkFailure
+                       || global_route_status.error().category == ida::ErrorCategory::Internal) {
+                saw_micro_operand_global_route_backend_failure = true;
+            } else {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
+
         ida::decompiler::MicrocodeOperand bad_micro_destination;
         bad_micro_destination.kind = ida::decompiler::MicrocodeOperandKind::Empty;
         auto bad_helper_to_micro_operand = context.emit_helper_call_with_arguments_to_micro_operand(
@@ -1623,6 +1694,12 @@ public:
     bool saw_last_emitted_remove{false};
     bool saw_local_variable_rewrite_attempt{false};
     bool saw_second_local_variable_rewrite_attempt{false};
+    bool saw_micro_operand_register_route_attempt{false};
+    bool saw_micro_operand_register_route_success{false};
+    bool saw_micro_operand_register_route_backend_failure{false};
+    bool saw_micro_operand_global_route_attempt{false};
+    bool saw_micro_operand_global_route_success{false};
+    bool saw_micro_operand_global_route_backend_failure{false};
 };
 
 void test_microcode_filter_registration(ida::Address fn_ea) {
@@ -1652,6 +1729,12 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->saw_last_emitted_query);
         CHECK(!filter->saw_local_variable_rewrite_attempt
               || filter->saw_second_local_variable_rewrite_attempt);
+        CHECK(filter->saw_micro_operand_register_route_attempt);
+        CHECK(filter->saw_micro_operand_global_route_attempt);
+        CHECK(filter->saw_micro_operand_register_route_success
+              || filter->saw_micro_operand_register_route_backend_failure);
+        CHECK(filter->saw_micro_operand_global_route_success
+              || filter->saw_micro_operand_global_route_backend_failure);
         CHECK(!filter->saw_auto_stack_location_validation);
         CHECK(!filter->saw_emit_failure);
     }
