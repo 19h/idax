@@ -537,6 +537,16 @@ public:
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
             }
+
+            saw_second_local_variable_rewrite_attempt = true;
+            auto local_variable_echo_with_policy_status = context.emit_instruction_with_policy(
+                local_variable_echo,
+                ida::decompiler::MicrocodeInsertPolicy::Beginning);
+            if (!local_variable_echo_with_policy_status
+                && local_variable_echo_with_policy_status.error().category != ida::ErrorCategory::SdkFailure) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
         }
 
         auto bad_load = context.load_operand_register(-1);
@@ -1287,6 +1297,7 @@ public:
     bool saw_auto_stack_location_validation{false};
     bool saw_local_variable_count_query{false};
     bool saw_local_variable_rewrite_attempt{false};
+    bool saw_second_local_variable_rewrite_attempt{false};
 };
 
 void test_microcode_filter_registration(ida::Address fn_ea) {
@@ -1311,6 +1322,8 @@ void test_microcode_filter_registration(ida::Address fn_ea) {
         CHECK(filter->saw_non_bad_address);
         CHECK(filter->saw_instruction_type);
         CHECK(filter->saw_local_variable_count_query);
+        CHECK(!filter->saw_local_variable_rewrite_attempt
+              || filter->saw_second_local_variable_rewrite_attempt);
         CHECK(!filter->saw_auto_stack_location_validation);
         CHECK(!filter->saw_emit_failure);
     }
