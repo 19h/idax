@@ -370,6 +370,11 @@ be executed in small, testable API slices.
   variadic helper register destinations), and now prefer resolved-memory
   compare destinations (any memory operand with resolvable target address ->
   `GlobalAddress`) before operand writeback fallback.
+- Began additive callinfo/tmop depth in executable probe helper paths:
+  compare-family helper calls now use semantic role hints
+  (`MicrocodeFunctionRole::SseCompare4`/`SseCompare8` for `vcmp*` forms), and
+  variadic/VMX helper arguments now carry `argument_name` metadata for clearer
+  typed call-argument semantics.
 
 ## Notes
 
