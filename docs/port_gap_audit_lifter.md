@@ -367,9 +367,9 @@ be executed in small, testable API slices.
   `NestedInstruction`).
 - Applied typed micro-operand destination routing in additional AVX/VMX helper
   branches (`vmread`, scalar/packed min/max/sqrt, packed conversion, and
-  variadic helper register destinations), and now prefer direct-memory compare
-  destinations (`MemoryDirect` -> `GlobalAddress`) before operand writeback
-  fallback.
+  variadic helper register destinations), and now prefer resolved-memory
+  compare destinations (any memory operand with resolvable target address ->
+  `GlobalAddress`) before operand writeback fallback.
 
 ## Notes
 
