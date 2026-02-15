@@ -797,6 +797,10 @@ Note:
   - 7.6.17. Cross-route hardening now includes static-location `BadAddress` validation in `to_operand` helper routes to keep location contracts consistent across emission APIs [F209]
   - 7.6.18. Register-destination callinfo hints now use validation-safe retry semantics (retry without explicit `return_location` when backend returns validation) to preserve stable handling on compare helper routes [F210]
   - 7.6.19. Cross-route hardening now includes global-destination return-type-size validation checks to keep type-size contracts aligned across helper emission APIs [F211]
+  - 7.6.20. Compare helper micro-routes now use a three-step validation-safe retry ladder (full location+declaration hints -> declaration-only hints -> base compare options) to preserve semantics first while degrading safely on backend validation rejection [F213]
+  - 7.6.21. Direct compare `to_operand` fallback now also applies validation-safe retry with base compare options to reduce backend-variant validation failures on degraded routes [F214]
+  - 7.6.22. Degraded compare `to_operand` routes now treat residual validation failures as non-fatal not-handled outcomes after retry exhaustion, while preserving hard SDK/internal failure handling [F215]
+  - 7.6.23. Compare helper routes now apply validation-safe base-options retry consistently across resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand` paths; temporary-register `store_operand_register` writeback now treats `Validation`/`NotFound` as degradable while preserving hard SDK/internal failures [F216]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -895,6 +899,10 @@ Note:
     - 8.7.7.4. Compare helper routing now applies static-address `return_location` hints for resolved-memory `GlobalAddress` micro-routes with validation-safe retry fallback to no-location options [F207]
     - 8.7.7.5. Compare helper register-destination micro-routes now also use validation-safe retry fallback to no-location options when explicit register `return_location` hints are rejected [F210]
     - 8.7.7.6. Compare helper unresolved-shape routing now attempts helper-return to temporary register plus `store_operand_register` writeback before direct `to_operand` fallback [F212]
+    - 8.7.7.7. Compare helper micro-routes now retry with base compare options when declaration/location hints continue to fail validation, reducing false-negative handling loss on backend variance [F213]
+    - 8.7.7.8. Compare helper degraded `to_operand` path now retries with base compare options when declaration/location hints fail validation, reducing avoidable fallback loss on backend variance [F214]
+    - 8.7.7.9. Compare helper degraded `to_operand` path now degrades residual validation rejection to non-fatal not-handled outcome after retry exhaustion, while preserving hard failure signals for SDK/internal categories [F215]
+    - 8.7.7.10. Compare helper temporary-register bridge and typed micro routes now use the same validation-safe base-options retry policy, and writeback-level `Validation`/`NotFound` now degrades to not-handled instead of hard failure [F216]
 
 ---
 
@@ -1793,6 +1801,22 @@ Note:
     - 14.7.22.1. **Decision:** For unresolved compare destinations, attempt helper-return to temporary register and `store_operand_register` writeback before direct `to_operand` fallback
       - Rejected: Keep direct `to_operand` as first unresolved-shape path (weaker intermediate typed route coverage)
       - Rejected: Remove direct `to_operand` fallback entirely (stability risk for backend-specific shapes)
+  - **14.7.23. Compare Route Retry Ladder**
+    - 14.7.23.1. **Decision:** For compare helper micro-routes, apply a three-step validation-safe retry ladder (full location+declaration hints -> declaration-only hints -> base compare options)
+      - Rejected: Stop after declaration-only retry (can miss backend-variant valid emissions)
+      - Rejected: Start with base compare options only (drops semantic intent fidelity prematurely)
+  - **14.7.24. Direct-Operand Retry Parity**
+    - 14.7.24.1. **Decision:** Apply validation-safe retry with base compare options to degraded `to_operand` compare fallback paths when hint-rich options fail validation
+      - Rejected: Keep degraded `to_operand` path single-shot with hint-rich options (higher backend-variant validation failures)
+      - Rejected: Force base options first on degraded path (drops hint fidelity prematurely)
+  - **14.7.25. Degraded-Operand Validation Tolerance**
+    - 14.7.25.1. **Decision:** After degraded compare `to_operand` retries are exhausted, treat residual validation rejection as non-fatal not-handled outcome
+      - Rejected: Keep validation rejection as hard error on degraded `to_operand` path (lower backend variance tolerance)
+      - Rejected: Silence all degraded-path failures including SDK/internal categories (would mask hard failures)
+  - **14.7.26. Cross-Route Retry + Writeback Tolerance Alignment**
+    - 14.7.26.1. **Decision:** Align compare helper validation-safe base-options retry behavior across typed micro routes and temporary-register bridge paths, and degrade temporary writeback `Validation`/`NotFound` outcomes to not-handled
+      - Rejected: Keep retry behavior uneven across helper emission routes (drift risk)
+      - Rejected: Treat temporary writeback validation/not-found as hard errors (reduces backend variance tolerance)
 
 ---
 
@@ -2662,6 +2686,31 @@ Note:
   - 12.17.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F212].
   - 12.17.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
+- **12.18. Compare Retry-Ladder Continuation (5.3.2)**
+  - 12.18.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare-helper micro-routes to use a three-step validation-safe retry ladder: full hint path (`location` + `return_type_declaration`) -> reduced hint path (declaration-only) -> base compare options.
+  - 12.18.2. Applied the retry ladder consistently across resolved-memory `GlobalAddress`, structured register-destination micro routes, and temporary-register helper-return routes used in unresolved-shape handling.
+  - 12.18.3. Kept richer semantics as primary path while ensuring graceful degradation on backend validation variance.
+  - 12.18.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F213].
+  - 12.18.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
+- **12.19. Direct-Operand Retry Parity (5.3.2)**
+  - 12.19.1. Expanded `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` fallback to apply validation-safe retry with base compare options when hint-rich options fail validation.
+  - 12.19.2. Preserved hint-rich options as first attempt to maintain semantic fidelity while reducing backend-variant validation failures on degraded routes.
+  - 12.19.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F214].
+  - 12.19.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
+- **12.20. Degraded-Operand Validation Tolerance (5.3.2)**
+  - 12.20.1. Updated `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` fallback to treat residual validation rejection as non-fatal not-handled outcome after retry exhaustion.
+  - 12.20.2. Kept SDK/internal categories as hard failure signals to avoid masking backend/runtime errors.
+  - 12.20.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F215].
+  - 12.20.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
+- **12.21. Cross-Route Retry + Writeback Tolerance Alignment (5.3.2)**
+  - 12.21.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare helper retries so resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand` routes all apply validation-safe fallback to base compare options.
+  - 12.21.2. Updated temporary-register bridge writeback handling to degrade `store_operand_register` `Validation`/`NotFound` outcomes to not-handled while preserving hard SDK/internal failures.
+  - 12.21.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F216].
+  - 12.21.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2746,7 +2795,7 @@ Note:
   - 5.3.3. Broader non-helper mutation parity
   - 5.3.4. In-view advanced edit ergonomics
 
-- **5.4. Immediate Execution Queue (Post-5.4.11)**
+- **5.4. Immediate Execution Queue (Post-5.4.14)**
   - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
   - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + return-typing/location + cross-route/global-route hardening and validation-safe retry coverage (richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).

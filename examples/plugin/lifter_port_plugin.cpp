@@ -486,6 +486,15 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                         false,
                         helper_options);
                 }
+                if (!micro_status
+                    && micro_status.error().category == ida::ErrorCategory::Validation) {
+                    micro_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                        helper,
+                        compare_args,
+                        *global_destination,
+                        false,
+                        compare_call_options(mnemonic_lower));
+                }
                 if (micro_status) {
                     return true;
                 }
@@ -524,6 +533,16 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                                 register_destination,
                                 false,
                                 helper_options);
+                    }
+                    if (!register_micro_status
+                        && register_micro_status.error().category == ida::ErrorCategory::Validation) {
+                        register_micro_status =
+                            context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+                                helper,
+                                compare_args,
+                                register_destination,
+                                false,
+                                compare_call_options(mnemonic_lower));
                     }
                     if (register_micro_status) {
                         return true;
@@ -571,6 +590,17 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                             false,
                             helper_options);
                 }
+                if (!temporary_helper_status
+                    && temporary_helper_status.error().category == ida::ErrorCategory::Validation) {
+                    temporary_helper_status =
+                        context.emit_helper_call_with_arguments_to_register_and_options(
+                            helper,
+                            compare_args,
+                            *temporary_destination,
+                            destination_width,
+                            false,
+                            compare_call_options(mnemonic_lower));
+                }
 
                 if (temporary_helper_status) {
                     auto store_status = context.store_operand_register(
@@ -584,7 +614,10 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                         || store_status.error().category == ida::ErrorCategory::Internal) {
                         return false;
                     }
-                    return std::unexpected(store_status.error());
+                    if (store_status.error().category != ida::ErrorCategory::Validation
+                        && store_status.error().category != ida::ErrorCategory::NotFound) {
+                        return std::unexpected(store_status.error());
+                    }
                 }
 
                 if (temporary_helper_status.error().category == ida::ErrorCategory::SdkFailure
@@ -600,9 +633,20 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                 destination_width,
                 false,
                 helper_options);
+            if (!helper_status
+                && helper_status.error().category == ida::ErrorCategory::Validation) {
+                helper_status = context.emit_helper_call_with_arguments_to_operand_and_options(
+                    helper,
+                    compare_args,
+                    0,
+                    destination_width,
+                    false,
+                    compare_call_options(mnemonic_lower));
+            }
             if (!helper_status) {
                 if (helper_status.error().category == ida::ErrorCategory::SdkFailure
-                    || helper_status.error().category == ida::ErrorCategory::Internal) {
+                    || helper_status.error().category == ida::ErrorCategory::Internal
+                    || helper_status.error().category == ida::ErrorCategory::Validation) {
                     return false;
                 }
                 return std::unexpected(helper_status.error());
