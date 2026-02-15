@@ -71,6 +71,7 @@ int infer_operand_byte_width(const ida::instruction::Instruction& instruction,
                              std::size_t operand_index,
                              int fallback);
 ida::decompiler::MicrocodeCallOptions vmx_call_options();
+ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower);
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
                                                   bool unsigned_integer);
@@ -384,6 +385,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     auto append_argument = [&](std::vector<ida::decompiler::MicrocodeValue>& args,
                                std::size_t index,
                                int fallback_width) -> bool {
+        const std::string argument_name = "operand" + std::to_string(index);
         auto operand = instruction.operand(index);
         if (!operand) {
             return false;
@@ -401,6 +403,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
             value.byte_width = immediate_width;
             value.unsigned_integer = true;
+            value.argument_name = argument_name;
             args.push_back(value);
             return true;
         }
@@ -410,7 +413,9 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             const int argument_width = infer_operand_byte_width(instruction,
                                                                 index,
                                                                 fallback_width);
-            args.push_back(register_argument(*register_value, argument_width, false));
+            auto value = register_argument(*register_value, argument_width, false);
+            value.argument_name = argument_name;
+            args.push_back(value);
             return true;
         }
 
@@ -419,7 +424,9 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             if (!address_register) {
                 return false;
             }
-            args.push_back(pointer_argument(*address_register));
+            auto value = pointer_argument(*address_register);
+            value.argument_name = argument_name;
+            args.push_back(value);
             return true;
         }
 
@@ -440,6 +447,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
 
             const std::string helper = "__" + std::string(mnemonic_lower);
+            const auto helper_options = compare_call_options(mnemonic_lower);
 
             if (auto global_destination = global_destination_operand(instruction,
                                                                      0,
@@ -450,7 +458,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                     compare_args,
                     *global_destination,
                     false,
-                    vmx_call_options());
+                    helper_options);
                 if (micro_status) {
                     return true;
                 }
@@ -466,7 +474,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                 0,
                 destination_width,
                 false,
-                vmx_call_options());
+                helper_options);
             if (!helper_status) {
                 if (helper_status.error().category == ida::ErrorCategory::SdkFailure
                     || helper_status.error().category == ida::ErrorCategory::Internal) {
@@ -570,6 +578,20 @@ ida::decompiler::MicrocodeCallOptions vmx_call_options() {
     options.mark_final = true;
     options.mark_propagated = true;
     options.mark_spoiled_lists_optimized = true;
+    return options;
+}
+
+ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower) {
+    auto options = vmx_call_options();
+    if (mnemonic_lower.starts_with("vcmp")) {
+        if (mnemonic_lower.find("pd") != std::string_view::npos
+            || mnemonic_lower.find("sd") != std::string_view::npos) {
+            options.function_role = ida::decompiler::MicrocodeFunctionRole::SseCompare8;
+        } else if (mnemonic_lower.find("ps") != std::string_view::npos
+                   || mnemonic_lower.find("ss") != std::string_view::npos) {
+            options.function_role = ida::decompiler::MicrocodeFunctionRole::SseCompare4;
+        }
+    }
     return options;
 }
 
@@ -718,7 +740,9 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
         if (!address_reg) return std::unexpected(address_reg.error());
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(pointer_argument(*address_reg));
+        auto address_argument = pointer_argument(*address_reg);
+        address_argument.argument_name = "descriptor";
+        args.push_back(address_argument);
 
         std::string helper = "__" + std::string(mnemonic_lower);
         auto st = context.emit_helper_call_with_arguments_and_options(helper,
@@ -740,7 +764,9 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
             if (!destination_reg) return std::unexpected(destination_reg.error());
 
             std::vector<ida::decompiler::MicrocodeValue> args;
-            args.push_back(register_argument(*encoding_reg, integer_width, true));
+            auto encoding_argument = register_argument(*encoding_reg, integer_width, true);
+            encoding_argument.argument_name = "encoding";
+            args.push_back(encoding_argument);
 
             auto st = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                 "__vmread",
@@ -754,8 +780,12 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
             if (!destination_address_reg) return std::unexpected(destination_address_reg.error());
 
             std::vector<ida::decompiler::MicrocodeValue> args;
-            args.push_back(pointer_argument(*destination_address_reg));
-            args.push_back(register_argument(*encoding_reg, integer_width, true));
+            auto destination_argument = pointer_argument(*destination_address_reg);
+            destination_argument.argument_name = "destination";
+            args.push_back(destination_argument);
+            auto encoding_argument = register_argument(*encoding_reg, integer_width, true);
+            encoding_argument.argument_name = "encoding";
+            args.push_back(encoding_argument);
 
             auto st = context.emit_helper_call_with_arguments_and_options(
                 "__vmread",
@@ -773,8 +803,12 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
         if (!source_reg) return std::unexpected(source_reg.error());
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*encoding_reg, integer_width, true));
-        args.push_back(register_argument(*source_reg, integer_width, true));
+        auto encoding_argument = register_argument(*encoding_reg, integer_width, true);
+        encoding_argument.argument_name = "encoding";
+        args.push_back(encoding_argument);
+        auto source_argument = register_argument(*source_reg, integer_width, true);
+        source_argument.argument_name = "value";
+        args.push_back(source_argument);
 
         auto st = context.emit_helper_call_with_arguments_and_options(
             "__vmwrite",
@@ -791,8 +825,12 @@ ida::Result<bool> try_lift_vmx_instruction(ida::decompiler::MicrocodeContext& co
         if (!descriptor_address_reg) return std::unexpected(descriptor_address_reg.error());
 
         std::vector<ida::decompiler::MicrocodeValue> args;
-        args.push_back(register_argument(*type_reg, integer_width, true));
-        args.push_back(pointer_argument(*descriptor_address_reg));
+        auto type_argument = register_argument(*type_reg, integer_width, true);
+        type_argument.argument_name = "type";
+        args.push_back(type_argument);
+        auto descriptor_argument = pointer_argument(*descriptor_address_reg);
+        descriptor_argument.argument_name = "descriptor";
+        args.push_back(descriptor_argument);
 
         const char* helper = mnemonic_lower == "invept" ? "__invept" : "__invvpid";
         auto st = context.emit_helper_call_with_arguments_and_options(
