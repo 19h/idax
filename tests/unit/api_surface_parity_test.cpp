@@ -1143,6 +1143,7 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
     (void)ida::decompiler::MicrocodeOperandKind::Empty;
     (void)ida::decompiler::MicrocodeOperandKind::Register;
+    (void)ida::decompiler::MicrocodeOperandKind::LocalVariable;
     (void)ida::decompiler::MicrocodeOperandKind::RegisterPair;
     (void)ida::decompiler::MicrocodeOperandKind::GlobalAddress;
     (void)ida::decompiler::MicrocodeOperandKind::StackVariable;
@@ -1161,6 +1162,8 @@ void check_decompiler_surface() {
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
+    (void)typed_operand.local_variable_index;
+    (void)typed_operand.local_variable_offset;
     (void)typed_operand.second_register_id;
     (void)typed_operand.global_address;
     (void)typed_operand.stack_offset;

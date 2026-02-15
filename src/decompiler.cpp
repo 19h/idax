@@ -330,6 +330,24 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
                             operand.byte_width);
             break;
 
+        case MicrocodeOperandKind::LocalVariable:
+            if (mba == nullptr) {
+                return std::unexpected(Error::internal(
+                    "Local-variable operand requires microcode context",
+                    std::string(role)));
+            }
+            if (operand.local_variable_index < 0) {
+                return std::unexpected(Error::validation(
+                    "Local-variable operand index cannot be negative",
+                    std::string(role)));
+            }
+            result._make_lvar(mba,
+                              operand.local_variable_index,
+                              static_cast<sval_t>(operand.local_variable_offset));
+            if (operand.byte_width > 0)
+                result.size = operand.byte_width;
+            break;
+
         case MicrocodeOperandKind::RegisterPair:
             if (operand.register_id < 0 || operand.second_register_id < 0) {
                 return std::unexpected(Error::validation(

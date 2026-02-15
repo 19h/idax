@@ -287,6 +287,10 @@ be executed in small, testable API slices.
   emission (`MicrocodeOperandKind::NestedInstruction` +
   `MicrocodeOperand::nested_instruction`) with recursive validation and depth
   limiting.
+- Added typed local-variable operand support for generic instruction emission
+  (`MicrocodeOperandKind::LocalVariable` +
+  `MicrocodeOperand::{local_variable_index, local_variable_offset}`) mapped to
+  SDK local-variable mop construction with validation.
 - Expanded vector helper-call typing with declaration-driven element types,
   enabling richer non-scalar/UDT-style element modeling when concrete widths are
   validated.

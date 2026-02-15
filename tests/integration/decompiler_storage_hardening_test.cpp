@@ -1119,6 +1119,20 @@ public:
             ++validation_hits;
         }
 
+        ida::decompiler::MicrocodeInstruction bad_local_variable_instruction;
+        bad_local_variable_instruction.opcode = ida::decompiler::MicrocodeOpcode::Move;
+        bad_local_variable_instruction.left.kind = ida::decompiler::MicrocodeOperandKind::LocalVariable;
+        bad_local_variable_instruction.left.local_variable_index = -1;
+        bad_local_variable_instruction.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+        bad_local_variable_instruction.destination.register_id = 0;
+        bad_local_variable_instruction.destination.byte_width = 4;
+
+        auto bad_local_variable_emit = context.emit_instruction(bad_local_variable_instruction);
+        if (!bad_local_variable_emit
+            && bad_local_variable_emit.error().category == ida::ErrorCategory::Validation) {
+            ++validation_hits;
+        }
+
         ida::decompiler::MicrocodeInstruction bad_nested_instruction_emit;
         bad_nested_instruction_emit.opcode = ida::decompiler::MicrocodeOpcode::Move;
         bad_nested_instruction_emit.left.kind = ida::decompiler::MicrocodeOperandKind::NestedInstruction;

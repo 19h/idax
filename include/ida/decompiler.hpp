@@ -129,6 +129,7 @@ struct MicrocodeInstruction;
 enum class MicrocodeOperandKind : int {
     Empty,
     Register,
+    LocalVariable,
     RegisterPair,
     GlobalAddress,
     StackVariable,
@@ -143,6 +144,8 @@ enum class MicrocodeOperandKind : int {
 struct MicrocodeOperand {
     MicrocodeOperandKind kind{MicrocodeOperandKind::Empty};
     int register_id{0};
+    int local_variable_index{0};
+    std::int64_t local_variable_offset{0};
     int second_register_id{0};
     Address global_address{BadAddress};
     std::int64_t stack_offset{0};
