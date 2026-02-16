@@ -394,12 +394,17 @@ be executed in small, testable API slices.
   `to_operand` route checks). For unresolved compare destinations, helper-return
   routing now also attempts temporary-register helper emission +
   `store_operand_register` writeback before direct `to_operand` fallback;
-  resolved-memory micro routes, register micro routes, temporary-register bridge
-  routes, and degraded `to_operand` routes now all apply validation-safe retry
-  with base compare options when hint-rich options are rejected. Temporary
-  writeback now degrades `store_operand_register` `Validation`/`NotFound`
-  outcomes to non-fatal not-handled behavior while preserving hard
-  SDK/internal failures,
+  resolved-memory micro routes, register micro routes, direct register-
+  destination routes, temporary-register bridge routes, and degraded
+  `to_operand` routes now all apply validation-safe retry with base compare
+  options when hint-rich options are rejected. Temporary writeback now degrades
+  `store_operand_register` `Validation`/`NotFound` outcomes to non-fatal
+  not-handled behavior while preserving hard SDK/internal failures, and the
+  temporary-register bridge now guards error-category reads behind
+  `!temporary_helper_status` before accessing `.error()` after degradable
+  writeback outcomes. Residual `NotFound` outcomes on degraded `to_operand`
+  and direct register-destination compare routes now also degrade to
+  not-handled after retries,
   and operand-index writeback fallback is now
   constrained to unresolved destination shapes only (mask-register destination
   or memory destination without resolvable target address).

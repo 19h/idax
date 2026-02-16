@@ -221,4 +221,10 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 216. Compare helper stability improves when all destination routes (resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand`) retry with base compare options on validation rejection, and temporary-register writeback treats `Validation`/`NotFound` store failures as degradable while preserving hard SDK/internal failure signaling.
 
+217. Direct register-destination compare helper routes can use the same validation-safe retry ladder (location+declaration hints -> declaration-only -> base compare options), and residual validation rejection should degrade to not-handled while preserving hard SDK/internal failures.
+
+218. In temporary-register compare fallback paths, once `store_operand_register` `Validation`/`NotFound` is intentionally degraded, any subsequent category checks must guard on `!status` before reading `.error()`; reading `.error()` on a successful `std::expected` is invalid and can destabilize fallback flow.
+
+219. Compare helper fallback handling is more backend-robust when residual `NotFound` outcomes are treated like other degradable non-hard categories on degraded/direct-destination routes (return not-handled), while preserving only `SdkFailure`/`Internal` as hard failure signals.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
