@@ -271,4 +271,18 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 241. When `libidax.a` is linked into a plugin `.dylib`, the linker resolves symbols at the object-file granularity. If any function from a `.cpp.o` file is referenced, ALL symbols in that object file must be resolvable. `database.cpp` contained both plugin-safe query APIs (`input_file_path`, `image_base`, `input_md5`, etc.) and idalib-only lifecycle APIs (`init`, `open`, `close`). The idalib-only functions reference `init_library`, `open_database`, `close_database`, `enable_console_messages` which are NOT in `libida.dylib` — they're only in `libidalib.dylib`. Splitting into `database.cpp` (queries) + `database_lifecycle.cpp` (lifecycle) isolates the idalib-only symbols so plugins that only use query APIs don't pull them in. `save_database` IS available in `libida.dylib`, so `save()` stays in the plugin-safe `database.cpp`.
 
+242. DrawIDA port audit: idax plugin export is fixed to `PLUGIN_MULTI` through `IDAX_PLUGIN` and does not expose per-plugin flag customization (`PLUGIN_KEEP`/`PLUGIN_UNL`/etc.). This is a low-severity ergonomic surface gap for ports that want explicit raw-SDK flag control, but it is non-blocking for DrawIDA.
+
+243. DrawIDA port audit: `ida::ui::with_widget_host()` intentionally returns opaque `void*` host handles. Qt-based ports must manually cast to `QWidget*` in plugin code to mount custom controls. Capability is present, but this is a recurring low-severity ergonomics gap for Qt-heavy ports.
+
+244. Documentation drift risk: adding a new real-world port artifact (like `examples/plugin/abyss_port_plugin.cpp`) can leave user-facing docs stale unless the update explicitly touches all index surfaces together (`README.md` parity/doc tables, `docs/api_reference.md`, `docs/namespace_topology.md`, `docs/sdk_domain_coverage_matrix.md`, quickstart/example guides, and a dedicated port audit doc). Treat this as a required closeout checklist item for future ports.
+
+245. Plugin export flag ergonomics closure: `ida::plugin::ExportFlags` + `IDAX_PLUGIN_WITH_FLAGS(...)` adds per-plugin export control (`modifies_database`, `requests_redraw`, `segment_scoped`, `unload_after_run`, `hidden`, `debugger_only`, `processor_specific`, `load_at_startup`, `extra_raw_flags`) while preserving idax's mandatory `PLUGIN_MULTI` bridge model.
+
+246. Qt host ergonomics closure: `ida::ui::widget_host_as<T>()` + `ida::ui::with_widget_host_as<T>()` provide typed host access wrappers over `widget_host`/`with_widget_host`, eliminating repetitive `void*` casts in Qt plugin ports.
+
+247. Dedicated Qt addon wiring can be made non-fragile by using `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`: when Qt is unavailable the target is skipped with explicit `build_qt` guidance, and when Qt is present the plugin builds as a normal addon target.
+
+248. Qt header portability nuance (Qt6/Homebrew): `qkeyevent.h` is not present in framework headers; `QKeyEvent`/`QMouseEvent` are provided via `qevent.h`. Using `qevent.h` avoids target-specific include breakage in Qt plugin sources.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

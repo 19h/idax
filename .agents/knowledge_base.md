@@ -704,6 +704,7 @@ Note:
 - 17.1. Documentation
   - 17.1.1. Migration docs are as critical as API design for adoption [F10]
   - 17.1.2. Interface-level API sketches must be present (not just summaries) to avoid implementation ambiguity [F11]
+  - 17.1.3. Real-world port additions must update all documentation index surfaces in one pass (README parity/doc tables, API reference, topology/coverage matrices, quickstart/example links, dedicated audit doc) to prevent drift [F244]
 
 ---
 
@@ -739,5 +740,12 @@ Note:
 - 22.3. idalib-only symbols (`init_library`, `open_database`, `close_database`, `enable_console_messages`) are NOT in `libida.dylib`; `save_database` IS [F241]
 - 22.4. `database.cpp` was split into `database.cpp` (plugin-safe queries + save) and `database_lifecycle.cpp` (idalib-only init/open/close) to prevent link failures in plugins that use `ida::database` query APIs [F241]
 - 22.5. CMake `GLOB_RECURSE` auto-discovers new `.cpp` files in `src/`, so TU splits need no CMakeLists.txt changes
+
+### 23. DrawIDA Port Findings (Phase 12)
+- 23.1. DrawIDA (`/Users/int/Downloads/plo/DrawIDA-main`) ports cleanly to existing idax plugin/UI surfaces (`ida::plugin::Plugin`, `ida::ui::create_widget`, `ida::ui::show_widget`, `ida::ui::activate_widget`) with no open parity gaps for draw/text/erase/select + undo/redo/style/clear workflows
+- 23.2. Prior plugin-flag ergonomics gap [F242] is closed via `ida::plugin::ExportFlags` + `IDAX_PLUGIN_WITH_FLAGS(...)`; idax keeps `PLUGIN_MULTI` mandatory and layers optional SDK bits through structured flags + `extra_raw_flags` [F245]
+- 23.3. Prior host-cast ergonomics gap [F243] is closed via typed host helpers `ida::ui::widget_host_as<T>()` and `ida::ui::with_widget_host_as<T>()`, eliminating repetitive `void*` casts in Qt ports [F246]
+- 23.4. Dedicated DrawIDA addon target is wired using `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`, yielding skip-on-missing-Qt behavior with explicit `build_qt` guidance and normal addon build when Qt is available [F247]
+- 23.5. Qt6/Homebrew include nuance: use `qevent.h` for `QKeyEvent`/`QMouseEvent` portability (`qkeyevent.h` is not present in that header layout) [F248]
 
 ---

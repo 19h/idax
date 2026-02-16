@@ -8,6 +8,8 @@
 #include <kernwin.hpp>
 #include <hexrays.hpp>
 
+extern plugin_t PLUGIN;
+
 namespace ida::plugin {
 
 // ── Action handler adapter ──────────────────────────────────────────────
@@ -210,12 +212,15 @@ Status with_decompiler_view_host(const ActionContext& context,
 //
 // Static initialization ordering: `make_plugin_export()` is called during
 // static init of the user's TU. The `plugin_t PLUGIN` struct below uses
-// only string literals and function pointers, so it has no dependency on
-// dynamic init order. By the time IDA calls `idax_plugin_init_`, all
+// static buffers/function pointers and a flag word that is updated by
+// make_plugin_export(). By the time IDA calls `idax_plugin_init_`, all
 // static initializers have completed and `g_plugin_factory` is populated.
 
 // Global factory, set by IDAX_PLUGIN macro's static initializer.
 PluginFactory g_plugin_factory = nullptr;
+
+// Export flags, set by IDAX_PLUGIN_WITH_FLAGS static initializer.
+int g_plugin_flags = PLUGIN_MULTI;
 
 // Cached metadata (populated on first init call, used for display purposes).
 static char g_name_buf[256]    = "idax plugin";
@@ -246,6 +251,30 @@ private:
 };
 
 namespace {
+
+int compose_sdk_flags(const ExportFlags& flags) {
+    int sdk_flags = PLUGIN_MULTI;
+
+    if (flags.modifies_database)
+        sdk_flags |= PLUGIN_MOD;
+    if (flags.requests_redraw)
+        sdk_flags |= PLUGIN_DRAW;
+    if (flags.segment_scoped)
+        sdk_flags |= PLUGIN_SEG;
+    if (flags.unload_after_run)
+        sdk_flags |= PLUGIN_UNL;
+    if (flags.hidden)
+        sdk_flags |= PLUGIN_HIDE;
+    if (flags.debugger_only)
+        sdk_flags |= PLUGIN_DBG;
+    if (flags.processor_specific)
+        sdk_flags |= PLUGIN_PROC;
+    if (flags.load_at_startup)
+        sdk_flags |= PLUGIN_FIX;
+
+    sdk_flags |= flags.extra_raw_flags;
+    return sdk_flags;
+}
 
 plugmod_t* idaapi idax_plugin_init_() {
     if (!g_plugin_factory)
@@ -279,8 +308,13 @@ void* make_plugin_export(PluginFactory factory,
                          const char* /*name*/,
                          const char* /*comment*/,
                          const char* /*help*/,
-                         const char* /*hotkey*/) {
+                         const char* /*hotkey*/,
+                         ExportFlags flags) {
     g_plugin_factory = factory;
+
+    g_plugin_flags = compose_sdk_flags(flags);
+    ::PLUGIN.flags = g_plugin_flags;
+
     return &g_plugin_factory;
 }
 
@@ -294,7 +328,7 @@ void* make_plugin_export(PluginFactory factory,
 
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
-    PLUGIN_MULTI,
+    ida::plugin::g_plugin_flags,
     ida::plugin::idax_plugin_init_,
     nullptr, // term — handled by ~PlugmodAdapter
     nullptr, // run  — handled by PlugmodAdapter::run

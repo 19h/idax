@@ -959,4 +959,41 @@
   - 13.4.7. [F240] Plugin entry point macro requirement. [F241] Database TU split for plugin link isolation.
   - 13.4.8. **Evidence:** `cmake --build build` all targets clean (7 plugins + 3 loaders + 3 procmods + 16 tests); `ctest --test-dir build` 16/16 pass; `nm -gU` confirms `_PLUGIN` symbol exported from all plugin dylibs.
 
+### 14. Phase 12 — DrawIDA Port + API Gap Audit
+
+- **14.1. DrawIDA Port Implementation Complete**
+  - 14.1.1. Added `examples/plugin/drawida_port_plugin.cpp` as an idax-first C++ port of `/Users/int/Downloads/plo/DrawIDA-main` using `ida::plugin::Plugin` + `IDAX_PLUGIN` lifecycle.
+  - 14.1.2. Added `examples/plugin/drawida_port_widget.hpp` + `examples/plugin/drawida_port_widget.cpp` implementing the whiteboard canvas (draw/text/eraser/select, selection drag/delete, undo/redo stack, style/background controls, clear workflow).
+  - 14.1.3. Added DrawIDA artifacts to `examples/CMakeLists.txt` source manifest and documented the example in `examples/README.md`.
+
+- **14.2. Port Gap Audit + Documentation Update**
+  - 14.2.1. Added `docs/port_gap_audit_drawida.md` with source-to-idax API mapping and migration gap classification.
+  - 14.2.2. Updated `README.md` parity-note and documentation tables to include the DrawIDA gap audit.
+  - 14.2.3. Updated `docs/sdk_domain_coverage_matrix.md` port-audit follow-up notes with DrawIDA coverage outcome.
+  - 14.2.4. Findings [F242] and [F243] recorded for non-blocking ergonomic gaps surfaced by the DrawIDA port.
+
+- **14.3. Validation Evidence**
+  - 14.3.1. `cmake --build build --target idax_examples` passes (CMake regenerate + source-manifest target complete).
+  - 14.3.2. `cmake --build build --target idax_api_surface_check` passes.
+
+- **14.4. Abyss Documentation Synchronization**
+  - 14.4.1. Added `docs/port_gap_audit_abyss.md` with covered migration flows, source-to-idax mapping, and parity-gap classification for `examples/plugin/abyss_port_plugin.cpp`.
+  - 14.4.2. Updated `README.md` parity-note/doc-index tables to include the abyss audit and documented `ida::lines` in the public domain matrix.
+  - 14.4.3. Updated `docs/api_reference.md`, `docs/namespace_topology.md`, and `docs/sdk_domain_coverage_matrix.md` to include `ida::lines` and abyss-port evidence.
+  - 14.4.4. Updated `docs/quickstart/plugin.md`, `docs/docs_completeness_checklist.md`, and `examples/README.md` with direct abyss example references and usage context.
+  - 14.4.5. Recorded process finding [F244] for documentation-index drift risk when adding new real-world port artifacts.
+  - 14.4.6. Evidence: repository docs sweep confirms new abyss references and links resolve across README/docs/examples surfaces.
+
+- **14.5. DrawIDA Follow-Up (User-Selected 1/2/3)**
+  - 14.5.1. Added per-plugin export flag control in `ida::plugin`: new `ExportFlags` struct + `IDAX_PLUGIN_WITH_FLAGS(...)` macro; `IDAX_PLUGIN(...)` now maps to the new macro with default flags.
+  - 14.5.2. Updated plugin bridge in `src/plugin.cpp` to compose SDK flags from `ExportFlags`, keep `PLUGIN_MULTI` mandatory, and apply selected bits to exported `PLUGIN.flags` at static-init registration time.
+  - 14.5.3. Added typed widget-host convenience helpers in `ida::ui`: `widget_host_as<T>()` and `with_widget_host_as<T>()`.
+  - 14.5.4. Updated DrawIDA + qtform example ports to use typed widget-host helpers (no manual `void*` cast in plugin glue).
+  - 14.5.5. Added dedicated DrawIDA addon target wiring in `examples/CMakeLists.txt` via `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`.
+  - 14.5.6. Updated `tests/unit/api_surface_parity_test.cpp` compile-only checks for `ida::plugin::ExportFlags` and typed host helper templates.
+  - 14.5.7. Updated `docs/port_gap_audit_drawida.md` to mark prior ergonomic gaps as closed; no open DrawIDA parity gaps remain.
+  - 14.5.8. Recorded findings [F245], [F246], [F247].
+  - 14.5.9. Recorded Qt include portability finding [F248] and updated DrawIDA widget source to use `qevent.h` for `QKeyEvent`/`QMouseEvent` declarations.
+  - 14.5.10. Evidence: `cmake --build build --target idax_drawida_port_plugin` passes; `cmake --build build --target idax_api_surface_check` passes; `cmake --build build --target idax_example_plugin` passes; `cmake --build build --target idax_examples` passes.
+
 ---

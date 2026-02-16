@@ -86,6 +86,32 @@ renderer widget in a dock panel and parse IDA form markup into live controls.
 The original "Test in ask_form" flow now uses markup-only
 `ida::ui::ask_form(std::string_view)`.
 
+### `plugin/drawida_port_plugin.cpp` + `plugin/drawida_port_widget.cpp` — DrawIDA Port
+
+Port of `/Users/int/Downloads/plo/DrawIDA-main` to idax plugin and UI surfaces.
+It recreates DrawIDA's whiteboard workflow (draw/text/eraser/select,
+undo/redo, style dialog, clear canvas) using `ida::plugin::Plugin` and
+`ida::ui::create_widget()` + `ida::ui::with_widget_host()` to host a Qt canvas
+inside a dockable IDA panel.
+
+### `plugin/abyss_port_plugin.cpp` — abyss Port
+
+Port of the Python abyss Hex-Rays post-processing framework (Dennis Elser,
+"patois") to pure idax APIs. The port includes all 8 original filters:
+`token_colorizer`, `signed_ops`, `hierarchy`, `lvars_alias`, `lvars_info`,
+`item_sync`, `item_ctype`, and `item_index`.
+
+The plugin demonstrates decompiler+UI event fanout (`on_func_printed`,
+`on_maturity_changed`, `on_curpos_changed`, `on_create_hint`,
+`on_refresh_pseudocode`, `on_popup_ready`, `on_rendering_info`,
+`on_screen_ea_changed`), pseudocode tagged-line rewrites (`ida::lines`),
+dynamic popup actions (`ida::ui::attach_dynamic_action`), and live
+disassembly-to-pseudocode highlight overlays.
+
+Experimental filters (`item_ctype`, `item_index`, `item_sync`, `lvars_alias`,
+`lvars_info`) start disabled by default and can be toggled from the pseudocode
+popup under the `abyss/` submenu.
+
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe
 
 Port probe of `/Users/int/dev/lifter` focused on plugin-shell workflows that
@@ -168,6 +194,13 @@ To build the idalib tool port example as an executable:
 ```bash
 cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_TOOLS=ON
 cmake --build build --target idax_idalib_dump_port idax_idalib_lumina_port idax_ida2py_port
+```
+
+To build the dedicated DrawIDA addon target (Qt plugin):
+
+```bash
+cmake --build build --target build_qt
+cmake --build build --target idax_drawida_port_plugin
 ```
 
 When a real IDA runtime is available (`IDADIR` or common macOS install path),

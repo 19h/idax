@@ -34,6 +34,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::debugger       Process/thread control, backend routing, request queue, events [2 enums, 5 structs, 1 class, ~42 free fns]
 |-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [15 enums, 13 structs, 8 classes, ~11 free fns]
+ |-- ida::lines          Tagged text, color spans, address-tag helpers     [1 enum, ~6 free fns, constants]
 |-- ida::ui             Messages, dialogs, widgets, custom viewers       [1 enum, 4 structs, 2 classes, ~30 free fns]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
  |
@@ -106,6 +107,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `BackendInfo`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
 | `ida::decompiler` | Decompilation | `DecompiledFunction` (pseudocode+microcode), `DecompileFailure`, `MaturityEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
+| `ida::lines` | Tagged text/color utilities | `Color`, `kColorOn`, `kColorOff`, `kColorEsc`, `kColorInv`, `kColorAddr`, `kColorAddrSize` |
 | `ida::ui` | User interface | `Widget`, `Chooser`, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |
 | `ida::event` | IDB event routing | `Event`, `EventKind`, `ScopedSubscription` |
