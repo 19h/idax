@@ -621,6 +621,15 @@ Note:
   - 4.17.1. SDK file-type from two sources [F93]
     - 4.17.1.1. `get_file_type_name` vs `INF_FILE_FORMAT_NAME`/`get_loader_format_name`
     - 4.17.1.2. Expose both with explicit `NotFound` for missing loader-format
+- 4.18. Active Processor Query
+  - 4.18.1. SDK `PH.id` via `get_ph()` returns active processor module ID (`PLFM_*`) [F231]
+    - 4.18.1.1. `PLFM_386` = 0 (Intel x86/x64), not 15 (which is `PLFM_PPC`)
+    - 4.18.1.2. `inf_get_procname()` returns short name (e.g. "metapc", "ARM")
+    - 4.18.1.3. Both are `libida.dylib` symbols (not idalib-only)
+  - 4.18.2. Implementation in `address.cpp` to avoid idalib link contamination [F231]
+    - 4.18.2.1. `database.cpp` pulls idalib-only symbols (`init_library`, `open_database`)
+    - 4.18.2.2. Plugin link units referencing `processor_id()` would fail if in `database.cpp`
+    - 4.18.2.3. Declared in `database.hpp`, implemented in `address.cpp` (no idalib deps)
 
 ---
 
@@ -954,7 +963,11 @@ Note:
     - 8.15.3.1. Original: `inf_is_64bit()` + `op.dtype == dt_byte32` in `match()`
     - 8.15.3.2. Port: `function::at(address)->bitness() == 64` with segment fallback + `Operand::byte_width() == 32`
     - 8.15.3.3. Avoids Hex-Rays `INTERR 50920` for 256-bit kregs in 32-bit mode
-  - 8.15.4. Remaining non-ported: processor ID check (`PH.id != PLFM_386`) — irrelevant for x86/x64-only usage
+  - 8.15.4. Processor ID crash guard — CLOSED [F231]
+    - 8.15.4.1. Original: `PH.id != PLFM_386` in `isMicroAvx_avail()` / `isVMXLifter_avail()`
+    - 8.15.4.2. Port: `ida::database::processor_id() != 0` in `install_vmx_lifter_filter()`
+    - 8.15.4.3. Prevents IDA crash when interacting with AVX/VMX in non-x86 processor modes
+    - 8.15.4.4. All behavioral differences vs. original: CLOSED
 
 ---
 
@@ -2838,6 +2851,15 @@ Note:
   - 12.28.4. Registered separate inline/outline/debug actions with `register_action_with_menu()`, context-sensitive popup attachment preserved via `kActionIds` iteration.
   - 12.28.5. Updated gap audit doc, findings [F228][F229][F230].
   - 12.28.6. Evidence: build clean (`idax_lifter_port_plugin` + `idax_api_surface_check` + `idax_decompiler_storage_hardening_test`), 202/202 integration, 16/16 CTest.
+
+- **12.29. Processor ID Crash Guard Closure**
+  - 12.29.1. Added `ida::database::processor_id()` wrapping SDK `PH.id` (via `get_ph()`) and `ida::database::processor_name()` wrapping `inf_get_procname()` for querying the active processor module at runtime.
+  - 12.29.2. Implementation placed in `address.cpp` (not `database.cpp`) to avoid pulling idalib-only symbols (`init_library`, `open_database`, `close_database`) into plugin link units that reference the new APIs.
+  - 12.29.3. Updated `examples/plugin/lifter_port_plugin.cpp` to guard filter installation with `processor_id() != 0` (PLFM_386), matching the original's crash guard that prevents AVX/VMX interaction on non-x86 processor modes.
+  - 12.29.4. Updated compile-only API surface parity test with `processor_id` and `processor_name`.
+  - 12.29.5. Updated `docs/port_gap_audit_lifter.md` to record processor-ID guard as closed.
+  - 12.29.6. Finding [F231] recorded.
+  - 12.29.7. Evidence: build clean (`idax_lifter_port_plugin` + `idax_api_surface_check` + `idax_decompiler_storage_hardening_test`), 202/202 integration, 16/16 CTest.
 
 ---
 

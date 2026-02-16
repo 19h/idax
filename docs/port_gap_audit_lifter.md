@@ -32,6 +32,10 @@ to idax-first surfaces.
   `MMAT_LOCOPT` stages.
 - 32-bit YMM skip guard in `match()` using function/segment bitness to avoid
   Hex-Rays `INTERR 50920` on 256-bit temporaries in 32-bit mode.
+- Processor-ID crash guard in `install_vmx_lifter_filter()` using
+  `ida::database::processor_id()` to skip filter installation on non-x86
+  processors, preventing IDA crashes when interacting with AVX/VMX in
+  non-x86 processor modes.
 - VMX microcode lifting subset through idax filter APIs and typed helper-call
   emission (`vzeroupper`, `vmxon/vmxoff/vmcall/vmlaunch/vmresume/vmptrld/
   vmptrst/vmclear/vmread/vmwrite/invept/invvpid/vmfunc`).
@@ -375,6 +379,11 @@ All slices are **CLOSED**.
   memory stores, `to_operand` for terminal compare fallback) are genuinely
   irreducible.
 
+- Added processor-ID crash guard: `ida::database::processor_id()` wrapping SDK
+  `PH.id` and `ida::database::processor_name()` wrapping `inf_get_procname()`.
+  The lifter port now guards filter installation with a processor-ID check
+  (`kProcessorIdX86 = 0`, matching SDK `PLFM_386`), preventing AVX/VMX
+  microcode lifting on non-x86 processor modules where it would crash IDA.
 - Added SSE passthrough handling: instructions handled natively by IDA
   (`vcomiss`, `vcomisd`, `vucomiss`, `vucomisd`, `vpextrb/w/d/q`,
   `vcvttss2si`, `vcvttsd2si`, `vcvtsd2si`, `vcvtsi2ss`, `vcvtsi2sd`)
@@ -446,8 +455,12 @@ All slices are **CLOSED**.
 - Plugin-shell feature parity with the original is now comprehensive:
   separate mark-inline/mark-outline actions, debug printing toggle with
   maturity subscription, 32-bit YMM skip, SSE passthrough, K-register NOP,
-  AVX-512 opmask masking, and vector type declaration parity.
-- The only remaining behavioral difference vs. the original is the processor-ID
-  check (`PH.id != PLFM_386`) — idax has no direct `processor_id()` wrapper.
-  This is irrelevant for the lifter port which only operates on x86/x64
-  databases.
+  AVX-512 opmask masking, vector type declaration parity, and processor-ID
+  crash guard.
+- Added `ida::database::processor_id()` wrapping SDK `PH.id` and
+  `ida::database::processor_name()` wrapping `inf_get_procname()`. The lifter
+  port now guards filter installation with `processor_id() != 0` (PLFM_386),
+  matching the original's crash guard that prevents AVX/VMX interaction on
+  non-x86 processor modes.
+- No remaining behavioral differences vs. the original lifter. All shell-level
+  and filter-level parity items are closed.

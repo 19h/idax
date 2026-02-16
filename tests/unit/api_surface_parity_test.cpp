@@ -531,6 +531,8 @@ void check_database_surface() {
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
     (void)&ida::database::image_base;
+    (void)&ida::database::processor_id;
+    (void)&ida::database::processor_name;
 }
 
 // ─── ida::lumina ────────────────────────────────────────────────────────

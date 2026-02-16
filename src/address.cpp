@@ -280,3 +280,24 @@ PredicateRange unknown_bytes(Address start, Address end) {
 }
 
 } // namespace ida::address
+
+// ── ida::database processor queries ─────────────────────────────────────
+// Implemented here (not in database.cpp) to avoid pulling idalib-only
+// symbols into plugin link units that reference processor_id().
+
+#include <ida/database.hpp>
+
+namespace ida::database {
+
+Result<std::int32_t> processor_id() {
+    return static_cast<std::int32_t>(PH.id);
+}
+
+Result<std::string> processor_name() {
+    qstring name = inf_get_procname();
+    if (name.empty())
+        return std::unexpected(Error::not_found("No processor name available"));
+    return ida::detail::to_string(name);
+}
+
+} // namespace ida::database

@@ -249,4 +249,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 230. The 32-bit YMM skip guard has been ported from the original lifter's `match()`. The original checks `inf_is_64bit()` and skips YMM (256-bit) operands to avoid Hex-Rays `INTERR 50920` ("Temporary registers cannot cross block boundaries"). The idax port uses `ida::function::at(address)->bitness() == 64` (with `ida::segment::at()` fallback) as there is no direct `inf_is_64bit()` wrapper, and checks `Operand::byte_width() == 32` for YMM detection instead of the original's `op.dtype == dt_byte32`.
 
+231. The SDK global `PH.id` (processor_t::id via `get_ph()`) returns the active processor module ID (PLFM_* constant). `PLFM_386` is `0` (Intel x86/x64), not 15 as might be assumed. The original lifter uses `PH.id != PLFM_386` in both AVX and VMX component availability checks as a crash guard — IDA crashes when interacting with AVX/VMX in non-x86 processor modes. Added `ida::database::processor_id()` wrapping `PH.id` and `ida::database::processor_name()` wrapping `inf_get_procname()` to idax. Implementation lives in `address.cpp` (not `database.cpp`) to avoid pulling idalib-only symbols (`init_library`/`open_database`/`close_database`) into plugin link units.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
