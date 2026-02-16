@@ -1,0 +1,51 @@
+{
+  "name": "idax",
+  "version": "0.1.0",
+  "description": "Complete Node.js bindings for the idax IDA SDK wrapper library",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "install": "cmake-js compile",
+    "build": "cmake-js build",
+    "rebuild": "cmake-js rebuild",
+    "clean": "cmake-js clean",
+    "configure": "cmake-js configure"
+  },
+  "files": [
+    "lib/",
+    "src/",
+    "CMakeLists.txt",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "nan": "^2.22.2",
+    "cmake-js": "^7.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  },
+  "cmake-js": {
+    "CMakeLists.txt": "CMakeLists.txt",
+    "runtime": "node",
+    "runtimeVersion": "25.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/idax"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ida",
+    "ida-pro",
+    "reverse-engineering",
+    "disassembler",
+    "binary-analysis",
+    "idax",
+    "native",
+    "addon"
+  ]
+}
