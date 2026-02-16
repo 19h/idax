@@ -39,14 +39,12 @@ constexpr std::string_view kPluginMenuPath = "Edit/Plugins/";
 constexpr const char* kActionDumpSnapshot = "idax:lifter_port:dump_snapshot";
 constexpr const char* kActionMarkInline = "idax:lifter_port:mark_inline";
 constexpr const char* kActionMarkOutline = "idax:lifter_port:mark_outline";
-constexpr const char* kActionShowGaps = "idax:lifter_port:show_gaps";
 constexpr const char* kActionToggleDebug = "idax:lifter_port:toggle_debug";
 
-constexpr std::array<const char*, 5> kActionIds{
+constexpr std::array<const char*, 4> kActionIds{
     kActionDumpSnapshot,
     kActionMarkInline,
     kActionMarkOutline,
-    kActionShowGaps,
     kActionToggleDebug,
 };
 
@@ -2336,21 +2334,6 @@ ida::Result<std::size_t> count_call_expressions(const ida::decompiler::Decompile
     return call_count;
 }
 
-ida::Status show_gap_report() {
-    ida::ui::message(
-        "[lifter-port] Confirmed parity gaps for full /Users/int/dev/lifter port:\n"
-        "  1) VMX + AVX scalar/packed microcode lifting subsets are now active via idax filter hooks.\n"
-        "  2) Structured operand metadata now drives width/class decisions (byte width + register class), and helper-return\n"
-        "     destinations now prefer typed micro-operands (register/resolved-memory) with deterministic operand-writeback fallback.\n"
-        "  3) Rich IR mutation depth is still additive follow-up (deeper vector/UDT semantics + advanced callinfo/tmop).\n"
-        "  4) Typed decompiler-view helpers now bridge host handles to edit/read flows; deeper in-view mutation ergonomics\n"
-        "     remain additive follow-up.\n"
-        "[lifter-port] Recently closed: VMX subset, AVX scalar/packed math+conversion\n"
-        "               + helper-fallback bitwise/permute/blend/shift/compare/misc subset,\n"
-        "               FUNC_OUTLINE + cache-dirty helpers, and typed decompiler-view wrappers.\n");
-    return ida::ok();
-}
-
 ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) {
     if (auto decompiler_status = require_decompiler(); !decompiler_status) {
         return decompiler_status;
@@ -2761,18 +2744,6 @@ ida::Status register_actions() {
     debug_action.enabled = []() { return true; };
     debug_action.enabled_with_context = [](const ida::plugin::ActionContext&) { return true; };
 
-    ida::plugin::Action gaps_action;
-    gaps_action.id = kActionShowGaps;
-    gaps_action.label = "Lifter Port: Show Gap Report";
-    gaps_action.hotkey = "Ctrl-Alt-Shift-G";
-    gaps_action.tooltip = "Print remaining parity gaps for full lifter migration";
-    gaps_action.handler = []() { return show_gap_report(); };
-    gaps_action.handler_with_context = [](const ida::plugin::ActionContext&) {
-        return show_gap_report();
-    };
-    gaps_action.enabled = []() { return true; };
-    gaps_action.enabled_with_context = [](const ida::plugin::ActionContext&) { return true; };
-
     if (auto status = register_action_with_menu(dump_action); !status) {
         unregister_actions();
         return status;
@@ -2789,11 +2760,6 @@ ida::Status register_actions() {
         unregister_actions();
         return status;
     }
-    if (auto status = register_action_with_menu(gaps_action); !status) {
-        unregister_actions();
-        return status;
-    }
-
     return ida::ok();
 }
 
@@ -2919,9 +2885,7 @@ public:
             ida::ui::message("[lifter-port] VMX + AVX scalar/packed microcode lifter filter enabled (subset).\n");
         }
 
-        ida::ui::message(
-            "[lifter-port] initialized. Use menu action 'Lifter Port: Show Gap Report' "
-            "for current parity status.\n");
+        ida::ui::message("[lifter-port] initialized.\n");
         return true;
     }
 
@@ -2931,7 +2895,7 @@ public:
     }
 
     ida::Status run(std::size_t) override {
-        return show_gap_report();
+        return ida::ok();
     }
 };
 
