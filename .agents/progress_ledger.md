@@ -1088,4 +1088,24 @@
   - 16.8.4. Evidence: `cmake --build build --target idax_api_surface_check idax_smoke_test`, `ctest --test-dir build -R "^idax_unit_test$" --output-on-failure`, and `cmake --build build-tools --target idax_idalib_dump_port` all pass.
   - 16.8.5. Recorded finding [F259].
 
+- **16.9. idapcode Linear/P-Code View Synchronization (User Follow-Up)**
+  - 16.9.1. Enhanced `examples/plugin/idapcode_port_plugin.cpp` with bidirectional view synchronization state and event wiring.
+  - 16.9.2. Added viewer -> linear sync path via `ui::on_cursor_changed` + `ui::custom_viewer_current_line` + `ui::jump_to`.
+  - 16.9.3. Added linear -> viewer sync path via `ui::on_screen_ea_changed` + address-to-line index mapping + `ui::custom_viewer_jump_to_line`.
+  - 16.9.4. Added view activation/lifecycle tracking (`on_view_activated`, `on_view_deactivated`, `on_view_closed`) and reentrancy guard to prevent event-loop ping-pong.
+  - 16.9.5. Updated line rendering so every p-code output line carries a canonical address prefix, enabling robust click-address parsing on instruction and non-instruction lines.
+  - 16.9.6. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes with sync changes integrated.
+  - 16.9.7. Recorded findings [F261], [F262] and decision [D-IDAPCODE-VIEW-SYNC].
+
+- **16.10. idapcode Sync Ergonomics Follow-Up (Cross-Function + Scroll + Hotkey)**
+  - 16.10.1. Reworked idapcode viewer to a stable single title (`P-Code (idax port)`) so follow-up sync updates reuse the same panel instead of opening one panel per function.
+  - 16.10.2. Added cross-function linear->pcode follow: when `screen_ea` moves outside current function range, the plugin resolves `function::at(screen_ea)` and rebuilds the existing viewer in-place for that function.
+  - 16.10.3. Added function-range guards to address->line mapping so unrelated addresses no longer collapse to the last known line of the previous function.
+  - 16.10.4. Added scroll-follow polling timer (`register_timer`) to sync pcode-view scrolling behavior that does not always emit explicit cursor-change events.
+  - 16.10.5. Added explicit sync shutdown path in plugin `term()` to unregister timer/subscriptions safely.
+  - 16.10.6. Changed plugin shortcut from `Ctrl-Alt-S` to `Ctrl-Alt-Shift-P` to avoid common SigMaker conflicts.
+  - 16.10.7. Updated user-facing docs: `examples/README.md` and `docs/port_gap_audit_idapcode.md`.
+  - 16.10.8. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes after follow-up changes.
+  - 16.10.9. Recorded findings [F263], [F264], [F265] and decisions [D-IDAPCODE-VIEW-SYNC] update + [D-IDAPCODE-HOTKEY-COLLISION-AVOIDANCE].
+
 ---
