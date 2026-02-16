@@ -2268,6 +2268,17 @@ ida::Status install_vmx_lifter_filter() {
         return ida::ok();
     }
 
+    // Crash guard: AVX/VMX microcode lifting is only safe on x86/x64 processors.
+    // The original lifter checks `PH.id != PLFM_386` — IDA crashes when
+    // interacting with AVX in non-x86 processor modes.
+    constexpr std::int32_t kProcessorIdX86 = 0; // PLFM_386
+    auto proc_id = ida::database::processor_id();
+    if (!proc_id || *proc_id != kProcessorIdX86) {
+        return std::unexpected(ida::Error::unsupported(
+            "AVX/VMX lifter requires x86/x64 processor (PLFM_386)",
+            proc_id ? "current processor id: " + std::to_string(*proc_id) : "processor id unavailable"));
+    }
+
     auto available = ida::decompiler::available();
     if (!available) {
         return std::unexpected(available.error());

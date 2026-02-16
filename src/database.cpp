@@ -481,6 +481,11 @@ Result<AddressSize> address_span() {
     return bounds->size();
 }
 
+// NOTE: processor_id() and processor_name() are declared in database.hpp
+// but implemented in address.cpp to avoid pulling idalib-only symbols
+// (init_library, open_database, close_database) into plugin link units
+// that reference ida::database::processor_id().
+
 // ── Snapshot wrappers ────────────────────────────────────────────────────
 
 namespace {

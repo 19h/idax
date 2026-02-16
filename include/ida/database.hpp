@@ -159,6 +159,15 @@ Result<ida::address::Range> address_bounds();
 /// Span of mapped address space (max_address - min_address).
 Result<AddressSize> address_span();
 
+/// Active processor module ID (PLFM_* constant from the SDK).
+///
+/// Returns the processor ID of the currently loaded processor module.
+/// Common IDs: 0 = x86/x64 (Intel), 12 = MIPS, 13 = ARM, 15 = PowerPC.
+Result<std::int32_t> processor_id();
+
+/// Active processor module short name (e.g. "metapc", "ARM", "mips").
+Result<std::string> processor_name();
+
 // ── Snapshot wrappers ────────────────────────────────────────────────────
 
 /// Snapshot metadata and hierarchy node.
