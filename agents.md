@@ -801,6 +801,9 @@ Note:
   - 7.6.21. Direct compare `to_operand` fallback now also applies validation-safe retry with base compare options to reduce backend-variant validation failures on degraded routes [F214]
   - 7.6.22. Degraded compare `to_operand` routes now treat residual validation failures as non-fatal not-handled outcomes after retry exhaustion, while preserving hard SDK/internal failure handling [F215]
   - 7.6.23. Compare helper routes now apply validation-safe base-options retry consistently across resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand` paths; temporary-register `store_operand_register` writeback now treats `Validation`/`NotFound` as degradable while preserving hard SDK/internal failures [F216]
+  - 7.6.24. Direct register-destination compare helper routes now apply the same validation-safe retry ladder (location+declaration hints -> declaration-only -> base compare options), and residual validation rejection degrades to not-handled while preserving hard SDK/internal failures [F217]
+  - 7.6.25. Temporary-register compare fallback now guards `std::expected` error access (`!status` before `.error()`) after degradable writeback outcomes, preventing invalid `.error()` reads on success-path states [F218]
+  - 7.6.26. Compare helper degraded/direct destination routes now treat residual `NotFound` outcomes as non-fatal not-handled after retry exhaustion, while preserving hard SDK/internal failure handling [F219]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -903,6 +906,9 @@ Note:
     - 8.7.7.8. Compare helper degraded `to_operand` path now retries with base compare options when declaration/location hints fail validation, reducing avoidable fallback loss on backend variance [F214]
     - 8.7.7.9. Compare helper degraded `to_operand` path now degrades residual validation rejection to non-fatal not-handled outcome after retry exhaustion, while preserving hard failure signals for SDK/internal categories [F215]
     - 8.7.7.10. Compare helper temporary-register bridge and typed micro routes now use the same validation-safe base-options retry policy, and writeback-level `Validation`/`NotFound` now degrades to not-handled instead of hard failure [F216]
+    - 8.7.7.11. Direct register-destination compare helper route now mirrors the same validation-safe retry ladder and not-handled degradation semantics used by other compare destination routes [F217]
+    - 8.7.7.12. Temporary-register bridge fallback now explicitly guards error-category reads behind `!temporary_helper_status` after degradable writeback outcomes, avoiding invalid success-path `.error()` access while preserving fallback progression [F218]
+    - 8.7.7.13. Compare helper degraded `to_operand` and direct register-destination routes now also degrade residual `NotFound` outcomes to not-handled after retries, preserving hard SDK/internal categories [F219]
 
 ---
 
@@ -1817,6 +1823,18 @@ Note:
     - 14.7.26.1. **Decision:** Align compare helper validation-safe base-options retry behavior across typed micro routes and temporary-register bridge paths, and degrade temporary writeback `Validation`/`NotFound` outcomes to not-handled
       - Rejected: Keep retry behavior uneven across helper emission routes (drift risk)
       - Rejected: Treat temporary writeback validation/not-found as hard errors (reduces backend variance tolerance)
+  - **14.7.27. Direct Register-Route Retry Alignment**
+    - 14.7.27.1. **Decision:** Apply the same validation-safe retry ladder and non-fatal residual-validation degradation to direct register-destination compare helper routes
+      - Rejected: Keep direct register route strict while other compare routes degrade (semantic drift)
+      - Rejected: Treat residual validation on direct register route as hard error (lower backend variance tolerance)
+  - **14.7.28. Temporary-Bridge Error-Access Guard**
+    - 14.7.28.1. **Decision:** Guard temporary-register compare bridge error-category reads behind `!temporary_helper_status` after degradable writeback outcomes
+      - Rejected: Read `.error()` unconditionally after degradable store outcomes (invalid on success-path states)
+      - Rejected: Convert degradable writeback outcomes into hard failures to avoid guard logic (reduces fallback resilience)
+  - **14.7.29. Residual NotFound Degradation Alignment**
+    - 14.7.29.1. **Decision:** Treat residual `NotFound` outcomes as not-handled on degraded `to_operand` and direct register-destination compare routes after retry exhaustion
+      - Rejected: Preserve `NotFound` as hard unexpected error on degraded compare routes (reduced backend tolerance)
+      - Rejected: Degrade all categories including `SdkFailure`/`Internal` (would hide hard failures)
 
 ---
 
@@ -2710,6 +2728,25 @@ Note:
   - 12.21.2. Updated temporary-register bridge writeback handling to degrade `store_operand_register` `Validation`/`NotFound` outcomes to not-handled while preserving hard SDK/internal failures.
   - 12.21.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F216].
   - 12.21.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
+- **12.22. Direct Register-Route Retry Alignment (5.3.2)**
+  - 12.22.1. Expanded `examples/plugin/lifter_port_plugin.cpp` direct register-destination compare helper route (the `destination_reg` path in `lift_packed_helper_variadic`) to use validation-safe retry ladder semantics: full hints (`return_location` + `return_type_declaration`) -> declaration-only -> base compare options.
+  - 12.22.2. Updated residual-validation handling on that direct register route to degrade to not-handled while preserving hard `SdkFailure`/`Internal` categories.
+  - 12.22.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F217].
+  - 12.22.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+
+- **12.23. Temporary-Bridge Error-Access Guard (5.3.2)**
+  - 12.23.1. Updated `examples/plugin/lifter_port_plugin.cpp` temporary-register compare bridge flow to gate error-category reads with `!temporary_helper_status` before accessing `.error()` after degradable writeback outcomes.
+  - 12.23.2. Preserved degraded fallback progression (`Validation`/`NotFound` writeback -> continue to degraded routes) while avoiding invalid success-path `.error()` access.
+  - 12.23.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F218].
+  - 12.23.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+  - 12.23.5. Validation sweep: `ctest --output-on-failure` in `build-matrix-unit-examples-local` passes `16/16`.
+
+- **12.24. Residual NotFound Degradation Alignment (5.3.2)**
+  - 12.24.1. Updated `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` and direct register-destination compare helper routes to treat residual `NotFound` outcomes as non-fatal not-handled after retry exhaustion.
+  - 12.24.2. Kept hard-failure handling limited to `SdkFailure`/`Internal` (with validation still degradable) so backend variance does not escalate degraded-route outcomes.
+  - 12.24.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F219].
+  - 12.24.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 ---
 

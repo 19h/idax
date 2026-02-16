@@ -620,8 +620,9 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                     }
                 }
 
-                if (temporary_helper_status.error().category == ida::ErrorCategory::SdkFailure
-                    || temporary_helper_status.error().category == ida::ErrorCategory::Internal) {
+                if (!temporary_helper_status
+                    && (temporary_helper_status.error().category == ida::ErrorCategory::SdkFailure
+                        || temporary_helper_status.error().category == ida::ErrorCategory::Internal)) {
                     return false;
                 }
             }
@@ -646,7 +647,8 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             if (!helper_status) {
                 if (helper_status.error().category == ida::ErrorCategory::SdkFailure
                     || helper_status.error().category == ida::ErrorCategory::Internal
-                    || helper_status.error().category == ida::ErrorCategory::Validation) {
+                    || helper_status.error().category == ida::ErrorCategory::Validation
+                    || helper_status.error().category == ida::ErrorCategory::NotFound) {
                     return false;
                 }
                 return std::unexpected(helper_status.error());
@@ -696,13 +698,41 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     if (!return_type.empty()) {
         helper_options.return_type_declaration = std::move(return_type);
     }
+
+    auto helper_options_without_location = helper_options;
+    helper_options_without_location.return_location.reset();
+
     auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
         helper,
         args,
         register_destination_operand(*destination_reg, destination_width),
         false,
         helper_options);
+    if (!helper_status
+        && helper_status.error().category == ida::ErrorCategory::Validation) {
+        helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+            helper,
+            args,
+            register_destination_operand(*destination_reg, destination_width),
+            false,
+            helper_options_without_location);
+    }
+    if (!helper_status
+        && helper_status.error().category == ida::ErrorCategory::Validation) {
+        helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
+            helper,
+            args,
+            register_destination_operand(*destination_reg, destination_width),
+            false,
+            compare_call_options(mnemonic_lower));
+    }
     if (!helper_status) {
+        if (helper_status.error().category == ida::ErrorCategory::SdkFailure
+            || helper_status.error().category == ida::ErrorCategory::Internal
+            || helper_status.error().category == ida::ErrorCategory::Validation
+            || helper_status.error().category == ida::ErrorCategory::NotFound) {
+            return false;
+        }
         return std::unexpected(helper_status.error());
     }
     return true;
