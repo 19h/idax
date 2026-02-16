@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 28 public headers across 23 domain namespaces plus cross-cutting core headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 29 public headers across 25 domain namespaces plus cross-cutting core headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -96,6 +96,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
 | **Decompiler** | `ida::decompiler` | Decompile, pseudocode, variables, ctree visitor, user comments, address mapping |
+| **Lines** | `ida::lines` | Tagged text/color helpers for pseudocode and listing output |
 | **UI** | `ida::ui` | Messages, dialogs/forms, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
@@ -103,8 +104,10 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
 
 Real-world port parity notes are tracked in
-[`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md)
-and [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md), with
+[`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md),
+[`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md),
+[`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md), and
+[`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md), with
 additional decompiler-write-path findings in
 [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md).
 
@@ -406,7 +409,7 @@ tests/
     fixtures/           # Test binaries and pre-analysed databases
 
 examples/
-    plugin/             # Action registration example
+    plugin/             # Plugin examples (quickstart + advanced ports, including abyss)
     loader/             # Custom ELF loader example
     procmod/            # Custom processor module example
     full/               # Real-world full ports (e.g. JBC)
@@ -519,6 +522,8 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
 | [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md) | Real-world port gap findings (ida-qtform + idalib-dump) |
 | [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md) | Real-world port gap findings (ida2py) |
+| [`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md) | Real-world port gap findings (DrawIDA) |
+| [`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md) | Real-world port gap findings (abyss decompiler filter framework) |
 | [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md) | Real-world port gap findings (lifter AVX/VMX microcode plugin) |
 
 ---

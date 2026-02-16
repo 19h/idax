@@ -597,6 +597,17 @@ void check_plugin_surface() {
     ida::plugin::Info info;
     (void)info.name; (void)info.hotkey; (void)info.comment; (void)info.help; (void)info.icon;
 
+    ida::plugin::ExportFlags export_flags;
+    (void)export_flags.modifies_database;
+    (void)export_flags.requests_redraw;
+    (void)export_flags.segment_scoped;
+    (void)export_flags.unload_after_run;
+    (void)export_flags.hidden;
+    (void)export_flags.debugger_only;
+    (void)export_flags.processor_specific;
+    (void)export_flags.load_at_startup;
+    (void)export_flags.extra_raw_flags;
+
     ida::plugin::ActionContext context;
     (void)context.action_id;
     (void)context.widget_title;
@@ -1001,6 +1012,13 @@ void check_ui_surface() {
     (void)static_cast<WidgetHostFn>(&ida::ui::widget_host);
     (void)static_cast<WithWidgetHostFn>(&ida::ui::with_widget_host);
     (void)static_cast<AskFormFn>(&ida::ui::ask_form);
+
+    auto typed_widget_host = ida::ui::widget_host_as<int>(widget);
+    (void)typed_widget_host;
+    auto typed_widget_status = ida::ui::with_widget_host_as<int>(
+        widget,
+        [](int*) -> ida::Status { return ida::ok(); });
+    (void)typed_widget_status;
 
     (void)static_cast<OnWidgetVisibleTitleFn>(&ida::ui::on_widget_visible);
     (void)static_cast<OnWidgetInvisibleTitleFn>(&ida::ui::on_widget_invisible);

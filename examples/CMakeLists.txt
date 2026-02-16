@@ -21,6 +21,9 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/qtform_renderer_plugin.cpp
     plugin/qtform_renderer_widget.hpp
     plugin/qtform_renderer_widget.cpp
+    plugin/drawida_port_plugin.cpp
+    plugin/drawida_port_widget.hpp
+    plugin/drawida_port_widget.cpp
     plugin/abyss_port_plugin.cpp
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
@@ -80,6 +83,16 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_lifter_port_plugin
         SOURCES plugin/lifter_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_drawida_port_plugin
+        TYPE QT
+        QT_COMPONENTS Core Gui Widgets
+        SOURCES
+            plugin/drawida_port_plugin.cpp
+            plugin/drawida_port_widget.cpp
+            plugin/drawida_port_widget.hpp
         LIBRARIES idax::idax
     )
 

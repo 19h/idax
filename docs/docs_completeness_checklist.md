@@ -11,9 +11,11 @@
 - [x] Namespace topology map
 - [x] Compatibility validation matrix
 - [x] First-time tutorial path
+- [x] Abyss port audit (decompiler filter framework)
 
 Validation pass:
 
 - [x] All quickstart files resolve to existing paths.
 - [x] Examples referenced in docs exist in `examples/`.
 - [x] Migration snippets compile conceptually against current public API names.
+- [x] Port audit index includes all maintained real-world ports.

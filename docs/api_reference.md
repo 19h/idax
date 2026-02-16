@@ -31,6 +31,7 @@ Public headers:
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
 | `include/ida/decompiler.hpp` | Decompile (with structured failure details), pseudocode/microcode extraction, maturity subscriptions, cache-dirty helpers, typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`), microcode-filter registration, typed instruction/operand emission (including nested/block/local-variable forms), policy-aware low-level emits, microblock lifecycle helpers (`block_instruction_count`, `has_instruction_at_index`, `remove_instruction_at_index`, tracked last-emitted query/remove), typed helper-call builders (register/operand/micro-operand destinations), and advanced call-shaping/location hints (calling convention, role, return location/type, register-list + visible-memory controls). |
+| `include/ida/lines.hpp` | Tagged text/color helpers (`colstr`, `tag_remove`, `tag_advance`, `tag_strlen`, address-tag encode/decode) used by decompiler/listing filters |
 | `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
 See also:
@@ -42,3 +43,8 @@ See also:
 - `docs/namespace_topology.md` — Complete namespace/type inventory map
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands
 - `docs/storage_migration_caveats.md` — Netnode migration safety notes
+- `docs/port_gap_audit_ida_qtform_idalib_dump.md` — ida-qtform + idalib-dump port audit and parity notes
+- `docs/port_gap_audit_ida2py.md` — ida2py port audit and parity notes
+- `docs/port_gap_audit_drawida.md` — DrawIDA port audit and parity notes
+- `docs/port_gap_audit_abyss.md` — abyss decompiler-filter port audit and parity notes
+- `docs/port_gap_audit_lifter.md` — lifter port audit and parity notes

@@ -83,6 +83,25 @@ public:
 /// Factory function type for IDAX_PLUGIN macro.
 using PluginFactory = Plugin* (*)();
 
+/// Export-time plugin flag controls for `IDAX_PLUGIN_WITH_FLAGS()`.
+///
+/// idax always enforces `PLUGIN_MULTI` because the wrapper's plugin bridge
+/// uses the `plugmod_t` lifecycle model. These options add extra flag bits
+/// on top of that baseline.
+struct ExportFlags {
+    bool modifies_database{false};  ///< Add `PLUGIN_MOD`.
+    bool requests_redraw{false};    ///< Add `PLUGIN_DRAW`.
+    bool segment_scoped{false};     ///< Add `PLUGIN_SEG`.
+    bool unload_after_run{false};   ///< Add `PLUGIN_UNL`.
+    bool hidden{false};             ///< Add `PLUGIN_HIDE`.
+    bool debugger_only{false};      ///< Add `PLUGIN_DBG`.
+    bool processor_specific{false}; ///< Add `PLUGIN_PROC`.
+    bool load_at_startup{false};    ///< Add `PLUGIN_FIX`.
+
+    /// Advanced escape hatch for custom SDK flag bits.
+    int extra_raw_flags{0};
+};
+
 /// Internal: bridge structure used by the export macro.
 /// Do not use directly — use IDAX_PLUGIN() instead.
 namespace detail {
@@ -94,7 +113,8 @@ void* make_plugin_export(PluginFactory factory,
                          const char* name,
                          const char* comment,
                          const char* help,
-                         const char* hotkey);
+                         const char* hotkey,
+                         ExportFlags flags);
 
 } // namespace detail
 
@@ -200,9 +220,17 @@ Status detach_from_popup(std::string_view widget_title, std::string_view action_
 //   - The ClassName must be fully defined before the macro.
 //   - Link against libidax.a (which provides the plugmod_t adapter).
 
-/// Generate the IDA plugin export block for the given Plugin subclass.
-/// Usage: `IDAX_PLUGIN(MyPluginClass)`
-#define IDAX_PLUGIN(ClassName)                                              \
+/// Generate the IDA plugin export block with explicit export flags.
+///
+/// Usage:
+/// `IDAX_PLUGIN_WITH_FLAGS(MyPluginClass, ida::plugin::ExportFlags{ .hidden = true })`
+///
+/// Notes:
+/// - `PLUGIN_MULTI` is always enabled by idax.
+/// - Additional custom SDK flag bits can be set through
+///   `ExportFlags::extra_raw_flags`.
+/// - The variadic form allows designated initializers with commas.
+#define IDAX_PLUGIN_WITH_FLAGS(ClassName, ...)                              \
     static_assert(std::is_base_of_v<ida::plugin::Plugin, ClassName>,       \
                   #ClassName " must inherit from ida::plugin::Plugin");     \
     static_assert(std::is_default_constructible_v<ClassName>,              \
@@ -215,6 +243,11 @@ Status detach_from_popup(std::string_view widget_title, std::string_view action_
     static void* idax_reg_##ClassName =                                    \
         ida::plugin::detail::make_plugin_export(                           \
             idax_factory_##ClassName,                                       \
-            #ClassName, nullptr, nullptr, nullptr);
+            #ClassName, nullptr, nullptr, nullptr, __VA_ARGS__);
+
+/// Generate the IDA plugin export block for the given Plugin subclass.
+/// Usage: `IDAX_PLUGIN(MyPluginClass)`
+#define IDAX_PLUGIN(ClassName)                                              \
+    IDAX_PLUGIN_WITH_FLAGS(ClassName, ida::plugin::ExportFlags{})
 
 #endif // IDAX_PLUGIN_HPP

@@ -11,6 +11,8 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace ida::ui {
@@ -243,6 +245,45 @@ Result<WidgetHost> widget_host(const Widget& widget);
 /// Use this helper when you need temporary host access without persisting
 /// toolkit pointers in your own APIs.
 Status with_widget_host(const Widget& widget, WidgetHostCallback callback);
+
+/// Get the native host pointer cast to a specific toolkit type.
+///
+/// Example:
+/// \code
+/// auto host = ida::ui::widget_host_as<QWidget>(widget);
+/// \endcode
+template <typename HostType>
+Result<HostType*> widget_host_as(const Widget& widget) {
+    auto host = widget_host(widget);
+    if (!host) {
+        return std::unexpected(host.error());
+    }
+    if (*host == nullptr) {
+        return std::unexpected(Error::internal("Widget host pointer is null"));
+    }
+    return static_cast<HostType*>(*host);
+}
+
+/// Execute a callback with the widget host cast to a toolkit type.
+///
+/// Example:
+/// \code
+/// ida::ui::with_widget_host_as<QWidget>(widget, [](QWidget* host) {
+///     host->setLayout(new QVBoxLayout(host));
+///     return ida::ok();
+/// });
+/// \endcode
+template <typename HostType, typename Callback>
+Status with_widget_host_as(const Widget& widget, Callback&& callback) {
+    static_assert(std::is_invocable_r_v<Status, Callback, HostType*>,
+                  "Callback must be callable as Status(HostType*)");
+
+    auto typed_host = widget_host_as<HostType>(widget);
+    if (!typed_host) {
+        return std::unexpected(typed_host.error());
+    }
+    return std::forward<Callback>(callback)(*typed_host);
+}
 
 // ── Chooser ─────────────────────────────────────────────────────────────
 

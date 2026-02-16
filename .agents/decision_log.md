@@ -28,7 +28,7 @@
 - **1.8. README Alignment**
   - 1.8.1. **Decision:** Align README with matrix-backed coverage artifacts — replace absolute completeness phrasing with tracked-gap language, pin packaging commands, refresh examples
 
----
+
 
 ### 2. Build, Linking & Validation Infrastructure
 
@@ -92,6 +92,8 @@
     - Rejected: Require `IDADIR` unconditionally (breaks no-runtime compile rows)
 
 ---
+
+
 
 ### 3. Event System
 
@@ -846,5 +848,24 @@
   - **16.5.3. Alternatives considered:** (a) Weak symbols / `__attribute__((weak))` — rejected, non-portable and obscures real link errors. (b) Separate static library for idalib-only code — rejected, over-engineering for a single TU split. (c) Move `processor_id()`/`processor_name()` pattern (implement in a different TU) — already done for those two, but doesn't scale to the full lifecycle+query mix.
   - **16.5.4. Key detail:** `save_database` IS exported from `libida.dylib`, so `save()` stays in the plugin-safe `database.cpp`. Only `init_library`/`open_database`/`close_database`/`enable_console_messages` are idalib-exclusive.
   - **16.5.5. Evidence:** `idax_audit_plugin` and `idax_fingerprint_plugin` now link clean; all 7 plugins build; 16/16 tests pass.
+
+### 17. DrawIDA Follow-Up Ergonomics Closure (Phase 12)
+
+- **17.1. Decision D-PLUGIN-EXPORT-FLAGS**: Add structured per-plugin export-flag controls while preserving idax bridge invariants
+  - **17.1.1. Decision:** Introduce `ida::plugin::ExportFlags` and `IDAX_PLUGIN_WITH_FLAGS(...)`; keep `IDAX_PLUGIN(...)` as the default convenience path.
+  - **17.1.2. Invariant:** `PLUGIN_MULTI` remains mandatory for idax because the bridge is `plugmod_t`-based.
+  - **17.1.3. Mechanics:** `ExportFlags` maps to optional SDK bits (`MOD`, `DRAW`, `SEG`, `UNL`, `HIDE`, `DBG`, `PROC`, `FIX`) plus `extra_raw_flags` for advanced cases; composed value is applied at static registration time.
+  - **17.1.4. Rationale:** Closes real-world port ergonomics gap without exposing raw SDK structs or abandoning the wrapper lifecycle model.
+  - **17.1.5. Alternatives considered:** (a) expose raw `plugin_t.flags` mutation API — rejected (leaks SDK struct and lifecycle details). (b) allow disabling `PLUGIN_MULTI` — rejected (breaks wrapper plugin bridge contract).
+
+- **17.2. Decision D-TYPED-WIDGET-HOST-HELPERS**: Add typed host-access helpers in `ida::ui`
+  - **17.2.1. Decision:** Introduce template helpers `widget_host_as<T>()` and `with_widget_host_as<T>()` over existing opaque host APIs.
+  - **17.2.2. Rationale:** Preserve opaque core API (`WidgetHost = void*`) while removing repetitive cast boilerplate in Qt-heavy ports.
+  - **17.2.3. Trade-off:** Type validity remains caller-responsibility (same as manual cast), but helper centralizes null/error handling and keeps call sites cleaner.
+
+- **17.3. Decision D-DRAWIDA-QT-TARGET-WIRING**: Use `ida_add_plugin(TYPE QT ...)` for DrawIDA addon target
+  - **17.3.1. Decision:** Wire DrawIDA as a dedicated addon target via `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`.
+  - **17.3.2. Rationale:** Enables first-class addon build when Qt is available while gracefully skipping when Qt is missing (with explicit `build_qt` guidance from ida-cmake).
+  - **17.3.3. Alternative considered:** unconditional non-Qt plugin target — rejected (fragile in environments without Qt and duplicates ida-cmake Qt handling).
 
 ---

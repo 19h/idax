@@ -58,17 +58,11 @@ public:
         }
         panel_ = *panel;
 
-        auto mount = ida::ui::with_widget_host(panel_,
-            [this](ida::ui::WidgetHost host) -> ida::Status {
-                if (host == nullptr) {
-                    return std::unexpected(ida::Error::internal(
-                        "Widget host pointer is null"));
-                }
-
-                auto* host_widget = static_cast<QWidget*>(host);
+        auto mount = ida::ui::with_widget_host_as<QWidget>(panel_,
+            [this](QWidget* host_widget) -> ida::Status {
                 if (host_widget == nullptr) {
                     return std::unexpected(ida::Error::internal(
-                        "Widget host is not a valid QWidget"));
+                        "Widget host pointer is null"));
                 }
 
                 auto* layout = host_widget->layout();
