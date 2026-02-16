@@ -76,28 +76,67 @@ else()
     message(WARNING "IDASDK environment variable not set. Build may fail.")
 endif()
 
-# ── idalib link target ──────────────────────────────────────────────────
+# ── IDA installation (runtime dylibs) ────────────────────────────────────
+#
+# The IDA SDK ships stub dylibs with different symbol exports than the real
+# IDA runtime dylibs. On macOS with two-level namespace linking, this causes
+# symbols (like callui, qvector_reserve) to be bound to the wrong dylib,
+# resulting in null-pointer crashes at runtime. We MUST link against the
+# real IDA dylibs from the installation for correct symbol resolution.
+#
+# The addon needs both:
+#   - libidalib.dylib  (idalib entry points: open_database, etc.)
+#   - libida.dylib     (IDA kernel symbols: callui, add_func_ex, etc.)
 
 if(DEFINED ENV{IDADIR})
-    set(IDADIR "$ENV{IDADIR}")
-elseif(DEFINED ENV{IDASDK})
-    # Common: SDK sibling to IDA install
-    get_filename_component(IDADIR "$ENV{IDASDK}/.." ABSOLUTE)
+    set(IDA_INSTALL_DIR "$ENV{IDADIR}")
+elseif(APPLE)
+    # Try common macOS locations.
+    foreach(_ver 9.3 9.2 9.1 9.0)
+        set(_try "/Applications/IDA Professional ${_ver}.app/Contents/MacOS")
+        if(EXISTS "${_try}/libidalib.dylib")
+            set(IDA_INSTALL_DIR "${_try}")
+            break()
+        endif()
+    endforeach()
+    # Also check the hexrays development build.
+    if(NOT IDA_INSTALL_DIR)
+        set(_dev_try "$ENV{HOME}/hexrays/ida/bin/arm64_mac_clang_opt/ida.app/Contents/MacOS")
+        if(EXISTS "${_dev_try}/libidalib.dylib")
+            set(IDA_INSTALL_DIR "${_dev_try}")
+        endif()
+    endif()
 endif()
 
-if(IDADIR)
-    if(APPLE)
-        find_library(IDALIB_LIBRARY
-            NAMES ida libida ida64 libida64
-            PATHS "${IDADIR}" "${IDADIR}/lib"
-            NO_DEFAULT_PATH
-        )
-    elseif(UNIX)
-        find_library(IDALIB_LIBRARY
-            NAMES ida ida64
-            PATHS "${IDADIR}" "${IDADIR}/lib"
-            NO_DEFAULT_PATH
-        )
+if(NOT IDA_INSTALL_DIR)
+    message(WARNING "IDA installation not found. Set IDADIR environment variable.\n"
+                    "The addon will compile but fail to load at runtime.")
+else()
+    message(STATUS "IDA installation: ${IDA_INSTALL_DIR}")
+endif()
+
+# Locate the two required dylibs.
+if(IDA_INSTALL_DIR)
+    find_library(IDALIB_LIBRARY
+        NAMES idalib libidalib
+        PATHS "${IDA_INSTALL_DIR}"
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBIDA_LIBRARY
+        NAMES ida libida
+        PATHS "${IDA_INSTALL_DIR}"
+        NO_DEFAULT_PATH
+    )
+
+    if(IDALIB_LIBRARY)
+        message(STATUS "idalib: ${IDALIB_LIBRARY}")
+    else()
+        message(WARNING "libidalib.dylib not found in ${IDA_INSTALL_DIR}")
+    endif()
+    if(LIBIDA_LIBRARY)
+        message(STATUS "libida: ${LIBIDA_LIBRARY}")
+    else()
+        message(WARNING "libida.dylib not found in ${IDA_INSTALL_DIR}")
     endif()
 endif()
 
@@ -146,8 +185,23 @@ if(IDAX_LIBRARY)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${IDAX_LIBRARY})
 endif()
 
+# Link against the real IDA dylibs for symbol resolution.
 if(IDALIB_LIBRARY)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${IDALIB_LIBRARY})
+endif()
+if(LIBIDA_LIBRARY)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBIDA_LIBRARY})
+endif()
+
+# idalib definition — idax uses this to select idalib-specific code paths.
+target_compile_definitions(${PROJECT_NAME} PRIVATE IDALIB_IMPL)
+
+# Set rpath so the addon can find IDA dylibs at runtime.
+if(APPLE AND IDA_INSTALL_DIR)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        BUILD_RPATH "${IDA_INSTALL_DIR}"
+        INSTALL_RPATH "${IDA_INSTALL_DIR}"
+    )
 endif()
 
 # Compiler warnings
