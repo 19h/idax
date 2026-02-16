@@ -820,3 +820,24 @@
   - 15.1.7. **Owner:** idax wrapper core
 
 ---
+
+### 16. Abyss Port — Lines Domain & Decompiler/UI Expansion (Phase 11)
+
+- **16.1. Decision D-LINES-DOMAIN**: Create `ida::lines` as a new top-level namespace/domain
+  - **16.1.1. Rationale:** Color tag manipulation (colstr, tag_remove, tag_advance, tag_strlen, address tags) is a fundamental capability required by any plugin that modifies pseudocode output. It does not belong in `ida::decompiler` (it's used for disassembly too) or `ida::ui` (it's data-level, not widget-level). A dedicated `ida::lines` domain with its own header and implementation file keeps the domain boundary clean.
+  - **16.1.2. Alternatives considered:** (a) Put in `ida::decompiler` — rejected, too narrow scope. (b) Put in `ida::ui` — rejected, lines/colors are not UI widgets. (c) Put in `ida::core` — rejected, too broad.
+  - **16.1.3. Evidence:** Used by abyss port in 6 of 8 filters for color tag insertion/removal/measurement.
+
+- **16.2. Decision D-DECOMPILER-EVENT-BRIDGE**: Expand single-event hexrays bridge to multi-event switch
+  - **16.2.1. Rationale:** The original bridge only handled `hxe_maturity`. Real decompiler plugins need `hxe_func_printed`, `hxe_curpos`, `hxe_create_hint`, `hxe_refresh_pseudocode` at minimum. Rather than separate bridge functions (which would install multiple hexrays callbacks), a single bridge with a switch over event type is more efficient and mirrors the SDK's single-callback design.
+  - **16.2.2. Pattern:** One callback map per event type, lazy bridge installation on first subscription, removal when all maps empty.
+
+- **16.3. Decision D-DYNAMIC-ACTIONS**: Use `DynamicActionHandler` class + `DYNACTION_DESC_LITERAL` for popup-only actions
+  - **16.3.1. Rationale:** Abyss attaches temporary actions to the decompiler popup menu. These don't need global action registration (which is heavy). The SDK's `attach_dynamic_action_to_popup` + `DYNACTION_DESC_LITERAL` pattern is exactly designed for this. The idax wrapper wraps this in `attach_dynamic_action()` which creates a `DynamicActionHandler` internally and manages its lifetime.
+  - **16.3.2. Trade-off:** The handler is heap-allocated and leaked (like SDK examples do). In practice, popup actions are short-lived and few in number.
+
+- **16.4. Decision D-RAW-LINE-ACCESS**: Expose raw `simpleline_t.line` strings through wrapper, not just cleaned text
+  - **16.4.1. Rationale:** Pseudocode post-processing filters need to read AND write the raw color-tagged line strings. The existing `pseudocode_lines()` returns cleaned text (tag_remove'd). `raw_lines()` / `set_raw_line()` provide direct access to `cfunc->sv` members for filters that manipulate color tags.
+  - **16.4.2. Safety:** Line index bounds-checked; returns error on out-of-range.
+
+---

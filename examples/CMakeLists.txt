@@ -21,6 +21,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/qtform_renderer_plugin.cpp
     plugin/qtform_renderer_widget.hpp
     plugin/qtform_renderer_widget.cpp
+    plugin/abyss_port_plugin.cpp
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
 
@@ -79,6 +80,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_lifter_port_plugin
         SOURCES plugin/lifter_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_abyss_port_plugin
+        SOURCES plugin/abyss_port_plugin.cpp
         LIBRARIES idax::idax
     )
 

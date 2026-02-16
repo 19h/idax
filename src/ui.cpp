@@ -1194,4 +1194,187 @@ Status unsubscribe(Token token) {
     return ida::ok();
 }
 
+// ── Widget type ─────────────────────────────────────────────────────────
+
+WidgetType widget_type(const Widget& widget) {
+    TWidget* tw = WidgetAccess::raw(widget);
+    if (tw == nullptr)
+        return WidgetType::Unknown;
+    int t = get_widget_type(tw);
+    return static_cast<WidgetType>(t);
+}
+
+WidgetType widget_type(void* widget_handle) {
+    if (widget_handle == nullptr)
+        return WidgetType::Unknown;
+    int t = get_widget_type(static_cast<TWidget*>(widget_handle));
+    return static_cast<WidgetType>(t);
+}
+
+// ── Popup menu interception ─────────────────────────────────────────────
+
+Result<Token> on_popup_ready(std::function<void(const PopupEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Popup callback is empty"));
+
+    auto raw_token = ui_listener().subscribe(
+        ui_finish_populating_widget_popup,
+        [cb = std::move(callback)](va_list va) {
+            TWidget* w = va_arg(va, TWidget*);
+            TPopupMenu* popup = va_arg(va, TPopupMenu*);
+            // third arg: const action_activation_ctx_t* ctx — unused here
+
+            PopupEvent evt;
+            evt.widget = WidgetAccess::wrap(w);
+            evt.popup = static_cast<void*>(popup);
+            if (w != nullptr)
+                evt.type = static_cast<WidgetType>(get_widget_type(w));
+            cb(evt);
+        }
+    );
+    return raw_token;
+}
+
+namespace {
+
+/// Dynamic action handler bridge: wraps a std::function<void()> into an
+/// action_handler_t that IDA can manage. Allocated with new; IDA deletes it
+/// when the action is unregistered (ADF_OWN_HANDLER semantics).
+class DynamicActionHandler : public action_handler_t {
+public:
+    explicit DynamicActionHandler(std::function<void()> handler)
+        : handler_(std::move(handler)) {}
+
+    int idaapi activate(action_activation_ctx_t*) override {
+        if (handler_)
+            handler_();
+        return 1;  // Refresh
+    }
+
+    action_state_t idaapi update(action_update_ctx_t*) override {
+        return AST_ENABLE_ALWAYS;
+    }
+
+private:
+    std::function<void()> handler_;
+};
+
+} // anonymous namespace
+
+Status attach_dynamic_action(PopupHandle popup,
+                             const Widget& /*widget*/,
+                             std::string_view action_id,
+                             std::string_view label,
+                             std::function<void()> handler,
+                             std::string_view menu_path,
+                             int icon) {
+    if (popup == nullptr)
+        return std::unexpected(Error::validation("Popup handle is null"));
+    if (!handler)
+        return std::unexpected(Error::validation("Action handler is empty"));
+
+    auto* popup_menu = static_cast<TPopupMenu*>(popup);
+
+    // The handler is allocated with new; IDA will delete it via ADF_OWN_HANDLER.
+    auto* h = new DynamicActionHandler(std::move(handler));
+
+    // Build null-terminated strings from string_views (they may not be null-terminated).
+    std::string lbl(label);
+    std::string path_str(menu_path);
+    (void)action_id;  // not used with DYNACTION_DESC_LITERAL
+
+    action_desc_t desc = DYNACTION_DESC_LITERAL(
+        lbl.c_str(),
+        h,
+        nullptr,  // shortcut
+        nullptr,  // tooltip
+        icon >= 0 ? icon : -1
+    );
+
+    bool ok = attach_dynamic_action_to_popup(
+        nullptr,  // deprecated widget param
+        popup_menu,
+        desc,
+        path_str.empty() ? nullptr : path_str.c_str(),
+        0,
+        nullptr
+    );
+
+    if (!ok)
+        return std::unexpected(Error::sdk("attach_dynamic_action_to_popup failed"));
+
+    return ida::ok();
+}
+
+// ── Line rendering ──────────────────────────────────────────────────────
+
+Result<Token> on_rendering_info(std::function<void(RenderingEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("Rendering callback is empty"));
+
+    auto raw_token = ui_listener().subscribe(
+        ui_get_lines_rendering_info,
+        [cb = std::move(callback)](va_list va) {
+            auto* out = va_arg(va, lines_rendering_output_t*);
+            auto* w = va_arg(va, const TWidget*);
+            auto* info = va_arg(va, const lines_rendering_input_t*);
+
+            if (out == nullptr || w == nullptr || info == nullptr)
+                return;
+
+            RenderingEvent evt;
+            evt.widget = WidgetAccess::wrap(const_cast<TWidget*>(w));
+            evt.type = static_cast<WidgetType>(
+                get_widget_type(const_cast<TWidget*>(w)));
+
+            cb(evt);
+
+            // Translate entries back into SDK rendering output.
+            for (const auto& entry : evt.entries) {
+                // Find the twinline_t for this line number.
+                // The sections_lines contains references to lines per section.
+                const twinline_t* tl = nullptr;
+                int line_counter = 0;
+                for (std::size_t s = 0; s < info->sections_lines.size() && tl == nullptr; ++s) {
+                    const auto& section = info->sections_lines[s];
+                    for (std::size_t l = 0; l < section.size(); ++l) {
+                        if (line_counter == entry.line_number) {
+                            tl = section[l];
+                            break;
+                        }
+                        ++line_counter;
+                    }
+                }
+                if (tl == nullptr)
+                    continue;
+
+                line_rendering_output_entry_t* sdk_entry = nullptr;
+                if (entry.character_range) {
+                    sdk_entry = new line_rendering_output_entry_t(
+                        tl, entry.start_column, entry.length,
+                        LROEF_CPS_RANGE, static_cast<bgcolor_t>(entry.bg_color));
+                } else {
+                    sdk_entry = new line_rendering_output_entry_t(
+                        tl, LROEF_FULL_LINE, static_cast<bgcolor_t>(entry.bg_color));
+                }
+                out->entries.push_back(sdk_entry);
+            }
+        }
+    );
+    return raw_token;
+}
+
+// ── Miscellaneous utilities ─────────────────────────────────────────────
+
+Result<std::string> user_directory() {
+    const char* dir = get_user_idadir();
+    if (dir == nullptr || dir[0] == '\0')
+        return std::unexpected(Error::sdk("get_user_idadir returned empty"));
+    return std::string(dir);
+}
+
+void refresh_all_views() {
+    refresh_idaview_anyway();
+}
+
 } // namespace ida::ui

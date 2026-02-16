@@ -43,12 +43,64 @@ struct MaturityEvent {
     Maturity new_maturity{Maturity::Zero};
 };
 
+/// Event payload for func_printed / refresh_pseudocode events.
+/// Provides the function address whose pseudocode was affected.
+struct PseudocodeEvent {
+    Address function_address{BadAddress};
+
+    /// Opaque handle to the cfunc_t* (as void*).
+    /// Passed to raw_pseudocode_lines() and set_pseudocode_line() for
+    /// in-place pseudocode text modification during func_printed callbacks.
+    void* cfunc_handle{nullptr};
+};
+
+/// Event payload for curpos (cursor position changed) events.
+struct CursorPositionEvent {
+    Address function_address{BadAddress};
+    Address cursor_address{BadAddress};
+
+    /// Opaque handle to the vdui_t* (as void*).
+    void* view_handle{nullptr};
+};
+
+/// Event payload for create_hint events.
+struct HintRequestEvent {
+    Address function_address{BadAddress};
+    Address item_address{BadAddress};
+
+    /// Opaque handle to the vdui_t* (as void*).
+    void* view_handle{nullptr};
+};
+
+/// Hint result returned from create_hint subscribers.
+struct HintResult {
+    std::string text;    ///< Hint text to display (empty = no hint).
+    int         lines{0}; ///< Number of lines in the hint.
+};
+
 /// Decompiler event subscription token.
 using Token = std::uint64_t;
 
 /// Subscribe to decompiler maturity transitions.
 /// Callback is fired on `hxe_maturity` events.
 Result<Token> on_maturity_changed(std::function<void(const MaturityEvent&)> callback);
+
+/// Subscribe to the func_printed event (fired after pseudocode text is generated).
+///
+/// This is the primary hook for post-processing decompiler output.
+/// Within the callback, use raw_pseudocode_lines() and set_pseudocode_line()
+/// to read and modify the tagged pseudocode text in-place.
+Result<Token> on_func_printed(std::function<void(const PseudocodeEvent&)> callback);
+
+/// Subscribe to the refresh_pseudocode event (fired when pseudocode view refreshes).
+Result<Token> on_refresh_pseudocode(std::function<void(const PseudocodeEvent&)> callback);
+
+/// Subscribe to the curpos event (fired when cursor moves in pseudocode view).
+Result<Token> on_curpos_changed(std::function<void(const CursorPositionEvent&)> callback);
+
+/// Subscribe to the create_hint event (fired when IDA wants a tooltip).
+/// Return a non-empty HintResult to provide a tooltip.
+Result<Token> on_create_hint(std::function<HintResult(const HintRequestEvent&)> callback);
 
 /// Remove a previously registered decompiler subscription.
 Status unsubscribe(Token token);
@@ -683,12 +735,33 @@ struct DecompileFailure {
     std::string description;
 };
 
+/// Storage location classification for a local variable.
+enum class VariableStorage {
+    Unknown,   ///< Storage type could not be determined.
+    Register,  ///< Stored in a register.
+    Stack,     ///< Stored on the stack.
+};
+
 /// A local variable in a decompiled function.
 struct LocalVariable {
     std::string name;
     std::string type_name;   ///< Type as a C declaration string.
     bool        is_argument{false};
     int         width{0};    ///< Size in bytes.
+
+    // ── Extended properties ─────────────────────────────────────────────
+
+    /// Whether this variable has a user-assigned name (vs. auto-generated).
+    bool has_user_name{false};
+
+    /// Whether this variable has a "nice" auto-generated name (vs. generic v1, v2, ...).
+    bool has_nice_name{false};
+
+    /// Storage location classification.
+    VariableStorage storage{VariableStorage::Unknown};
+
+    /// User comment on this variable (may be empty).
+    std::string comment;
 };
 
 // ── Ctree item types ────────────────────────────────────────────────────
@@ -836,6 +909,21 @@ public:
     /// For ExprMemberRef/ExprMemberPtr: return the member offset. Error otherwise.
     [[nodiscard]] Result<std::uint32_t> member_offset() const;
 
+    // ── Sub-expression navigation ───────────────────────────────────────
+
+    /// For binary/unary expressions: return the left (first) operand.
+    /// Works for assignments, arithmetic, comparisons, casts, dereferences, etc.
+    /// Returns an error for leaf expressions (numbers, variables, objects).
+    [[nodiscard]] Result<ExpressionView> left() const;
+
+    /// For binary expressions: return the right (second) operand.
+    /// Works for assignments, arithmetic, comparisons, etc.
+    /// Returns an error for unary or leaf expressions.
+    [[nodiscard]] Result<ExpressionView> right() const;
+
+    /// Get the operand count (0 for leaves, 1 for unary, 2 for binary, etc.).
+    [[nodiscard]] int operand_count() const noexcept;
+
     /// Get a C-like text representation of the expression.
     [[nodiscard]] Result<std::string> to_string() const;
 
@@ -941,6 +1029,23 @@ public:
 
     /// Get the pseudocode as individual lines (stripped of color codes).
     [[nodiscard]] Result<std::vector<std::string>> lines() const;
+
+    /// Get the raw pseudocode lines with IDA color tags preserved.
+    ///
+    /// Each string contains embedded color-tag bytes (COLOR_ON, COLOR_ADDR, etc.).
+    /// Use ida::lines utilities (tag_remove, COLSTR) to parse and modify.
+    [[nodiscard]] Result<std::vector<std::string>> raw_lines() const;
+
+    /// Replace a specific raw pseudocode line (0-indexed, including header lines).
+    ///
+    /// The replacement string should contain valid IDA color tags.
+    /// This method directly modifies the cfunc_t's pseudocode buffer, so changes
+    /// are visible in the current decompiler view after a refresh.
+    Status set_raw_line(std::size_t line_index, std::string_view tagged_text);
+
+    /// Get the number of header lines (function prototype, variable declarations).
+    /// Body pseudocode starts at line index `header_line_count()`.
+    [[nodiscard]] Result<int> header_line_count() const;
 
     /// Get decompiler microcode as individual lines.
     [[nodiscard]] Result<std::vector<std::string>> microcode_lines() const;
@@ -1100,6 +1205,44 @@ Result<DecompiledFunction> decompile(Address ea, DecompileFailure* failure);
 /// Decompile the function at \p ea.
 /// The decompiler must be available (call available() first or handle the error).
 Result<DecompiledFunction> decompile(Address ea);
+
+// ── Raw pseudocode access from event handles ────────────────────────────
+
+/// Get raw tagged pseudocode lines from a cfunc handle (obtained from PseudocodeEvent).
+/// Each string contains IDA color-tag bytes. Returns an empty vector on error.
+Result<std::vector<std::string>> raw_pseudocode_lines(void* cfunc_handle);
+
+/// Replace a specific raw pseudocode line via cfunc handle (for use in func_printed callbacks).
+Status set_pseudocode_line(void* cfunc_handle, std::size_t line_index,
+                           std::string_view tagged_text);
+
+/// Get the number of header lines from a cfunc handle.
+Result<int> pseudocode_header_line_count(void* cfunc_handle);
+
+// ── Ctree item at pseudocode position ───────────────────────────────────
+
+/// Information about a ctree item at a specific pseudocode position.
+struct ItemAtPosition {
+    ItemType type{ItemType::ExprEmpty};
+    Address  address{BadAddress};
+    int      item_index{-1};      ///< Unique item index within the function.
+    bool     is_expression{false};
+};
+
+/// Look up the ctree item at a character position in a pseudocode line.
+///
+/// @param cfunc_handle  Opaque cfunc_t* (from PseudocodeEvent or DecompiledFunction).
+/// @param tagged_line   The raw tagged pseudocode line string.
+/// @param char_index    Character position within the tagged line.
+/// @return Information about the item at that position, or an error.
+Result<ItemAtPosition> item_at_position(void* cfunc_handle,
+                                        std::string_view tagged_line,
+                                        int char_index);
+
+// ── Item type name resolution ───────────────────────────────────────────
+
+/// Get the human-readable name of an ItemType (e.g. "ExprCall", "StmtIf").
+[[nodiscard]] std::string item_type_name(ItemType type);
 
 // ── Functional-style visitor helpers ────────────────────────────────────
 

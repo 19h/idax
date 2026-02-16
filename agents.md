@@ -124,6 +124,7 @@ Program-level:
 
 Phase completion estimates:
 - Phase 0-10: All ~100% complete
+- Phase 11: ~100% complete (Abyss port API gap closure — 18 gaps closed, lines/decompiler/ui domains expanded, abyss_port_plugin complete)
 - See `.agents/roadmap.md` for detailed phase status
 
 Blocker status:

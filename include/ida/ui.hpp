@@ -15,6 +15,47 @@
 
 namespace ida::ui {
 
+// ── Widget type constants ────────────────────────────────────────────────
+
+/// Well-known widget types returned by widget_type().
+///
+/// These correspond to IDA's BWN_* constants. Values match the SDK exactly.
+enum class WidgetType : int {
+    Unknown        = -1,  ///< BWN_UNKNOWN
+    Exports        =  0,  ///< BWN_EXPORTS
+    Imports        =  1,  ///< BWN_IMPORTS
+    Names          =  2,  ///< BWN_NAMES
+    Functions      =  3,  ///< BWN_FUNCS
+    Strings        =  4,  ///< BWN_STRINGS
+    Segments       =  5,  ///< BWN_SEGS
+    Segregs        =  6,  ///< BWN_SEGREGS
+    Selectors      =  7,  ///< BWN_SELS
+    Signatures     =  8,  ///< BWN_SIGNS
+    TypeLibraries  =  9,  ///< BWN_TILS
+    LocalTypes     = 10,  ///< BWN_TITREE
+    Problems       = 12,  ///< BWN_PROBS
+    Breakpoints    = 13,  ///< BWN_BPTS
+    Threads        = 14,  ///< BWN_THREADS
+    Modules        = 15,  ///< BWN_MODULES
+    TraceLog       = 16,  ///< BWN_TRACE
+    CallStack      = 17,  ///< BWN_CALL_STACK
+    CrossRefs      = 18,  ///< BWN_XREFS
+    SearchResults  = 19,  ///< BWN_SEARCH
+    StackFrame     = 25,  ///< BWN_FRAME
+    NavBand        = 26,  ///< BWN_NAVBAND
+    Disassembly    = 27,  ///< BWN_DISASM
+    HexView        = 28,  ///< BWN_HEXVIEW
+    Notepad        = 29,  ///< BWN_NOTEPAD
+    Output         = 30,  ///< BWN_OUTPUT
+    CommandLine    = 31,  ///< BWN_CLI
+    Chooser        = 35,  ///< BWN_CHOOSER
+    Pseudocode     = 46,  ///< BWN_PSEUDOCODE
+    Microcode      = 61,  ///< BWN_MICROCODE
+};
+
+/// Get the widget type for a raw widget host handle.
+WidgetType widget_type(void* widget_handle);
+
 // ── Messages ────────────────────────────────────────────────────────────
 
 /// Print a message to the IDA output window.
@@ -127,6 +168,9 @@ private:
     void*         impl_{nullptr};
     std::uint64_t id_{0};
 };
+
+/// Get the widget type for a widget handle.
+WidgetType widget_type(const Widget& widget);
 
 /// Create a new empty docked widget with the given title.
 /// The widget is not yet visible — call show_widget() to display it.
@@ -474,6 +518,84 @@ public:
 private:
     Token token_{0};
 };
+
+// ── Popup menu interception ─────────────────────────────────────────────
+
+/// Opaque handle to a popup menu being constructed.
+/// Valid only during on_popup_ready callbacks.
+using PopupHandle = void*;
+
+/// Event payload for finish_populating_widget_popup.
+struct PopupEvent {
+    Widget      widget;       ///< The widget whose popup is being built.
+    PopupHandle popup{nullptr}; ///< Opaque popup menu handle.
+    WidgetType  type{WidgetType::Unknown};
+};
+
+/// Subscribe to the "finish populating widget popup" event.
+///
+/// This fires when IDA finishes building a context (right-click) menu for
+/// any widget. Use attach_dynamic_action() within the callback to add
+/// custom menu items.
+Result<Token> on_popup_ready(std::function<void(const PopupEvent&)> callback);
+
+/// Dynamically attach an action to a popup menu being constructed.
+///
+/// Must be called during an on_popup_ready callback. The action is
+/// registered on-the-fly and attached to the popup at the given menu path.
+///
+/// @param popup   Popup handle from PopupEvent.
+/// @param widget  Widget from PopupEvent.
+/// @param action_id  Unique action identifier.
+/// @param label   Display text for the menu item.
+/// @param handler Action handler callback.
+/// @param menu_path  Popup submenu path (e.g. "abyss/" for nested menus).
+/// @param icon    Icon index (-1 = no icon).
+Status attach_dynamic_action(PopupHandle popup,
+                             const Widget& widget,
+                             std::string_view action_id,
+                             std::string_view label,
+                             std::function<void()> handler,
+                             std::string_view menu_path = {},
+                             int icon = -1);
+
+// ── Line rendering ──────────────────────────────────────────────────────
+
+/// A single line rendering overlay entry.
+///
+/// Used within on_rendering_info callbacks to add character-range
+/// background highlights to view lines (pseudocode, disassembly, etc.).
+struct LineRenderEntry {
+    int           line_number{0};    ///< Line number in the view (0-based).
+    std::uint32_t bg_color{0};       ///< Background color (0xBBGGRR).
+    int           start_column{0};   ///< Start character column.
+    int           length{0};         ///< Number of characters to highlight.
+    bool          character_range{false}; ///< If true, highlight a specific column range.
+};
+
+/// Event payload for get_lines_rendering_info.
+struct RenderingEvent {
+    Widget widget;
+    WidgetType type{WidgetType::Unknown};
+
+    /// Call add_entry() to inject background highlighting.
+    /// The entries are collected and applied to the view.
+    std::vector<LineRenderEntry> entries;
+};
+
+/// Subscribe to the "get lines rendering info" event.
+///
+/// This fires when IDA renders view lines and enables custom background
+/// highlighting. Mutate `event.entries` in the callback to add overlays.
+Result<Token> on_rendering_info(std::function<void(RenderingEvent&)> callback);
+
+// ── Miscellaneous utilities ─────────────────────────────────────────────
+
+/// Get the user's IDA configuration directory (e.g. ~/.idapro on Linux).
+Result<std::string> user_directory();
+
+/// Force all IDA views to repaint immediately.
+void refresh_all_views();
 
 } // namespace ida::ui
 
