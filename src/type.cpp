@@ -622,6 +622,29 @@ Result<std::size_t> import_type(std::string_view source_til_name,
     return static_cast<std::size_t>(ordinal);
 }
 
+Result<TypeInfo> ensure_named_type(std::string_view type_name,
+                                   std::string_view source_til_name) {
+    if (type_name.empty()) {
+        return std::unexpected(Error::validation("Type name must not be empty"));
+    }
+
+    if (auto existing = TypeInfo::by_name(type_name); existing) {
+        return *existing;
+    }
+
+    auto imported = import_type(source_til_name, type_name);
+    if (!imported) {
+        return std::unexpected(imported.error());
+    }
+
+    auto resolved = TypeInfo::by_name(type_name);
+    if (!resolved) {
+        return std::unexpected(Error::sdk("Imported type did not resolve by name",
+                                          std::string(type_name)));
+    }
+    return *resolved;
+}
+
 Status apply_named_type(Address ea, std::string_view type_name) {
     std::string name_str(type_name);
     if (!::apply_named_type(ea, name_str.c_str()))

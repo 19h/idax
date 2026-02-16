@@ -26,6 +26,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/drawida_port_widget.cpp
     plugin/abyss_port_plugin.cpp
     plugin/driverbuddy_port_plugin.cpp
+    plugin/driverbuddy_wdf_slots.inc
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
 
