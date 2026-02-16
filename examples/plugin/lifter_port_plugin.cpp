@@ -37,20 +37,26 @@ std::string error_text(const ida::Error& error) {
 
 constexpr std::string_view kPluginMenuPath = "Edit/Plugins/";
 constexpr const char* kActionDumpSnapshot = "idax:lifter_port:dump_snapshot";
-constexpr const char* kActionToggleOutlineIntent = "idax:lifter_port:toggle_outline_intent";
+constexpr const char* kActionMarkInline = "idax:lifter_port:mark_inline";
+constexpr const char* kActionMarkOutline = "idax:lifter_port:mark_outline";
 constexpr const char* kActionShowGaps = "idax:lifter_port:show_gaps";
+constexpr const char* kActionToggleDebug = "idax:lifter_port:toggle_debug";
 
-constexpr std::array<const char*, 3> kActionIds{
+constexpr std::array<const char*, 5> kActionIds{
     kActionDumpSnapshot,
-    kActionToggleOutlineIntent,
+    kActionMarkInline,
+    kActionMarkOutline,
     kActionShowGaps,
+    kActionToggleDebug,
 };
 
 struct PortState {
     bool actions_registered{false};
+    bool debug_printing{false};
     std::unordered_set<std::string> popup_titles;
     std::vector<ida::ui::ScopedSubscription> ui_subscriptions;
     ida::decompiler::ScopedMicrocodeFilter vmx_filter;
+    ida::decompiler::ScopedSubscription maturity_subscription;
 };
 
 PortState g_state;
@@ -2144,6 +2150,35 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
     return true;
 }
 
+/// Check if decoded instruction has any YMM (256-bit) register operand.
+/// In 32-bit mode, Hex-Rays' microcode verifier triggers INTERR 50920
+/// ("Temporary registers cannot cross block boundaries") for 256-bit kregs.
+/// By returning false from match(), we let IDA show these as __asm blocks.
+bool has_ymm_operand(const ida::instruction::Instruction& instruction) {
+    const auto count = instruction.operand_count();
+    for (std::size_t i = 0; i < count; ++i) {
+        auto op = instruction.operand(i);
+        if (op && op->byte_width() == 32) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Check if the current database contains 64-bit code by inspecting
+/// the function at the given address. Returns true if 64-bit, false otherwise.
+bool is_64bit_context(ida::Address address) {
+    auto function = ida::function::at(address);
+    if (function) {
+        return function->bitness() == 64;
+    }
+    auto segment = ida::segment::at(address);
+    if (segment) {
+        return segment->bitness() == 64;
+    }
+    return true; // assume 64-bit when no context is available
+}
+
 class VmxAvxLifterFilter final : public ida::decompiler::MicrocodeFilter {
 public:
     bool match(const ida::decompiler::MicrocodeContext& context) override {
@@ -2166,6 +2201,14 @@ public:
         // Mask-destination (k-register as Op0): emit NOP (GAP 9)
         if (is_mask_destination_mnemonic(mnemonic, *decoded)) {
             return true;
+        }
+
+        // Skip YMM (256-bit) operations in 32-bit mode.
+        // Hex-Rays' microcode verifier causes INTERR 50920 when emitting
+        // 256-bit temporaries in 32-bit mode. XMM (128-bit) works fine.
+        // By returning false, IDA shows these as __asm blocks.
+        if (!is_64bit_context(context.address()) && has_ymm_operand(*decoded)) {
+            return false;
         }
 
         return is_supported_vmx_mnemonic(mnemonic)
@@ -2406,7 +2449,9 @@ ida::Status dump_decompiler_snapshot(const ida::plugin::ActionContext& context) 
     return ida::ok();
 }
 
-ida::Status toggle_outline_intent(const ida::plugin::ActionContext& context) {
+/// Set FUNC_OUTLINE on the function under cursor (so the decompiler inlines it
+/// into callers).  Mirrors the original's "Mark as inline" action.
+ida::Status mark_inline(const ida::plugin::ActionContext& context) {
     auto address = resolve_action_address(context);
     if (!address) {
         return std::unexpected(address.error());
@@ -2421,8 +2466,12 @@ ida::Status toggle_outline_intent(const ida::plugin::ActionContext& context) {
     if (!outlined)
         return std::unexpected(outlined.error());
 
-    const bool next_outlined = !*outlined;
-    if (auto set_status = ida::function::set_outlined(function->start(), next_outlined);
+    // Already outlined (= inline) → nothing to do.
+    if (*outlined) {
+        return ida::ok();
+    }
+
+    if (auto set_status = ida::function::set_outlined(function->start(), true);
         !set_status) {
         return std::unexpected(set_status.error());
     }
@@ -2433,10 +2482,152 @@ ida::Status toggle_outline_intent(const ida::plugin::ActionContext& context) {
     }
 
     ida::ui::message(fmt(
-        "[lifter-port] %s FUNC_OUTLINE for %s @ %#llx and dirtied caller cache.\n",
-        next_outlined ? "Set" : "Cleared",
+        "[lifter-port] Set FUNC_OUTLINE for %s @ %#llx (mark inline) and dirtied caller cache.\n",
         function->name().c_str(),
         static_cast<unsigned long long>(function->start())));
+    return ida::ok();
+}
+
+/// Clear FUNC_OUTLINE on the function under cursor (undo inline, restore to
+/// normal outlined function).  Mirrors the original's "Mark as outline" action.
+ida::Status mark_outline(const ida::plugin::ActionContext& context) {
+    auto address = resolve_action_address(context);
+    if (!address) {
+        return std::unexpected(address.error());
+    }
+
+    auto function = ida::function::at(*address);
+    if (!function) {
+        return std::unexpected(function.error());
+    }
+
+    auto outlined = ida::function::is_outlined(function->start());
+    if (!outlined)
+        return std::unexpected(outlined.error());
+
+    // Not outlined → nothing to do.
+    if (!*outlined) {
+        return ida::ok();
+    }
+
+    if (auto set_status = ida::function::set_outlined(function->start(), false);
+        !set_status) {
+        return std::unexpected(set_status.error());
+    }
+
+    if (auto dirty_status = ida::decompiler::mark_dirty_with_callers(function->start());
+        !dirty_status) {
+        return std::unexpected(dirty_status.error());
+    }
+
+    ida::ui::message(fmt(
+        "[lifter-port] Cleared FUNC_OUTLINE for %s @ %#llx (mark outline) and dirtied caller cache.\n",
+        function->name().c_str(),
+        static_cast<unsigned long long>(function->start())));
+    return ida::ok();
+}
+
+/// Toggle debug printing and (un)install maturity subscription for microcode
+/// dumps.  Mirrors the original's `set_debug_printing` + `hexrays_debug_callback`.
+ida::Status toggle_debug_printing() {
+    g_state.debug_printing = !g_state.debug_printing;
+
+    if (g_state.debug_printing) {
+        // Install maturity subscription to print disassembly/microcode at key stages.
+        auto token = ida::decompiler::on_maturity_changed(
+            [](const ida::decompiler::MaturityEvent& event) {
+                if (!g_state.debug_printing) {
+                    return;
+                }
+
+                // Maturity::Built  (== MMAT_GENERATED)  → print disassembly
+                // Maturity::Trans1 (== MMAT_PREOPTIMIZED) → print microcode "BEFORE LIFTER"
+                // Maturity::Nice   (== MMAT_LOCOPT)      → print microcode "AFTER LIFTER"
+                if (event.new_maturity == ida::decompiler::Maturity::Built) {
+                    auto name = ida::function::name_at(event.function_address);
+                    ida::ui::message(fmt(
+                        "\n================================================================\n"
+                        "DISASSEMBLY: %s (at %#llx)\n"
+                        "================================================================\n",
+                        name ? name->c_str() : "<unknown>",
+                        static_cast<unsigned long long>(event.function_address)));
+
+                    // Print disassembly lines for the function.
+                    auto function = ida::function::at(event.function_address);
+                    if (!function) return;
+
+                    ida::Address ea = function->start();
+                    int line_count = 0;
+                    constexpr int kMaxLines = 200;
+                    while (ea < function->end() && line_count < kMaxLines) {
+                        auto text = ida::instruction::text(ea);
+                        if (text) {
+                            ida::ui::message(fmt("%#llx: %s\n",
+                                static_cast<unsigned long long>(ea), text->c_str()));
+                        }
+                        auto next = ida::address::next_defined(ea);
+                        if (!next || *next <= ea) break;
+                        ea = *next;
+                        ++line_count;
+                    }
+                    if (line_count >= kMaxLines) {
+                        ida::ui::message(fmt("... (truncated at %d lines)\n", kMaxLines));
+                    }
+                    ida::ui::message(
+                        "================================================================\n\n");
+                }
+
+                if (event.new_maturity == ida::decompiler::Maturity::Trans1
+                    || event.new_maturity == ida::decompiler::Maturity::Nice) {
+                    const char* stage =
+                        (event.new_maturity == ida::decompiler::Maturity::Trans1)
+                            ? "BEFORE LIFTER"
+                            : "AFTER LIFTER";
+                    auto name = ida::function::name_at(event.function_address);
+
+                    ida::ui::message(fmt(
+                        "\n================================================================\n"
+                        "MICROCODE [%s]: %s (at %#llx)\n"
+                        "================================================================\n",
+                        stage,
+                        name ? name->c_str() : "<unknown>",
+                        static_cast<unsigned long long>(event.function_address)));
+
+                    // Print microcode lines via decompile snapshot.
+                    ida::decompiler::DecompileFailure failure;
+                    auto decompiled = ida::decompiler::decompile(event.function_address, &failure);
+                    if (decompiled) {
+                        auto mlines = decompiled->microcode_lines();
+                        if (mlines) {
+                            constexpr std::size_t kMaxMicroLines = 200;
+                            const auto count = std::min<std::size_t>(mlines->size(), kMaxMicroLines);
+                            for (std::size_t i = 0; i < count; ++i) {
+                                ida::ui::message(fmt("    %s\n", (*mlines)[i].c_str()));
+                            }
+                            if (mlines->size() > kMaxMicroLines) {
+                                ida::ui::message(fmt("    ... (truncated at %zu lines)\n", kMaxMicroLines));
+                            }
+                        }
+                    }
+
+                    ida::ui::message(
+                        "================================================================\n\n");
+                }
+            });
+
+        if (token) {
+            g_state.maturity_subscription = ida::decompiler::ScopedSubscription(*token);
+        } else {
+            g_state.debug_printing = false;
+            return std::unexpected(token.error());
+        }
+    } else {
+        // Tear down maturity subscription.
+        g_state.maturity_subscription = ida::decompiler::ScopedSubscription{};
+    }
+
+    ida::ui::message(fmt("[lifter-port] Debug printing %s\n",
+                         g_state.debug_printing ? "ENABLED" : "DISABLED"));
     return ida::ok();
 }
 
@@ -2487,32 +2678,77 @@ ida::Status register_actions() {
         return is_pseudocode_widget_title(context.widget_title);
     };
 
+    // "Mark as inline" — sets FUNC_OUTLINE so decompiler inlines the function
+    // into callers.  Enabled only when FUNC_OUTLINE is NOT already set.
+    ida::plugin::Action inline_action;
+    inline_action.id = kActionMarkInline;
+    inline_action.label = "Mark as inline";
+    inline_action.tooltip = "Set FUNC_OUTLINE (inline into callers) and clear decompiler caches";
+    inline_action.handler = []() {
+        ida::plugin::ActionContext context;
+        auto screen = ida::ui::screen_address();
+        if (screen) { context.current_address = *screen; }
+        return mark_inline(context);
+    };
+    inline_action.handler_with_context = [](const ida::plugin::ActionContext& context) {
+        return mark_inline(context);
+    };
+    inline_action.enabled = []() { return true; };
+    inline_action.enabled_with_context = [](const ida::plugin::ActionContext& context) {
+        if (context.current_address == ida::BadAddress) return false;
+        if (!context.widget_title.empty()
+            && !is_pseudocode_widget_title(context.widget_title)) {
+            return false;
+        }
+        // Enable only when outline flag is NOT set.
+        auto func = ida::function::at(context.current_address);
+        if (!func) return false;
+        auto outlined = ida::function::is_outlined(func->start());
+        return outlined.has_value() && !*outlined;
+    };
+
+    // "Mark as outline" — clears FUNC_OUTLINE (undo inline, restore to normal).
+    // Enabled only when FUNC_OUTLINE IS set.
     ida::plugin::Action outline_action;
-    outline_action.id = kActionToggleOutlineIntent;
-    outline_action.label = "Lifter Port: Toggle Outline Intent";
-    outline_action.hotkey = "Ctrl-Alt-Shift-O";
-    outline_action.tooltip = "Toggle FUNC_OUTLINE on current function and dirty caller decompiler cache";
+    outline_action.id = kActionMarkOutline;
+    outline_action.label = "Mark as outline";
+    outline_action.tooltip = "Clear FUNC_OUTLINE (undo inline) and clear decompiler caches";
     outline_action.handler = []() {
         ida::plugin::ActionContext context;
         auto screen = ida::ui::screen_address();
-        if (screen) {
-            context.current_address = *screen;
-        }
-        return toggle_outline_intent(context);
+        if (screen) { context.current_address = *screen; }
+        return mark_outline(context);
     };
     outline_action.handler_with_context = [](const ida::plugin::ActionContext& context) {
-        return toggle_outline_intent(context);
+        return mark_outline(context);
     };
     outline_action.enabled = []() { return true; };
     outline_action.enabled_with_context = [](const ida::plugin::ActionContext& context) {
-        if (context.current_address == ida::BadAddress) {
+        if (context.current_address == ida::BadAddress) return false;
+        if (!context.widget_title.empty()
+            && !is_pseudocode_widget_title(context.widget_title)) {
             return false;
         }
-        if (context.widget_title.empty()) {
-            return true;
-        }
-        return is_pseudocode_widget_title(context.widget_title);
+        // Enable only when outline flag IS set.
+        auto func = ida::function::at(context.current_address);
+        if (!func) return false;
+        auto outlined = ida::function::is_outlined(func->start());
+        return outlined.has_value() && *outlined;
     };
+
+    // "Toggle debug printing" — installs/removes maturity subscription for
+    // disassembly and microcode dumps at key decompilation stages.
+    ida::plugin::Action debug_action;
+    debug_action.id = kActionToggleDebug;
+    debug_action.label = "Lifter Port: Toggle Debug Printing";
+    debug_action.hotkey = "Ctrl-Alt-Shift-D";
+    debug_action.tooltip = "Toggle debug printing of disassembly/microcode during decompilation";
+    debug_action.handler = []() { return toggle_debug_printing(); };
+    debug_action.handler_with_context = [](const ida::plugin::ActionContext&) {
+        return toggle_debug_printing();
+    };
+    debug_action.enabled = []() { return true; };
+    debug_action.enabled_with_context = [](const ida::plugin::ActionContext&) { return true; };
 
     ida::plugin::Action gaps_action;
     gaps_action.id = kActionShowGaps;
@@ -2530,7 +2766,15 @@ ida::Status register_actions() {
         unregister_actions();
         return status;
     }
+    if (auto status = register_action_with_menu(inline_action); !status) {
+        unregister_actions();
+        return status;
+    }
     if (auto status = register_action_with_menu(outline_action); !status) {
+        unregister_actions();
+        return status;
+    }
+    if (auto status = register_action_with_menu(debug_action); !status) {
         unregister_actions();
         return status;
     }
@@ -2622,6 +2866,8 @@ ida::Status install_widget_subscriptions() {
 }
 
 void reset_state() {
+    g_state.maturity_subscription = ida::decompiler::ScopedSubscription{};
+    g_state.debug_printing = false;
     g_state.vmx_filter.reset();
     g_state.ui_subscriptions.clear();
     unregister_actions();
