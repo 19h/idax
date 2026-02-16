@@ -55,6 +55,15 @@ enum class RegisterClass {
     Other,
 };
 
+/// Structured representation of an operand struct-offset path.
+///
+/// A path may contain nested structure/union ids. The `delta` field matches
+/// SDK `get_stroff_path()` semantics.
+struct StructOffsetPath {
+    std::vector<std::uint64_t> structure_ids;
+    AddressDelta               delta{0};
+};
+
 // ── Operand value object ────────────────────────────────────────────────
 
 class Operand {
@@ -182,6 +191,17 @@ Status set_operand_based_struct_offset(Address address,
                                        int n,
                                        Address operand_value,
                                        Address base);
+
+/// Read struct-offset path metadata for an operand.
+///
+/// This mirrors SDK `get_stroff_path()` and returns NotFound when no struct
+/// offset path is present on the operand.
+Result<StructOffsetPath> operand_struct_offset_path(Address address, int n);
+
+/// Read struct-offset path metadata as resolved type names.
+///
+/// Name lookup falls back to `tid_<id>` for unresolved entries.
+Result<std::vector<std::string>> operand_struct_offset_path_names(Address address, int n);
 
 /// Set operand to display as a stack variable.
 Status set_operand_stack_variable(Address address, int n);

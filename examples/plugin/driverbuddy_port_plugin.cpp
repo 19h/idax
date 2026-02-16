@@ -4,6 +4,7 @@
 #include <ida/idax.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
@@ -183,188 +184,42 @@ const std::vector<CustomIoctlDevice> kCustomIoctlDevices = {
     {0x6D, "MOUNTMGRCONTROLTYPE"},
 };
 
-const std::vector<std::string_view> kWdfFunctionSlots = {
-    "pfnWdfChildListCreate",
-    "pfnWdfChildListGetDevice",
-    "pfnWdfChildListRetrievePdo",
-    "pfnWdfChildListRetrieveAddressDescription",
-    "pfnWdfChildListBeginScan",
-    "pfnWdfChildListEndScan",
-    "pfnWdfChildListBeginIteration",
-    "pfnWdfChildListRetrieveNextDevice",
-    "pfnWdfChildListEndIteration",
-    "pfnWdfChildListAddOrUpdateChildDescriptionAsPresent",
-    "pfnWdfChildListUpdateChildDescriptionAsMissing",
-    "pfnWdfChildListUpdateAllChildDescriptionsAsPresent",
-    "pfnWdfChildListRequestChildEject",
-    "pfnWdfCollectionCreate",
-    "pfnWdfCollectionGetCount",
-    "pfnWdfCollectionAdd",
-    "pfnWdfCollectionRemove",
-    "pfnWdfCollectionRemoveItem",
-    "pfnWdfCollectionGetItem",
-    "pfnWdfCollectionGetFirstItem",
-    "pfnWdfCollectionGetLastItem",
-    "pfnWdfCommonBufferCreate",
-    "pfnWdfCommonBufferGetAlignedVirtualAddress",
-    "pfnWdfCommonBufferGetAlignedLogicalAddress",
-    "pfnWdfCommonBufferGetLength",
-    "pfnWdfControlDeviceInitAllocate",
-    "pfnWdfControlDeviceInitSetShutdownNotification",
-    "pfnWdfControlFinishInitializing",
-    "pfnWdfDeviceGetDeviceState",
-    "pfnWdfDeviceSetDeviceState",
-    "pfnWdfWdmDeviceGetWdfDeviceHandle",
-    "pfnWdfDeviceWdmGetDeviceObject",
-    "pfnWdfDeviceWdmGetAttachedDevice",
-    "pfnWdfDeviceWdmGetPhysicalDevice",
-    "pfnWdfDeviceWdmDispatchPreprocessedIrp",
-    "pfnWdfDeviceAddDependentUsageDeviceObject",
-    "pfnWdfDeviceAddRemovalRelationsPhysicalDevice",
-    "pfnWdfDeviceRemoveRemovalRelationsPhysicalDevice",
-    "pfnWdfDeviceClearRemovalRelationsDevices",
-    "pfnWdfDeviceGetDriver",
-    "pfnWdfDeviceRetrieveDeviceName",
-    "pfnWdfDeviceAssignMofResourceName",
-    "pfnWdfDeviceGetIoTarget",
-    "pfnWdfDeviceGetDevicePnpState",
-    "pfnWdfDeviceGetDevicePowerState",
-    "pfnWdfDeviceGetDevicePowerPolicyState",
-    "pfnWdfDeviceAssignS0IdleSettings",
-    "pfnWdfDeviceAssignSxWakeSettings",
-    "pfnWdfDeviceOpenRegistryKey",
-    "pfnWdfDeviceSetSpecialFileSupport",
-    "pfnWdfDeviceSetCharacteristics",
-    "pfnWdfDeviceGetCharacteristics",
-    "pfnWdfDeviceGetAlignmentRequirement",
-    "pfnWdfDeviceSetAlignmentRequirement",
-    "pfnWdfDeviceInitFree",
-    "pfnWdfDeviceInitSetPnpPowerEventCallbacks",
-    "pfnWdfDeviceInitSetPowerPolicyEventCallbacks",
-    "pfnWdfDeviceInitSetPowerPolicyOwnership",
-    "pfnWdfDeviceInitRegisterPnpStateChangeCallback",
-    "pfnWdfDeviceInitRegisterPowerStateChangeCallback",
-    "pfnWdfDeviceInitRegisterPowerPolicyStateChangeCallback",
-    "pfnWdfDeviceInitSetIoType",
-    "pfnWdfDeviceInitSetExclusive",
-    "pfnWdfDeviceInitSetPowerNotPageable",
-    "pfnWdfDeviceInitSetPowerPageable",
-    "pfnWdfDeviceInitSetPowerInrush",
-    "pfnWdfDeviceInitSetDeviceType",
-    "pfnWdfDeviceInitAssignName",
-    "pfnWdfDeviceInitAssignSDDLString",
-    "pfnWdfDeviceInitSetDeviceClass",
-    "pfnWdfDeviceInitSetCharacteristics",
-    "pfnWdfDeviceInitSetFileObjectConfig",
-    "pfnWdfDeviceInitSetRequestAttributes",
-    "pfnWdfDeviceInitAssignWdmIrpPreprocessCallback",
-    "pfnWdfDeviceInitSetIoInCallerContextCallback",
-    "pfnWdfDeviceCreate",
-    "pfnWdfDeviceSetStaticStopRemove",
-    "pfnWdfDeviceCreateDeviceInterface",
-    "pfnWdfDeviceSetDeviceInterfaceState",
-    "pfnWdfDeviceRetrieveDeviceInterfaceString",
-    "pfnWdfDeviceCreateSymbolicLink",
-    "pfnWdfDeviceQueryProperty",
-    "pfnWdfDeviceAllocAndQueryProperty",
-    "pfnWdfDeviceSetPnpCapabilities",
-    "pfnWdfDeviceSetPowerCapabilities",
-    "pfnWdfDeviceSetBusInformationForChildren",
-    "pfnWdfDeviceIndicateWakeStatus",
-    "pfnWdfDeviceSetFailed",
-    "pfnWdfDeviceStopIdle",
-    "pfnWdfDeviceResumeIdle",
-    "pfnWdfDeviceGetFileObject",
-    "pfnWdfDeviceEnqueueRequest",
-    "pfnWdfDeviceGetDefaultQueue",
-    "pfnWdfDeviceConfigureRequestDispatching",
-    "pfnWdfDmaEnablerCreate",
-    "pfnWdfDmaEnablerGetMaximumLength",
-    "pfnWdfDmaEnablerGetMaximumScatterGatherElements",
-    "pfnWdfDmaEnablerSetMaximumScatterGatherElements",
-    "pfnWdfDmaTransactionCreate",
-    "pfnWdfDmaTransactionInitialize",
-    "pfnWdfDmaTransactionInitializeUsingRequest",
-    "pfnWdfDmaTransactionExecute",
-    "pfnWdfDmaTransactionRelease",
-    "pfnWdfDmaTransactionDmaCompleted",
-    "pfnWdfDmaTransactionDmaCompletedWithLength",
-    "pfnWdfDmaTransactionDmaCompletedFinal",
-    "pfnWdfDmaTransactionGetBytesTransferred",
-    "pfnWdfDmaTransactionSetMaximumLength",
-    "pfnWdfDmaTransactionGetRequest",
-    "pfnWdfDmaTransactionGetCurrentDmaTransferLength",
-    "pfnWdfDmaTransactionGetDevice",
-    "pfnWdfDpcCreate",
-    "pfnWdfDpcEnqueue",
-    "pfnWdfDpcCancel",
-    "pfnWdfDpcGetParentObject",
-    "pfnWdfDpcWdmGetDpc",
-    "pfnWdfDriverCreate",
-    "pfnWdfDriverGetRegistryPath",
-    "pfnWdfDriverWdmGetDriverObject",
-    "pfnWdfDriverOpenParametersRegistryKey",
-    "pfnWdfWdmDriverGetWdfDriverHandle",
-    "pfnWdfDriverRegisterTraceInfo",
-    "pfnWdfDriverRetrieveVersionString",
-    "pfnWdfDriverIsVersionAvailable",
-    "pfnWdfFdoInitWdmGetPhysicalDevice",
-    "pfnWdfFdoInitOpenRegistryKey",
-    "pfnWdfFdoInitQueryProperty",
-    "pfnWdfFdoInitAllocAndQueryProperty",
-    "pfnWdfFdoInitSetEventCallbacks",
-    "pfnWdfFdoInitSetFilter",
-    "pfnWdfFdoInitSetDefaultChildListConfig",
-    "pfnWdfFdoQueryForInterface",
-    "pfnWdfFdoGetDefaultChildList",
-    "pfnWdfFdoAddStaticChild",
-    "pfnWdfFdoLockStaticChildListForIteration",
-    "pfnWdfFdoRetrieveNextStaticChild",
-    "pfnWdfFdoUnlockStaticChildListFromIteration",
-    "pfnWdfFileObjectGetFileName",
-    "pfnWdfFileObjectGetFlags",
-    "pfnWdfFileObjectGetDevice",
-    "pfnWdfFileObjectWdmGetFileObject",
-    "pfnWdfInterruptCreate",
-    "pfnWdfInterruptQueueDpcForIsr",
-    "pfnWdfInterruptSynchronize",
-    "pfnWdfInterruptAcquireLock",
-    "pfnWdfInterruptReleaseLock",
-    "pfnWdfInterruptEnable",
-    "pfnWdfInterruptDisable",
-    "pfnWdfInterruptWdmGetInterrupt",
-    "pfnWdfInterruptGetInfo",
-    "pfnWdfInterruptSetPolicy",
-    "pfnWdfInterruptGetDevice",
-    "pfnWdfIoQueueCreate",
-    "pfnWdfIoQueueGetState",
-    "pfnWdfIoQueueStart",
-    "pfnWdfIoQueueStop",
-    "pfnWdfIoQueueStopSynchronously",
-    "pfnWdfIoQueueGetDevice",
-    "pfnWdfIoQueueRetrieveNextRequest",
-    "pfnWdfIoQueueRetrieveRequestByFileObject",
-    "pfnWdfIoQueueFindRequest",
-    "pfnWdfIoQueueRetrieveFoundRequest",
-    "pfnWdfIoQueueDrainSynchronously",
-    "pfnWdfIoQueueDrain",
-    "pfnWdfIoQueuePurgeSynchronously",
-    "pfnWdfIoQueuePurge",
-    "pfnWdfIoQueueReadyNotify",
-    "pfnWdfIoTargetCreate",
-    "pfnWdfIoTargetOpen",
-    "pfnWdfIoTargetCloseForQueryRemove",
-    "pfnWdfIoTargetClose",
-    "pfnWdfIoTargetStart",
-    "pfnWdfIoTargetStop",
-    "pfnWdfIoTargetGetState",
-    "pfnWdfIoTargetGetDevice",
-    "pfnWdfIoTargetQueryTargetProperty",
-    "pfnWdfIoTargetAllocAndQueryTargetProperty",
-    "pfnWdfIoTargetQueryForInterface",
-    "pfnWdfIoTargetWdmGetTargetDeviceObject",
-    "pfnWdfIoTargetWdmGetTargetPhysicalDevice",
+constexpr bool kWdfStrictParityMode = true;
+constexpr std::size_t kWdfSlotCountV1 = 387;
+constexpr std::size_t kWdfSlotCountV5 = 396;
+constexpr std::size_t kWdfSlotCountV9 = 432;
+constexpr std::size_t kWdfSlotCountV11 = 438;
+constexpr std::size_t kWdfSlotCountV13 = 440;
+
+static constexpr std::array<std::string_view, kWdfSlotCountV13> kWdfFunctionSlots = {
+#include "driverbuddy_wdf_slots.inc"
 };
+
+std::size_t wdf_slot_count_for_minor_version(std::uint32_t minor_version) {
+    if (kWdfStrictParityMode) {
+        return kWdfFunctionSlots.size();
+    }
+    if (minor_version >= 13) {
+        return kWdfSlotCountV13;
+    }
+    if (minor_version >= 11) {
+        return kWdfSlotCountV11;
+    }
+    if (minor_version >= 9) {
+        return kWdfSlotCountV9;
+    }
+    if (minor_version >= 5) {
+        return kWdfSlotCountV5;
+    }
+    return kWdfSlotCountV1;
+}
+
+std::string wdf_struct_type_name_for_slot_count(std::size_t slot_count) {
+    if (kWdfStrictParityMode) {
+        return "WDFFUNCTIONS_STRICT";
+    }
+    return "WDFFUNCTIONS_" + std::to_string(slot_count);
+}
 
 struct FunctionInventory {
     std::unordered_map<std::string, Address> functions;
@@ -653,8 +508,10 @@ std::size_t pointer_size_for_function(Address function_address) {
     return 4;
 }
 
-Status ensure_wdf_struct_type(std::size_t pointer_size) {
-    const auto existing = type::TypeInfo::by_name("WDFFUNCTIONS");
+Status ensure_wdf_struct_type(std::string_view type_name,
+                              std::size_t pointer_size,
+                              std::size_t slot_count) {
+    const auto existing = type::TypeInfo::by_name(type_name);
     if (existing) {
         return ida::ok();
     }
@@ -663,7 +520,8 @@ Status ensure_wdf_struct_type(std::size_t pointer_size) {
     const auto pointer_type = type::TypeInfo::pointer_to(type::TypeInfo::void_type());
 
     std::size_t member_offset = 0;
-    for (const auto member_name : kWdfFunctionSlots) {
+    for (std::size_t index = 0; index < slot_count; ++index) {
+        const auto member_name = kWdfFunctionSlots[index];
         const auto add = wdf_struct.add_member(member_name, pointer_type, member_offset);
         if (!add) {
             return std::unexpected(add.error());
@@ -671,7 +529,7 @@ Status ensure_wdf_struct_type(std::size_t pointer_size) {
         member_offset += pointer_size;
     }
 
-    const auto save = wdf_struct.save_as("WDFFUNCTIONS");
+    const auto save = wdf_struct.save_as(type_name);
     if (!save) {
         return std::unexpected(save.error());
     }
@@ -711,6 +569,9 @@ void annotate_wdf_functions(Address driver_entry) {
         const Address metadata_address = ref.from;
 
         const auto minor_version = data::read_dword(metadata_address + pointer_size + 0x4);
+        const std::uint32_t minor = minor_version ? *minor_version : 0U;
+        const std::size_t slot_count = wdf_slot_count_for_minor_version(minor);
+        const std::string type_name = wdf_struct_type_name_for_slot_count(slot_count);
 
         Address table_address = BadAddress;
         if (pointer_size == 8) {
@@ -729,14 +590,14 @@ void annotate_wdf_functions(Address driver_entry) {
             continue;
         }
 
-        const auto ensure = ensure_wdf_struct_type(pointer_size);
+        const auto ensure = ensure_wdf_struct_type(type_name, pointer_size, slot_count);
         if (!ensure) {
             ui::message(fmt("[-] Failed to materialize WDFFUNCTIONS type: %s\n",
                             error_text(ensure.error()).c_str()));
             return;
         }
 
-        const auto apply = type::apply_named_type(table_address, "WDFFUNCTIONS");
+        const auto apply = type::apply_named_type(table_address, type_name);
         if (!apply) {
             ui::message(fmt("[-] Failed to apply WDFFUNCTIONS type at 0x%llX: %s\n",
                             static_cast<unsigned long long>(table_address),
@@ -745,10 +606,11 @@ void annotate_wdf_functions(Address driver_entry) {
         }
 
         (void)name::force_set(table_address, "WdfFunctions");
-        ui::message(fmt("[+] Annotated WdfFunctions at 0x%08llX (KMDF 1.%u, %zu slots)\n",
+        ui::message(fmt("[+] Annotated WdfFunctions at 0x%08llX (KMDF 1.%u, %zu slots, mode=%s)\n",
                         static_cast<unsigned long long>(table_address),
-                        minor_version ? *minor_version : 0U,
-                        kWdfFunctionSlots.size()));
+                        minor,
+                        slot_count,
+                        kWdfStrictParityMode ? "strict" : "versioned"));
         return;
     }
 
@@ -913,6 +775,12 @@ bool apply_struct_offset_if_matches(Address instruction_address,
                             std::string(message_label).c_str(),
                             static_cast<unsigned long long>(instruction_address),
                             operand_index));
+            if (auto names = instruction::operand_struct_offset_path_names(instruction_address,
+                                                                           operand_index);
+                names && !names->empty()) {
+                ui::message(fmt("[+]   struct path: %s\n",
+                                names->front().c_str()));
+            }
             applied = true;
         }
     }
@@ -922,9 +790,21 @@ bool apply_struct_offset_if_matches(Address instruction_address,
 void annotate_dispatch_structs(Address dispatch_address) {
     ui::message("[+] Annotating DispatchDeviceControl with known WDM structs...\n");
 
-    (void)type::import_type("", "IRP");
-    (void)type::import_type("", "IO_STACK_LOCATION");
-    (void)type::import_type("", "DEVICE_OBJECT");
+    const auto ensure_irp = type::ensure_named_type("IRP");
+    if (!ensure_irp) {
+        ui::message(fmt("[-] Failed to resolve type IRP: %s\n",
+                        error_text(ensure_irp.error()).c_str()));
+    }
+    const auto ensure_io_stack = type::ensure_named_type("IO_STACK_LOCATION");
+    if (!ensure_io_stack) {
+        ui::message(fmt("[-] Failed to resolve type IO_STACK_LOCATION: %s\n",
+                        error_text(ensure_io_stack.error()).c_str()));
+    }
+    const auto ensure_device_object = type::ensure_named_type("DEVICE_OBJECT");
+    if (!ensure_device_object) {
+        ui::message(fmt("[-] Failed to resolve type DEVICE_OBJECT: %s\n",
+                        error_text(ensure_device_object.error()).c_str()));
+    }
 
     const auto function_items = function::code_addresses(dispatch_address);
     if (!function_items) {

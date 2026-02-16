@@ -190,6 +190,14 @@ Result<std::string> local_type_name(std::size_t ordinal);
 Result<std::size_t> import_type(std::string_view source_til_name,
                                  std::string_view type_name);
 
+/// Ensure a named type exists in the local type library and return it.
+///
+/// If the type is already present, this returns it directly.
+/// Otherwise this imports it from `source_til_name` (or searches all loaded
+/// type libraries when `source_til_name` is empty), then resolves it again.
+Result<TypeInfo> ensure_named_type(std::string_view type_name,
+                                   std::string_view source_til_name = {});
+
 /// Apply a named type from the local type library at an address.
 /// Equivalent to looking up the type by name and calling apply().
 Status apply_named_type(Address ea, std::string_view type_name);

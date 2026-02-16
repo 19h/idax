@@ -227,6 +227,10 @@ void check_instruction_surface() {
     (void)ida::instruction::RegisterClass::Vector;
     (void)ida::instruction::RegisterClass::Mask;
 
+    ida::instruction::StructOffsetPath stroff_path;
+    (void)stroff_path.structure_ids;
+    (void)stroff_path.delta;
+
     using InstructionSetOperandFormatFn = ida::Status(*)(ida::Address,
                                                          int,
                                                          ida::instruction::OperandFormat,
@@ -243,6 +247,10 @@ void check_instruction_surface() {
                                                                      int,
                                                                      ida::Address,
                                                                      ida::Address);
+    using InstructionStructOffsetPathFn = ida::Result<ida::instruction::StructOffsetPath>(*)(ida::Address,
+                                                                                               int);
+    using InstructionStructOffsetPathNamesFn = ida::Result<std::vector<std::string>>(*)(ida::Address,
+                                                                                          int);
     using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
     using InstructionOperandByteWidthFn = ida::Result<int>(*)(ida::Address, int);
     using InstructionOperandRegisterNameFn = ida::Result<std::string>(*)(ida::Address, int);
@@ -256,6 +264,10 @@ void check_instruction_surface() {
         &ida::instruction::set_operand_struct_offset);
     (void)static_cast<InstructionSetOperandBasedStructOffsetFn>(
         &ida::instruction::set_operand_based_struct_offset);
+    (void)static_cast<InstructionStructOffsetPathFn>(
+        &ida::instruction::operand_struct_offset_path);
+    (void)static_cast<InstructionStructOffsetPathNamesFn>(
+        &ida::instruction::operand_struct_offset_path_names);
     (void)static_cast<InstructionOperandTextFn>(&ida::instruction::operand_text);
     (void)static_cast<InstructionOperandByteWidthFn>(&ida::instruction::operand_byte_width);
     (void)static_cast<InstructionOperandRegisterNameFn>(&ida::instruction::operand_register_name);
@@ -382,6 +394,8 @@ void check_type_surface() {
     using ArrayElementTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using ArrayLengthFn = ida::Result<std::size_t>(ida::type::TypeInfo::*)() const;
     using ResolveTypedefFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
+    using EnsureNamedTypeFn = ida::Result<ida::type::TypeInfo>(*)(std::string_view,
+                                                                   std::string_view);
 
     (void)static_cast<FunctionTypeFactoryFn>(&ida::type::TypeInfo::function_type);
     (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
@@ -395,6 +409,7 @@ void check_type_surface() {
     (void)static_cast<ArrayElementTypeFn>(&ida::type::TypeInfo::array_element_type);
     (void)static_cast<ArrayLengthFn>(&ida::type::TypeInfo::array_length);
     (void)static_cast<ResolveTypedefFn>(&ida::type::TypeInfo::resolve_typedef);
+    (void)static_cast<EnsureNamedTypeFn>(&ida::type::ensure_named_type);
 }
 
 // ─── ida::fixup ─────────────────────────────────────────────────────────

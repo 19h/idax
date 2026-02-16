@@ -126,7 +126,7 @@ The plugin keeps DriverBuddy's core workflows:
 - Decodes IOCTL constants both interactively (`Ctrl-Alt-I`) and from listing
   hits (`IoControlCode`).
 - For WDF targets, builds/applies a `WDFFUNCTIONS` type over the dispatch table
-  using idax type APIs.
+  using idax type APIs (strict parity mode uses the full 440 historical slots).
 
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe
 

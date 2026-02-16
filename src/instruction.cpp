@@ -371,6 +371,47 @@ Status set_operand_based_struct_offset(Address ea,
     return ida::ok();
 }
 
+Result<StructOffsetPath> operand_struct_offset_path(Address ea, int n) {
+    tid_t path[MAXSTRUCPATH] = {};
+    adiff_t delta = 0;
+
+    const int length = get_stroff_path(path, &delta, ea, n);
+    if (length <= 0) {
+        return std::unexpected(Error::not_found("Operand has no struct-offset path",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+
+    StructOffsetPath result;
+    result.delta = static_cast<AddressDelta>(delta);
+    const int bounded_length = std::min(length, static_cast<int>(MAXSTRUCPATH));
+    result.structure_ids.reserve(static_cast<std::size_t>(bounded_length));
+    for (int index = 0; index < bounded_length; ++index) {
+        result.structure_ids.push_back(static_cast<std::uint64_t>(path[index]));
+    }
+    return result;
+}
+
+Result<std::vector<std::string>> operand_struct_offset_path_names(Address ea, int n) {
+    auto path = operand_struct_offset_path(ea, n);
+    if (!path) {
+        return std::unexpected(path.error());
+    }
+
+    std::vector<std::string> names;
+    names.reserve(path->structure_ids.size());
+
+    for (const auto id_value : path->structure_ids) {
+        qstring name;
+        const tid_t tid = static_cast<tid_t>(id_value);
+        if (get_tid_name(&name, tid)) {
+            names.push_back(ida::detail::to_string(name));
+        } else {
+            names.push_back("tid_" + std::to_string(id_value));
+        }
+    }
+    return names;
+}
+
 Status set_operand_stack_variable(Address ea, int n) {
     if (!op_stkvar(ea, n))
         return std::unexpected(Error::sdk("op_stkvar failed", std::to_string(ea)));

@@ -34,6 +34,7 @@ This section captures the intended public API semantics at a concrete level so i
 - `Instruction` view object (mnemonic, size, flow)
 - `Operand` view object with typed categories and representation controls
 - Struct-offset operand helpers (`set_operand_struct_offset`, `set_operand_based_struct_offset`)
+- Struct-offset readback/introspection helpers (`operand_struct_offset_path`, `operand_struct_offset_path_names`)
 - Xref conveniences for refs-from and flow semantics
 
 ### 17.6 `ida::name`
@@ -58,6 +59,7 @@ This section captures the intended public API semantics at a concrete level so i
 - Struct/union/member APIs with byte-based offsets
 - Apply/retrieve type operations
 - Type library access wrappers and import/export helpers
+- Standard-type bootstrap helper (`ensure_named_type`)
 
 ### 17.10 `ida::entry`
 - Entry listing and ordinal/index-safe APIs

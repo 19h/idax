@@ -20,7 +20,7 @@ Public headers:
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
-| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries |
+| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries (`ensure_named_type`, import/apply named helpers) |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
 | `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar/popup attachment, action-context host bridges |

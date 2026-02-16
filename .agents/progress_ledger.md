@@ -51,6 +51,18 @@
   - 15.4.2. `cmake --build build --target idax_driverbuddy_port_plugin idax_api_surface_check` passes.
   - 15.4.3. `cmake --build build --target idax_examples` passes.
 
+- **15.5. DriverBuddy Follow-Up (User-selected 1/2/3)**
+  - 15.5.1. Added standard-type bootstrap helper `ida::type::ensure_named_type(type_name, source_til_name={})` and switched DriverBuddy WDM struct-annotation flow from best-effort `import_type` calls to `ensure_named_type` with explicit diagnostics.
+  - 15.5.2. Added struct-offset readback wrappers in `ida::instruction`: `operand_struct_offset_path` + `operand_struct_offset_path_names`, and updated compile-only API parity checks accordingly.
+  - 15.5.3. Expanded DriverBuddy WDF function-table schema from curated subset to full historical 440-slot list via `examples/plugin/driverbuddy_wdf_slots.inc` and wired strict parity mode (`kWdfStrictParityMode=true`) in the port.
+  - 15.5.4. Updated DriverBuddy gap audit to close type-bootstrap and stroff-introspection deltas; only hotkey convenience remains partial.
+  - 15.5.5. Evidence: `cmake --build build --target idax_driverbuddy_port_plugin idax_examples idax_api_surface_check` passes after follow-up changes.
+
+- **15.6. DriverBuddy Follow-Up Closure Hardening (Docs + Parity Validation)**
+  - 15.6.1. Added missing compile-only API parity coverage for new type bootstrap free function `ida::type::ensure_named_type` in `tests/unit/api_surface_parity_test.cpp`.
+  - 15.6.2. Synchronized domain/capability coverage documentation in `docs/sdk_domain_coverage_matrix.md` to explicitly include DriverBuddy-driven instruction/type additions (`set_operand_struct_offset`, `set_operand_based_struct_offset`, `operand_struct_offset_path*`, `ensure_named_type`).
+  - 15.6.3. Revalidated with `cmake --build build --target idax_driverbuddy_port_plugin idax_api_surface_check` (pass).
+
 ---
 
 ### 2. Core API Build-Out (P2–P5, P7–P8)
