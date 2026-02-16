@@ -495,3 +495,5 @@ struct BinaryFingerprintPlugin : ida::plugin::Plugin {
         return ida::ok();
     }
 };
+
+IDAX_PLUGIN(BinaryFingerprintPlugin)

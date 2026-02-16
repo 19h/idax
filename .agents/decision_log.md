@@ -840,4 +840,11 @@
   - **16.4.1. Rationale:** Pseudocode post-processing filters need to read AND write the raw color-tagged line strings. The existing `pseudocode_lines()` returns cleaned text (tag_remove'd). `raw_lines()` / `set_raw_line()` provide direct access to `cfunc->sv` members for filters that manipulate color tags.
   - **16.4.2. Safety:** Line index bounds-checked; returns error on out-of-range.
 
+- **16.5. Decision D-DATABASE-TU-SPLIT**: Split `database.cpp` into plugin-safe and idalib-only translation units
+  - **16.5.1. Rationale:** `database.cpp` contained both idalib-only lifecycle functions (`init`, `open`, `close` — referencing `init_library`, `open_database`, `close_database`, `enable_console_messages`) and plugin-safe query functions (`input_file_path`, `image_base`, `input_md5`, `save`, etc.) in a single translation unit. When a plugin used any `ida::database` query API, the linker pulled in the entire `database.cpp.o` object, causing unresolved symbol errors for the idalib-only functions that are not exported from `libida.dylib`.
+  - **16.5.2. Solution:** Two files: `database.cpp` (queries, metadata, save — all symbols resolvable against `libida.dylib`) and `database_lifecycle.cpp` (init/open/close + RuntimeOptions/sandbox/plugin-policy helpers — only resolvable against `libidalib.dylib`).
+  - **16.5.3. Alternatives considered:** (a) Weak symbols / `__attribute__((weak))` — rejected, non-portable and obscures real link errors. (b) Separate static library for idalib-only code — rejected, over-engineering for a single TU split. (c) Move `processor_id()`/`processor_name()` pattern (implement in a different TU) — already done for those two, but doesn't scale to the full lifecycle+query mix.
+  - **16.5.4. Key detail:** `save_database` IS exported from `libida.dylib`, so `save()` stays in the plugin-safe `database.cpp`. Only `init_library`/`open_database`/`close_database`/`enable_console_messages` are idalib-exclusive.
+  - **16.5.5. Evidence:** `idax_audit_plugin` and `idax_fingerprint_plugin` now link clean; all 7 plugins build; 16/16 tests pass.
+
 ---

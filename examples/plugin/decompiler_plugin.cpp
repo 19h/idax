@@ -418,3 +418,5 @@ struct ComplexityMetricsPlugin : ida::plugin::Plugin {
         return ida::ok();
     }
 };
+
+IDAX_PLUGIN(ComplexityMetricsPlugin)

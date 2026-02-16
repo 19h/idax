@@ -482,3 +482,5 @@ struct ChangeTrackerPlugin : ida::plugin::Plugin {
         return ida::ok();
     }
 };
+
+IDAX_PLUGIN(ChangeTrackerPlugin)
