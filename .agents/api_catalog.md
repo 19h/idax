@@ -33,6 +33,7 @@ This section captures the intended public API semantics at a concrete level so i
 - Decode/create operations with explicit DB mutation distinction
 - `Instruction` view object (mnemonic, size, flow)
 - `Operand` view object with typed categories and representation controls
+- Struct-offset operand helpers (`set_operand_struct_offset`, `set_operand_based_struct_offset`)
 - Xref conveniences for refs-from and flow semantics
 
 ### 17.6 `ida::name`

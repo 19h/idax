@@ -123,6 +123,13 @@ int operand_byte_width(const op_t& op) {
     return width == 0 || width == BADSIZE ? 0 : static_cast<int>(width);
 }
 
+Result<insn_t> decode_raw_instruction(Address ea) {
+    insn_t raw;
+    if (decode_insn(&raw, ea) <= 0)
+        return std::unexpected(Error::sdk("decode_insn failed", std::to_string(ea)));
+    return raw;
+}
+
 std::string decode_register_name(Address address,
                                  int operand_index,
                                  const op_t& op,
@@ -301,6 +308,66 @@ Status set_operand_format(Address ea, int n, OperandFormat format, Address base)
 Status set_operand_offset(Address ea, int n, Address base) {
     if (!op_plain_offset(ea, n, base))
         return std::unexpected(Error::sdk("op_plain_offset failed", std::to_string(ea)));
+    return ida::ok();
+}
+
+Status set_operand_struct_offset(Address ea,
+                                 int n,
+                                 std::string_view structure_name,
+                                 AddressDelta delta) {
+    if (structure_name.empty()) {
+        return std::unexpected(Error::validation("Structure name must not be empty"));
+    }
+
+    const std::string name_text(structure_name);
+    const tid_t structure_id = get_named_type_tid(name_text.c_str());
+    if (structure_id == BADNODE) {
+        return std::unexpected(Error::not_found("Structure not found", name_text));
+    }
+
+    return set_operand_struct_offset(ea,
+                                     n,
+                                     static_cast<std::uint64_t>(structure_id),
+                                     delta);
+}
+
+Status set_operand_struct_offset(Address ea,
+                                 int n,
+                                 std::uint64_t structure_id,
+                                 AddressDelta delta) {
+    const tid_t tid = static_cast<tid_t>(structure_id);
+    if (tid == BADNODE) {
+        return std::unexpected(Error::not_found("Structure id is invalid",
+                                                std::to_string(structure_id)));
+    }
+
+    auto raw = decode_raw_instruction(ea);
+    if (!raw)
+        return std::unexpected(raw.error());
+
+    const tid_t path[1] = {tid};
+    if (!op_stroff(*raw, n, path, 1, static_cast<adiff_t>(delta))) {
+        return std::unexpected(Error::sdk("op_stroff failed",
+                                          std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    return ida::ok();
+}
+
+Status set_operand_based_struct_offset(Address ea,
+                                       int n,
+                                       Address operand_value,
+                                       Address base) {
+    auto raw = decode_raw_instruction(ea);
+    if (!raw)
+        return std::unexpected(raw.error());
+
+    if (!op_based_stroff(*raw,
+                         n,
+                         static_cast<adiff_t>(operand_value),
+                         static_cast<ea_t>(base))) {
+        return std::unexpected(Error::sdk("op_based_stroff failed",
+                                          std::to_string(ea) + ":" + std::to_string(n)));
+    }
     return ida::ok();
 }
 

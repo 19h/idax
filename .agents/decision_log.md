@@ -868,4 +868,17 @@
   - **17.3.2. Rationale:** Enables first-class addon build when Qt is available while gracefully skipping when Qt is missing (with explicit `build_qt` guidance from ida-cmake).
   - **17.3.3. Alternative considered:** unconditional non-Qt plugin target — rejected (fragile in environments without Qt and duplicates ida-cmake Qt handling).
 
+### 18. DriverBuddy Port + Struct-Offset API Closure (Phase 13)
+
+- **18.1. Decision D-INSTRUCTION-STRUCT-OFFSET-WRAPPERS**: Add first-class operand struct-offset representation helpers in `ida::instruction`
+  - **18.1.1. Decision:** Introduce three wrappers: `set_operand_struct_offset(Address,int,std::string_view,AddressDelta)`, `set_operand_struct_offset(Address,int,std::uint64_t,AddressDelta)`, and `set_operand_based_struct_offset(Address,int,Address,Address)`.
+  - **18.1.2. Rationale:** Real-world DriverBuddy migration requires a public equivalent for `OpStroffEx`/`op_based_stroff` to annotate WDM dispatch operands as IRP/DEVICE_OBJECT field references without raw SDK fallback.
+  - **18.1.3. SDK-specific note:** On SDK 9.3, named-type resolution for this path should use `get_named_type_tid()` (legacy `get_struc_id()` helpers are not available in this bridge context).
+  - **18.1.4. Alternatives considered:** (a) keep only generic operand-format wrappers and leave struct-offset annotation to raw SDK — rejected (breaks opacity goal for a common migration pattern). (b) place helper in `ida::type` instead of `ida::instruction` — rejected because operation mutates operand representation, not type definitions.
+
+- **18.2. Decision D-DRIVERBUDDY-WDF-SCHEMA-SUBSET**: Use curated WDF slot subset in example port
+  - **18.2.1. Decision:** Materialize a high-value curated `WDFFUNCTIONS` member subset (first 180 slots) in the example port rather than inlining all 440 historical entries.
+  - **18.2.2. Rationale:** Keeps the example maintainable/readable while still demonstrating the full idax migration pattern (marker search, metadata dereference, struct materialization, apply+rename).
+  - **18.2.3. Trade-off:** Not every historical KMDF slot is named by default in the example; this is documented as a non-blocking audit delta and can be expanded as needed.
+
 ---

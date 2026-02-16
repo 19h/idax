@@ -158,6 +158,31 @@ Status set_operand_format(Address address, int n, OperandFormat format, Address 
 /// Set operand as an offset reference. \p base is the offset base (0 for auto).
 Status set_operand_offset(Address address, int n, Address base = 0);
 
+/// Set operand to display as a structure member offset by structure name.
+///
+/// This mirrors SDK `op_stroff()` for single-structure paths.
+/// `delta` denotes the difference between the structure base and pointer.
+Status set_operand_struct_offset(Address address,
+                                 int n,
+                                 std::string_view structure_name,
+                                 AddressDelta delta = 0);
+
+/// Set operand to display as a structure member offset by structure id.
+///
+/// `structure_id` is a raw SDK structure id (`tid_t`).
+Status set_operand_struct_offset(Address address,
+                                 int n,
+                                 std::uint64_t structure_id,
+                                 AddressDelta delta = 0);
+
+/// Set operand representation as a structure offset using an explicit base.
+///
+/// This mirrors SDK `op_based_stroff()`.
+Status set_operand_based_struct_offset(Address address,
+                                       int n,
+                                       Address operand_value,
+                                       Address base);
+
 /// Set operand to display as a stack variable.
 Status set_operand_stack_variable(Address address, int n);
 
