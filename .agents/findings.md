@@ -305,4 +305,8 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 258. The `init_library` startup failure for idax smoke flows is reproducible when `IDADIR` points to an SDK source tree (for example `/Users/int/dev/ida-sdk/src`) rather than a full IDA runtime root. On this host, `idax_smoke_test` succeeds with no env overrides because the binary already carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also succeeds.
 
+259. `ida::database::ProcessorId` should track the full current SDK `PLFM_*` set (through `PLFM_MCORE`) rather than a small common subset so numeric processor IDs round-trip through the typed enum without stale coverage gaps.
+
+260. Runtime plugin-load policy paths are now host-validated via `idax_idalib_dump_port`: both `--no-plugins` and allowlist mode (`--plugin "*.dylib"`) initialize/open/analyze successfully against the fixture binary, confirming `RuntimeOptions::plugin_policy` is non-blocking in this runtime profile.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

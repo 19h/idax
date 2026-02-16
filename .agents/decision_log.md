@@ -901,4 +901,9 @@
   - **19.3.2. Rationale:** Keeps the example immediately usable while documenting residual profile-granularity limits as non-blocking parity gaps.
   - **19.3.3. Trade-off:** Some processor-profile variants (e.g., fine ARM profile/revision nuances) remain heuristic without a richer normalized profile model.
 
+- **19.4. Decision D-PROCESSORID-FULL-PLFM-COVERAGE**: Expand `ida::database::ProcessorId` to mirror full current SDK `PLFM_*` range
+  - **19.4.1. Decision:** Extend `ProcessorId` from a common-subset enum to full coverage through `PLFM_MCORE` (0..77).
+  - **19.4.2. Rationale:** Typed `processor()` should not become stale for non-mainstream processor modules; full coverage preserves numeric round-trip fidelity while keeping plugin code SDK-opaque.
+  - **19.4.3. Alternative considered:** Keep subset-only enum + rely on raw `processor_id()` for uncommon IDs — rejected (creates avoidable typed-surface gaps for real-world ports).
+
 ---

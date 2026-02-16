@@ -211,14 +211,15 @@ Note:
     - 4.17.1.1. `get_file_type_name` vs `INF_FILE_FORMAT_NAME`/`get_loader_format_name`
     - 4.17.1.2. Expose both with explicit `NotFound` for missing loader-format
 - 4.18. Active Processor Query
-  - 4.18.1. SDK `PH.id` via `get_ph()` returns active processor module ID (`PLFM_*`) [F231]
-    - 4.18.1.1. `PLFM_386` = 0 (Intel x86/x64), not 15 (which is `PLFM_PPC`)
-    - 4.18.1.2. `inf_get_procname()` returns short name (e.g. "metapc", "ARM")
-    - 4.18.1.3. Both are `libida.dylib` symbols (not idalib-only)
-  - 4.18.2. Implementation in `address.cpp` to avoid idalib link contamination [F231]
-    - 4.18.2.1. `database.cpp` pulls idalib-only symbols (`init_library`, `open_database`)
-    - 4.18.2.2. Plugin link units referencing `processor_id()` would fail if in `database.cpp`
-    - 4.18.2.3. Declared in `database.hpp`, implemented in `address.cpp` (no idalib deps)
+- 4.18.1. SDK `PH.id` via `get_ph()` returns active processor module ID (`PLFM_*`) [F231]
+  - 4.18.1.1. `PLFM_386` = 0 (Intel x86/x64), not 15 (which is `PLFM_PPC`)
+  - 4.18.1.2. `inf_get_procname()` returns short name (e.g. "metapc", "ARM")
+  - 4.18.1.3. Both are `libida.dylib` symbols (not idalib-only)
+- 4.18.2. Implementation in `address.cpp` to avoid idalib link contamination [F231]
+  - 4.18.2.1. `database.cpp` pulls idalib-only symbols (`init_library`, `open_database`)
+  - 4.18.2.2. Plugin link units referencing `processor_id()` would fail if in `database.cpp`
+  - 4.18.2.3. Declared in `database.hpp`, implemented in `address.cpp` (no idalib deps)
+- 4.18.3. Typed processor-id surface should mirror the full current SDK enum set: `ProcessorId` now tracks `PLFM_*` coverage through `PLFM_MCORE` so `processor()` avoids subset-staleness for non-mainstream modules [F259]
 
 ---
 
@@ -762,5 +763,6 @@ Note:
 - 25.5. Residual parity gap: processor-profile granularity is still partial for exact language-profile selection (e.g., ARM profile/revision nuances), so mapping remains best-effort in the current wrapper model [F256]
 - 25.6. Runtime startup diagnostics: `init_library` failures are reproducible when `IDADIR` is pointed at an SDK source tree (for example `/Users/int/dev/ida-sdk/src`) instead of a full IDA runtime root; this is an environment-root mismatch, not an API-surface failure [F258]
 - 25.7. On this host, `idax_smoke_test` passes with no env overrides because the binary carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also passes [F258]
+- 25.8. Runtime plugin-load policy paths are host-validated: `idax_idalib_dump_port` succeeds with both `--no-plugins` and allowlist mode (`--plugin "*.dylib"`) on the fixture binary, confirming `RuntimeOptions::plugin_policy` behavior is non-blocking in this profile [F260]
 
 ---

@@ -1065,7 +1065,7 @@
   - 16.5.1. `cmake --build build --target idax_api_surface_check idax_smoke_test` passes.
   - 16.5.2. `./tests/unit/idax_unit_test` passes (`22 passed, 0 failed`).
   - 16.5.3. `cmake -S . -B build-idapcode -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON -DIDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON && cmake --build build-idapcode --target idax_idapcode_port_plugin` passes.
-  - 16.5.4. Runtime idalib startup on this host remains blocked (`init_library failed`), tracked in active-work runtime block item.
+  - 16.5.4. Initial runtime startup failures were observed when environment roots were mispointed; follow-up diagnosis/evidence recorded in 16.6.
 
 - **16.6. Runtime Startup Diagnostic Follow-Up (User-Selected 1/2)**
   - 16.6.1. Re-ran runtime smoke directly: `/Users/int/dev/idax/build/tests/integration/idax_smoke_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` passes (`287 passed, 0 failed`).
@@ -1073,5 +1073,19 @@
   - 16.6.3. Reproduced startup failure deterministically with mispointed environment root: `IDADIR=/Users/int/dev/ida-sdk/src DYLD_LIBRARY_PATH=/Users/int/dev/ida-sdk/src/bin ...` aborts with "directory ... does not exist or contains a broken or incomplete installation".
   - 16.6.4. Verified explicit-good environment profile: `IDADIR=/Applications/IDA Professional 9.3.app/Contents/MacOS DYLD_LIBRARY_PATH=/Applications/IDA Professional 9.3.app/Contents/MacOS ...` passes full smoke run.
   - 16.6.5. Recorded finding [F258] and updated active-work runtime item from blocked to in-progress with configuration-root diagnosis.
+
+- **16.7. Plugin-Load Runtime Check Closure (User-Selected 1/2 continuation)**
+  - 16.7.1. Configured and built tool-runtime validation path with tool examples enabled: `cmake -S . -B build-tools -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_TOOLS=ON` and `cmake --build build-tools --target idax_idalib_dump_port`.
+  - 16.7.2. Executed runtime plugin-policy checks against fixture binary with successful open/analyze/list output for both modes:
+    - `.../idax_idalib_dump_port --list --quiet --no-summary --no-plugins tests/fixtures/simple_appcall_linux64`
+    - `.../idax_idalib_dump_port --list --quiet --no-summary --plugin "*.dylib" tests/fixtures/simple_appcall_linux64`
+  - 16.7.3. Recorded finding [F260] and closed the queued plugin-load runtime check from active-work item 8.1.5.
+
+- **16.8. ProcessorId Coverage Expansion (User-Supplied PLFM Set)**
+  - 16.8.1. Expanded `ida::database::ProcessorId` in `include/ida/database.hpp` from common-subset values to full current SDK `PLFM_*` coverage through `PLFM_MCORE` (0..77).
+  - 16.8.2. Preserved existing idapcode port switch-case compatibility by keeping previously used enumerator names unchanged while adding missing processor families.
+  - 16.8.3. Updated compile-only API parity checks in `tests/unit/api_surface_parity_test.cpp` to include added enum members (`RiscV`, `Mcore`).
+  - 16.8.4. Evidence: `cmake --build build --target idax_api_surface_check idax_smoke_test`, `ctest --test-dir build -R "^idax_unit_test$" --output-on-failure`, and `cmake --build build-tools --target idax_idalib_dump_port` all pass.
+  - 16.8.5. Recorded finding [F259].
 
 ---
