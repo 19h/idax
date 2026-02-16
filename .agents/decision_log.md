@@ -919,4 +919,10 @@
   - **19.6.2. Rationale:** Avoids common collision with SigMaker bindings while keeping mnemonic linkage to p-code workflows.
   - **19.6.3. Alternative considered:** Keep `Ctrl-Alt-S` parity with source plugin — rejected due practical conflict in mixed-plugin setups.
 
+- **19.7. Decision D-UI-CUSTOM-VIEWER-STATE-STABILITY**: Preserve backing-state pointer identity when updating custom viewer lines
+  - **19.7.1. Decision:** Update `CustomViewerState` contents in-place inside `set_custom_viewer_lines`; do not replace the stored `unique_ptr` object.
+  - **19.7.2. Rationale:** IDA's custom viewer keeps pointers to `min`/`max`/`cur`/`lines` objects passed at creation; replacing the state object invalidates those pointers and can crash during renderer/model updates.
+  - **19.7.3. Additional detail:** Clamp preserved cursor line to the new range, refresh range, and jump to the clamped place to keep UI state coherent.
+  - **19.7.4. Alternative considered:** Keep replacement model and defer all updates by recreating viewers — rejected (higher churn/flicker and still unsafe if stale pointers survive queued UI work).
+
 ---

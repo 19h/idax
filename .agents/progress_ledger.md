@@ -1108,4 +1108,11 @@
   - 16.10.8. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes after follow-up changes.
   - 16.10.9. Recorded findings [F263], [F264], [F265] and decisions [D-IDAPCODE-VIEW-SYNC] update + [D-IDAPCODE-HOTKEY-COLLISION-AVOIDANCE].
 
+- **16.11. Crash Fix — Custom Viewer Backing-State Stability (User-Reported EXC_BAD_ACCESS)**
+  - 16.11.1. Root-caused crash path to `ida::ui::set_custom_viewer_lines` replacing the stored `CustomViewerState` pointer, which invalidated custom-viewer range/place/line pointers retained by IDA internals.
+  - 16.11.2. Updated `src/ui.cpp` so line updates mutate the existing `CustomViewerState` in-place (preserve object address), refresh range pointers, and clamp/preserve current line safely.
+  - 16.11.3. Added explicit post-update `jumpto` to the clamped line and refresh call so viewer state remains coherent after in-place content replacement.
+  - 16.11.4. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes; `cmake --build build --target idax_api_surface_check idax_smoke_test` passes; `ctest --test-dir build -R "^idax_unit_test$" --output-on-failure` passes.
+  - 16.11.5. Recorded finding [F266] and decision [D-UI-CUSTOM-VIEWER-STATE-STABILITY].
+
 ---

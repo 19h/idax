@@ -265,15 +265,37 @@ Status set_custom_viewer_lines(Widget& viewer,
     if (!state_r)
         return std::unexpected(state_r.error());
 
+    simpleline_place_t target_place(0);
+
     {
         std::lock_guard<std::mutex> lock(g_custom_viewers_mutex);
         auto it = g_custom_viewers.find(tw);
         if (it == g_custom_viewers.end())
             return std::unexpected(Error::validation("Widget is not a custom viewer"));
-        it->second = std::move(*state_r);
-        ::set_custom_viewer_range(tw, &it->second->min, &it->second->max);
+
+        auto& state = *it->second;
+        const int previous_line = state.cur.n;
+
+        std::unique_ptr<CustomViewerState> next_state = std::move(*state_r);
+        state.lines = std::move(next_state->lines);
+        state.min = next_state->min;
+        state.max = next_state->max;
+
+        const int min_line = static_cast<int>(state.min.n);
+        const int max_line = static_cast<int>(state.max.n);
+
+        int clamped_line = previous_line;
+        if (clamped_line < min_line)
+            clamped_line = min_line;
+        if (clamped_line > max_line)
+            clamped_line = max_line;
+        state.cur = simpleline_place_t(clamped_line);
+        target_place = state.cur;
+
+        ::set_custom_viewer_range(tw, &state.min, &state.max);
     }
 
+    (void)::jumpto(tw, &target_place, 0, 0);
     ::refresh_custom_viewer(tw);
     return ida::ok();
 }

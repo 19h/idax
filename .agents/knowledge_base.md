@@ -769,5 +769,6 @@ Note:
 - 25.11. Cross-function follow works by rebuilding the same p-code viewer in-place whenever `screen_ea` enters a different function, using `function::at(new_ea)` and fresh per-function address-to-line mapping [F263]
 - 25.12. Scroll-follow is implemented with a low-interval UI timer polling `custom_viewer_current_line(mouse=true/false)` and syncing linear view when the parsed line address changes [F264]
 - 25.13. Hotkey changed to `Ctrl-Alt-Shift-P` to avoid common SigMaker collision on `Ctrl-Alt-S` [F265]
+- 25.14. Crash-hardening detail: `set_custom_viewer_lines` must update `CustomViewerState` in-place (not replace the stored pointer) because IDA retains pointers to `min`/`max`/`cur`/`lines` passed at custom-viewer creation; pointer replacement can trigger EXC_BAD_ACCESS during model/render refresh [F266]
 
 ---
