@@ -90,6 +90,35 @@ static void test_database() {
     CHECK_OK(base);
     if (base) std::cout << "  image_base: 0x" << std::hex << *base << std::dec << "\n";
 
+    auto processor_id = ida::database::processor_id();
+    CHECK_OK(processor_id);
+
+    auto processor = ida::database::processor();
+    CHECK_OK(processor);
+
+    auto processor_name = ida::database::processor_name();
+    CHECK_OK(processor_name);
+
+    auto bitness = ida::database::address_bitness();
+    CHECK_OK(bitness);
+
+    auto big_endian = ida::database::is_big_endian();
+    CHECK_OK(big_endian);
+
+    if (processor_id && processor && processor_name && bitness && big_endian) {
+        CHECK(static_cast<std::int32_t>(*processor) == *processor_id);
+        std::cout << "  processor: " << *processor_name
+                  << " (id=" << *processor_id << ", " << *bitness << "-bit, "
+                  << (*big_endian ? "BE" : "LE") << ")\n";
+    }
+
+    auto abi = ida::database::abi_name();
+    if (abi) {
+        std::cout << "  abi: " << *abi << "\n";
+    } else {
+        CHECK(abi.error().category == ida::ErrorCategory::NotFound);
+    }
+
     auto compiler = ida::database::compiler_info();
     CHECK_OK(compiler);
     if (compiler) {

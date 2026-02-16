@@ -293,4 +293,16 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 252. DriverBuddy parity still has non-blocking ergonomic gaps: no one-call standard-type bootstrap equivalent to `Til2Idb(-1, name)`, no public struct-offset path readback (`get_stroff_path`) wrapper, and no minimal `add_hotkey` convenience API separate from action registration.
 
+253. idapcode port required first-class database metadata wrappers for architecture selection parity: `address_bitness` (16/32/64), `is_big_endian`, and `abi_name` in addition to processor ID/name. Wrapping these SDK globals in `ida::database` keeps plugin code SDK-opaque while enabling deterministic Sleigh spec routing.
+
+254. Sleigh support helper semantics: `sleigh::FindSpecFile` expects search roots at the specfiles root and internally appends `Ghidra/Processors/<arch>/data/languages/<file>`. Passing a language subdirectory path directly will fail lookup.
+
+255. Sleigh as a dependency is heavy because configuring from source fetches/patches Ghidra; integrating it behind an idapcode-specific opt-in build flag avoids regressing default idax configure/build cycles.
+
+256. Even with processor ID + bitness + endianness + ABI, exact language-profile selection remains partial for some families (notably ARM profile/revision variants). A richer normalized processor-profile wrapper would eliminate residual best-effort heuristics in ports like idapcode.
+
+257. On this host, runtime integration tests that initialize idalib can still fail with `init_library failed` even when `IDADIR`/`DYLD_LIBRARY_PATH` are explicitly set; build-level validation can proceed, but runtime evidence remains host/license-gated.
+
+258. The `init_library` startup failure for idax smoke flows is reproducible when `IDADIR` points to an SDK source tree (for example `/Users/int/dev/ida-sdk/src`) rather than a full IDA runtime root. On this host, `idax_smoke_test` succeeds with no env overrides because the binary already carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also succeeds.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

@@ -881,4 +881,24 @@
   - **18.2.2. Rationale:** Keeps the example maintainable/readable while still demonstrating the full idax migration pattern (marker search, metadata dereference, struct materialization, apply+rename).
   - **18.2.3. Trade-off:** Not every historical KMDF slot is named by default in the example; this is documented as a non-blocking audit delta and can be expanded as needed.
 
+### 19. idapcode Port + Sleigh Dependency Model (Phase 14)
+
+- **19.1. Decision D-IDAPCODE-SLEIGH-OPT-IN**: Integrate Sleigh as a submodule with idapcode-specific build gates
+  - **19.1.1. Decision:** Add `third-party/sleigh` as a git submodule and wire it only behind `IDAX_BUILD_EXAMPLE_IDAPCODE_PORT` in `examples/CMakeLists.txt`.
+  - **19.1.2. Rationale:** Sleigh configuration can fetch/patch large Ghidra sources and should not affect default idax configure/build/test loops.
+  - **19.1.3. Additional control:** Keep spec compilation separate via `IDAX_IDAPCODE_BUILD_SPECS` to avoid mandatory all-spec build costs.
+  - **19.1.4. Alternatives considered:**
+    - Vendoring full Sleigh/Ghidra sources in-tree — rejected (repo bloat + churn).
+    - Making Sleigh mandatory for all examples — rejected (unnecessary cost for unrelated examples).
+
+- **19.2. Decision D-DATABASE-PROCESSOR-CONTEXT-WRAPPERS**: Expand `ida::database` metadata for architecture-routing ports
+  - **19.2.1. Decision:** Add typed `ProcessorId` + `processor()` and add `address_bitness()`, `is_big_endian()`, `abi_name()` wrappers.
+  - **19.2.2. Rationale:** Real-world ports that bridge to external ISA semantics engines need stable processor-context metadata without raw SDK globals in plugin code.
+  - **19.2.3. Compatibility detail:** Implement in plugin-safe TU (`src/address.cpp`) alongside `processor_id()`/`processor_name()` to avoid idalib-only linkage bleed.
+
+- **19.3. Decision D-IDAPCODE-SPEC-ROUTING**: Use deterministic best-effort Sleigh spec mapping with explicit override path
+  - **19.3.1. Decision:** Map processor context to known `.sla` names in the port and resolve via `sleigh::FindSpecFile`; allow explicit runtime override with `IDAX_IDAPCODE_SPEC_ROOT`.
+  - **19.3.2. Rationale:** Keeps the example immediately usable while documenting residual profile-granularity limits as non-blocking parity gaps.
+  - **19.3.3. Trade-off:** Some processor-profile variants (e.g., fine ARM profile/revision nuances) remain heuristic without a richer normalized profile model.
+
 ---

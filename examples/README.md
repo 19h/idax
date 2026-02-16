@@ -168,6 +168,25 @@ It also prints a gap report for the currently missing APIs needed for a full
 AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and
 raw decompiler-view handle context for advanced per-view manipulations).
 
+### `plugin/idapcode_port_plugin.cpp` — idapcode Port
+
+Port of `/Users/int/Downloads/plo/idapcode-main` to idax plugin/UI/database
+surfaces with Sleigh-backed p-code generation.
+
+The plugin keeps the original workflow (`Ctrl-Alt-S`) and opens a custom viewer
+for the current function, rendering instruction headers plus lifted p-code ops.
+It uses idax wrappers for current-function lookup, byte extraction, custom
+viewer hosting, and architecture context (`processor_id`, `processor_name`,
+`address_bitness`, `is_big_endian`, `abi_name`) and resolves Sleigh specs via
+`sleigh::FindSpecFile`.
+
+Build requires `IDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON`. Runtime spec resolution
+uses Sleigh default search paths and can be overridden with
+`IDAX_IDAPCODE_SPEC_ROOT`.
+
+If the Sleigh submodule is not present, fetch it with:
+`git submodule update --init --recursive third-party/sleigh`.
+
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
 
 Port of `/Users/int/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
@@ -217,6 +236,17 @@ To build the dedicated DrawIDA addon target (Qt plugin):
 ```bash
 cmake --build build --target build_qt
 cmake --build build --target idax_drawida_port_plugin
+```
+
+To build the idapcode port addon target (Sleigh-backed plugin):
+
+```bash
+cmake -S . -B build \
+  -DIDAX_BUILD_EXAMPLES=ON \
+  -DIDAX_BUILD_EXAMPLE_ADDONS=ON \
+  -DIDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON \
+  -DIDAX_IDAPCODE_BUILD_SPECS=ON
+cmake --build build --target idax_idapcode_port_plugin
 ```
 
 When a real IDA runtime is available (`IDADIR` or common macOS install path),

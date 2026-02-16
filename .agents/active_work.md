@@ -95,3 +95,15 @@
   - 7.1.6. **Status:** Resolved
 
 ---
+
+### 8. idapcode Runtime Validation (Phase 14)
+
+- **8.1. Runtime Evidence Follow-Up**
+  - 8.1.1. **Action:** Complete runtime evidence follow-up after idapcode port updates (smoke pass captured; plugin-load runtime checks still queued).
+  - 8.1.2. **Current State:** `idax_smoke_test` now passes on this host (`287 passed, 0 failed`) against `tests/fixtures/simple_appcall_linux64`.
+  - 8.1.3. **Diagnostic Outcome:** `init_library` startup failures are reproducible when `IDADIR` points to SDK source roots (for example `/Users/int/dev/ida-sdk/src`) instead of a full IDA runtime root.
+  - 8.1.4. **Runtime Baseline:** No env override is required on this host because the smoke binary carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that runtime root also passes.
+  - 8.1.5. **Remaining Scope:** Execute the queued plugin-load runtime check path and capture logs.
+  - 8.1.6. **Status:** In progress (configuration path clarified)
+
+---

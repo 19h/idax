@@ -754,4 +754,13 @@ Note:
 - 24.3. WDF table annotation is achievable in idax by constructing a `TypeInfo` struct schema (`TypeInfo::create_struct` + `add_member` + `save_as`) and applying it at resolved table addresses (`type::apply_named_type` + `name::force_set`) after locating the `KmdfLibrary` marker and dereferencing metadata pointers [F251]
 - 24.4. Remaining DriverBuddy migration deltas are non-blocking ergonomics: no one-call standard-type bootstrap equivalent to `Til2Idb(-1, name)`, no stroff-path introspection wrapper (`get_stroff_path`), and no minimal hotkey-only callback helper outside the action system [F252]
 
+### 25. idapcode Port Findings (Phase 14)
+- 25.1. idapcode (`/Users/int/Downloads/plo/idapcode-main`) ports cleanly to idax plugin/UI/function/data flows when paired with external Sleigh C++ translation (`examples/plugin/idapcode_port_plugin.cpp`) [F253]
+- 25.2. Added database metadata wrappers (`address_bitness`, `is_big_endian`, `abi_name`) plus typed `ProcessorId`/`processor()` to support deterministic architecture-to-Sleigh routing without raw SDK fallback in plugin code [F253]
+- 25.3. Sleigh spec lookup helper expects spec-root paths and appends `Ghidra/Processors/.../data/languages/<file>` internally; this affects runtime path configuration semantics (`IDAX_IDAPCODE_SPEC_ROOT`) [F254]
+- 25.4. Sleigh source integration is intentionally opt-in in examples due heavy configure-time fetch/patch behavior against Ghidra; default idax build path remains lightweight [F255]
+- 25.5. Residual parity gap: processor-profile granularity is still partial for exact language-profile selection (e.g., ARM profile/revision nuances), so mapping remains best-effort in the current wrapper model [F256]
+- 25.6. Runtime startup diagnostics: `init_library` failures are reproducible when `IDADIR` is pointed at an SDK source tree (for example `/Users/int/dev/ida-sdk/src`) instead of a full IDA runtime root; this is an environment-root mismatch, not an API-surface failure [F258]
+- 25.7. On this host, `idax_smoke_test` passes with no env overrides because the binary carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also passes [F258]
+
 ---

@@ -108,7 +108,8 @@ Real-world port parity notes are tracked in
 [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md),
 [`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md), and
 [`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md),
-[`docs/port_gap_audit_driverbuddy.md`](docs/port_gap_audit_driverbuddy.md), with
+[`docs/port_gap_audit_driverbuddy.md`](docs/port_gap_audit_driverbuddy.md),
+[`docs/port_gap_audit_idapcode.md`](docs/port_gap_audit_idapcode.md), with
 additional decompiler-write-path findings in
 [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md).
 
@@ -410,7 +411,7 @@ tests/
     fixtures/           # Test binaries and pre-analysed databases
 
 examples/
-    plugin/             # Plugin examples (quickstart + advanced ports, including abyss)
+    plugin/             # Plugin examples (quickstart + advanced ports, including abyss/idapcode)
     loader/             # Custom ELF loader example
     procmod/            # Custom processor module example
     full/               # Real-world full ports (e.g. JBC)
@@ -526,6 +527,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md) | Real-world port gap findings (DrawIDA) |
 | [`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md) | Real-world port gap findings (abyss decompiler filter framework) |
 | [`docs/port_gap_audit_driverbuddy.md`](docs/port_gap_audit_driverbuddy.md) | Real-world port gap findings (DriverBuddy Windows-driver analysis plugin) |
+| [`docs/port_gap_audit_idapcode.md`](docs/port_gap_audit_idapcode.md) | Real-world port gap findings (idapcode Sleigh/p-code viewer plugin) |
 | [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md) | Real-world port gap findings (lifter AVX/VMX microcode plugin) |
 
 ---

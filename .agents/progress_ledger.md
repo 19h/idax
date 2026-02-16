@@ -1038,4 +1038,40 @@
   - 14.5.9. Recorded Qt include portability finding [F248] and updated DrawIDA widget source to use `qevent.h` for `QKeyEvent`/`QMouseEvent` declarations.
   - 14.5.10. Evidence: `cmake --build build --target idax_drawida_port_plugin` passes; `cmake --build build --target idax_api_surface_check` passes; `cmake --build build --target idax_example_plugin` passes; `cmake --build build --target idax_examples` passes.
 
+### 16. Phase 14 — idapcode Port + API Gap Audit + Sleigh Integration
+
+- **16.1. idapcode Port Implementation Complete**
+  - 16.1.1. Added `examples/plugin/idapcode_port_plugin.cpp` as an idax-first C++ port of `/Users/int/Downloads/plo/idapcode-main` using `ida::plugin::Plugin` + `IDAX_PLUGIN` lifecycle and custom viewer rendering.
+  - 16.1.2. Ported function-scoped p-code generation workflow (select function, read bytes, lift with Sleigh, render text in viewer) with `Ctrl-Alt-S` style action parity.
+  - 16.1.3. Added processor-profile routing and runtime spec-root override (`IDAX_IDAPCODE_SPEC_ROOT`) so spec lookup remains configurable per host install.
+
+- **16.2. API Surface Closure from Port Gaps**
+  - 16.2.1. Expanded `ida::database` processor-context metadata in `include/ida/database.hpp` with typed `ProcessorId` and `processor()` helper.
+  - 16.2.2. Added architecture-shaping wrappers required by idapcode mapping logic: `address_bitness()`, `is_big_endian()`, `abi_name()`.
+  - 16.2.3. Implemented these wrappers in plugin-safe `src/address.cpp` to avoid idalib-only symbol contamination in plugin link units.
+  - 16.2.4. Updated compile-only/integration evidence hooks in `tests/unit/api_surface_parity_test.cpp` and `tests/integration/smoke_test.cpp`.
+
+- **16.3. Sleigh Third-Party Integration Strategy (Concrete)**
+  - 16.3.1. Added Sleigh as a pinned git submodule (`third-party/sleigh`) with `.gitmodules` entry (commit `db0dc4c479a576e4621fa02789395d0064475239`).
+  - 16.3.2. Added idapcode-specific opt-in CMake wiring in `examples/CMakeLists.txt` (`IDAX_BUILD_EXAMPLE_IDAPCODE_PORT`, `IDAX_IDAPCODE_BUILD_SPECS`, `IDAX_IDAPCODE_SLEIGH_SOURCE_DIR`) to keep default idax configure/build cycles lightweight.
+  - 16.3.3. Added `idax_idapcode_port_plugin` target linking `sleigh::sla`, `sleigh::decomp`, and `sleigh::support`.
+
+- **16.4. Gap Audit + Documentation Synchronization**
+  - 16.4.1. Added `docs/port_gap_audit_idapcode.md` with source-to-idax mapping and open/closed gap classification.
+  - 16.4.2. Updated docs/index surfaces for the new port and metadata additions: `README.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, `docs/quickstart/plugin.md`, `examples/README.md`.
+  - 16.4.3. Recorded findings [F253], [F254], [F255], [F256], [F257] and corresponding KB/decision updates.
+
+- **16.5. Validation Evidence**
+  - 16.5.1. `cmake --build build --target idax_api_surface_check idax_smoke_test` passes.
+  - 16.5.2. `./tests/unit/idax_unit_test` passes (`22 passed, 0 failed`).
+  - 16.5.3. `cmake -S . -B build-idapcode -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON -DIDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON && cmake --build build-idapcode --target idax_idapcode_port_plugin` passes.
+  - 16.5.4. Runtime idalib startup on this host remains blocked (`init_library failed`), tracked in active-work runtime block item.
+
+- **16.6. Runtime Startup Diagnostic Follow-Up (User-Selected 1/2)**
+  - 16.6.1. Re-ran runtime smoke directly: `/Users/int/dev/idax/build/tests/integration/idax_smoke_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` passes (`287 passed, 0 failed`).
+  - 16.6.2. Captured binary runtime-link baseline: `otool -L` shows `@rpath/libidalib.dylib` and `@rpath/libida.dylib`; `otool -l` confirms `LC_RPATH` includes `/Applications/IDA Professional 9.3.app/Contents/MacOS`.
+  - 16.6.3. Reproduced startup failure deterministically with mispointed environment root: `IDADIR=/Users/int/dev/ida-sdk/src DYLD_LIBRARY_PATH=/Users/int/dev/ida-sdk/src/bin ...` aborts with "directory ... does not exist or contains a broken or incomplete installation".
+  - 16.6.4. Verified explicit-good environment profile: `IDADIR=/Applications/IDA Professional 9.3.app/Contents/MacOS DYLD_LIBRARY_PATH=/Applications/IDA Professional 9.3.app/Contents/MacOS ...` passes full smoke run.
+  - 16.6.5. Recorded finding [F258] and updated active-work runtime item from blocked to in-progress with configuration-root diagnosis.
+
 ---

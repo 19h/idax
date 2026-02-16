@@ -143,4 +143,9 @@ This section captures the intended public API semantics at a concrete level so i
 - Metadata pull/push wrappers for function-address batches
 - Connection-state query helpers with explicit unsupported close semantics in this runtime
 
+### 17.25 `ida::database` processor-context metadata extensions
+- `ProcessorId` enum + typed `processor()` helper
+- Architecture-shaping helpers: `address_bitness()`, `is_big_endian()`, `abi_name()`
+- Port-driven metadata closure for external ISA-semantics integrations (e.g., idapcode + Sleigh)
+
 ---

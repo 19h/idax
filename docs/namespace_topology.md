@@ -9,7 +9,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::address        Predicates, traversal, range iteration          [1 struct, 1 enum, 2 classes, ~12 free fns]
  |-- ida::data           Read/write/patch/define bytes, patterns         [~30 free fns, 2 templates]
- |-- ida::database       Open/save/close, metadata, snapshots            [6 structs, ~19 free fns]
+ |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~24 free fns]
  |
  |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
 |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~27 free fns]
@@ -69,7 +69,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::address` | Navigation and predicates | `Range`, `ItemRange`, `Predicate` |
 | `ida::data` | Byte-level access | (free functions only) |
-| `ida::database` | Database lifecycle | `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
+| `ida::database` | Database lifecycle | `ProcessorId`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding | `Instruction`, `Operand`, `OperandType` |
