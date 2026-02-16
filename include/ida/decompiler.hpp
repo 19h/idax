@@ -383,6 +383,18 @@ public:
     /// Processor-specific instruction type code (`insn_t::itype`).
     [[nodiscard]] int instruction_type() const noexcept;
 
+    /// Check whether the current instruction uses an AVX-512 opmask register.
+    /// Returns false for non-EVEX instructions or when k0 (no masking) is used.
+    [[nodiscard]] bool has_opmask() const noexcept;
+
+    /// Check whether the instruction uses zero-masking (EVEX.z bit set).
+    /// Only meaningful when `has_opmask()` returns true.
+    [[nodiscard]] bool is_zero_masking() const noexcept;
+
+    /// Return the opmask register number (1-7) for the current instruction.
+    /// Returns 0 if no opmask is present (k0 means no masking).
+    [[nodiscard]] int opmask_register_number() const noexcept;
+
     /// Number of local variables available in current microcode context.
     [[nodiscard]] Result<int> local_variable_count() const;
 

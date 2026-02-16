@@ -1,6 +1,6 @@
 # agents.md - IDA SDK Intuitive Wrapper Program
 
-Last updated: 2026-02-14
+Last updated: 2026-02-16
 Status: Implementation substantially complete; 16/16 tests passing; release candidate ready
 Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper over the IDA SDK for first-time users while preserving full power for expert workflows.
 
@@ -804,6 +804,7 @@ Note:
   - 7.6.24. Direct register-destination compare helper routes now apply the same validation-safe retry ladder (location+declaration hints -> declaration-only -> base compare options), and residual validation rejection degrades to not-handled while preserving hard SDK/internal failures [F217]
   - 7.6.25. Temporary-register compare fallback now guards `std::expected` error access (`!status` before `.error()`) after degradable writeback outcomes, preventing invalid `.error()` reads on success-path states [F218]
   - 7.6.26. Compare helper degraded/direct destination routes now treat residual `NotFound` outcomes as non-fatal not-handled after retry exhaustion, while preserving hard SDK/internal failure handling [F219]
+  - 7.6.27. Compare helper temporary-register bridge now uses typed `_to_micro_operand` destination routing instead of `_to_register`, since allocated temporary register ids are known and expressible as `MicrocodeOperand` with `kind = Register`; this eliminates the last non-typed helper-call destination in the lifter probe [F220]
 - 7.7. Generic Typed Instruction Emission
   - 7.7.1. Dominant gap identified: generic microcode instruction authoring (opcode+operand construction) [F136]
   - 7.7.2. `MicrocodeOpcode` covering `mov/add/xdu/ldx/stx/fadd/fsub/fmul/fdiv/i2f/f2f/nop` [F137]
@@ -909,6 +910,31 @@ Note:
     - 8.7.7.11. Direct register-destination compare helper route now mirrors the same validation-safe retry ladder and not-handled degradation semantics used by other compare destination routes [F217]
     - 8.7.7.12. Temporary-register bridge fallback now explicitly guards error-category reads behind `!temporary_helper_status` after degradable writeback outcomes, avoiding invalid success-path `.error()` access while preserving fallback progression [F218]
     - 8.7.7.13. Compare helper degraded `to_operand` and direct register-destination routes now also degrade residual `NotFound` outcomes to not-handled after retries, preserving hard SDK/internal categories [F219]
+    - 8.7.7.14. Compare helper temporary-register bridge now emits to typed `_to_micro_operand` destination (Register kind) instead of `_to_register`, eliminating the last non-typed helper-call destination path in the lifter probe; all remaining operand-writeback sites are genuinely irreducible (unresolved shapes, vmov memory stores) [F220]
+- 8.8. SSE Passthrough
+  - 8.8.1. `vcomiss/vcomisd/vucomiss/vucomisd/vpextrb/w/d/q/vcvttss2si/vcvttsd2si/vcvtsd2si/vcvtsi2ss/vcvtsi2sd` returned to IDA's native handling via `match()` returning `false` [F223]
+- 8.9. K-Register NOP Handling
+  - 8.9.1. K-register manipulation (`kmov*`, `kadd*`, `kand*`, etc.) and mask-destination instructions emit NOP [F224]
+  - 8.9.2. Pragmatic: decompiler microcode cannot represent k-register operations natively
+- 8.10. vmovd/vmovq Dedicated Handler
+  - 8.10.1. GPR/memory→XMM: native `ZeroExtend` (`m_xdu`) microcode for correct zero-extension semantics [F221]
+  - 8.10.2. XMM→GPR/memory: simple `Move`/`store_operand_register` extraction [F221]
+  - 8.10.3. Removed from `is_packed_helper_misc_mnemonic()` set
+- 8.11. AVX-512 Opmask Wiring
+  - 8.11.1. API surface: `MicrocodeContext::has_opmask()`, `is_zero_masking()`, `opmask_register_number()` [F222]
+  - 8.11.2. Helper-call paths: masking wired uniformly across normal variadic, compare, store-like, scalar min/max/sqrt, packed sqrt/addsub/min/max, and helper-fallback conversions [F225]
+  - 8.11.3. Native microcode paths: typed binary/conversion/move/math skip to helper-call fallback when masking present (native microcode cannot represent per-element masking) [F225]
+  - 8.11.4. Masking protocol: helper name suffixed `_mask`/`_maskz`, merge-source register arg (merge-masking only), mask register number as unsigned immediate
+- 8.12. Mnemonic Coverage Expansion
+  - 8.12.1. FMA (`vfmadd*/vfmsub*/vfnmadd*/vfnmsub*`), IFMA (`vpmadd52*`), VNNI (`vpdpbusd*/vpdpwssd*`), BF16, FP16
+  - 8.12.2. Cache control (`clflushopt/clwb`), integer unpack (`vpunpck*`), shuffles, packed integer minmax/avg/abs/sign
+  - 8.12.3. Additional integer multiply, multishift, SAD, byte-shift (`vpslldq/vpsrldq`)
+  - 8.12.4. Scalar approx/round/getexp/getmant/fixupimm/scalef/range/reduce
+- 8.13. Vector Type Declaration Parity
+  - 8.13.1. Original uses `get_type_robust(size, is_int, is_double)` → `get_vector_type` → named `tinfo_t` lookup (`__m128`/`__m256i`/`__m512d` etc.) with UDT fallback [F226]
+  - 8.13.2. Port uses `vector_type_declaration(byte_width, is_integer, is_double)` → `return_type_declaration` string resolved via `parse_decl` against same type library
+  - 8.13.3. Functionally equivalent: both resolve named types when available, both produce correct sizes
+  - 8.13.4. Applied across all helper-call return paths: variadic, compare, packed sqrt/addsub/min/max, helper-fallback conversions
 
 ---
 
@@ -1835,6 +1861,10 @@ Note:
     - 14.7.29.1. **Decision:** Treat residual `NotFound` outcomes as not-handled on degraded `to_operand` and direct register-destination compare routes after retry exhaustion
       - Rejected: Preserve `NotFound` as hard unexpected error on degraded compare routes (reduced backend tolerance)
       - Rejected: Degrade all categories including `SdkFailure`/`Internal` (would hide hard failures)
+  - **14.7.30. Temporary-Bridge Typed Micro-Operand Destination**
+    - 14.7.30.1. **Decision:** Convert compare-helper temporary-register bridge from `_to_register` to `_to_micro_operand` destination routing using known temporary register id as `MicrocodeOperand` with `kind = Register`
+      - Rejected: Keep `_to_register` API for temporary bridge (weaker typed-destination parity with other compare routes)
+      - Rejected: Remove temporary-register bridge entirely (loses intermediate typed route for unresolved shapes)
 
 ---
 
@@ -2748,6 +2778,24 @@ Note:
   - 12.24.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F219].
   - 12.24.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
+- **12.25. Temporary-Bridge Typed Micro-Operand Destination (5.4.1 Closure)**
+  - 12.25.1. Converted `examples/plugin/lifter_port_plugin.cpp` compare-helper temporary-register bridge from `emit_helper_call_with_arguments_to_register_and_options` to `emit_helper_call_with_arguments_to_micro_operand_and_options` using `register_destination_operand(*temporary_destination, destination_width)` as typed `MicrocodeOperand` with `kind = Register`.
+  - 12.25.2. This eliminates the last non-typed helper-call destination path in the lifter probe. All remaining operand-writeback sites (`store_operand_register` for unresolved compare shapes and vmov memory stores, `to_operand` for terminal compare fallback) are genuinely irreducible.
+  - 12.25.3. Comprehensive analysis confirmed: 0 remaining `_to_register_and_options` calls in the file; 2 remaining `_to_operand` calls are terminal unresolved-shape fallbacks; 3 remaining `store_operand_register` calls are either unresolved-shape writeback or legitimate vmov memory stores.
+  - 12.25.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F220].
+  - 12.25.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
+  - 12.25.6. **5.4.1 track status: CLOSED.** All helper-call destinations that can be expressed as typed micro-operands now use `_to_micro_operand`. Remaining writeback paths are irreducible.
+
+- **12.26. Comprehensive Lifter Port Parity Expansion**
+  - 12.26.1. **SSE passthrough (GAP 4):** Added `is_sse_passthrough_mnemonic()` returning `false` from `match()` for `vcomiss/vcomisd/vucomiss/vucomisd/vpextrb/w/d/q/vcvttss2si/vcvttsd2si/vcvtsd2si/vcvtsi2ss/vcvtsi2sd` — lets IDA handle these natively. Finding [F223].
+  - 12.26.2. **K-register NOP (GAP 9):** K-register manipulation instructions (`kmov*`, `kadd*`, `kand*`, `kor*`, `kxor*`, `kxnor*`, `knot*`, `kshift*`, `kunpck*`, `ktest*`) and mask-destination instructions now matched and emit NOP. Finding [F224].
+  - 12.26.3. **Mnemonic coverage expansion (GAP 1+2):** Massive expansion including FMA (`vfmadd*/vfmsub*/vfnmadd*/vfnmsub*`), IFMA (`vpmadd52*`), VNNI (`vpdpbusd*/vpdpwssd*`), BF16, FP16 (scalar+packed math/sqrt/FMA/moves/conversions/reduce/getexp/getmant/scalef/reciprocal), cache control (`clflushopt/clwb`), integer unpack (`vpunpck*`), shuffles, packed minmax integer, avg, abs, sign, additional integer multiply, multishift, SAD, byte-shift, scalar approx/round/getexp/getmant/fixupimm/scalef/range/reduce, and more.
+  - 12.26.4. **Dedicated vmovd/vmovq handler (GAP 6):** Replaced helper-call fallback with native `ZeroExtend` (`m_xdu`) microcode for GPR/memory→XMM moves and simple `Move`/`store_operand_register` for XMM→GPR/memory moves. Removed from `is_packed_helper_misc_mnemonic()` set. Finding [F221].
+  - 12.26.5. **Opmask API surface:** Added `MicrocodeContext::has_opmask()`, `is_zero_masking()`, `opmask_register_number()` with Intel-specific header isolation in implementation. Finding [F222].
+  - 12.26.6. **Opmask wiring — all paths (GAP 3 closure):** Wired AVX-512 opmask masking uniformly across ALL helper-call paths: normal variadic, compare, store-like, scalar min/max/sqrt, packed sqrt/addsub/min/max, and helper-fallback conversions. For native microcode emission paths (typed binary, typed conversion, typed moves, typed packed FP math), the port now skips to helper-call fallback when masking is present since native microcode cannot represent per-element masking. Finding [F225].
+  - 12.26.7. **Vector type declaration parity (GAP 7 closure):** Added `vector_type_declaration(byte_width, is_integer, is_double)` helper mirroring the original's `get_type_robust()` type resolution. For scalar sizes delegates to integer/floating declaration helpers; for vector sizes (16/32/64 bytes) returns named type strings (`__m128`/`__m256i`/`__m512d` etc.) resolved via `parse_decl` against the same type library the original uses. Applied across all helper-call return paths: variadic helpers, compare helpers, packed sqrt/addsub/min/max helpers, and helper-fallback conversions. Finding [F226].
+  - 12.26.8. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` pass; `./tests/integration/idax_decompiler_storage_hardening_test` pass (`202 passed, 0 failed`); `ctest --output-on-failure` pass (`16/16`).
+
 ---
 
 ## 16) In-Progress and Immediate Next Actions
@@ -2833,10 +2881,10 @@ Note:
   - 5.3.4. In-view advanced edit ergonomics
 
 - **5.4. Immediate Execution Queue (Post-5.4.14)**
-  - 5.4.1. Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.
+  - 5.4.1. ~~Continue tmop adoption in `examples/plugin/lifter_port_plugin.cpp` by reducing remaining operand-writeback fallback paths where destination shapes can be expressed as typed micro-operands.~~ **CLOSED.** All helper-call destinations that can be expressed as typed micro-operands now use `_to_micro_operand`. Remaining writeback paths are genuinely irreducible (unresolved compare shapes, vmov memory stores, terminal `to_operand` fallback). See Progress Ledger 12.25.
   - 5.4.2. Continue 5.3.2 depth work with additive callinfo/tmop semantics beyond compare/rotate-role + argument-metadata + return-typing/location + cross-route/global-route hardening and validation-safe retry coverage (richer semantic role/location hints where concretely useful).
   - 5.4.3. Re-run targeted validation (`idax_lifter_port_plugin` build + decompiler hardening/parity tests) and synchronize evidence/docs (`docs/port_gap_audit_lifter.md`, Progress Ledger updates).
-  - 5.4.4. **Status:** Queued
+  - 5.4.4. **Status:** 5.4.1 closed; 5.4.2+ queued
 
 Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
 
