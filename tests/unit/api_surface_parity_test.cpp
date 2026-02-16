@@ -506,6 +506,8 @@ void check_database_surface() {
     (void)ida::database::LoadIntent::NonBinary;
     (void)ida::database::ProcessorId::IntelX86;
     (void)ida::database::ProcessorId::Arm;
+    (void)ida::database::ProcessorId::RiscV;
+    (void)ida::database::ProcessorId::Mcore;
 
     ida::database::PluginLoadPolicy plugin_policy;
     (void)plugin_policy.disable_user_plugins;
