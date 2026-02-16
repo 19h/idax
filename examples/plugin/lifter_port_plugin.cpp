@@ -74,6 +74,7 @@ ida::decompiler::MicrocodeCallOptions vmx_call_options();
 ida::decompiler::MicrocodeCallOptions compare_call_options(std::string_view mnemonic_lower);
 std::string integer_type_declaration(int byte_width, bool unsigned_integer);
 std::string floating_type_declaration(int byte_width);
+std::string vector_type_declaration(int byte_width, bool is_integer, bool is_double);
 ida::decompiler::MicrocodeValueLocation register_return_location(int register_id);
 ida::decompiler::MicrocodeValue register_argument(int register_id,
                                                   int byte_width,
@@ -85,6 +86,47 @@ std::optional<ida::decompiler::MicrocodeOperand> global_destination_operand(
     const ida::instruction::Instruction& instruction,
     std::size_t operand_index,
     int fallback_byte_width);
+
+/// SSE passthrough mnemonics — return NotHandled so IDA handles them natively.
+/// These are VEX-encoded forms of instructions that IDA's default microcode generator
+/// handles better than our lifter (flag-setting compares, extract-to-GPR, GPR conversions).
+bool is_sse_passthrough_mnemonic(std::string_view mnemonic_lower) {
+    static const std::unordered_set<std::string> kPassthrough{
+        "vcomiss", "vcomisd", "vucomiss", "vucomisd",
+        "vpextrb", "vpextrw", "vpextrd", "vpextrq",
+        "vcvttss2si", "vcvttsd2si", "vcvtsd2si", "vcvtsi2ss", "vcvtsi2sd",
+    };
+    return kPassthrough.contains(std::string(mnemonic_lower));
+}
+
+/// K-register manipulation mnemonics — emit NOP since Hex-Rays microcode has no
+/// native k-register support. The original lifter emits NOP for NN_kmovw..NN_kunpckdq.
+bool is_k_register_manipulation_mnemonic(std::string_view mnemonic_lower) {
+    if (mnemonic_lower.starts_with("kmov")
+        || mnemonic_lower.starts_with("kadd")
+        || mnemonic_lower.starts_with("kand")
+        || mnemonic_lower.starts_with("kor")
+        || mnemonic_lower.starts_with("kxor")
+        || mnemonic_lower.starts_with("kxnor")
+        || mnemonic_lower.starts_with("knot")
+        || mnemonic_lower.starts_with("kshift")
+        || mnemonic_lower.starts_with("kunpck")
+        || mnemonic_lower.starts_with("ktest")) {
+        return true;
+    }
+    return false;
+}
+
+/// Check if an instruction is a compare-to-mask (k-register destination).
+/// The original lifter emits NOP for these since Hex-Rays can't represent mask-register
+/// destinations natively. Our port already handles vcmp*/vpcmp* via the compare variadic
+/// path, so this catches the remaining integer compare-to-mask forms.
+bool is_mask_destination_mnemonic(std::string_view mnemonic_lower,
+                                  const ida::instruction::Instruction& instruction) {
+    auto op0 = instruction.operand(0);
+    if (!op0) return false;
+    return op0->is_mask_register();
+}
 
 bool is_packed_helper_misc_mnemonic(std::string_view mnemonic_lower) {
     if (mnemonic_lower.starts_with("vgather")
@@ -111,28 +153,117 @@ bool is_packed_helper_misc_mnemonic(std::string_view mnemonic_lower) {
         || mnemonic_lower.starts_with("vpack")
         || mnemonic_lower.starts_with("vpbroadcast")
         || mnemonic_lower.starts_with("vfmaddsub")
-        || mnemonic_lower.starts_with("vfmsubadd")) {
+        || mnemonic_lower.starts_with("vfmsubadd")
+        || mnemonic_lower.starts_with("vfmadd")
+        || mnemonic_lower.starts_with("vfmsub")
+        || mnemonic_lower.starts_with("vfnmadd")
+        || mnemonic_lower.starts_with("vfnmsub")
+        || mnemonic_lower.starts_with("vpunpck")
+        || mnemonic_lower.starts_with("vpmadd52")
+        || mnemonic_lower.starts_with("vpdpbusd")
+        || mnemonic_lower.starts_with("vpdpwssd")
+        || mnemonic_lower.starts_with("vdpbf16")
+        || mnemonic_lower.starts_with("vcvtne2ps2bf16")
+        || mnemonic_lower.starts_with("vcvtneps2bf16")
+        || mnemonic_lower.starts_with("vfcmulcph")
+        || mnemonic_lower.starts_with("vfmulcph")
+        || mnemonic_lower.starts_with("vfcmaddcph")
+        || mnemonic_lower.starts_with("vfmaddcph")) {
         return true;
     }
 
     static const std::unordered_set<std::string> kSupported{
+        // dot product
         "vdpps",
+        // reciprocal / rsqrt (packed)
         "vrcpps", "vrsqrtps", "vrcp14ps", "vrsqrt14ps", "vrcp14pd", "vrsqrt14pd",
+        // reciprocal / rsqrt (scalar)
+        "vrcpss", "vrsqrtss", "vrcp14ss", "vrsqrt14ss", "vrcp14sd", "vrsqrt14sd",
+        // rounding (packed + scalar)
         "vroundps", "vroundpd", "vrndscaleps", "vrndscalepd",
-        "vgetexpps", "vgetexppd", "vgetmantps", "vgetmantpd",
-        "vfixupimmps", "vfixupimmpd", "vscalefps", "vscalefpd",
-        "vrangeps", "vrangepd", "vreduceps", "vreducepd",
+        "vroundss", "vroundsd", "vrndscaless", "vrndscalesd",
+        // getexp / getmant (packed + scalar)
+        "vgetexpps", "vgetexppd", "vgetexpss", "vgetexpsd",
+        "vgetmantps", "vgetmantpd", "vgetmantss", "vgetmantsd",
+        // fixupimm (packed + scalar)
+        "vfixupimmps", "vfixupimmpd", "vfixupimmss", "vfixupimmsd",
+        // scalef (packed + scalar)
+        "vscalefps", "vscalefpd", "vscalefss", "vscalefsd",
+        // range (packed + scalar)
+        "vrangeps", "vrangepd", "vrangess", "vrangesd",
+        // reduce (packed + scalar)
+        "vreduceps", "vreducepd", "vreducess", "vreducesd",
+        // broadcast
         "vbroadcastss", "vbroadcastsd", "vbroadcastf128", "vbroadcasti128",
         "vbroadcastf32x4", "vbroadcastf64x4", "vbroadcasti32x4", "vbroadcasti64x4",
+        // extract / insert (128-bit lane)
         "vextractf128", "vextracti128", "vextracti32x4", "vextracti32x8", "vextracti64x4",
         "vinsertf128", "vinserti128", "vinserti32x4", "vinserti32x8", "vinserti64x4",
         "vinsertf32x4", "vinsertf64x4",
+        // movdup
         "vmovshdup", "vmovsldup", "vmovddup",
+        // unpack float
         "vunpckhps", "vunpcklps", "vunpckhpd", "vunpcklpd",
+        // maskmov
         "vmaskmovps", "vmaskmovpd",
+        // align
         "vpalignr", "valignd", "valignq",
+        // permute
         "vpermb", "vpermw", "vpermt2b", "vpermt2w", "vpermt2d", "vpermt2q", "vpermt2ps", "vpermt2pd",
+        "vpermpd",
+        // ternary logic / conflict
         "vpternlogd", "vpternlogq", "vpconflictd", "vpconflictq",
+        // integer d/q moves — handled by dedicated handler, not here
+        // "vmovd", "vmovq",
+        // byte shift
+        "vpslldq", "vpsrldq",
+        // SAD
+        "vpsadbw", "vmpsadbw", "vdbpsadbw",
+        // packed minmax integer
+        "vpminsb", "vpminsw", "vpminsd", "vpminsq",
+        "vpminub", "vpminuw", "vpminud", "vpminuq",
+        "vpmaxsb", "vpmaxsw", "vpmaxsd", "vpmaxsq",
+        "vpmaxub", "vpmaxuw", "vpmaxud", "vpmaxuq",
+        // avg
+        "vpavgb", "vpavgw",
+        // abs
+        "vpabsb", "vpabsw", "vpabsd", "vpabsq",
+        // sign
+        "vpsignb", "vpsignw", "vpsignd",
+        // additional integer multiply
+        "vpmulhw", "vpmulhuw", "vpmuldq", "vpmaddubsw", "vpmulhrsw",
+        // multishift
+        "vpmultishiftqb",
+        // cache control
+        "clflushopt", "clwb",
+        // shuffle
+        "vpshufb", "vpshufd", "vpshufhw", "vpshuflw",
+        // vperm2
+        "vperm2f128", "vperm2i128",
+        // shuf float
+        "vshufps", "vshufpd",
+        // FP16 packed math
+        "vaddph", "vsubph", "vmulph", "vdivph", "vminph", "vmaxph",
+        // FP16 scalar math
+        "vaddsh", "vsubsh", "vmulsh", "vdivsh", "vminsh", "vmaxsh",
+        // FP16 sqrt
+        "vsqrtph", "vsqrtsh",
+        // FP16 FMA
+        "vfmadd132ph", "vfmadd213ph", "vfmadd231ph",
+        "vfmadd132sh", "vfmadd213sh", "vfmadd231sh",
+        // FP16 fmaddsub
+        "vfmaddsub132ph", "vfmaddsub213ph", "vfmaddsub231ph",
+        "vfmsubadd132ph", "vfmsubadd213ph", "vfmsubadd231ph",
+        // FP16 moves
+        "vmovsh", "vmovw",
+        // FP16 getexp / getmant / reduce / rndscale / scalef
+        "vgetexpph", "vgetmantph", "vreduceph", "vrndscaleph", "vscalefph",
+        // FP16 reciprocal
+        "vrcpph", "vrsqrtph",
+        // FP16 conversions
+        "vcvtpd2ph", "vcvtph2pd", "vcvtph2psx", "vcvtps2phx",
+        "vcvtph2w", "vcvttph2w", "vcvtph2uw", "vcvttph2uw",
+        "vcvtw2ph", "vcvtuw2ph",
     };
     return kSupported.contains(std::string(mnemonic_lower));
 }
@@ -155,12 +286,16 @@ bool is_supported_avx_scalar_mnemonic(std::string_view mnemonic) {
         "vsqrtss", "vsqrtsd",
         "vcvtss2sd", "vcvtsd2ss",
         "vmovss", "vmovsd",
+        // FP16 scalar (route through scalar helper path)
+        "vaddsh", "vsubsh", "vmulsh", "vdivsh",
+        "vminsh", "vmaxsh", "vsqrtsh",
     };
     return kSupported.contains(std::string(mnemonic));
 }
 
 bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
-    if (mnemonic.starts_with("vcmp") || mnemonic.starts_with("vpcmp")) {
+    if (mnemonic.starts_with("vcmp") || mnemonic.starts_with("vpcmp")
+        || mnemonic.starts_with("vpcmpeq") || mnemonic.starts_with("vpcmpgt")) {
         return true;
     }
     if (is_packed_helper_misc_mnemonic(mnemonic)) {
@@ -168,13 +303,16 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
     }
 
     static const std::unordered_set<std::string> kSupported{
+        // bitwise
         "vandps", "vandpd", "vandnps", "vandnpd",
         "vorps", "vorpd", "vxorps", "vxorpd",
         "vpand", "vpandd", "vpandq", "vpandn", "vpandnd", "vpandnq",
         "vpor", "vpord", "vporq", "vpxor", "vpxord", "vpxorq",
-        "vblendps", "vblendpd", "vblendvps", "vblendvpd", "vpblendd", "vpblendvb",
+        // blend / shuffle / permute
+        "vblendps", "vblendpd", "vblendvps", "vblendvpd", "vpblendd", "vpblendw", "vpblendvb",
         "vshufps", "vshufpd", "vpermilps", "vpermilpd", "vpermq", "vpermd",
         "vperm2f128", "vperm2i128",
+        // shifts / rotates
         "vpsllw", "vpslld", "vpsllq", "vpsrlw", "vpsrld", "vpsrlq",
         "vpsraw", "vpsrad", "vpsraq",
         "vpsllvw", "vpsllvd", "vpsllvq", "vpsrlvw", "vpsrlvd", "vpsrlvq",
@@ -183,17 +321,30 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
         "vprorvd", "vprorvq",
         "vpshldw", "vpshldd", "vpshldq", "vpshldvw", "vpshldvd", "vpshldvq",
         "vpshrdw", "vpshrdd", "vpshrdq", "vpshrdvw", "vpshrdvd", "vpshrdvq",
+        "vpslldq", "vpsrldq",
+        // FP math
         "vaddps", "vsubps", "vmulps", "vdivps",
         "vaddpd", "vsubpd", "vmulpd", "vdivpd",
         "vaddsubps", "vaddsubpd",
         "vhaddps", "vhaddpd", "vhsubps", "vhsubpd",
+        // integer add/sub (incl. saturating)
         "vpaddb", "vpaddw", "vpaddd", "vpaddq",
         "vpsubb", "vpsubw", "vpsubd", "vpsubq",
         "vpaddsb", "vpaddsw", "vpaddusb", "vpaddusw",
         "vpsubsb", "vpsubsw", "vpsubusb", "vpsubusw",
+        // integer multiply
         "vpmulld", "vpmullq", "vpmullw", "vpmuludq", "vpmaddwd",
+        "vpmulhw", "vpmulhuw", "vpmuldq", "vpmaddubsw", "vpmulhrsw",
+        // packed min/max FP
         "vminps", "vmaxps", "vminpd", "vmaxpd",
+        // packed min/max integer
+        "vpminsb", "vpminsw", "vpminsd", "vpminsq",
+        "vpminub", "vpminuw", "vpminud", "vpminuq",
+        "vpmaxsb", "vpmaxsw", "vpmaxsd", "vpmaxsq",
+        "vpmaxub", "vpmaxuw", "vpmaxud", "vpmaxuq",
+        // sqrt
         "vsqrtps", "vsqrtpd",
+        // conversions
         "vcvtps2pd", "vcvtpd2ps", "vcvtdq2ps", "vcvtudq2ps",
         "vcvtdq2pd", "vcvtudq2pd",
         "vcvttps2dq", "vcvtps2dq", "vcvttpd2dq", "vcvtpd2dq",
@@ -201,9 +352,31 @@ bool is_supported_avx_packed_mnemonic(std::string_view mnemonic) {
         "vcvtpd2qq", "vcvtpd2uqq", "vcvttpd2qq", "vcvttpd2uqq",
         "vcvtps2qq", "vcvtps2uqq", "vcvttps2qq", "vcvttps2uqq",
         "vcvtqq2pd", "vcvtqq2ps", "vcvtuqq2pd", "vcvtuqq2ps",
+        // FP16 conversions
+        "vcvtpd2ph", "vcvtph2pd", "vcvtph2psx", "vcvtps2phx",
+        "vcvtph2w", "vcvttph2w", "vcvtph2uw", "vcvttph2uw",
+        "vcvtw2ph", "vcvtuw2ph",
+        // moves (packed)
         "vmovaps", "vmovups", "vmovapd", "vmovupd",
         "vmovdqa", "vmovdqu", "vmovdqa32", "vmovdqa64",
         "vmovdqu8", "vmovdqu16", "vmovdqu32", "vmovdqu64",
+        "vmovd", "vmovq",
+        // FP16 moves
+        "vmovsh", "vmovw",
+        // avg / abs / sign
+        "vpavgb", "vpavgw",
+        "vpabsb", "vpabsw", "vpabsd", "vpabsq",
+        "vpsignb", "vpsignw", "vpsignd",
+        // SAD
+        "vpsadbw", "vmpsadbw", "vdbpsadbw",
+        // FP16 packed math
+        "vaddph", "vsubph", "vmulph", "vdivph", "vminph", "vmaxph",
+        // FP16 scalar math
+        "vaddsh", "vsubsh", "vmulsh", "vdivsh", "vminsh", "vmaxsh",
+        // FP16 sqrt
+        "vsqrtph", "vsqrtsh",
+        // cache control
+        "clflushopt", "clwb",
     };
     return kSupported.contains(std::string(mnemonic));
 }
@@ -377,6 +550,84 @@ bool is_packed_helper_store_like_mnemonic(std::string_view mnemonic_lower) {
         || mnemonic_lower.starts_with("vpcompress");
 }
 
+/// Infer the element byte size from a mnemonic suffix for masking purposes.
+/// ps/ss/ph/sh → 4-byte float, pd/sd → 8-byte double,
+/// b/ub → 1-byte, w/uw → 2-byte, d/ud/dq → 4-byte, q/uq/qq → 8-byte.
+int infer_element_byte_size(std::string_view mnemonic) {
+    // Check common suffixes (order matters: longer suffixes first).
+    if (mnemonic.ends_with("pd") || mnemonic.ends_with("sd")
+        || mnemonic.ends_with("pq") || mnemonic.ends_with("qq")
+        || mnemonic.ends_with("uq")) return 8;
+    if (mnemonic.ends_with("ps") || mnemonic.ends_with("ss")
+        || mnemonic.ends_with("ph") || mnemonic.ends_with("sh")
+        || mnemonic.ends_with("dq") || mnemonic.ends_with("ud")
+        || mnemonic.ends_with("ld") || mnemonic.ends_with("lq")) return 4;
+    if (mnemonic.ends_with("bw") || mnemonic.ends_with("wd")
+        || mnemonic.ends_with("uw") || mnemonic.ends_with("pw")
+        || mnemonic.ends_with("hw") || mnemonic.ends_with("lw")) return 2;
+    if (mnemonic.ends_with("pb") || mnemonic.ends_with("ub")
+        || mnemonic.ends_with("qb")) return 1;
+    // Default to 4-byte elements (common for packed single/dword).
+    return 4;
+}
+
+/// Construct a masked intrinsic helper name.
+/// "__vaddps" → "__vaddps_mask" (merge-masking) or "__vaddps_maskz" (zero-masking).
+std::string masked_helper_name(std::string_view base_helper,
+                               bool is_zeroing) {
+    std::string result(base_helper);
+    result += is_zeroing ? "_maskz" : "_mask";
+    return result;
+}
+
+/// Compute the number of mask elements from a vector width and element size.
+/// Used to determine the correct __mmask type width (8/16/32/64).
+int mask_element_count(int vector_byte_width, int element_byte_size) {
+    if (element_byte_size <= 0)
+        element_byte_size = 4;
+    return vector_byte_width / element_byte_size;
+}
+
+/// Return the byte width of a __mmask type for a given element count.
+/// mmask8 → 1 byte, mmask16 → 2 bytes, mmask32 → 4 bytes, mmask64 → 8 bytes.
+int mask_byte_width(int element_count) {
+    if (element_count <= 8)  return 1;
+    if (element_count <= 16) return 2;
+    if (element_count <= 32) return 4;
+    return 8;
+}
+
+/// Add masking arguments to a helper-call argument list.
+/// For merge-masking: adds the destination register as merge-source, then the mask.
+/// For zero-masking: adds only the mask.
+/// The mask is passed as an unsigned immediate (k-register number).
+void append_mask_arguments(std::vector<ida::decompiler::MicrocodeValue>& args,
+                           const ida::decompiler::MicrocodeContext& context,
+                           int destination_reg,
+                           int vector_byte_width,
+                           int element_byte_size) {
+    const bool is_zeroing = context.is_zero_masking();
+    const int kreg_num = context.opmask_register_number();
+    const int num_elements = mask_element_count(vector_byte_width, element_byte_size);
+    const int mask_width = mask_byte_width(num_elements);
+
+    // For merge-masking, pass the destination register as a merge source.
+    if (!is_zeroing) {
+        auto merge_source = register_argument(destination_reg, vector_byte_width, false);
+        merge_source.argument_name = "merge_source";
+        args.push_back(merge_source);
+    }
+
+    // Pass the mask register number as an unsigned immediate.
+    ida::decompiler::MicrocodeValue mask_value;
+    mask_value.kind = ida::decompiler::MicrocodeValueKind::UnsignedImmediate;
+    mask_value.unsigned_immediate = static_cast<std::uint64_t>(kreg_num);
+    mask_value.byte_width = mask_width;
+    mask_value.unsigned_integer = true;
+    mask_value.argument_name = "mask";
+    args.push_back(mask_value);
+}
+
 ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext& context,
                                               const ida::instruction::Instruction& instruction,
                                               std::string_view mnemonic_lower) {
@@ -446,6 +697,8 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
 
             const int destination_width = infer_operand_byte_width(instruction, 0, 8);
 
+            const bool compare_has_mask = context.has_opmask();
+
             std::vector<ida::decompiler::MicrocodeValue> compare_args;
             compare_args.reserve(operand_count > 0 ? operand_count - 1 : 0);
             for (std::size_t index = 1; index < operand_count; ++index) {
@@ -454,9 +707,25 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                 }
             }
 
-            const std::string helper = "__" + std::string(mnemonic_lower);
+            // Apply AVX-512 opmask masking to compare helper.
+            if (compare_has_mask) {
+                const int cmp_elem_size = infer_element_byte_size(mnemonic_lower);
+                // For compare, destination_operand might not be a vector register
+                // (could be k-register, handled by NOP path). Use destination_width
+                // as the vector width for mask element count calculation.
+                append_mask_arguments(compare_args, context,
+                                      destination_operand->is_register()
+                                          ? static_cast<int>(destination_operand->register_id())
+                                          : 0,
+                                      destination_width, cmp_elem_size);
+            }
+
+            const std::string compare_base_helper = "__" + std::string(mnemonic_lower);
+            const std::string helper = compare_has_mask
+                ? masked_helper_name(compare_base_helper, context.is_zero_masking())
+                : compare_base_helper;
             auto helper_options = compare_call_options(mnemonic_lower);
-            auto return_type = integer_type_declaration(destination_width, true);
+            auto return_type = vector_type_declaration(destination_width, true, false);
             if (!return_type.empty()) {
                 helper_options.return_type_declaration = std::move(return_type);
             }
@@ -571,33 +840,33 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
                 temporary_helper_options.return_location =
                     register_return_location(*temporary_destination);
 
+                const auto temporary_micro_destination =
+                    register_destination_operand(*temporary_destination, destination_width);
+
                 auto temporary_helper_status =
-                    context.emit_helper_call_with_arguments_to_register_and_options(
+                    context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                         helper,
                         compare_args,
-                        *temporary_destination,
-                        destination_width,
+                        temporary_micro_destination,
                         false,
                         temporary_helper_options);
                 if (!temporary_helper_status
                     && temporary_helper_status.error().category == ida::ErrorCategory::Validation) {
                     temporary_helper_status =
-                        context.emit_helper_call_with_arguments_to_register_and_options(
+                        context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                             helper,
                             compare_args,
-                            *temporary_destination,
-                            destination_width,
+                            temporary_micro_destination,
                             false,
                             helper_options);
                 }
                 if (!temporary_helper_status
                     && temporary_helper_status.error().category == ida::ErrorCategory::Validation) {
                     temporary_helper_status =
-                        context.emit_helper_call_with_arguments_to_register_and_options(
+                        context.emit_helper_call_with_arguments_to_micro_operand_and_options(
                             helper,
                             compare_args,
-                            *temporary_destination,
-                            destination_width,
+                            temporary_micro_destination,
                             false,
                             compare_call_options(mnemonic_lower));
                 }
@@ -660,6 +929,8 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             return false;
         }
 
+        const bool store_has_mask = context.has_opmask();
+
         std::vector<ida::decompiler::MicrocodeValue> store_args;
         store_args.reserve(operand_count);
         for (std::size_t index = 0; index < operand_count; ++index) {
@@ -668,7 +939,16 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
             }
         }
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to store-like helper.
+        if (store_has_mask) {
+            const int store_elem_size = infer_element_byte_size(mnemonic_lower);
+            append_mask_arguments(store_args, context, 0, 16, store_elem_size);
+        }
+
+        const std::string store_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = store_has_mask
+            ? masked_helper_name(store_base_helper, context.is_zero_masking())
+            : store_base_helper;
         const auto helper_options = compare_call_options(mnemonic_lower);
         auto helper_status = context.emit_helper_call_with_arguments_and_options(
             helper,
@@ -681,6 +961,7 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
     }
 
     const int destination_width = infer_operand_byte_width(instruction, 0, 16);
+    const bool has_mask = context.has_opmask();
 
     std::vector<ida::decompiler::MicrocodeValue> args;
     args.reserve(operand_count > 0 ? operand_count - 1 : 0);
@@ -691,10 +972,20 @@ ida::Result<bool> lift_packed_helper_variadic(ida::decompiler::MicrocodeContext&
         }
     }
 
-    const std::string helper = "__" + std::string(mnemonic_lower);
+    // Apply AVX-512 opmask masking: modify helper name and add mask arguments.
+    if (has_mask) {
+        const int element_size = infer_element_byte_size(mnemonic_lower);
+        append_mask_arguments(args, context, *destination_reg,
+                              destination_width, element_size);
+    }
+
+    const std::string base_helper = "__" + std::string(mnemonic_lower);
+    const std::string helper = has_mask
+        ? masked_helper_name(base_helper, context.is_zero_masking())
+        : base_helper;
     auto helper_options = compare_call_options(mnemonic_lower);
     helper_options.return_location = register_return_location(*destination_reg);
-    auto return_type = integer_type_declaration(destination_width, true);
+    auto return_type = vector_type_declaration(destination_width, true, false);
     if (!return_type.empty()) {
         helper_options.return_type_declaration = std::move(return_type);
     }
@@ -836,6 +1127,32 @@ std::string floating_type_declaration(int byte_width) {
         default:
             return {};
     }
+}
+
+/// Produce a vector type declaration string matching the original lifter's
+/// \c get_type_robust(size, is_int, is_double) behaviour.
+/// For scalar sizes (1/2/4/8) falls through to integer/float helpers.
+/// For vector sizes (16/32/64) returns \c __m128 / \c __m256i / \c __m512d etc.
+/// The declaration is resolved by \c parse_decl against the DB's type library
+/// at emission time, which produces the same \c tinfo_t the original lifter
+/// obtained via \c get_named_type.
+std::string vector_type_declaration(int byte_width, bool is_integer, bool is_double) {
+    // Scalar sizes — delegate.
+    if (byte_width <= 8) {
+        if (is_double || (!is_integer && byte_width == 8))
+            return floating_type_declaration(byte_width);
+        if (!is_integer && byte_width == 4)
+            return floating_type_declaration(byte_width);
+        return integer_type_declaration(byte_width, !is_integer);
+    }
+    // Vector sizes: __m128 / __m128i / __m128d etc.
+    const int bit_width = byte_width * 8;
+    std::string name = "__m" + std::to_string(bit_width);
+    if (is_integer)
+        name += 'i';
+    else if (is_double)
+        name += 'd';
+    return name;
 }
 
 ida::decompiler::MicrocodeValueLocation register_return_location(int register_id) {
@@ -1213,8 +1530,14 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
 
     if (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
         || mnemonic_lower == "vminsd" || mnemonic_lower == "vmaxsd"
-        || mnemonic_lower == "vsqrtss" || mnemonic_lower == "vsqrtsd") {
-        const int scalar_width = mnemonic_lower.ends_with("ss") ? 4 : 8;
+        || mnemonic_lower == "vsqrtss" || mnemonic_lower == "vsqrtsd"
+        || mnemonic_lower == "vminsh" || mnemonic_lower == "vmaxsh"
+        || mnemonic_lower == "vsqrtsh"
+        || mnemonic_lower == "vaddsh" || mnemonic_lower == "vsubsh"
+        || mnemonic_lower == "vmulsh" || mnemonic_lower == "vdivsh") {
+        const int scalar_width = mnemonic_lower.ends_with("sh") ? 2
+            : mnemonic_lower.ends_with("ss") ? 4 : 8;
+        const bool scalar_has_mask = context.has_opmask();
 
         std::vector<ida::decompiler::MicrocodeValue> args;
         if (mnemonic_lower == "vminss" || mnemonic_lower == "vmaxss"
@@ -1231,7 +1554,17 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
                 : "source";
         args.push_back(right_argument);
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to scalar helper.
+        if (scalar_has_mask) {
+            const int scalar_elem_size = scalar_width;
+            append_mask_arguments(args, context, *destination_reg,
+                                  destination_width, scalar_elem_size);
+        }
+
+        const std::string scalar_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = scalar_has_mask
+            ? masked_helper_name(scalar_base_helper, context.is_zero_masking())
+            : scalar_base_helper;
         auto helper_options = compare_call_options(mnemonic_lower);
         auto return_type = floating_type_declaration(scalar_width);
         if (!return_type.empty()) {
@@ -1281,51 +1614,61 @@ ida::Result<bool> try_lift_avx_scalar_instruction(ida::decompiler::MicrocodeCont
 }
 
 ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeContext& context,
-                                                  const ida::instruction::Instruction& instruction,
-                                                  std::string_view mnemonic_lower) {
+                                                   const ida::instruction::Instruction& instruction,
+                                                   std::string_view mnemonic_lower) {
     const auto operand_count = instruction.operand_count();
     if (operand_count < 2) {
         return false;
     }
+
+    // When AVX-512 opmask masking is present, skip native microcode emission
+    // paths (typed binary, typed conversion, typed move) and fall through to
+    // helper-call paths which can express masking via modified helper names
+    // and additional mask arguments. Native microcode instructions cannot
+    // represent per-element masking.
+    const bool packed_has_mask = context.has_opmask();
 
     if (mnemonic_lower.starts_with("vcmp")
         || mnemonic_lower.starts_with("vpcmp")) {
         return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
     }
 
-    if (const auto conversion_opcode = packed_conversion_opcode(mnemonic_lower);
-        conversion_opcode.has_value()) {
-        const auto destination_reg = context.load_operand_register(0);
-        if (!destination_reg) {
-            return std::unexpected(destination_reg.error());
+    // Typed conversion path: skip when masked (fall through to helper path).
+    if (!packed_has_mask) {
+        if (const auto conversion_opcode = packed_conversion_opcode(mnemonic_lower);
+            conversion_opcode.has_value()) {
+            const auto destination_reg = context.load_operand_register(0);
+            if (!destination_reg) {
+                return std::unexpected(destination_reg.error());
+            }
+            const auto source_reg = context.load_operand_register(1);
+            if (!source_reg) {
+                return std::unexpected(source_reg.error());
+            }
+
+            const int destination_width = infer_operand_byte_width(instruction, 0, 16);
+            const int source_width = infer_operand_byte_width(instruction, 1, destination_width);
+
+            ida::decompiler::MicrocodeInstruction instruction_ir;
+            instruction_ir.opcode = *conversion_opcode;
+            instruction_ir.floating_point_instruction = true;
+
+            instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            instruction_ir.left.register_id = *source_reg;
+            instruction_ir.left.byte_width = source_width;
+            instruction_ir.left.mark_user_defined_type = source_width > 8;
+
+            instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            instruction_ir.destination.register_id = *destination_reg;
+            instruction_ir.destination.byte_width = destination_width;
+            instruction_ir.destination.mark_user_defined_type = destination_width > 8;
+
+            auto emit_status = context.emit_instruction(instruction_ir);
+            if (!emit_status) {
+                return std::unexpected(emit_status.error());
+            }
+            return true;
         }
-        const auto source_reg = context.load_operand_register(1);
-        if (!source_reg) {
-            return std::unexpected(source_reg.error());
-        }
-
-        const int destination_width = infer_operand_byte_width(instruction, 0, 16);
-        const int source_width = infer_operand_byte_width(instruction, 1, destination_width);
-
-        ida::decompiler::MicrocodeInstruction instruction_ir;
-        instruction_ir.opcode = *conversion_opcode;
-        instruction_ir.floating_point_instruction = true;
-
-        instruction_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
-        instruction_ir.left.register_id = *source_reg;
-        instruction_ir.left.byte_width = source_width;
-        instruction_ir.left.mark_user_defined_type = source_width > 8;
-
-        instruction_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
-        instruction_ir.destination.register_id = *destination_reg;
-        instruction_ir.destination.byte_width = destination_width;
-        instruction_ir.destination.mark_user_defined_type = destination_width > 8;
-
-        auto emit_status = context.emit_instruction(instruction_ir);
-        if (!emit_status) {
-            return std::unexpected(emit_status.error());
-        }
-        return true;
     }
 
     auto try_emit_typed_binary = [&](ida::decompiler::MicrocodeOpcode opcode) -> ida::Result<bool> {
@@ -1400,47 +1743,50 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     };
 
-    if (const auto integer_opcode = packed_integer_arithmetic_opcode(mnemonic_lower);
-        integer_opcode.has_value()) {
-        auto emitted = try_emit_typed_binary(*integer_opcode);
-        if (!emitted) {
-            return std::unexpected(emitted.error());
+    // Typed binary paths: skip when masked (fall through to helper path).
+    if (!packed_has_mask) {
+        if (const auto integer_opcode = packed_integer_arithmetic_opcode(mnemonic_lower);
+            integer_opcode.has_value()) {
+            auto emitted = try_emit_typed_binary(*integer_opcode);
+            if (!emitted) {
+                return std::unexpected(emitted.error());
+            }
+            if (*emitted) {
+                return true;
+            }
         }
-        if (*emitted) {
-            return true;
-        }
-    }
 
-    if (const auto integer_multiply_opcode = packed_integer_multiply_opcode(mnemonic_lower);
-        integer_multiply_opcode.has_value()) {
-        auto emitted = try_emit_typed_binary(*integer_multiply_opcode);
-        if (!emitted) {
-            return std::unexpected(emitted.error());
+        if (const auto integer_multiply_opcode = packed_integer_multiply_opcode(mnemonic_lower);
+            integer_multiply_opcode.has_value()) {
+            auto emitted = try_emit_typed_binary(*integer_multiply_opcode);
+            if (!emitted) {
+                return std::unexpected(emitted.error());
+            }
+            if (*emitted) {
+                return true;
+            }
         }
-        if (*emitted) {
-            return true;
-        }
-    }
 
-    if (const auto bitwise_opcode = packed_bitwise_opcode(mnemonic_lower);
-        bitwise_opcode.has_value()) {
-        auto emitted = try_emit_typed_binary(*bitwise_opcode);
-        if (!emitted) {
-            return std::unexpected(emitted.error());
+        if (const auto bitwise_opcode = packed_bitwise_opcode(mnemonic_lower);
+            bitwise_opcode.has_value()) {
+            auto emitted = try_emit_typed_binary(*bitwise_opcode);
+            if (!emitted) {
+                return std::unexpected(emitted.error());
+            }
+            if (*emitted) {
+                return true;
+            }
         }
-        if (*emitted) {
-            return true;
-        }
-    }
 
-    if (const auto shift_opcode = packed_shift_opcode(mnemonic_lower);
-        shift_opcode.has_value()) {
-        auto emitted = try_emit_typed_binary(*shift_opcode);
-        if (!emitted) {
-            return std::unexpected(emitted.error());
-        }
-        if (*emitted) {
-            return true;
+        if (const auto shift_opcode = packed_shift_opcode(mnemonic_lower);
+            shift_opcode.has_value()) {
+            auto emitted = try_emit_typed_binary(*shift_opcode);
+            if (!emitted) {
+                return std::unexpected(emitted.error());
+            }
+            if (*emitted) {
+                return true;
+            }
         }
     }
 
@@ -1464,10 +1810,24 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         source_argument.argument_name = "source";
         args.push_back(source_argument);
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to helper-fallback conversion.
+        if (packed_has_mask) {
+            const int cvt_elem_size = infer_element_byte_size(mnemonic_lower);
+            append_mask_arguments(args, context, *destination_reg,
+                                  destination_width, cvt_elem_size);
+        }
+
+        const std::string cvt_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = packed_has_mask
+            ? masked_helper_name(cvt_base_helper, context.is_zero_masking())
+            : cvt_base_helper;
         auto helper_options = vmx_call_options();
         helper_options.return_location = register_return_location(*destination_reg);
-        auto return_type = integer_type_declaration(destination_width, destination_unsigned);
+        // Conversion targets: determine float/int/double from mnemonic.
+        // *2ps → float, *2pd → double, *2dq/*2udq/*2qq/*2uqq → integer.
+        const bool cvt_is_double = mnemonic_lower.ends_with("pd");
+        const bool cvt_is_int = !cvt_is_double && !mnemonic_lower.ends_with("ps");
+        auto return_type = vector_type_declaration(destination_width, cvt_is_int, cvt_is_double);
         if (!return_type.empty()) {
             helper_options.return_type_declaration = std::move(return_type);
         }
@@ -1483,6 +1843,57 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return true;
     }
 
+    // vmovd / vmovq: dedicated handler using native zero-extend (m_xdu).
+    // These are GPR/memory ↔ XMM moves, NOT packed vector moves.
+    // GPR/memory → XMM: zero-extend data_size bytes to full XMM width.
+    // XMM → GPR/memory: extract low data_size bytes.
+    if (mnemonic_lower == "vmovd" || mnemonic_lower == "vmovq") {
+        const int data_size = (mnemonic_lower == "vmovd") ? 4 : 8;
+        const auto op0 = instruction.operand(0);
+        if (!op0) return std::unexpected(op0.error());
+
+        if (op0->is_vector_register()) {
+            // GPR/memory → XMM: load source, then zero-extend to XMM width.
+            const auto source_reg = context.load_operand_register(1);
+            if (!source_reg) return std::unexpected(source_reg.error());
+            const auto dest_reg = context.load_operand_register(0);
+            if (!dest_reg) return std::unexpected(dest_reg.error());
+
+            const int dest_width = infer_operand_byte_width(instruction, 0, 16);
+
+            ida::decompiler::MicrocodeInstruction xdu_ir;
+            xdu_ir.opcode = ida::decompiler::MicrocodeOpcode::ZeroExtend;
+            xdu_ir.left.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            xdu_ir.left.register_id = *source_reg;
+            xdu_ir.left.byte_width = data_size;
+            xdu_ir.destination.kind = ida::decompiler::MicrocodeOperandKind::Register;
+            xdu_ir.destination.register_id = *dest_reg;
+            xdu_ir.destination.byte_width = dest_width;
+            xdu_ir.destination.mark_user_defined_type = (dest_width > 8);
+
+            auto emit_status = context.emit_instruction(xdu_ir);
+            if (!emit_status) return std::unexpected(emit_status.error());
+            return true;
+        }
+
+        // XMM → GPR or memory: extract low data_size bytes.
+        const auto source_reg = context.load_operand_register(1);
+        if (!source_reg) return std::unexpected(source_reg.error());
+
+        if (op0->is_memory()) {
+            auto store_status = context.store_operand_register(0, *source_reg, data_size);
+            if (!store_status) return std::unexpected(store_status.error());
+            return true;
+        }
+
+        // GPR destination.
+        const auto dest_reg = context.load_operand_register(0);
+        if (!dest_reg) return std::unexpected(dest_reg.error());
+        auto move_status = context.emit_move_register(*source_reg, *dest_reg, data_size);
+        if (!move_status) return std::unexpected(move_status.error());
+        return true;
+    }
+
     if (is_packed_helper_integer_arithmetic_mnemonic(mnemonic_lower)
         || is_packed_helper_integer_multiply_mnemonic(mnemonic_lower)
         || is_packed_helper_bitwise_mnemonic(mnemonic_lower)
@@ -1492,7 +1903,9 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         return lift_packed_helper_variadic(context, instruction, mnemonic_lower);
     }
 
-    if (mnemonic_lower.starts_with("vmov")) {
+    // Typed move path: skip when masked (fall through to helper-call via
+    // lift_packed_helper_variadic which already has masking wired).
+    if (!packed_has_mask && mnemonic_lower.starts_with("vmov")) {
         const auto destination_operand = instruction.operand(0);
         if (!destination_operand) {
             return std::unexpected(destination_operand.error());
@@ -1543,9 +1956,22 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         source_argument.argument_name = "source";
         args.push_back(source_argument);
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to packed sqrt helper.
+        if (packed_has_mask) {
+            const int sqrt_elem_size = mnemonic_lower.ends_with("pd") ? 8 : 4;
+            append_mask_arguments(args, context, *destination_reg,
+                                  packed_width, sqrt_elem_size);
+        }
+
+        const std::string sqrt_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = packed_has_mask
+            ? masked_helper_name(sqrt_base_helper, context.is_zero_masking())
+            : sqrt_base_helper;
+        const bool sqrt_is_double = mnemonic_lower.ends_with("pd");
         auto helper_options = vmx_call_options();
         helper_options.return_location = register_return_location(*destination_reg);
+        helper_options.return_type_declaration = vector_type_declaration(
+            packed_width, false, sqrt_is_double);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
@@ -1585,9 +2011,23 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         right_argument.argument_name = "right";
         args.push_back(right_argument);
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to addsub helper.
+        if (packed_has_mask) {
+            const int addsub_elem_size = infer_element_byte_size(mnemonic_lower);
+            append_mask_arguments(args, context, *destination_reg,
+                                  packed_width, addsub_elem_size);
+        }
+
+        const std::string addsub_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = packed_has_mask
+            ? masked_helper_name(addsub_base_helper, context.is_zero_masking())
+            : addsub_base_helper;
+        // Addsub mnemonics: vaddsubps → float, vaddsubpd → double.
+        const bool addsub_is_double = mnemonic_lower.ends_with("pd");
         auto helper_options = vmx_call_options();
         helper_options.return_location = register_return_location(*destination_reg);
+        helper_options.return_type_declaration = vector_type_declaration(
+            packed_width, false, addsub_is_double);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
@@ -1624,9 +2064,22 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
         right_argument.argument_name = "right";
         args.push_back(right_argument);
 
-        const std::string helper = "__" + std::string(mnemonic_lower);
+        // Apply AVX-512 opmask masking to packed min/max helper.
+        if (packed_has_mask) {
+            const int minmax_elem_size = mnemonic_lower.ends_with("pd") ? 8 : 4;
+            append_mask_arguments(args, context, *destination_reg,
+                                  packed_width, minmax_elem_size);
+        }
+
+        const std::string minmax_base_helper = "__" + std::string(mnemonic_lower);
+        const std::string helper = packed_has_mask
+            ? masked_helper_name(minmax_base_helper, context.is_zero_masking())
+            : minmax_base_helper;
+        const bool minmax_is_double = mnemonic_lower.ends_with("pd");
         auto helper_options = vmx_call_options();
         helper_options.return_location = register_return_location(*destination_reg);
+        helper_options.return_type_declaration = vector_type_declaration(
+            packed_width, false, minmax_is_double);
         auto helper_status = context.emit_helper_call_with_arguments_to_micro_operand_and_options(
             helper,
             args,
@@ -1637,6 +2090,12 @@ ida::Result<bool> try_lift_avx_packed_instruction(ida::decompiler::MicrocodeCont
             return std::unexpected(helper_status.error());
         }
         return true;
+    }
+
+    // Typed packed math path: skip when masked (fall through returns false,
+    // which causes the dispatch to try lift_packed_helper_variadic next).
+    if (packed_has_mask) {
+        return false;
     }
 
     const auto opcode = packed_math_opcode(mnemonic_lower);
@@ -1693,6 +2152,22 @@ public:
             return false;
         }
         const std::string mnemonic = lower_copy(decoded->mnemonic());
+
+        // SSE passthrough: let IDA handle these natively (GAP 4)
+        if (is_sse_passthrough_mnemonic(mnemonic)) {
+            return false;
+        }
+
+        // K-register manipulation: match to emit NOP (GAP 9)
+        if (is_k_register_manipulation_mnemonic(mnemonic)) {
+            return true;
+        }
+
+        // Mask-destination (k-register as Op0): emit NOP (GAP 9)
+        if (is_mask_destination_mnemonic(mnemonic, *decoded)) {
+            return true;
+        }
+
         return is_supported_vmx_mnemonic(mnemonic)
             || is_supported_avx_scalar_mnemonic(mnemonic)
             || is_supported_avx_packed_mnemonic(mnemonic);
@@ -1704,10 +2179,29 @@ public:
             return ida::decompiler::MicrocodeApplyResult::NotHandled;
         }
 
+        const std::string mnemonic = lower_copy(decoded->mnemonic());
+
+        // K-register manipulation instructions: emit NOP (GAP 9)
+        if (is_k_register_manipulation_mnemonic(mnemonic)) {
+            auto st = context.emit_noop();
+            if (!st) {
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            return ida::decompiler::MicrocodeApplyResult::Handled;
+        }
+
+        // Mask-destination (compare-to-mask with k-register as Op0): emit NOP (GAP 9)
+        if (is_mask_destination_mnemonic(mnemonic, *decoded)) {
+            auto st = context.emit_noop();
+            if (!st) {
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            return ida::decompiler::MicrocodeApplyResult::Handled;
+        }
+
         auto lifted = try_lift_vmx_instruction(context,
                                                *decoded,
-                                               lower_copy(decoded->mnemonic()));
-        const std::string mnemonic = lower_copy(decoded->mnemonic());
+                                               mnemonic);
         if (!lifted || !*lifted) {
             lifted = try_lift_avx_scalar_instruction(context, *decoded, mnemonic);
         }

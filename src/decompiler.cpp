@@ -15,6 +15,10 @@
 // through a single runtime dispatch pointer (no link dependencies).
 #include <hexrays.hpp>
 
+// intel.hpp provides EVEX/opmask constants for the MicrocodeContext
+// opmask introspection APIs. This is an implementation-only dependency.
+#include <intel.hpp>
+
 #include <algorithm>
 #include <atomic>
 #include <bit>
@@ -1920,6 +1924,52 @@ int MicrocodeContext::instruction_type() const noexcept {
     if (impl->codegen == nullptr)
         return 0;
     return static_cast<int>(impl->codegen->insn.itype);
+}
+
+bool MicrocodeContext::has_opmask() const noexcept {
+    if (raw_ == nullptr)
+        return false;
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return false;
+
+    const auto& op6 = impl->codegen->insn.Op6;
+    // Op6 holds the opmask register for EVEX-encoded instructions.
+    // Intel processor module stores it as o_reg or o_kreg.
+    if (op6.type != o_reg && op6.type != o_kreg)
+        return false;
+
+    // k0 means no masking; k1-k7 are active masks.
+    const int kreg_num = static_cast<int>(op6.reg) - static_cast<int>(R_k0);
+    return kreg_num >= 1 && kreg_num <= 7;
+}
+
+bool MicrocodeContext::is_zero_masking() const noexcept {
+    if (raw_ == nullptr)
+        return false;
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return false;
+
+    // EVEX.z bit is stored in Op6.specflag2 (via the evex_flags macro).
+    return (impl->codegen->insn.evex_flags & EVEX_z) != 0;
+}
+
+int MicrocodeContext::opmask_register_number() const noexcept {
+    if (raw_ == nullptr)
+        return 0;
+    const auto* impl = static_cast<const MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return 0;
+
+    const auto& op6 = impl->codegen->insn.Op6;
+    if (op6.type != o_reg && op6.type != o_kreg)
+        return 0;
+
+    const int kreg_num = static_cast<int>(op6.reg) - static_cast<int>(R_k0);
+    if (kreg_num < 0 || kreg_num > 7)
+        return 0;
+    return kreg_num;
 }
 
 Result<int> MicrocodeContext::local_variable_count() const {

@@ -405,9 +405,67 @@ be executed in small, testable API slices.
   writeback outcomes. Residual `NotFound` outcomes on degraded `to_operand`
   and direct register-destination compare routes now also degrade to
   not-handled after retries,
-  and operand-index writeback fallback is now
-  constrained to unresolved destination shapes only (mask-register destination
-  or memory destination without resolvable target address).
+  operand-index writeback fallback is now constrained to unresolved
+  destination shapes only (mask-register destination or memory destination
+  without resolvable target address), and the temporary-register bridge now
+  uses typed `_to_micro_operand` destination routing (using the allocated
+  temporary register id as a `MicrocodeOperand` with `kind = Register`)
+  instead of `_to_register`, eliminating the last non-typed helper-call
+  destination path in the lifter probe. All remaining operand-writeback
+  sites (`store_operand_register` for unresolved compare shapes and vmov
+  memory stores, `to_operand` for terminal compare fallback) are genuinely
+  irreducible.
+
+- Added SSE passthrough handling: instructions handled natively by IDA
+  (`vcomiss`, `vcomisd`, `vucomiss`, `vucomisd`, `vpextrb/w/d/q`,
+  `vcvttss2si`, `vcvttsd2si`, `vcvtsd2si`, `vcvtsi2ss`, `vcvtsi2sd`)
+  are now excluded from filter matching so IDA processes them directly.
+- Added K-register NOP handling: k-register manipulation instructions
+  (`kmov*`, `kadd*`, `kand*`, etc.) and instructions with mask-register
+  destinations are now matched and emit NOP, consistent with the original
+  lifter's approach of acknowledging these instructions without modeling
+  k-register semantics in microcode.
+- Massively expanded mnemonic coverage to include: FMA families
+  (`vfmadd*/vfmsub*/vfnmadd*/vfnmsub*`), IFMA (`vpmadd52*`), VNNI
+  (`vpdpbusd*/vpdpwssd*`), BF16, FP16 (scalar+packed math/sqrt/FMA/moves/
+  conversions/reduce/getexp/getmant/scalef/reciprocal), cache control
+  (`clflushopt/clwb`), integer unpack (`vpunpck*`), shuffles
+  (`vpshufb/vpshufd/vpshufhw/vpshuflw/vperm2f128/vperm2i128/vshufps/vshufpd/
+  vpermpd`), packed minmax integer, avg, abs, sign, additional integer
+  multiply, multishift, SAD, byte-shift (`vpslldq/vpsrldq`), scalar approx/
+  round/getexp/getmant/fixupimm/scalef/range/reduce, and `vmovd`/`vmovq`.
+- Added dedicated `vmovd`/`vmovq` handler using native `ZeroExtend` (m_xdu)
+  microcode instruction instead of opaque helper-call fallback, correctly
+  modeling the zero-extension semantics of GPR/memory-to-XMM moves and
+  the simple extraction semantics of XMM-to-GPR/memory moves.
+- Added AVX-512 opmask introspection API surface:
+  `MicrocodeContext::has_opmask()`, `MicrocodeContext::is_zero_masking()`,
+  and `MicrocodeContext::opmask_register_number()` — exposing EVEX mask
+  metadata from the instruction being lifted without requiring Intel-specific
+  headers in user code.
+- Wired AVX-512 opmask support uniformly across ALL helper-call paths: when an
+  instruction uses opmask masking, the helper name is suffixed with `_mask`
+  or `_maskz`, and masking arguments are appended (merge-source register for
+  merge-masking, mask register number as unsigned immediate) with appropriate
+  `__mmask*` type widths inferred from vector width and element size. Masking
+  is now applied in: normal variadic helpers, compare helpers, store-like
+  helpers, scalar min/max/sqrt helpers, packed sqrt/addsub/min/max helpers,
+  and helper-fallback conversion paths. For native microcode emission paths
+  (typed binary, typed conversion, typed moves, typed packed FP math), the
+  port skips to helper-call fallback when masking is present, since native
+  microcode instructions cannot represent per-element masking (GAP 3 closed).
+- Added `vector_type_declaration(byte_width, is_integer, is_double)` helper that
+  mirrors the original lifter's `get_type_robust(size, is_int, is_double)` type
+  resolution pattern. For scalar sizes (1-8 bytes) it delegates to
+  `integer_type_declaration` / `floating_type_declaration`. For vector sizes
+  (16/32/64 bytes) it returns the appropriate named type string (`__m128`,
+  `__m128i`, `__m128d`, `__m256`, `__m256i`, `__m256d`, `__m512`, `__m512i`,
+  `__m512d`) which `parse_decl` resolves against the DB's type library — the
+  same lookup the original performs via `tinfo_t::get_named_type()`. This
+  produces proper named vector types in decompiler output instead of anonymous
+  byte-array structs. Applied across all helper-call return paths: variadic
+  helpers, compare helpers, packed sqrt/addsub/min/max helpers, and
+  helper-fallback conversions (GAP 7 closed).
 
 ## Notes
 

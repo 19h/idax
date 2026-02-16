@@ -1124,6 +1124,9 @@ void check_decompiler_surface() {
     using UnregisterMicrocodeFilterFn = ida::Status(*)(ida::decompiler::FilterToken);
     using MicrocodeContextAddressFn = ida::Address(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextInsnTypeFn = int(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextHasOpmaskFn = bool(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextIsZeroMaskingFn = bool(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextOpmaskRegNumFn = int(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextLocalVariableCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextBlockInstructionCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextHasInstructionAtIndexFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)(int) const;
@@ -1438,6 +1441,9 @@ void check_decompiler_surface() {
     (void)static_cast<UnregisterMicrocodeFilterFn>(&ida::decompiler::unregister_microcode_filter);
     (void)static_cast<MicrocodeContextAddressFn>(&ida::decompiler::MicrocodeContext::address);
     (void)static_cast<MicrocodeContextInsnTypeFn>(&ida::decompiler::MicrocodeContext::instruction_type);
+    (void)static_cast<MicrocodeContextHasOpmaskFn>(&ida::decompiler::MicrocodeContext::has_opmask);
+    (void)static_cast<MicrocodeContextIsZeroMaskingFn>(&ida::decompiler::MicrocodeContext::is_zero_masking);
+    (void)static_cast<MicrocodeContextOpmaskRegNumFn>(&ida::decompiler::MicrocodeContext::opmask_register_number);
     (void)static_cast<MicrocodeContextLocalVariableCountFn>(&ida::decompiler::MicrocodeContext::local_variable_count);
     (void)static_cast<MicrocodeContextBlockInstructionCountFn>(&ida::decompiler::MicrocodeContext::block_instruction_count);
     (void)static_cast<MicrocodeContextHasInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::has_instruction_at_index);
