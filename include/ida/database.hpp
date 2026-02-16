@@ -30,6 +30,30 @@ enum class LoadIntent {
     NonBinary,
 };
 
+/// Common processor module identifiers (SDK `PLFM_*` values).
+///
+/// Values match the SDK constants exactly.
+enum class ProcessorId : std::int32_t {
+    IntelX86      = 0,   ///< `PLFM_386`
+    Z80           = 1,   ///< `PLFM_Z80`
+    Intel8051     = 3,   ///< `PLFM_8051`
+    Mos6502       = 5,   ///< `PLFM_6502`
+    Motorola68k   = 7,   ///< `PLFM_68K`
+    JavaVm        = 8,   ///< `PLFM_JAVA`
+    Motorola6800  = 9,   ///< `PLFM_6800`
+    Mips          = 12,  ///< `PLFM_MIPS`
+    Arm           = 13,  ///< `PLFM_ARM`
+    PowerPc       = 15,  ///< `PLFM_PPC`
+    Avr           = 20,  ///< `PLFM_AVR`
+    Pic           = 22,  ///< `PLFM_PIC`
+    Sparc         = 23,  ///< `PLFM_SPARC`
+    Hppa          = 25,  ///< `PLFM_HPPA`
+    TriCore       = 27,  ///< `PLFM_TRICORE`
+    Cr16          = 52,  ///< `PLFM_CR16`
+    Msp430        = 58,  ///< `PLFM_MSP430`
+    Dalvik        = 60,  ///< `PLFM_DALVIK`
+};
+
 /// Headless user-plugin loading policy applied at init time.
 ///
 /// Built-in IDA plugins from IDADIR remain available. This policy only affects
@@ -165,8 +189,20 @@ Result<AddressSize> address_span();
 /// Common IDs: 0 = x86/x64 (Intel), 12 = MIPS, 13 = ARM, 15 = PowerPC.
 Result<std::int32_t> processor_id();
 
+/// Active processor module ID as a typed enum.
+Result<ProcessorId> processor();
+
 /// Active processor module short name (e.g. "metapc", "ARM", "mips").
 Result<std::string> processor_name();
+
+/// Program address bitness for the current database (16/32/64).
+Result<int> address_bitness();
+
+/// Endianness of the current database.
+Result<bool> is_big_endian();
+
+/// Active ABI name when available (for example: "sysv", "n32", "xbox").
+Result<std::string> abi_name();
 
 // ── Snapshot wrappers ────────────────────────────────────────────────────
 

@@ -5,6 +5,14 @@ cmake_minimum_required(VERSION 3.27)
 
 option(IDAX_BUILD_EXAMPLE_ADDONS "Build sample IDA addon modules" OFF)
 option(IDAX_BUILD_EXAMPLE_TOOLS "Build sample idalib-based tools" OFF)
+option(IDAX_BUILD_EXAMPLE_IDAPCODE_PORT
+       "Build idapcode-to-idax Sleigh port plugin example"
+       OFF)
+option(IDAX_IDAPCODE_BUILD_SPECS
+       "Build Sleigh spec files for idapcode port runtime"
+       OFF)
+set(IDAX_IDAPCODE_SLEIGH_SOURCE_DIR "${CMAKE_SOURCE_DIR}/third-party/sleigh"
+    CACHE PATH "Path to lifting-bits/sleigh source tree")
 
 set(IDAX_EXAMPLE_SOURCES
     # Minimal examples (quick-start reference).
@@ -26,6 +34,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/drawida_port_widget.cpp
     plugin/abyss_port_plugin.cpp
     plugin/driverbuddy_port_plugin.cpp
+    plugin/idapcode_port_plugin.cpp
     plugin/driverbuddy_wdf_slots.inc
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
@@ -107,6 +116,43 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
         SOURCES plugin/driverbuddy_port_plugin.cpp
         LIBRARIES idax::idax
     )
+
+    if(IDAX_BUILD_EXAMPLE_IDAPCODE_PORT)
+        if(NOT TARGET sleigh::sla)
+            if(EXISTS "${IDAX_IDAPCODE_SLEIGH_SOURCE_DIR}/CMakeLists.txt")
+                set(sleigh_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+                set(sleigh_BUILD_EXTRATOOLS OFF CACHE BOOL "" FORCE)
+                set(sleigh_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
+                set(sleigh_BUILD_SUPPORT ON CACHE BOOL "" FORCE)
+                set(sleigh_BUILD_SLEIGHSPECS ${IDAX_IDAPCODE_BUILD_SPECS} CACHE BOOL "" FORCE)
+
+                add_subdirectory("${IDAX_IDAPCODE_SLEIGH_SOURCE_DIR}"
+                                 "${CMAKE_CURRENT_BINARY_DIR}/third-party/sleigh"
+                                 EXCLUDE_FROM_ALL)
+            else()
+                find_package(sleigh QUIET COMPONENTS Support)
+            endif()
+        endif()
+
+        if(TARGET sleigh::sla AND TARGET sleigh::decomp AND TARGET sleigh::support)
+            ida_add_plugin(idax_idapcode_port_plugin
+                SOURCES plugin/idapcode_port_plugin.cpp
+                LIBRARIES
+                    idax::idax
+                    sleigh::sla
+                    sleigh::decomp
+                    sleigh::support
+            )
+
+            if(IDAX_IDAPCODE_BUILD_SPECS AND TARGET sleigh_all_sla_specs)
+                add_dependencies(idax_idapcode_port_plugin sleigh_all_sla_specs)
+            endif()
+        else()
+            message(WARNING
+                "IDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON but Sleigh targets are unavailable. "
+                "Set IDAX_IDAPCODE_SLEIGH_SOURCE_DIR to a valid checkout or install sleigh with Support component.")
+        endif()
+    endif()
 
     ida_add_loader(idax_xbin_loader
         SOURCES loader/advanced_loader.cpp

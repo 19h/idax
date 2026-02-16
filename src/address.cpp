@@ -293,11 +293,38 @@ Result<std::int32_t> processor_id() {
     return static_cast<std::int32_t>(PH.id);
 }
 
+Result<ProcessorId> processor() {
+    auto id = processor_id();
+    if (!id)
+        return std::unexpected(id.error());
+    return static_cast<ProcessorId>(*id);
+}
+
 Result<std::string> processor_name() {
     qstring name = inf_get_procname();
     if (name.empty())
         return std::unexpected(Error::not_found("No processor name available"));
     return ida::detail::to_string(name);
+}
+
+Result<int> address_bitness() {
+    if (inf_is_64bit())
+        return 64;
+    if (inf_is_32bit_exactly())
+        return 32;
+    return 16;
+}
+
+Result<bool> is_big_endian() {
+    return inf_is_be();
+}
+
+Result<std::string> abi_name() {
+    qstring abi;
+    if (get_abi_name(&abi) <= 0 || abi.empty()) {
+        return std::unexpected(Error::not_found("No ABI name available"));
+    }
+    return ida::detail::to_string(abi);
 }
 
 } // namespace ida::database

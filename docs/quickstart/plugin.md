@@ -71,3 +71,6 @@ For toolbar/popup wiring, use:
 - See `examples/plugin/action_plugin.cpp` for a full file.
 - For advanced decompiler/popup workflows, see `examples/plugin/abyss_port_plugin.cpp`
   and `docs/port_gap_audit_abyss.md`.
+- For custom-viewer + Sleigh-backed plugin workflows, see
+  `examples/plugin/idapcode_port_plugin.cpp` and
+  `docs/port_gap_audit_idapcode.md`.

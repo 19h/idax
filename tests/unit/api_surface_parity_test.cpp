@@ -504,6 +504,8 @@ void check_database_surface() {
     (void)ida::database::LoadIntent::AutoDetect;
     (void)ida::database::LoadIntent::Binary;
     (void)ida::database::LoadIntent::NonBinary;
+    (void)ida::database::ProcessorId::IntelX86;
+    (void)ida::database::ProcessorId::Arm;
 
     ida::database::PluginLoadPolicy plugin_policy;
     (void)plugin_policy.disable_user_plugins;
@@ -545,6 +547,7 @@ void check_database_surface() {
     using LoaderFormatNameFn = ida::Result<std::string>(*)();
     using CompilerInfoFn = ida::Result<ida::database::CompilerInfo>(*)();
     using ImportModulesFn = ida::Result<std::vector<ida::database::ImportModule>>(*)();
+    using ProcessorEnumFn = ida::Result<ida::database::ProcessorId>(*)();
 
     (void)static_cast<InitBasicFn>(&ida::database::init);
     (void)static_cast<InitWithOptionsFn>(&ida::database::init);
@@ -560,12 +563,16 @@ void check_database_surface() {
     (void)static_cast<LoaderFormatNameFn>(&ida::database::loader_format_name);
     (void)static_cast<CompilerInfoFn>(&ida::database::compiler_info);
     (void)static_cast<ImportModulesFn>(&ida::database::import_modules);
+    (void)static_cast<ProcessorEnumFn>(&ida::database::processor);
 
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
     (void)&ida::database::image_base;
     (void)&ida::database::processor_id;
     (void)&ida::database::processor_name;
+    (void)&ida::database::address_bitness;
+    (void)&ida::database::is_big_endian;
+    (void)&ida::database::abi_name;
 }
 
 // ─── ida::lumina ────────────────────────────────────────────────────────
