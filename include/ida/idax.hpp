@@ -34,5 +34,6 @@
 #include <ida/storage.hpp>
 #include <ida/graph.hpp>
 #include <ida/ui.hpp>
+#include <ida/lines.hpp>
 
 #endif // IDAX_IDAX_HPP

@@ -251,4 +251,20 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 231. The SDK global `PH.id` (processor_t::id via `get_ph()`) returns the active processor module ID (PLFM_* constant). `PLFM_386` is `0` (Intel x86/x64), not 15 as might be assumed. The original lifter uses `PH.id != PLFM_386` in both AVX and VMX component availability checks as a crash guard — IDA crashes when interacting with AVX/VMX in non-x86 processor modes. Added `ida::database::processor_id()` wrapping `PH.id` and `ida::database::processor_name()` wrapping `inf_get_procname()` to idax. Implementation lives in `address.cpp` (not `database.cpp`) to avoid pulling idalib-only symbols (`init_library`/`open_database`/`close_database`) into plugin link units.
 
+232. The IDA SDK redefines bare `snprintf` to `dont_use_snprintf` via a macro in `pro.h:965`, forcing use of `qsnprintf` in SDK-linked code. However, `std::snprintf` (the fully-qualified C++ name) is unaffected by this macro and can be used safely in example/plugin code that doesn't include SDK headers directly. In idax `src/` files (which include SDK headers), `qsnprintf` must be used. In example plugins (which include only `<ida/idax.hpp>`), `std::snprintf` is the portable alternative.
+
+233. `cfunc_t::get_pseudocode()` returns `const strvec_t&` — a read-only reference. To modify pseudocode lines (e.g., inserting color tags), access `cfunc->sv` directly (the public member), not the const getter. The idax wrapper's `set_raw_line()` implements this by indexing into `cfunc->sv[line_index].line`.
+
+234. The SDK's `qrefcnt_t<cfunc_t>` (typedef `cfuncptr_t`) does not provide a `.get()` method like `std::shared_ptr`. To obtain a raw `cfunc_t*`, use `&*ptr` (dereference then take address) or `ptr.operator->()`.
+
+235. Color enum values in the SDK (`color_t` constants in `lines.hpp`) use specific byte values that must be matched exactly in any wrapper enum: `COLOR_DEFAULT=0x01`, `COLOR_KEYWORD=0x20`, `COLOR_REG=0x21`, `COLOR_IMPNAME=0x17`, `COLOR_LIBNAME=0x18`, `COLOR_NUMBER=0x0C`, `COLOR_STRING=0x14`, `COLOR_CHAR=0x15`, etc. Getting these wrong produces garbled colored output in IDA's pseudocode view.
+
+236. Widget type enum values must match SDK `BWN_*` constants in `kernwin.hpp`: `BWN_EXPORTS=0`, `BWN_IMPORTS=1`, `BWN_NAMES=2`, `BWN_FUNCS=3`, `BWN_STRINGS=5`, `BWN_DISASM=27`, `BWN_PSEUDOCODE=46`, etc. These are NOT sequential or intuitive — they follow internal SDK widget registration order.
+
+237. `attach_dynamic_action_to_popup` uses `DYNACTION_DESC_LITERAL` macro which takes 5 arguments: `(label, handler, shortcut, tooltip, icon)`. This is NOT the same as `ACTION_DESC_LITERAL_OWNER` (8 args). The dynamic action variant is for temporary popup-only actions that don't need global registration.
+
+238. Hexrays callback event signatures (accessed via `va_arg` in the event bridge): `hxe_func_printed` receives `(cfunc_t*)`, `hxe_curpos` receives `(vdui_t*)`, `hxe_create_hint` receives `(vdui_t*, qstring*, int*)` and the callback should return 1 to show the hint or 0 to skip, `hxe_refresh_pseudocode` receives `(vdui_t*)`. All events return `int` (0 = continue processing, non-zero = handled for most events).
+
+239. `ui_finish_populating_widget_popup` notification receives `(TWidget*, TPopupMenu*, const action_activation_ctx_t*)` via `va_arg`. The `TPopupMenu*` is needed for `attach_dynamic_action_to_popup()` calls. The `action_activation_ctx_t` provides widget context including the widget pointer and type.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

@@ -37,8 +37,46 @@ namespace {
 
 std::mutex g_subscription_mutex;
 std::unordered_map<Token, std::function<void(const MaturityEvent&)>> g_maturity_callbacks;
+std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_func_printed_callbacks;
+std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_refresh_pseudocode_callbacks;
+std::unordered_map<Token, std::function<void(const CursorPositionEvent&)>> g_curpos_callbacks;
+std::unordered_map<Token, std::function<HintResult(const HintRequestEvent&)>> g_create_hint_callbacks;
 std::atomic<std::uint64_t> g_next_token{1};
 bool g_hexrays_callback_installed = false;
+
+/// Check whether ALL callback maps are empty (used to decide bridge removal).
+bool all_callbacks_empty_locked() {
+    return g_maturity_callbacks.empty()
+        && g_func_printed_callbacks.empty()
+        && g_refresh_pseudocode_callbacks.empty()
+        && g_curpos_callbacks.empty()
+        && g_create_hint_callbacks.empty();
+}
+
+/// Try to erase a token from any callback map. Returns true if found and erased.
+bool erase_from_any_map_locked(Token token) {
+    if (auto it = g_maturity_callbacks.find(token); it != g_maturity_callbacks.end()) {
+        g_maturity_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_func_printed_callbacks.find(token); it != g_func_printed_callbacks.end()) {
+        g_func_printed_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_refresh_pseudocode_callbacks.find(token); it != g_refresh_pseudocode_callbacks.end()) {
+        g_refresh_pseudocode_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_curpos_callbacks.find(token); it != g_curpos_callbacks.end()) {
+        g_curpos_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_create_hint_callbacks.find(token); it != g_create_hint_callbacks.end()) {
+        g_create_hint_callbacks.erase(it);
+        return true;
+    }
+    return false;
+}
 
 struct MicrocodeContextImpl {
     codegen_t* codegen{nullptr};
@@ -1782,27 +1820,138 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
 }
 
 ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
-    if (event != hxe_maturity)
+    switch (event) {
+
+    case hxe_maturity: {
+        cfunc_t* cfunc = va_arg(va, cfunc_t*);
+        int maturity_raw = va_arg(va, int);
+
+        MaturityEvent evt;
+        if (cfunc != nullptr)
+            evt.function_address = static_cast<Address>(cfunc->entry_ea);
+        evt.new_maturity = to_maturity(maturity_raw);
+
+        std::vector<std::function<void(const MaturityEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_maturity_callbacks.size());
+            for (const auto& [_, cb] : g_maturity_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
         return 0;
-
-    cfunc_t* cfunc = va_arg(va, cfunc_t*);
-    int maturity_raw = va_arg(va, int);
-
-    MaturityEvent evt;
-    if (cfunc != nullptr)
-        evt.function_address = static_cast<Address>(cfunc->entry_ea);
-    evt.new_maturity = to_maturity(maturity_raw);
-
-    std::vector<std::function<void(const MaturityEvent&)>> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(g_subscription_mutex);
-        callbacks.reserve(g_maturity_callbacks.size());
-        for (const auto& [_, callback] : g_maturity_callbacks)
-            callbacks.push_back(callback);
     }
-    for (const auto& callback : callbacks)
-        callback(evt);
-    return 0;
+
+    case hxe_func_printed: {
+        cfunc_t* cfunc = va_arg(va, cfunc_t*);
+
+        PseudocodeEvent evt;
+        if (cfunc != nullptr) {
+            evt.function_address = static_cast<Address>(cfunc->entry_ea);
+            evt.cfunc_handle = static_cast<void*>(cfunc);
+        }
+
+        std::vector<std::function<void(const PseudocodeEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_func_printed_callbacks.size());
+            for (const auto& [_, cb] : g_func_printed_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
+        return 0;
+    }
+
+    case hxe_refresh_pseudocode: {
+        vdui_t* vu = va_arg(va, vdui_t*);
+
+        PseudocodeEvent evt;
+        if (vu != nullptr && vu->cfunc != nullptr) {
+            evt.function_address = static_cast<Address>(vu->cfunc->entry_ea);
+            evt.cfunc_handle = static_cast<void*>(&*vu->cfunc);
+        }
+
+        std::vector<std::function<void(const PseudocodeEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_refresh_pseudocode_callbacks.size());
+            for (const auto& [_, cb] : g_refresh_pseudocode_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
+        return 0;
+    }
+
+    case hxe_curpos: {
+        vdui_t* vu = va_arg(va, vdui_t*);
+
+        CursorPositionEvent evt;
+        if (vu != nullptr) {
+            evt.view_handle = static_cast<void*>(vu);
+            if (vu->cfunc != nullptr)
+                evt.function_address = static_cast<Address>(vu->cfunc->entry_ea);
+            // Extract cursor address from current item if available
+            if (vu->item.is_citem()) {
+                const citem_t* item = vu->item.it;
+                if (item != nullptr)
+                    evt.cursor_address = static_cast<Address>(item->ea);
+            }
+        }
+
+        std::vector<std::function<void(const CursorPositionEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_curpos_callbacks.size());
+            for (const auto& [_, cb] : g_curpos_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
+        return 0;
+    }
+
+    case hxe_create_hint: {
+        vdui_t* vu = va_arg(va, vdui_t*);
+        qstring* hint = va_arg(va, qstring*);
+        int* important_lines = va_arg(va, int*);
+
+        HintRequestEvent evt;
+        if (vu != nullptr) {
+            evt.view_handle = static_cast<void*>(vu);
+            if (vu->cfunc != nullptr)
+                evt.function_address = static_cast<Address>(vu->cfunc->entry_ea);
+            if (vu->item.is_citem()) {
+                const citem_t* item = vu->item.it;
+                if (item != nullptr)
+                    evt.item_address = static_cast<Address>(item->ea);
+            }
+        }
+
+        std::vector<std::function<HintResult(const HintRequestEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_create_hint_callbacks.size());
+            for (const auto& [_, cb] : g_create_hint_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks) {
+            HintResult result = cb(evt);
+            if (!result.text.empty() && hint != nullptr) {
+                *hint = result.text.c_str();
+                if (important_lines != nullptr)
+                    *important_lines = result.lines;
+                return 1;  // Stop collecting hints
+            }
+        }
+        return 0;
+    }
+
+    default:
+        return 0;
+    }
 }
 
 Status ensure_callback_installed_locked() {
@@ -1846,18 +1995,88 @@ Result<Token> on_maturity_changed(std::function<void(const MaturityEvent&)> call
     return token;
 }
 
+Result<Token> on_func_printed(std::function<void(const PseudocodeEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("func_printed callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_func_printed_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Result<Token> on_refresh_pseudocode(std::function<void(const PseudocodeEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("refresh_pseudocode callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_refresh_pseudocode_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Result<Token> on_curpos_changed(std::function<void(const CursorPositionEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("curpos callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_curpos_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Result<Token> on_create_hint(std::function<HintResult(const HintRequestEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("create_hint callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_create_hint_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
 Status unsubscribe(Token token) {
     if (token == 0)
         return std::unexpected(Error::validation("Invalid subscription token"));
 
     std::lock_guard<std::mutex> lock(g_subscription_mutex);
-    auto it = g_maturity_callbacks.find(token);
-    if (it == g_maturity_callbacks.end())
+    if (!erase_from_any_map_locked(token))
         return std::unexpected(Error::not_found("Decompiler subscription token not found",
                                                 std::to_string(token)));
-    g_maturity_callbacks.erase(it);
 
-    if (g_maturity_callbacks.empty() && g_hexrays_callback_installed) {
+    if (all_callbacks_empty_locked() && g_hexrays_callback_installed) {
         remove_hexrays_callback(&hexrays_event_bridge, nullptr);
         g_hexrays_callback_installed = false;
     }
@@ -3033,6 +3252,49 @@ Result<std::uint32_t> ExpressionView::member_offset() const {
     return e->m;
 }
 
+Result<ExpressionView> ExpressionView::left() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    // x is valid for all non-leaf expressions that have sub-operands.
+    // Leaf ops: cot_num, cot_fnum, cot_str, cot_obj, cot_var, cot_insn, cot_helper, cot_empty
+    if (e->x == nullptr)
+        return std::unexpected(Error::validation("Expression has no left operand (leaf expression)"));
+    return ExpressionView(ExpressionView::Tag{}, e->x);
+}
+
+Result<ExpressionView> ExpressionView::right() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    // y is valid for binary expressions. It shares a union with `a` (call args)
+    // and `m` (member offset), so only access it for binary ops.
+    if (e->x == nullptr || e->y == nullptr)
+        return std::unexpected(Error::validation("Expression has no right operand"));
+    // Guard: for calls, y is actually `a` (arglist), not a cexpr_t*
+    if (e->op == cot_call)
+        return std::unexpected(Error::validation("Use call_argument() for call expressions"));
+    // Guard: for member access, y is `m` (uint32), not a cexpr_t*
+    if (e->op == cot_memref || e->op == cot_memptr)
+        return std::unexpected(Error::validation("Use member_offset() for member access expressions"));
+    return ExpressionView(ExpressionView::Tag{}, e->y);
+}
+
+int ExpressionView::operand_count() const noexcept {
+    if (!raw_) return 0;
+    auto* e = static_cast<cexpr_t*>(raw_);
+    // Leaf expressions (no x pointer)
+    if (e->x == nullptr)
+        return 0;
+    // Unary or binary: check if y/a/m is meaningful
+    // For calls: x = callee, a = args → count as 2 (callee + arglist)
+    // For member access: x = base, m = offset → count as 2
+    // For ternary (cot_tern): x, y, z → count as 3
+    if (e->op == cot_tern)
+        return 3;
+    if (e->y != nullptr || e->op == cot_call || e->op == cot_memref || e->op == cot_memptr)
+        return 2;
+    return 1;
+}
+
 Result<std::string> ExpressionView::to_string() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     // We need the cfunc_t for printing, which we don't have in this context.
@@ -3254,6 +3516,39 @@ Result<std::vector<std::string>> DecompiledFunction::lines() const {
     return result;
 }
 
+Result<std::vector<std::string>> DecompiledFunction::raw_lines() const {
+    CHECK_IMPL();
+
+    const strvec_t& sv = impl_->cfunc->get_pseudocode();
+    std::vector<std::string> result;
+    result.reserve(sv.size());
+    for (std::size_t i = 0; i < sv.size(); ++i) {
+        result.push_back(ida::detail::to_string(sv[i].line));
+    }
+    return result;
+}
+
+Status DecompiledFunction::set_raw_line(std::size_t line_index,
+                                        std::string_view tagged_text) {
+    CHECK_IMPL();
+
+    // Access sv directly (get_pseudocode() returns const ref).
+    strvec_t& sv = impl_->cfunc->sv;
+    if (line_index >= sv.size())
+        return std::unexpected(Error::validation("Line index out of range"));
+
+    sv[line_index].line = tagged_text.data();
+    return ida::ok();
+}
+
+Result<int> DecompiledFunction::header_line_count() const {
+    CHECK_IMPL();
+
+    // cfunc_t stores the number of header lines (function prototype + local var declarations)
+    // in the hdrlines field.
+    return impl_->cfunc->hdrlines;
+}
+
 Result<std::vector<std::string>> DecompiledFunction::microcode_lines() const {
     CHECK_IMPL();
 
@@ -3308,6 +3603,18 @@ Result<std::vector<LocalVariable>> DecompiledFunction::variables() const {
             lv.type_name = ida::detail::to_string(type_str);
         else
             lv.type_name = "(unknown)";
+
+        // Extended properties
+        lv.has_user_name = v.has_user_name();
+        lv.has_nice_name = v.has_nice_name();
+        lv.comment       = ida::detail::to_string(v.cmt);
+
+        if (v.is_stk_var())
+            lv.storage = VariableStorage::Stack;
+        else if (v.is_reg_var())
+            lv.storage = VariableStorage::Register;
+        else
+            lv.storage = VariableStorage::Unknown;
 
         result.push_back(std::move(lv));
     }
@@ -3695,6 +4002,96 @@ Result<DecompilerView> current_view() {
     if (!current_address)
         return std::unexpected(current_address.error());
     return view_for_function(*current_address);
+}
+
+// ── Raw pseudocode access from event handles ────────────────────────────
+
+Result<std::vector<std::string>> raw_pseudocode_lines(void* cfunc_handle) {
+    if (cfunc_handle == nullptr)
+        return std::unexpected(Error::validation("cfunc_handle is null"));
+
+    auto* cf = static_cast<cfunc_t*>(cfunc_handle);
+    const strvec_t& sv = cf->get_pseudocode();
+    std::vector<std::string> result;
+    result.reserve(sv.size());
+    for (std::size_t i = 0; i < sv.size(); ++i)
+        result.push_back(ida::detail::to_string(sv[i].line));
+    return result;
+}
+
+Status set_pseudocode_line(void* cfunc_handle, std::size_t line_index,
+                           std::string_view tagged_text) {
+    if (cfunc_handle == nullptr)
+        return std::unexpected(Error::validation("cfunc_handle is null"));
+
+    auto* cf = static_cast<cfunc_t*>(cfunc_handle);
+    // Access sv directly (get_pseudocode() returns const ref).
+    strvec_t& sv = cf->sv;
+    if (line_index >= sv.size())
+        return std::unexpected(Error::validation("Line index out of range"));
+
+    sv[line_index].line = tagged_text.data();
+    return ida::ok();
+}
+
+Result<int> pseudocode_header_line_count(void* cfunc_handle) {
+    if (cfunc_handle == nullptr)
+        return std::unexpected(Error::validation("cfunc_handle is null"));
+
+    auto* cf = static_cast<cfunc_t*>(cfunc_handle);
+    return cf->hdrlines;
+}
+
+// ── Ctree item at pseudocode position ───────────────────────────────────
+
+Result<ItemAtPosition> item_at_position(void* cfunc_handle,
+                                        std::string_view tagged_line,
+                                        int char_index) {
+    if (cfunc_handle == nullptr)
+        return std::unexpected(Error::validation("cfunc_handle is null"));
+
+    auto* cf = static_cast<cfunc_t*>(cfunc_handle);
+
+    // Determine whether this is a ctree line (body) or declaration area (header).
+    // Header lines come first in the strvec; body lines start at cf->hdrlines.
+    bool is_ctree_line = true;  // Assume body by default.
+    const strvec_t& sv = cf->get_pseudocode();
+    // Try to find this line in the strvec to determine if it's a header line.
+    std::string line_str(tagged_line);
+    for (int i = 0; i < cf->hdrlines && static_cast<std::size_t>(i) < sv.size(); ++i) {
+        if (ida::detail::to_string(sv[i].line) == line_str) {
+            is_ctree_line = false;
+            break;
+        }
+    }
+
+    ctree_item_t item;
+    bool found = cf->get_line_item(line_str.c_str(), char_index, is_ctree_line,
+                                   nullptr, &item, nullptr);
+    if (!found)
+        return std::unexpected(Error::not_found("No ctree item at position"));
+
+    ItemAtPosition result;
+    result.is_expression = item.is_citem() && item.it != nullptr
+                           && item.it->is_expr();
+
+    if (item.is_citem() && item.it != nullptr) {
+        result.type = from_ctype(item.it->op);
+        result.address = static_cast<Address>(item.it->ea);
+        result.item_index = item.it->index;
+    }
+    return result;
+}
+
+// ── Item type name resolution ───────────────────────────────────────────
+
+std::string item_type_name(ItemType type) {
+    // Use SDK's get_ctype_name which returns the ctype_t name string.
+    auto ct = static_cast<ctype_t>(static_cast<int>(type));
+    const char* name = get_ctype_name(ct);
+    if (name != nullptr)
+        return std::string(name);
+    return "(unknown)";
 }
 
 // ── Functional-style visitor helpers ────────────────────────────────────

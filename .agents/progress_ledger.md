@@ -918,4 +918,33 @@
   - 12.29.6. Finding [F231] recorded.
   - 12.29.7. Evidence: build clean (`idax_lifter_port_plugin` + `idax_api_surface_check` + `idax_decompiler_storage_hardening_test`), 202/202 integration, 16/16 CTest.
 
+### 13. Phase 11 — Abyss Port API Gap Closure
+
+- **13.1. Gap Analysis Complete**
+  - 13.1.1. Analyzed abyss Python decompiler-filter plugin (patois, ~1046 lines, 9 files): main dispatcher + 8 filters (token_colorizer, signed_ops, hierarchy, lvars_alias, lvars_info, item_sync, item_ctype, item_index)
+  - 13.1.2. Cataloged every SDK symbol used across all files; cross-referenced against idax public API
+  - 13.1.3. Identified 18 API gaps (4 critical, 6 high, 6 medium, 2 low)
+  - 13.1.4. Header declarations written for all gaps in decompiler.hpp (+143 lines), ui.hpp (+122 lines), lines.hpp (new, 105 lines)
+  - 13.1.5. Initial abyss_port_plugin.cpp created (875 lines) with gap documentation
+  - 13.1.6. examples/CMakeLists.txt updated to include new plugin target
+
+- **13.2. Implementation — Complete**
+  - 13.2.1. **src/lines.cpp** (new) — Implemented `colstr()`, `tag_remove()`, `tag_advance()`, `tag_strlen()`, `make_addr_tag()`, `decode_addr_tag()` wrapping SDK `COLOR_ON`/`COLOR_OFF`/`COLOR_ADDR`/`::tag_remove`/`::tag_advance`/`::tag_strlen`. Auto-discovered by CMake `GLOB_RECURSE`.
+  - 13.2.2. **src/decompiler.cpp** — Added 4 new callback maps (`g_func_printed_callbacks`, `g_refresh_pseudocode_callbacks`, `g_curpos_callbacks`, `g_create_hint_callbacks`); expanded `hexrays_event_bridge` from single `hxe_maturity` to full 5-event switch; added 4 subscription functions; fixed `unsubscribe()` to search all maps; implemented `raw_lines()`/`set_raw_line()` (via `cfunc->sv`), `header_line_count()` (via `cfunc->hdrlines`); implemented `ExpressionView::left()`/`right()`/`operand_count()`; extended `variables()` with `has_user_name`/`has_nice_name`/`storage`/`comment`; implemented `item_at_position()` (via `cfunc_t::get_line_item`); implemented `item_type_name()` (via `get_ctype_name`).
+  - 13.2.3. **src/ui.cpp** — Implemented `widget_type()` (both overloads via `get_widget_type`); `on_popup_ready()` subscribing to `ui_finish_populating_widget_popup`; `DynamicActionHandler` class + `attach_dynamic_action()` via `DYNACTION_DESC_LITERAL`/`attach_dynamic_action_to_popup()`; `on_rendering_info()` subscribing to `ui_get_lines_rendering_info` with full SDK↔idax translation; `user_directory()` via `get_user_idadir()`; `refresh_all_views()` via `refresh_idaview_anyway()`.
+  - 13.2.4. **include/ida/idax.hpp** — Added `#include <ida/lines.hpp>` to master include.
+  - 13.2.5. **examples/plugin/abyss_port_plugin.cpp** — Complete C++ port (~845 lines) of all 8 abyss filters: token_colorizer, signed_ops, hierarchy, lvars_alias, lvars_info, item_sync, item_ctype, item_index. Uses only idax APIs. Plugin class `AbyssPlugin` with `IDAX_PLUGIN(AbyssPlugin)`.
+  - 13.2.6. **Build fixes** — Replaced `qsnprintf` (SDK-internal, unavailable in example code) with `std::snprintf`; replaced printf-style `ui::message()` calls with string concatenation.
+  - 13.2.7. **Evidence:** `cmake --build build` all targets clean; `ctest --test-dir build` 16/16 pass (0 failures); `idax_abyss_port_plugin.dylib` linked to `ida-sdk/src/bin/plugins/`.
+
+- **13.3. SDK Discoveries**
+  - 13.3.1. SDK redefines bare `snprintf` → `dont_use_snprintf` in `pro.h:965`; `std::snprintf` is unaffected (qualified name). [F232]
+  - 13.3.2. `cfunc_t::get_pseudocode()` returns `const strvec_t&` — to modify lines, access `cfunc->sv` directly. [F233]
+  - 13.3.3. `qrefcnt_t<cfunc_t>` (cfuncptr_t) lacks `.get()` — use `&*ptr` or `ptr.operator->()`. [F234]
+  - 13.3.4. Color enum values must match SDK `color_t` constants exactly: `COLOR_KEYWORD=0x20`, `COLOR_REG=0x21`, `COLOR_LIBNAME=0x18`, etc. [F235]
+  - 13.3.5. WidgetType enum must match SDK `BWN_*` constants: `BWN_DISASM=27`, `BWN_PSEUDOCODE=46`. [F236]
+  - 13.3.6. `attach_dynamic_action_to_popup` uses `DYNACTION_DESC_LITERAL` (5 args), not `ACTION_DESC_LITERAL_OWNER` (8 args). [F237]
+  - 13.3.7. Hexrays event signatures: `hxe_func_printed` → `(cfunc_t*)`, `hxe_curpos` → `(vdui_t*)`, `hxe_create_hint` → `(vdui_t*, qstring*, int*)` returns 0/1, `hxe_refresh_pseudocode` → `(vdui_t*)`. [F238]
+  - 13.3.8. `ui_finish_populating_widget_popup` → `(TWidget*, TPopupMenu*, const action_activation_ctx_t*)`. [F239]
+
 ---

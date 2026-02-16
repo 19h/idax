@@ -706,3 +706,31 @@ Note:
   - 17.1.2. Interface-level API sketches must be present (not just summaries) to avoid implementation ambiguity [F11]
 
 ---
+
+### 18. SDK Color/Lines System
+- 18.1. SDK redefines bare `snprintf` → `dont_use_snprintf` in `pro.h:965`; use `qsnprintf` in src/, `std::snprintf` in examples [F232]
+- 18.2. Color tag system uses `COLOR_ON` (byte 0x01) / `COLOR_OFF` (byte 0x02) brackets around single-byte color codes
+- 18.3. `COLOR_ADDR` tag (byte 0x05) embeds address metadata as `kColorAddrSize` hex chars within pseudocode lines
+- 18.4. Color enum values are specific SDK `color_t` constants, not sequential — must match exactly [F235]
+- 18.5. `::tag_remove()`, `::tag_advance()`, `::tag_strlen()` are the SDK functions for stripping/navigating/measuring colored text
+
+### 19. Hexrays Event System (Decompiler Callbacks)
+- 19.1. `cfunc_t::get_pseudocode()` returns `const strvec_t&`; modify lines via `cfunc->sv` directly [F233]
+- 19.2. `cfuncptr_t` (`qrefcnt_t<cfunc_t>`) lacks `.get()` — use `&*ptr` or `operator->()` [F234]
+- 19.3. Event signatures via `va_arg`: `hxe_func_printed` → `(cfunc_t*)`, `hxe_curpos` → `(vdui_t*)`, `hxe_create_hint` → `(vdui_t*, qstring*, int*)`, `hxe_refresh_pseudocode` → `(vdui_t*)` [F238]
+- 19.4. `hxe_create_hint` return convention: 1 = show hint, 0 = skip [F238]
+
+### 20. UI Widget/Popup System
+- 20.1. Widget type values match `BWN_*` constants — not sequential, follow internal SDK registration order [F236]
+- 20.2. `attach_dynamic_action_to_popup` uses `DYNACTION_DESC_LITERAL` (5 args: label, handler, shortcut, tooltip, icon) [F237]
+- 20.3. `ui_finish_populating_widget_popup` receives `(TWidget*, TPopupMenu*, const action_activation_ctx_t*)` [F239]
+
+### 21. Abyss Port Architecture (Phase 11)
+- 21.1. Abyss is a Hex-Rays decompiler post-processing filter framework by Dennis Elser (patois)
+- 21.2. 8 filters: token_colorizer, signed_ops, hierarchy, lvars_alias, lvars_info, item_sync, item_ctype, item_index
+- 21.3. Core dispatch via hexrays hooks (func_printed, maturity, curpos, create_hint, refresh_pseudocode) and UI hooks (finish_populating_widget_popup, get_lines_rendering_info, screen_ea_changed)
+- 21.4. Filters modify pseudocode by editing `simpleline_t.line` strings with color tags in `func_printed` event
+- 21.5. Port identified and closed 18 API gaps across lines, decompiler, and ui domains
+- 21.6. Artifact: `examples/plugin/abyss_port_plugin.cpp` (~845 lines)
+
+---

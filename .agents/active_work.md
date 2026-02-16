@@ -68,6 +68,18 @@
   - 5.1.6. No new wrapper APIs required for lifter-class ports
   - 5.1.7. **Status:** Resolved / demand-driven expansion only
 
-Reminder: Every single TODO and sub-TODO update, and every finding/learning, must be reflected here immediately.
+---
+
+### 6. Abyss Port — API Gap Closure Implementation (Phase 11) — RESOLVED
+
+- **6.1. Resolution Summary**
+  - 6.1.1. Port of the "abyss" Hex-Rays decompiler filter framework (Python → C++) identified and closed 18 API gaps
+  - 6.1.2. All implementations complete: `src/lines.cpp` (new), `src/decompiler.cpp` (expanded), `src/ui.cpp` (expanded)
+  - 6.1.3. New header `include/ida/lines.hpp` created with Color enum, tag control constants, and 6 tag functions
+  - 6.1.4. `include/ida/decompiler.hpp` expanded with 4 event subscriptions, raw line access, expression nav, lvar extensions, item position lookup
+  - 6.1.5. `include/ida/ui.hpp` expanded with WidgetType enum, widget_type(), popup/rendering subscriptions, dynamic actions, utilities
+  - 6.1.6. `examples/plugin/abyss_port_plugin.cpp` complete (~845 lines) with all 8 original filters
+  - 6.1.7. All targets build clean, 16/16 tests pass, no regressions
+  - 6.1.8. **Status:** Resolved
 
 ---
