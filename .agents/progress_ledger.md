@@ -947,4 +947,16 @@
   - 13.3.7. Hexrays event signatures: `hxe_func_printed` → `(cfunc_t*)`, `hxe_curpos` → `(vdui_t*)`, `hxe_create_hint` → `(vdui_t*, qstring*, int*)` returns 0/1, `hxe_refresh_pseudocode` → `(vdui_t*)`. [F238]
   - 13.3.8. `ui_finish_populating_widget_popup` → `(TWidget*, TPopupMenu*, const action_activation_ctx_t*)`. [F239]
 
+- **13.4. Example Plugin Entry Point Fix + Database TU Split**
+  - 13.4.1. **Bug:** 5 example plugins (`action_plugin.cpp`, `decompiler_plugin.cpp`, `deep_analysis_plugin.cpp`, `event_monitor_plugin.cpp`, `storage_metadata_plugin.cpp`) were missing the `IDAX_PLUGIN(ClassName)` macro. Without it, no `_PLUGIN` symbol is exported and IDA's plugin loader sees an empty dylib with zero functions.
+  - 13.4.2. **Fix:** Added `IDAX_PLUGIN(QuickAnnotatorPlugin)`, `IDAX_PLUGIN(ComplexityMetricsPlugin)`, `IDAX_PLUGIN(BinaryAuditPlugin)`, `IDAX_PLUGIN(ChangeTrackerPlugin)`, `IDAX_PLUGIN(BinaryFingerprintPlugin)` to respective files.
+  - 13.4.3. **Secondary bug exposed:** Adding entry points caused `idax_audit_plugin` and `idax_fingerprint_plugin` to fail linking with undefined symbols (`init_library`, `open_database`, `close_database`, `enable_console_messages`). These are idalib-only symbols not exported from `libida.dylib`. Previously masked because empty dylibs don't trigger symbol resolution.
+  - 13.4.4. **Root cause:** `database.cpp` contained both idalib-only lifecycle functions (`init`, `open`, `close`) and plugin-safe query functions (`input_file_path`, `image_base`, `input_md5`, etc.) in a single translation unit. When the linker pulled any symbol from `database.cpp.o`, it got all of them.
+  - 13.4.5. **Fix:** Split `database.cpp` into two files:
+    - `database.cpp` — query/metadata functions + `save()` (plugin-safe, all symbols available in `libida.dylib`)
+    - `database_lifecycle.cpp` — `init()`/`open()`/`close()` + RuntimeOptions/sandbox/plugin-policy helpers (idalib-only)
+  - 13.4.6. Auto-discovered by CMake `GLOB_RECURSE`, no CMakeLists.txt changes needed.
+  - 13.4.7. [F240] Plugin entry point macro requirement. [F241] Database TU split for plugin link isolation.
+  - 13.4.8. **Evidence:** `cmake --build build` all targets clean (7 plugins + 3 loaders + 3 procmods + 16 tests); `ctest --test-dir build` 16/16 pass; `nm -gU` confirms `_PLUGIN` symbol exported from all plugin dylibs.
+
 ---

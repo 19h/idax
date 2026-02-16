@@ -733,4 +733,11 @@ Note:
 - 21.5. Port identified and closed 18 API gaps across lines, decompiler, and ui domains
 - 21.6. Artifact: `examples/plugin/abyss_port_plugin.cpp` (~845 lines)
 
+### 22. Plugin Build & Link Requirements
+- 22.1. `IDAX_PLUGIN(ClassName)` macro is mandatory for all plugin source files; without it the dylib exports no `_PLUGIN` symbol and IDA ignores it [F240]
+- 22.2. Static library link granularity is per object file — if any symbol from a `.cpp.o` is pulled in, ALL symbols in that object must resolve [F241]
+- 22.3. idalib-only symbols (`init_library`, `open_database`, `close_database`, `enable_console_messages`) are NOT in `libida.dylib`; `save_database` IS [F241]
+- 22.4. `database.cpp` was split into `database.cpp` (plugin-safe queries + save) and `database_lifecycle.cpp` (idalib-only init/open/close) to prevent link failures in plugins that use `ida::database` query APIs [F241]
+- 22.5. CMake `GLOB_RECURSE` auto-discovers new `.cpp` files in `src/`, so TU splits need no CMakeLists.txt changes
+
 ---

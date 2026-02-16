@@ -83,3 +83,15 @@
   - 6.1.8. **Status:** Resolved
 
 ---
+
+### 7. Example Plugin Entry Points + Database TU Split — RESOLVED
+
+- **7.1. Resolution Summary**
+  - 7.1.1. 5 example plugins were missing `IDAX_PLUGIN(ClassName)` macro, producing empty dylibs with no exported `_PLUGIN` symbol
+  - 7.1.2. Added macro to: `action_plugin.cpp`, `decompiler_plugin.cpp`, `deep_analysis_plugin.cpp`, `event_monitor_plugin.cpp`, `storage_metadata_plugin.cpp`
+  - 7.1.3. Fix exposed latent linker bug: `database.cpp` mixed idalib-only and plugin-safe symbols in one TU
+  - 7.1.4. Split `database.cpp` → `database.cpp` (plugin-safe) + `database_lifecycle.cpp` (idalib-only)
+  - 7.1.5. All 7 plugins, 3 loaders, 3 procmods build and link clean; 16/16 tests pass
+  - 7.1.6. **Status:** Resolved
+
+---

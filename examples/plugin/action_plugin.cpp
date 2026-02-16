@@ -230,3 +230,5 @@ struct QuickAnnotatorPlugin : ida::plugin::Plugin {
         return mark_reviewed();
     }
 };
+
+IDAX_PLUGIN(QuickAnnotatorPlugin)
