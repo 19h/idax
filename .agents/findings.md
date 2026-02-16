@@ -319,4 +319,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 265. The idapcode shortcut was changed from `Ctrl-Alt-S` to `Ctrl-Alt-Shift-P` to avoid common keybinding collisions with SigMaker workflows while keeping the action discoverable for p-code usage.
 
+266. `ida::ui::set_custom_viewer_lines` must preserve the original `CustomViewerState` object address. Replacing the stored `unique_ptr` invalidates internal pointers handed to `create_custom_viewer` (`min`/`max`/`cur`/`lines`) and can cause EXC_BAD_ACCESS during render/model updates; mutating the existing state in-place fixes the crash.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
