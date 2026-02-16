@@ -173,8 +173,11 @@ raw decompiler-view handle context for advanced per-view manipulations).
 Port of `/Users/int/Downloads/plo/idapcode-main` to idax plugin/UI/database
 surfaces with Sleigh-backed p-code generation.
 
-The plugin keeps the original workflow (`Ctrl-Alt-S`) and opens a custom viewer
-for the current function, rendering instruction headers plus lifted p-code ops.
+The plugin uses `Ctrl-Alt-Shift-P` (chosen to avoid common `Ctrl-Alt-S`
+conflicts with SigMaker setups) and opens a custom viewer for the current
+function, rendering instruction headers plus lifted p-code ops. It also keeps
+linear-view/custom-viewer navigation synchronized in both directions, including
+cross-function follow when the linear cursor moves into a different function.
 It uses idax wrappers for current-function lookup, byte extraction, custom
 viewer hosting, and architecture context (`processor_id`, `processor_name`,
 `address_bitness`, `is_big_endian`, `abi_name`) and resolves Sleigh specs via

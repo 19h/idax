@@ -22,9 +22,13 @@ to idax-first surfaces.
 
 ## Covered migration flows
 
-- Plugin lifecycle and hotkey parity (`Ctrl-Alt-S`) via `ida::plugin::Plugin`.
+- Plugin lifecycle via `ida::plugin::Plugin`; runtime shortcut set to
+  `Ctrl-Alt-Shift-P` to avoid `Ctrl-Alt-S` collisions in common SigMaker
+  environments.
 - Current-function resolution and byte extraction from IDA database state.
 - Custom viewer rendering of instruction headers and per-instruction p-code ops.
+- Bidirectional navigation sync between linear disassembly and the p-code viewer
+  (cursor/click in either view updates the other).
 - Processor-context capture (ID, name, bitness, endianness, ABI) for Sleigh
   spec selection.
 - Sleigh translation wiring for one-instruction p-code emission over function

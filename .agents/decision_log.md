@@ -906,4 +906,17 @@
   - **19.4.2. Rationale:** Typed `processor()` should not become stale for non-mainstream processor modules; full coverage preserves numeric round-trip fidelity while keeping plugin code SDK-opaque.
   - **19.4.3. Alternative considered:** Keep subset-only enum + rely on raw `processor_id()` for uncommon IDs — rejected (creates avoidable typed-surface gaps for real-world ports).
 
+- **19.5. Decision D-IDAPCODE-VIEW-SYNC**: Implement bidirectional linear/custom-viewer synchronization in the idapcode port
+  - **19.5.1. Decision:** Use existing ui event wrappers (`on_cursor_changed`, `on_screen_ea_changed`, `on_view_activated`, `on_view_deactivated`, `on_view_closed`) plus `custom_viewer_jump_to_line`/`jump_to` and a reentrancy guard.
+  - **19.5.2. Rationale:** Provides click/scroll navigation parity without adding new wrapper APIs or exposing raw UI internals.
+  - **19.5.3. Implementation detail:** Render each p-code line with a leading address token so cursor-line parsing can always recover a target EA, including non-header p-code lines.
+  - **19.5.4. Implementation detail:** Add cross-function follow by rebuilding the existing viewer in-place when linear navigation enters a different function.
+  - **19.5.5. Implementation detail:** Add low-interval UI timer polling to capture scroll-driven viewer changes that do not always emit distinct cursor-change notifications.
+  - **19.5.6. Alternative considered:** Add new core `ida::ui` APIs for custom-viewer line-index callbacks first — rejected for this iteration (heavier wrapper expansion than needed for immediate port ergonomics).
+
+- **19.6. Decision D-IDAPCODE-HOTKEY-COLLISION-AVOIDANCE**: Change idapcode shortcut from `Ctrl-Alt-S`
+  - **19.6.1. Decision:** Set plugin hotkey to `Ctrl-Alt-Shift-P`.
+  - **19.6.2. Rationale:** Avoids common collision with SigMaker bindings while keeping mnemonic linkage to p-code workflows.
+  - **19.6.3. Alternative considered:** Keep `Ctrl-Alt-S` parity with source plugin — rejected due practical conflict in mixed-plugin setups.
+
 ---

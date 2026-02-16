@@ -52,7 +52,29 @@ struct SpecChoice {
     std::optional<std::string> pspec_file;
 };
 
+struct PcodeViewContent {
+    std::vector<std::string> lines;
+    std::vector<std::pair<ida::Address, std::size_t>> address_to_line;
+};
+
+struct ViewerSyncState {
+    std::string viewer_title;
+    std::vector<std::pair<ida::Address, std::size_t>> address_to_line;
+    std::vector<ida::ui::ScopedSubscription> subscriptions;
+    bool viewer_active{false};
+    bool sync_in_progress{false};
+    std::optional<ida::Address> last_linear_address;
+    std::optional<std::size_t> last_pcode_line;
+    std::optional<ida::Address> current_function_start;
+    ida::Address current_function_end{ida::BadAddress};
+    std::optional<std::uint64_t> sync_timer_token;
+};
+
+ViewerSyncState g_viewer_sync;
+
 constexpr std::string_view kSpecRootEnv = "IDAX_IDAPCODE_SPEC_ROOT";
+constexpr std::string_view kViewerTitle = "P-Code (idax port)";
+constexpr int kViewerSyncPollIntervalMs = 120;
 
 std::string joined_paths(const std::vector<std::filesystem::path>& paths) {
     std::ostringstream out;
@@ -194,6 +216,268 @@ ida::Result<std::filesystem::path> resolve_spec_file(std::string_view file_name)
             + " or build specs; searched: " + joined_paths(search_paths) + ")"));
 }
 
+class SyncInProgressGuard {
+public:
+    explicit SyncInProgressGuard(bool& flag)
+        : flag_(flag) {
+        flag_ = true;
+    }
+
+    ~SyncInProgressGuard() {
+        flag_ = false;
+    }
+
+private:
+    bool& flag_;
+};
+
+ida::ui::Widget find_sync_viewer() {
+    if (g_viewer_sync.viewer_title.empty())
+        return {};
+    return ida::ui::find_widget(g_viewer_sync.viewer_title);
+}
+
+void clear_sync_context() {
+    g_viewer_sync.viewer_title.clear();
+    g_viewer_sync.address_to_line.clear();
+    g_viewer_sync.viewer_active = false;
+    g_viewer_sync.last_linear_address.reset();
+    g_viewer_sync.last_pcode_line.reset();
+    g_viewer_sync.current_function_start.reset();
+    g_viewer_sync.current_function_end = ida::BadAddress;
+}
+
+void shutdown_view_sync() {
+    if (g_viewer_sync.sync_timer_token.has_value()) {
+        (void)ida::ui::unregister_timer(*g_viewer_sync.sync_timer_token);
+        g_viewer_sync.sync_timer_token.reset();
+    }
+    g_viewer_sync.subscriptions.clear();
+    clear_sync_context();
+}
+
+void set_sync_context(const std::string& title,
+                      const std::vector<std::pair<ida::Address, std::size_t>>& address_to_line,
+                      bool viewer_active,
+                      ida::Address function_start,
+                      ida::Address function_end) {
+    g_viewer_sync.viewer_title = title;
+    g_viewer_sync.address_to_line = address_to_line;
+    g_viewer_sync.viewer_active = viewer_active;
+    g_viewer_sync.last_linear_address.reset();
+    g_viewer_sync.last_pcode_line.reset();
+    g_viewer_sync.current_function_start = function_start;
+    g_viewer_sync.current_function_end = function_end;
+}
+
+bool address_in_current_function(ida::Address address) {
+    if (!g_viewer_sync.current_function_start.has_value())
+        return false;
+    if (g_viewer_sync.current_function_end == ida::BadAddress)
+        return false;
+    return address >= *g_viewer_sync.current_function_start
+        && address < g_viewer_sync.current_function_end;
+}
+
+ida::Result<PcodeViewContent> build_pcode_lines_for_function(const ida::function::Function& function);
+
+ida::Status refresh_viewer_for_function(ida::ui::Widget& viewer,
+                                        const ida::function::Function& function,
+                                        ida::Address focus_address);
+
+std::optional<ida::Address> parse_address_prefix(std::string_view tagged_line);
+
+void sync_linear_from_viewer_line(ida::ui::Widget& viewer, bool prefer_mouse) {
+    if (!g_viewer_sync.viewer_active || g_viewer_sync.sync_in_progress)
+        return;
+
+    ida::Result<std::string> line = prefer_mouse
+        ? ida::ui::custom_viewer_current_line(viewer, true)
+        : ida::ui::custom_viewer_current_line(viewer, false);
+    if (!line) {
+        line = prefer_mouse
+            ? ida::ui::custom_viewer_current_line(viewer, false)
+            : ida::ui::custom_viewer_current_line(viewer, true);
+    }
+    if (!line)
+        return;
+
+    auto address = parse_address_prefix(*line);
+    if (!address || *address == ida::BadAddress)
+        return;
+
+    if (g_viewer_sync.last_linear_address.has_value()
+        && *g_viewer_sync.last_linear_address == *address) {
+        return;
+    }
+
+    SyncInProgressGuard guard(g_viewer_sync.sync_in_progress);
+    auto jump = ida::ui::jump_to(*address);
+    if (jump)
+        g_viewer_sync.last_linear_address = *address;
+}
+
+std::optional<ida::Address> parse_address_prefix(std::string_view tagged_line) {
+    std::string line = ida::lines::tag_remove(tagged_line);
+
+    std::size_t start = 0;
+    while (start < line.size() && std::isspace(static_cast<unsigned char>(line[start])))
+        ++start;
+
+    std::size_t end = start;
+    while (end < line.size() && std::isxdigit(static_cast<unsigned char>(line[end])))
+        ++end;
+
+    if (end == start)
+        return std::nullopt;
+    if (end - start < 4)
+        return std::nullopt;
+
+    std::string token = line.substr(start, end - start);
+    char* parse_end = nullptr;
+    unsigned long long value = std::strtoull(token.c_str(), &parse_end, 16);
+    if (parse_end == nullptr || *parse_end != '\0')
+        return std::nullopt;
+
+    return static_cast<ida::Address>(value);
+}
+
+std::optional<std::size_t> line_index_for_address(ida::Address address) {
+    if (g_viewer_sync.address_to_line.empty())
+        return std::nullopt;
+    if (!address_in_current_function(address))
+        return std::nullopt;
+
+    auto it = std::upper_bound(
+        g_viewer_sync.address_to_line.begin(),
+        g_viewer_sync.address_to_line.end(),
+        address,
+        [](ida::Address lhs, const auto& rhs) {
+            return lhs < rhs.first;
+        });
+
+    if (it == g_viewer_sync.address_to_line.begin()) {
+        if (it->first == address)
+            return it->second;
+        return std::nullopt;
+    }
+
+    --it;
+    return it->second;
+}
+
+ida::Status ensure_view_sync_subscriptions() {
+    if (g_viewer_sync.subscriptions.empty()) {
+        auto cursor_changed = ida::ui::on_cursor_changed([](ida::Address) {
+            auto viewer = find_sync_viewer();
+            if (!viewer) {
+                g_viewer_sync.viewer_active = false;
+                return;
+            }
+            sync_linear_from_viewer_line(viewer, true);
+        });
+        if (!cursor_changed)
+            return std::unexpected(cursor_changed.error());
+        g_viewer_sync.subscriptions.emplace_back(*cursor_changed);
+
+        auto screen_changed = ida::ui::on_screen_ea_changed([](ida::Address address, ida::Address) {
+            if (g_viewer_sync.sync_in_progress)
+                return;
+
+            auto viewer = find_sync_viewer();
+            if (!viewer) {
+                g_viewer_sync.viewer_active = false;
+                return;
+            }
+
+            g_viewer_sync.last_linear_address = address;
+
+            if (!address_in_current_function(address)) {
+                auto function = ida::function::at(address);
+                if (!function)
+                    return;
+
+                if (!g_viewer_sync.current_function_start.has_value()
+                    || *g_viewer_sync.current_function_start != function->start()) {
+                    SyncInProgressGuard guard(g_viewer_sync.sync_in_progress);
+                    auto refreshed = refresh_viewer_for_function(viewer, *function, address);
+                    if (!refreshed)
+                        return;
+                } else {
+                    g_viewer_sync.current_function_end = function->end();
+                }
+            }
+
+            auto line_index = line_index_for_address(address);
+            if (!line_index)
+                return;
+
+            if (g_viewer_sync.last_pcode_line.has_value()
+                && *g_viewer_sync.last_pcode_line == *line_index) {
+                return;
+            }
+
+            SyncInProgressGuard guard(g_viewer_sync.sync_in_progress);
+            auto jump = ida::ui::custom_viewer_jump_to_line(viewer, *line_index);
+            if (jump)
+                g_viewer_sync.last_pcode_line = *line_index;
+        });
+        if (!screen_changed)
+            return std::unexpected(screen_changed.error());
+        g_viewer_sync.subscriptions.emplace_back(*screen_changed);
+
+        auto view_activated = ida::ui::on_view_activated([](ida::ui::Widget widget) {
+            if (g_viewer_sync.viewer_title.empty())
+                return;
+            g_viewer_sync.viewer_active = (widget.title() == g_viewer_sync.viewer_title);
+        });
+        if (!view_activated)
+            return std::unexpected(view_activated.error());
+        g_viewer_sync.subscriptions.emplace_back(*view_activated);
+
+        auto view_deactivated = ida::ui::on_view_deactivated([](ida::ui::Widget widget) {
+            if (g_viewer_sync.viewer_title.empty())
+                return;
+            if (widget.title() == g_viewer_sync.viewer_title)
+                g_viewer_sync.viewer_active = false;
+        });
+        if (!view_deactivated)
+            return std::unexpected(view_deactivated.error());
+        g_viewer_sync.subscriptions.emplace_back(*view_deactivated);
+
+        auto view_closed = ida::ui::on_view_closed([](ida::ui::Widget widget) {
+            if (g_viewer_sync.viewer_title.empty())
+                return;
+            if (widget.title() == g_viewer_sync.viewer_title)
+                clear_sync_context();
+        });
+        if (!view_closed)
+            return std::unexpected(view_closed.error());
+        g_viewer_sync.subscriptions.emplace_back(*view_closed);
+    }
+
+    if (!g_viewer_sync.sync_timer_token.has_value()) {
+        auto timer = ida::ui::register_timer(kViewerSyncPollIntervalMs, []() -> int {
+            if (!g_viewer_sync.viewer_active || g_viewer_sync.sync_in_progress)
+                return 0;
+
+            auto viewer = find_sync_viewer();
+            if (!viewer) {
+                g_viewer_sync.viewer_active = false;
+                return 0;
+            }
+
+            sync_linear_from_viewer_line(viewer, true);
+            return 0;
+        });
+        if (!timer)
+            return std::unexpected(timer.error());
+        g_viewer_sync.sync_timer_token = *timer;
+    }
+
+    return ida::ok();
+}
+
 class InMemoryLoadImage final : public ghidra::LoadImage {
 public:
     explicit InMemoryLoadImage(std::uint64_t base_address)
@@ -309,7 +593,7 @@ void decode_processor_context(ghidra::Sleigh& engine,
     decoder.closeElement(element_id);
 }
 
-ida::Result<std::vector<std::string>> build_pcode_lines_for_function(const ida::function::Function& function) {
+ida::Result<PcodeViewContent> build_pcode_lines_for_function(const ida::function::Function& function) {
     auto processor_context = build_processor_context(function);
     if (!processor_context)
         return std::unexpected(processor_context.error());
@@ -365,8 +649,9 @@ ida::Result<std::vector<std::string>> build_pcode_lines_for_function(const ida::
         sleigh_engine.allowContextSet(false);
         decode_processor_context(sleigh_engine, context, storage);
 
-        std::vector<std::string> lines;
-        lines.reserve(instruction_addresses->size() * 2);
+        PcodeViewContent content;
+        content.lines.reserve(instruction_addresses->size() * 2);
+        content.address_to_line.reserve(instruction_addresses->size());
 
         PcodeCollector collector;
 
@@ -374,42 +659,83 @@ ida::Result<std::vector<std::string>> build_pcode_lines_for_function(const ida::
             auto disassembly = ida::instruction::text(address);
             std::string disassembly_text = disassembly ? *disassembly : "<decode failed>";
 
+            const std::size_t first_line_for_instruction = content.lines.size();
+            content.address_to_line.emplace_back(address, first_line_for_instruction);
+
             const std::string address_tag = ida::lines::colstr(
                 format("%016llX", static_cast<unsigned long long>(address)),
                 ida::lines::Color::Prefix);
             const std::string disassembly_tag = ida::lines::colstr(disassembly_text,
                                                                    ida::lines::Color::Instruction);
-            lines.push_back(address_tag + "  " + disassembly_tag);
+            content.lines.push_back(address_tag + "  " + disassembly_tag);
 
             collector.clear();
             try {
                 ghidra::Address sleigh_address(sleigh_engine.getDefaultCodeSpace(), address);
                 (void)sleigh_engine.oneInstruction(collector, sleigh_address);
                 for (const auto& pcode_line : collector.lines()) {
-                    lines.push_back("  " + pcode_line);
+                    content.lines.push_back(address_tag + "  " + pcode_line);
                 }
             } catch (const ghidra::LowlevelError& error) {
-                lines.push_back(ida::lines::colstr("  ; sleigh error: " + error.explain,
-                                                   ida::lines::Color::Error));
+                content.lines.push_back(
+                    address_tag + "  "
+                    + ida::lines::colstr("; sleigh error: " + error.explain,
+                                         ida::lines::Color::Error));
             } catch (const std::exception& error) {
-                lines.push_back(ida::lines::colstr("  ; exception: " + std::string(error.what()),
-                                                   ida::lines::Color::Error));
+                content.lines.push_back(
+                    address_tag + "  "
+                    + ida::lines::colstr("; exception: " + std::string(error.what()),
+                                         ida::lines::Color::Error));
             } catch (...) {
-                lines.push_back(ida::lines::colstr("  ; unknown exception while lifting instruction",
-                                                   ida::lines::Color::Error));
+                content.lines.push_back(
+                    address_tag + "  "
+                    + ida::lines::colstr("; unknown exception while lifting instruction",
+                                         ida::lines::Color::Error));
             }
         }
 
-        if (lines.empty()) {
-            lines.push_back("No p-code lines produced for this function.");
+        if (content.lines.empty()) {
+            content.lines.push_back("No p-code lines produced for this function.");
         }
 
-        return lines;
+        return content;
     } catch (const ghidra::LowlevelError& error) {
         return std::unexpected(ida::Error::sdk("Sleigh initialization failed", error.explain));
     } catch (const std::exception& error) {
         return std::unexpected(ida::Error::internal("Sleigh setup failed", error.what()));
     }
+}
+
+ida::Status refresh_viewer_for_function(ida::ui::Widget& viewer,
+                                        const ida::function::Function& function,
+                                        ida::Address focus_address) {
+    auto pcode_content = build_pcode_lines_for_function(function);
+    if (!pcode_content)
+        return std::unexpected(pcode_content.error());
+
+    auto update = ida::ui::set_custom_viewer_lines(viewer, pcode_content->lines);
+    if (!update)
+        return std::unexpected(update.error());
+
+    set_sync_context(std::string(kViewerTitle),
+                     pcode_content->address_to_line,
+                     g_viewer_sync.viewer_active,
+                     function.start(),
+                     function.end());
+
+    ida::Address target_address = focus_address;
+    if (target_address < function.start() || target_address >= function.end())
+        target_address = function.start();
+
+    auto line_index = line_index_for_address(target_address);
+    if (line_index) {
+        auto jump = ida::ui::custom_viewer_jump_to_line(viewer, *line_index);
+        if (jump)
+            g_viewer_sync.last_pcode_line = *line_index;
+    }
+
+    g_viewer_sync.last_linear_address = target_address;
+    return ida::ok();
 }
 
 ida::Status show_current_function_pcode() {
@@ -421,28 +747,29 @@ ida::Status show_current_function_pcode() {
     if (!function)
         return std::unexpected(function.error());
 
-    auto pcode_lines = build_pcode_lines_for_function(*function);
-    if (!pcode_lines)
-        return std::unexpected(pcode_lines.error());
+    auto sync_ready = ensure_view_sync_subscriptions();
+    if (!sync_ready)
+        return std::unexpected(sync_ready.error());
 
-    const std::string function_name = function->name();
-    std::string title = "P-Code for " + function_name;
-    if (function_name.empty()) {
-        title = format("P-Code for sub_%llX", static_cast<unsigned long long>(function->start()));
-    }
+    const std::string title(kViewerTitle);
 
     auto existing = ida::ui::find_widget(title);
     if (existing) {
-        auto update = ida::ui::set_custom_viewer_lines(existing, *pcode_lines);
-        if (update) {
+        auto refresh = refresh_viewer_for_function(existing, *function, *screen);
+        if (refresh) {
             (void)ida::ui::show_widget(existing);
             (void)ida::ui::activate_widget(existing);
+            g_viewer_sync.viewer_active = true;
             return ida::ok();
         }
         (void)ida::ui::close_widget(existing);
     }
 
-    auto viewer = ida::ui::create_custom_viewer(title, *pcode_lines);
+    auto pcode_content = build_pcode_lines_for_function(*function);
+    if (!pcode_content)
+        return std::unexpected(pcode_content.error());
+
+    auto viewer = ida::ui::create_custom_viewer(title, pcode_content->lines);
     if (!viewer)
         return std::unexpected(viewer.error());
 
@@ -454,6 +781,20 @@ ida::Status show_current_function_pcode() {
     if (!activate)
         return std::unexpected(activate.error());
 
+    set_sync_context(title,
+                     pcode_content->address_to_line,
+                     true,
+                     function->start(),
+                     function->end());
+
+    auto line_index = line_index_for_address(*screen);
+    if (line_index) {
+        auto jump = ida::ui::custom_viewer_jump_to_line(*viewer, *line_index);
+        if (jump)
+            g_viewer_sync.last_pcode_line = *line_index;
+    }
+    g_viewer_sync.last_linear_address = *screen;
+
     return ida::ok();
 }
 
@@ -462,7 +803,7 @@ public:
     ida::plugin::Info info() const override {
         return {
             .name = "IDA P-Code (idax port)",
-            .hotkey = "Ctrl-Alt-S",
+            .hotkey = "Ctrl-Alt-Shift-P",
             .comment = "Display Sleigh P-code for the current function",
             .help = "Port of idapcode.py to idax + sleigh",
         };
@@ -475,6 +816,10 @@ public:
             return std::unexpected(status.error());
         }
         return ida::ok();
+    }
+
+    void term() override {
+        shutdown_view_sync();
     }
 };
 

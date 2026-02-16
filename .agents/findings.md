@@ -309,4 +309,14 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 260. Runtime plugin-load policy paths are now host-validated via `idax_idalib_dump_port`: both `--no-plugins` and allowlist mode (`--plugin "*.dylib"`) initialize/open/analyze successfully against the fixture binary, confirming `RuntimeOptions::plugin_policy` is non-blocking in this runtime profile.
 
+261. Bidirectional navigation sync between a custom p-code viewer and linear disassembly can be implemented in idax without new wrapper APIs by combining `ui::on_cursor_changed` (viewer -> linear), `ui::on_screen_ea_changed` (linear -> viewer), `ui::on_view_activated`/`on_view_deactivated`, and `ui::custom_viewer_jump_to_line` with a reentrancy guard.
+
+262. For robust click-to-address mapping in a p-code custom viewer, prefixing every rendered line (including emitted p-code op lines and error lines) with a canonical address token enables stable cursor-line address parsing even when the cursor is not on the instruction header line.
+
+263. Cross-function follow in the idapcode viewer is achieved by detecting when `screen_ea` leaves the currently mapped function range, resolving `function::at(new_ea)`, and rebuilding the existing custom viewer content in-place for the new function rather than opening additional viewers.
+
+264. Scroll-follow behavior for custom viewers can be approximated without new SDK wrappers by adding a lightweight UI timer that polls `custom_viewer_current_line(mouse=true/false)` and applies `jump_to` when the parsed line address changes.
+
+265. The idapcode shortcut was changed from `Ctrl-Alt-S` to `Ctrl-Alt-Shift-P` to avoid common keybinding collisions with SigMaker workflows while keeping the action discoverable for p-code usage.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

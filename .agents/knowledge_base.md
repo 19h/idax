@@ -764,5 +764,10 @@ Note:
 - 25.6. Runtime startup diagnostics: `init_library` failures are reproducible when `IDADIR` is pointed at an SDK source tree (for example `/Users/int/dev/ida-sdk/src`) instead of a full IDA runtime root; this is an environment-root mismatch, not an API-surface failure [F258]
 - 25.7. On this host, `idax_smoke_test` passes with no env overrides because the binary carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also passes [F258]
 - 25.8. Runtime plugin-load policy paths are host-validated: `idax_idalib_dump_port` succeeds with both `--no-plugins` and allowlist mode (`--plugin "*.dylib"`) on the fixture binary, confirming `RuntimeOptions::plugin_policy` behavior is non-blocking in this profile [F260]
+- 25.9. idapcode custom-viewer navigation can be synchronized bidirectionally with linear disassembly using existing ui wrappers only (`on_cursor_changed`, `on_screen_ea_changed`, `on_view_activated`/`on_view_deactivated`, `custom_viewer_jump_to_line`) when guarded against reentrant event loops [F261]
+- 25.10. Prefixing every p-code display line with a canonical instruction address token enables reliable cursor-line address parsing for click/keyboard sync even on non-header p-code lines [F262]
+- 25.11. Cross-function follow works by rebuilding the same p-code viewer in-place whenever `screen_ea` enters a different function, using `function::at(new_ea)` and fresh per-function address-to-line mapping [F263]
+- 25.12. Scroll-follow is implemented with a low-interval UI timer polling `custom_viewer_current_line(mouse=true/false)` and syncing linear view when the parsed line address changes [F264]
+- 25.13. Hotkey changed to `Ctrl-Alt-Shift-P` to avoid common SigMaker collision on `Ctrl-Alt-S` [F265]
 
 ---
