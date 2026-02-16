@@ -748,4 +748,10 @@ Note:
 - 23.4. Dedicated DrawIDA addon target is wired using `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`, yielding skip-on-missing-Qt behavior with explicit `build_qt` guidance and normal addon build when Qt is available [F247]
 - 23.5. Qt6/Homebrew include nuance: use `qevent.h` for `QKeyEvent`/`QMouseEvent` portability (`qkeyevent.h` is not present in that header layout) [F248]
 
+### 24. DriverBuddy Port Findings (Phase 13)
+- 24.1. DriverBuddy (`/Users/int/Downloads/plo/DriverBuddy-master`) ports through idax plugin/analysis/search/xref/instruction/type surfaces with no raw SDK usage for core Windows-driver triage workflows (driver classification, dispatch discovery, IOCTL decode) [F250]
+- 24.2. Struct-offset operand representation closure: `ida::instruction` now exposes `set_operand_struct_offset(...)` and `set_operand_based_struct_offset(...)` wrappers over SDK `op_stroff`/`op_based_stroff`; on SDK 9.3, named-type TIDs must be resolved via `get_named_type_tid()` (not legacy `get_struc_id`) [F249]
+- 24.3. WDF table annotation is achievable in idax by constructing a `TypeInfo` struct schema (`TypeInfo::create_struct` + `add_member` + `save_as`) and applying it at resolved table addresses (`type::apply_named_type` + `name::force_set`) after locating the `KmdfLibrary` marker and dereferencing metadata pointers [F251]
+- 24.4. Remaining DriverBuddy migration deltas are non-blocking ergonomics: no one-call standard-type bootstrap equivalent to `Til2Idb(-1, name)`, no stroff-path introspection wrapper (`get_stroff_path`), and no minimal hotkey-only callback helper outside the action system [F252]
+
 ---

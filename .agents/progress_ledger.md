@@ -23,6 +23,36 @@
 
 ---
 
+### 15. Phase 13 — DriverBuddy Port + API Gap Audit
+
+- **15.1. DriverBuddy Port Implementation Complete**
+  - 15.1.1. Added `examples/plugin/driverbuddy_port_plugin.cpp` as an idax-first C++ port of `/Users/int/Downloads/plo/DriverBuddy-master` using `ida::plugin::Plugin` + `IDAX_PLUGIN` lifecycle.
+  - 15.1.2. Ported core workflows: DriverEntry detection, import-based driver-type classification (WDM/WDF/Mini-Filter/AVStream/PortCls/Stream Minidriver), dangerous C/WinAPI xref reporting, WDM dispatch discovery/renaming, IOCTL decode under cursor (`Ctrl-Alt-I`), and listing-based IOCTL scan via `IoControlCode` hits.
+  - 15.1.3. Added WDF dispatch-table annotation flow using idax type APIs: curated `WDFFUNCTIONS` slot schema materialization + type apply + naming at resolved table address.
+
+- **15.2. API Surface Closure + Compile-Only Coverage Updates**
+  - 15.2.1. Expanded `ida::instruction` with struct-offset representation helpers to close the DriverBuddy migration blocker around `OpStroffEx`:
+    - `set_operand_struct_offset(Address, int, std::string_view, AddressDelta)`
+    - `set_operand_struct_offset(Address, int, std::uint64_t, AddressDelta)`
+    - `set_operand_based_struct_offset(Address, int, Address operand_value, Address base)`
+  - 15.2.2. Implemented wrappers in `src/instruction.cpp` using SDK `op_stroff` / `op_based_stroff` with named-type TID resolution (`get_named_type_tid`) and typed error mapping.
+  - 15.2.3. Updated `tests/unit/api_surface_parity_test.cpp` compile-only checks with both overload signatures and the based-struct-offset helper.
+
+- **15.3. DriverBuddy Gap Audit + Documentation Sync**
+  - 15.3.1. Added `docs/port_gap_audit_driverbuddy.md` with source-to-idax mapping, covered flows, and migration-gap classification.
+  - 15.3.2. Updated documentation indexes/references:
+    - `README.md` parity-note and documentation table now include DriverBuddy audit.
+    - `docs/api_reference.md` now includes DriverBuddy audit link and documents new instruction struct-offset helper coverage.
+    - `examples/README.md` now documents `driverbuddy_port_plugin.cpp` workflow coverage.
+  - 15.3.3. Updated `examples/CMakeLists.txt` source manifest and addon target wiring with `idax_driverbuddy_port_plugin`.
+
+- **15.4. Validation Evidence**
+  - 15.4.1. `cmake -S . -B build -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON` passes (reconfigure with addon targets enabled).
+  - 15.4.2. `cmake --build build --target idax_driverbuddy_port_plugin idax_api_surface_check` passes.
+  - 15.4.3. `cmake --build build --target idax_examples` passes.
+
+---
+
 ### 2. Core API Build-Out (P2–P5, P7–P8)
 
 - **2.1. Function & Type System (P4)**

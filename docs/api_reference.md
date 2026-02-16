@@ -13,7 +13,7 @@ Public headers:
 | `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (file type/compiler/imports), snapshots, file/memory transfer |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers |
-| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_class`), representation controls, xref conveniences |
+| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_class`), representation controls (including struct-offset helpers), xref conveniences |
 | `include/ida/name.hpp` | Set/get/force/remove names, demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
@@ -47,4 +47,5 @@ See also:
 - `docs/port_gap_audit_ida2py.md` — ida2py port audit and parity notes
 - `docs/port_gap_audit_drawida.md` — DrawIDA port audit and parity notes
 - `docs/port_gap_audit_abyss.md` — abyss decompiler-filter port audit and parity notes
+- `docs/port_gap_audit_driverbuddy.md` — DriverBuddy port audit and parity notes
 - `docs/port_gap_audit_lifter.md` — lifter port audit and parity notes

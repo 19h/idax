@@ -112,6 +112,22 @@ Experimental filters (`item_ctype`, `item_index`, `item_sync`, `lvars_alias`,
 `lvars_info`) start disabled by default and can be toggled from the pseudocode
 popup under the `abyss/` submenu.
 
+### `plugin/driverbuddy_port_plugin.cpp` — DriverBuddy Port
+
+Port of `/Users/int/Downloads/plo/DriverBuddy-master` to idax plugin, search,
+analysis, type, xref, and instruction surfaces.
+
+The plugin keeps DriverBuddy's core workflows:
+- Detects `DriverEntry` and classifies drivers (WDM/WDF/Mini-Filter/AVStream/
+  PortCls/Stream Minidriver) from imports.
+- Scans for interesting C/WinAPI routines and reports caller xrefs.
+- Locates WDM dispatch handlers (`DispatchDeviceControl`,
+  `DispatchInternalDeviceControl`) and applies WDM-struct offset annotations.
+- Decodes IOCTL constants both interactively (`Ctrl-Alt-I`) and from listing
+  hits (`IoControlCode`).
+- For WDF targets, builds/applies a `WDFFUNCTIONS` type over the dispatch table
+  using idax type APIs.
+
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe
 
 Port probe of `/Users/int/dev/lifter` focused on plugin-shell workflows that

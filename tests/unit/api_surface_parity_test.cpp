@@ -231,6 +231,18 @@ void check_instruction_surface() {
                                                          int,
                                                          ida::instruction::OperandFormat,
                                                          ida::Address);
+    using InstructionSetOperandStructOffsetByNameFn = ida::Status(*)(ida::Address,
+                                                                      int,
+                                                                      std::string_view,
+                                                                      ida::AddressDelta);
+    using InstructionSetOperandStructOffsetByIdFn = ida::Status(*)(ida::Address,
+                                                                    int,
+                                                                    std::uint64_t,
+                                                                    ida::AddressDelta);
+    using InstructionSetOperandBasedStructOffsetFn = ida::Status(*)(ida::Address,
+                                                                     int,
+                                                                     ida::Address,
+                                                                     ida::Address);
     using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
     using InstructionOperandByteWidthFn = ida::Result<int>(*)(ida::Address, int);
     using InstructionOperandRegisterNameFn = ida::Result<std::string>(*)(ida::Address, int);
@@ -238,6 +250,12 @@ void check_instruction_surface() {
     using InstructionPredicateFn = bool(*)(ida::Address);
 
     (void)static_cast<InstructionSetOperandFormatFn>(&ida::instruction::set_operand_format);
+    (void)static_cast<InstructionSetOperandStructOffsetByNameFn>(
+        &ida::instruction::set_operand_struct_offset);
+    (void)static_cast<InstructionSetOperandStructOffsetByIdFn>(
+        &ida::instruction::set_operand_struct_offset);
+    (void)static_cast<InstructionSetOperandBasedStructOffsetFn>(
+        &ida::instruction::set_operand_based_struct_offset);
     (void)static_cast<InstructionOperandTextFn>(&ida::instruction::operand_text);
     (void)static_cast<InstructionOperandByteWidthFn>(&ida::instruction::operand_byte_width);
     (void)static_cast<InstructionOperandRegisterNameFn>(&ida::instruction::operand_register_name);

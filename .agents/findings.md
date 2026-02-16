@@ -285,4 +285,12 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 248. Qt header portability nuance (Qt6/Homebrew): `qkeyevent.h` is not present in framework headers; `QKeyEvent`/`QMouseEvent` are provided via `qevent.h`. Using `qevent.h` avoids target-specific include breakage in Qt plugin sources.
 
+249. IDA SDK 9.3 does not expose legacy `get_struc_id()`/`get_struc()` helpers in the public bridge used by idax; struct-offset operand helpers should resolve type IDs through `get_named_type_tid()` and then call `op_stroff`/`op_based_stroff`.
+
+250. DriverBuddy migration validates that `ida::database::import_modules`, `ida::function::all`, `ida::xref::code_refs_to`, `ida::search::text`, and `ida::instruction::decode` are sufficient to port core Windows-driver triage workflows (driver classification, dispatch discovery, IOCTL decode) without raw SDK fallback.
+
+251. WDF dispatch-table labeling can be implemented in idax without raw SDK structs by materializing a `TypeInfo::create_struct()` schema and applying it at the discovered table address (`type::apply_named_type` + `name::force_set`) after locating the `KmdfLibrary` marker and dereferencing metadata pointers.
+
+252. DriverBuddy parity still has non-blocking ergonomic gaps: no one-call standard-type bootstrap equivalent to `Til2Idb(-1, name)`, no public struct-offset path readback (`get_stroff_path`) wrapper, and no minimal `add_hotkey` convenience API separate from action registration.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.

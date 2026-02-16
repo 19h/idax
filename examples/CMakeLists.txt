@@ -25,6 +25,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/drawida_port_widget.hpp
     plugin/drawida_port_widget.cpp
     plugin/abyss_port_plugin.cpp
+    plugin/driverbuddy_port_plugin.cpp
     loader/advanced_loader.cpp
     procmod/advanced_procmod.cpp
 
@@ -98,6 +99,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_abyss_port_plugin
         SOURCES plugin/abyss_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_driverbuddy_port_plugin
+        SOURCES plugin/driverbuddy_port_plugin.cpp
         LIBRARIES idax::idax
     )
 
