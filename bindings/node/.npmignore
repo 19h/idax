@@ -1,0 +1,7 @@
+build/
+node_modules/
+*.o
+*.obj
+*.node
+.DS_Store
+tsconfig.json

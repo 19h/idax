@@ -35,3 +35,4 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 *.pdb
+node_modules/
