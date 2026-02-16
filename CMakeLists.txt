@@ -50,18 +50,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ── Link-time optimization (on by default) ───────────────────────────────
-option(IDAX_ENABLE_LTO "Enable link-time optimization" ON)
-if(IDAX_ENABLE_LTO)
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT IDAX_LTO_SUPPORTED OUTPUT IDAX_LTO_ERROR)
-    if(IDAX_LTO_SUPPORTED)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-        message(STATUS "LTO enabled")
-    else()
-        message(WARNING "LTO requested but not supported: ${IDAX_LTO_ERROR}")
-    endif()
-endif()
 
 # ── Collect sources ──────────────────────────────────────────────────────
 file(GLOB_RECURSE IDAX_SOURCES CONFIGURE_DEPENDS

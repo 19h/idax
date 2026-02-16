@@ -5,7 +5,6 @@
 #include <ida/lines.hpp>
 
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 namespace ida::lines {
@@ -79,12 +78,20 @@ int decode_addr_tag(std::string_view tagged_text, std::size_t pos) {
     if (static_cast<std::uint8_t>(tagged_text[pos + 1]) != COLOR_ADDR)
         return -1;
 
-    // Parse the 16-hex-digit address/anchor value
+    // Parse the 16-hex-digit address/anchor value.
+    // Manual hex parsing avoids std::strtoull which MSVC's SDK header
+    // interactions can break (pro.h namespace pollution).
     const char* hex_start = tagged_text.data() + pos + 2;
-    char* end = nullptr;
-    unsigned long long val = std::strtoull(hex_start, &end, 16);
-    if (end != hex_start + kColorAddrSize)
-        return -1;
+    unsigned long long val = 0;
+    for (std::size_t i = 0; i < kColorAddrSize; ++i) {
+        char ch = hex_start[i];
+        unsigned digit;
+        if (ch >= '0' && ch <= '9')      digit = static_cast<unsigned>(ch - '0');
+        else if (ch >= 'A' && ch <= 'F') digit = static_cast<unsigned>(ch - 'A' + 10);
+        else if (ch >= 'a' && ch <= 'f') digit = static_cast<unsigned>(ch - 'a' + 10);
+        else return -1;
+        val = (val << 4) | digit;
+    }
 
     // Extract the item index (bottom 29 bits, ANCHOR_INDEX mask)
     constexpr unsigned int ANCHOR_INDEX = 0x1FFFFFFF;
