@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = ["idax-sys", "idax"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["idax contributors"]
+license = "MIT"
+repository = "https://github.com/anomalyco/idax"
+description = "Rust bindings for the IDA SDK via idax"
+
+[workspace.dependencies]
+idax-sys = { path = "idax-sys", version = "0.1.0" }
+thiserror = "2"
+bitflags = "2"

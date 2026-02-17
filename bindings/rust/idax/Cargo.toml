@@ -1,0 +1,13 @@
+[package]
+name = "idax"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Safe, idiomatic Rust bindings for the IDA SDK via idax"
+
+[dependencies]
+idax-sys = { workspace = true }
+thiserror = { workspace = true }
+bitflags = { workspace = true }
