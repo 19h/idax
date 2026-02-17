@@ -977,6 +977,34 @@
   - 13.2.4. **include/ida/idax.hpp** — Added `#include <ida/lines.hpp>` to master include.
   - 13.2.5. **examples/plugin/abyss_port_plugin.cpp** — Complete C++ port (~845 lines) of all 8 abyss filters: token_colorizer, signed_ops, hierarchy, lvars_alias, lvars_info, item_sync, item_ctype, item_index. Uses only idax APIs. Plugin class `AbyssPlugin` with `IDAX_PLUGIN(AbyssPlugin)`.
   - 13.2.6. **Build fixes** — Replaced `qsnprintf` (SDK-internal, unavailable in example code) with `std::snprintf`; replaced printf-style `ui::message()` calls with string concatenation.
+
+---
+
+### 16. Phase 15 — Rust Convergence Batch 7 (`plugin` + `event`)
+
+- **16.1. Shim/API closure for `ida::plugin`**
+  - 16.1.1. Added C ABI transfer struct `IdaxPluginActionContext` and extended action registration with context-aware callback bridge (`idax_plugin_register_action_ex`) while preserving legacy `idax_plugin_register_action` compatibility.
+  - 16.1.2. Added runtime-bindable plugin action helpers: `idax_plugin_attach_to_popup`, `idax_plugin_detach_from_popup`, and explicit `idax_plugin_detach_from_toolbar` Rust exposure.
+  - 16.1.3. Added action-context host bridge APIs backed by real C++ behavior (`ida::plugin::widget_host` / `with_widget_host`, `decompiler_view_host` / `with_decompiler_view_host`) via shim functions:
+    - `idax_plugin_action_context_widget_host`
+    - `idax_plugin_action_context_with_widget_host`
+    - `idax_plugin_action_context_decompiler_view_host`
+    - `idax_plugin_action_context_with_decompiler_view_host`
+
+- **16.2. Shim/API closure for `ida::event`**
+  - 16.2.1. Added C ABI transfer struct `IdaxEvent` carrying parity fields (`kind`, `address`, `secondary_address`, `new_name`, `old_name`, `old_value`, `repeatable`).
+  - 16.2.2. Added typed subscription bridge functions wired to C++ event APIs: `idax_event_on_segment_added`, `idax_event_on_segment_deleted`, `idax_event_on_function_added`, `idax_event_on_function_deleted`, `idax_event_on_renamed`, `idax_event_on_byte_patched`, `idax_event_on_comment_changed`, `idax_event_on_event`, `idax_event_on_event_filtered`.
+  - 16.2.3. Preserved existing generic `idax_event_subscribe`/`idax_event_unsubscribe` token model for compatibility.
+
+- **16.3. Rust wrapper convergence (`idax/src/plugin.rs`, `idax/src/event.rs`)**
+  - 16.3.1. Expanded Rust `plugin::ActionContext` to parity fields (selection/external/register + widget/decompiler handles), added `detach_from_toolbar`, popup attach/detach APIs, and host helper wrappers (`widget_host`, `with_widget_host`, `decompiler_view_host`, `with_decompiler_view_host`).
+  - 16.3.2. Added typed action-context callback registration helper `register_action_with_context(...)` with safe callback-context lifetime tracking and cleanup on `unregister_action`.
+  - 16.3.3. Reworked Rust `event` module to include typed subscriptions (`on_segment_added`, `on_segment_deleted`, `on_function_added`, `on_function_deleted`, `on_renamed`, `on_byte_patched`, `on_comment_changed`, `on_event`, `on_event_filtered`) while retaining `subscribe`/`unsubscribe` compatibility and `ScopedSubscription` semantics.
+  - 16.3.4. Exposed Rust `event::Event` parity fields for generic routing where available.
+
+- **16.4. Validation + findings updates**
+  - 16.4.1. Validation evidence: `cargo build` in `/Users/int/dev/idax/bindings/rust` passes after batch 7 changes.
+  - 16.4.2. Added callback payload/context lifetime guidance as finding [F274] and mirrored it into knowledge base section 30.
   - 13.2.7. **Evidence:** `cmake --build build` all targets clean; `ctest --test-dir build` 16/16 pass (0 failures); `idax_abyss_port_plugin.dylib` linked to `ida-sdk/src/bin/plugins/`.
 
 - **13.3. SDK Discoveries**
@@ -1114,5 +1142,97 @@
   - 16.11.3. Added explicit post-update `jumpto` to the clamped line and refresh call so viewer state remains coherent after in-place content replacement.
   - 16.11.4. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes; `cmake --build build --target idax_api_surface_check idax_smoke_test` passes; `ctest --test-dir build -R "^idax_unit_test$" --output-on-failure` passes.
   - 16.11.5. Recorded finding [F266] and decision [D-UI-CUSTOM-VIEWER-STATE-STABILITY].
+
+- **16.12. Rust API Convergence Batch 1 (Shim + Wrapper Parity Closure)**
+  - 16.12.1. Expanded C shim declarations/implementations for requested parity surface: address (`find_first`, `find_next`), search (`next_error`), analysis (`schedule_reanalysis`, `schedule_reanalysis_range`, `revert_decisions`), entry (`forwarder`, `set_forwarder`, `clear_forwarder`), comment line-bulk/render APIs, xref range APIs, segment (`next`, `prev`, default segment register setters), storage (`blob_string`), and lumina close APIs.
+  - 16.12.2. Added comment string-array C ABI bridge with dedicated allocator cleanup (`idax_comment_lines_free`) and wired Rust consumption to free returned arrays correctly.
+  - 16.12.3. Added xref range wrappers in shim with required return forms (`IdaxXref* + count` for `refs_*_range`; `uint64_t* + count` for code/data range APIs) and exposed matching Rust APIs.
+  - 16.12.4. Restored/implemented Rust public comment APIs for remove-line, bulk set/get lines, and `render(...)`, plus parity additions in `address.rs`, `search.rs`, `analysis.rs`, `entry.rs`, `segment.rs`, `storage.rs`, `xref.rs`, and `lumina.rs`.
+  - 16.12.5. Validation evidence: `cargo build` in `bindings/rust` passes after convergence changes.
+
+- **16.13. Rust API Convergence Batch 2 (Type Domain Full Surface Closure)**
+  - 16.13.1. Expanded type-domain C shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` and `bindings/rust/idax-sys/shim/idax_shim.cpp` with new transfer structs (`IdaxTypeEnumMemberInput`, `IdaxTypeEnumMember`, `IdaxTypeMember`) and free helpers for returned arrays/records (`idax_type_handle_array_free`, `idax_type_enum_members_free`, `idax_type_member_free`, `idax_type_members_free`).
+  - 16.13.2. Added missing type constructors/factories at shim+Rust layers: `TypeInfo::function_type(...)`, `TypeInfo::enum_type(...)`, `TypeInfo::create_struct()`, `TypeInfo::create_union()`.
+  - 16.13.3. Added missing introspection parity at shim+Rust layers: `pointee_type`, `array_element_type`, `array_length`, `resolve_typedef`, `function_return_type`, `function_argument_types`, `calling_convention`, `is_variadic_function`, and `enum_members`.
+  - 16.13.4. Added member-surface parity at shim+Rust layers: `members`, `member_by_name`, `member_by_offset`, `add_member`, plus Rust `Member` now carries member `type` (`r#type: TypeInfo`) with ownership-safe transfer from C.
+  - 16.13.5. Added missing free functions in Rust/shim: `retrieve_operand`, `unload_type_library`, `import_type`, and `ensure_named_type` as Rust composition over existing primitives.
+  - 16.13.6. Added lifecycle parity for opaque type handles via shim clone helper (`idax_type_clone`) and Rust `impl Clone for TypeInfo`.
+  - 16.13.7. Validation evidence: `cargo build` in `bindings/rust` passes after type-domain convergence changes.
+  - 16.13.8. Recorded findings [F267], [F268].
+
+- **16.14. Rust API Convergence Batch 3 (`ida::graph` Full Surface Closure)**
+  - 16.14.1. Expanded graph-domain shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` and `bindings/rust/idax-sys/shim/idax_shim.cpp` with parity structs/callback types (`IdaxGraphNodeInfo`, `IdaxGraphEdgeInfo`, `IdaxGraphEdge`, `IdaxAddressRange`, `IdaxGraphCallbacks`) and new free helpers for returned node/edge arrays.
+  - 16.14.2. Added missing graph handle methods at shim level with real C++ behavior wiring: visible-node count/existence, edge add-with-info + replace, visible-node/edge enumeration, path existence, group create/delete/expand/collapse/member queries, and current-layout query.
+  - 16.14.3. Added graph-viewer free-function parity in shim: `show_graph`, `refresh_graph`, `has_graph_viewer`, `is_graph_viewer_visible`, `activate_graph_viewer`, and `close_graph_viewer`.
+  - 16.14.4. Added range-based flowchart ABI (`idax_graph_flowchart_for_ranges`) and reused shared block marshalling for both function-address and range-based flowchart calls.
+  - 16.14.5. Restored Rust `graph.rs` parity surface: `NodeInfo`/`EdgeInfo`, full `Graph` method set above, graph-viewer free functions with `Result`/`Status`, `flowchart_for_ranges`, and practical `GraphCallback` trait bridging to C callback ABI.
+  - 16.14.6. Implemented Rust callback-bridge lifecycle handling for viewer callbacks: context transfer to C ABI on success and safe reclamation on immediate `show_graph` failure; callback cleanup deferred to destroy callback for viewer-owned lifetime.
+  - 16.14.7. Validation evidence: `cargo build` in `bindings/rust` passes after graph convergence changes.
+  - 16.14.8. Recorded finding [F269].
+
+- **16.15. Rust API Convergence Batch 4 (`ida::ui` Full Surface Closure)**
+  - 16.15.1. Expanded UI-domain shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` with parity structs/callback typedefs for show-widget options, typed UI events, popup payloads, rendering entries/events, timer callbacks, widget-host bridge callbacks, and dynamic-action handlers.
+  - 16.15.2. Reworked UI-domain shim implementation in `bindings/rust/idax-sys/shim/idax_shim.cpp` to add real wrappers for `ask_form`, full custom-viewer APIs, widget title/id/host APIs, `show_widget` option parity (`restore_previous`), timer callback registration, all requested UI/view subscriptions (global + widget-scoped + generic + filtered), popup-ready/dynamic-action hooks, and rendering-info entry injection.
+  - 16.15.3. Updated Rust UI wrapper in `bindings/rust/idax/src/ui.rs` with idiomatic parity types (`ShowWidgetOptions`, `Event`, `PopupEvent`, `RenderingEvent`, `LineRenderEntry`, `WidgetRef`) plus safe callback bridging and lifecycle bookkeeping for timer/event/popup/rendering/dynamic-action contexts.
+  - 16.15.4. Preserved existing low-level APIs (`subscribe`, `unsubscribe`, no-callback `register_timer`, position-only `show_widget`) while layering parity-complete equivalents (`register_timer_with_callback`, `show_widget_with_options`, typed event/popup/rendering APIs).
+  - 16.15.5. Validation evidence: `cargo build` in `bindings/rust` passes after full UI convergence changes.
+  - 16.15.6. Recorded findings [F270], [F271].
+
+- **16.16. Rust API Convergence Batch 5 (`ida::data`/`ida::database`/`ida::name`/`ida::fixup`)**
+  - 16.16.1. Expanded shim ABI for `ida::data` typed values with explicit transfer enum/struct (`IdaxDataTypedValueKind`, `IdaxDataTypedValue`), recursive ownership free helper (`idax_data_typed_value_free`), and real wrappers for `read_typed`/`write_typed`.
+  - 16.16.2. Added missing data-definition wrappers at shim+Rust layers: `define_oword`, `define_tbyte`, and `define_struct`.
+  - 16.16.3. Expanded shim ABI for `ida::database` lifecycle/metadata gaps: `open_binary`, `open_non_binary`, `file_to_database`, `memory_to_database`, `compiler_info`, `import_modules` (+ nested transfer structs + free helper), `snapshots` (+ recursive transfer structs + free helper), `set_snapshot_description`, and `is_snapshot_database`.
+  - 16.16.4. Expanded shim+Rust `ida::name` parity with user-defined inventory enumeration (`all_user_defined` + transfer/free helpers) and identifier utilities (`is_valid_identifier`, `sanitize_identifier`).
+  - 16.16.5. Expanded shim+Rust `ida::fixup` parity with `in_range` exposure in Rust and custom-handler lifecycle wrappers (`register_custom`, `unregister_custom`, `find_custom`) using `IdaxFixupCustomHandler` transfer input.
+  - 16.16.6. Validation evidence: `cargo build` in `bindings/rust` passes after convergence batch 5 updates.
+  - 16.16.7. Recorded finding [F272].
+
+- **16.17. Rust API Convergence Batch 6 (`ida::function` + `ida::instruction`)**
+  - 16.17.1. Expanded shim ABI + implementation for function-domain parity closures: `update`, `reanalyze`, `frame_variable_by_name`, `frame_variable_by_offset`, `define_stack_variable`, and full register-variable lifecycle (`add`/`find`/`remove`/`rename`/`has`/`list`).
+  - 16.17.2. Added explicit register-variable transfer ABI in shim (`IdaxRegisterVariable`) with dedicated free helpers (`idax_register_variable_free`, `idax_register_variables_free`) and wired Rust wrappers to preserve ownership-safe conversions.
+  - 16.17.3. Expanded shim ABI + implementation for instruction-domain parity closures: `set_operand_format`, struct-offset setters (name/id overload forms), based-struct-offset setter, struct-offset path/path-names readers, operand byte-width/register-name/register-class readers, operand sign/negate toggles, and `next`/`prev` decode helpers.
+  - 16.17.4. Added dedicated instruction string-array free helper (`idax_instruction_string_array_free`) and wired Rust path-name consumption to copy-first + single centralized free path.
+  - 16.17.5. Extended Rust `function.rs` and `instruction.rs` with idiomatic API exposure for all above parity additions while preserving existing APIs.
+  - 16.17.6. Validation evidence: `cargo build` in `bindings/rust` passes after convergence batch 6 updates.
+  - 16.17.7. Recorded finding [F273].
+
+- **16.18. Rust API Convergence Batch 8 (`ida::loader` Runtime-Bindable Closure)**
+  - 16.18.1. Expanded loader-domain shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` with explicit `IdaxLoaderLoadFlags` transfer struct plus encode/decode helpers (`idax_loader_decode_load_flags`, `idax_loader_encode_load_flags`).
+  - 16.18.2. Added real shim wrappers for loader helper functions: `idax_loader_file_to_database`, `idax_loader_memory_to_database`, and `idax_loader_abort_load` while preserving existing `idax_loader_set_processor` and `idax_loader_create_filename_comment`.
+  - 16.18.3. Added loader input runtime wrappers over opaque `void*` handles at shim level: `idax_loader_input_size`, `idax_loader_input_tell`, `idax_loader_input_seek`, `idax_loader_input_read_bytes`, `idax_loader_input_read_bytes_at`, `idax_loader_input_read_string`, and `idax_loader_input_filename`.
+  - 16.18.4. Implemented Rust-side loader parity surface in `bindings/rust/idax/src/loader.rs`: typed `LoadFlags`, encode/decode helpers, `InputFileHandle` wrapper over raw callback-provided handles, helper APIs (`file_to_database`, `memory_to_database`), and non-returning `abort_load(...) -> !`.
+  - 16.18.5. Validation evidence: `cargo build` in `bindings/rust` passes after loader convergence updates.
+  - 16.18.6. Recorded finding [F275].
+
+- **16.19. Rust API Convergence Batch 9 (`ida::debugger` Full Surface Closure)**
+  - 16.19.1. Expanded debugger shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` with parity transfer models and callbacks for register metadata (`IdaxDebuggerRegisterInfo`), appcall value/options/request/result structs, module/exception payload structs, breakpoint-change enum, typed debugger-event callbacks, and appcall-executor callback/cleanup bridge typedefs.
+  - 16.19.2. Implemented full debugger shim wiring in `bindings/rust/idax-sys/shim/idax_shim.cpp` for missing session/request/thread/register APIs (`request_attach`, `is_request_running`, `thread_id_at`, `thread_name_at`, `request_select_thread`, suspend/resume thread variants, register-classification helpers), plus appcall/core cleanup wrappers and typed debugger event subscription wrappers with token-based unsubscribe.
+  - 16.19.3. Added appcall executor bridge implementation in shim via `CAppcallExecutor` adapter that converts Rust/C ABI payloads to/from `ida::debugger::AppcallRequest/AppcallResult` and releases callback context through a dedicated cleanup trampoline.
+  - 16.19.4. Replaced Rust `bindings/rust/idax/src/debugger.rs` with parity-complete API surface: backend discovery/load, request queue helpers, thread/register introspection APIs, appcall + cleanup, executor register/unregister/dispatch, and typed debugger event subscription APIs with RAII `ScopedSubscription`.
+  - 16.19.5. Added Rust-side lifecycle-safe callback context bookkeeping (`OnceLock<Mutex<HashMap<...>>>`) for debugger subscriptions and executor registration, preserving cleanup on unsubscribe/unregister.
+  - 16.19.6. Validation evidence: `cargo build` in `bindings/rust` passes after debugger convergence updates.
+  - 16.19.7. Recorded findings [F276], [F277].
+
+- **16.20. Rust API Convergence Batch 10 (`ida::decompiler` Broad/Full Closure)**
+  - 16.20.1. Expanded decompiler shim ABI in `bindings/rust/idax-sys/shim/idax_shim.h` with explicit transfer models and callback typedefs for decompiler events (`MaturityEvent`, `PseudocodeEvent`, `CursorPositionEvent`, `HintRequestEvent`) plus tokenized subscribe/unsubscribe wrappers.
+  - 16.20.2. Implemented real event bridge wrappers in `bindings/rust/idax-sys/shim/idax_shim.cpp`: `idax_decompiler_on_maturity_changed`, `idax_decompiler_on_func_printed`, `idax_decompiler_on_refresh_pseudocode`, `idax_decompiler_on_curpos_changed`, `idax_decompiler_on_create_hint`, and `idax_decompiler_unsubscribe`.
+  - 16.20.3. Added dirty/view parity wrappers in shim: `idax_decompiler_mark_dirty_with_callers`, `idax_decompiler_view_from_host`, `idax_decompiler_view_for_function`, `idax_decompiler_current_view`.
+  - 16.20.4. Added raw pseudocode operation wrappers in shim for event-time mutation flows: `idax_decompiler_raw_pseudocode_lines`, `idax_decompiler_set_pseudocode_line`, `idax_decompiler_pseudocode_header_line_count`, and dedicated array free helper.
+  - 16.20.5. Added item lookup/name wrappers in shim: `idax_decompiler_item_at_position`, `idax_decompiler_item_type_name`, plus functional visitor bridges `idax_decompiler_for_each_expression` and `idax_decompiler_for_each_item` with visit-action propagation.
+  - 16.20.6. Added decompiled-handle parity wrappers in shim: `idax_decompiled_raw_lines`, `idax_decompiled_set_raw_line`, `idax_decompiled_header_line_count`, and deep free helper `idax_decompiled_variables_free`.
+  - 16.20.7. Replaced `bindings/rust/idax/src/decompiler.rs` with parity-complete Rust APIs covering new event subscriptions/unsubscribe + RAII guard, dirty/view/raw/item/visitor helpers, and previously missing existing shim exposures (`microcode`, `variables`, `line_to_address`, register/unregister microcode filter).
+  - 16.20.8. Added Rust lifecycle-safe callback/filter context management via token-keyed erased-context registries (`OnceLock<Mutex<HashMap<...>>>`) for decompiler subscriptions and microcode filter callbacks.
+  - 16.20.9. Validation evidence: `cargo build` in `bindings/rust` passes after decompiler convergence updates.
+  - 16.20.10. Recorded findings [F278], [F279].
+
+- **16.21. Rust API Convergence Batch 11 (`ida::processor` Model Closure + Warning Cleanup)**
+  - 16.21.1. Re-audited post-batch convergence and identified remaining Rust-facing parity drift in `bindings/rust/idax/src/processor.rs` versus `include/ida/processor.hpp` (data model and callback-contract shape).
+  - 16.21.2. Expanded Rust `AssemblerInfo` parity to include extended directives/options (`oword/float/double/tbyte/align/include/public/weak/external/current_ip_symbol`) plus label/quoted-name behavior flags and C++-aligned defaults.
+  - 16.21.3. Expanded Rust processor metadata/flags parity: added missing `ProcessorFlag` values and `ProcessorInfo` fields (`flags2`, bits-per-byte, segment register indices/sizes, `return_icode`) with C++-aligned default values.
+  - 16.21.4. Expanded switch/analyze/output model parity in Rust: full `SwitchDescription` shape + defaults, `AnalyzeOperandKind`/`AnalyzeOperand`/`AnalyzeDetails`, `OutputInstructionResult`, `OutputTokenKind`/`OutputToken`, and `OutputContext` tokenized text builder helpers (`token`/`mnemonic`/`immediate`/`address`/`take`/`take_tokens`, etc.).
+  - 16.21.5. Added Rust trait-level processor callback contract parity (`Processor`) with required callbacks and C++-aligned default behavior for optional callbacks (`analyze_with_details`, context-driven output, function/switch helpers, stack-delta defaults).
+  - 16.21.6. Ran `cargo fix --lib -p idax --allow-dirty` to apply Rust 2024 `unsafe_op_in_unsafe_fn` fixes in `bindings/rust/idax/src/debugger.rs` (17 automatic fixes).
+  - 16.21.7. Validation evidence: `cargo build` in `bindings/rust` passes cleanly (no warnings).
+  - 16.21.8. Recorded finding [F280].
 
 ---

@@ -321,4 +321,32 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 266. `ida::ui::set_custom_viewer_lines` must preserve the original `CustomViewerState` object address. Replacing the stored `unique_ptr` invalidates internal pointers handed to `create_custom_viewer` (`min`/`max`/`cur`/`lines`) and can cause EXC_BAD_ACCESS during render/model updates; mutating the existing state in-place fixes the crash.
 
+267. For C ABI arrays that return owning opaque handles (e.g., `IdaxTypeHandle*` or struct records embedding `IdaxTypeHandle`), Rust-side transfer should move each handle into owned wrapper values and null-out the original C slots before invoking shim free helpers; this preserves centralized cleanup for array buffers/strings while preventing double-free of transferred handles.
+
+268. Full Rust parity for `ida::type::TypeInfo` clone semantics requires an explicit shim clone operation (`idax_type_clone`) because the Rust wrapper intentionally keeps handles opaque and cannot copy the underlying C++ pimpl-backed object without a dedicated C ABI helper.
+
+269. Rust graph-viewer callback bridging over C ABI should treat callback-provided node-text/hint strings as borrowed pointers valid for the callback invocation (copied immediately by shim/C++), while ownership of the callback context itself must transfer to viewer lifetime and be released only from the viewer-destroyed callback to avoid premature frees or leaks.
+
+270. Rust `static` callback registries backed by `Mutex<HashMap<...>>` cannot store raw pointers directly under current trait bounds; storing callback context addresses as `usize` plus explicit typed drop trampolines (`unsafe fn(*mut c_void)`) keeps callback lifetime tracking `Sync`-compatible while preserving correct reclamation on unsubscribe/unregister.
+
+271. UI rendering parity across Rust/C++ is cleanly bridged by passing an opaque event handle into Rust callbacks and exposing a dedicated shim helper (`idax_ui_rendering_event_add_entry`) that appends native `LineRenderEntry` records in C++; this avoids cross-language vector ownership/reallocation hazards while preserving mutable rendering-entry semantics.
+
+272. For recursive/value-rich Rust<->C transfer in convergence-heavy domains, using explicit C transfer structs plus domain-specific free helpers (e.g., typed values, import modules, snapshot trees) keeps ownership unambiguous across nested strings/arrays and allows bindgen-generated Rust wrappers to copy into idiomatic values without leaking or double-freeing nested allocations.
+
+273. For Rust bindings over C ABI payload arrays that contain nested C strings, conversion should copy strings from borrowed pointers first and then invoke exactly one shim-level deep-free helper for the array (`char**`/record arrays). Mixing per-element consuming frees with subsequent array-free helpers causes double-free risk; the safe pattern is copy-then-single-free.
+
+274. For plugin/event callback payload bridges, expose callback-scoped borrowed C string pointers (`const char*`) in shim transfer structs and copy them immediately in Rust trampolines; callback context ownership should stay token-keyed in Rust (`HashMap<Token, ErasedContext>`) and be reclaimed only on explicit unsubscribe/unregister to avoid leaks or use-after-free across repeated subscriptions.
+
+275. For runtime Rust bindings over `ida::loader::InputFile` handles, shim-side wrapping can remain SDK-opaque by reconstructing a transient `ida::loader::InputFile` value from the raw callback `void*` handle when the C++ wrapper type is trivially-copyable and pointer-sized; this allows reusing canonical C++ `InputFile` methods (`size`/`tell`/`seek`/`read_*`/`filename`) instead of duplicating low-level SDK `ql*` calls in the shim.
+
+276. Full Rust/C++ debugger parity for callback-heavy APIs is easiest to keep safe with explicit C transfer structs per payload family (module info, exception info, register info, appcall request/result/value) and typed callback typedefs in the shim header; this avoids exposing SDK structs while keeping bindgen output predictable and composable.
+
+277. Appcall executor bridging across Rust/C++ can be made lifecycle-safe by wrapping C callbacks in a shim-side `AppcallExecutor` implementation that owns callback+cleanup pointers and invokes cleanup in destructor, while Rust tracks registrations by executor name and relies on shim-side unregister destruction for context reclamation.
+
+278. For decompiler event bridging where callbacks are tokenized in C++ (`on_*` + `unsubscribe`), Rust-side callback context lifetime is safest when keyed by token and released only after successful unsubscribe; this avoids use-after-free on async event delivery and avoids leaks on failed subscribe paths.
+
+279. Functional visitor parity over C ABI can remain behaviorally complete without exposing full SDK expression/statement objects by forwarding minimal stable transfer views (`item type`, `address`) and preserving `VisitAction` control flow (`Continue`/`Stop`/`SkipChildren`) through callback return-value mapping.
+
+280. Rust processor-domain parity does not require new runtime shim exports when module authoring remains compile-time macro/trait driven; convergence is achieved by mirroring the full C++ `ida::processor` data model and callback contract in `idax/src/processor.rs` (including tokenized output context and switch/analyze structures), while Rust 2024 unsafe-ops warning cleanup can be applied mechanically and safely via `cargo fix --lib -p idax` for callback-heavy FFI files.
+
 These are to be referenced as [FXX] in the live knowledge base inside agents.md.
