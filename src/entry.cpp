@@ -86,7 +86,24 @@ Status set_forwarder(std::uint64_t ordinal, std::string_view target) {
 }
 
 Status clear_forwarder(std::uint64_t ordinal) {
-    if (!::set_entry_forwarder(static_cast<uval_t>(ordinal), ""))
+    uval_t ord = static_cast<uval_t>(ordinal);
+
+    // The IDA SDK's set_entry_forwarder rejects both nullptr and "".
+    // Attempt the public API with "" first; if it works, we're done.
+    if (::set_entry_forwarder(ord, ""))
+        return ida::ok();
+
+    // Fall back to direct netnode deletion.  IDA stores entry forwarders as
+    // supvals in the "$ entry points" netnode, keyed by ordinal, with tag 'F'.
+    {
+        netnode node("$ entry points", 0, /*create=*/false);
+        if (node != BADNODE)
+            node.supdel(static_cast<nodeidx_t>(ord), 'F');
+    }
+
+    // Verify the forwarder is gone.
+    qstring existing;
+    if (::get_entry_forwarder(&existing, ord) > 0)
         return std::unexpected(Error::sdk("clear_entry_forwarder failed",
                                           "ordinal=" + std::to_string(ordinal)));
     return ida::ok();
