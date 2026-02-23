@@ -14,9 +14,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "idax": ["../lib/index"]
+    }
   },
   "include": ["./*.ts"],
-  "references": [],
-  "compilerOptions.paths": {}
+  "references": []
 }

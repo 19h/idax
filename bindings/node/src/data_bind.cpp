@@ -326,24 +326,25 @@ NAN_METHOD(OriginalQword) {
 // ── Define / undefine items ────────────────────────────────────────────
 
 // Helper macro for define_* functions that take (address, count?)
-#define DEFINE_ITEM_BINDING(Name, cppFunc)                                  \
+// defaultBytes is the natural byte size for one item of this type.
+#define DEFINE_ITEM_BINDING(Name, cppFunc, defaultBytes)                    \
     NAN_METHOD(Name) {                                                      \
         ida::Address addr;                                                  \
         if (!GetAddressArg(info, 0, addr)) return;                         \
         auto count = static_cast<ida::AddressSize>(                        \
-            GetOptionalInt64(info, 1, 1));                                 \
+            GetOptionalInt64(info, 1, defaultBytes));                      \
         IDAX_CHECK_STATUS(ida::data::cppFunc(addr, count));                \
         info.GetReturnValue().SetUndefined();                              \
     }
 
-DEFINE_ITEM_BINDING(DefineByte,   define_byte)
-DEFINE_ITEM_BINDING(DefineWord,   define_word)
-DEFINE_ITEM_BINDING(DefineDword,  define_dword)
-DEFINE_ITEM_BINDING(DefineQword,  define_qword)
-DEFINE_ITEM_BINDING(DefineOword,  define_oword)
-DEFINE_ITEM_BINDING(DefineTbyte,  define_tbyte)
-DEFINE_ITEM_BINDING(DefineFloat,  define_float)
-DEFINE_ITEM_BINDING(DefineDouble, define_double)
+DEFINE_ITEM_BINDING(DefineByte,   define_byte,   1)
+DEFINE_ITEM_BINDING(DefineWord,   define_word,   2)
+DEFINE_ITEM_BINDING(DefineDword,  define_dword,  4)
+DEFINE_ITEM_BINDING(DefineQword,  define_qword,  8)
+DEFINE_ITEM_BINDING(DefineOword,  define_oword,  16)
+DEFINE_ITEM_BINDING(DefineTbyte,  define_tbyte,  10)
+DEFINE_ITEM_BINDING(DefineFloat,  define_float,  4)
+DEFINE_ITEM_BINDING(DefineDouble, define_double, 8)
 
 #undef DEFINE_ITEM_BINDING
 

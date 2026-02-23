@@ -220,12 +220,17 @@ NAN_METHOD(InRange) {
 
 /// first() -> address (BigInt) or null
 NAN_METHOD(First) {
-    IDAX_UNWRAP(auto addr, ida::fixup::first());
-    if (addr == ida::BadAddress) {
-        info.GetReturnValue().SetNull();
-    } else {
-        info.GetReturnValue().Set(FromAddress(addr));
+    auto result = ida::fixup::first();
+    if (!result) {
+        // NotFound means no fixups — return null, not an exception.
+        if (result.error().category == ida::ErrorCategory::NotFound) {
+            info.GetReturnValue().SetNull();
+        } else {
+            idax_node::ThrowError(result.error());
+        }
+        return;
     }
+    info.GetReturnValue().Set(FromAddress(*result));
 }
 
 /// next(address) -> address (BigInt) or null
@@ -233,12 +238,16 @@ NAN_METHOD(Next) {
     ida::Address address;
     if (!GetAddressArg(info, 0, address)) return;
 
-    IDAX_UNWRAP(auto addr, ida::fixup::next(address));
-    if (addr == ida::BadAddress) {
-        info.GetReturnValue().SetNull();
-    } else {
-        info.GetReturnValue().Set(FromAddress(addr));
+    auto result = ida::fixup::next(address);
+    if (!result) {
+        if (result.error().category == ida::ErrorCategory::NotFound) {
+            info.GetReturnValue().SetNull();
+        } else {
+            idax_node::ThrowError(result.error());
+        }
+        return;
     }
+    info.GetReturnValue().Set(FromAddress(*result));
 }
 
 /// prev(address) -> address (BigInt) or null
@@ -246,12 +255,16 @@ NAN_METHOD(Prev) {
     ida::Address address;
     if (!GetAddressArg(info, 0, address)) return;
 
-    IDAX_UNWRAP(auto addr, ida::fixup::prev(address));
-    if (addr == ida::BadAddress) {
-        info.GetReturnValue().SetNull();
-    } else {
-        info.GetReturnValue().Set(FromAddress(addr));
+    auto result = ida::fixup::prev(address);
+    if (!result) {
+        if (result.error().category == ida::ErrorCategory::NotFound) {
+            info.GetReturnValue().SetNull();
+        } else {
+            idax_node::ThrowError(result.error());
+        }
+        return;
     }
+    info.GetReturnValue().Set(FromAddress(*result));
 }
 
 /// all() -> array of addresses (BigInt) where fixups exist
