@@ -274,12 +274,14 @@ fn to_raw_appcall_request(req: &AppcallRequest) -> Result<RawAppcallRequest> {
 
 unsafe fn appcall_result_from_raw(
     raw: &idax_sys::IdaxDebuggerAppcallResult,
-) -> Result<AppcallResult> { unsafe {
-    Ok(AppcallResult {
-        return_value: appcall_value_from_raw(&raw.return_value)?,
-        diagnostics: cstr_opt(raw.diagnostics),
-    })
-}}
+) -> Result<AppcallResult> {
+    unsafe {
+        Ok(AppcallResult {
+            return_value: appcall_value_from_raw(&raw.return_value)?,
+            diagnostics: cstr_opt(raw.diagnostics),
+        })
+    }
+}
 
 pub fn available_backends() -> Result<Vec<BackendInfo>> {
     unsafe {
@@ -710,107 +712,115 @@ struct ExecutorContext {
 
 static EXECUTOR_CONTEXTS: OnceLock<Mutex<HashMap<String, usize>>> = OnceLock::new();
 
-unsafe fn clone_type_from_handle(handle: *mut c_void) -> Result<TypeInfo> { unsafe {
-    if handle.is_null() {
-        return Err(Error::validation(
-            "null function_type handle in appcall request",
-        ));
+unsafe fn clone_type_from_handle(handle: *mut c_void) -> Result<TypeInfo> {
+    unsafe {
+        if handle.is_null() {
+            return Err(Error::validation(
+                "null function_type handle in appcall request",
+            ));
+        }
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = idax_sys::idax_type_clone(handle, &mut out);
+        if ret != 0 || out.is_null() {
+            Err(error::consume_last_error(
+                "debugger::executor type clone failed",
+            ))
+        } else {
+            Ok(TypeInfo::from_raw(out))
+        }
     }
-    let mut out: *mut c_void = std::ptr::null_mut();
-    let ret = idax_sys::idax_type_clone(handle, &mut out);
-    if ret != 0 || out.is_null() {
-        Err(error::consume_last_error(
-            "debugger::executor type clone failed",
-        ))
-    } else {
-        Ok(TypeInfo::from_raw(out))
-    }
-}}
+}
 
 unsafe fn appcall_request_from_raw_for_executor(
     raw: &idax_sys::IdaxDebuggerAppcallRequest,
-) -> Result<AppcallRequest> { unsafe {
-    let function_type = clone_type_from_handle(raw.function_type)?;
-    let mut arguments = Vec::with_capacity(raw.argument_count);
-    if !raw.arguments.is_null() && raw.argument_count > 0 {
-        let slice = std::slice::from_raw_parts(raw.arguments, raw.argument_count);
-        for arg in slice {
-            arguments.push(appcall_value_from_raw(arg)?);
+) -> Result<AppcallRequest> {
+    unsafe {
+        let function_type = clone_type_from_handle(raw.function_type)?;
+        let mut arguments = Vec::with_capacity(raw.argument_count);
+        if !raw.arguments.is_null() && raw.argument_count > 0 {
+            let slice = std::slice::from_raw_parts(raw.arguments, raw.argument_count);
+            for arg in slice {
+                arguments.push(appcall_value_from_raw(arg)?);
+            }
         }
+        Ok(AppcallRequest {
+            function_address: raw.function_address,
+            function_type,
+            arguments,
+            options: AppcallOptions {
+                thread_id: if raw.options.has_thread_id != 0 {
+                    Some(raw.options.thread_id)
+                } else {
+                    None
+                },
+                manual: raw.options.manual != 0,
+                include_debug_event: raw.options.include_debug_event != 0,
+                timeout_milliseconds: if raw.options.has_timeout_milliseconds != 0 {
+                    Some(raw.options.timeout_milliseconds)
+                } else {
+                    None
+                },
+            },
+        })
     }
-    Ok(AppcallRequest {
-        function_address: raw.function_address,
-        function_type,
-        arguments,
-        options: AppcallOptions {
-            thread_id: if raw.options.has_thread_id != 0 {
-                Some(raw.options.thread_id)
-            } else {
-                None
-            },
-            manual: raw.options.manual != 0,
-            include_debug_event: raw.options.include_debug_event != 0,
-            timeout_milliseconds: if raw.options.has_timeout_milliseconds != 0 {
-                Some(raw.options.timeout_milliseconds)
-            } else {
-                None
-            },
-        },
-    })
-}}
+}
 
 unsafe extern "C" fn executor_trampoline(
     context: *mut c_void,
     request: *const idax_sys::IdaxDebuggerAppcallRequest,
     out_result: *mut idax_sys::IdaxDebuggerAppcallResult,
-) -> i32 { unsafe {
-    if context.is_null() || request.is_null() || out_result.is_null() {
-        return -1;
-    }
-    let ctx = &mut *(context as *mut ExecutorContext);
-    let req = match appcall_request_from_raw_for_executor(&*request) {
-        Ok(v) => v,
-        Err(_) => return -1,
-    };
-    let result = match (ctx.callback)(&req) {
-        Ok(v) => v,
-        Err(_) => return -1,
-    };
-
-    std::ptr::write(out_result, std::mem::zeroed());
-    (*out_result).return_value.kind = result.return_value.kind as i32;
-    (*out_result).return_value.signed_value = result.return_value.signed_value;
-    (*out_result).return_value.unsigned_value = result.return_value.unsigned_value;
-    (*out_result).return_value.floating_value = result.return_value.floating_value;
-    (*out_result).return_value.address_value = result.return_value.address_value;
-    (*out_result).return_value.boolean_value = if result.return_value.boolean_value {
-        1
-    } else {
-        0
-    };
-
-    if matches!(result.return_value.kind, AppcallValueKind::String) {
-        let c = match CString::new(result.return_value.string_value) {
+) -> i32 {
+    unsafe {
+        if context.is_null() || request.is_null() || out_result.is_null() {
+            return -1;
+        }
+        let ctx = &mut *(context as *mut ExecutorContext);
+        let req = match appcall_request_from_raw_for_executor(&*request) {
             Ok(v) => v,
             Err(_) => return -1,
         };
-        (*out_result).return_value.string_value = c.into_raw();
-    }
+        let result = match (ctx.callback)(&req) {
+            Ok(v) => v,
+            Err(_) => return -1,
+        };
 
-    let c_diag = match CString::new(result.diagnostics) {
-        Ok(v) => v,
-        Err(_) => return -1,
-    };
-    (*out_result).diagnostics = c_diag.into_raw();
-    0
-}}
+        std::ptr::write(out_result, std::mem::zeroed());
+        (*out_result).return_value.kind = result.return_value.kind as i32;
+        (*out_result).return_value.signed_value = result.return_value.signed_value;
+        (*out_result).return_value.unsigned_value = result.return_value.unsigned_value;
+        (*out_result).return_value.floating_value = result.return_value.floating_value;
+        (*out_result).return_value.address_value = result.return_value.address_value;
+        (*out_result).return_value.boolean_value = if result.return_value.boolean_value {
+            1
+        } else {
+            0
+        };
 
-unsafe extern "C" fn executor_cleanup_trampoline(context: *mut c_void) { unsafe {
-    if context.is_null() {
-        return;
+        if matches!(result.return_value.kind, AppcallValueKind::String) {
+            let c = match CString::new(result.return_value.string_value) {
+                Ok(v) => v,
+                Err(_) => return -1,
+            };
+            (*out_result).return_value.string_value = c.into_raw();
+        }
+
+        let c_diag = match CString::new(result.diagnostics) {
+            Ok(v) => v,
+            Err(_) => return -1,
+        };
+        (*out_result).diagnostics = c_diag.into_raw();
+        0
     }
-    drop(Box::from_raw(context as *mut ExecutorContext));
-}}
+}
+
+unsafe extern "C" fn executor_cleanup_trampoline(context: *mut c_void) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        drop(Box::from_raw(context as *mut ExecutorContext));
+    }
+}
 
 pub fn register_executor<F>(name: &str, callback: F) -> Status
 where
@@ -882,9 +892,11 @@ struct ErasedContext {
     drop_fn: unsafe fn(*mut c_void),
 }
 
-unsafe fn drop_as<T>(ptr: *mut c_void) { unsafe {
-    drop(Box::from_raw(ptr as *mut T));
-}}
+unsafe fn drop_as<T>(ptr: *mut c_void) {
+    unsafe {
+        drop(Box::from_raw(ptr as *mut T));
+    }
+}
 
 static SUB_CONTEXTS: OnceLock<Mutex<HashMap<Token, ErasedContext>>> = OnceLock::new();
 
@@ -909,18 +921,20 @@ struct ProcessStartedContext {
 unsafe extern "C" fn process_started_trampoline(
     context: *mut c_void,
     module_info: *const idax_sys::IdaxDebuggerModuleInfo,
-) { unsafe {
-    if context.is_null() || module_info.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() || module_info.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ProcessStartedContext);
+        let m = &*module_info;
+        (ctx.callback)(ModuleInfo {
+            name: cstr_opt(m.name),
+            base: m.base,
+            size: m.size,
+        });
     }
-    let ctx = &mut *(context as *mut ProcessStartedContext);
-    let m = &*module_info;
-    (ctx.callback)(ModuleInfo {
-        name: cstr_opt(m.name),
-        base: m.base,
-        size: m.size,
-    });
-}}
+}
 
 pub fn on_process_started<F>(callback: F) -> Result<Token>
 where
@@ -951,13 +965,15 @@ struct ProcessExitedContext {
     callback: Box<dyn FnMut(i32) + Send>,
 }
 
-unsafe extern "C" fn process_exited_trampoline(context: *mut c_void, exit_code: i32) { unsafe {
-    if context.is_null() {
-        return;
+unsafe extern "C" fn process_exited_trampoline(context: *mut c_void, exit_code: i32) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ProcessExitedContext);
+        (ctx.callback)(exit_code);
     }
-    let ctx = &mut *(context as *mut ProcessExitedContext);
-    (ctx.callback)(exit_code);
-}}
+}
 
 pub fn on_process_exited<F>(callback: F) -> Result<Token>
 where
@@ -988,13 +1004,15 @@ struct ProcessSuspendedContext {
     callback: Box<dyn FnMut(Address) + Send>,
 }
 
-unsafe extern "C" fn process_suspended_trampoline(context: *mut c_void, address: u64) { unsafe {
-    if context.is_null() {
-        return;
+unsafe extern "C" fn process_suspended_trampoline(context: *mut c_void, address: u64) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ProcessSuspendedContext);
+        (ctx.callback)(address);
     }
-    let ctx = &mut *(context as *mut ProcessSuspendedContext);
-    (ctx.callback)(address);
-}}
+}
 
 pub fn on_process_suspended<F>(callback: F) -> Result<Token>
 where
@@ -1025,13 +1043,15 @@ struct BreakpointHitContext {
     callback: Box<dyn FnMut(i32, Address) + Send>,
 }
 
-unsafe extern "C" fn breakpoint_hit_trampoline(context: *mut c_void, thread_id: i32, address: u64) { unsafe {
-    if context.is_null() {
-        return;
+unsafe extern "C" fn breakpoint_hit_trampoline(context: *mut c_void, thread_id: i32, address: u64) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut BreakpointHitContext);
+        (ctx.callback)(thread_id, address);
     }
-    let ctx = &mut *(context as *mut BreakpointHitContext);
-    (ctx.callback)(thread_id, address);
-}}
+}
 
 pub fn on_breakpoint_hit<F>(callback: F) -> Result<Token>
 where
@@ -1062,17 +1082,19 @@ struct TraceContext {
     callback: Box<dyn FnMut(i32, Address) -> bool + Send>,
 }
 
-unsafe extern "C" fn trace_trampoline(context: *mut c_void, thread_id: i32, ip: u64) -> i32 { unsafe {
-    if context.is_null() {
-        return 0;
+unsafe extern "C" fn trace_trampoline(context: *mut c_void, thread_id: i32, ip: u64) -> i32 {
+    unsafe {
+        if context.is_null() {
+            return 0;
+        }
+        let ctx = &mut *(context as *mut TraceContext);
+        if (ctx.callback)(thread_id, ip) {
+            1
+        } else {
+            0
+        }
     }
-    let ctx = &mut *(context as *mut TraceContext);
-    if (ctx.callback)(thread_id, ip) {
-        1
-    } else {
-        0
-    }
-}}
+}
 
 pub fn on_trace<F>(callback: F) -> Result<Token>
 where
@@ -1100,19 +1122,21 @@ struct ExceptionContext {
 unsafe extern "C" fn exception_trampoline(
     context: *mut c_void,
     exception_info: *const idax_sys::IdaxDebuggerExceptionInfo,
-) { unsafe {
-    if context.is_null() || exception_info.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() || exception_info.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ExceptionContext);
+        let e = &*exception_info;
+        (ctx.callback)(ExceptionInfo {
+            ea: e.ea,
+            code: e.code,
+            can_continue: e.can_continue != 0,
+            message: cstr_opt(e.message),
+        });
     }
-    let ctx = &mut *(context as *mut ExceptionContext);
-    let e = &*exception_info;
-    (ctx.callback)(ExceptionInfo {
-        ea: e.ea,
-        code: e.code,
-        can_continue: e.can_continue != 0,
-        message: cstr_opt(e.message),
-    });
-}}
+}
 
 pub fn on_exception<F>(callback: F) -> Result<Token>
 where
@@ -1145,13 +1169,15 @@ unsafe extern "C" fn thread_started_trampoline(
     context: *mut c_void,
     thread_id: i32,
     thread_name: *const c_char,
-) { unsafe {
-    if context.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ThreadStartedContext);
+        (ctx.callback)(thread_id, cstr_opt(thread_name));
     }
-    let ctx = &mut *(context as *mut ThreadStartedContext);
-    (ctx.callback)(thread_id, cstr_opt(thread_name));
-}}
+}
 
 pub fn on_thread_started<F>(callback: F) -> Result<Token>
 where
@@ -1186,13 +1212,15 @@ unsafe extern "C" fn thread_exited_trampoline(
     context: *mut c_void,
     thread_id: i32,
     exit_code: i32,
-) { unsafe {
-    if context.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut ThreadExitedContext);
+        (ctx.callback)(thread_id, exit_code);
     }
-    let ctx = &mut *(context as *mut ThreadExitedContext);
-    (ctx.callback)(thread_id, exit_code);
-}}
+}
 
 pub fn on_thread_exited<F>(callback: F) -> Result<Token>
 where
@@ -1226,18 +1254,20 @@ struct LibraryLoadedContext {
 unsafe extern "C" fn library_loaded_trampoline(
     context: *mut c_void,
     module_info: *const idax_sys::IdaxDebuggerModuleInfo,
-) { unsafe {
-    if context.is_null() || module_info.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() || module_info.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut LibraryLoadedContext);
+        let m = &*module_info;
+        (ctx.callback)(ModuleInfo {
+            name: cstr_opt(m.name),
+            base: m.base,
+            size: m.size,
+        });
     }
-    let ctx = &mut *(context as *mut LibraryLoadedContext);
-    let m = &*module_info;
-    (ctx.callback)(ModuleInfo {
-        name: cstr_opt(m.name),
-        base: m.base,
-        size: m.size,
-    });
-}}
+}
 
 pub fn on_library_loaded<F>(callback: F) -> Result<Token>
 where
@@ -1271,13 +1301,15 @@ struct LibraryUnloadedContext {
 unsafe extern "C" fn library_unloaded_trampoline(
     context: *mut c_void,
     library_name: *const c_char,
-) { unsafe {
-    if context.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut LibraryUnloadedContext);
+        (ctx.callback)(cstr_opt(library_name));
     }
-    let ctx = &mut *(context as *mut LibraryUnloadedContext);
-    (ctx.callback)(cstr_opt(library_name));
-}}
+}
 
 pub fn on_library_unloaded<F>(callback: F) -> Result<Token>
 where
@@ -1312,13 +1344,15 @@ unsafe extern "C" fn breakpoint_changed_trampoline(
     context: *mut c_void,
     change: i32,
     address: u64,
-) { unsafe {
-    if context.is_null() {
-        return;
+) {
+    unsafe {
+        if context.is_null() {
+            return;
+        }
+        let ctx = &mut *(context as *mut BreakpointChangedContext);
+        (ctx.callback)(parse_breakpoint_change(change), address);
     }
-    let ctx = &mut *(context as *mut BreakpointChangedContext);
-    (ctx.callback)(parse_breakpoint_change(change), address);
-}}
+}
 
 pub fn on_breakpoint_changed<F>(callback: F) -> Result<Token>
 where

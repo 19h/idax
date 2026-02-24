@@ -1,6 +1,6 @@
 //! Safe, idiomatic Rust bindings for the IDA SDK via idax.
 //!
-//! This crate mirrors the complete API surface of the [`idax`](https://github.com/anomalyco/idax)
+//! This crate mirrors the complete API surface of the [`idax`](https://github.com/19h/idax)
 //! C++ wrapper library, providing an intuitive, concept-driven interface to IDA Pro's
 //! analysis capabilities.
 //!
