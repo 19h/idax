@@ -5,7 +5,11 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
 description = "Safe, idiomatic Rust bindings for the IDA SDK via idax"
+readme = "README.md"
 
 [dependencies]
 idax-sys = { workspace = true }

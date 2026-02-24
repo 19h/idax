@@ -5,9 +5,22 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
 description = "Raw FFI bindings to the idax C++ IDA SDK wrapper library"
+readme = "README.md"
 links = "idax"
 build = "build.rs"
+include = [
+    "src/**/*.rs",
+    "build.rs",
+    "shim/idax_shim.h",
+    "shim/idax_shim.cpp",
+    "Cargo.toml",
+    "LICENSE",
+    "README.md",
+]
 
 [build-dependencies]
 bindgen = "0.71"

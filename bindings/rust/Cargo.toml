@@ -3,14 +3,17 @@ resolver = "2"
 members = ["idax-sys", "idax"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.1"
 edition = "2024"
-authors = ["idax contributors"]
+authors = ["Kenan Sulayman"]
 license = "MIT"
-repository = "https://github.com/anomalyco/idax"
+repository = "https://github.com/19h/idax"
+homepage = "https://github.com/19h/idax"
 description = "Rust bindings for the IDA SDK via idax"
+keywords = ["ida", "ida-pro", "reverse-engineering", "disassembler", "binary-analysis"]
+categories = ["api-bindings", "development-tools"]
 
 [workspace.dependencies]
-idax-sys = { path = "idax-sys", version = "0.1.0" }
+idax-sys = { path = "idax-sys", version = "0.2.1" }
 thiserror = "2"
 bitflags = "2"
