@@ -835,5 +835,7 @@ Note:
 - 36.2. Node tool examples need explicit bad-address handling in TypeScript because current Node declarations do not expose a typed top-level `BadAddress` export; use a local `BAD_ADDRESS = 0xffffffffffffffffn` sentinel or add a binding-surface export [F295]
 - 36.3. Node runtime validation has a distinct environment-linkage failure mode: `idax_native.node` may load successfully at build/type-check time yet fail at execution if `@rpath/libidalib.dylib` cannot be resolved on the host runtime path; treat this as host setup/rpath blocker rather than TypeScript/example logic failure [F296]
 - 36.4. For the current Node addon build, runtime env overrides (`IDADIR`, `DYLD_LIBRARY_PATH`) are insufficient when the binary embeds a stale runtime search path; if `dlopen` still probes only the stale path, resolve via addon rpath/install-name fix or rebuild with correct IDA runtime root [F297]
+- 36.5. Operational recovery for stale Node addon linkage is deterministic: rebuild `bindings/node` with `IDADIR` set to the intended IDA runtime root so `idax_native.node` receives a corrected `LC_RPATH`; this fixes load failures caused by stale embedded search paths [F298]
+- 36.6. Runtime validation orchestration for headless examples should avoid parallel opens of the same IDB fixture across multiple processes, because concurrent opens can produce transient `open_database failed` outcomes unrelated to example logic; run matrix rows sequentially for stable evidence [F299]
 
 ---
