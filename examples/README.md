@@ -86,13 +86,16 @@ renderer widget in a dock panel and parse IDA form markup into live controls.
 The original "Test in ask_form" flow now uses markup-only
 `ida::ui::ask_form(std::string_view)`.
 
-### `plugin/drawida_port_plugin.cpp` + `plugin/drawida_port_widget.cpp` — DrawIDA Port
+### `plugin/drawida_port_plugin.cpp` + `plugin/drawida_port_widget.cpp` — DrawIDA Port (Not Applicable / Host-Constrained)
 
 Port of `/Users/int/Downloads/plo/DrawIDA-main` to idax plugin and UI surfaces.
 It recreates DrawIDA's whiteboard workflow (draw/text/eraser/select,
 undo/redo, style dialog, clear canvas) using `ida::plugin::Plugin` and
 `ida::ui::create_widget()` + `ida::ui::with_widget_host()` to host a Qt canvas
 inside a dockable IDA panel.
+
+Since this plugin is purely UI and lacks a meaningful non-UI analysis slice, 
+there is no standalone/headless adaptation.
 
 ### `plugin/abyss_port_plugin.cpp` — abyss Port
 
@@ -128,12 +131,17 @@ The plugin keeps DriverBuddy's core workflows:
 - For WDF targets, builds/applies a `WDFFUNCTIONS` type over the dispatch table
   using idax type APIs (strict parity mode uses the full 440 historical slots).
 
-### `plugin/lifter_port_plugin.cpp` — lifter Port Probe
+### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
 
 Port probe of `/Users/int/dev/lifter` focused on plugin-shell workflows that
 are currently portable through idax: action registration, pseudocode popup
 attachment, decompiler pseudocode/microcode snapshot dumping, and
 outlined-flag/cache-invalidation helpers.
+
+The Rust adaptation (`lifter_headless_port`) extracts the non-UI analysis slice 
+of the VMX/AVX lifter plugin (scanning all instructions, decoding them, and 
+classifying them as supported VMX/AVX/SSE passthrough or K-register operations) 
+into a headless reporting script, as microcode IR mutation requires decompiler filter callbacks.
 
 It now installs a VMX + AVX scalar/packed microcode lifter subset through
 `ida::decompiler::register_microcode_filter`, combining typed helper-call
@@ -168,10 +176,14 @@ It also prints a gap report for the currently missing APIs needed for a full
 AVX/VMX microcode-lifter migration (rich microcode IR mutation surfaces and
 raw decompiler-view handle context for advanced per-view manipulations).
 
-### `plugin/idapcode_port_plugin.cpp` — idapcode Port
+### `plugin/idapcode_port_plugin.cpp` — idapcode Port (Adapted Standalone Port)
 
 Port of `/Users/int/Downloads/plo/idapcode-main` to idax plugin/UI/database
 surfaces with Sleigh-backed p-code generation.
+
+The Rust adaptation (`idapcode_headless_port`) extracts the non-UI analysis slice 
+of the plugin (determining Sleigh processor context and resolving `.sla` spec files) 
+into a headless script, as the UI viewer logic is host-constrained.
 
 The plugin uses `Ctrl-Alt-Shift-P` (chosen to avoid common `Ctrl-Alt-S`
 conflicts with SigMaker setups) and opens a custom viewer for the current

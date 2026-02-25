@@ -29,7 +29,7 @@ Current overall phase status:
 - Phase 16: ~100% (Vendored ida-sdk and ida-cmake using CMake `FetchContent`; added CMake support for defaulting to fetched SDKs and isolating artifact output to local `idabin` directory instead of modifying the SDK)
 - Phase 17: ~100% (Consolidated per-port gap audits into `docs/port_gap_audit_examples.md`, removed old per-port audit files, synchronized README/api/quickstart/coverage-matrix references, and pruned resolved entries from `.agents/active_work.md`)
 - Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, cookbook/traversal docs rebalanced to C++-first default presentation, and case-10 safety/perf guidance reframed as wrapper-vs-raw-SDK)
-- Phase 19: ~97% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with procmod + plugin-style standalone flows including `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin`; `jbc_full_loader` rewritten to actively mutate database layout instead of just printing text; TypeScript + Cargo example checks passing; Node addon runtime linkage repaired via rebuild with correct IDA install path; runtime matrix passes for Node tool examples and expanded Rust adaptation set including JBC rows via synthetic fixture validation)
+- Phase 19: 100% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with procmod + plugin-style standalone flows including `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin`; `jbc_full_loader` rewritten to actively mutate database layout instead of just printing text; TypeScript + Cargo example checks passing; Node addon runtime linkage repaired via rebuild with correct IDA install path; runtime matrix passes for Node tool examples and expanded Rust adaptation set including JBC rows via synthetic fixture validation; ported UI-constrained `idapcode` and `lifter` analysis slices to headless examples)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -50,7 +50,7 @@ Current overall phase status:
 - [x] P19.1 Audit current source-example inventory vs Rust/Node binding examples and classify what is headless/standalone-portable.
 - [x] P19.2 Add Node standalone tool-style ports for idalib-expressible workflows (`idalib_dump_port`, `idalib_lumina_port`, `ida2py_port`).
 - [x] P19.3 Expand Rust standalone adaptation examples for processor/loader workflows (`minimal_procmod`, `advanced_procmod`, `jbc_full_loader`, `jbc_full_procmod`).
-- [~] P19.4 Continue porting remaining feasible Rust adaptations for plugin/procmod/loader examples that can be represented without host plugin entrypoint macros.
+- [x] P19.4 Continue porting remaining feasible Rust adaptations for plugin/procmod/loader examples that can be represented without host plugin entrypoint macros (including `idapcode_headless_port` and `lifter_headless_port`).
 - [x] P19.5 Add/refresh per-example README mapping that labels each source example as direct port, adapted standalone port, or host-constrained/not-applicable.
 - [x] P19.6 Run deeper runtime validations on a known-good idalib host for newly added tool/adaptation examples and capture pass/fail matrix.
 
