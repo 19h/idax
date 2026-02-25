@@ -1293,3 +1293,11 @@
 - **16.30. Hard Consolidation Follow-Up (No Compatibility Stubs)**
   - 16.30.1. Removed legacy per-port audit files (`docs/port_gap_audit_abyss.md`, `docs/port_gap_audit_drawida.md`, `docs/port_gap_audit_driverbuddy.md`, `docs/port_gap_audit_ida2py.md`, `docs/port_gap_audit_ida_qtform_idalib_dump.md`, `docs/port_gap_audit_idapcode.md`, `docs/port_gap_audit_lifter.md`) to enforce a single-source audit model.
   - 16.30.2. Updated `.agents/roadmap.md` Phase 17 wording to reflect full file removal rather than compatibility pointers.
+
+- **16.31. Scenario-Driven Documentation Gap Triage (Planning-Only Pass)**
+  - 16.31.1. Reviewed all 10 practical user-goal prompts and their completeness evaluations to identify where current docs/examples/tutorials fail to provide implementation-ready guidance.
+  - 16.31.2. Classified remediation by deliverable type: cookbook expansion for foundational workflows (cases 1/4/5), runnable example material for multi-step coding tasks (cases 2/3/6/8), and tutorial/architecture guidance for system-level scenarios (cases 7/9/10).
+  - 16.31.3. Added Phase 18 status and pending TODO action items to `.agents/roadmap.md` (`P18.0` complete; `P18.1`-`P18.10` pending).
+  - 16.31.4. Added active queued execution track in `.agents/active_work.md` Section 6 with priority split (P0: 2/7/8/9/10; P1: 3/6; P2: 1/4/5).
+  - 16.31.5. Recorded documentation-process findings [F282]-[F288] and mirrored them in `.agents/knowledge_base.md` Section 35.
+  - 16.31.6. Scope guard: no implementation work started for docs/examples/tutorial content in this pass; this update is triage + backlog definition only.
