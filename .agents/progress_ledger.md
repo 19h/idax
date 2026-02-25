@@ -1301,3 +1301,11 @@
   - 16.31.4. Added active queued execution track in `.agents/active_work.md` Section 6 with priority split (P0: 2/7/8/9/10; P1: 3/6; P2: 1/4/5).
   - 16.31.5. Recorded documentation-process findings [F282]-[F288] and mirrored them in `.agents/knowledge_base.md` Section 35.
   - 16.31.6. Scope guard: no implementation work started for docs/examples/tutorial content in this pass; this update is triage + backlog definition only.
+
+- **16.32. Scenario-Driven Documentation Remediation Batch 1 (Cases 2, 8, 10)**
+  - 16.32.1. Completed `P18.2` by expanding `docs/cookbook/disassembly_workflows.md` with end-to-end mnemonic-at-address workflows (C++ and Rust), including init/open/wait/decode/error-handling/operand inspection/teardown.
+  - 16.32.2. Completed `P18.5` by adding `docs/tutorial/function_discovery_events.md` with callback signatures, full plugin example using `ida::event::on_function_added`, RAII `ScopedSubscription` lifetime handling, and explicit token-unsubscribe pattern.
+  - 16.32.3. Completed `P18.8` by adding `docs/tutorial/safety_performance_tradeoffs.md` covering safe `idax` vs raw `idax-sys` decision guidance, raw FFI ownership/deallocation obligations, and inconsistent-state recovery escalation steps.
+  - 16.32.4. Synchronized documentation index surfaces to include the new materials: updated `README.md` docs table, `docs/api_reference.md` "See also" links, `docs/quickstart/plugin.md` notes, and `docs/docs_completeness_checklist.md` tutorial checklist entries.
+  - 16.32.5. Updated planning trackers: marked `P18.2`, `P18.5`, and `P18.8` complete in `.agents/roadmap.md`; advanced active-work queue in `.agents/active_work.md` to remaining P0/P1/P2 items.
+  - 16.32.6. Evidence: file-level verification confirms the new tutorial files exist and are linked from README/API-reference/quickstart surfaces; no code/runtime behavior changed in this batch (documentation-only updates).

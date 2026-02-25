@@ -505,6 +505,8 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | Document | Description |
 |----------|-------------|
 | [`docs/tutorial/first_contact.md`](docs/tutorial/first_contact.md) | 5-step beginner walkthrough |
+| [`docs/tutorial/function_discovery_events.md`](docs/tutorial/function_discovery_events.md) | Event-hook tutorial for new-function discovery processing |
+| [`docs/tutorial/safety_performance_tradeoffs.md`](docs/tutorial/safety_performance_tradeoffs.md) | Rust safe-vs-raw guidance and inconsistent-state recovery playbook |
 | [`docs/quickstart/plugin.md`](docs/quickstart/plugin.md) | Plugin action registration |
 | [`docs/quickstart/loader.md`](docs/quickstart/loader.md) | Custom loader skeleton |
 | [`docs/quickstart/processor.md`](docs/quickstart/processor.md) | Processor module skeleton |

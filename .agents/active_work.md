@@ -73,15 +73,15 @@
 
 - **6.1. Scenario Backlog Intake**
   - 6.1.1. **Action:** Treat the 10 scored practical-use-case prompts as the active documentation quality backlog for the next docs pass.
-  - 6.1.2. **Prioritization:** P0 remediation = cases 2/7/8/9/10; P1 = cases 3/6; P2 = cases 1/4/5.
+  - 6.1.2. **Prioritization:** Remaining P0 remediation = cases 7/9; remaining P1 = cases 3/6; remaining P2 = cases 1/4/5.
   - 6.1.3. **Status:** Active / queued.
 
 - **6.2. Deliverable Routing Strategy**
   - 6.2.1. **Action:** Route single-operation gaps to cookbook recipes, multi-step implementation gaps to runnable examples, and system/architecture gaps to tutorials/design notes.
   - 6.2.2. **Constraint:** Keep safe Rust (`idax`) and raw FFI (`idax-sys`) guidance explicitly separated to avoid cross-layer confusion.
-  - 6.2.3. **Status:** In progress (planning complete; writing pending).
+  - 6.2.3. **Status:** In progress (planning complete; first writing batch for cases 2/8/10 landed).
 
 - **6.3. Immediate Next Batch**
-  - 6.3.1. **Action:** Draft first remediation batch for cases 2, 8, and 10 (highest immediate correctness/safety leverage).
-  - 6.3.2. **Follow-Up:** Queue advanced tutorial passes for cases 7 and 9 once baseline recipe/example quality is raised.
+  - 6.3.1. **Action:** Implement advanced tutorial coverage for case 7 (multi-binary signature generation) and case 9 (distributed analysis consistency model).
+  - 6.3.2. **Follow-Up:** After P0 closure, move to case 3 (`refs_to` plugin example) and case 6 (call-graph traversal tutorial).
   - 6.3.3. **Status:** Pending execution.

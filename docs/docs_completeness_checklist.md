@@ -11,6 +11,8 @@
 - [x] Namespace topology map
 - [x] Compatibility validation matrix
 - [x] First-time tutorial path
+- [x] Function-discovery event-hook tutorial
+- [x] Rust safety/performance trade-off tutorial
 - [x] Consolidated example-port gap audit
 
 Validation pass:
