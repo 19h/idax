@@ -104,14 +104,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
 
 Real-world port parity notes are tracked in
-[`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md),
-[`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md),
-[`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md), and
-[`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md),
-[`docs/port_gap_audit_driverbuddy.md`](docs/port_gap_audit_driverbuddy.md),
-[`docs/port_gap_audit_idapcode.md`](docs/port_gap_audit_idapcode.md), with
-additional decompiler-write-path findings in
-[`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md).
+[`docs/port_gap_audit_examples.md`](docs/port_gap_audit_examples.md).
 
 ---
 
@@ -522,13 +515,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/compatibility_matrix.md`](docs/compatibility_matrix.md) | OS/compiler validation coverage |
 | [`docs/namespace_topology.md`](docs/namespace_topology.md) | Namespace map and type inventory |
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
-| [`docs/port_gap_audit_ida_qtform_idalib_dump.md`](docs/port_gap_audit_ida_qtform_idalib_dump.md) | Real-world port gap findings (ida-qtform + idalib-dump) |
-| [`docs/port_gap_audit_ida2py.md`](docs/port_gap_audit_ida2py.md) | Real-world port gap findings (ida2py) |
-| [`docs/port_gap_audit_drawida.md`](docs/port_gap_audit_drawida.md) | Real-world port gap findings (DrawIDA) |
-| [`docs/port_gap_audit_abyss.md`](docs/port_gap_audit_abyss.md) | Real-world port gap findings (abyss decompiler filter framework) |
-| [`docs/port_gap_audit_driverbuddy.md`](docs/port_gap_audit_driverbuddy.md) | Real-world port gap findings (DriverBuddy Windows-driver analysis plugin) |
-| [`docs/port_gap_audit_idapcode.md`](docs/port_gap_audit_idapcode.md) | Real-world port gap findings (idapcode Sleigh/p-code viewer plugin) |
-| [`docs/port_gap_audit_lifter.md`](docs/port_gap_audit_lifter.md) | Real-world port gap findings (lifter AVX/VMX microcode plugin) |
+| [`docs/port_gap_audit_examples.md`](docs/port_gap_audit_examples.md) | Consolidated real-world example port gap findings |
 
 ---
 

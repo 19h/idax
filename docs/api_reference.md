@@ -43,10 +43,4 @@ See also:
 - `docs/namespace_topology.md` — Complete namespace/type inventory map
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands
 - `docs/storage_migration_caveats.md` — Netnode migration safety notes
-- `docs/port_gap_audit_ida_qtform_idalib_dump.md` — ida-qtform + idalib-dump port audit and parity notes
-- `docs/port_gap_audit_ida2py.md` — ida2py port audit and parity notes
-- `docs/port_gap_audit_drawida.md` — DrawIDA port audit and parity notes
-- `docs/port_gap_audit_abyss.md` — abyss decompiler-filter port audit and parity notes
-- `docs/port_gap_audit_driverbuddy.md` — DriverBuddy port audit and parity notes
-- `docs/port_gap_audit_idapcode.md` — idapcode port audit and Sleigh integration notes
-- `docs/port_gap_audit_lifter.md` — lifter port audit and parity notes
+- `docs/port_gap_audit_examples.md` — consolidated real-world port audits and remaining parity gaps

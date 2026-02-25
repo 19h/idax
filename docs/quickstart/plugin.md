@@ -70,7 +70,7 @@ For toolbar/popup wiring, use:
 - Use `enabled()` / `enabled_with_context()` to gate actions based on runtime state.
 - See `examples/plugin/action_plugin.cpp` for a full file.
 - For advanced decompiler/popup workflows, see `examples/plugin/abyss_port_plugin.cpp`
-  and `docs/port_gap_audit_abyss.md`.
+  and `docs/port_gap_audit_examples.md`.
 - For custom-viewer + Sleigh-backed plugin workflows, see
   `examples/plugin/idapcode_port_plugin.cpp` and
-  `docs/port_gap_audit_idapcode.md`.
+  `docs/port_gap_audit_examples.md`.

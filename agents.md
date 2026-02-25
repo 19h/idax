@@ -128,5 +128,5 @@ Phase completion estimates:
 - See `.agents/roadmap.md` for detailed phase status
 
 Blocker status:
-- B-LIFTER-MICROCODE: **RESOLVED** (see `.agents/active_work.md`)
+- B-LIFTER-MICROCODE: **RESOLVED** (see `.agents/progress_ledger.md`, entry 12.27)
 - See `.agents/active_work.md` for all in-progress and next actions

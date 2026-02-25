@@ -39,7 +39,7 @@
   - 15.2.3. Updated `tests/unit/api_surface_parity_test.cpp` compile-only checks with both overload signatures and the based-struct-offset helper.
 
 - **15.3. DriverBuddy Gap Audit + Documentation Sync**
-  - 15.3.1. Added `docs/port_gap_audit_driverbuddy.md` with source-to-idax mapping, covered flows, and migration-gap classification.
+  - 15.3.1. Added `docs/port_gap_audit_examples.md` with source-to-idax mapping, covered flows, and migration-gap classification.
   - 15.3.2. Updated documentation indexes/references:
     - `README.md` parity-note and documentation table now include DriverBuddy audit.
     - `docs/api_reference.md` now includes DriverBuddy audit link and documents new instruction struct-offset helper coverage.
@@ -445,12 +445,12 @@
 
 - **8.2. ida-qtform + idalib-dump Ports**
   - 8.2.1. Ported into `examples/tools`
-  - 8.2.2. Gaps in `docs/port_gap_audit_ida_qtform_idalib_dump.md`
+  - 8.2.2. Gaps in `docs/port_gap_audit_examples.md`
   - 8.2.3. Evidence: 16/16 tests, tool targets compile
 
 - **8.3. ida2py Port**
   - **8.3.1. Probe**
-    - `examples/tools/ida2py_port.cpp` + `docs/port_gap_audit_ida2py.md`
+    - `examples/tools/ida2py_port.cpp` + `docs/port_gap_audit_examples.md`
     - Recorded gaps: name enumeration, type decomposition, typed-value, call arguments, Appcall
     - Evidence: tool compiles + `--help` pass
   - **8.3.2. Runtime Attempt**
@@ -504,7 +504,7 @@
 ### 9. Lifter Port & Microcode Filter System
 
 - **9.1. Lifter Port Probe**
-  - 9.1.1. `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_lifter.md`
+  - 9.1.1. `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_examples.md`
   - 9.1.2. Plugin-shell/action/pseudocode-popup workflows
 
 - **9.2. Decompiler Maturity/Outline/Cache**
@@ -811,25 +811,25 @@
 
 - **12.8. Lifter tmop Adoption (5.4.2) — Resolved-Memory Expansion**
   - 12.8.1. Expanded `examples/plugin/lifter_port_plugin.cpp` helper-return destination routing to treat any memory operand with a resolved target address as typed `GlobalAddress` (not just `MemoryDirect`) before operand-index writeback fallback.
-  - 12.8.2. Updated lifter gap documentation wording to reflect resolved-memory destination routing (`docs/port_gap_audit_lifter.md`) and refreshed plugin gap report text.
+  - 12.8.2. Updated lifter gap documentation wording to reflect resolved-memory destination routing (`docs/port_gap_audit_examples.md`) and refreshed plugin gap report text.
   - 12.8.3. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin`, `cmake --build build-matrix-unit-examples-local --target idax_api_surface_check idax_decompiler_storage_hardening_test`, and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` all pass (`196 passed, 0 failed`).
 
 - **12.9. Callinfo/tmop Depth Kickoff (5.4.2/5.3.2)**
   - 12.9.1. Added additive helper-call semantic-role routing in `examples/plugin/lifter_port_plugin.cpp` via `compare_call_options(...)` for `vcmp*` families (`SseCompare4`/`SseCompare8`) while preserving existing fallback behavior for unsupported/runtime-sensitive paths.
   - 12.9.2. Added helper argument metadata (`argument_name`) across variadic packed helper forwarding and VMX helper paths (`vmxon`/`vmptrld`/`vmclear`/`vmptrst`/`vmread`/`vmwrite`/`invept`/`invvpid`) to improve typed callarg semantics without raw SDK usage.
-  - 12.9.3. Updated lifter gap audit notes to record callinfo-depth kickoff semantics and metadata usage (`docs/port_gap_audit_lifter.md`).
+  - 12.9.3. Updated lifter gap audit notes to record callinfo-depth kickoff semantics and metadata usage (`docs/port_gap_audit_examples.md`).
   - 12.9.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
 - **12.10. Callinfo/tmop Depth Continuation (5.4.2/5.3.2)**
   - 12.10.1. Extended `compare_call_options(...)` semantics in `examples/plugin/lifter_port_plugin.cpp` to include `vpcmp*` role mapping and rotate-family role hints (`RotateLeft`/`RotateRight` for `vprol*`/`vpror*`).
   - 12.10.2. Expanded helper argument metadata (`argument_name`) across explicit scalar/packed helper-call flows (`vmin*`/`vmax*`/`vsqrt*`, helper-fallback packed conversions, packed addsub, packed min/max), complementing existing variadic/VMX metadata coverage.
-  - 12.10.3. Updated gap audit wording for broadened callinfo-depth semantics (`docs/port_gap_audit_lifter.md`).
+  - 12.10.3. Updated gap audit wording for broadened callinfo-depth semantics (`docs/port_gap_audit_examples.md`).
   - 12.10.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
 - **12.11. Callinfo/tmop Return-Typing Continuation (5.4.2/5.3.2)**
   - 12.11.1. Added declaration-driven helper-return typing in `examples/plugin/lifter_port_plugin.cpp` for stable helper-return families: integer-width `vmread` register destinations (`unsigned char/short/int/long long`) and scalar float-helper destinations (`float`/`double` for `vmin*`/`vmax*`/`vsqrt*`).
   - 12.11.2. Kept scope intentionally narrow (no broad vector return declarations) to avoid declaration-size mismatch risk while increasing callinfo fidelity.
-  - 12.11.3. Updated lifter gap audit wording for return-typing enrichment (`docs/port_gap_audit_lifter.md`) and recorded finding [F201].
+  - 12.11.3. Updated lifter gap audit wording for return-typing enrichment (`docs/port_gap_audit_examples.md`) and recorded finding [F201].
   - 12.11.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`196 passed, 0 failed`).
 
 - **12.12. Return-Location + Hardening Continuation (5.4.2/5.3.2)**
@@ -838,89 +838,89 @@
   - 12.12.3. Added callinfo hint hardening assertions in `tests/integration/decompiler_storage_hardening_test.cpp` covering:
     - Positive-path micro/register destination hint application (success-or-backend-failure tolerance)
     - Negative-path validation (`return_location` register id < 0, return-type-size mismatch)
-  - 12.12.4. Updated lifter gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F202], [F203].
+  - 12.12.4. Updated lifter gap audit wording (`docs/port_gap_audit_examples.md`) and recorded findings [F202], [F203].
   - 12.12.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`).
 
 - **12.13. Fallback-Gating + Cross-Route Hardening (5.4.1/5.3.2)**
   - 12.13.1. Tightened `examples/plugin/lifter_port_plugin.cpp` compare-helper fallback path to use operand-index writeback only when destination shape remains unresolved after typed routes (mask-register or unresolved-memory destination).
   - 12.13.2. Expanded callinfo hardening in `tests/integration/decompiler_storage_hardening_test.cpp` with additional cross-route validation checks for invalid `return_location` register ids and return-type-size mismatches (`to_micro_operand`, `to_register`, `to_operand`).
-  - 12.13.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F204], [F205].
+  - 12.13.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded findings [F204], [F205].
   - 12.13.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`; `EXIT:0`).
 
 - **12.14. Structured Register Recovery Continuation (5.4.1)**
   - 12.14.1. Extended `examples/plugin/lifter_port_plugin.cpp` compare-helper routing to attempt typed register micro-operand destinations from structured `instruction::Operand::register_id()` when `load_operand_register(0)` fails.
   - 12.14.2. Kept unresolved-shape fallback gating intact so operand-index writeback remains limited to mask-register or unresolved-memory destination shapes only.
-  - 12.14.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F206].
+  - 12.14.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F206].
   - 12.14.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`200 passed, 0 failed`; `EXIT:0`).
 
 - **12.15. Resolved-Memory Location-Hint Retry (5.3.2)**
   - 12.15.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare-helper resolved-memory route to apply static-address `return_location` callinfo hints on typed `GlobalAddress` micro-destination emissions.
   - 12.15.2. Added validation-safe retry behavior: when backend rejects static location hints with validation, re-emit without location hints before falling through.
   - 12.15.3. Extended hardening in `tests/integration/decompiler_storage_hardening_test.cpp` with global-destination callinfo location checks (valid static-address success-or-backend-failure tolerance + invalid `BadAddress` static-location validation assertion), plus `to_operand` static-location `BadAddress` validation coverage.
-  - 12.15.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F207], [F208], [F209].
+  - 12.15.4. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded findings [F207], [F208], [F209].
   - 12.15.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.16. Register-Retry + Global Type-Size Hardening (5.3.2)**
   - 12.16.1. Extended `examples/plugin/lifter_port_plugin.cpp` compare-helper register-destination micro-routes to retry without explicit register `return_location` hints when backend returns validation-level rejection.
   - 12.16.2. Expanded hardening in `tests/integration/decompiler_storage_hardening_test.cpp` with global-destination return-type-size validation checks (invalid declaration-size mismatch assertions), including `to_operand` route coverage.
-  - 12.16.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded findings [F210], [F211].
+  - 12.16.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded findings [F210], [F211].
   - 12.16.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.17. Unresolved-Shape Register-Store Bridge (5.4.1)**
   - 12.17.1. Expanded `examples/plugin/lifter_port_plugin.cpp` unresolved compare-destination routing to attempt helper-return to temporary register followed by `store_operand_register` writeback before direct `to_operand` fallback.
   - 12.17.2. Kept direct `to_operand` fallback as final degraded path for backend-specific unresolved destination shapes.
-  - 12.17.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F212].
+  - 12.17.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F212].
   - 12.17.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.18. Compare Retry-Ladder Continuation (5.3.2)**
   - 12.18.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare-helper micro-routes to use a three-step validation-safe retry ladder: full hint path (`location` + `return_type_declaration`) -> reduced hint path (declaration-only) -> base compare options.
   - 12.18.2. Applied the retry ladder consistently across resolved-memory `GlobalAddress`, structured register-destination micro routes, and temporary-register helper-return routes used in unresolved-shape handling.
   - 12.18.3. Kept richer semantics as primary path while ensuring graceful degradation on backend validation variance.
-  - 12.18.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F213].
+  - 12.18.4. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F213].
   - 12.18.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.19. Direct-Operand Retry Parity (5.3.2)**
   - 12.19.1. Expanded `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` fallback to apply validation-safe retry with base compare options when hint-rich options fail validation.
   - 12.19.2. Preserved hint-rich options as first attempt to maintain semantic fidelity while reducing backend-variant validation failures on degraded routes.
-  - 12.19.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F214].
+  - 12.19.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F214].
   - 12.19.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.20. Degraded-Operand Validation Tolerance (5.3.2)**
   - 12.20.1. Updated `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` fallback to treat residual validation rejection as non-fatal not-handled outcome after retry exhaustion.
   - 12.20.2. Kept SDK/internal categories as hard failure signals to avoid masking backend/runtime errors.
-  - 12.20.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F215].
+  - 12.20.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F215].
   - 12.20.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.21. Cross-Route Retry + Writeback Tolerance Alignment (5.3.2)**
   - 12.21.1. Expanded `examples/plugin/lifter_port_plugin.cpp` compare helper retries so resolved-memory micro, register micro, temporary-register bridge, and degraded `to_operand` routes all apply validation-safe fallback to base compare options.
   - 12.21.2. Updated temporary-register bridge writeback handling to degrade `store_operand_register` `Validation`/`NotFound` outcomes to not-handled while preserving hard SDK/internal failures.
-  - 12.21.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F216].
+  - 12.21.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F216].
   - 12.21.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.22. Direct Register-Route Retry Alignment (5.3.2)**
   - 12.22.1. Expanded `examples/plugin/lifter_port_plugin.cpp` direct register-destination compare helper route (the `destination_reg` path in `lift_packed_helper_variadic`) to use validation-safe retry ladder semantics: full hints (`return_location` + `return_type_declaration`) -> declaration-only -> base compare options.
   - 12.22.2. Updated residual-validation handling on that direct register route to degrade to not-handled while preserving hard `SdkFailure`/`Internal` categories.
-  - 12.22.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F217].
+  - 12.22.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F217].
   - 12.22.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.23. Temporary-Bridge Error-Access Guard (5.3.2)**
   - 12.23.1. Updated `examples/plugin/lifter_port_plugin.cpp` temporary-register compare bridge flow to gate error-category reads with `!temporary_helper_status` before accessing `.error()` after degradable writeback outcomes.
   - 12.23.2. Preserved degraded fallback progression (`Validation`/`NotFound` writeback -> continue to degraded routes) while avoiding invalid success-path `.error()` access.
-  - 12.23.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F218].
+  - 12.23.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F218].
   - 12.23.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
   - 12.23.5. Validation sweep: `ctest --output-on-failure` in `build-matrix-unit-examples-local` passes `16/16`.
 
 - **12.24. Residual NotFound Degradation Alignment (5.3.2)**
   - 12.24.1. Updated `examples/plugin/lifter_port_plugin.cpp` degraded compare `to_operand` and direct register-destination compare helper routes to treat residual `NotFound` outcomes as non-fatal not-handled after retry exhaustion.
   - 12.24.2. Kept hard-failure handling limited to `SdkFailure`/`Internal` (with validation still degradable) so backend variance does not escalate degraded-route outcomes.
-  - 12.24.3. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F219].
+  - 12.24.3. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F219].
   - 12.24.4. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
 
 - **12.25. Temporary-Bridge Typed Micro-Operand Destination (5.4.1 Closure)**
   - 12.25.1. Converted `examples/plugin/lifter_port_plugin.cpp` compare-helper temporary-register bridge from `emit_helper_call_with_arguments_to_register_and_options` to `emit_helper_call_with_arguments_to_micro_operand_and_options` using `register_destination_operand(*temporary_destination, destination_width)` as typed `MicrocodeOperand` with `kind = Register`.
   - 12.25.2. This eliminates the last non-typed helper-call destination path in the lifter probe. All remaining operand-writeback sites (`store_operand_register` for unresolved compare shapes and vmov memory stores, `to_operand` for terminal compare fallback) are genuinely irreducible.
   - 12.25.3. Comprehensive analysis confirmed: 0 remaining `_to_register_and_options` calls in the file; 2 remaining `_to_operand` calls are terminal unresolved-shape fallbacks; 3 remaining `store_operand_register` calls are either unresolved-shape writeback or legitimate vmov memory stores.
-  - 12.25.4. Updated gap audit wording (`docs/port_gap_audit_lifter.md`) and recorded finding [F220].
+  - 12.25.4. Updated gap audit wording (`docs/port_gap_audit_examples.md`) and recorded finding [F220].
   - 12.25.5. Evidence: `cmake --build build-matrix-unit-examples-local --target idax_lifter_port_plugin idax_api_surface_check idax_decompiler_storage_hardening_test` and `./tests/integration/idax_decompiler_storage_hardening_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64` pass (`202 passed, 0 failed`; `EXIT:0`).
   - 12.25.6. **5.4.1 track status: CLOSED.** All helper-call destinations that can be expressed as typed micro-operands now use `_to_micro_operand`. Remaining writeback paths are irreducible.
 
@@ -938,7 +938,7 @@
   - 12.27.1. Conducted comprehensive cross-reference audit of all 14 SDK mutation pattern categories from the original lifter (`/Users/int/dev/lifter/`) against idax wrapper API surface and port usage in `examples/plugin/lifter_port_plugin.cpp`.
   - 12.27.2. **Pattern categories audited:** `cdg.emit()`, `alloc_kreg/free_kreg`, `store_operand_hack`, `load_operand_udt`, `emit_zmm_load`, `emit_vector_store`, `AVXIntrinsic`, `AvxOpLoader`, `mop_t` construction, `minsn_t` post-processing, `load_operand/load_effective_address`, `MaskInfo`, misc utilities.
   - 12.27.3. **Result:** 13 of 14 patterns are **fully covered** by idax wrapper APIs actively used in the port. Pattern 10 (`minsn_t` post-processing / post-emit field mutation) has functional equivalence via remove+re-emit lifecycle helpers (the wrapper does not support in-place field mutation on emitted instructions, but the remove+re-emit path achieves the same effect).
-  - 12.27.4. Reclassified all 5 source-backed gap matrix items (A–E) in `docs/port_gap_audit_lifter.md` from partial to **CLOSED**, and all 3 confirmed parity gaps from open to **CLOSED**.
+  - 12.27.4. Reclassified all 5 source-backed gap matrix items (A–E) in `docs/port_gap_audit_examples.md` from partial to **CLOSED**, and all 3 confirmed parity gaps from open to **CLOSED**.
   - 12.27.5. Marked `B-LIFTER-MICROCODE` blocker as **RESOLVED** in agents.md Section 15 Blockers.
   - 12.27.6. Finding [F227] recorded.
   - 12.27.7. Evidence: build clean, 202/202 integration, 16/16 CTest (no code changes — documentation/classification update only).
@@ -956,7 +956,7 @@
   - 12.29.2. Implementation placed in `address.cpp` (not `database.cpp`) to avoid pulling idalib-only symbols (`init_library`, `open_database`, `close_database`) into plugin link units that reference the new APIs.
   - 12.29.3. Updated `examples/plugin/lifter_port_plugin.cpp` to guard filter installation with `processor_id() != 0` (PLFM_386), matching the original's crash guard that prevents AVX/VMX interaction on non-x86 processor modes.
   - 12.29.4. Updated compile-only API surface parity test with `processor_id` and `processor_name`.
-  - 12.29.5. Updated `docs/port_gap_audit_lifter.md` to record processor-ID guard as closed.
+  - 12.29.5. Updated `docs/port_gap_audit_examples.md` to record processor-ID guard as closed.
   - 12.29.6. Finding [F231] recorded.
   - 12.29.7. Evidence: build clean (`idax_lifter_port_plugin` + `idax_api_surface_check` + `idax_decompiler_storage_hardening_test`), 202/202 integration, 16/16 CTest.
 
@@ -1037,7 +1037,7 @@
   - 14.1.3. Added DrawIDA artifacts to `examples/CMakeLists.txt` source manifest and documented the example in `examples/README.md`.
 
 - **14.2. Port Gap Audit + Documentation Update**
-  - 14.2.1. Added `docs/port_gap_audit_drawida.md` with source-to-idax API mapping and migration gap classification.
+  - 14.2.1. Added `docs/port_gap_audit_examples.md` with source-to-idax API mapping and migration gap classification.
   - 14.2.2. Updated `README.md` parity-note and documentation tables to include the DrawIDA gap audit.
   - 14.2.3. Updated `docs/sdk_domain_coverage_matrix.md` port-audit follow-up notes with DrawIDA coverage outcome.
   - 14.2.4. Findings [F242] and [F243] recorded for non-blocking ergonomic gaps surfaced by the DrawIDA port.
@@ -1047,7 +1047,7 @@
   - 14.3.2. `cmake --build build --target idax_api_surface_check` passes.
 
 - **14.4. Abyss Documentation Synchronization**
-  - 14.4.1. Added `docs/port_gap_audit_abyss.md` with covered migration flows, source-to-idax mapping, and parity-gap classification for `examples/plugin/abyss_port_plugin.cpp`.
+  - 14.4.1. Added `docs/port_gap_audit_examples.md` with covered migration flows, source-to-idax mapping, and parity-gap classification for `examples/plugin/abyss_port_plugin.cpp`.
   - 14.4.2. Updated `README.md` parity-note/doc-index tables to include the abyss audit and documented `ida::lines` in the public domain matrix.
   - 14.4.3. Updated `docs/api_reference.md`, `docs/namespace_topology.md`, and `docs/sdk_domain_coverage_matrix.md` to include `ida::lines` and abyss-port evidence.
   - 14.4.4. Updated `docs/quickstart/plugin.md`, `docs/docs_completeness_checklist.md`, and `examples/README.md` with direct abyss example references and usage context.
@@ -1061,7 +1061,7 @@
   - 14.5.4. Updated DrawIDA + qtform example ports to use typed widget-host helpers (no manual `void*` cast in plugin glue).
   - 14.5.5. Added dedicated DrawIDA addon target wiring in `examples/CMakeLists.txt` via `ida_add_plugin(TYPE QT QT_COMPONENTS Core Gui Widgets ...)`.
   - 14.5.6. Updated `tests/unit/api_surface_parity_test.cpp` compile-only checks for `ida::plugin::ExportFlags` and typed host helper templates.
-  - 14.5.7. Updated `docs/port_gap_audit_drawida.md` to mark prior ergonomic gaps as closed; no open DrawIDA parity gaps remain.
+  - 14.5.7. Updated `docs/port_gap_audit_examples.md` to mark prior ergonomic gaps as closed; no open DrawIDA parity gaps remain.
   - 14.5.8. Recorded findings [F245], [F246], [F247].
   - 14.5.9. Recorded Qt include portability finding [F248] and updated DrawIDA widget source to use `qevent.h` for `QKeyEvent`/`QMouseEvent` declarations.
   - 14.5.10. Evidence: `cmake --build build --target idax_drawida_port_plugin` passes; `cmake --build build --target idax_api_surface_check` passes; `cmake --build build --target idax_example_plugin` passes; `cmake --build build --target idax_examples` passes.
@@ -1085,7 +1085,7 @@
   - 16.3.3. Added `idax_idapcode_port_plugin` target linking `sleigh::sla`, `sleigh::decomp`, and `sleigh::support`.
 
 - **16.4. Gap Audit + Documentation Synchronization**
-  - 16.4.1. Added `docs/port_gap_audit_idapcode.md` with source-to-idax mapping and open/closed gap classification.
+  - 16.4.1. Added `docs/port_gap_audit_examples.md` with source-to-idax mapping and open/closed gap classification.
   - 16.4.2. Updated docs/index surfaces for the new port and metadata additions: `README.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, `docs/quickstart/plugin.md`, `examples/README.md`.
   - 16.4.3. Recorded findings [F253], [F254], [F255], [F256], [F257] and corresponding KB/decision updates.
 
@@ -1132,7 +1132,7 @@
   - 16.10.4. Added scroll-follow polling timer (`register_timer`) to sync pcode-view scrolling behavior that does not always emit explicit cursor-change events.
   - 16.10.5. Added explicit sync shutdown path in plugin `term()` to unregister timer/subscriptions safely.
   - 16.10.6. Changed plugin shortcut from `Ctrl-Alt-S` to `Ctrl-Alt-Shift-P` to avoid common SigMaker conflicts.
-  - 16.10.7. Updated user-facing docs: `examples/README.md` and `docs/port_gap_audit_idapcode.md`.
+  - 16.10.7. Updated user-facing docs: `examples/README.md` and `docs/port_gap_audit_examples.md`.
   - 16.10.8. Evidence: `cmake --build build-idapcode --target idax_idapcode_port_plugin` passes after follow-up changes.
   - 16.10.9. Recorded findings [F263], [F264], [F265] and decisions [D-IDAPCODE-VIEW-SYNC] update + [D-IDAPCODE-HOTKEY-COLLISION-AVOIDANCE].
 
@@ -1282,3 +1282,14 @@
   - 16.28.1. Fixed a segmentation fault that occurred when users attempted to execute standalone Rust binaries (e.g., `cargo run`) on macOS/Linux. The crash occurred because the dynamic loader (`dyld`/`ld.so`) could not resolve the path to `libida.dylib`/`libida.so` at runtime due to missing `LC_RPATH` records in the output executable.
   - 16.28.2. Updated `idax-sys/build.rs` to automatically emit `cargo:rustc-link-arg=-Wl,-rpath,<sdk_lib_dir>` whenever the SDK library directory is discovered.
   - 16.28.3. This ensures any downstream executable correctly embeds the path to the IDA SDK runtime libraries without forcing the user to manually configure `DYLD_LIBRARY_PATH` or `LD_LIBRARY_PATH`.
+
+- **16.29. Gap-Audit Consolidation + Active-Work Hygiene Cleanup**
+  - 16.29.1. Created a single consolidated audit document at `docs/port_gap_audit_examples.md` covering all maintained real-world example ports and their current parity status.
+  - 16.29.2. Reduced prior per-port audit files (`docs/port_gap_audit_*.md`) to compatibility pointers that forward readers to the consolidated document, removing outdated and overly elaborate duplicate narratives.
+  - 16.29.3. Updated user-facing documentation references to the consolidated audit (`README.md`, `docs/api_reference.md`, `docs/quickstart/plugin.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/docs_completeness_checklist.md`).
+  - 16.29.4. Cleaned `.agents/active_work.md` by removing resolved items that were incorrectly retained in the active queue and renumbering remaining active work.
+  - 16.29.5. Updated `.agents/roadmap.md` with Phase 17 closure status for the audit/documentation consolidation and tracker hygiene pass.
+
+- **16.30. Hard Consolidation Follow-Up (No Compatibility Stubs)**
+  - 16.30.1. Removed legacy per-port audit files (`docs/port_gap_audit_abyss.md`, `docs/port_gap_audit_drawida.md`, `docs/port_gap_audit_driverbuddy.md`, `docs/port_gap_audit_ida2py.md`, `docs/port_gap_audit_ida_qtform_idalib_dump.md`, `docs/port_gap_audit_idapcode.md`, `docs/port_gap_audit_lifter.md`) to enforce a single-source audit model.
+  - 16.30.2. Updated `.agents/roadmap.md` Phase 17 wording to reflect full file removal rather than compatibility pointers.
