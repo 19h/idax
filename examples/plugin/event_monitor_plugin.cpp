@@ -116,14 +116,16 @@ public:
 
     ida::ui::Row row(std::size_t index) const override {
         auto r = g_log.at(index);
-        return {{
-            std::to_string(r.timestamp_ms),
-            r.domain,
-            r.kind,
-            r.description,
-            (r.address != ida::BadAddress)
-                ? fmt("%#llx", (unsigned long long)r.address) : "-",
-        }};
+        return ida::ui::Row{
+            .columns = {
+                std::to_string(r.timestamp_ms),
+                r.domain,
+                r.kind,
+                r.description,
+                (r.address != ida::BadAddress)
+                    ? fmt("%#llx", (unsigned long long)r.address) : "-",
+            }
+        };
     }
 
     ida::Address address_for(std::size_t index) const override {
