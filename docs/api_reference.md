@@ -45,7 +45,7 @@ See also:
 - `docs/tutorial/call_graph_traversal.md` — transitive caller traversal patterns
 - `docs/tutorial/multi_binary_signature_generation.md` — multi-sample signature generation pipeline
 - `docs/tutorial/distributed_analysis_consistency.md` — distributed consistency and merge design
-- `docs/tutorial/safety_performance_tradeoffs.md` — Rust safe-vs-raw FFI guidance and recovery
+- `docs/tutorial/safety_performance_tradeoffs.md` — idax-wrapper vs raw-SDK trade-offs and recovery
 - `docs/surface_selection_guide.md` — choose between C++ wrapper, safe Rust, and raw FFI
 - `docs/namespace_topology.md` — Complete namespace/type inventory map
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands

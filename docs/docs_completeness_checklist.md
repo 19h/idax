@@ -16,7 +16,7 @@
 - [x] Call-graph traversal tutorial
 - [x] Multi-binary signature-generation tutorial
 - [x] Distributed-analysis consistency tutorial
-- [x] Rust safety/performance trade-off tutorial
+- [x] Wrapper-vs-raw-SDK safety/performance tutorial
 - [x] Consolidated example-port gap audit
 
 Validation pass:
@@ -37,7 +37,7 @@ Scenario acceptance map (Phase 18):
 - [x] Case 7 (multi-binary signature generation) -> `docs/tutorial/multi_binary_signature_generation.md`
 - [x] Case 8 (analysis event hook for new functions) -> `docs/tutorial/function_discovery_events.md`
 - [x] Case 9 (distributed parallel analysis consistency) -> `docs/tutorial/distributed_analysis_consistency.md`
-- [x] Case 10 (safe-vs-raw + inconsistent-state handling) -> `docs/tutorial/safety_performance_tradeoffs.md`
+- [x] Case 10 (idax wrapper vs raw SDK + inconsistent-state handling) -> `docs/tutorial/safety_performance_tradeoffs.md`
 
 Scenario acceptance criteria:
 

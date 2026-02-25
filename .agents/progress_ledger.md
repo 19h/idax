@@ -1350,3 +1350,10 @@
   - 16.38.3. Updated Phase 18 summary text in `.agents/roadmap.md` to explicitly state C++-first presentation rebalance.
   - 16.38.4. Recorded finding [F292] and mirrored into KB Section 35.11 to codify the doc-language default policy.
   - 16.38.5. Evidence: file-level verification confirms C++-first defaults in general cookbook/traversal docs with Rust retained only for explicitly Rust-scoped scenarios.
+
+- **16.39. Case-10 Framing Correction (Wrapper-vs-Raw-SDK, Not Rust Layering)**
+  - 16.39.1. Rewrote `docs/tutorial/safety_performance_tradeoffs.md` from Rust `idax` vs `idax-sys` framing to C++ `idax` wrapper vs direct raw IDA SDK framing, including updated decision matrix, wrapper-first C++ example, raw-SDK sketch, and recovery playbook.
+  - 16.39.2. Updated index/label surfaces to match corrected intent: `README.md`, `docs/api_reference.md`, `docs/docs_completeness_checklist.md`, and `docs/surface_selection_guide.md`.
+  - 16.39.3. Updated `.agents/roadmap.md` Phase 18 summary and `P18.8` wording to reflect the corrected case-10 scope.
+  - 16.39.4. Recorded finding [F293] and mirrored it in `.agents/knowledge_base.md` Section 35.12.
+  - 16.39.5. Evidence: file-level verification confirms the tutorial and all references now describe wrapper-vs-raw-SDK semantics.

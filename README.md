@@ -510,7 +510,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/tutorial/call_graph_traversal.md`](docs/tutorial/call_graph_traversal.md) | Transitive caller traversal with cycle guards and depth limits |
 | [`docs/tutorial/multi_binary_signature_generation.md`](docs/tutorial/multi_binary_signature_generation.md) | Advanced multi-binary signature-generation pipeline tutorial |
 | [`docs/tutorial/distributed_analysis_consistency.md`](docs/tutorial/distributed_analysis_consistency.md) | Distributed-analysis consistency model and merge architecture |
-| [`docs/tutorial/safety_performance_tradeoffs.md`](docs/tutorial/safety_performance_tradeoffs.md) | Rust safe-vs-raw guidance and inconsistent-state recovery playbook |
+| [`docs/tutorial/safety_performance_tradeoffs.md`](docs/tutorial/safety_performance_tradeoffs.md) | idax-wrapper vs raw-SDK trade-offs and inconsistent-state recovery playbook |
 | [`docs/surface_selection_guide.md`](docs/surface_selection_guide.md) | API-surface decision guide (C++ wrapper vs safe Rust vs raw FFI) |
 | [`docs/quickstart/plugin.md`](docs/quickstart/plugin.md) | Plugin action registration |
 | [`docs/quickstart/loader.md`](docs/quickstart/loader.md) | Custom loader skeleton |
