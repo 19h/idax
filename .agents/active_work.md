@@ -73,6 +73,6 @@
 
 - **6.1. Remaining Rust Adaptation Coverage**
   - 6.1.1. **Action:** Continue adding standalone/adapted Rust ports for remaining source examples that are not blocked on plugin/procmod host export macros.
-  - 6.1.2. **Current state:** Added `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin` headless adaptations. Refactored `jbc_full_loader` into a true functional mock loader that creates segments, writes memory, sets names/entries instead of just printing text. High-UI ports (`drawida`, `idapcode`, `lifter`) remain the primary unresolved set.
+  - 6.1.2. **Current state:** Added `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin` headless adaptations. Refactored `jbc_full_loader`, `jbc_full_procmod`, `advanced_loader`, `minimal_loader`, and `advanced_procmod` from simplistic "mock plan" parsers into true functional mock adaptations that use `DatabaseSession::open`, create segments, write memory, read bytes, and apply comments/names. High-UI ports (`drawida`, `idapcode`, `lifter`) remain the primary unresolved set.
   - 6.1.3. **Next slice:** Extract another non-UI-heavy analysis subset from remaining plugin ports (prefer partial, documented headless slices over forced 1:1 UI parity).
   - 6.1.4. **Status:** In progress.

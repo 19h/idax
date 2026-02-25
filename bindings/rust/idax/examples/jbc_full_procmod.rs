@@ -1,9 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage};
-use idax::processor;
-use idax::processor::Processor;
-use idax::{Error, Result};
+use common::{format_error, print_usage, DatabaseSession};
+use idax::{comment, database, data, Error, Result, segment};
+use idax::address::BAD_ADDRESS;
 
 const MAGIC_V1: u32 = 0x0043424a;
 const MAGIC_V2: u32 = 0x0143424a;
@@ -63,68 +62,12 @@ fn instruction_size(opcode: u8) -> usize {
     1 + lookup(opcode).map(|d| d.argc * 4).unwrap_or(0)
 }
 
-fn read_be_u32(bytes: &[u8]) -> u32 {
-    u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
-}
-
-fn read_be_u32_at(bytes: &[u8], offset: usize) -> Option<u32> {
-    let window = bytes.get(offset..offset + 4)?;
-    Some(read_be_u32(window))
-}
-
-fn jbc_code_offset(bytes: &[u8]) -> Option<usize> {
-    let magic = read_be_u32_at(bytes, 0)?;
-    if magic != MAGIC_V1 && magic != MAGIC_V2 {
-        return None;
-    }
-
-    let delta = if magic == MAGIC_V2 { 8usize } else { 0usize };
-    let code_offset = read_be_u32_at(bytes, 24 + delta)? as usize;
-    if code_offset < bytes.len() {
-        Some(code_offset)
-    } else {
-        None
-    }
-}
-
 fn format_operand(kind: OperandKind, value: u32) -> String {
     match kind {
         OperandKind::None => String::new(),
         OperandKind::Address => format!("loc_{value:08x}"),
         OperandKind::Immediate => format!("0x{value:08x}"),
         OperandKind::StringOffset => format!("str_{value:08x}"),
-    }
-}
-
-struct JbcProcessor;
-
-impl processor::Processor for JbcProcessor {
-    fn info(&self) -> processor::ProcessorInfo {
-        processor::ProcessorInfo {
-            id: 0x8bc0,
-            short_names: vec!["jbc".to_string()],
-            long_names: vec!["JAM Byte-Code (Rust adaptation)".to_string()],
-            default_bitness: 32,
-            ..processor::ProcessorInfo::default()
-        }
-    }
-
-    fn analyze(&mut self, _address: u64) -> Result<i32> {
-        Ok(1)
-    }
-
-    fn emulate(&mut self, _address: u64) -> processor::EmulateResult {
-        processor::EmulateResult::Success
-    }
-
-    fn output_instruction(&mut self, _address: u64) {}
-
-    fn output_operand(
-        &mut self,
-        _address: u64,
-        _operand_index: i32,
-    ) -> processor::OutputOperandResult {
-        processor::OutputOperandResult::NotImplemented
     }
 }
 
@@ -141,47 +84,65 @@ fn run() -> Result<()> {
         .and_then(|window| window[1].parse::<usize>().ok())
         .unwrap_or(64);
 
-    let bytes = std::fs::read(&args[1])
-        .map_err(|err| Error::internal(format!("failed reading '{}': {err}", args[1])))?;
+    let input_path = &args[1];
+    
+    // We open a session and try to decode from within the database instead of from argv
+    let _session = DatabaseSession::open(input_path, true)?;
 
-    let processor = JbcProcessor;
-    let info = processor.info();
-    println!("processor_id=0x{:x}", info.id);
-    println!(
-        "short_name={}",
-        info.short_names.first().cloned().unwrap_or_default()
-    );
+    println!("processor_id=0x8bc0");
+    println!("short_name=jbc");
 
-    let mut offset = jbc_code_offset(&bytes).unwrap_or(0usize);
-    if offset != 0 {
-        println!("disassembling from code section offset: 0x{offset:08x}");
-    }
-    let mut count = 0usize;
-    while offset < bytes.len() && count < max_count {
-        let opcode = bytes[offset];
-        if let Some(def) = lookup(opcode) {
-            let size = instruction_size(opcode);
-            if offset + size > bytes.len() {
-                println!("0x{offset:08x}: <truncated {}>", def.mnemonic);
-                break;
-            }
-
-            if def.argc == 0 {
-                println!("0x{offset:08x}: {}", def.mnemonic);
-            } else {
-                let arg = read_be_u32(&bytes[offset + 1..offset + 5]);
-                println!(
-                    "0x{offset:08x}: {} {}",
-                    def.mnemonic,
-                    format_operand(def.op0, arg)
-                );
-            }
-            offset += size;
-        } else {
-            println!("0x{offset:08x}: db 0x{opcode:02x}");
-            offset += 1;
+    // Search for code segment. It's either explicitly named CODE, or we fallback to the first execution-capable segment, or min_address.
+    let mut offset = database::min_address().unwrap_or(BAD_ADDRESS);
+    
+    // Attempt to locate a segment named "CODE" or similar
+    if let Ok(seg) = segment::by_name("CODE") {
+        offset = seg.start();
+        println!("disassembling from discovered CODE segment offset: 0x{offset:08x}");
+    } else {
+        // Fallback to first segment
+        if let Ok(seg) = segment::first() {
+            offset = seg.start();
+            println!("disassembling from first segment offset: 0x{offset:08x}");
         }
-        count += 1;
+    }
+    
+    if offset == BAD_ADDRESS {
+         return Err(Error::internal("Could not find start address in database"));
+    }
+
+    let mut count = 0usize;
+    while count < max_count {
+        if segment::at(offset).is_err() {
+            break; // left segment bounds
+        }
+
+        if let Ok(opcode) = data::read_byte(offset) {
+            if let Some(def) = lookup(opcode) {
+                let size = instruction_size(opcode);
+
+                if def.argc == 0 {
+                    println!("0x{:08x}: {}", offset, def.mnemonic);
+                    let _ = comment::set(offset, def.mnemonic, false);
+                } else {
+                    if let Ok(arg) = data::read_dword(offset + 1) {
+                        let render = format!("{} {}", def.mnemonic, format_operand(def.op0, arg));
+                        println!("0x{:08x}: {}", offset, render);
+                        let _ = comment::set(offset, &render, false);
+                    } else {
+                        println!("0x{:08x}: <truncated {}>", offset, def.mnemonic);
+                        break;
+                    }
+                }
+                offset += size as u64;
+            } else {
+                println!("0x{:08x}: db 0x{:02x}", offset, opcode);
+                offset += 1;
+            }
+            count += 1;
+        } else {
+            break;
+        }
     }
 
     Ok(())
