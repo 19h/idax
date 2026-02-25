@@ -824,5 +824,8 @@ Note:
 - 35.5. Distributed-analysis guidance must document IDB consistency constraints and prescribe partition/shard + merge orchestration patterns for multi-process scaling [F286]
 - 35.6. Safety/performance docs should include a safe-vs-raw decision matrix, raw ownership/freeing rules, and an inconsistent-state recovery playbook [F287]
 - 35.7. Triage heuristic for docs backlog: cookbook for simple/high-score gaps, runnable examples for medium complexity, tutorials/design notes for low-score/system-level scenarios [F288]
+- 35.8. Rust plugin guidance should center on action/context lifecycle wiring and explicit install/uninstall flows; plugin-export ownership is still best treated as host-layer responsibility in current docs architecture [F289]
+- 35.9. Transitive caller traversal can directly use `function::callers` outputs as node addresses with visited-set BFS/DFS and optional depth caps, because caller results are function-entry oriented [F290]
+- 35.10. String-harvest workflows in safe Rust are achievable with existing primitives (`segment::all` + `address::data_items` + `data::read_string`) when paired with bounded-read and printable-text heuristics [F291]
 
 ---

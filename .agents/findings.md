@@ -365,4 +365,10 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 288. Practical docs triage heuristic from the 10-case audit: high-score/simple scenarios fit cookbook expansion, medium-complexity scenarios need runnable examples, and low-score/system-level scenarios require full tutorials plus explicit constraints/trade-offs.
 
+289. In current Rust bindings, plugin ergonomics are strongest at action/context lifecycle (`plugin::register_action_with_context`, attach/detach helpers), while plugin export/lifecycle ownership is still best handled by a host layer; docs should frame Rust plugin guidance as analysis/action modules with explicit install/uninstall wiring.
+
+290. `ida::function::callers` returns caller function entry addresses (code-xref callers), which makes transitive call-graph traversal straightforward with visited-set BFS/DFS without additional callsite-to-function normalization in the common case.
+
+291. Practical string harvesting in safe Rust can be built from existing primitives by combining segment filtering (`segment::all`, non-executable/data-like segments), predicate traversal (`address::data_items`), and bounded reads (`data::read_string`) with an application-level printable/length heuristic.
+
 These are to be referenced as [FXX] in the live knowledge base.
