@@ -1391,3 +1391,14 @@
   - 16.42.4. Updated `.agents/roadmap.md` to advance `P19.6` from pending to in-progress and to reflect partial validation outcomes (Rust pass evidence + Node runtime blocker).
   - 16.42.5. Recorded environment/runtime-discovery finding [F296] and mirrored it into `.agents/knowledge_base.md` Section 36; updated `.agents/active_work.md` Section 6.2 with blocker details + mitigation path.
   - 16.42.6. Attempted host override mitigation by rerunning all three Node runtime smokes with `IDADIR` and `DYLD_LIBRARY_PATH` pointed at `/Applications/IDA Professional 9.3.app/Contents/MacOS`; failure persisted with `dlopen` probing only stale `/Users/int/hexrays/ida/...` path, indicating addon rpath/install-name correction is required before Node runtime matrix can be completed.
+
+- **16.43. Phase 19 Linkage Recovery + Additional Rust Adaptation Progress**
+  - 16.43.1. Rebuilt Node addon with explicit runtime root (`IDADIR=/Applications/IDA Professional 9.3.app/Contents/MacOS npm run rebuild` in `bindings/node`), then verified `idax_native.node` `LC_RPATH` changed from stale `/Users/int/hexrays/ida/...` to `/Applications/IDA Professional 9.3.app/Contents/MacOS` via `otool -l`.
+  - 16.43.2. Re-ran Node runtime matrix sequentially (to avoid fixture-open contention) and captured pass evidence for:
+    - `examples/idalib_dump_port.ts --list`
+    - `examples/ida2py_port.ts --list-user-symbols --max-symbols 5`
+    - `examples/idalib_lumina_port.ts`
+  - 16.43.3. Added new Rust adapted example `bindings/rust/idax/examples/ida_names_port_plugin.rs` (headless title-derivation flow mirroring IDA-names demangled-short fallback behavior), and validated with `cargo run -p idax --example ida_names_port_plugin -- <idb> --limit 5`.
+  - 16.43.4. Re-ran `cargo check -p idax --examples` (pass) and expanded runtime evidence matrix in `docs/example_port_mapping_bindings.md`, including explicit pending rows for JBC-specific examples awaiting representative `.jbc` fixture inputs.
+  - 16.43.5. Updated planning trackers: advanced Phase 19 summary in `.agents/roadmap.md`, moved `P19.4` to in-progress, kept `P19.6` in-progress with matrix status, and refreshed `.agents/active_work.md` Section 6.2 to remove resolved Node-linkage block and capture remaining fixture dependency.
+  - 16.43.6. Recorded findings [F298] and [F299] and mirrored them into `.agents/knowledge_base.md` Section 36.

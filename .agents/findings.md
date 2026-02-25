@@ -383,4 +383,8 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 297. On this host, setting `IDADIR` and `DYLD_LIBRARY_PATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS` did not resolve Node addon startup failures; `dlopen` still only probed the stale embedded path under `/Users/int/hexrays/ida/...`, indicating the current `idax_native.node` binary needs rpath/install-name correction (or rebuild) rather than runtime env overrides alone.
 
+298. For Node bindings, rebuilding the addon with `IDADIR` set to the desired runtime root (for example `npm run rebuild` with `IDADIR=/Applications/IDA Professional 9.3.app/Contents/MacOS`) rewrites `idax_native.node` `LC_RPATH` and resolves stale embedded-path startup failures; runtime env overrides alone do not change an already-built addon's embedded rpath.
+
+299. Headless runtime smokes that open the same IDB/fixture concurrently can produce transient `open_database failed` errors across separate Node example processes; running the validation matrix sequentially avoids this lock/contention artifact and yields stable pass evidence.
+
 These are to be referenced as [FXX] in the live knowledge base.

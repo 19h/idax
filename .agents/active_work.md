@@ -77,8 +77,6 @@
 
 - **6.2. Runtime Validation Sweep**
   - 6.2.1. **Action:** Run newly added Rust/Node tool examples on a known-good idalib host and capture a pass/fail evidence matrix.
-  - 6.2.2. **Current state:** Rust adaptation examples now have pass evidence on fixture host (`action_plugin`, `event_monitor_plugin`, `storage_metadata_plugin`, `deep_analysis_plugin`, `decompiler_plugin`).
-  - 6.2.3. **Blocker (Node runtime):** `bindings/node/build/Release/idax_native.node` fails to load because `@rpath/libidalib.dylib` is unresolved (probed path `/Users/int/hexrays/ida/bin/arm64_mac_clang_opt/ida.app/Contents/MacOS/libidalib.dylib` missing on this host).
-  - 6.2.4. **Mitigation note:** Runtime env overrides were tested (`IDADIR` + `DYLD_LIBRARY_PATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`) and did not change probe behavior; addon still resolves only stale embedded path.
-  - 6.2.5. **Mitigation plan:** correct Node addon runtime linkage (`rpath`/install-name or rebuild against correct runtime root), then re-run Node runtime matrix and finalize consolidated P19.6 pass/fail matrix.
-  - 6.2.6. **Status:** In progress / blocked for Node by host runtime linkage.
+  - 6.2.2. **Current state:** Node runtime matrix rows (`idalib_dump_port`, `ida2py_port`, `idalib_lumina_port`) now pass after rebuilding addon with correct `IDADIR`; Rust adaptation rows also pass for `minimal_procmod`, `advanced_procmod`, `action_plugin`, `event_monitor_plugin`, `decompiler_plugin`, `storage_metadata_plugin`, `deep_analysis_plugin`, and `ida_names_port_plugin`.
+  - 6.2.3. **Remaining gap:** JBC-specific runtime rows (`jbc_full_loader`, `jbc_full_procmod`) still need representative `.jbc` fixture input for successful-path validation.
+  - 6.2.4. **Status:** In progress / fixture-dependent closeout.

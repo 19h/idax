@@ -39,6 +39,7 @@ Legend:
 | `examples/plugin/action_plugin.cpp` | `bindings/rust/idax/examples/action_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | CLI-driven annotation actions instead of UI menu actions |
 | `examples/plugin/event_monitor_plugin.cpp` | `bindings/rust/idax/examples/event_monitor_plugin.rs` (`Adapted`) | `bindings/node/examples/change_tracker.ts` (`Adapted`) | Event + storage flow ported headlessly |
 | `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
+| `examples/plugin/ida_names_port_plugin.cpp` | `bindings/rust/idax/examples/ida_names_port_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless title-derivation report (demangled-short fallback to raw) |
 | `examples/plugin/storage_metadata_plugin.cpp` | `bindings/rust/idax/examples/storage_metadata_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Fingerprint collection + netnode persistence |
 | `examples/plugin/deep_analysis_plugin.cpp` | `bindings/rust/idax/examples/deep_analysis_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Security-oriented audit report adaptation |
 | `examples/plugin/*` (GUI-heavy variants) | `Pending` | `Mostly N/A (host-constrained)` | Custom widgets/docked UI remain host/plugin-centric |
@@ -47,3 +48,21 @@ Legend:
 
 - Keep Node additions centered on standalone idalib tooling workflows.
 - Continue Rust adapted ports where semantics are meaningful without plugin export macros.
+
+## Runtime Validation Snapshot (2026-02-25)
+
+| Example | Result | Evidence |
+|---|---|---|
+| `bindings/node/examples/idalib_dump_port.ts` | Pass | `npx tsx ... --list` produced full function table + summary |
+| `bindings/node/examples/ida2py_port.ts` | Pass | `npx tsx ... --list-user-symbols --max-symbols 5` produced symbol/type rows |
+| `bindings/node/examples/idalib_lumina_port.ts` | Pass | `npx tsx ...` produced pull/push success counts |
+| `bindings/rust/idax/examples/minimal_procmod.rs` | Pass | `cargo run -p idax --example minimal_procmod -- 0x90` |
+| `bindings/rust/idax/examples/advanced_procmod.rs` | Pass | `cargo run -p idax --example advanced_procmod -- 0x31230004 0xC0000010` |
+| `bindings/rust/idax/examples/action_plugin.rs` | Pass | `cargo run -p idax --example action_plugin -- <idb> add-bookmark 0x530 --label phase19` |
+| `bindings/rust/idax/examples/event_monitor_plugin.rs` | Pass | `cargo run -p idax --example event_monitor_plugin -- <idb>` |
+| `bindings/rust/idax/examples/decompiler_plugin.rs` | Pass | `cargo run -p idax --example decompiler_plugin -- <idb> --top 5` |
+| `bindings/rust/idax/examples/storage_metadata_plugin.rs` | Pass | `cargo run -p idax --example storage_metadata_plugin -- <idb>` |
+| `bindings/rust/idax/examples/deep_analysis_plugin.rs` | Pass | `cargo run -p idax --example deep_analysis_plugin -- <idb> --max-scan 1000` |
+| `bindings/rust/idax/examples/ida_names_port_plugin.rs` | Pass | `cargo run -p idax --example ida_names_port_plugin -- <idb> --limit 5` |
+| `bindings/rust/idax/examples/jbc_full_loader.rs` | Pending input fixture | Needs a representative `.jbc` file for successful-path runtime validation |
+| `bindings/rust/idax/examples/jbc_full_procmod.rs` | Pending input fixture | Needs a representative `.jbc` bytecode sample |
