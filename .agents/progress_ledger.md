@@ -1412,3 +1412,25 @@
   - 16.44.4. Updated `docs/example_port_mapping_bindings.md` runtime snapshot to mark JBC rows as passing (synthetic fixture evidence), and updated `.agents/roadmap.md` to mark `P19.6` complete.
   - 16.44.5. Updated active queue hygiene in `.agents/active_work.md` by collapsing Section 6.2 to fixture-independent ongoing status (Node linkage blocker removed; runtime sweep no longer blocked).
   - 16.44.6. Recorded findings [F300]-[F302] and mirrored into `.agents/knowledge_base.md` Section 36.
+
+- **16.45. Additional Feasible Plugin Adaptation: QtForm Headless Port (Rust)**
+  - 16.45.1. Added `bindings/rust/idax/examples/qtform_renderer_plugin.rs` as a headless adaptation of `examples/plugin/qtform_renderer_plugin.cpp`, focused on parsing/render-intent validation of form declarations rather than docked Qt hosting.
+  - 16.45.2. Implemented form-markup parsing coverage for group headers and primary control tokens (`:C`, `:R`, `:D`, `:N`, `:b`) with structured reporting (line, group, kind, label, choice options) and explicit `ask_form`-gap status output.
+  - 16.45.3. Preserved key scope semantics for lines ending with `>>` (group close + same-line control declaration), aligning behavior with the source widget parser flow.
+  - 16.45.4. Validation evidence:
+    - `cargo check -p idax --example qtform_renderer_plugin` (pass)
+    - `cargo run -p idax --example qtform_renderer_plugin -- --sample --ask-form-test` (pass)
+    - `cargo check -p idax --examples` (pass; warnings only)
+  - 16.45.5. Updated mapping/evidence docs in `docs/example_port_mapping_bindings.md` to include `qtform_renderer_plugin` as an adapted Rust row and runtime pass entry.
+  - 16.45.6. Updated trackers and findings: Phase-19 summary refreshed in `.agents/roadmap.md`; `.agents/active_work.md` Section 6.1 refined with current resolved/pending adaptation sets; findings [F303]-[F304] recorded and mirrored into `.agents/knowledge_base.md` Section 36.
+
+- **16.46. Additional Feasible Plugin Adaptation: DriverBuddy Headless Port (Rust)**
+  - 16.46.1. Added `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` as a standalone/headless adaptation of `examples/plugin/driverbuddy_port_plugin.cpp` focused on driver-type heuristics, dispatch-candidate discovery, and IOCTL-constant triage.
+  - 16.46.2. Implemented driver-family detection from import symbols (`database::import_modules`) plus robust entrypoint fallback resolution (`DriverEntry` variants -> first function).
+  - 16.46.3. Implemented decode-driven IOCTL scan (`instruction::decode` immediate operands -> `CTL_CODE`-shape heuristic) with optional comment annotation mode for discovered constants.
+  - 16.46.4. Validation evidence:
+    - `cargo check -p idax --example driverbuddy_port_plugin` (pass)
+    - `cargo run -p idax --example driverbuddy_port_plugin -- /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64.i64 --top 10 --max-scan 5000` (pass)
+    - `cargo check -p idax --examples` (pass; warnings only)
+  - 16.46.5. Updated `docs/example_port_mapping_bindings.md` with `driverbuddy_port_plugin` mapping row + runtime pass entry; updated Phase-19 summary text in `.agents/roadmap.md` and current-state notes in `.agents/active_work.md` Section 6.1.
+  - 16.46.6. Recorded findings [F305]-[F306] and mirrored them into `.agents/knowledge_base.md` Section 36.
