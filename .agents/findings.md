@@ -401,4 +401,14 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 306. IOCTL triage in standalone adaptations is reliably approximated by scanning decoded instruction immediate operands for `CTL_CODE`-shaped values (`device!=0`, `function!=0`, method/access bit ranges valid); on non-driver fixtures this correctly yields an empty hit-set without false failures.
 
+307. The Rust decompiler surface currently supports headless post-processing through `DecompiledFunction::raw_lines`/`set_raw_line` and `header_line_count`, but handle-centric helpers like `item_at_position(cfunc_handle, ...)` are not directly reachable from `DecompiledFunction` in standalone flows; practical adaptations should favor line-level transforms unless event callbacks provide raw handles.
+
+308. Abyss-style item-index visualization ports cleanly with `ida::lines` primitives by scanning raw pseudocode for `COLOR_ON + COLOR_ADDR` tags and injecting colored `<hex-index>` annotations before each tagged item reference.
+
+309. A useful non-UI Abyss subset can be delivered headlessly by combining token colorization (`lines::colstr`), item-index tag annotation, local-variable rename previews (`decompiled.variables` heuristics), and caller/callee hierarchy extraction (`function::callers`/`function::callees`) for a selected decompiled function.
+
+310. An uncaught C++ exception thrown by an IDA SDK C++ wrapper function (e.g. `loader::set_processor` failing because the module is not found) bypassing the FFI boundary will cause the Rust process to instantly abort with `fatal runtime error: Rust cannot catch foreign exceptions, aborting`. It must either be caught in C++ and converted to `idax::Error` or preempted by valid arguments (like fallback to `metapc`).
+
+311. A completely standalone mock IDA loader can be implemented via `idax::DatabaseSession::open(input, false)` followed by `segment::all().for_each(remove)` to clear out any IDA auto-loader fallback. It can then completely build the database using `segment::create`, `loader::memory_to_database`, `data::define_string`, `entry::add`, and `name::force_set`.
+
 These are to be referenced as [FXX] in the live knowledge base.

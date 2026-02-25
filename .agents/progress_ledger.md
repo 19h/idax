@@ -1434,3 +1434,22 @@
     - `cargo check -p idax --examples` (pass; warnings only)
   - 16.46.5. Updated `docs/example_port_mapping_bindings.md` with `driverbuddy_port_plugin` mapping row + runtime pass entry; updated Phase-19 summary text in `.agents/roadmap.md` and current-state notes in `.agents/active_work.md` Section 6.1.
   - 16.46.6. Recorded findings [F305]-[F306] and mirrored them into `.agents/knowledge_base.md` Section 36.
+
+- **16.47. Additional Feasible Plugin Adaptation: Abyss Headless Port (Rust)**
+  - 16.47.1. Added `bindings/rust/idax/examples/abyss_port_plugin.rs` as a standalone/headless adaptation of `examples/plugin/abyss_port_plugin.cpp`, focusing on non-UI filter semantics that are practical from safe Rust.
+  - 16.47.2. Implemented filter subset: token colorizer pass over decompiled raw lines, optional raw-item-index tag visualizer (`COLOR_ADDR` annotation), lvar rename-preview reporting, and caller/callee hierarchy extraction for a selected function.
+  - 16.47.3. Preserved adaptation controls via CLI flags (`--function`, `--max-lines`, `--hier-depth`, `--item-index`, `--show-tags`, `--token`, `--output`) to support repeatable headless experimentation/evidence capture.
+  - 16.47.4. Validation evidence:
+    - `cargo check -p idax --example abyss_port_plugin` (pass)
+    - `cargo run -p idax --example abyss_port_plugin -- /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64.i64 --function main --hier-depth 2 --max-lines 80 --item-index` (pass)
+    - `cargo check -p idax --examples` (pass; warnings only)
+  - 16.47.5. Updated `docs/example_port_mapping_bindings.md` with `abyss_port_plugin` mapping row + runtime pass entry and refreshed Phase-19 state references in `.agents/roadmap.md`/`.agents/active_work.md`.
+  - 16.47.6. Recorded findings [F307]-[F309] and mirrored them into `.agents/knowledge_base.md` Section 36.
+
+- **16.48. Remediation of jbc_full_loader.rs Mock Implementation**
+  - 16.48.1. Rewrote `bindings/rust/idax/examples/jbc_full_loader.rs` to actually use the IDA SDK loader APIs instead of merely parsing a file and printing a text plan.
+  - 16.48.2. Implemented full DB initialization: `DatabaseSession::open(..., false)`, `segment::remove`, `loader::set_processor`, and `loader::create_filename_comment`.
+  - 16.48.3. Added correct layout mapping: creation of `STRINGS`, `CODE`, and `DATA` segments with appropriate permissions and bitness using `segment::create`.
+  - 16.48.4. Added DB mutation operations: `loader::memory_to_database`, `data::define_string`, `entry::add`, `name::force_set`, `analysis::schedule_function`, and `storage::Node::set_alt_default`.
+  - 16.48.5. Successfully caught and worked around missing processor modules by falling back to "metapc" gracefully when "jbc" is not installed, preventing an uncaught C++ exception from aborting the Rust binary.
+  - 16.48.6. Validated `jbc_full_loader` using the generated `/tmp/idax_phase19_sample.jbc` file (success).
