@@ -1,0 +1,12 @@
+[package]
+name = "idax-build"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Build script helpers for idax — configures RPATH and linker settings for IDA SDK binaries"
+readme = "README.md"
