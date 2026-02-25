@@ -925,13 +925,13 @@
   - **19.7.3. Additional detail:** Clamp preserved cursor line to the new range, refresh range, and jump to the clamped place to keep UI state coherent.
   - **19.7.4. Alternative considered:** Keep replacement model and defer all updates by recreating viewers — rejected (higher churn/flicker and still unsafe if stale pointers survive queued UI work).
 
-- **19.8. Decision D-VENDOR-IDA-SDK-SUBMODULE**: Vendor ida-sdk and ida-cmake using Git submodules
-  - **19.8.1. Decision:** Automatically clone and vendor `ida-sdk` (HexRaysSA) and `ida-cmake` (allthingsida) into `third-party/` using Git submodules, and default to them in CMake if `$IDASDK` is not set.
-  - **19.8.2. Rationale:** Eliminates the need for external IDA SDK dependencies. By using git submodules, the repository stays self-contained and allows automatic provisioning via CMake if the submodules are not initialized.
-  - **19.8.3. Alternative considered:** Using CMake `FetchContent` — rejected because downloading large SDK archives on every clean configure is slow, whereas submodules persist and allow proper source control tracking.
+- **19.8. Decision D-VENDOR-IDA-SDK-FETCHCONTENT**: Vendor ida-sdk and ida-cmake using CMake FetchContent
+  - **19.8.1. Decision:** Automatically clone and vendor `ida-sdk` (HexRaysSA) and `ida-cmake` (allthingsida) using CMake's `FetchContent` capabilities, and default to them in CMake if `$IDASDK` is not set. A shallow clone (`GIT_SHALLOW TRUE`) is used to minimize network cost.
+  - **19.8.2. Rationale:** Eliminates the need for external IDA SDK dependencies and avoids repository pollution with Git submodules. FetchContent keeps the dependency fully managed by the build system.
+  - **19.8.3. Alternative considered:** Using Git Submodules — rejected because submodules require explicit user tracking, whereas CMake FetchContent handles downloading directly into the ephemeral build directory (`build/_deps/`), resulting in a cleaner root repository.
 
 - **19.9. Decision D-ISOLATE-ARTIFACT-OUTPUT**: Set `IDABIN` to a local build directory to isolate artifacts
   - **19.9.1. Decision:** Override `IDABIN` to `${CMAKE_CURRENT_BINARY_DIR}/idabin` in `CMakeLists.txt` before calling `find_package(idasdk)`.
-  - **19.9.2. Rationale:** Prevents the vendored `ida-sdk` directory from being polluted by locally built plugins, loaders, and processor modules. Artifacts now securely output to `build/idabin`.
+  - **19.9.2. Rationale:** Prevents the fetched `ida-sdk` directory from being polluted by locally built plugins, loaders, and processor modules. Artifacts now securely output to `build/idabin`.
 
 ---

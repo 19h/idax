@@ -1,9 +1,3 @@
 [submodule "third-party/sleigh"]
 	path = third-party/sleigh
 	url = https://github.com/lifting-bits/sleigh.git
-[submodule "third-party/ida-sdk"]
-	path = third-party/ida-sdk
-	url = git@github.com:HexRaysSA/ida-sdk.git
-[submodule "third-party/ida-cmake"]
-	path = third-party/ida-cmake
-	url = https://github.com/allthingsida/ida-cmake.git
