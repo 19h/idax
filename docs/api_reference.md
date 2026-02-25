@@ -41,7 +41,12 @@ See also:
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows
+- `docs/tutorial/rust_plugin_refs_to.md` — Rust plugin action wiring for incoming-xref analysis
+- `docs/tutorial/call_graph_traversal.md` — transitive caller traversal patterns
+- `docs/tutorial/multi_binary_signature_generation.md` — multi-sample signature generation pipeline
+- `docs/tutorial/distributed_analysis_consistency.md` — distributed consistency and merge design
 - `docs/tutorial/safety_performance_tradeoffs.md` — Rust safe-vs-raw FFI guidance and recovery
+- `docs/surface_selection_guide.md` — choose between C++ wrapper, safe Rust, and raw FFI
 - `docs/namespace_topology.md` — Complete namespace/type inventory map
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands
 - `docs/storage_migration_caveats.md` — Netnode migration safety notes

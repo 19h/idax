@@ -1309,3 +1309,37 @@
   - 16.32.4. Synchronized documentation index surfaces to include the new materials: updated `README.md` docs table, `docs/api_reference.md` "See also" links, `docs/quickstart/plugin.md` notes, and `docs/docs_completeness_checklist.md` tutorial checklist entries.
   - 16.32.5. Updated planning trackers: marked `P18.2`, `P18.5`, and `P18.8` complete in `.agents/roadmap.md`; advanced active-work queue in `.agents/active_work.md` to remaining P0/P1/P2 items.
   - 16.32.6. Evidence: file-level verification confirms the new tutorial files exist and are linked from README/API-reference/quickstart surfaces; no code/runtime behavior changed in this batch (documentation-only updates).
+
+- **16.33. Scenario-Driven Documentation Remediation Batch 2 (Cases 7, 9)**
+  - 16.33.1. Completed `P18.6` by adding `docs/tutorial/multi_binary_signature_generation.md` with end-to-end pipeline guidance (extraction, normalization, windowing, corpus scoring, wildcard/materialization strategy, and validation loop).
+  - 16.33.2. Completed `P18.7` by adding `docs/tutorial/distributed_analysis_consistency.md` with single-writer consistency model, shard/merge architecture, worker proposal flow, merger apply flow, conflict-resolution policy, and operational safeguards.
+  - 16.33.3. Synchronized documentation index surfaces: updated `README.md` docs table, `docs/api_reference.md` tutorial links, and `docs/docs_completeness_checklist.md` tutorial coverage checklist.
+  - 16.33.4. Updated planning trackers: marked `P18.6` and `P18.7` complete in `.agents/roadmap.md`; advanced `.agents/active_work.md` Section 6 next batch focus to remaining P1 (cases 3/6) then P2 (cases 1/4/5).
+  - 16.33.5. Evidence: file-level verification confirms both new tutorials exist and are discoverable from README/API-reference surfaces; this batch is documentation-only (no runtime/code behavior changes).
+
+- **16.34. Scenario-Driven Documentation Remediation Batch 3 (Cases 3, 6)**
+  - 16.34.1. Completed `P18.3` by adding `docs/tutorial/rust_plugin_refs_to.md` with a Rust plugin-action workflow for `xref::refs_to` (target resolution, incoming-reference enumeration, code-reference filtering, output formatting, and install/uninstall lifecycle wiring).
+  - 16.34.2. Completed `P18.4` by adding `docs/tutorial/call_graph_traversal.md` with transitive caller traversal patterns (Rust BFS and C++ DFS variants), visited-set cycle protection, and depth-limit guidance.
+  - 16.34.3. Synchronized documentation index surfaces: updated `README.md` docs table, `docs/api_reference.md` tutorial links, and `docs/docs_completeness_checklist.md` tutorial coverage entries.
+  - 16.34.4. Updated planning trackers: marked `P18.3` and `P18.4` complete in `.agents/roadmap.md`; advanced `.agents/active_work.md` Section 6 to remaining foundational scenario closeout (cases 1/4/5) plus cross-cutting `P18.9`/`P18.10`.
+  - 16.34.5. Evidence: file-level verification confirms the new tutorials exist and are discoverable from README/API-reference/checklist surfaces; this batch is documentation-only (no runtime/code behavior changes).
+
+- **16.35. Scenario-Driven Documentation Remediation Batch 4 (Cases 1, 4, 5)**
+  - 16.35.1. Completed `P18.1` by expanding `docs/cookbook/common_tasks.md` with end-to-end Rust workflows for function listing/address iteration (case 1), data-segment string extraction/processing (case 4), and function/variable renaming patterns (case 5).
+  - 16.35.2. Added setup/error-handling/teardown-oriented snippets in the cookbook so foundational tasks no longer rely on isolated single-line examples.
+  - 16.35.3. Updated planning trackers: marked `P18.1` complete in `.agents/roadmap.md`; advanced `.agents/active_work.md` Section 6 to cross-cutting closeout only (`P18.9` and `P18.10`).
+  - 16.35.4. Evidence: file-level verification confirms `docs/cookbook/common_tasks.md` now includes the full workflows for the three foundational scenario cases; documentation-only batch (no runtime/code behavior changes).
+
+- **16.36. Scenario-Driven Documentation Cross-Cutting Closeout (`P18.9`, `P18.10`)**
+  - 16.36.1. Completed `P18.9` by adding `docs/surface_selection_guide.md` to explicitly separate and route usage across C++ wrapper APIs, safe Rust APIs, and raw Rust FFI APIs.
+  - 16.36.2. Completed `P18.10` by extending `docs/docs_completeness_checklist.md` with a scenario-to-document acceptance map covering all 10 practical use cases and explicit acceptance criteria.
+  - 16.36.3. Synchronized docs index surfaces to include IA guidance (`README.md`, `docs/api_reference.md`).
+  - 16.36.4. Updated planning trackers: marked `P18.9` and `P18.10` complete in `.agents/roadmap.md`; removed now-completed Phase 18 Section 6 queue from `.agents/active_work.md` per active-work hygiene policy.
+  - 16.36.5. Evidence: file-level verification confirms all Phase 18 deliverables are present and indexed; this is a documentation-only closeout pass.
+
+- **16.37. Phase 18 Final Documentation Synchronization + Findings Capture**
+  - 16.37.1. Expanded `docs/cookbook/common_tasks.md` with full setup/error-handling coverage for foundational scenarios (function listing, data-segment string processing, and Rust rename workflows) and marked `P18.1` complete in `.agents/roadmap.md`.
+  - 16.37.2. Added remaining scenario tutorials and index links for P1 workflows (`docs/tutorial/rust_plugin_refs_to.md`, `docs/tutorial/call_graph_traversal.md`) and synchronized `README.md`/`docs/api_reference.md`/`docs/docs_completeness_checklist.md`.
+  - 16.37.3. Marked Phase 18 as complete (~100%) and updated roadmap heading to `Phase 18 TODO Action Items (Complete)`.
+  - 16.37.4. Recorded additional findings [F289]-[F291] in `.agents/findings.md` and mirrored them into `.agents/knowledge_base.md` Section 35.
+  - 16.37.5. Evidence: scenario acceptance map now links all 10 practical cases to concrete docs paths, and active-work docs queue was pruned after closeout.
