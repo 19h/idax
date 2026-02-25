@@ -99,6 +99,8 @@ fn main() {
     let mut config = cmake::Config::new(&idax_root);
     config.define("IDAX_BUILD_EXAMPLES", "OFF");
     config.define("IDAX_BUILD_TESTS", "OFF");
+    // Ensure LTO is disabled when building the static idax library for Rust consumption
+    config.define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "OFF");
 
     if idasdk_env.is_none() {
         // Force the CMake script to fetch the SDK since we don't have it locally in the env

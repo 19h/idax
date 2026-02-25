@@ -139,6 +139,15 @@ else()
     target_compile_options(idax PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# Disable LTO for the idax static library itself.
+# When idax is compiled with LTO (-flto) and linked into Rust applications,
+# GNU ld/cc may fail because it cannot process the LTO object files inside the static archive.
+# The ida-sdk `ida_compiler_settings` interface enables LTO by default in Release mode.
+set_property(TARGET idax PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+if(NOT MSVC)
+    target_compile_options(idax PRIVATE -fno-lto)
+endif()
+
 # ── Examples (optional) ──────────────────────────────────────────────────
 option(IDAX_BUILD_EXAMPLES "Build idax example addons" OFF)
 if(IDAX_BUILD_EXAMPLES)
