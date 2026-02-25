@@ -349,4 +349,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 280. Rust processor-domain parity does not require new runtime shim exports when module authoring remains compile-time macro/trait driven; convergence is achieved by mirroring the full C++ `ida::processor` data model and callback contract in `idax/src/processor.rs` (including tokenized output context and switch/analyze structures), while Rust 2024 unsafe-ops warning cleanup can be applied mechanically and safely via `cargo fix --lib -p idax` for callback-heavy FFI files.
 
-These are to be referenced as [FXX] in the live knowledge base inside agents.md.
+281. When `idax` is consumed via `FetchContent` or `add_subdirectory` and `find_package(idasdk)` is called internally by `idax`, the imported targets (`idasdk::plugin`, `idasdk::loader`, etc.) created by `ida-cmake` are local to the `idax` directory scope. They must be explicitly promoted to `GLOBAL` scope using `set_target_properties(target PROPERTIES IMPORTED_GLOBAL TRUE)` so that the parent consumer project can link against them without having to redefine them or call `find_package(idasdk)` again (which would fail due to duplicate target names).
+
+These are to be referenced as [FXX] in the live knowledge base.

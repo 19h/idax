@@ -103,6 +103,11 @@ Note:
   - 2.4.5. GitHub-hosted cross-platform validation [F73]
     - 2.4.5.1. `compile-only` and `unit` profiles work without licensed IDA runtime
     - 2.4.5.2. Checkout `ida-sdk` with `IDADIR` unset; integration tests auto-skipped
+- 2.5. CMake & Integration
+  - 2.5.1. `FetchContent` / `add_subdirectory` without `IDASDK` environment set [F281]
+    - 2.5.1.1. `idax` fetches `ida-sdk` via `FetchContent` and bootstraps `ida-cmake` internally.
+    - 2.5.1.2. The `find_package(idasdk REQUIRED)` call inside `idax` creates imported targets (`idasdk::plugin`, etc.) that are local to the `idax` subdirectory scope.
+    - 2.5.1.3. These targets must be promoted to `GLOBAL` scope using `set_target_properties(target PROPERTIES IMPORTED_GLOBAL TRUE)` in `idax/CMakeLists.txt` so parent consumer projects can link them directly.
 
 ---
 

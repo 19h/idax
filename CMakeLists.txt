@@ -68,6 +68,14 @@ endif()
 
 find_package(idasdk REQUIRED)
 
+# Promote idasdk targets to GLOBAL scope so that parent projects including idax
+# via FetchContent or add_subdirectory can link against them.
+foreach(_ida_target idasdk::plugin idasdk::loader idasdk::procmod idasdk::idalib)
+    if(TARGET ${_ida_target})
+        set_target_properties(${_ida_target} PROPERTIES IMPORTED_GLOBAL TRUE)
+    endif()
+endforeach()
+
 if(DEFINED IDASDK AND EXISTS "${IDASDK}/include")
     set(IDAX_SDK_ROOT "${IDASDK}")
 elseif(EXISTS "$ENV{IDASDK}/include")

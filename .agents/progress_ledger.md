@@ -1243,3 +1243,11 @@
   - 16.22.5. Recorded Decision `D-VENDOR-IDA-SDK-FETCHCONTENT` and `D-ISOLATE-ARTIFACT-OUTPUT` in decision log.
 
 ---
+- **16.23. Integration Test Fixtures (CMake FetchContent & add_subdirectory)**
+  - 16.23.1. Created `integration/` directory to house end-to-end integration tests proving `idax` can be consumed via `FetchContent` and `add_subdirectory` without pre-existing `IDASDK` environment variables.
+  - 16.23.2. Implemented `HelloWorldPlugin` (`integration/hello_world.cpp`) to test `ida::plugin::Info` hotkey registration and `ida::ui::message` output.
+  - 16.23.3. Discovered that imported targets (`idasdk::plugin`, `idasdk::loader`, etc.) created by `ida-cmake` during `FetchContent`/`add_subdirectory` initialization were scoped locally to the `idax` directory, preventing consumer targets from linking to them.
+  - 16.23.4. Fixed target visibility by promoting imported targets to `GLOBAL` scope via `set_target_properties(target PROPERTIES IMPORTED_GLOBAL TRUE)` in `idax/CMakeLists.txt` after `find_package(idasdk REQUIRED)`.
+  - 16.23.5. Wrote automated test script `integration/test_integrations.sh` that configures and builds both `fetch_content` and `add_subdirectory` setups successfully.
+  - 16.23.6. Validation evidence: Both configurations configure correctly, download `ida-sdk` via `FetchContent`, bootstrap `ida-cmake`, and build `hello_world.dylib` linking successfully against `idax::idax` and `idasdk::plugin`.
+  - 16.23.7. Recorded finding [F281].
