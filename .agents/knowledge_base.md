@@ -816,4 +816,13 @@ Note:
 - 34.2. Processor-model parity in Rust includes full advanced assembler directives/options, expanded processor metadata/flag fields, full switch descriptor shape, typed analyze operand/detail models, tokenized output models, and `OutputContext` helper semantics that mirror C++ behavior [F280]
 - 34.3. Rust 2024 unsafe-op compatibility cleanup in callback-heavy FFI wrappers (for example debugger trampolines) is safely automatable with `cargo fix --lib -p idax`, and should be followed by a full `cargo build` to verify warning-free status [F280]
 
+### 35. Scenario-Driven Documentation Coverage Hardening (Phase 18 Planning)
+- 35.1. Practical implementation reliability is scenario-driven: docs must provide runnable end-to-end flows (setup, operation, error handling, teardown), not only API signatures [F282]
+- 35.2. Documentation should be explicitly layered by surface (`idax` safe Rust, C++ wrapper, `idax-sys` raw FFI) to prevent path-selection ambiguity during implementation [F283]
+- 35.3. Call-graph and event workflows require algorithm/lifecycle templates (visited-set cycle guards, callback token ownership, explicit unsubscribe teardown) in addition to API references [F284]
+- 35.4. Multi-binary signature workflows should be covered as advanced tutorials with extraction/normalization/comparison/output stages, not as single-snippet recipes [F285]
+- 35.5. Distributed-analysis guidance must document IDB consistency constraints and prescribe partition/shard + merge orchestration patterns for multi-process scaling [F286]
+- 35.6. Safety/performance docs should include a safe-vs-raw decision matrix, raw ownership/freeing rules, and an inconsistent-state recovery playbook [F287]
+- 35.7. Triage heuristic for docs backlog: cookbook for simple/high-score gaps, runnable examples for medium complexity, tutorials/design notes for low-score/system-level scenarios [F288]
+
 ---

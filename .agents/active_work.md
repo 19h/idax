@@ -66,3 +66,22 @@
   - 5.1.4. `ida::ui::Widget` lacks a `set_title()` method. (Note: The IDA SDK itself lacks `set_widget_title`; in idax this is bridged through `ida::ui::with_widget_host_as<QWidget>` when Qt-level control is needed.)
   - 5.1.5. **Action:** Evaluate adding `current_widget()`, `on_switch_pseudocode`, and a string-only `demangled(string_view)` overload to close these ergonomic gaps.
   - 5.1.6. **Status:** Pending triage.
+
+---
+
+### 6. Documentation/Cookbook/Tutorial Coverage Hardening (Phase 18)
+
+- **6.1. Scenario Backlog Intake**
+  - 6.1.1. **Action:** Treat the 10 scored practical-use-case prompts as the active documentation quality backlog for the next docs pass.
+  - 6.1.2. **Prioritization:** P0 remediation = cases 2/7/8/9/10; P1 = cases 3/6; P2 = cases 1/4/5.
+  - 6.1.3. **Status:** Active / queued.
+
+- **6.2. Deliverable Routing Strategy**
+  - 6.2.1. **Action:** Route single-operation gaps to cookbook recipes, multi-step implementation gaps to runnable examples, and system/architecture gaps to tutorials/design notes.
+  - 6.2.2. **Constraint:** Keep safe Rust (`idax`) and raw FFI (`idax-sys`) guidance explicitly separated to avoid cross-layer confusion.
+  - 6.2.3. **Status:** In progress (planning complete; writing pending).
+
+- **6.3. Immediate Next Batch**
+  - 6.3.1. **Action:** Draft first remediation batch for cases 2, 8, and 10 (highest immediate correctness/safety leverage).
+  - 6.3.2. **Follow-Up:** Queue advanced tutorial passes for cases 7 and 9 once baseline recipe/example quality is raised.
+  - 6.3.3. **Status:** Pending execution.

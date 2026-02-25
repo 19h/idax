@@ -351,4 +351,18 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 281. When `idax` is consumed via `FetchContent` or `add_subdirectory` and `find_package(idasdk)` is called internally by `idax`, the imported targets (`idasdk::plugin`, `idasdk::loader`, etc.) created by `ida-cmake` are local to the `idax` directory scope. They must be explicitly promoted to `GLOBAL` scope using `set_target_properties(target PROPERTIES IMPORTED_GLOBAL TRUE)` so that the parent consumer project can link against them without having to redefine them or call `find_package(idasdk)` again (which would fail due to duplicate target names).
 
+282. Scenario-based documentation adequacy for AI-assisted coding requires runnable end-to-end workflows (initialization/open, core operation, error handling, teardown). API signatures and isolated method docs are not enough to produce reliably correct implementations for non-trivial tasks.
+
+283. Documentation that mixes safe Rust `idax` guidance, raw `idax-sys` FFI details, and unrelated/non-library surface descriptions in one path materially increases implementation ambiguity. Layered documentation boundaries are required for reliable path selection.
+
+284. For call-graph and event-driven use cases, snippets must include algorithm/lifecycle scaffolding (visited-set cycle guards, callback token ownership, explicit unsubscribe teardown). Function-signature exposure alone leaves critical correctness gaps.
+
+285. Multi-binary analysis goals (for example signature generation) need orchestration-level tutorial material (pattern extraction, normalization/wildcards, comparison strategy, output schema), not just primitive single-binary search API references.
+
+286. Distributed analysis guidance must explicitly state IDA database consistency constraints and discourage concurrent multi-process writes to a single IDB; recommended approaches should use partitioned/sharded workflows with controlled merge/synchronization steps.
+
+287. Safety/performance guidance needs an explicit decision matrix for safe `idax` vs raw `idax-sys`, plus ownership/deallocation rules for raw pointers/arrays and a recovery playbook when SDK state becomes inconsistent.
+
+288. Practical docs triage heuristic from the 10-case audit: high-score/simple scenarios fit cookbook expansion, medium-complexity scenarios need runnable examples, and low-score/system-level scenarios require full tutorials plus explicit constraints/trade-offs.
+
 These are to be referenced as [FXX] in the live knowledge base.
