@@ -40,7 +40,7 @@ for missing-surface closure or measured hot paths.
 
 - C++ wrapper first-contact: `docs/tutorial/first_contact.md`
 - Plugin/event workflows: `docs/tutorial/function_discovery_events.md`
-- Safe-vs-raw Rust guidance: `docs/tutorial/safety_performance_tradeoffs.md`
+- Wrapper-vs-raw-SDK guidance: `docs/tutorial/safety_performance_tradeoffs.md`
 - Raw FFI conventions: `bindings/rust/idax-sys/README.md`
 
 Keeping this split explicit avoids most implementation ambiguity during

@@ -28,7 +28,7 @@ Current overall phase status:
 - Phase 15.y: ~100% (Rust processor-domain model parity update complete in `idax/src/processor.rs`: added full `ida::processor` data-model coverage (advanced assembler directives/options, processor flags, processor metadata fields, full switch-description shape, typed analyze/result/token models), added `OutputContext` token/text builder parity helpers, added trait-level processor callback contract with C++-aligned defaults, and cleaned Rust 2024 unsafe-ops warnings in debugger via `cargo fix`; `cargo build` now completes warning-free)
 - Phase 16: ~100% (Vendored ida-sdk and ida-cmake using CMake `FetchContent`; added CMake support for defaulting to fetched SDKs and isolating artifact output to local `idabin` directory instead of modifying the SDK)
 - Phase 17: ~100% (Consolidated per-port gap audits into `docs/port_gap_audit_examples.md`, removed old per-port audit files, synchronized README/api/quickstart/coverage-matrix references, and pruned resolved entries from `.agents/active_work.md`)
-- Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, and cookbook/traversal docs rebalanced to C++-first default presentation)
+- Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, cookbook/traversal docs rebalanced to C++-first default presentation, and case-10 safety/perf guidance reframed as wrapper-vs-raw-SDK)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -40,7 +40,7 @@ Current overall phase status:
 - [x] P18.5 Add an event-hooking tutorial for new-function discovery workflows (case 8) with callback signatures, subscription lifetime management, and teardown unsubscribe patterns.
 - [x] P18.6 Add an advanced multi-binary signature-generation tutorial (case 7) covering pattern extraction, normalization/wildcards, similarity comparison, and output schema guidance.
 - [x] P18.7 Add distributed-analysis architecture guidance (case 9) documenting single-writer IDB constraints, shard/merge patterns, and consistency-safe orchestration.
-- [x] P18.8 Add safety/performance guidance (case 10) comparing safe `idax` vs raw `idax-sys`, ownership/deallocation obligations, and inconsistent-SDK-state recovery playbook.
+- [x] P18.8 Add safety/performance guidance (case 10) comparing `idax` wrapper usage vs direct raw IDA SDK usage, including trade-offs and inconsistent-SDK-state recovery playbook.
 - [x] P18.9 Run a documentation information-architecture cleanup pass that clearly separates safe Rust APIs, C++ wrapper APIs, and raw FFI surfaces to reduce cross-layer confusion.
 - [x] P18.10 Extend `docs/docs_completeness_checklist.md` with scenario-based acceptance criteria requiring each practical use case to map to a runnable recipe/example/tutorial.
 
