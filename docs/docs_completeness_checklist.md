@@ -11,7 +11,7 @@
 - [x] Namespace topology map
 - [x] Compatibility validation matrix
 - [x] First-time tutorial path
-- [x] Abyss port audit (decompiler filter framework)
+- [x] Consolidated example-port gap audit
 
 Validation pass:
 

@@ -818,7 +818,7 @@
     - 15.1.5.3. All 5 source-backed gap matrix items (A–E) closed
     - 15.1.5.4. Port: ~2,700 lines, 26 helper-call sites, 7 typed emission sites, 37 operand loads, 300+ mnemonics
     - 15.1.5.5. No new wrapper APIs required for lifter-class ports
-  - 15.1.6. **Artifact:** `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_lifter.md`
+  - 15.1.6. **Artifact:** `examples/plugin/lifter_port_plugin.cpp` + `docs/port_gap_audit_examples.md`
   - 15.1.7. **Owner:** idax wrapper core
 
 ---
