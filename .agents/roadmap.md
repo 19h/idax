@@ -29,6 +29,7 @@ Current overall phase status:
 - Phase 16: ~100% (Vendored ida-sdk and ida-cmake using CMake `FetchContent`; added CMake support for defaulting to fetched SDKs and isolating artifact output to local `idabin` directory instead of modifying the SDK)
 - Phase 17: ~100% (Consolidated per-port gap audits into `docs/port_gap_audit_examples.md`, removed old per-port audit files, synchronized README/api/quickstart/coverage-matrix references, and pruned resolved entries from `.agents/active_work.md`)
 - Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, cookbook/traversal docs rebalanced to C++-first default presentation, and case-10 safety/perf guidance reframed as wrapper-vs-raw-SDK)
+- Phase 19: ~55% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with `minimal_procmod`, `advanced_procmod`, `jbc_full_loader`, `jbc_full_procmod`; compile/type checks passing)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -43,5 +44,14 @@ Current overall phase status:
 - [x] P18.8 Add safety/performance guidance (case 10) comparing `idax` wrapper usage vs direct raw IDA SDK usage, including trade-offs and inconsistent-SDK-state recovery playbook.
 - [x] P18.9 Run a documentation information-architecture cleanup pass that clearly separates safe Rust APIs, C++ wrapper APIs, and raw FFI surfaces to reduce cross-layer confusion.
 - [x] P18.10 Extend `docs/docs_completeness_checklist.md` with scenario-based acceptance criteria requiring each practical use case to map to a runnable recipe/example/tutorial.
+
+### Phase 19 TODO Action Items (Examples-to-Bindings Continuation)
+
+- [x] P19.1 Audit current source-example inventory vs Rust/Node binding examples and classify what is headless/standalone-portable.
+- [x] P19.2 Add Node standalone tool-style ports for idalib-expressible workflows (`idalib_dump_port`, `idalib_lumina_port`, `ida2py_port`).
+- [x] P19.3 Expand Rust standalone adaptation examples for processor/loader workflows (`minimal_procmod`, `advanced_procmod`, `jbc_full_loader`, `jbc_full_procmod`).
+- [ ] P19.4 Continue porting remaining feasible Rust adaptations for plugin/procmod/loader examples that can be represented without host plugin entrypoint macros.
+- [x] P19.5 Add/refresh per-example README mapping that labels each source example as direct port, adapted standalone port, or host-constrained/not-applicable.
+- [ ] P19.6 Run deeper runtime validations on a known-good idalib host for newly added tool/adaptation examples and capture pass/fail matrix.
 
 ---

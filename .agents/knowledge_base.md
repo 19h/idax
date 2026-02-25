@@ -830,4 +830,8 @@ Note:
 - 35.11. General-purpose idax documentation should be C++-first (primary wrapper surface) with Rust kept for explicitly Rust-scoped scenarios; this reduces language-surface confusion for default readers [F292]
 - 35.12. Safety/performance trade-off guidance for case-10 should compare idax wrapper usage against direct raw IDA SDK usage (C++), not Rust safe bindings against `idax-sys`, to match project audience and use-case framing [F293]
 
+### 36. Examples Portability Across Rust/Node Bindings (Phase 19)
+- 36.1. Rust examples layout constraint: Cargo treats each top-level file in `bindings/rust/idax/examples/` as an executable example crate; helper-only files there must include `main` or compilation fails. Shared helpers should be moved under a module directory (for example `examples/common/mod.rs`) and imported from real examples [F294]
+- 36.2. Node tool examples need explicit bad-address handling in TypeScript because current Node declarations do not expose a typed top-level `BadAddress` export; use a local `BAD_ADDRESS = 0xffffffffffffffffn` sentinel or add a binding-surface export [F295]
+
 ---
