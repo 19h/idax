@@ -1235,4 +1235,11 @@
   - 16.21.7. Validation evidence: `cargo build` in `bindings/rust` passes cleanly (no warnings).
   - 16.21.8. Recorded finding [F280].
 
+- **16.22. Vendoring IDA SDK and Artifact Output Isolation (Phase 16)**
+  - 16.22.1. Added `third-party/ida-sdk` (HexRaysSA) and `third-party/ida-cmake` (allthingsida) as Git submodules to remove external dependency requirements.
+  - 16.22.2. Updated `CMakeLists.txt` to automatically default `$ENV{IDASDK}` to the vendored directory and run `git submodule update --init` when the submodule is empty.
+  - 16.22.3. Configured `CMakeLists.txt` to set `IDABIN` to `${CMAKE_CURRENT_BINARY_DIR}/idabin` before IDA SDK is initialized, preventing the vendored IDA SDK from being modified by plugin builds and correctly isolating output artifacts in a local folder.
+  - 16.22.4. Validation evidence: Clean run of `cmake .. && make` builds all artifacts correctly into `build/idabin/loaders`, `build/idabin/plugins`, and `build/idabin/procs`.
+  - 16.22.5. Recorded Decision `D-VENDOR-IDA-SDK-SUBMODULE` and `D-ISOLATE-ARTIFACT-OUTPUT` in decision log.
+
 ---
