@@ -1,0 +1,167 @@
+name: Node.js Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  IDA_SDK_REPO: HexRaysSA/ida-sdk
+  BUILD_TYPE: Release
+
+jobs:
+  build-addon:
+    name: Build Addon on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            msvc_arch: ''
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            msvc_arch: x64
+          - os: macos-14
+            platform: darwin
+            arch: arm64
+            msvc_arch: ''
+          - os: macos-13
+            platform: darwin
+            arch: x64
+            msvc_arch: ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout IDA SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          path: ida-sdk
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Resolve IDASDK path
+        shell: bash
+        run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK bootstrap.cmake in SDK checkout"
+            exit 1
+          fi
+
+      - name: Set IDADIR to SDK lib (macOS workaround)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          # Use the SDK stubs as IDADIR so it links properly on GitHub Actions
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "IDADIR=${IDASDK}/lib/arm64_mac_clang_opt" >> "$GITHUB_ENV"
+          else
+            echo "IDADIR=${IDASDK}/lib/x64_mac_clang_opt" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
+
+      - name: Build idax static library
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
+          else
+            cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ..
+          fi
+          cmake --build . --config ${{ env.BUILD_TYPE }}
+
+      - name: Build Node Addon
+        shell: bash
+        working-directory: bindings/node
+        run: |
+          npm install --ignore-scripts
+          npx cmake-js compile -T Release
+
+      - name: Rename and Stage Artifact
+        shell: bash
+        run: |
+          mkdir -p addon-artifact/${{ matrix.platform }}-${{ matrix.arch }}
+          cp bindings/node/build/Release/idax_native.node addon-artifact/${{ matrix.platform }}-${{ matrix.arch }}/idax_native.node
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-${{ matrix.platform }}-${{ matrix.arch }}
+          path: addon-artifact/
+          if-no-files-found: error
+
+  package-and-release:
+    name: Package and Release
+    needs: build-addon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download all prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: prebuilds-*
+          merge-multiple: true
+          path: bindings/node/prebuilds
+
+      - name: Verify Prebuilds
+        shell: bash
+        working-directory: bindings/node
+        run: |
+          ls -R prebuilds
+
+      - name: Package npm Release
+        shell: bash
+        working-directory: bindings/node
+        run: |
+          # We don't want it to run `cmake-js build` on install if it has prebuilds,
+          # or maybe we want an install script that checks for prebuilds and skips build.
+          # For this task, "package them all into a single release with code that routes to the proper platform specific build"
+          # is fulfilled by creating a zip/tarball of the bindings/node directory with prebuilds.
+          npm pack
+          mv idax-*.tgz idax-node-plugin.tgz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bindings/node/idax-node-plugin.tgz
+            bindings/node/prebuilds/**/*.node
+          generate_release_notes: true

@@ -168,12 +168,34 @@ fn main() {
 
     if sdk_lib_dir.join("libida.dylib").exists() {
         println!("cargo:rustc-link-lib=dylib=ida");
+        if sdk_lib_dir.join("libidalib.dylib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
     } else if sdk_lib_dir.join("libida64.dylib").exists() {
         println!("cargo:rustc-link-lib=dylib=ida64");
+        if sdk_lib_dir.join("libidalib.dylib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
     } else if sdk_lib_dir.join("libida.so").exists() {
         println!("cargo:rustc-link-lib=dylib=ida");
+        if sdk_lib_dir.join("libidalib.so").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
     } else if sdk_lib_dir.join("libida64.so").exists() {
         println!("cargo:rustc-link-lib=dylib=ida64");
+        if sdk_lib_dir.join("libidalib.so").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    } else if sdk_lib_dir.join("ida.lib").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida");
+        if sdk_lib_dir.join("idalib.lib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    } else if sdk_lib_dir.join("ida64.lib").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida64");
+        if sdk_lib_dir.join("idalib.lib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
     }
 
     if cfg!(target_os = "macos") {

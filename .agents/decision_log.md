@@ -935,3 +935,8 @@
   - **19.9.2. Rationale:** Prevents the fetched `ida-sdk` directory from being polluted by locally built plugins, loaders, and processor modules. Artifacts now securely output to `build/idabin`.
 
 ---
+
+- **19.10. Decision D-NODE-ADDON-PREBUILDS**: Package prebuilds inside npm tarball with dynamic fallback
+  - **19.10.1. Decision:** The `idax-node-plugin.tgz` artifact uploaded to the GitHub release page includes all compiled `.node` prebuild binaries for supported platforms inside the `prebuilds/` directory.
+  - **19.10.2. Rationale:** This creates a single portable artifact. When users install the package, a custom `scripts/install.js` runs via npm's `install` lifecycle hook. It checks if `prebuilds/${process.platform}-${process.arch}/idax_native.node` exists. If present, it skips compilation. If absent, it invokes `cmake-js compile` as a fallback.
+  - **19.10.3. Alternative considered:** Use `@mapbox/node-pre-gyp` or `prebuildify` — rejected because `idax` relies on `cmake-js` rather than `node-gyp`, making standard node-pre-gyp setups complex. A simple install script elegantly meets the requirement.
