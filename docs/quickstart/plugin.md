@@ -69,6 +69,8 @@ For toolbar/popup wiring, use:
 - Keep action IDs globally unique (namespace-like prefixes are recommended).
 - Use `enabled()` / `enabled_with_context()` to gate actions based on runtime state.
 - See `examples/plugin/action_plugin.cpp` for a full file.
+- For event-driven plugin patterns (including function-discovery hooks), see
+  `docs/tutorial/function_discovery_events.md`.
 - For advanced decompiler/popup workflows, see `examples/plugin/abyss_port_plugin.cpp`
   and `docs/port_gap_audit_examples.md`.
 - For custom-viewer + Sleigh-backed plugin workflows, see
