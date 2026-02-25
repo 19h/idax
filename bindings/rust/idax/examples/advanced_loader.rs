@@ -1,4 +1,7 @@
-use idax::{loader, Error, Result};
+mod common;
+
+use common::{format_error, print_usage, DatabaseSession};
+use idax::{loader, segment, Error, Result};
 
 #[derive(Debug, Clone)]
 struct XbinHeader {
@@ -88,65 +91,21 @@ fn overlaps(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bool {
     a_start < b_end && b_start < a_end
 }
 
-fn permission_text(flags: u32) -> String {
-    let r = if flags & SEG_READ != 0 { 'R' } else { '-' };
-    let w = if flags & SEG_WRITE != 0 { 'W' } else { '-' };
-    let x = if flags & SEG_EXECUTE != 0 { 'X' } else { '-' };
-    format!("{r}{w}{x}")
-}
-
 fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        eprintln!(
-            "Usage: {} <xbin_file> [--emit-plan <output_file>]",
-            args[0]
-        );
+        print_usage(&args[0], "<xbin_file>");
         return Err(Error::validation("missing xbin_file argument"));
     }
 
     let input_path = &args[1];
     let data = std::fs::read(input_path)
         .map_err(|err| Error::internal(format!("failed reading '{input_path}': {err}")))?;
+    
     let header = parse_header(&data)?;
     let segments = parse_segments(&data, &header)?;
 
-    let mut report = String::new();
-    report.push_str("XBIN advanced loader plan (Rust adaptation)\n");
-    report.push_str(&format!("input: {input_path}\n"));
-    report.push_str(&format!("version: {}\n", header.version));
-    report.push_str(&format!("flags: 0x{:04x}\n", header.flags));
-    report.push_str(&format!("segments: {}\n", header.segment_count));
-    report.push_str(&format!("entries: {}\n", header.entry_count));
-    report.push_str(&format!("base: 0x{:x}\n\n", header.base_address));
-
-    report.push_str("Segments\n");
-    report.push_str("Idx  Name      Start       End         RawSize    VirtSize   Perm  Kind\n");
-    report.push_str("----------------------------------------------------------------------------\n");
-
-    for (index, segment) in segments.iter().enumerate() {
-        let start = header.base_address as u64 + segment.virtual_address as u64;
-        let end = start + segment.virtual_size as u64;
-        let kind = if segment.flags & SEG_BSS != 0 {
-            "BSS"
-        } else if segment.flags & SEG_EXTERN != 0 {
-            "EXTERN"
-        } else if segment.flags & SEG_EXECUTE != 0 {
-            "CODE"
-        } else {
-            "DATA"
-        };
-
-        report.push_str(&format!(
-            "{index:>3}  {:<8}  0x{start:08x}  0x{end:08x}  {:>8}  {:>8}  {:<4}  {kind}\n",
-            segment.name,
-            segment.raw_size,
-            segment.virtual_size,
-            permission_text(segment.flags),
-        ));
-    }
-
-    let mut overlap_count = 0usize;
+    // Validate for overlaps
     for i in 0..segments.len() {
         for j in i + 1..segments.len() {
             let a_start = header.base_address as u64 + segments[i].virtual_address as u64;
@@ -154,53 +113,82 @@ fn run() -> Result<()> {
             let b_start = header.base_address as u64 + segments[j].virtual_address as u64;
             let b_end = b_start + segments[j].virtual_size as u64;
             if overlaps(a_start, a_end, b_start, b_end) {
-                overlap_count += 1;
-                report.push_str(&format!(
-                    "warning: overlap {}({:#x}-{:#x}) with {}({:#x}-{:#x})\n",
-                    segments[i].name, a_start, a_end, segments[j].name, b_start, b_end
-                ));
+                return Err(Error::validation(format!(
+                    "segment overlap detected: {} and {}",
+                    segments[i].name, segments[j].name
+                )));
             }
         }
     }
 
-    let mut load_flags = loader::LoadFlags {
-        create_segments: true,
-        rename_entries: true,
-        load_all_segments: true,
-        ..loader::LoadFlags::default()
-    };
-    if header.flags & 0x0002 != 0 {
-        load_flags.reload = true;
+    // Open an empty database session (we will manually load everything)
+    let _session = DatabaseSession::open(input_path, false)?;
+
+    // Clear auto-created segments to emulate full control over the database layout.
+    for seg in segment::all().collect::<Vec<_>>() {
+        segment::remove(seg.start())?;
     }
 
-    if let Ok(encoded) = loader::encode_load_flags(load_flags)
-        && let Ok(decoded) = loader::decode_load_flags(encoded)
-    {
-        report.push_str(&format!(
-            "\nload_flags: raw=0x{encoded:04x} create_segments={} rename_entries={} reload={}\n",
-            decoded.create_segments, decoded.rename_entries, decoded.reload
-        ));
+    // Since this is a generic loader, default to metapc
+    loader::set_processor("metapc")?;
+    loader::create_filename_comment()?;
+
+    // Map segments
+    for seg_entry in &segments {
+        let start = header.base_address as u64 + seg_entry.virtual_address as u64;
+        let end = start + seg_entry.virtual_size as u64;
+        
+        let sclass = if seg_entry.flags & SEG_BSS != 0 {
+            "BSS"
+        } else if seg_entry.flags & SEG_EXTERN != 0 {
+            "EXTERN"
+        } else if seg_entry.flags & SEG_EXECUTE != 0 {
+            "CODE"
+        } else {
+            "DATA"
+        };
+
+        let stype = if seg_entry.flags & SEG_BSS != 0 {
+            segment::Type::Bss
+        } else if seg_entry.flags & SEG_EXTERN != 0 {
+            segment::Type::External
+        } else if seg_entry.flags & SEG_EXECUTE != 0 {
+            segment::Type::Code
+        } else {
+            segment::Type::Data
+        };
+
+        segment::create(start, end, &seg_entry.name, sclass, stype)?;
+        
+        let perm = segment::Permissions {
+            read: (seg_entry.flags & SEG_READ) != 0,
+            write: (seg_entry.flags & SEG_WRITE) != 0,
+            execute: (seg_entry.flags & SEG_EXECUTE) != 0,
+        };
+        segment::set_permissions(start, perm)?;
+        segment::set_bitness(start, 32)?;
+
+        // Only load data if raw_size > 0 and it fits in the file
+        if seg_entry.raw_size > 0 {
+            let offset = seg_entry.file_offset as usize;
+            let size = std::cmp::min(seg_entry.raw_size as usize, data.len().saturating_sub(offset));
+            if size > 0 {
+                loader::memory_to_database(&data[offset..offset+size], start, size as u64)?;
+            }
+        }
     }
 
-    report.push_str(&format!("segment_overlaps_detected={overlap_count}\n"));
-
-    if let Some(index) = args.iter().position(|arg| arg == "--emit-plan") {
-        let output_path = args
-            .get(index + 1)
-            .ok_or_else(|| Error::validation("--emit-plan requires an output path"))?;
-        std::fs::write(output_path, &report).map_err(|err| {
-            Error::internal(format!("failed writing '{output_path}': {err}"))
-        })?;
-    } else {
-        print!("{report}");
-    }
-
+    println!("XBIN advanced loader plan (Rust adaptation)");
+    println!("input: {}", input_path);
+    println!("version: {}", header.version);
+    println!("mapped {} segments", segments.len());
+    
     Ok(())
 }
 
 fn main() {
     if let Err(error) = run() {
-        eprintln!("error: {}", error.message);
+        eprintln!("error: {}", format_error(&error));
         std::process::exit(1);
     }
 }

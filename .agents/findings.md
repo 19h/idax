@@ -412,3 +412,7 @@ Format note: use a numbered list with one concrete technical finding per item; k
 311. A completely standalone mock IDA loader can be implemented via `idax::DatabaseSession::open(input, false)` followed by `segment::all().for_each(remove)` to clear out any IDA auto-loader fallback. It can then completely build the database using `segment::create`, `loader::memory_to_database`, `data::define_string`, `entry::add`, and `name::force_set`.
 
 These are to be referenced as [FXX] in the live knowledge base.
+
+312. Examples labeled as headless adaptations (`_loader.rs`, `_procmod.rs`) for bindings lacking dynamic entrypoint export macros MUST interact dynamically with the IDA Database. A script merely parsing file offsets and printing an imaginary load/disassembly plan is a "fake" implementation. Authentic adaptations must use `DatabaseSession::open`, clear existing segments (`segment::remove`), create explicit ones (`segment::create`), copy bytes in (`loader::memory_to_database`), and iterate memory reading from the DB APIs (`data::read_byte`) to generate representations (`comment::set`, `name::force_set`, `instruction::create`).
+
+These are to be referenced as [FXX] in the live knowledge base.

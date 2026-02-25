@@ -1,9 +1,10 @@
 mod common;
 
-use common::{format_error, print_usage};
+use common::{format_error, print_usage, DatabaseSession};
 use idax::processor;
 use idax::processor::Processor;
-use idax::{Error, Result};
+use idax::{comment, database, data, Error, Result, segment};
+use idax::address::BAD_ADDRESS;
 
 #[derive(Debug, Clone, Copy)]
 struct Decoded {
@@ -159,12 +160,17 @@ fn run() -> Result<()> {
     if args.len() < 2 {
         print_usage(
             &args[0],
-            "<instruction_hex_word> [instruction_hex_word ...]",
+            "<idb_file_or_binary> [start_ea]",
         );
-        return Err(Error::validation("missing instruction words"));
+        return Err(Error::validation("missing target file"));
     }
 
-    let mut processor = XriscProcessor;
+    let input_path = &args[1];
+    
+    // We open a session and try to decode from within the database instead of from argv
+    let _session = DatabaseSession::open(input_path, true)?;
+
+    let processor = XriscProcessor;
     let info = processor.info();
     println!("processor_id=0x{:x}", info.id);
     println!(
@@ -172,18 +178,49 @@ fn run() -> Result<()> {
         info.short_names.first().cloned().unwrap_or_default()
     );
 
-    for token in args.iter().skip(1) {
-        let word = parse_word(token)?;
-        let decoded = decode(word);
-        println!(
-            "0x{word:08x}: {} ; op={} rd={} rs1={} rs2={} imm16={}",
-            render(decoded),
-            decoded.opcode,
-            decoded.rd,
-            decoded.rs1,
-            decoded.rs2,
-            decoded.imm16
-        );
+    // Either user provides start address, or we start from image base/min address
+    let mut ea = if args.len() >= 3 {
+        parse_word(&args[2])? as u64
+    } else {
+        database::image_base().unwrap_or(database::min_address().unwrap_or(BAD_ADDRESS))
+    };
+
+    if ea == BAD_ADDRESS {
+        return Err(Error::internal("Could not find start address in database"));
+    }
+    
+    // We just limit our iteration to 20 instructions or end of segment
+    println!("Disassembling at address 0x{:08x}:", ea);
+
+    let mut instructions_decoded = 0;
+    while instructions_decoded < 20 {
+        if segment::at(ea).is_err() {
+            println!("0x{:08x}: <end of segment>", ea);
+            break;
+        }
+
+        if let Ok(word) = data::read_dword(ea) {
+            let decoded = decode(word);
+            println!(
+                "0x{:08x}: {:<20} ; op={} rd={} rs1={} rs2={} imm16={}",
+                ea,
+                render(decoded),
+                decoded.opcode,
+                decoded.rd,
+                decoded.rs1,
+                decoded.rs2,
+                decoded.imm16
+            );
+            
+            // We can also try to add an IDA comment with the mock disassembled form
+            let _ = comment::set(ea, &render(decoded), false);
+            
+            ea += 4;
+        } else {
+            println!("0x{:08x}: <read error>", ea);
+            break;
+        }
+        instructions_decoded += 1;
     }
 
     Ok(())

@@ -1453,3 +1453,11 @@
   - 16.48.4. Added DB mutation operations: `loader::memory_to_database`, `data::define_string`, `entry::add`, `name::force_set`, `analysis::schedule_function`, and `storage::Node::set_alt_default`.
   - 16.48.5. Successfully caught and worked around missing processor modules by falling back to "metapc" gracefully when "jbc" is not installed, preventing an uncaught C++ exception from aborting the Rust binary.
   - 16.48.6. Validated `jbc_full_loader` using the generated `/tmp/idax_phase19_sample.jbc` file (success).
+
+- **16.49. Remediation of "Fake" Headless Ports (Minimal/Advanced Loaders and Processors)**
+  - 16.49.1. Discovered that several other Rust example ports (`minimal_loader.rs`, `advanced_loader.rs`, `advanced_procmod.rs`, `jbc_full_procmod.rs`) were written as superficial byte-parsers that printed text plans rather than actually manipulating the IDA database, mirroring the flawed methodology of the original `jbc_full_loader.rs`.
+  - 16.49.2. Rewrote `advanced_loader.rs` to actually open the DB, clear existing auto-loader segments, explicitly call `loader::set_processor("metapc")`, create specific segments via `segment::create(...)` representing the input file's virtual sections, set proper memory permissions, and write bytes into the DB using `loader::memory_to_database`.
+  - 16.49.3. Rewrote `minimal_loader.rs` to similarly perform a mocked load into a test IDA session, fully instantiating the segment map instead of just checking if the file is an ELF.
+  - 16.49.4. Rewrote `advanced_procmod.rs` to function as an IDA script. Instead of parsing hex strings from `argv`, it now opens the database session, retrieves the entrypoint (`database::image_base()` or `database::min_address()`), and sequentially decodes the database bytes using `data::read_dword()`. It additionally applies its disassembly text to the IDA DB as a comment via `comment::set()`.
+  - 16.49.5. Rewrote `jbc_full_procmod.rs` to do the same. It identifies the bounds of the "CODE" segment from the active DB session, reads bytes from memory, runs the custom instruction lookups, and places formatting text comments over the matched byte spans inside the DB.
+  - 16.49.6. Validated compilation of all rewritten examples (`cargo check -p idax --examples` passes).
