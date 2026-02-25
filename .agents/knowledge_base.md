@@ -840,5 +840,9 @@ Note:
 - 36.7. JBC header-version decoding in adapted loaders should use explicit magic-to-version mapping, not low-bit arithmetic, when accepted magic constants share the same LSB; otherwise V2 fields can be parsed with V1 offsets and produce incorrect section metadata [F300]
 - 36.8. For procmod/disassembler adaptations over containerized bytecode formats, defaulting decode start to the format's `code_section` offset yields materially better output quality than decoding from file start, while preserving a fallback path for raw-byte inputs [F301]
 - 36.9. Synthetic, runtime-generated fixture binaries are acceptable for adaptation smoke validation when canonical format samples are unavailable in-repo, provided generation parameters and commands are captured in the validation matrix evidence [F302]
+- 36.10. GUI-oriented form-declaration plugins can still be adapted for headless validation by parsing markup into structured control/group reports (`checkbox`/`radio`/`number`/`address`/choice), which preserves core semantic validation even without docked widget rendering [F303]
+- 36.11. Form-markup parsers should model `>>` suffix semantics carefully: a line may close group scope and still declare a control token on the same line (`:C>>`), so scope closure and token parsing are both required for parity [F304]
+- 36.12. Driver-analysis plugin semantics can be adapted headlessly in Rust by using import-symbol heuristics for driver-family classification plus entrypoint/name-based dispatch candidate discovery, without requiring plugin action/menu wiring [F305]
+- 36.13. IOCTL candidate discovery in standalone adaptation is robust via operand-immediate heuristic decoding of `CTL_CODE`-shaped constants; empty result sets on non-driver fixtures should be treated as valid evidence, not failures [F306]
 
 ---

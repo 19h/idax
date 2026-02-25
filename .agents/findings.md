@@ -393,4 +393,12 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 302. A small synthetic JBC fixture generated at runtime (temporary file) is sufficient to validate successful-path behavior for both `jbc_full_loader` and `jbc_full_procmod` adaptations when no canonical `.jbc` sample is available in-repo.
 
+303. The Qt-form declaration surface can be meaningfully validated in headless Rust by parsing form-markup controls/groups (`<##group##>`, `:C`, `:R`, `:D`, `:N`, `:b`) into a structured report even when widget-host rendering and `ask_form` execution are unavailable.
+
+304. In IDA form markup, lines ending with `>>` can both close the current group scope and still contain a control declaration on that same line (for example `:C>>`); parsers should drop one trailing `>` and parse the control after applying scope close semantics.
+
+305. A practical headless subset of DriverBuddy analysis can be implemented with existing safe Rust APIs by combining import-module inspection (`database::import_modules`) for driver-type heuristics, entrypoint resolution via naming/function fallbacks, and targeted dispatch-name pattern scanning.
+
+306. IOCTL triage in standalone adaptations is reliably approximated by scanning decoded instruction immediate operands for `CTL_CODE`-shaped values (`device!=0`, `function!=0`, method/access bit ranges valid); on non-driver fixtures this correctly yields an empty hit-set without false failures.
+
 These are to be referenced as [FXX] in the live knowledge base.

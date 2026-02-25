@@ -39,7 +39,9 @@ Legend:
 | `examples/plugin/action_plugin.cpp` | `bindings/rust/idax/examples/action_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | CLI-driven annotation actions instead of UI menu actions |
 | `examples/plugin/event_monitor_plugin.cpp` | `bindings/rust/idax/examples/event_monitor_plugin.rs` (`Adapted`) | `bindings/node/examples/change_tracker.ts` (`Adapted`) | Event + storage flow ported headlessly |
 | `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
+| `examples/plugin/driverbuddy_port_plugin.cpp` | `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` (`Adapted`) | `bindings/node/examples/binary_forensics.ts` (`Adapted`) | Headless driver fingerprinting/IOCTL scan subset |
 | `examples/plugin/ida_names_port_plugin.cpp` | `bindings/rust/idax/examples/ida_names_port_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless title-derivation report (demangled-short fallback to raw) |
+| `examples/plugin/qtform_renderer_plugin.cpp` | `bindings/rust/idax/examples/qtform_renderer_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless parser/report for form-declaration markup; `ask_form` call remains wrapper gap |
 | `examples/plugin/storage_metadata_plugin.cpp` | `bindings/rust/idax/examples/storage_metadata_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Fingerprint collection + netnode persistence |
 | `examples/plugin/deep_analysis_plugin.cpp` | `bindings/rust/idax/examples/deep_analysis_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Security-oriented audit report adaptation |
 | `examples/plugin/*` (GUI-heavy variants) | `Pending` | `Mostly N/A (host-constrained)` | Custom widgets/docked UI remain host/plugin-centric |
@@ -61,8 +63,10 @@ Legend:
 | `bindings/rust/idax/examples/action_plugin.rs` | Pass | `cargo run -p idax --example action_plugin -- <idb> add-bookmark 0x530 --label phase19` |
 | `bindings/rust/idax/examples/event_monitor_plugin.rs` | Pass | `cargo run -p idax --example event_monitor_plugin -- <idb>` |
 | `bindings/rust/idax/examples/decompiler_plugin.rs` | Pass | `cargo run -p idax --example decompiler_plugin -- <idb> --top 5` |
+| `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` | Pass | `cargo run -p idax --example driverbuddy_port_plugin -- <idb> --top 10 --max-scan 5000` |
 | `bindings/rust/idax/examples/storage_metadata_plugin.rs` | Pass | `cargo run -p idax --example storage_metadata_plugin -- <idb>` |
 | `bindings/rust/idax/examples/deep_analysis_plugin.rs` | Pass | `cargo run -p idax --example deep_analysis_plugin -- <idb> --max-scan 1000` |
 | `bindings/rust/idax/examples/ida_names_port_plugin.rs` | Pass | `cargo run -p idax --example ida_names_port_plugin -- <idb> --limit 5` |
+| `bindings/rust/idax/examples/qtform_renderer_plugin.rs` | Pass | `cargo run -p idax --example qtform_renderer_plugin -- --sample --ask-form-test` |
 | `bindings/rust/idax/examples/jbc_full_loader.rs` | Pass | Synthetic `.jbc` fixture generated at runtime (`/tmp/idax_phase19_sample.jbc`); header/plan output validated |
 | `bindings/rust/idax/examples/jbc_full_procmod.rs` | Pass | Synthetic `.jbc` fixture generated at runtime; code-section decode path validated (`pushi/loads/call/jmp/ret`) |
