@@ -48,9 +48,12 @@ fn main() {
             let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
             let checkout_dir = out_dir.join("idax-github");
             if !checkout_dir.join("CMakeLists.txt").exists() {
-                println!("cargo:warning=Cloning idax from GitHub to {:?}", checkout_dir);
+                println!(
+                    "cargo:warning=Cloning idax from GitHub to {:?}",
+                    checkout_dir
+                );
                 let url = "https://github.com/19h/idax.git";
-                
+
                 let status = std::process::Command::new("git")
                     .arg("clone")
                     .arg("--recurse-submodules")
@@ -58,7 +61,7 @@ fn main() {
                     .arg(&checkout_dir)
                     .status()
                     .unwrap_or_else(|e| panic!("Failed to execute git clone: {}", e));
-                    
+
                 if !status.success() {
                     panic!("Failed to clone idax from GitHub ({})", url);
                 }
@@ -69,31 +72,56 @@ fn main() {
 
     println!("cargo:rerun-if-env-changed=IDAX_DIR");
 
-    let idasdk_env =
-        PathBuf::from(env::var("IDASDK").expect("IDASDK environment variable must be set"));
+    let idasdk_env_str = env::var("IDASDK").ok().filter(|s| !s.is_empty());
 
     // The SDK root may be $IDASDK or $IDASDK/src depending on layout.
     // Mirror the same discovery logic as the C++ CMakeLists.txt.
-    let idasdk = if idasdk_env.join("include").exists() {
-        idasdk_env.clone()
-    } else if idasdk_env.join("src").join("include").exists() {
-        idasdk_env.join("src")
+    let idasdk_env = if let Some(sdk) = idasdk_env_str {
+        let env_path = PathBuf::from(sdk);
+        if env_path.join("include").exists() {
+            Some(env_path.clone())
+        } else if env_path.join("src").join("include").exists() {
+            Some(env_path.join("src"))
+        } else {
+            panic!(
+                "IDASDK={} does not contain an include/ directory (checked root and src/)",
+                env_path.display()
+            );
+        }
     } else {
-        panic!(
-            "IDASDK={} does not contain an include/ directory (checked root and src/)",
-            idasdk_env.display()
-        );
+        None
     };
 
     let idax_include = idax_root.join("include");
     let shim_dir = manifest_dir.join("shim");
 
     // ── Build idax with CMake ───────────────────────────────────────────
-    let dst = cmake::Config::new(&idax_root)
-        .define("IDAX_BUILD_EXAMPLES", "OFF")
-        .define("IDAX_BUILD_TESTS", "OFF")
-        .build();
+    let mut config = cmake::Config::new(&idax_root);
+    config.define("IDAX_BUILD_EXAMPLES", "OFF");
+    config.define("IDAX_BUILD_TESTS", "OFF");
+
+    if idasdk_env.is_none() {
+        // Force the CMake script to fetch the SDK since we don't have it locally in the env
+        config.env("IDASDK", "");
+    }
+
+    let dst = config.build();
     let libidax_dir = dst.join("lib");
+
+    // If IDASDK wasn't set, find the fetched one in the CMake build directory
+    let idasdk = idasdk_env.unwrap_or_else(|| {
+        let fetched_dir = dst.join("build").join("_deps").join("ida_sdk-src");
+        if fetched_dir.join("include").exists() {
+            fetched_dir
+        } else if fetched_dir.join("src").join("include").exists() {
+            fetched_dir.join("src")
+        } else {
+            panic!(
+                "Failed to locate fetched IDASDK in cmake build output: {:?}",
+                dst
+            )
+        }
+    });
 
     // ── Locate IDA SDK libraries ────────────────────────────────────────
     let sdk_lib_dir = if cfg!(target_os = "macos") {
