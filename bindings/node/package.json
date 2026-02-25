@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "install": "cmake-js compile",
+    "install": "node scripts/install.js",
+    "install:source": "cmake-js compile",
     "build": "cmake-js build",
     "rebuild": "cmake-js rebuild",
     "clean": "cmake-js clean",
@@ -14,6 +15,8 @@
   "files": [
     "lib/",
     "src/",
+    "scripts/",
+    "prebuilds/",
     "CMakeLists.txt",
     "README.md"
   ],

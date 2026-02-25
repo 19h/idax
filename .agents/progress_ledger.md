@@ -1258,3 +1258,16 @@
   - 16.24.3. When unset, `build.rs` now correctly overrides the environment passed to `cmake::Config` (setting `IDASDK=""`) forcing the CMake project to fetch `ida-sdk`.
   - 16.24.4. `build.rs` then locates the fetched headers and stubs inside CMake's `_deps/ida_sdk-src` output directory to successfully run `bindgen` and compilation phases without any prior external state.
   - 16.24.5. Validation evidence: `cargo build` now correctly passes when `IDASDK` is entirely unset or empty.
+
+- **16.25. Node.js Plugin GitHub Release Workflow**
+  - 16.25.1. Created `.github/workflows/node-plugin-release.yml` to automatically build the Node.js bindings for all supported platforms (Windows x64, Linux x64, macOS x64, macOS arm64) on every tagged push (`v*`).
+  - 16.25.2. Configured a matrix job to check out the IDA SDK, build the `idax` static library, and run `cmake-js compile -T Release` to generate the `idax_native.node` artifacts.
+  - 16.25.3. Created a `package-and-release` job that downloads all platform-specific artifacts into a `prebuilds/` directory.
+  - 16.25.4. Modified `bindings/node/package.json` to include the `prebuilds/` and `scripts/` directories in the `files` array, ensuring they are packaged into the `npm pack` tarball.
+  - 16.25.5. Added `bindings/node/scripts/install.js` to intelligently route `npm install` to skip compilation if a prebuilt binary exists for the current platform and architecture, falling back to source compilation otherwise.
+  - 16.25.6. Configured the workflow to upload both the unified `idax-node-plugin.tgz` and the individual `.node` artifacts to the GitHub release page.
+
+- **16.26. Rust Bindings `idalib` Linking Fix**
+  - 16.26.1. Fixed an issue where standalone Rust applications (like `cx`) would fail to link because `idalib` was not being supplied to the Rust compiler for symbol resolution.
+  - 16.26.2. Updated `idax-sys/build.rs` to conditionally emit `cargo:rustc-link-lib=dylib=idalib` (and corresponding extensions/architectures) alongside `ida` / `ida64`.
+  - 16.26.3. Standalone binaries now link correctly against the required IDA SDK kernel stubs.
