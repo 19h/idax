@@ -36,8 +36,11 @@ Legend:
 
 | Source | Rust | Node | Notes |
 |---|---|---|---|
-| `examples/plugin/event_monitor_plugin.cpp` | `Pending` | `bindings/node/examples/change_tracker.ts` (`Adapted`) | Event + storage flow ported headlessly in Node |
-| `examples/plugin/decompiler_plugin.cpp` | `Pending` | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Decompiler analysis workflow ported headlessly |
+| `examples/plugin/action_plugin.cpp` | `bindings/rust/idax/examples/action_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | CLI-driven annotation actions instead of UI menu actions |
+| `examples/plugin/event_monitor_plugin.cpp` | `bindings/rust/idax/examples/event_monitor_plugin.rs` (`Adapted`) | `bindings/node/examples/change_tracker.ts` (`Adapted`) | Event + storage flow ported headlessly |
+| `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
+| `examples/plugin/storage_metadata_plugin.cpp` | `bindings/rust/idax/examples/storage_metadata_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Fingerprint collection + netnode persistence |
+| `examples/plugin/deep_analysis_plugin.cpp` | `bindings/rust/idax/examples/deep_analysis_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Security-oriented audit report adaptation |
 | `examples/plugin/*` (GUI-heavy variants) | `Pending` | `Mostly N/A (host-constrained)` | Custom widgets/docked UI remain host/plugin-centric |
 
 ## Current focus
