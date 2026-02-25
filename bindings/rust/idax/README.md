@@ -10,15 +10,46 @@ Safe, idiomatic Rust bindings for the [IDA Pro](https://hex-rays.com/ida-pro/) S
 
 ## Prerequisites
 
-- **IDA Pro** with the IDA SDK (set the `IDASDK` environment variable to point to your SDK root)
-- **idax C++ library** — build the [idax](https://github.com/19h/idax) project with CMake first to produce `libidax.a`
+- **IDA Pro** installed in a standard location (see [IDA discovery](#ida-discovery) below)
 - **Rust 2024 edition** (nightly or stable 1.85+)
+- **CMake** and a C++23 compiler (the build script compiles the C++ layer automatically)
 
 ## Installation
 
 ```toml
 [dependencies]
-idax = "0.2"
+idax = "0.3"
+```
+
+That's it. No `build.rs` in your crate, no environment variables, no manual library setup. Just `cargo run`.
+
+## IDA discovery
+
+The build script automatically locates your IDA installation:
+
+1. **`$IDADIR`** environment variable (explicit override)
+2. **macOS**: scans `/Applications/IDA*.app/Contents/MacOS` (newest version first)
+3. **Linux**: scans `/opt/idapro*`, `/opt/ida-*`, `/opt/ida`, then `~/ida*`
+
+If the IDA SDK isn't available locally, it will be fetched automatically during the build. You can override this with the `$IDASDK` environment variable.
+
+## Runtime: `cargo run` vs direct execution
+
+**`cargo run` / `cargo test`** — works out of the box. The build script symlinks the real IDA dynamic libraries into the build output directory, and Cargo automatically adds that directory to the dynamic library search path (`DYLD_FALLBACK_LIBRARY_PATH` on macOS, `LD_LIBRARY_PATH` on Linux).
+
+**Direct execution** (running the compiled binary outside of Cargo) requires the IDA libraries to be discoverable by the dynamic linker. Options:
+
+```bash
+# Option 1: Set the library path (recommended for development)
+DYLD_LIBRARY_PATH=/Applications/IDA\ Professional\ 9.3.app/Contents/MacOS ./target/release/my-tool  # macOS
+LD_LIBRARY_PATH=/opt/idapro ./target/release/my-tool                                                # Linux
+
+# Option 2: Add an RPATH to the binary (recommended for deployment)
+install_name_tool -add_rpath /Applications/IDA\ Professional\ 9.3.app/Contents/MacOS ./target/release/my-tool  # macOS
+patchelf --add-rpath /opt/idapro ./target/release/my-tool                                                       # Linux
+
+# Option 3: Place the binary next to the IDA libraries
+cp ./target/release/my-tool /Applications/IDA\ Professional\ 9.3.app/Contents/MacOS/
 ```
 
 ## Quick start

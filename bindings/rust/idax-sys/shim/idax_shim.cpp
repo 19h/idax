@@ -19,6 +19,147 @@
 #include <unordered_map>
 #include <vector>
 
+// ── Runtime IDA library loader ──────────────────────────────────────────
+// Instead of linking libida/libidalib at compile time (which creates @rpath
+// references requiring RPATH entries in every consuming binary), we load them
+// at runtime via dlopen before any IDA function is called. This makes
+// `cargo add idax` + `cargo run` work without any build.rs, RPATH config,
+// or environment variables — provided IDA is installed in a standard location.
+
+#if !defined(_WIN32)
+#include <dlfcn.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+namespace {
+
+#if !defined(_WIN32)
+
+struct IdaLibLoader {
+    bool attempted = false;
+    bool loaded    = false;
+
+    /// Try to dlopen a library from a specific directory.
+    /// Returns true if the library was loaded (or was already loaded).
+    bool try_load(const std::string& dir, const char* libname) {
+        std::string path = dir + "/" + libname;
+        struct stat st;
+        if (stat(path.c_str(), &st) != 0)
+            return false;
+        void* h = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+        return h != nullptr;
+    }
+
+    /// Try to load both libida and libidalib from a directory.
+    bool try_dir(const std::string& dir) {
+#if defined(__APPLE__)
+        const char* ida_lib   = "libida.dylib";
+        const char* idalib_lib = "libidalib.dylib";
+#else
+        const char* ida_lib   = "libida.so";
+        const char* idalib_lib = "libidalib.so";
+#endif
+        if (!try_load(dir, ida_lib))
+            return false;
+        // libidalib is optional (not present in all IDA editions)
+        try_load(dir, idalib_lib);
+        return true;
+    }
+
+    /// Auto-discover IDA installation directories.
+    std::vector<std::string> discover() {
+        std::vector<std::string> candidates;
+
+        // 1. $IDADIR — explicit user override (highest priority)
+        if (const char* idadir = std::getenv("IDADIR")) {
+            if (idadir[0] != '\0')
+                candidates.emplace_back(idadir);
+        }
+
+#if defined(__APPLE__)
+        // 2. Scan /Applications for IDA *.app bundles
+        if (DIR* d = opendir("/Applications")) {
+            while (struct dirent* e = readdir(d)) {
+                std::string name(e->d_name);
+                if (name.size() > 4
+                    && (name.rfind("IDA", 0) == 0 || name.rfind("ida", 0) == 0)
+                    && name.substr(name.size() - 4) == ".app")
+                {
+                    candidates.push_back(
+                        "/Applications/" + name + "/Contents/MacOS");
+                }
+            }
+            closedir(d);
+        }
+#else // Linux
+        // 2a. Scan /opt for idapro-* / ida-* / ida directories
+        if (DIR* d = opendir("/opt")) {
+            while (struct dirent* e = readdir(d)) {
+                std::string name(e->d_name);
+                if (name.rfind("idapro", 0) == 0
+                    || name.rfind("ida-", 0) == 0
+                    || name == "ida")
+                {
+                    candidates.push_back("/opt/" + name);
+                }
+            }
+            closedir(d);
+        }
+        // 2b. Scan ~/ida* directories
+        if (const char* home = std::getenv("HOME")) {
+            if (DIR* d = opendir(home)) {
+                while (struct dirent* e = readdir(d)) {
+                    std::string name(e->d_name);
+                    if (name.rfind("ida", 0) == 0) {
+                        std::string p = std::string(home) + "/" + name;
+                        struct stat st;
+                        if (stat(p.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+                            candidates.push_back(std::move(p));
+                    }
+                }
+                closedir(d);
+            }
+        }
+#endif
+        return candidates;
+    }
+
+    /// Ensure IDA libraries are loaded. Safe to call multiple times.
+    bool ensure_loaded() {
+        if (attempted)
+            return loaded;
+        attempted = true;
+
+        // Check if libida is already loaded (e.g. we're running as an IDA
+        // plugin, or the user set LD_LIBRARY_PATH / DYLD_LIBRARY_PATH).
+#if defined(__APPLE__)
+        if (dlopen("libida.dylib", RTLD_NOW | RTLD_GLOBAL | RTLD_NOLOAD)) {
+#else
+        if (dlopen("libida.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NOLOAD)) {
+#endif
+            loaded = true;
+            return true;
+        }
+
+        auto dirs = discover();
+        for (auto& dir : dirs) {
+            if (try_dir(dir)) {
+                loaded = true;
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+static IdaLibLoader g_ida_loader;
+
+#endif // !_WIN32
+
+} // anonymous loader namespace
+
 // ── Thread-local error state ────────────────────────────────────────────
 
 namespace {
@@ -333,6 +474,24 @@ int fill_snapshot(IdaxDatabaseSnapshot* out, const ida::database::Snapshot& in) 
 } // anonymous namespace
 
 int idax_database_init(int argc, char** argv) {
+#if !defined(_WIN32)
+    // Ensure IDA shared libraries are loaded before calling any SDK function.
+    // This is the magic that makes `cargo add idax` + `cargo run` work without
+    // any RPATH configuration or build.rs in the user's crate.
+    if (!g_ida_loader.ensure_loaded()) {
+        g_last_error.category = IDAX_ERROR_SDK_FAILURE;
+        g_last_error.code     = -1;
+        g_last_error.message  = "Failed to locate IDA runtime libraries. "
+            "Set IDADIR to the directory containing libida"
+#if defined(__APPLE__)
+            ".dylib"
+#else
+            ".so"
+#endif
+            " (e.g. /Applications/IDA\\ Pro.app/Contents/MacOS)";
+        return -1;
+    }
+#endif
     RETURN_STATUS(ida::database::init(argc, argv));
 }
 

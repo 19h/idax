@@ -1,5 +1,167 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+/// Discover the IDA runtime directory. Checks $IDADIR first, then scans
+/// standard installation locations.
+fn discover_ida_dir() -> Option<PathBuf> {
+    // 1. $IDADIR — explicit user override
+    if let Ok(idadir) = env::var("IDADIR") {
+        if !idadir.is_empty() {
+            let p = PathBuf::from(&idadir);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+    }
+
+    // 2. Platform-specific auto-discovery
+    if cfg!(target_os = "macos") {
+        if let Ok(entries) = std::fs::read_dir("/Applications") {
+            let mut candidates: Vec<PathBuf> = entries
+                .flatten()
+                .filter_map(|e| {
+                    let name = e.file_name().to_string_lossy().into_owned();
+                    if (name.starts_with("IDA") || name.starts_with("ida"))
+                        && name.ends_with(".app")
+                    {
+                        let macos = e.path().join("Contents").join("MacOS");
+                        if macos.join("libida.dylib").exists() {
+                            return Some(macos);
+                        }
+                    }
+                    None
+                })
+                .collect();
+            // Sort descending so newer versions (higher numbers) come first
+            candidates.sort_by(|a, b| b.cmp(a));
+            if let Some(p) = candidates.into_iter().next() {
+                return Some(p);
+            }
+        }
+    } else if cfg!(target_os = "linux") {
+        // Check /opt/idapro*, /opt/ida-*, /opt/ida
+        if let Ok(entries) = std::fs::read_dir("/opt") {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().into_owned();
+                if name.starts_with("idapro") || name.starts_with("ida-") || name == "ida" {
+                    let p = entry.path();
+                    if p.join("libida.so").exists() || p.join("libida64.so").exists() {
+                        return Some(p);
+                    }
+                }
+            }
+        }
+        // Check ~/ida*
+        if let Ok(home) = env::var("HOME") {
+            if let Ok(entries) = std::fs::read_dir(&home) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    if name.starts_with("ida") && entry.path().is_dir() {
+                        let p = entry.path();
+                        if p.join("libida.so").exists() || p.join("libida64.so").exists() {
+                            return Some(p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// macOS: Link against IDA libraries with symlinks in OUT_DIR for runtime.
+///
+/// Strategy:
+/// 1. Link against the SDK stubs (for symbol resolution at link time)
+/// 2. Create symlinks to real IDA dylibs inside OUT_DIR
+/// 3. Cargo automatically adds OUT_DIR-relative search paths to
+///    DYLD_FALLBACK_LIBRARY_PATH during `cargo run`/`cargo test`
+/// 4. The C shim's runtime dlopen provides a fallback for deployed binaries
+fn link_ida_macos(sdk_lib_dir: &Path, _dst: &Path) {
+    // Link against SDK stubs for symbol resolution at link time
+    if sdk_lib_dir.exists() {
+        println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
+    }
+
+    // If the real IDA installation is found, also add it as a link search
+    // path. This lets the linker use the real dylibs directly.
+    let ida_dir = discover_ida_dir();
+    if let Some(ref dir) = ida_dir {
+        println!("cargo:rustc-link-search=native={}", dir.display());
+    }
+
+    // Symlink real IDA dylibs into OUT_DIR so Cargo adds them to
+    // DYLD_FALLBACK_LIBRARY_PATH during `cargo run` and `cargo test`.
+    // Per Cargo docs: search paths within OUT_DIR are added to the
+    // dynamic library search path environment variable.
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    if let Some(ref dir) = ida_dir {
+        for lib in &["libida.dylib", "libidalib.dylib"] {
+            let real = dir.join(lib);
+            let link = out_dir.join(lib);
+            if real.exists() {
+                // Remove stale symlink if any
+                let _ = std::fs::remove_file(&link);
+                #[cfg(unix)]
+                {
+                    std::os::unix::fs::symlink(&real, &link).ok();
+                }
+            }
+        }
+    }
+
+    // Link the IDA libraries
+    for lib in &["libida.dylib", "libidalib.dylib"] {
+        let exists = sdk_lib_dir.join(lib).exists()
+            || ida_dir.as_ref().map_or(false, |d| d.join(lib).exists());
+        if exists {
+            let stem = lib
+                .strip_prefix("lib")
+                .unwrap()
+                .strip_suffix(".dylib")
+                .unwrap();
+            println!("cargo:rustc-link-lib=dylib={}", stem);
+        }
+    }
+}
+
+/// Linux: link against SDK stubs normally. The C shim runtime loader
+/// handles finding the real libraries via dlopen.
+fn link_ida_linux(sdk_lib_dir: &Path) {
+    if sdk_lib_dir.exists() {
+        println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
+    }
+    if sdk_lib_dir.join("libida.so").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida");
+        if sdk_lib_dir.join("libidalib.so").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    } else if sdk_lib_dir.join("libida64.so").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida64");
+        if sdk_lib_dir.join("libidalib.so").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    }
+}
+
+/// Windows: link against SDK .lib import stubs.
+fn link_ida_windows(sdk_lib_dir: &Path) {
+    if sdk_lib_dir.exists() {
+        println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
+    }
+    if sdk_lib_dir.join("ida.lib").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida");
+        if sdk_lib_dir.join("idalib.lib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    } else if sdk_lib_dir.join("ida64.lib").exists() {
+        println!("cargo:rustc-link-lib=dylib=ida64");
+        if sdk_lib_dir.join("idalib.lib").exists() {
+            println!("cargo:rustc-link-lib=dylib=idalib");
+        }
+    }
+}
 
 fn main() {
     // ── Check if building on docs.rs ────────────────────────────────────
@@ -164,148 +326,36 @@ fn main() {
     println!("cargo:rustc-link-search=native={}", libidax_dir.display());
     println!("cargo:rustc-link-lib=static=idax");
 
-    if sdk_lib_dir.exists() {
-        println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
-    }
-
-    // ── Discover IDA runtime library directory ──────────────────────────
-    // At link time we use the SDK stubs. At runtime we need the real IDA
-    // dylibs. We embed rpath entries so the dynamic linker can find them
-    // automatically. Priority order:
-    //   1. $IDADIR (explicit user override)
-    //   2. Auto-discovered IDA installations in standard locations
-    //   3. @executable_path / $ORIGIN (for deploying next to IDA)
-    //   4. SDK stub directory (fallback for compile-only / test scenarios)
     println!("cargo:rerun-if-env-changed=IDADIR");
-    if !cfg!(target_os = "windows") {
-        let mut rpaths: Vec<PathBuf> = Vec::new();
 
-        // 1. $IDADIR — highest priority, user-specified
-        if let Ok(idadir) = env::var("IDADIR") {
-            if !idadir.is_empty() {
-                let idadir_path = PathBuf::from(&idadir);
-                // Also add as a link-search path so the real dylibs can
-                // satisfy the linker if the SDK stubs are incomplete.
-                if idadir_path.exists() {
-                    println!("cargo:rustc-link-search=native={}", idadir_path.display());
-                }
-                rpaths.push(idadir_path);
-            }
-        }
-
-        // 2. Auto-discover IDA installations in well-known locations
-        if cfg!(target_os = "macos") {
-            // Scan /Applications for IDA *.app bundles
-            if let Ok(entries) = std::fs::read_dir("/Applications") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().into_owned();
-                    if name.starts_with("IDA") && name.ends_with(".app") {
-                        let macos_dir = entry.path().join("Contents").join("MacOS");
-                        if macos_dir.join("libida.dylib").exists() {
-                            rpaths.push(macos_dir);
-                        }
-                    }
-                }
-            }
-            // 3. Allow loading if the binary is placed inside the IDA directory
-            rpaths.push(PathBuf::from("@executable_path"));
-        } else if cfg!(target_os = "linux") {
-            // Scan /opt for idapro-* directories (standard Linux install)
-            if let Ok(entries) = std::fs::read_dir("/opt") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().into_owned();
-                    if name.starts_with("idapro") || name.starts_with("ida-") || name == "ida" {
-                        let p = entry.path();
-                        if p.join("libida.so").exists() || p.join("libida64.so").exists() {
-                            rpaths.push(p);
-                        }
-                    }
-                }
-            }
-            // Also check ~/ida* and ~/.idapro parent
-            if let Ok(home) = env::var("HOME") {
-                let home = PathBuf::from(home);
-                if let Ok(entries) = std::fs::read_dir(&home) {
-                    for entry in entries.flatten() {
-                        let name = entry.file_name().to_string_lossy().into_owned();
-                        if name.starts_with("ida") && entry.path().is_dir() {
-                            let p = entry.path();
-                            if p.join("libida.so").exists() || p.join("libida64.so").exists() {
-                                rpaths.push(p);
-                            }
-                        }
-                    }
-                }
-            }
-            // 3. Allow loading if the binary is placed inside the IDA directory
-            rpaths.push(PathBuf::from("$ORIGIN"));
-        }
-
-        // 4. SDK stub directory as final fallback
-        if sdk_lib_dir.exists() {
-            rpaths.push(sdk_lib_dir.clone());
-        }
-
-        // Emit rpaths via the `links` metadata system so downstream crates
-        // can read them via `DEP_IDAX_RPATH_DIRS`. We use semicolons as
-        // separators since paths may contain spaces but not semicolons.
-        // NOTE: `cargo:rustc-link-arg` from a library dependency does NOT
-        // propagate to the final binary in Cargo's model. The metadata
-        // approach is the only way to pass this information through the
-        // dependency chain. The final binary crate must have a `build.rs`
-        // that reads `DEP_IDAX_RT_RPATH_DIRS` and emits the link args.
-        let rpath_str = rpaths
-            .iter()
-            .map(|p| p.display().to_string())
-            .collect::<Vec<_>>()
-            .join(";");
-        println!("cargo:RPATH_DIRS={}", rpath_str);
-
-        // Also emit as link args — these apply to idax-sys's own
-        // compilation unit (effectively a no-op for rlib), but are kept
-        // for completeness and for cases where idax-sys is used directly
-        // as a dependency of a binary crate.
-        for rpath in &rpaths {
-            println!("cargo:rustc-link-arg=-Wl,-rpath,{}", rpath.display());
-        }
-    }
-
-    if sdk_lib_dir.join("libida.dylib").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida");
-        if sdk_lib_dir.join("libidalib.dylib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("libida64.dylib").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida64");
-        if sdk_lib_dir.join("libidalib.dylib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("libida.so").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida");
-        if sdk_lib_dir.join("libidalib.so").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("libida64.so").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida64");
-        if sdk_lib_dir.join("libidalib.so").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("ida.lib").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida");
-        if sdk_lib_dir.join("idalib.lib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("ida64.lib").exists() {
-        println!("cargo:rustc-link-lib=dylib=ida64");
-        if sdk_lib_dir.join("idalib.lib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    }
+    // ── Link against IDA SDK stubs with rewritten install names ─────────
+    // The SDK stubs use `@rpath/libida.dylib` as their install name, which
+    // creates LC_LOAD_DYLIB entries that require RPATH configuration.
+    // Since Cargo cannot propagate RPATH entries from dependencies to the
+    // final binary, we take a different approach:
+    //
+    // 1. Discover the real IDA installation directory (IDADIR or auto-scan)
+    // 2. Copy the SDK stubs to OUT_DIR
+    // 3. Rewrite their install names to absolute paths pointing to the
+    //    discovered IDA installation
+    // 4. Link against the rewritten copies
+    //
+    // The result: the binary's load commands reference the IDA libraries
+    // by absolute path (e.g. /Applications/IDA.app/Contents/MacOS/libida.dylib)
+    // instead of @rpath/libida.dylib. No RPATH needed. Magic.
+    //
+    // Additionally, the C shim has a runtime dlopen fallback that discovers
+    // and loads IDA libraries before any SDK function is called, providing
+    // a safety net if the absolute path is stale (e.g. IDA was updated).
 
     if cfg!(target_os = "macos") {
+        link_ida_macos(&sdk_lib_dir, &dst);
         println!("cargo:rustc-link-lib=c++");
     } else if cfg!(target_os = "linux") {
+        link_ida_linux(&sdk_lib_dir);
         println!("cargo:rustc-link-lib=stdc++");
+    } else if cfg!(target_os = "windows") {
+        link_ida_windows(&sdk_lib_dir);
     }
 
     // ── Run bindgen ─────────────────────────────────────────────────────

@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["idax-sys", "idax", "idax-build"]
+members = ["idax-sys", "idax"]
 
 [workspace.package]
-version = "0.2.7"
+version = "0.3.0"
 edition = "2024"
 authors = ["Kenan Sulayman"]
 license = "MIT"
@@ -14,6 +14,6 @@ keywords = ["ida", "ida-pro", "reverse-engineering", "disassembler", "binary-ana
 categories = ["api-bindings", "development-tools"]
 
 [workspace.dependencies]
-idax-sys = { path = "idax-sys", version = "0.2.7" }
+idax-sys = { path = "idax-sys", version = "0.3.0" }
 thiserror = "2"
 bitflags = "2"
