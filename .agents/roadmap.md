@@ -28,7 +28,7 @@ Current overall phase status:
 - Phase 15.y: ~100% (Rust processor-domain model parity update complete in `idax/src/processor.rs`: added full `ida::processor` data-model coverage (advanced assembler directives/options, processor flags, processor metadata fields, full switch-description shape, typed analyze/result/token models), added `OutputContext` token/text builder parity helpers, added trait-level processor callback contract with C++-aligned defaults, and cleaned Rust 2024 unsafe-ops warnings in debugger via `cargo fix`; `cargo build` now completes warning-free)
 - Phase 16: ~100% (Vendored ida-sdk and ida-cmake using CMake `FetchContent`; added CMake support for defaulting to fetched SDKs and isolating artifact output to local `idabin` directory instead of modifying the SDK)
 - Phase 17: ~100% (Consolidated per-port gap audits into `docs/port_gap_audit_examples.md`, removed old per-port audit files, synchronized README/api/quickstart/coverage-matrix references, and pruned resolved entries from `.agents/active_work.md`)
-- Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered plus cross-cutting API-surface selection guide and scenario acceptance checklist mapping)
+- Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, and cookbook/traversal docs rebalanced to C++-first default presentation)
 
 ### Phase 18 TODO Action Items (Complete)
 

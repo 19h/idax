@@ -1343,3 +1343,10 @@
   - 16.37.3. Marked Phase 18 as complete (~100%) and updated roadmap heading to `Phase 18 TODO Action Items (Complete)`.
   - 16.37.4. Recorded additional findings [F289]-[F291] in `.agents/findings.md` and mirrored them into `.agents/knowledge_base.md` Section 35.
   - 16.37.5. Evidence: scenario acceptance map now links all 10 practical cases to concrete docs paths, and active-work docs queue was pruned after closeout.
+
+- **16.38. C++-First Documentation Rebalance (Post-Closeout Adjustment)**
+  - 16.38.1. Reworked `docs/cookbook/common_tasks.md` foundational end-to-end workflows (function listing, string extraction/processing, rename workflows) from Rust-first to C++-first presentation, retaining Rust references only as optional pointers.
+  - 16.38.2. Reordered `docs/tutorial/call_graph_traversal.md` to present C++ traversal as the primary implementation and keep Rust as an optional variant.
+  - 16.38.3. Updated Phase 18 summary text in `.agents/roadmap.md` to explicitly state C++-first presentation rebalance.
+  - 16.38.4. Recorded finding [F292] and mirrored into KB Section 35.11 to codify the doc-language default policy.
+  - 16.38.5. Evidence: file-level verification confirms C++-first defaults in general cookbook/traversal docs with Rust retained only for explicitly Rust-scoped scenarios.

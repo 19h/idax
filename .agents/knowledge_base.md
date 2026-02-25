@@ -827,5 +827,6 @@ Note:
 - 35.8. Rust plugin guidance should center on action/context lifecycle wiring and explicit install/uninstall flows; plugin-export ownership is still best treated as host-layer responsibility in current docs architecture [F289]
 - 35.9. Transitive caller traversal can directly use `function::callers` outputs as node addresses with visited-set BFS/DFS and optional depth caps, because caller results are function-entry oriented [F290]
 - 35.10. String-harvest workflows in safe Rust are achievable with existing primitives (`segment::all` + `address::data_items` + `data::read_string`) when paired with bounded-read and printable-text heuristics [F291]
+- 35.11. General-purpose idax documentation should be C++-first (primary wrapper surface) with Rust kept for explicitly Rust-scoped scenarios; this reduces language-surface confusion for default readers [F292]
 
 ---
