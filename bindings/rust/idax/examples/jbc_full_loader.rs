@@ -34,8 +34,8 @@ fn run() -> Result<()> {
         ));
     }
 
-    let version = (magic & 1) as u32 + 1;
-    let delta = ((version - 1) * 8) as usize;
+    let version = if magic == MAGIC_V2 { 2u32 } else { 1u32 };
+    let delta = if version == 2 { 8usize } else { 0usize };
 
     let action_table = read_be_u32(&data, 4)?;
     let proc_table = read_be_u32(&data, 8)?;
