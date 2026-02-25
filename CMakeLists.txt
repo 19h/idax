@@ -144,7 +144,7 @@ target_compile_features(idax PUBLIC cxx_std_23)
 
 # Platform-specific compile options
 if(MSVC)
-    target_compile_options(idax PRIVATE /W4 /permissive-)
+    target_compile_options(idax PRIVATE /W4 /permissive- /Zc:__cplusplus)
 else()
     target_compile_options(idax PRIVATE -Wall -Wextra -Wpedantic)
 endif()
