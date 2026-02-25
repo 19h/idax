@@ -1277,3 +1277,8 @@
   - 16.27.2. The root cause was `ida_compiler_settings` inside the fetched `ida-sdk` interface automatically injecting `-flto` on GCC/Clang during `Release` builds.
   - 16.27.3. Fixed by forcing `INTERPROCEDURAL_OPTIMIZATION FALSE` explicitly on the `idax` target in `CMakeLists.txt` and passing `-fno-lto` for non-MSVC compilers.
   - 16.27.4. Additionally enforced `CMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF` in `idax-sys` `build.rs` to guarantee the static artifact fed to `cc` and `ld` is strictly non-LTO.
+
+- **16.28. Rust Bindings Runtime RPATH Fix**
+  - 16.28.1. Fixed a segmentation fault that occurred when users attempted to execute standalone Rust binaries (e.g., `cargo run`) on macOS/Linux. The crash occurred because the dynamic loader (`dyld`/`ld.so`) could not resolve the path to `libida.dylib`/`libida.so` at runtime due to missing `LC_RPATH` records in the output executable.
+  - 16.28.2. Updated `idax-sys/build.rs` to automatically emit `cargo:rustc-link-arg=-Wl,-rpath,<sdk_lib_dir>` whenever the SDK library directory is discovered.
+  - 16.28.3. This ensures any downstream executable correctly embeds the path to the IDA SDK runtime libraries without forcing the user to manually configure `DYLD_LIBRARY_PATH` or `LD_LIBRARY_PATH`.
