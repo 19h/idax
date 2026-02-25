@@ -11,6 +11,10 @@ categories.workspace = true
 description = "Safe, idiomatic Rust bindings for the IDA SDK via idax"
 readme = "README.md"
 
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "x86_64-apple-darwin", "aarch64-apple-darwin"]
+
 [dependencies]
 idax-sys = { workspace = true }
 thiserror = { workspace = true }

@@ -76,6 +76,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.57"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75443c44cd6b379beb8c5b45d85d0773baf31cce901fe7bb252f4eff3008ef7d"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -107,7 +116,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "idax"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bitflags",
  "idax-sys",
@@ -116,10 +125,11 @@ dependencies = [
 
 [[package]]
 name = "idax-sys"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bindgen",
  "cc",
+ "cmake",
 ]
 
 [[package]]

@@ -22,9 +22,14 @@ include = [
     "README.md",
 ]
 
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "x86_64-apple-darwin", "aarch64-apple-darwin"]
+
 [build-dependencies]
 bindgen = "0.71"
 cc = { version = "1", features = ["parallel"] }
+cmake = "0.1.57"
 
 [features]
 default = []

@@ -2,14 +2,72 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    // ── Locate roots ────────────────────────────────────────────────────
+    // ── Check if building on docs.rs ────────────────────────────────────
+    if env::var("DOCS_RS").is_ok() {
+        // When building on docs.rs, we don't have access to the IDA SDK
+        // or network, so we can't build idax or run bindgen. We instead
+        // copy the pre-generated bindings from the repository.
+        let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+        let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+        let pre_generated = manifest_dir.join("src").join("bindings.rs");
+        if pre_generated.exists() {
+            std::fs::copy(&pre_generated, out_dir.join("bindings.rs"))
+                .expect("Failed to copy pre-generated bindings to OUT_DIR");
+        } else {
+            // Just create an empty file so it compiles, though documentation
+            // will be empty.
+            std::fs::write(out_dir.join("bindings.rs"), "")
+                .expect("Failed to create dummy bindings.rs");
+        }
+        return;
+    }
+
+    // ── Locate or clone idax ────────────────────────────────────────────
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let idax_root = manifest_dir
-        .join("..")
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("Cannot resolve idax root (expected ../../.. from crate)");
+
+    let idax_root = if let Ok(idax_dir) = env::var("IDAX_DIR") {
+        if !idax_dir.is_empty() {
+            PathBuf::from(idax_dir)
+                .canonicalize()
+                .expect("IDAX_DIR must be a valid path")
+        } else {
+            fallback(&manifest_dir)
+        }
+    } else {
+        fallback(&manifest_dir)
+    };
+
+    fn fallback(manifest_dir: &std::path::Path) -> PathBuf {
+        let parent_idax = manifest_dir.join("..").join("..").join("..");
+        if parent_idax.join("CMakeLists.txt").exists() {
+            parent_idax
+                .canonicalize()
+                .expect("Failed to canonicalize parent idax dir")
+        } else {
+            // Fallback: Clone from GitHub
+            let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+            let checkout_dir = out_dir.join("idax-github");
+            if !checkout_dir.join("CMakeLists.txt").exists() {
+                println!("cargo:warning=Cloning idax from GitHub to {:?}", checkout_dir);
+                let url = "https://github.com/19h/idax.git";
+                
+                let status = std::process::Command::new("git")
+                    .arg("clone")
+                    .arg("--recurse-submodules")
+                    .arg(url)
+                    .arg(&checkout_dir)
+                    .status()
+                    .unwrap_or_else(|e| panic!("Failed to execute git clone: {}", e));
+                    
+                if !status.success() {
+                    panic!("Failed to clone idax from GitHub ({})", url);
+                }
+            }
+            checkout_dir
+        }
+    }
+
+    println!("cargo:rerun-if-env-changed=IDAX_DIR");
 
     let idasdk_env =
         PathBuf::from(env::var("IDASDK").expect("IDASDK environment variable must be set"));
@@ -30,29 +88,14 @@ fn main() {
     let idax_include = idax_root.join("include");
     let shim_dir = manifest_dir.join("shim");
 
-    // ── Locate pre-built libidax.a ──────────────────────────────────────
-    // Search common build output directories
-    let libidax_search_dirs = [
-        idax_root.join("build"),
-        idax_root.join("build").join("Release"),
-        idax_root.join("build").join("Debug"),
-        idax_root.join("cmake-build-release"),
-        idax_root.join("cmake-build-debug"),
-    ];
-
-    let libidax_dir = libidax_search_dirs
-        .iter()
-        .find(|d| d.join("libidax.a").exists())
-        .unwrap_or_else(|| {
-            panic!(
-                "Cannot find pre-built libidax.a in any of: {:?}. \
-                 Build idax first with CMake.",
-                libidax_search_dirs
-            );
-        });
+    // ── Build idax with CMake ───────────────────────────────────────────
+    let dst = cmake::Config::new(&idax_root)
+        .define("IDAX_BUILD_EXAMPLES", "OFF")
+        .define("IDAX_BUILD_TESTS", "OFF")
+        .build();
+    let libidax_dir = dst.join("lib");
 
     // ── Locate IDA SDK libraries ────────────────────────────────────────
-    // idalib is typically in $IDASDK/lib/x64_mac_clang_64 on macOS
     let sdk_lib_dir = if cfg!(target_os = "macos") {
         if cfg!(target_arch = "aarch64") {
             idasdk.join("lib").join("arm64_mac_clang_64")
@@ -67,7 +110,6 @@ fn main() {
         panic!("Unsupported target OS for IDA SDK");
     };
 
-    // Fall back to just lib/ if platform-specific dir doesn't exist
     let sdk_lib_dir = if sdk_lib_dir.exists() {
         sdk_lib_dir
     } else {
@@ -83,7 +125,6 @@ fn main() {
         .include(idasdk.join("include"))
         .define("__EA64__", None)
         .define("__IDP__", None)
-        // Suppress warnings in SDK headers
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-sign-compare")
         .flag_if_supported("-Wno-deprecated-declarations")
@@ -97,7 +138,6 @@ fn main() {
         println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
     }
 
-    // Link idalib (IDA's headless library)
     if sdk_lib_dir.join("libida.dylib").exists() {
         println!("cargo:rustc-link-lib=dylib=ida");
     } else if sdk_lib_dir.join("libida64.dylib").exists() {
@@ -108,7 +148,6 @@ fn main() {
         println!("cargo:rustc-link-lib=dylib=ida64");
     }
 
-    // Link C++ standard library
     if cfg!(target_os = "macos") {
         println!("cargo:rustc-link-lib=c++");
     } else if cfg!(target_os = "linux") {
@@ -133,8 +172,8 @@ fn main() {
         .write_to_file(out_dir.join("bindings.rs"))
         .expect("Failed to write bindings.rs");
 
-    // ── Rerun triggers ──────────────────────────────────────────────────
     println!("cargo:rerun-if-changed=shim/idax_shim.h");
     println!("cargo:rerun-if-changed=shim/idax_shim.cpp");
     println!("cargo:rerun-if-env-changed=IDASDK");
+    println!("cargo:rerun-if-env-changed=DOCS_RS");
 }
