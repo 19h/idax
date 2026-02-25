@@ -12,9 +12,7 @@
 
 import * as fs from 'fs';
 import type { Address, IdaxError } from '../lib/index';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const idax = require('../lib/index.js') as typeof import('../lib/index');
+import * as idax from '../lib/index.js';
 
 interface Options {
     readonly input: string;

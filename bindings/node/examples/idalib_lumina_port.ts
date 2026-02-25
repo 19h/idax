@@ -8,12 +8,9 @@
  */
 
 import type { Address, IdaxError } from '../lib/index';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const idax = require('../lib/index.js') as typeof import('../lib/index');
+import * as idax from '../lib/index.js';
 
 const { database, analysis, function: fn, name, lumina } = idax;
-const BAD_ADDRESS: Address = 0xffffffffffffffffn;
 
 function hex(address: Address): string {
     return `0x${address.toString(16)}`;
@@ -33,7 +30,7 @@ function errorMessage(err: unknown): string {
 
 function resolveTargetFunction(): Address {
     try {
-        return name.resolve('main', BAD_ADDRESS);
+        return name.resolve('main', idax.BadAddress);
     } catch {
         return fn.byIndex(0).start;
     }

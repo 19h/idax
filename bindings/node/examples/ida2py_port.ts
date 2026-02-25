@@ -10,10 +10,7 @@
  */
 
 import type { Address, IdaxError } from '../lib/index';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const idax = require('../lib/index.js') as typeof import('../lib/index');
-const BAD_ADDRESS: Address = 0xffffffffffffffffn;
+import * as idax from '../lib/index.js';
 
 type CastRequest = { target: string; declaration: string };
 
@@ -66,7 +63,7 @@ function resolveSymbolOrAddress(token: string): Address {
     if (direct !== null) {
         return direct;
     }
-    return name.resolve(token, BAD_ADDRESS);
+    return name.resolve(token, idax.BadAddress);
 }
 
 function parseOptions(args: readonly string[]): Options {
@@ -158,7 +155,7 @@ function parseOptions(args: readonly string[]): Options {
 }
 
 function listUserSymbols(maxSymbols: number): void {
-    const entries = name.allUserDefined(BAD_ADDRESS, BAD_ADDRESS);
+    const entries = name.allUserDefined(idax.BadAddress, idax.BadAddress);
     console.log('Address              Name                                Type');
     console.log('--------------------------------------------------------------------------');
     for (const entry of entries.slice(0, maxSymbols)) {

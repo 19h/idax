@@ -1378,3 +1378,16 @@
   - 16.41.1. Added `docs/example_port_mapping_bindings.md` with a source-to-bindings matrix covering tools/loaders/procmods/plugins.
   - 16.41.2. Classified each mapped row as `Direct`, `Adapted`, `N/A (host-constrained)`, or `Pending` and documented current focus boundaries (Node headless tooling vs Rust standalone adaptations).
   - 16.41.3. Marked `P19.5` complete in `.agents/roadmap.md`.
+
+- **16.42. Phase 19 Runtime Validation Sweep (Partial) + Host Blocker Capture**
+  - 16.42.1. Re-ran Node example type validation after ESM import migration with `npx tsc -p examples/tsconfig.json --noEmit` from `bindings/node` (pass).
+  - 16.42.2. Executed Node runtime smokes for `examples/idalib_lumina_port.ts`, `examples/idalib_dump_port.ts --list`, and `examples/ida2py_port.ts --list-user-symbols --max-symbols 5`; all failed consistently at addon load time because `bindings/node/build/Release/idax_native.node` could not resolve `@rpath/libidalib.dylib` on this host.
+  - 16.42.3. Executed Rust runtime smokes against `tests/fixtures/simple_appcall_linux64.i64` and observed successful runs for:
+    - `action_plugin` (`add-bookmark` flow)
+    - `event_monitor_plugin`
+    - `storage_metadata_plugin`
+    - `deep_analysis_plugin`
+    - `decompiler_plugin`
+  - 16.42.4. Updated `.agents/roadmap.md` to advance `P19.6` from pending to in-progress and to reflect partial validation outcomes (Rust pass evidence + Node runtime blocker).
+  - 16.42.5. Recorded environment/runtime-discovery finding [F296] and mirrored it into `.agents/knowledge_base.md` Section 36; updated `.agents/active_work.md` Section 6.2 with blocker details + mitigation path.
+  - 16.42.6. Attempted host override mitigation by rerunning all three Node runtime smokes with `IDADIR` and `DYLD_LIBRARY_PATH` pointed at `/Applications/IDA Professional 9.3.app/Contents/MacOS`; failure persisted with `dlopen` probing only stale `/Users/int/hexrays/ida/...` path, indicating addon rpath/install-name correction is required before Node runtime matrix can be completed.

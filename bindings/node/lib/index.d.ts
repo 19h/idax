@@ -26,6 +26,9 @@ export type AddressDelta = bigint;
 /** Opaque subscription/event token. Always a BigInt. */
 export type Token = bigint;
 
+/** Sentinel invalid address value (`0xFFFFFFFFFFFFFFFFn`). */
+export const BadAddress: Address;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Error types
 // ═══════════════════════════════════════════════════════════════════════════

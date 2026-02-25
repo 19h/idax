@@ -379,4 +379,8 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 295. Node TypeScript declarations currently do not expose a top-level `BadAddress` constant even though address sentinels are needed by tools/examples. Tool-style TS examples should define a local `BAD_ADDRESS` sentinel (`0xffffffffffffffffn`) or add a typed export in the Node bindings surface.
 
+296. Node example runtime validation can fail even when TypeScript checks pass if `idax_native.node` cannot resolve `@rpath/libidalib.dylib`; on this host all new Node tool examples failed at addon load with a hardcoded probe path under `/Users/int/hexrays/ida/bin/arm64_mac_clang_opt/ida.app/Contents/MacOS/libidalib.dylib` that does not exist. Capture this as an environment/runtime-linkage blocker distinct from example source correctness.
+
+297. On this host, setting `IDADIR` and `DYLD_LIBRARY_PATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS` did not resolve Node addon startup failures; `dlopen` still only probed the stale embedded path under `/Users/int/hexrays/ida/...`, indicating the current `idax_native.node` binary needs rpath/install-name correction (or rebuild) rather than runtime env overrides alone.
+
 These are to be referenced as [FXX] in the live knowledge base.
