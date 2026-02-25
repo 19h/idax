@@ -166,6 +166,9 @@ fn main() {
 
     if sdk_lib_dir.exists() {
         println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
+        // For standalone Rust binaries/tests to load the IDA dylibs dynamically
+        // at runtime on macOS and Linux without setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH:
+        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", sdk_lib_dir.display());
     }
 
     if sdk_lib_dir.join("libida.dylib").exists() {
