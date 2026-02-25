@@ -5,6 +5,9 @@ use idax::processor;
 use idax::processor::Processor;
 use idax::{Error, Result};
 
+const MAGIC_V1: u32 = 0x0043424a;
+const MAGIC_V2: u32 = 0x0143424a;
+
 #[derive(Debug, Clone, Copy)]
 enum OperandKind {
     None,
@@ -62,6 +65,26 @@ fn instruction_size(opcode: u8) -> usize {
 
 fn read_be_u32(bytes: &[u8]) -> u32 {
     u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+}
+
+fn read_be_u32_at(bytes: &[u8], offset: usize) -> Option<u32> {
+    let window = bytes.get(offset..offset + 4)?;
+    Some(read_be_u32(window))
+}
+
+fn jbc_code_offset(bytes: &[u8]) -> Option<usize> {
+    let magic = read_be_u32_at(bytes, 0)?;
+    if magic != MAGIC_V1 && magic != MAGIC_V2 {
+        return None;
+    }
+
+    let delta = if magic == MAGIC_V2 { 8usize } else { 0usize };
+    let code_offset = read_be_u32_at(bytes, 24 + delta)? as usize;
+    if code_offset < bytes.len() {
+        Some(code_offset)
+    } else {
+        None
+    }
 }
 
 fn format_operand(kind: OperandKind, value: u32) -> String {
@@ -129,7 +152,10 @@ fn run() -> Result<()> {
         info.short_names.first().cloned().unwrap_or_default()
     );
 
-    let mut offset = 0usize;
+    let mut offset = jbc_code_offset(&bytes).unwrap_or(0usize);
+    if offset != 0 {
+        println!("disassembling from code section offset: 0x{offset:08x}");
+    }
     let mut count = 0usize;
     while offset < bytes.len() && count < max_count {
         let opcode = bytes[offset];

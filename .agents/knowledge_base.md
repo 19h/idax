@@ -837,5 +837,8 @@ Note:
 - 36.4. For the current Node addon build, runtime env overrides (`IDADIR`, `DYLD_LIBRARY_PATH`) are insufficient when the binary embeds a stale runtime search path; if `dlopen` still probes only the stale path, resolve via addon rpath/install-name fix or rebuild with correct IDA runtime root [F297]
 - 36.5. Operational recovery for stale Node addon linkage is deterministic: rebuild `bindings/node` with `IDADIR` set to the intended IDA runtime root so `idax_native.node` receives a corrected `LC_RPATH`; this fixes load failures caused by stale embedded search paths [F298]
 - 36.6. Runtime validation orchestration for headless examples should avoid parallel opens of the same IDB fixture across multiple processes, because concurrent opens can produce transient `open_database failed` outcomes unrelated to example logic; run matrix rows sequentially for stable evidence [F299]
+- 36.7. JBC header-version decoding in adapted loaders should use explicit magic-to-version mapping, not low-bit arithmetic, when accepted magic constants share the same LSB; otherwise V2 fields can be parsed with V1 offsets and produce incorrect section metadata [F300]
+- 36.8. For procmod/disassembler adaptations over containerized bytecode formats, defaulting decode start to the format's `code_section` offset yields materially better output quality than decoding from file start, while preserving a fallback path for raw-byte inputs [F301]
+- 36.9. Synthetic, runtime-generated fixture binaries are acceptable for adaptation smoke validation when canonical format samples are unavailable in-repo, provided generation parameters and commands are captured in the validation matrix evidence [F302]
 
 ---

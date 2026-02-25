@@ -1402,3 +1402,13 @@
   - 16.43.4. Re-ran `cargo check -p idax --examples` (pass) and expanded runtime evidence matrix in `docs/example_port_mapping_bindings.md`, including explicit pending rows for JBC-specific examples awaiting representative `.jbc` fixture inputs.
   - 16.43.5. Updated planning trackers: advanced Phase 19 summary in `.agents/roadmap.md`, moved `P19.4` to in-progress, kept `P19.6` in-progress with matrix status, and refreshed `.agents/active_work.md` Section 6.2 to remove resolved Node-linkage block and capture remaining fixture dependency.
   - 16.43.6. Recorded findings [F298] and [F299] and mirrored them into `.agents/knowledge_base.md` Section 36.
+
+- **16.44. JBC Runtime Matrix Closeout + Adaptation Correctness Fixes**
+  - 16.44.1. Closed JBC runtime evidence gap by generating a synthetic temporary fixture (`/tmp/idax_phase19_sample.jbc`) and validating both JBC adaptation examples successfully:
+    - `cargo run -p idax --example jbc_full_loader -- /tmp/idax_phase19_sample.jbc`
+    - `cargo run -p idax --example jbc_full_procmod -- /tmp/idax_phase19_sample.jbc --max 12`
+  - 16.44.2. Fixed JBC loader version decoding bug in `bindings/rust/idax/examples/jbc_full_loader.rs` by replacing low-bit derivation with explicit magic comparison (`MAGIC_V1`/`MAGIC_V2`), restoring correct V2 header offset parsing.
+  - 16.44.3. Improved `bindings/rust/idax/examples/jbc_full_procmod.rs` to auto-detect JBC header/code-section offset and start disassembly at `code_section` when available, while preserving offset-0 fallback for non-JBC/raw streams.
+  - 16.44.4. Updated `docs/example_port_mapping_bindings.md` runtime snapshot to mark JBC rows as passing (synthetic fixture evidence), and updated `.agents/roadmap.md` to mark `P19.6` complete.
+  - 16.44.5. Updated active queue hygiene in `.agents/active_work.md` by collapsing Section 6.2 to fixture-independent ongoing status (Node linkage blocker removed; runtime sweep no longer blocked).
+  - 16.44.6. Recorded findings [F300]-[F302] and mirrored into `.agents/knowledge_base.md` Section 36.

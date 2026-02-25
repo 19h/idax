@@ -387,4 +387,10 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 299. Headless runtime smokes that open the same IDB/fixture concurrently can produce transient `open_database failed` errors across separate Node example processes; running the validation matrix sequentially avoids this lock/contention artifact and yields stable pass evidence.
 
+300. In `bindings/rust/idax/examples/jbc_full_loader.rs`, deriving JBC version via `(magic & 1) + 1` is incorrect for the current accepted magic constants (`0x0043424a`, `0x0143424a`) because both have LSB 0; version must be selected by explicit magic comparison to parse V1/V2 header layouts correctly.
+
+301. `bindings/rust/idax/examples/jbc_full_procmod.rs` produces much more representative disassembly when it auto-detects JBC headers and starts decoding at `code_section` (`24 + delta`), rather than byte 0 (header area). A fallback to offset 0 remains useful for non-JBC/raw byte streams.
+
+302. A small synthetic JBC fixture generated at runtime (temporary file) is sufficient to validate successful-path behavior for both `jbc_full_loader` and `jbc_full_procmod` adaptations when no canonical `.jbc` sample is available in-repo.
+
 These are to be referenced as [FXX] in the live knowledge base.

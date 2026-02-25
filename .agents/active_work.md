@@ -74,9 +74,3 @@
 - **6.1. Remaining Rust Adaptation Coverage**
   - 6.1.1. **Action:** Continue adding standalone/adapted Rust ports for remaining source examples that are not blocked on plugin/procmod host export macros.
   - 6.1.2. **Status:** In progress.
-
-- **6.2. Runtime Validation Sweep**
-  - 6.2.1. **Action:** Run newly added Rust/Node tool examples on a known-good idalib host and capture a pass/fail evidence matrix.
-  - 6.2.2. **Current state:** Node runtime matrix rows (`idalib_dump_port`, `ida2py_port`, `idalib_lumina_port`) now pass after rebuilding addon with correct `IDADIR`; Rust adaptation rows also pass for `minimal_procmod`, `advanced_procmod`, `action_plugin`, `event_monitor_plugin`, `decompiler_plugin`, `storage_metadata_plugin`, `deep_analysis_plugin`, and `ida_names_port_plugin`.
-  - 6.2.3. **Remaining gap:** JBC-specific runtime rows (`jbc_full_loader`, `jbc_full_procmod`) still need representative `.jbc` fixture input for successful-path validation.
-  - 6.2.4. **Status:** In progress / fixture-dependent closeout.
