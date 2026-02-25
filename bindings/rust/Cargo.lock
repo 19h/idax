@@ -116,7 +116,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "idax"
-version = "0.2.7"
+version = "0.3.0"
 dependencies = [
  "bitflags",
  "idax-sys",
@@ -124,12 +124,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "idax-build"
-version = "0.2.7"
-
-[[package]]
 name = "idax-sys"
-version = "0.2.7"
+version = "0.3.0"
 dependencies = [
  "bindgen",
  "cc",
@@ -276,9 +272,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "syn"
-version = "2.0.116"
+version = "2.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3df424c70518695237746f84cede799c9c58fcb37450d7b23716568cc8bc69cb"
+checksum = "e665b8803e7b1d2a727f4023456bbbbe74da67099c585258af0ad9c5013b9b99"
 dependencies = [
  "proc-macro2",
  "quote",

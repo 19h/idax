@@ -19,35 +19,33 @@ Raw `extern "C"` FFI bindings to the [idax](https://github.com/19h/idax) C++ IDA
 
 Building this crate requires:
 
-1. **IDA SDK** — set the `IDASDK` environment variable to the SDK root directory (must contain an `include/` subdirectory)
-2. **Pre-built `libidax.a`** — build the [idax](https://github.com/19h/idax) C++ project with CMake first. The build script searches these directories:
-   - `<idax-root>/build/`
-   - `<idax-root>/build/Release/`
-   - `<idax-root>/build/Debug/`
-   - `<idax-root>/cmake-build-release/`
-   - `<idax-root>/cmake-build-debug/`
-3. **C++23 compiler** — the shim is compiled with `cc` using `-std=c++23`
-4. **Rust 2024 edition** (nightly or stable 1.85+)
+1. **IDA Pro** installed in a standard location (or `$IDADIR` set)
+2. **CMake** and a **C++23 compiler**
+3. **Rust 2024 edition** (nightly or stable 1.85+)
+
+The build script handles everything else automatically: it builds the idax C++ library with CMake, fetches the IDA SDK if `$IDASDK` is not set, compiles the C shim, runs bindgen, and links everything together.
 
 ## Installation
 
 ```toml
 [dependencies]
-idax-sys = "0.2"
+idax-sys = "0.3"
 ```
 
 ## Build environment
 
+No manual setup required. The build script auto-discovers your IDA installation:
+
+1. **`$IDADIR`** — explicit override
+2. **macOS**: `/Applications/IDA*.app/Contents/MacOS` (newest first)
+3. **Linux**: `/opt/idapro*`, `/opt/ida-*`, `/opt/ida`, `~/ida*`
+
+Optional environment variables:
+
 ```sh
-# Point to your IDA SDK
-export IDASDK=/path/to/idasdk
-
-# Build idax C++ library first (from the idax repo root)
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-
-# Now cargo build will find libidax.a and the SDK
-cargo build
+export IDASDK=/path/to/idasdk   # Override SDK location (otherwise auto-fetched)
+export IDADIR=/path/to/ida       # Override IDA runtime location
+export IDAX_DIR=/path/to/idax    # Override idax source tree (otherwise auto-cloned)
 ```
 
 ## FFI conventions
