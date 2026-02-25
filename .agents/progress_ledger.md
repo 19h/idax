@@ -1271,3 +1271,9 @@
   - 16.26.1. Fixed an issue where standalone Rust applications (like `cx`) would fail to link because `idalib` was not being supplied to the Rust compiler for symbol resolution.
   - 16.26.2. Updated `idax-sys/build.rs` to conditionally emit `cargo:rustc-link-lib=dylib=idalib` (and corresponding extensions/architectures) alongside `ida` / `ida64`.
   - 16.26.3. Standalone binaries now link correctly against the required IDA SDK kernel stubs.
+
+- **16.27. Rust Bindings GNU ld LTO Fix**
+  - 16.27.1. Addressed an issue reported by a user where compiling standalone Rust applications failed under GNU `ld` complaining that `libidax.a` was compiled with LTO (`-flto`) and could not be processed.
+  - 16.27.2. The root cause was `ida_compiler_settings` inside the fetched `ida-sdk` interface automatically injecting `-flto` on GCC/Clang during `Release` builds.
+  - 16.27.3. Fixed by forcing `INTERPROCEDURAL_OPTIMIZATION FALSE` explicitly on the `idax` target in `CMakeLists.txt` and passing `-fno-lto` for non-MSVC compilers.
+  - 16.27.4. Additionally enforced `CMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF` in `idax-sys` `build.rs` to guarantee the static artifact fed to `cc` and `ld` is strictly non-LTO.
