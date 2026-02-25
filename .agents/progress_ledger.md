@@ -1251,3 +1251,10 @@
   - 16.23.5. Wrote automated test script `integration/test_integrations.sh` that configures and builds both `fetch_content` and `add_subdirectory` setups successfully.
   - 16.23.6. Validation evidence: Both configurations configure correctly, download `ida-sdk` via `FetchContent`, bootstrap `ida-cmake`, and build `hello_world.dylib` linking successfully against `idax::idax` and `idasdk::plugin`.
   - 16.23.7. Recorded finding [F281].
+
+- **16.24. Rust Bindings IDASDK FetchContent Convergence**
+  - 16.24.1. Updated `idax-sys` `build.rs` to inherit the new `FetchContent` behavior introduced in C++ build.
+  - 16.24.2. Made the `IDASDK` environment variable fully optional in `build.rs` rather than panicking on absence.
+  - 16.24.3. When unset, `build.rs` now correctly overrides the environment passed to `cmake::Config` (setting `IDASDK=""`) forcing the CMake project to fetch `ida-sdk`.
+  - 16.24.4. `build.rs` then locates the fetched headers and stubs inside CMake's `_deps/ida_sdk-src` output directory to successfully run `bindgen` and compilation phases without any prior external state.
+  - 16.24.5. Validation evidence: `cargo build` now correctly passes when `IDASDK` is entirely unset or empty.
