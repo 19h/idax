@@ -330,6 +330,9 @@ fn main() {
     let compiler = build.get_compiler();
     if compiler.is_like_clang() && cfg!(target_os = "macos") {
         build.flag("-std=c++2b");
+    } else if compiler.is_like_msvc() {
+        build.flag("/std:c++latest");
+        build.flag("/Zc:__cplusplus");
     } else {
         build.std("c++23");
     }
