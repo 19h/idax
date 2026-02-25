@@ -93,3 +93,14 @@
   - 7.1.4. Split `database.cpp` → `database.cpp` (plugin-safe) + `database_lifecycle.cpp` (idalib-only)
   - 7.1.5. All 7 plugins, 3 loaders, 3 procmods build and link clean; 16/16 tests pass
   - 7.1.6. **Status:** Resolved
+
+---
+
+### 8. Vendoring IDA SDK and Artifact Output Isolation (Phase 16) — RESOLVED
+
+- **8.1. Resolution Summary**
+  - 8.1.1. Added `third-party/ida-sdk` (HexRaysSA) and `third-party/ida-cmake` (allthingsida) as Git submodules.
+  - 8.1.2. Configured `CMakeLists.txt` to automatically default to the vendored SDK when `$ENV{IDASDK}` is unset, including auto-initialization of submodules via `execute_process()`.
+  - 8.1.3. Modified `CMakeLists.txt` to override `IDABIN` to `${CMAKE_CURRENT_BINARY_DIR}/idabin`, isolating all built artifacts (plugins, loaders, procmods) to a local directory instead of polluting the vendored `ida-sdk` path.
+  - 8.1.4. Validation: Verified that `cmake .. && make` works out of the box and outputs cleanly to `build/idabin/`.
+  - 8.1.5. **Status:** Resolved

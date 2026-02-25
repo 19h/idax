@@ -1,6 +1,25 @@
 cmake_minimum_required(VERSION 3.27)
 project(idax VERSION 0.1.0 LANGUAGES CXX)
 
+# ── Vendored Dependencies ────────────────────────────────────────────────
+if(NOT DEFINED ENV{IDASDK} OR "$ENV{IDASDK}" STREQUAL "")
+    set(ENV{IDASDK} "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-sdk")
+    message(STATUS "IDASDK not set in environment, using vendored: $ENV{IDASDK}")
+    
+    # Initialize submodules if the directory is empty
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-sdk/src/include/pro.h")
+        message(STATUS "Vendored ida-sdk appears empty. Initializing submodules...")
+        execute_process(
+            COMMAND git submodule update --init third-party/ida-sdk third-party/ida-cmake
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE GIT_SUBMOD_RESULT
+        )
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "Failed to initialize submodules. Run 'git submodule update --init' manually.")
+        endif()
+    endif()
+endif()
+
 # ── Bootstrap ida-cmake ──────────────────────────────────────────────────
 # IDASDK may point either to an SDK root that contains `ida-cmake/`, or to
 # a GitHub checkout root where SDK contents live under `src/`.
@@ -10,7 +29,9 @@ if(NOT IDASDK_BOOTSTRAP_ROOT)
     message(FATAL_ERROR "IDASDK is not set. Set IDASDK to your IDA SDK path.")
 endif()
 
-if(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-cmake/bootstrap.cmake")
+    set(IDASDK_BOOTSTRAP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-cmake/bootstrap.cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
     set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
 elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
     set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
@@ -32,6 +53,12 @@ endif()
 
 set(ENV{IDASDK} "${IDASDK_BOOTSTRAP_ROOT}")
 include("${IDASDK_BOOTSTRAP_FILE}")
+
+# Set IDABIN to build artifacts in a local idax folder instead of vendored ida-sdk
+if(NOT DEFINED IDABIN)
+    set(IDABIN "${CMAKE_CURRENT_BINARY_DIR}/idabin" CACHE PATH "Output directory for IDA artifacts")
+    message(STATUS "Setting IDABIN to local build folder: ${IDABIN}")
+endif()
 
 find_package(idasdk REQUIRED)
 
