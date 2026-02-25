@@ -375,4 +375,8 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 293. Case-10 safety/performance guidance should be framed as `idax` wrapper vs raw IDA SDK (C++), not Rust safe bindings vs `idax-sys`; using the wrong layer framing causes mismatch with the library's primary audience and stated use case intent.
 
+294. Cargo treats every top-level `bindings/rust/idax/examples/*.rs` file as a standalone example crate; shared helper code placed at `examples/common.rs` is therefore compiled as an example and fails without `main`. Shared helpers should live in a module directory (for example `examples/common/mod.rs`) and be imported with `mod common;` from actual example binaries.
+
+295. Node TypeScript declarations currently do not expose a top-level `BadAddress` constant even though address sentinels are needed by tools/examples. Tool-style TS examples should define a local `BAD_ADDRESS` sentinel (`0xffffffffffffffffn`) or add a typed export in the Node bindings surface.
+
 These are to be referenced as [FXX] in the live knowledge base.

@@ -66,3 +66,15 @@
   - 5.1.4. `ida::ui::Widget` lacks a `set_title()` method. (Note: The IDA SDK itself lacks `set_widget_title`; in idax this is bridged through `ida::ui::with_widget_host_as<QWidget>` when Qt-level control is needed.)
   - 5.1.5. **Action:** Evaluate adding `current_widget()`, `on_switch_pseudocode`, and a string-only `demangled(string_view)` overload to close these ergonomic gaps.
   - 5.1.6. **Status:** Pending triage.
+
+---
+
+### 6. Phase 19 Example-Port Continuation
+
+- **6.1. Remaining Rust Adaptation Coverage**
+  - 6.1.1. **Action:** Continue adding standalone/adapted Rust ports for remaining source examples that are not blocked on plugin/procmod host export macros.
+  - 6.1.2. **Status:** In progress.
+
+- **6.2. Runtime Validation Sweep**
+  - 6.2.1. **Action:** Run newly added Rust/Node tool examples on a known-good idalib host and capture a pass/fail evidence matrix.
+  - 6.2.2. **Status:** Pending / host-dependent.

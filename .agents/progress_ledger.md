@@ -1357,3 +1357,24 @@
   - 16.39.3. Updated `.agents/roadmap.md` Phase 18 summary and `P18.8` wording to reflect the corrected case-10 scope.
   - 16.39.4. Recorded finding [F293] and mirrored it in `.agents/knowledge_base.md` Section 35.12.
   - 16.39.5. Evidence: file-level verification confirms the tutorial and all references now describe wrapper-vs-raw-SDK semantics.
+
+- **16.40. Examples-to-Bindings Continuation (Phase 19 Kickoff)**
+  - 16.40.1. Added Node standalone tool-style ports under `bindings/node/examples/`:
+    - `idalib_dump_port.ts`
+    - `idalib_lumina_port.ts`
+    - `ida2py_port.ts`
+  - 16.40.2. Added Rust standalone adaptation examples under `bindings/rust/idax/examples/`:
+    - `minimal_procmod.rs`
+    - `advanced_procmod.rs`
+    - `jbc_full_loader.rs`
+    - `jbc_full_procmod.rs`
+  - 16.40.3. Restructured Rust shared example helpers from `examples/common.rs` to `examples/common/mod.rs` so Cargo does not treat helper-only code as an example crate requiring `main`.
+  - 16.40.4. Updated Phase-19 planning status in `.agents/roadmap.md` and initialized explicit P19 task checklist.
+  - 16.40.5. Evidence:
+    - `cargo check -p idax --examples` (pass)
+    - `npx tsc -p examples/tsconfig.json --noEmit` (pass)
+
+- **16.41. Binding Example Mapping Matrix Added**
+  - 16.41.1. Added `docs/example_port_mapping_bindings.md` with a source-to-bindings matrix covering tools/loaders/procmods/plugins.
+  - 16.41.2. Classified each mapped row as `Direct`, `Adapted`, `N/A (host-constrained)`, or `Pending` and documented current focus boundaries (Node headless tooling vs Rust standalone adaptations).
+  - 16.41.3. Marked `P19.5` complete in `.agents/roadmap.md`.
