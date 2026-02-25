@@ -3,21 +3,29 @@ project(idax VERSION 0.1.0 LANGUAGES CXX)
 
 # ── Vendored Dependencies ────────────────────────────────────────────────
 if(NOT DEFINED ENV{IDASDK} OR "$ENV{IDASDK}" STREQUAL "")
-    set(ENV{IDASDK} "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-sdk")
-    message(STATUS "IDASDK not set in environment, using vendored: $ENV{IDASDK}")
+    message(STATUS "IDASDK not set in environment, fetching ida-sdk via FetchContent...")
+    include(FetchContent)
     
-    # Initialize submodules if the directory is empty
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-sdk/src/include/pro.h")
-        message(STATUS "Vendored ida-sdk appears empty. Initializing submodules...")
-        execute_process(
-            COMMAND git submodule update --init third-party/ida-sdk third-party/ida-cmake
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            RESULT_VARIABLE GIT_SUBMOD_RESULT
-        )
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "Failed to initialize submodules. Run 'git submodule update --init' manually.")
-        endif()
+    FetchContent_Declare(
+        ida_sdk
+        GIT_REPOSITORY https://github.com/HexRaysSA/ida-sdk.git
+        GIT_TAG        main
+        GIT_SHALLOW    TRUE
+        GIT_SUBMODULES_RECURSE TRUE
+    )
+    
+    # We use Populate directly because ida-sdk has no root CMakeLists.txt.
+    # To suppress CMP0169 warning on newer CMake versions:
+    if(POLICY CMP0169)
+        cmake_policy(SET CMP0169 OLD)
     endif()
+    
+    FetchContent_GetProperties(ida_sdk)
+    if(NOT ida_sdk_POPULATED)
+        FetchContent_Populate(ida_sdk)
+    endif()
+    
+    set(ENV{IDASDK} "${ida_sdk_SOURCE_DIR}")
 endif()
 
 # ── Bootstrap ida-cmake ──────────────────────────────────────────────────
@@ -29,9 +37,7 @@ if(NOT IDASDK_BOOTSTRAP_ROOT)
     message(FATAL_ERROR "IDASDK is not set. Set IDASDK to your IDA SDK path.")
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-cmake/bootstrap.cmake")
-    set(IDASDK_BOOTSTRAP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/third-party/ida-cmake/bootstrap.cmake")
-elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
+if(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
     set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake")
 elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
     set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")

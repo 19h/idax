@@ -104,3 +104,15 @@
   - 8.1.3. Modified `CMakeLists.txt` to override `IDABIN` to `${CMAKE_CURRENT_BINARY_DIR}/idabin`, isolating all built artifacts (plugins, loaders, procmods) to a local directory instead of polluting the vendored `ida-sdk` path.
   - 8.1.4. Validation: Verified that `cmake .. && make` works out of the box and outputs cleanly to `build/idabin/`.
   - 8.1.5. **Status:** Resolved
+
+---
+
+### 8. IDA-names Port — Identified API Gaps
+
+- **8.1. API Gaps Discovered During Porting**
+  - 8.1.1. `ida::ui` lacks a high-level `current_widget()` polling API. `ida_kernwin.get_current_widget()` has no idax equivalent; plugin authors must manually subscribe to `on_current_widget_changed` to track the active view.
+  - 8.1.2. `ida::decompiler` lacks an `on_switch_pseudocode` subscription (wrapping `hxe_switch_pseudocode`). The port worked around this using `on_screen_ea_changed` and `on_current_widget_changed`.
+  - 8.1.3. `ida::name::demangled` requires an `ida::Address` context. The SDK's bare string demangler `demangle_name(const char*)` is not exposed, forcing plugins to use the address-based lookup rather than demangling an arbitrary string in memory.
+  - 8.1.4. `ida::ui::Widget` lacks a `set_title()` method. (Note: The IDA SDK itself lacks `set_widget_title`, requiring `ida_kernwin.PluginForm.TWidgetToPyQtWidget(view)` in Python. In idax, this is correctly bridged via `ida::ui::with_widget_host_as<QWidget>` dropping down to Qt).
+  - 8.1.5. **Action:** Evaluate adding `current_widget()`, `on_switch_pseudocode`, and a string-only `demangled(string_view)` overload to close these ergonomic gaps.
+  - 8.1.6. **Status:** Pending triage
