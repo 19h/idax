@@ -1,6 +1,16 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
+fn canonicalize_safe<P: AsRef<Path>>(p: P) -> std::io::Result<PathBuf> {
+    let canon = p.as_ref().canonicalize()?;
+    if let Some(s) = canon.to_str() {
+        if s.starts_with(r"\\?\") {
+            return Ok(PathBuf::from(&s[4..]));
+        }
+    }
+    Ok(canon)
+}
+
 /// Discover the IDA runtime directory. Checks $IDADIR first, then scans
 /// standard installation locations.
 fn discover_ida_dir() -> Option<PathBuf> {
@@ -189,9 +199,7 @@ fn main() {
 
     let idax_root = if let Ok(idax_dir) = env::var("IDAX_DIR") {
         if !idax_dir.is_empty() {
-            PathBuf::from(idax_dir)
-                .canonicalize()
-                .expect("IDAX_DIR must be a valid path")
+            canonicalize_safe(PathBuf::from(idax_dir)).expect("IDAX_DIR must be a valid path")
         } else {
             fallback(&manifest_dir)
         }
@@ -202,9 +210,7 @@ fn main() {
     fn fallback(manifest_dir: &std::path::Path) -> PathBuf {
         let parent_idax = manifest_dir.join("..").join("..").join("..");
         if parent_idax.join("CMakeLists.txt").exists() {
-            parent_idax
-                .canonicalize()
-                .expect("Failed to canonicalize parent idax dir")
+            canonicalize_safe(parent_idax).expect("Failed to canonicalize parent idax dir")
         } else {
             // Fallback: Clone from GitHub
             let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -309,9 +315,9 @@ fn main() {
     };
 
     // ── Compile C++ shim ────────────────────────────────────────────────
-    cc::Build::new()
+    let mut build = cc::Build::new();
+    build
         .cpp(true)
-        .std("c++23")
         .file(shim_dir.join("idax_shim.cpp"))
         .include(&idax_include)
         .include(idasdk.join("include"))
@@ -319,8 +325,16 @@ fn main() {
         .define("__IDP__", None)
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-sign-compare")
-        .flag_if_supported("-Wno-deprecated-declarations")
-        .compile("idax_shim");
+        .flag_if_supported("-Wno-deprecated-declarations");
+
+    let compiler = build.get_compiler();
+    if compiler.is_like_clang() && cfg!(target_os = "macos") {
+        build.flag("-std=c++2b");
+    } else {
+        build.std("c++23");
+    }
+
+    build.compile("idax_shim");
 
     // ── Link libraries ──────────────────────────────────────────────────
     println!("cargo:rustc-link-search=native={}", libidax_dir.display());

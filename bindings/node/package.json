@@ -32,9 +32,7 @@
     "@types/node": "^22.0.0"
   },
   "cmake-js": {
-    "CMakeLists.txt": "CMakeLists.txt",
-    "runtime": "node",
-    "runtimeVersion": "25.2.1"
+    "CMakeLists.txt": "CMakeLists.txt"
   },
   "repository": {
     "type": "git",

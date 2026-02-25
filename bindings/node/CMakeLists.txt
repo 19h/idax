@@ -209,6 +209,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 elseif(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive-)
+    target_compile_options(${PROJECT_NAME} PRIVATE /Zc:__cplusplus)
 endif()
 
 # Suppress NAN deprecation warnings on newer V8
