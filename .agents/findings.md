@@ -416,3 +416,7 @@ These are to be referenced as [FXX] in the live knowledge base.
 312. Examples labeled as headless adaptations (`_loader.rs`, `_procmod.rs`) for bindings lacking dynamic entrypoint export macros MUST interact dynamically with the IDA Database. A script merely parsing file offsets and printing an imaginary load/disassembly plan is a "fake" implementation. Authentic adaptations must use `DatabaseSession::open`, clear existing segments (`segment::remove`), create explicit ones (`segment::create`), copy bytes in (`loader::memory_to_database`), and iterate memory reading from the DB APIs (`data::read_byte`) to generate representations (`comment::set`, `name::force_set`, `instruction::create`).
 
 These are to be referenced as [FXX] in the live knowledge base.
+
+313. When using the official release of the IDA SDK (via `ida-cmake`), the `ida_compiler_settings` interface target aggressively injects `-flto` (Link Time Optimization) in `Release` mode. Because of CMake/GCC flag ordering, this can override target-level `-fno-lto` settings and cause downstream link failures (especially for Rust consumers linking a C++ static archive). The most robust fix is to physically strip `-flto` from `ida_compiler_settings`'s `INTERFACE_COMPILE_OPTIONS` via `list(FILTER ... EXCLUDE REGEX "-flto")`.
+
+These are to be referenced as [FXX] in the live knowledge base.

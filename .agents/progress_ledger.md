@@ -1461,3 +1461,14 @@
   - 16.49.4. Rewrote `advanced_procmod.rs` to function as an IDA script. Instead of parsing hex strings from `argv`, it now opens the database session, retrieves the entrypoint (`database::image_base()` or `database::min_address()`), and sequentially decodes the database bytes using `data::read_dword()`. It additionally applies its disassembly text to the IDA DB as a comment via `comment::set()`.
   - 16.49.5. Rewrote `jbc_full_procmod.rs` to do the same. It identifies the bounds of the "CODE" segment from the active DB session, reads bytes from memory, runs the custom instruction lookups, and places formatting text comments over the matched byte spans inside the DB.
   - 16.49.6. Validated compilation of all rewritten examples (`cargo check -p idax --examples` passes).
+
+- **16.50. Fix for LTO Linker Conflicts with Official IDA Release SDK**
+  - 16.50.1. Addressed user feedback regarding an `-flto` linker conflict when compiling against the official IDA SDK release (which injects `-flto` via the `ida_compiler_settings` target in Release mode, overriding any `-fno-lto` applied at the `idax` static library target level).
+  - 16.50.2. Stripped `-flto` directly from the `INTERFACE_COMPILE_OPTIONS` of the `ida_compiler_settings` target within `CMakeLists.txt` to prevent LTO object file contamination down to the Rust linker.
+  - 16.50.3. Validated CMake generation and `idax` compilation post-change.
+
+- **16.51. Remediation of "Fake" Headless Ports (UI-Constrained Plugins)**
+  - 16.51.1. Investigated remaining UI-constrained plugins (`drawida`, `idapcode`, `lifter`) for headless porting feasibility.
+  - 16.51.2. Created `idapcode_headless_port.rs` which successfully extracts the non-UI analysis slice of `idapcode` (determining Sleigh processor context and resolving `.sla` spec files) into a headless script.
+  - 16.51.3. Created `lifter_headless_port.rs` which extracts the non-UI analysis slice of the VMX/AVX lifter plugin (scanning all instructions, decoding them, and classifying them as supported VMX/AVX/SSE passthrough or K-register operations) into a headless reporting script.
+  - 16.51.4. Concluded that `drawida` (a Qt whiteboard) is purely UI and lacks a meaningful non-UI analysis slice, marking it as not applicable for headless porting.

@@ -112,6 +112,16 @@ if(NOT TARGET idasdk_headers)
         ida_compiler_settings)
 endif()
 
+# Strip -flto from ida_compiler_settings so it doesn't propagate into idax
+# or any downstream consumers (e.g. Rust crates linking the static archive).
+if(TARGET ida_compiler_settings)
+    get_target_property(_ics_opts ida_compiler_settings INTERFACE_COMPILE_OPTIONS)
+    if(_ics_opts)
+        list(FILTER _ics_opts EXCLUDE REGEX "-flto")
+        set_property(TARGET ida_compiler_settings PROPERTY INTERFACE_COMPILE_OPTIONS "${_ics_opts}")
+    endif()
+endif()
+
 # ── idax static library ─────────────────────────────────────────────────
 # Built as a static library that IDA addons link against alongside idasdk::*
 add_library(idax STATIC ${IDAX_SOURCES})
@@ -139,14 +149,8 @@ else()
     target_compile_options(idax PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Disable LTO for the idax static library itself.
-# When idax is compiled with LTO (-flto) and linked into Rust applications,
-# GNU ld/cc may fail because it cannot process the LTO object files inside the static archive.
-# The ida-sdk `ida_compiler_settings` interface enables LTO by default in Release mode.
+# Disable LTO natively for the idax static library itself.
 set_property(TARGET idax PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
-if(NOT MSVC)
-    target_compile_options(idax PRIVATE -fno-lto)
-endif()
 
 # ── Examples (optional) ──────────────────────────────────────────────────
 option(IDAX_BUILD_EXAMPLES "Build idax example addons" OFF)
