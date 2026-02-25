@@ -371,4 +371,6 @@ Format note: use a numbered list with one concrete technical finding per item; k
 
 291. Practical string harvesting in safe Rust can be built from existing primitives by combining segment filtering (`segment::all`, non-executable/data-like segments), predicate traversal (`address::data_items`), and bounded reads (`data::read_string`) with an application-level printable/length heuristic.
 
+292. For project-facing docs in idax, C++ should be the default walkthrough language for general workflows because the primary wrapper is C++ (`include/ida/*.hpp`); Rust snippets should be retained where the use case is explicitly Rust-centric (for example Rust plugin-action wiring or raw/safe Rust trade-off guidance).
+
 These are to be referenced as [FXX] in the live knowledge base.

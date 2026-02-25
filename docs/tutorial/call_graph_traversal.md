@@ -13,7 +13,35 @@ Transitive traversal needs:
 - A visited set to prevent cycles/re-processing.
 - Optional depth limits to bound work.
 
-## 2) Rust BFS implementation
+## 2) C++ DFS implementation
+
+```cpp
+#include <ida/idax.hpp>
+
+#include <cstddef>
+#include <unordered_set>
+#include <vector>
+
+void collect_transitive_callers(
+  ida::Address target,
+  std::unordered_set<ida::Address>& visited,
+  std::vector<ida::Address>& out,
+  std::size_t depth,
+  std::size_t max_depth) {
+  if (depth >= max_depth) return;
+
+  auto direct = ida::function::callers(target);
+  if (!direct) return;
+
+  for (auto caller : *direct) {
+    if (!visited.insert(caller).second) continue;
+    out.push_back(caller);
+    collect_transitive_callers(caller, visited, out, depth + 1, max_depth);
+  }
+}
+```
+
+## 3) Rust BFS variant (optional)
 
 ```rust
 use idax::address::{Address, BAD_ADDRESS};
@@ -56,34 +84,6 @@ pub fn demo(target_name: &str) -> idax::Result<()> {
         println!("  {:#x} {}", ea, label);
     }
     Ok(())
-}
-```
-
-## 3) C++ DFS variant
-
-```cpp
-#include <ida/idax.hpp>
-
-#include <cstddef>
-#include <unordered_set>
-#include <vector>
-
-void collect_transitive_callers(
-  ida::Address target,
-  std::unordered_set<ida::Address>& visited,
-  std::vector<ida::Address>& out,
-  std::size_t depth,
-  std::size_t max_depth) {
-  if (depth >= max_depth) return;
-
-  auto direct = ida::function::callers(target);
-  if (!direct) return;
-
-  for (auto caller : *direct) {
-    if (!visited.insert(caller).second) continue;
-    out.push_back(caller);
-    collect_transitive_callers(caller, visited, out, depth + 1, max_depth);
-  }
 }
 ```
 
