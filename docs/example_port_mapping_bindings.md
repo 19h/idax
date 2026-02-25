@@ -37,6 +37,7 @@ Legend:
 | Source | Rust | Node | Notes |
 |---|---|---|---|
 | `examples/plugin/action_plugin.cpp` | `bindings/rust/idax/examples/action_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | CLI-driven annotation actions instead of UI menu actions |
+| `examples/plugin/abyss_port_plugin.cpp` | `bindings/rust/idax/examples/abyss_port_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless decompiler post-process subset (token colorizer, item-index tag visualization, lvars preview, caller/callee hierarchy) |
 | `examples/plugin/event_monitor_plugin.cpp` | `bindings/rust/idax/examples/event_monitor_plugin.rs` (`Adapted`) | `bindings/node/examples/change_tracker.ts` (`Adapted`) | Event + storage flow ported headlessly |
 | `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
 | `examples/plugin/driverbuddy_port_plugin.cpp` | `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` (`Adapted`) | `bindings/node/examples/binary_forensics.ts` (`Adapted`) | Headless driver fingerprinting/IOCTL scan subset |
@@ -61,6 +62,7 @@ Legend:
 | `bindings/rust/idax/examples/minimal_procmod.rs` | Pass | `cargo run -p idax --example minimal_procmod -- 0x90` |
 | `bindings/rust/idax/examples/advanced_procmod.rs` | Pass | `cargo run -p idax --example advanced_procmod -- 0x31230004 0xC0000010` |
 | `bindings/rust/idax/examples/action_plugin.rs` | Pass | `cargo run -p idax --example action_plugin -- <idb> add-bookmark 0x530 --label phase19` |
+| `bindings/rust/idax/examples/abyss_port_plugin.rs` | Pass | `cargo run -p idax --example abyss_port_plugin -- <idb> --function main --hier-depth 2 --max-lines 80 --item-index` |
 | `bindings/rust/idax/examples/event_monitor_plugin.rs` | Pass | `cargo run -p idax --example event_monitor_plugin -- <idb>` |
 | `bindings/rust/idax/examples/decompiler_plugin.rs` | Pass | `cargo run -p idax --example decompiler_plugin -- <idb> --top 5` |
 | `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` | Pass | `cargo run -p idax --example driverbuddy_port_plugin -- <idb> --top 10 --max-scan 5000` |
