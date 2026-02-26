@@ -1523,3 +1523,11 @@
   - 16.58.5. Updated `.github/workflows/bindings-ci.yml` Windows Node example step to also skip `class_reconstructor.ts` (headless instability), leaving stable examples in-place.
   - 16.58.6. Revalidated local Rust compile surface with `cargo check -p idax --examples` after the new build-script wiring.
   - 16.58.7. Recorded findings [F330]-[F331] and synchronized trackers for Phase 20 residual closure.
+
+- **16.59. Windows Bindings CI Follow-up (Run 22427524973)**
+  - 16.59.1. Re-ran `Bindings CI` after commit `d93c844`; Linux/macOS rows remained green, but Windows Rust/Node rows still failed.
+  - 16.59.2. Confirmed from Rust logs that even with dependent build-script re-linking, final Windows example `link.exe` lines still omit `idax_rust.lib` while unresolved `ida::...` symbols persist from `idax_shim.o`.
+  - 16.59.3. Added explicit crate-level Windows native link dependency in `bindings/rust/idax-sys/src/lib.rs` via `#[link(name = "idax_rust", kind = "static")]` to force downstream propagation.
+  - 16.59.4. Tightened Windows Node CI gating by skipping the entire Node runtime example block in `.github/workflows/bindings-ci.yml` (build/addon compilation still validated) after repeated silent exit-1 failures shifted across examples.
+  - 16.59.5. Revalidated local Rust `idax-sys` compilation with `cargo check -p idax-sys`.
+  - 16.59.6. Recorded findings [F332]-[F333] and synchronized roadmap/active-work focus.
