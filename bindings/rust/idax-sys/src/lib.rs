@@ -9,4 +9,8 @@
 #![allow(non_snake_case)]
 #![allow(clippy::all)]
 
+#[cfg(target_os = "windows")]
+#[link(name = "idax_rust", kind = "static")]
+unsafe extern "C" {}
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
