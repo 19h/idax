@@ -22,9 +22,10 @@
 
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-  - 1.3.2. **Completed this pass:** corrected Node example argv shape, switched Windows Rust example runs to `--release`, and enabled MSVC import-lib fallback even when `IDADIR` is set.
-  - 1.3.3. **Remaining focus:** close residual Node macOS runtime link failure (`_callui`) and verify no Windows unresolved-externals regressions remain.
-  - 1.3.4. **Status:** In progress.
+  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), and added Windows `PATH` runtime propagation for Node/Rust examples.
+  - 1.3.3. **Latest evidence:** run `22426239242` passed macOS/Linux rows, but Windows rows failed before these newest shell/runtime-step corrections were applied.
+  - 1.3.4. **Remaining focus:** rerun and confirm Windows Node/Rust rows pass; then revisit any residual macOS runtime-link anomalies (`_callui`) if still present.
+  - 1.3.5. **Status:** In progress.
 
 ---
 
@@ -74,4 +75,3 @@
   - 5.1.6. **Status:** Pending triage.
 
 ---
-
