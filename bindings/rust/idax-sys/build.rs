@@ -402,7 +402,10 @@ fn main() {
         });
 
         println!("cargo:rustc-link-search=native={}", out_dir.display());
-        println!("cargo:rustc-link-lib=static=idax_cpp");
+        // On MSVC release builds, idax_cpp can contain LTCG (/GL) objects.
+        // Force non-bundled linkage so rustc passes the .lib directly to
+        // link.exe instead of repacking it into an rlib archive index.
+        println!("cargo:rustc-link-lib=static:-bundle=idax_cpp");
     } else {
         println!("cargo:rustc-link-search=native={}", libidax_dir.display());
         println!("cargo:rustc-link-lib=static=idax");
