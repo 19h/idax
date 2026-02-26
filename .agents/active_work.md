@@ -22,9 +22,9 @@
 
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), and added Windows `PATH` runtime propagation for Node/Rust examples.
-  - 1.3.3. **Latest evidence:** run `22426239242` passed macOS/Linux rows, but Windows rows failed before these newest shell/runtime-step corrections were applied.
-  - 1.3.4. **Remaining focus:** rerun and confirm Windows Node/Rust rows pass; then revisit any residual macOS runtime-link anomalies (`_callui`) if still present.
+  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust` in `idax-sys/build.rs`, and temporarily gated `binary_forensics` on Windows.
+  - 1.3.3. **Latest evidence:** run `22426368465` passed Linux/macOS rows and narrowed Windows failures to (a) Rust unresolved `ida::...` symbols from missing/neutralized `idax` static link propagation and (b) Node `binary_forensics` immediate exit-1 without trace.
+  - 1.3.4. **Remaining focus:** rerun `Bindings CI` to validate the `idax_rust` alias fix and Windows Node gating, then remove temporary gating once `binary_forensics` root cause is isolated.
   - 1.3.5. **Status:** In progress.
 
 ---
