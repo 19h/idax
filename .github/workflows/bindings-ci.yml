@@ -140,20 +140,32 @@ jobs:
         shell: bash
         working-directory: bindings/node
         run: |
-          export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
-          export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH="$IDADIR/Contents/MacOS:$DYLD_LIBRARY_PATH"
+          else
+            export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          fi
           npm install ts-node typescript @types/node
+          
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cp "C:/Windows/System32/notepad.exe" "./test_bin.exe"
+            TEST_BIN="./test_bin.exe"
+          else
+            cp /bin/ls ./test_bin
+            TEST_BIN="./test_bin"
+          fi
+          
           echo "Running idalib_dump_port..."
-          npx ts-node examples/idalib_dump_port.ts build/Release/idax_native.node --list
+          npx ts-node examples/idalib_dump_port.ts build/Release/idax_native.node "$TEST_BIN" --list
 
           echo "Running complexity_metrics..."
-          npx ts-node examples/complexity_metrics.ts build/Release/idax_native.node
+          npx ts-node examples/complexity_metrics.ts build/Release/idax_native.node "$TEST_BIN"
 
           echo "Running class_reconstructor..."
-          npx ts-node examples/class_reconstructor.ts build/Release/idax_native.node
+          npx ts-node examples/class_reconstructor.ts build/Release/idax_native.node "$TEST_BIN"
 
           echo "Running binary_forensics..."
-          npx ts-node examples/binary_forensics.ts build/Release/idax_native.node
+          npx ts-node examples/binary_forensics.ts build/Release/idax_native.node "$TEST_BIN"
 
   build-rust:
     name: Rust Bindings - ${{ matrix.os }}
@@ -279,20 +291,31 @@ jobs:
         shell: bash
         working-directory: bindings/rust
         run: |
-          export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
-          export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH="$IDADIR/Contents/MacOS:$DYLD_LIBRARY_PATH"
+          else
+            export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          fi
+          
+          cp /bin/ls ./test_bin
+          TEST_BIN="./test_bin"
+          
           echo "Running idalib_dump_port..."
-          cargo run --example idalib_dump_port -- /bin/ls --list
+          cargo run --example idalib_dump_port -- "$TEST_BIN" --list
 
           echo "Running ida2py_port..."
-          cargo run --example ida2py_port -- /bin/ls
+          cargo run --example ida2py_port -- "$TEST_BIN"
 
       - name: Run Rust examples (Windows)
         if: runner.os == 'Windows'
         working-directory: bindings/rust
+        shell: bash
         run: |
+          cp "C:/Windows/System32/notepad.exe" "./test_bin.exe"
+          TEST_BIN="./test_bin.exe"
+          
           echo "Running idalib_dump_port..."
-          cargo run --example idalib_dump_port -- "C:\Windows\System32\notepad.exe" --list
+          cargo run --example idalib_dump_port -- "$TEST_BIN" --list
 
           echo "Running ida2py_port..."
-          cargo run --example ida2py_port -- "C:\Windows\System32\notepad.exe"
+          cargo run --example ida2py_port -- "$TEST_BIN"
