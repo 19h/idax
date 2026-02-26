@@ -1611,3 +1611,10 @@
   - 16.70.1. Added non-empty Windows `#[link(name = "idax_cpp", kind = "static")]` sentinel block to `bindings/rust/idax/src/lib.rs` so example binaries depending directly on `idax` carry explicit wrapper-archive linkage metadata.
   - 16.70.2. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.70.3. Recorded finding [F345] and updated active focus to CI verification.
+
+- **16.71. Windows Rust linker root-cause hardening (`/GL` bundling -> `-bundle` fix)**
+  - 16.71.1. Incorporated user-provided root-cause analysis linking unresolved `ida::...` externals to MSVC LTCG (`/GL`) objects being bundled through Rust static archive flow.
+  - 16.71.2. Updated `bindings/rust/idax-sys/build.rs` Windows linkage to emit `cargo:rustc-link-lib=static:-bundle=idax_cpp` (instead of default bundled static mode), so `idax_cpp.lib` is passed directly to final `link.exe`.
+  - 16.71.3. Removed temporary crate-level Windows `idax_cpp` sentinel link blocks from `bindings/rust/idax-sys/src/lib.rs` and `bindings/rust/idax/src/lib.rs` to avoid reintroducing bundled-static fallback paths.
+  - 16.71.4. Revalidated local Rust compile surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.71.5. Recorded finding [F346] and shifted active focus to CI confirmation that final Windows link lines now include direct `idax_cpp` linkage.
