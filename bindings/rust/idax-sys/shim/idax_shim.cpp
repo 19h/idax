@@ -1372,7 +1372,7 @@ void fill_instruction(IdaxInstruction* out, const ida::instruction::Instruction&
             out->operands[i].target_address = ops[i].target_address();
             out->operands[i].byte_width     = ops[i].byte_width();
             out->operands[i].register_name  = dup_string(ops[i].register_name());
-            out->operands[i].register_class = static_cast<int>(ops[i].register_class());
+            out->operands[i].register_category = static_cast<int>(ops[i].register_category());
         }
     }
 }
@@ -1559,9 +1559,9 @@ int idax_instruction_operand_register_name(uint64_t ea, int n, char** out) {
     RETURN_RESULT_STRING(ida::instruction::operand_register_name(ea, n));
 }
 
-int idax_instruction_operand_register_class(uint64_t ea, int n, int* out) {
+int idax_instruction_operand_register_category(uint64_t ea, int n, int* out) {
     clear_error();
-    auto r = ida::instruction::operand_register_class(ea, n);
+    auto r = ida::instruction::operand_register_category(ea, n);
     if (!r) return fail(r.error());
     *out = static_cast<int>(*r);
     return 0;

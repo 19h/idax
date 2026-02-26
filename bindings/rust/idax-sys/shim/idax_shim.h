@@ -339,7 +339,7 @@ typedef struct IdaxOperand {
     uint64_t target_address;
     int      byte_width;
     char*    register_name;  /**< malloc'd */
-    int      register_class; /**< ida::instruction::RegisterClass as int */
+    int      register_category; /**< ida::instruction::RegisterCategory as int */
 } IdaxOperand;
 
 /** Flat C representation of a decoded instruction. */
@@ -393,7 +393,7 @@ int idax_instruction_get_forced_operand(uint64_t ea, int n, char** out);
 int idax_instruction_operand_text(uint64_t ea, int n, char** out);
 int idax_instruction_operand_byte_width(uint64_t ea, int n, int* out);
 int idax_instruction_operand_register_name(uint64_t ea, int n, char** out);
-int idax_instruction_operand_register_class(uint64_t ea, int n, int* out);
+int idax_instruction_operand_register_category(uint64_t ea, int n, int* out);
 int idax_instruction_toggle_operand_sign(uint64_t ea, int n);
 int idax_instruction_toggle_operand_negate(uint64_t ea, int n);
 

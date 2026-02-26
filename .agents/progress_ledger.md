@@ -1472,3 +1472,11 @@
   - 16.51.2. Created `idapcode_headless_port.rs` which successfully extracts the non-UI analysis slice of `idapcode` (determining Sleigh processor context and resolving `.sla` spec files) into a headless script.
   - 16.51.3. Created `lifter_headless_port.rs` which extracts the non-UI analysis slice of the VMX/AVX lifter plugin (scanning all instructions, decoding them, and classifying them as supported VMX/AVX/SSE passthrough or K-register operations) into a headless reporting script.
   - 16.51.4. Concluded that `drawida` (a Qt whiteboard) is purely UI and lacks a meaningful non-UI analysis slice, marking it as not applicable for headless porting.
+
+- **16.52. Cross-Platform CI Stabilization and Integration Testing**
+  - 16.52.1. Created `.github/workflows/integration-ci.yml` to automatically test CMake integrations (`FetchContent` and `add_subdirectory`) across Windows, Linux, and macOS.
+  - 16.52.2. Resolved CMake Scope Issue on Windows: Pushed `CMAKE_MSVC_RUNTIME_LIBRARY` to `PARENT_SCOPE` in `CMakeLists.txt` to ensure parent integration tests compile with the correct `/MTd` runtime library, fixing fatal `LNK2038` mismatches.
+  - 16.52.3. Resolved Windows `<windows.h>` Macro Collision: Renamed `RegisterClass` to `RegisterCategory` across C++, TypeScript, and Rust to avoid collisions with the `RegisterClassA`/`RegisterClassW` macros aggressively defined by `<windows.h>` during Node.js bindings compilation.
+  - 16.52.4. Resolved MSVC Strict Linking Requirements: Explicitly located and linked `ida.lib`, `pro.lib`, and critically `idalib.lib` in `bindings/node/CMakeLists.txt` for MSVC builds, satisfying the linker's strict requirement for import libraries.
+  - 16.52.5. Validation evidence: All GitHub Actions pipelines (`Bindings CI`, `Integrations CI`, `Validation Matrix`) now pass successfully.
+  - 16.52.6. Recorded discoveries [F314]-[F316] for CMake scope propagation, Windows macro collision mitigation, and MSVC strict linking, updating the knowledge base.

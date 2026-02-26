@@ -517,7 +517,7 @@ function phase5_instructions(): void {
             void op.displacement;
             void op.byteWidth;
             void op.registerName;
-            void op.registerClass;
+            void op.registerCategory;
             descs.push(`op${op.index}:${op.type}`);
         }
         return descs.join(', ');
@@ -530,13 +530,13 @@ function phase5_instructions(): void {
         // Only query register name/class on register operands
         if (insn.operands[n] !== undefined && insn.operands[n]!.isRegister) {
             probe(P, `instruction.operandRegisterName(${n})`, () => instruction.operandRegisterName(codeAddr, n));
-            probe(P, `instruction.operandRegisterClass(${n})`, () => instruction.operandRegisterClass(codeAddr, n));
+            probe(P, `instruction.operandRegisterCategory(${n})`, () => instruction.operandRegisterCategory(codeAddr, n));
         }
     }
 
     // Also exercise register name/class on a known register operand
     probe(P, 'instruction.operandRegisterName(reg)', () => instruction.operandRegisterName(codeAddr, 0));
-    probe(P, 'instruction.operandRegisterClass(reg)', () => instruction.operandRegisterClass(codeAddr, 0));
+    probe(P, 'instruction.operandRegisterCategory(reg)', () => instruction.operandRegisterCategory(codeAddr, 0));
 
     // Operand format setters — test on first operand
     probe(P, 'instruction.setOperandHex', () => { instruction.setOperandHex(codeAddr, 0); return 'ok'; });

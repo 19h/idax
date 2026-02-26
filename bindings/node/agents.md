@@ -193,7 +193,7 @@ Whenever you see these aliases in the documentation, assume the following inputs
 **Types:**
 * `OperandFormat`: `'default'|'hex'|'decimal'|'octal'|'binary'|'character'|'float'|'offset'|'stackVariable'`
 * `Instruction`: `{ address, size, opcode, mnemonic, operandCount, operands: Operand[] }`
-* `Operand`: `{ index, type, isRegister, isImmediate, isMemory, registerId, value, targetAddress, displacement, byteWidth, registerName, registerClass }`
+* `Operand`: `{ index, type, isRegister, isImmediate, isMemory, registerId, value, targetAddress, displacement, byteWidth, registerName, registerCategory }`
 * `StructOffsetPath`: `{ structureIds: bigint[], delta: bigint }`
 
 ### API
@@ -214,7 +214,7 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `operandText(address: Address, n?: number): string`
 * `operandByteWidth(address: Address, n?: number): number`
 * `operandRegisterName(address: Address, n?: number): string`
-* `operandRegisterClass(address: Address, n?: number): RegisterClass`
+* `operandRegisterCategory(address: Address, n?: number): RegisterCategory`
 * `toggleOperandSign(address: Address, n?: number): void`
 * `toggleOperandNegate(address: Address, n?: number): void`
 * `codeRefsFrom(address: Address): Address[]`

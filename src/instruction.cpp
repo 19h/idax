@@ -57,46 +57,46 @@ bool is_decimal_suffix(std::string_view text, std::size_t start) {
     return true;
 }
 
-RegisterClass classify_register_name(std::string_view register_name) {
+RegisterCategory classify_register_name(std::string_view register_name) {
     if (register_name.empty())
-        return RegisterClass::Unknown;
+        return RegisterCategory::Unknown;
 
     const std::string lowered = to_lower_ascii(std::string(register_name));
 
     if (lowered == "cs" || lowered == "ds" || lowered == "es"
         || lowered == "fs" || lowered == "gs" || lowered == "ss") {
-        return RegisterClass::Segment;
+        return RegisterCategory::Segment;
     }
 
     if (starts_with(lowered, "xmm") || starts_with(lowered, "ymm")
         || starts_with(lowered, "zmm") || starts_with(lowered, "mm")
         || starts_with(lowered, "q")) {
-        return RegisterClass::Vector;
+        return RegisterCategory::Vector;
     }
 
     if (starts_with(lowered, "k") && is_decimal_suffix(lowered, 1))
-        return RegisterClass::Mask;
+        return RegisterCategory::Mask;
 
     if (starts_with(lowered, "st") || starts_with(lowered, "fp")
         || starts_with(lowered, "fpr")) {
-        return RegisterClass::FloatingPoint;
+        return RegisterCategory::FloatingPoint;
     }
 
     if (starts_with(lowered, "cr"))
-        return RegisterClass::Control;
+        return RegisterCategory::Control;
 
     if (starts_with(lowered, "dr"))
-        return RegisterClass::Debug;
+        return RegisterCategory::Debug;
 
     if (starts_with(lowered, "r") || starts_with(lowered, "e")
         || starts_with(lowered, "a") || starts_with(lowered, "b")
         || starts_with(lowered, "c") || starts_with(lowered, "d")
         || starts_with(lowered, "s") || starts_with(lowered, "t")
         || starts_with(lowered, "x") || starts_with(lowered, "w")) {
-        return RegisterClass::GeneralPurpose;
+        return RegisterCategory::GeneralPurpose;
     }
 
-    return RegisterClass::Other;
+    return RegisterCategory::Other;
 }
 
 int width_from_register_name(std::string_view register_name) {
@@ -182,7 +182,7 @@ struct InstructionAccess {
 
             if (operand.type_ == OperandType::Register) {
                 operand.register_name_ = decode_register_name(insn.ea_, i, op, operand.byte_width_);
-                operand.register_class_ = classify_register_name(operand.register_name_);
+                operand.register_category_ = classify_register_name(operand.register_name_);
                 if (operand.byte_width_ <= 0)
                     operand.byte_width_ = width_from_register_name(operand.register_name_);
             }
@@ -478,7 +478,7 @@ Result<std::string> operand_register_name(Address ea, int n) {
     return op->register_name();
 }
 
-Result<RegisterClass> operand_register_class(Address ea, int n) {
+Result<RegisterCategory> operand_register_category(Address ea, int n) {
     auto insn = decode(ea);
     if (!insn)
         return std::unexpected(insn.error());
@@ -490,7 +490,7 @@ Result<RegisterClass> operand_register_class(Address ea, int n) {
         return std::unexpected(Error::not_found("Operand is not a register",
                                                 std::to_string(ea) + ":" + std::to_string(n)));
     }
-    return op->register_class();
+    return op->register_category();
 }
 
 Status toggle_operand_sign(Address ea, int n) {

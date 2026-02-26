@@ -32,17 +32,17 @@ const char* OperandTypeToString(ida::instruction::OperandType t) {
     return "unknown";
 }
 
-const char* RegisterClassToString(ida::instruction::RegisterClass rc) {
+const char* RegisterCategoryToString(ida::instruction::RegisterCategory rc) {
     switch (rc) {
-        case ida::instruction::RegisterClass::Unknown:        return "unknown";
-        case ida::instruction::RegisterClass::GeneralPurpose: return "generalPurpose";
-        case ida::instruction::RegisterClass::Segment:        return "segment";
-        case ida::instruction::RegisterClass::FloatingPoint:  return "floatingPoint";
-        case ida::instruction::RegisterClass::Vector:         return "vector";
-        case ida::instruction::RegisterClass::Mask:           return "mask";
-        case ida::instruction::RegisterClass::Control:        return "control";
-        case ida::instruction::RegisterClass::Debug:          return "debug";
-        case ida::instruction::RegisterClass::Other:          return "other";
+        case ida::instruction::RegisterCategory::Unknown:        return "unknown";
+        case ida::instruction::RegisterCategory::GeneralPurpose: return "generalPurpose";
+        case ida::instruction::RegisterCategory::Segment:        return "segment";
+        case ida::instruction::RegisterCategory::FloatingPoint:  return "floatingPoint";
+        case ida::instruction::RegisterCategory::Vector:         return "vector";
+        case ida::instruction::RegisterCategory::Mask:           return "mask";
+        case ida::instruction::RegisterCategory::Control:        return "control";
+        case ida::instruction::RegisterCategory::Debug:          return "debug";
+        case ida::instruction::RegisterCategory::Other:          return "other";
     }
     return "unknown";
 }
@@ -77,7 +77,7 @@ v8::Local<v8::Object> OperandToObject(const ida::instruction::Operand& op) {
         .set("displacement", v8::BigInt::New(isolate, op.displacement()))
         .setInt("byteWidth", op.byte_width())
         .setStr("registerName", op.register_name())
-        .setStr("registerClass", RegisterClassToString(op.register_class()))
+        .setStr("registerCategory", RegisterCategoryToString(op.register_category()))
         .build();
 }
 
@@ -340,14 +340,14 @@ NAN_METHOD(OperandRegisterName) {
     info.GetReturnValue().Set(FromString(name));
 }
 
-// operandRegisterClass(address, n) -> string
-NAN_METHOD(OperandRegisterClass) {
+// operandRegisterCategory(address, n) -> string
+NAN_METHOD(OperandRegisterCategory) {
     ida::Address addr;
     if (!GetAddressArg(info, 0, addr)) return;
     int n = GetOptionalInt(info, 1, 0);
 
-    IDAX_UNWRAP(auto rc, ida::instruction::operand_register_class(addr, n));
-    info.GetReturnValue().Set(FromString(RegisterClassToString(rc)));
+    IDAX_UNWRAP(auto rc, ida::instruction::operand_register_category(addr, n));
+    info.GetReturnValue().Set(FromString(RegisterCategoryToString(rc)));
 }
 
 // toggleOperandSign(address, n)
@@ -494,7 +494,7 @@ void InitInstruction(v8::Local<v8::Object> target) {
     SetMethod(ns, "operandText",          OperandText);
     SetMethod(ns, "operandByteWidth",     OperandByteWidth);
     SetMethod(ns, "operandRegisterName",  OperandRegisterName);
-    SetMethod(ns, "operandRegisterClass", OperandRegisterClass);
+    SetMethod(ns, "operandRegisterCategory", OperandRegisterCategory);
 
     // Operand display toggles
     SetMethod(ns, "toggleOperandSign",   ToggleOperandSign);

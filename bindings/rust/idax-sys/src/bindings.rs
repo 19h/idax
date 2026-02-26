@@ -885,8 +885,8 @@ pub struct IdaxOperand {
     pub byte_width: ::std::os::raw::c_int,
     #[doc = "< malloc'd"]
     pub register_name: *mut ::std::os::raw::c_char,
-    #[doc = "< ida::instruction::RegisterClass as int"]
-    pub register_class: ::std::os::raw::c_int,
+    #[doc = "< ida::instruction::RegisterCategory as int"]
+    pub register_category: ::std::os::raw::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
@@ -903,8 +903,8 @@ const _: () = {
         [::std::mem::offset_of!(IdaxOperand, byte_width) - 32usize];
     ["Offset of field: IdaxOperand::register_name"]
         [::std::mem::offset_of!(IdaxOperand, register_name) - 40usize];
-    ["Offset of field: IdaxOperand::register_class"]
-        [::std::mem::offset_of!(IdaxOperand, register_class) - 48usize];
+    ["Offset of field: IdaxOperand::register_category"]
+        [::std::mem::offset_of!(IdaxOperand, register_category) - 48usize];
 };
 impl Default for IdaxOperand {
     fn default() -> Self {
@@ -1116,7 +1116,7 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
-    pub fn idax_instruction_operand_register_class(
+    pub fn idax_instruction_operand_register_category(
         ea: u64,
         n: ::std::os::raw::c_int,
         out: *mut ::std::os::raw::c_int,

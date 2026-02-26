@@ -68,7 +68,7 @@ void test_decode_basics() {
             if (op0->is_register()) {
                 auto name = ida::instruction::operand_register_name(start, 0);
                 CHECK_OK(name);
-                auto reg_class = ida::instruction::operand_register_class(start, 0);
+                auto reg_class = ida::instruction::operand_register_category(start, 0);
                 CHECK_OK(reg_class);
             } else {
                 auto name = ida::instruction::operand_register_name(start, 0);

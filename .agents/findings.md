@@ -192,7 +192,7 @@ Format note: use a numbered list with one concrete technical finding per item; k
 187. SDK operand width metadata: `op_t::dtype` + `get_dtype_size(...)` provide structured operand byte widths; fallback register-name inference is only needed when processors omit operand dtype detail.
 188. Compare/mask destination handling: helper-call return can be lowered deterministically by routing through temporary register + operand writeback (`store_operand_register`) instead of no-op tolerance.
 189. Microcode rewrite lifecycle: tracking last-emitted instruction plus block instruction-count query enables additive remove/rewrite workflows without exposing raw microblock internals.
-190. Lifter width heuristics: structured `instruction::Operand` metadata (`byte_width`, `register_name`, `register_class`) removes dependence on `operand_text()` parsing for AVX width decisions.
+190. Lifter width heuristics: structured `instruction::Operand` metadata (`byte_width`, `register_name`, `register_category`) removes dependence on `operand_text()` parsing for AVX width decisions.
 191. Microblock index lifecycle: `has_instruction_at_index`/`remove_instruction_at_index` provide deterministic, SDK-opaque mutation targeting beyond tracked-last-emitted-only flows.
 192. Typed helper-call tmop shaping: helper-call argument model can carry `BlockReference`/`NestedInstruction` values for richer callarg mop authoring without raw `mop_t` exposure.
 193. Typed decompiler-view edit sessions: deriving stable function identity from opaque host handles (`view_from_host`) enables reusable rename/retype/comment/save/refresh workflows without exposing `vdui_t`/`cfunc_t`.
@@ -420,3 +420,9 @@ These are to be referenced as [FXX] in the live knowledge base.
 313. When using the official release of the IDA SDK (via `ida-cmake`), the `ida_compiler_settings` interface target aggressively injects `-flto` (Link Time Optimization) in `Release` mode. Because of CMake/GCC flag ordering, this can override target-level `-fno-lto` settings and cause downstream link failures (especially for Rust consumers linking a C++ static archive). The most robust fix is to physically strip `-flto` from `ida_compiler_settings`'s `INTERFACE_COMPILE_OPTIONS` via `list(FILTER ... EXCLUDE REGEX "-flto")`.
 
 These are to be referenced as [FXX] in the live knowledge base.
+
+314. **CMake Scope Issue on Windows:** When `idax` is included via `FetchContent` or `add_subdirectory`, the `ida-cmake` toolchain sets `CMAKE_MSVC_RUNTIME_LIBRARY` to enforce `/MTd`. However, this variable was isolated to the subdirectory scope, causing the parent integration tests to compile with the default `/MDd`, resulting in fatal `LNK2038` mismatches. Pushing the variable to `PARENT_SCOPE` fixes this.
+
+315. **Windows `<windows.h>` Macro Collision:** Compiling the Node.js bindings on Windows pulls in `<windows.h>`, which aggressively `#define`s `RegisterClass` to `RegisterClassA` or `RegisterClassW`. This mangled the `ida::instruction::RegisterClass` enum signatures, causing `LNK2001` unresolved external symbol errors. Renaming the enum to `RegisterCategory` across C++, TypeScript, and Rust permanently resolves this.
+
+316. **MSVC Strict Linking Requirements:** Unlike macOS/Linux (which use dynamic symbol lookup for the Node Addon), MSVC strictly requires import libraries (`.lib`). The Node Windows build failed to resolve `idalib`-specific symbols (`init_library`, `open_database`, etc.). Explicitly finding and linking `ida.lib`, `pro.lib`, and critically `idalib.lib` in `bindings/node/CMakeLists.txt` for MSVC builds satisfies the linker.
