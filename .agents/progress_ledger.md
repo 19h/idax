@@ -1498,3 +1498,11 @@
   - 16.55.2. Updated Rust bindings workflow to build examples in `--release` on Windows and run Windows examples with `cargo run --release ...`, mitigating debug CRT unresolved-symbol failures observed in prior CI runs.
   - 16.55.3. Hardened `bindings/node/CMakeLists.txt` Windows linking behavior so MSVC import-library resolution from `IDASDK` fills in missing `ida.lib`/`idalib.lib`/`pro.lib` even when `IDADIR` is set.
   - 16.55.4. Updated planning/docs trackers for new Phase-20 CI hardening actions and recorded findings [F323]-[F325].
+
+- **16.56. Windows Workflow Shell/Runtime Corrections (Post-Run 22426239242)**
+  - 16.56.1. Diagnosed new Windows Rust failure mode after `--release` change: `cargo` was launched from Git Bash, causing linker resolution to pick `/usr/bin/link` instead of MSVC `link.exe` (`extra operand ... rcgu.o` failures in build scripts).
+  - 16.56.2. Refactored `.github/workflows/bindings-ci.yml` Rust steps into OS-specific execution:
+    - Unix build remains Bash.
+    - Windows build/run steps moved to PowerShell with release-mode commands.
+  - 16.56.3. Split Node example execution into Unix/Windows steps and added Windows runtime DLL path propagation via `PATH` (`$env:PATH = "$env:IDADIR;$env:PATH"`) before launching `ts-node` examples.
+  - 16.56.4. Recorded findings [F326]-[F327] and synchronized knowledge base CI notes.

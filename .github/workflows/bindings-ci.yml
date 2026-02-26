@@ -145,7 +145,8 @@ jobs:
           npm install --ignore-scripts
           npx cmake-js compile -v $(node -v | sed 's/v//')
 
-      - name: Run Node examples
+      - name: Run Node examples (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         working-directory: bindings/node
         run: |
@@ -155,14 +156,8 @@ jobs:
             export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           fi
           npm install ts-node typescript @types/node
-          
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            cp "C:/Windows/System32/notepad.exe" "./test_bin.exe"
-            TEST_BIN="./test_bin.exe"
-          else
-            cp /bin/ls ./test_bin
-            TEST_BIN="./test_bin"
-          fi
+          cp /bin/ls ./test_bin
+          TEST_BIN="./test_bin"
           
           echo "Running idalib_dump_port..."
           npx ts-node examples/idalib_dump_port.ts "$TEST_BIN" --list
@@ -175,6 +170,29 @@ jobs:
 
           echo "Running binary_forensics..."
           npx ts-node examples/binary_forensics.ts "$TEST_BIN"
+
+      - name: Run Node examples (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: bindings/node
+        run: |
+          $env:PATH = "$env:IDADIR;$env:PATH"
+          npm install ts-node typescript @types/node
+
+          Copy-Item "C:\Windows\System32\notepad.exe" "test_bin.exe"
+          $testBin = ".\test_bin.exe"
+
+          Write-Host "Running idalib_dump_port..."
+          npx ts-node examples/idalib_dump_port.ts $testBin --list
+
+          Write-Host "Running complexity_metrics..."
+          npx ts-node examples/complexity_metrics.ts $testBin
+
+          Write-Host "Running class_reconstructor..."
+          npx ts-node examples/class_reconstructor.ts $testBin
+
+          Write-Host "Running binary_forensics..."
+          npx ts-node examples/binary_forensics.ts $testBin
 
   build-rust:
     name: Rust Bindings - ${{ matrix.os }}
@@ -298,17 +316,21 @@ jobs:
           choco install llvm
           echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "$GITHUB_ENV"
 
-      - name: Build Rust bindings
+      - name: Build Rust bindings (Unix)
+        if: runner.os != 'Windows'
         working-directory: bindings/rust
         shell: bash
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            cargo build --release --verbose
-            cargo build --release --examples --verbose
-          else
-            cargo build --verbose
-            cargo build --examples --verbose
-          fi
+          cargo build --verbose
+          cargo build --examples --verbose
+
+      - name: Build Rust bindings (Windows)
+        if: runner.os == 'Windows'
+        working-directory: bindings/rust
+        shell: pwsh
+        run: |
+          cargo build --release --verbose
+          cargo build --release --examples --verbose
 
       - name: Run Rust examples (Unix)
         if: runner.os != 'Windows'
@@ -333,13 +355,14 @@ jobs:
       - name: Run Rust examples (Windows)
         if: runner.os == 'Windows'
         working-directory: bindings/rust
-        shell: bash
+        shell: pwsh
         run: |
-          cp "C:/Windows/System32/notepad.exe" "./test_bin.exe"
-          TEST_BIN="./test_bin.exe"
-          
-          echo "Running idalib_dump_port..."
-          cargo run --release --example idalib_dump_port -- "$TEST_BIN" --list
+          $env:PATH = "$env:IDADIR;$env:PATH"
+          Copy-Item "C:\Windows\System32\notepad.exe" "test_bin.exe"
+          $testBin = ".\test_bin.exe"
 
-          echo "Running ida2py_port..."
-          cargo run --release --example ida2py_port -- "$TEST_BIN"
+          Write-Host "Running idalib_dump_port..."
+          cargo run --release --example idalib_dump_port -- $testBin --list
+
+          Write-Host "Running ida2py_port..."
+          cargo run --release --example ida2py_port -- $testBin

@@ -444,3 +444,7 @@ These are to be referenced as [FXX] in the live knowledge base.
 324. **Windows Rust CRT stability in CI:** Running Rust example binaries in default debug mode on `windows-latest` can surface `_CrtDbgReport` and related unresolved debug CRT symbols in mixed-link environments. Building and running examples with `--release` in CI avoids this mismatch for the current bindings pipeline.
 
 325. **MSVC import-lib fallback must be independent of IDADIR:** In Node bindings CMake, gating Windows import-library discovery behind `elseif(MSVC ...)` after `if(IDA_INSTALL_DIR)` prevents fallback when `IDADIR` is set but `.lib` files are absent there. Use a separate MSVC fallback block that resolves missing `ida.lib`/`idalib.lib`/`pro.lib` from `IDASDK` whenever they are not already found.
+
+326. **Windows shell choice can hijack Rust linker resolution:** Running `cargo build` under Git Bash on Windows can route `link.exe` to `C:\Program Files\Git\usr\bin\link.exe` (`/usr/bin/link`) instead of MSVC's linker, causing build-script link failures like `extra operand ... rcgu.o`. Use PowerShell/MSVC shell for Windows Rust build/run steps.
+
+327. **Windows runtime loader path for Node/Rust examples:** On Windows, `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH` are irrelevant. Example execution that depends on IDA runtime DLLs must prepend `IDADIR` to `PATH` in the same step (`$env:PATH = "$env:IDADIR;$env:PATH"`) before launching Node/Rust binaries.
