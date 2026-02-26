@@ -64,7 +64,11 @@ jobs:
             fi
           fi
           
-          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id "$ASSET_KEY"
+          mkdir -p ./ida-installer
+          uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
+          
+          INSTALLER_FILE=$(ls ./ida-installer/* | head -n 1)
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID "$INSTALLER_FILE"
 
       - name: Resolve IDASDK and IDADIR paths
         shell: bash
