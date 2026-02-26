@@ -189,7 +189,7 @@
     - Rejected: Raw loader entrypoints (leaks complexity)
 
 - **6.4. Structured Operand Introspection**
-  - 6.4.1. **Decision:** Add structured operand introspection in `ida::instruction` (`Operand::byte_width`, `register_name`, `register_class`, vector/mask predicates, address-index helpers) and migrate lifter probe away from operand-text heuristics
+  - 6.4.1. **Decision:** Add structured operand introspection in `ida::instruction` (`Operand::byte_width`, `register_name`, `register_category`, vector/mask predicates, address-index helpers) and migrate lifter probe away from operand-text heuristics
     - Rejected: Keep probe-local text parsing (drift-prone)
     - Rejected: Expose raw SDK `op_t` in public API (breaks opacity)
 
@@ -797,7 +797,7 @@
     - 15.1.3.6. Richer typed operand/value mop builders (`LocalVariable`/`RegisterPair`/`GlobalAddress`/`StackVariable`/`HelperReference`/`BlockReference`/`NestedInstruction`)
     - 15.1.3.7. Declaration-driven vector element typing + named vector type declarations (`__m128`/`__m256i`/`__m512d`)
     - 15.1.3.8. Advanced callinfo list shaping (return/spoiled/passthrough/dead registers + visible-memory)
-    - 15.1.3.9. Structured instruction operand metadata (`byte_width`/`register_name`/`register_class`)
+    - 15.1.3.9. Structured instruction operand metadata (`byte_width`/`register_name`/`register_category`)
     - 15.1.3.10. Helper-call return writeback to operands for compare/mask destinations
     - 15.1.3.11. Typed helper-call micro-operand destinations + tmop-oriented callarg value kinds
     - 15.1.3.12. Microcode lifecycle convenience (`block_instruction_count`, tracked last-emitted remove, index query/remove)
@@ -945,3 +945,7 @@
   - **19.11.1. Decision:** Explicitly disable LTO (`INTERPROCEDURAL_OPTIMIZATION FALSE` + `-fno-lto` + `CMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF`) for the `idax` library when building it for external linkage (e.g. from Rust or downstream CMake consumers).
   - **19.11.2. Rationale:** The fetched `ida-sdk`'s `ida_compiler_settings` interface target aggressively enables `-flto` on GCC/Clang during `Release` builds. When `idax` is built as a static archive (`libidax.a`), GCC/Clang generates object files populated with LTO intermediate representation instead of native machine code. If a downstream consumer (like a standalone Rust binary compiled with `rustc` using its own linker) attempts to link this archive, it will fail unless it has a perfectly matching LTO plugin setup. Disabling LTO guarantees a portable, native static archive that any linker can consume.
   - **19.11.3. Alternative considered:** Try to inject `gcc-ar`/`gcc-ranlib` and configure the Rust build to pass LTO plugins to the linker. Rejected due to overwhelming complexity and fragility across environments; a non-LTO static archive is simpler and universally compatible with minimal performance penalty for the wrapper overhead.
+
+- **19.12. Decision D-NODE-WINDOWS-COMPILATION-MACROS**: Rename `RegisterClass` to `RegisterCategory` across C++, TypeScript, and Rust
+  - **19.12.1. Decision:** Rename the `ida::instruction::RegisterClass` enum to `RegisterCategory` globally.
+  - **19.12.2. Rationale:** When compiling Node.js bindings on Windows, `<windows.h>` is inevitably included. It aggressively `#define`s `RegisterClass` to `RegisterClassA` or `RegisterClassW`. This mangled the `ida::instruction::RegisterClass` enum signatures, causing `LNK2001` unresolved external symbol errors. A clean rename to `RegisterCategory` completely avoids the collision.

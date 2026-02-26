@@ -594,7 +594,7 @@ export namespace instruction {
         | 'processorSpecific0' | 'processorSpecific1' | 'processorSpecific2'
         | 'processorSpecific3' | 'processorSpecific4' | 'processorSpecific5';
 
-    type RegisterClass =
+    type RegisterCategory =
         | 'unknown' | 'generalPurpose' | 'segment' | 'floatingPoint'
         | 'vector' | 'mask' | 'control' | 'debug' | 'other';
 
@@ -614,7 +614,7 @@ export namespace instruction {
         displacement: bigint;
         byteWidth: number;
         registerName: string;
-        registerClass: RegisterClass;
+        registerCategory: RegisterCategory;
     }
 
     interface Instruction {
@@ -708,7 +708,7 @@ export namespace instruction {
     function operandRegisterName(address: Address, n?: number): string;
 
     /** Get the register class for operand n. */
-    function operandRegisterClass(address: Address, n?: number): RegisterClass;
+    function operandRegisterCategory(address: Address, n?: number): RegisterCategory;
 
     // ── Operand display toggles ─────────────────────────────────────────
 

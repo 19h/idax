@@ -49,7 +49,7 @@ pub enum OperandFormat {
 /// Register classification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(i32)]
-pub enum RegisterClass {
+pub enum RegisterCategory {
     Unknown = 0,
     GeneralPurpose = 1,
     Segment = 2,
@@ -61,17 +61,17 @@ pub enum RegisterClass {
     Other = 8,
 }
 
-fn register_class_from_i32(value: i32) -> Result<RegisterClass> {
+fn register_category_from_i32(value: i32) -> Result<RegisterCategory> {
     match value {
-        0 => Ok(RegisterClass::Unknown),
-        1 => Ok(RegisterClass::GeneralPurpose),
-        2 => Ok(RegisterClass::Segment),
-        3 => Ok(RegisterClass::FloatingPoint),
-        4 => Ok(RegisterClass::Vector),
-        5 => Ok(RegisterClass::Mask),
-        6 => Ok(RegisterClass::Control),
-        7 => Ok(RegisterClass::Debug),
-        8 => Ok(RegisterClass::Other),
+        0 => Ok(RegisterCategory::Unknown),
+        1 => Ok(RegisterCategory::GeneralPurpose),
+        2 => Ok(RegisterCategory::Segment),
+        3 => Ok(RegisterCategory::FloatingPoint),
+        4 => Ok(RegisterCategory::Vector),
+        5 => Ok(RegisterCategory::Mask),
+        6 => Ok(RegisterCategory::Control),
+        7 => Ok(RegisterCategory::Debug),
+        8 => Ok(RegisterCategory::Other),
         _ => Err(Error::validation("invalid register class value")),
     }
 }
@@ -97,7 +97,7 @@ pub struct Operand {
     addr: Address,
     byte_width: i32,
     reg_name: String,
-    reg_class: RegisterClass,
+    reg_class: RegisterCategory,
 }
 
 impl Operand {
@@ -137,14 +137,14 @@ impl Operand {
     pub fn register_name(&self) -> &str {
         &self.reg_name
     }
-    pub fn register_class(&self) -> RegisterClass {
+    pub fn register_category(&self) -> RegisterCategory {
         self.reg_class
     }
     pub fn is_vector_register(&self) -> bool {
-        self.reg_class == RegisterClass::Vector
+        self.reg_class == RegisterCategory::Vector
     }
     pub fn is_mask_register(&self) -> bool {
-        self.reg_class == RegisterClass::Mask
+        self.reg_class == RegisterCategory::Mask
     }
 }
 
@@ -208,16 +208,16 @@ unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Result<Instru
                 7 => OperandType::NearAddress,
                 _ => OperandType::None,
             };
-            let reg_class = match op.register_class {
-                0 => RegisterClass::Unknown,
-                1 => RegisterClass::GeneralPurpose,
-                2 => RegisterClass::Segment,
-                3 => RegisterClass::FloatingPoint,
-                4 => RegisterClass::Vector,
-                5 => RegisterClass::Mask,
-                6 => RegisterClass::Control,
-                7 => RegisterClass::Debug,
-                _ => RegisterClass::Other,
+            let reg_class = match op.register_category {
+                0 => RegisterCategory::Unknown,
+                1 => RegisterCategory::GeneralPurpose,
+                2 => RegisterCategory::Segment,
+                3 => RegisterCategory::FloatingPoint,
+                4 => RegisterCategory::Vector,
+                5 => RegisterCategory::Mask,
+                6 => RegisterCategory::Control,
+                7 => RegisterCategory::Debug,
+                _ => RegisterCategory::Other,
             };
             operands.push(Operand {
                 index: op.index,
@@ -521,13 +521,13 @@ pub fn operand_register_name(address: Address, n: i32) -> Result<String> {
 }
 
 /// Register class for operand index `n`.
-pub fn operand_register_class(address: Address, n: i32) -> Result<RegisterClass> {
+pub fn operand_register_category(address: Address, n: i32) -> Result<RegisterCategory> {
     let mut out: i32 = 0;
-    let ret = unsafe { idax_sys::idax_instruction_operand_register_class(address, n, &mut out) };
+    let ret = unsafe { idax_sys::idax_instruction_operand_register_category(address, n, &mut out) };
     if ret != 0 {
-        return Err(error::consume_last_error("operand_register_class failed"));
+        return Err(error::consume_last_error("operand_register_category failed"));
     }
-    register_class_from_i32(out)
+    register_category_from_i32(out)
 }
 
 /// Toggle sign inversion on operand display.

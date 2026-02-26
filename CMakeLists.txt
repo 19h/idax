@@ -76,6 +76,14 @@ foreach(_ida_target idasdk::plugin idasdk::loader idasdk::procmod idasdk::idalib
     endif()
 endforeach()
 
+# When idax is included via FetchContent or add_subdirectory, the MSVC CRT
+# flags set by ida-cmake are local to the idax directory scope.
+# We must propagate CMAKE_MSVC_RUNTIME_LIBRARY to the parent scope so that
+# plugins defined by the user in the parent directory link against the same CRT.
+if(MSVC AND DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "${CMAKE_MSVC_RUNTIME_LIBRARY}" PARENT_SCOPE)
+endif()
+
 if(DEFINED IDASDK AND EXISTS "${IDASDK}/include")
     set(IDAX_SDK_ROOT "${IDASDK}")
 elseif(EXISTS "$ENV{IDASDK}/include")

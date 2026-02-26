@@ -43,7 +43,7 @@ enum class OperandFormat {
     StackVariable,
 };
 
-enum class RegisterClass {
+enum class RegisterCategory {
     Unknown,
     GeneralPurpose,
     Segment,
@@ -85,12 +85,12 @@ public:
     [[nodiscard]] std::int64_t  displacement()   const noexcept { return static_cast<std::int64_t>(value_); }
     [[nodiscard]] int           byte_width()     const noexcept { return byte_width_; }
     [[nodiscard]] std::string   register_name()  const { return register_name_; }
-    [[nodiscard]] RegisterClass register_class() const noexcept { return register_class_; }
+    [[nodiscard]] RegisterCategory register_category() const noexcept { return register_category_; }
     [[nodiscard]] bool is_vector_register() const noexcept {
-        return register_class_ == RegisterClass::Vector;
+        return register_category_ == RegisterCategory::Vector;
     }
     [[nodiscard]] bool is_mask_register() const noexcept {
-        return register_class_ == RegisterClass::Mask;
+        return register_category_ == RegisterCategory::Mask;
     }
 
 private:
@@ -103,7 +103,7 @@ private:
     Address        addr_{};
     int            byte_width_{};
     std::string    register_name_;
-    RegisterClass  register_class_{RegisterClass::Unknown};
+    RegisterCategory  register_category_{RegisterCategory::Unknown};
 };
 
 // ── Instruction value object ────────────────────────────────────────────
@@ -228,7 +228,7 @@ Result<std::string> operand_register_name(Address address, int n);
 
 /// Structured register classification for operand index \p n.
 /// Returns NotFound when the operand is not a register.
-Result<RegisterClass> operand_register_class(Address address, int n);
+Result<RegisterCategory> operand_register_category(Address address, int n);
 
 /// Toggle sign inversion on operand display.
 Status toggle_operand_sign(Address address, int n);

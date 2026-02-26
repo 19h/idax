@@ -222,10 +222,10 @@ void check_instruction_surface() {
     (void)ida::instruction::OperandType::MemoryDirect;
     (void)ida::instruction::OperandFormat::Default;
     (void)ida::instruction::OperandFormat::Hex;
-    (void)ida::instruction::RegisterClass::Unknown;
-    (void)ida::instruction::RegisterClass::GeneralPurpose;
-    (void)ida::instruction::RegisterClass::Vector;
-    (void)ida::instruction::RegisterClass::Mask;
+    (void)ida::instruction::RegisterCategory::Unknown;
+    (void)ida::instruction::RegisterCategory::GeneralPurpose;
+    (void)ida::instruction::RegisterCategory::Vector;
+    (void)ida::instruction::RegisterCategory::Mask;
 
     ida::instruction::StructOffsetPath stroff_path;
     (void)stroff_path.structure_ids;
@@ -254,7 +254,7 @@ void check_instruction_surface() {
     using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
     using InstructionOperandByteWidthFn = ida::Result<int>(*)(ida::Address, int);
     using InstructionOperandRegisterNameFn = ida::Result<std::string>(*)(ida::Address, int);
-    using InstructionOperandRegisterClassFn = ida::Result<ida::instruction::RegisterClass>(*)(ida::Address, int);
+    using InstructionOperandRegisterCategoryFn = ida::Result<ida::instruction::RegisterCategory>(*)(ida::Address, int);
     using InstructionPredicateFn = bool(*)(ida::Address);
 
     (void)static_cast<InstructionSetOperandFormatFn>(&ida::instruction::set_operand_format);
@@ -271,7 +271,7 @@ void check_instruction_surface() {
     (void)static_cast<InstructionOperandTextFn>(&ida::instruction::operand_text);
     (void)static_cast<InstructionOperandByteWidthFn>(&ida::instruction::operand_byte_width);
     (void)static_cast<InstructionOperandRegisterNameFn>(&ida::instruction::operand_register_name);
-    (void)static_cast<InstructionOperandRegisterClassFn>(&ida::instruction::operand_register_class);
+    (void)static_cast<InstructionOperandRegisterCategoryFn>(&ida::instruction::operand_register_category);
     (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_jump);
     (void)static_cast<InstructionPredicateFn>(&ida::instruction::is_conditional_jump);
 }
