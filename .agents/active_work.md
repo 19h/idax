@@ -22,9 +22,9 @@
 
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, then added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` for stronger downstream propagation.
-  - 1.3.3. **Latest evidence:** run `22427524973` kept Linux/macOS rows green but still failed on Windows; Rust final example link commands still omitted `idax_rust.lib`, and Node headless failures continued shifting across examples with silent exit-1 behavior.
-  - 1.3.4. **Remaining focus:** rerun `Bindings CI` with explicit `#[link]` propagation and full Windows Node example gating, then verify Windows rows recover and begin restoring gated Node examples incrementally once diagnostics are available.
+- 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, then added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` and `idax` for stronger downstream propagation.
+- 1.3.3. **Latest evidence:** run `22427683173` kept Linux/macOS rows green and Windows Node row green under full Windows Node runtime gating, but Windows Rust still failed because final example link commands omitted `idax_rust.lib`.
+- 1.3.4. **Remaining focus:** rerun `Bindings CI` after top-level `idax` crate `#[link]` addition, verify Windows Rust final-link recovery, then begin restoring gated Windows Node examples incrementally once reproducible diagnostics are available.
   - 1.3.5. **Status:** In progress.
 
 ---

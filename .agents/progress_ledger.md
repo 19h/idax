@@ -1531,3 +1531,9 @@
   - 16.59.4. Tightened Windows Node CI gating by skipping the entire Node runtime example block in `.github/workflows/bindings-ci.yml` (build/addon compilation still validated) after repeated silent exit-1 failures shifted across examples.
   - 16.59.5. Revalidated local Rust `idax-sys` compilation with `cargo check -p idax-sys`.
   - 16.59.6. Recorded findings [F332]-[F333] and synchronized roadmap/active-work focus.
+
+- **16.60. Windows Rust Link Propagation Follow-up (Post-Run 22427683173)**
+  - 16.60.1. Inspected failed Windows Rust logs from run `22427683173` and reconfirmed pattern: `idax-sys`/`idax` crate compilation includes `-l static=idax_rust`, but final example `rustc`/`link.exe` invocations still omit `idax_rust.lib`.
+  - 16.60.2. Added crate-local Windows native link attribute in `bindings/rust/idax/src/lib.rs` (`#[link(name = "idax_rust", kind = "static")]`) so examples that directly depend on `idax` carry an explicit native dependency at the top-level crate.
+  - 16.60.3. Ran `cargo check -p idax --examples` in `bindings/rust` to validate local compile health after the change (pass; warnings only).
+  - 16.60.4. Recorded finding [F334] and synchronized roadmap/active-work entries for the next CI rerun.
