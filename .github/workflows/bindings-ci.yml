@@ -101,6 +101,15 @@ jobs:
 
           IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
           echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
+          
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "$IDADIR" >> "$GITHUB_PATH"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "DYLD_LIBRARY_PATH=$IDADIR:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            echo "DYLD_FALLBACK_LIBRARY_PATH=$IDADIR:$DYLD_FALLBACK_LIBRARY_PATH" >> "$GITHUB_ENV"
+          else
+            echo "LD_LIBRARY_PATH=$IDADIR:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
@@ -131,6 +140,8 @@ jobs:
         shell: bash
         working-directory: bindings/node
         run: |
+          export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           npm install ts-node typescript @types/node
           echo "Running idalib_dump_port..."
           npx ts-node examples/idalib_dump_port.ts build/Release/idax_native.node --list
@@ -222,6 +233,15 @@ jobs:
 
           IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
           echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
+          
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "$IDADIR" >> "$GITHUB_PATH"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "DYLD_LIBRARY_PATH=$IDADIR:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            echo "DYLD_FALLBACK_LIBRARY_PATH=$IDADIR:$DYLD_FALLBACK_LIBRARY_PATH" >> "$GITHUB_ENV"
+          else
+            echo "LD_LIBRARY_PATH=$IDADIR:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
@@ -259,6 +279,8 @@ jobs:
         shell: bash
         working-directory: bindings/rust
         run: |
+          export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           echo "Running idalib_dump_port..."
           cargo run --example idalib_dump_port -- /bin/ls --list
 
