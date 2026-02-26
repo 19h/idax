@@ -1486,3 +1486,9 @@
   - 16.53.2. Fixed `ts-node` throwing `ERR_UNKNOWN_FILE_EXTENSION` during Node.js examples execution by transitioning `bindings/node/examples/package.json` to CommonJS.
   - 16.53.3. Addressed Rust C++ shim GCC compiler warnings by selectively suppressing `-Wclass-memaccess` when cloning the opaque `InputFile` struct.
   - 16.53.4. Fixed dynamic runtime linking failures (`dyld`/`rpath` missing library crashes) in compiled Node and Rust bindings examples. Configured explicit environment exports for `LD_LIBRARY_PATH` and `DYLD_LIBRARY_PATH` natively inside the execution bash steps to ensure the underlying dynamic linker detects the real `libida.dylib`/`libida.so` inside `IDADIR`.
+
+- **16.54. CI Runtime Path & Installer Resolution Hardening**
+  - 16.54.1. Hardened installer handoff in all GitHub workflows (`bindings-ci`, `integration-ci`, `validation-matrix`, `node-plugin-release`) by replacing `ls ... | head -n 1` with deterministic Python glob resolution plus explicit empty-check/diagnostic output.
+  - 16.54.2. Added macOS `IDADIR` normalization in all workflow path-resolution steps so `.app` bundle roots from `ida-config.json` are converted to `.../Contents/MacOS` when runtime dylibs are present.
+  - 16.54.3. Updated bindings runtime execution steps to consume normalized `IDADIR` directly for `DYLD_LIBRARY_PATH`, keeping Linux behavior on `LD_LIBRARY_PATH` unchanged.
+  - 16.54.4. Recorded CI runtime write-permission and macOS path-normalization discoveries as [F321]-[F322], and synchronized the knowledge base.
