@@ -21,6 +21,12 @@
 
 namespace idax_node {
 
+/// Drop all live decompiler wrapper handles owned by the Node addon.
+///
+/// This is used by database::close() bindings to release cfunc-backed
+/// wrappers before the IDA database is torn down.
+void DisposeAllDecompilerFunctions();
+
 // ── Address conversion ──────────────────────────────────────────────────
 // Addresses are uint64_t. JavaScript numbers only have 53 bits of integer
 // precision. We use BigInt for addresses >= 2^53 and regular numbers for

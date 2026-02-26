@@ -164,6 +164,7 @@ NAN_METHOD(Save) {
 
 NAN_METHOD(Close) {
     bool saveBefore = GetOptionalBool(info, 0, false);
+    DisposeAllDecompilerFunctions();
     IDAX_CHECK_STATUS(ida::database::close(saveBefore));
 }
 
