@@ -359,12 +359,6 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let mut build = cc::Build::new();
-    if cfg!(target_os = "windows") {
-        // We emit custom link metadata on Windows after creating a merged shim
-        // archive, so suppress the default `cc` cargo metadata.
-        build.cargo_metadata(false);
-    }
-
     build
         .cpp(true)
         .file(shim_dir.join("idax_shim.cpp"))
@@ -395,36 +389,20 @@ fn main() {
             panic!("Expected idax static library at {}", source.display());
         }
 
-        // Merge the C shim archive and idax C++ archive so all C++ wrapper
-        // symbols are bundled alongside the shim objects in a single static
-        // library. This avoids downstream final-link propagation issues on
-        // MSVC example binaries.
-        let shim_lib = out_dir.join("idax_shim.lib");
-        if !shim_lib.exists() {
-            panic!("Expected generated shim archive at {}", shim_lib.display());
-        }
-
-        let merged = out_dir.join("idax_shim_merged.lib");
-        let status = std::process::Command::new("lib.exe")
-            .arg("/NOLOGO")
-            .arg(format!("/OUT:{}", merged.display()))
-            .arg(&shim_lib)
-            .arg(&source)
-            .status()
-            .unwrap_or_else(|e| panic!("Failed to execute lib.exe: {}", e));
-
-        if !status.success() {
+        // Avoid collision with the Rust crate name `idax` during downstream
+        // link steps by exposing the C++ archive under a distinct name.
+        let alias = out_dir.join("idax_cpp.lib");
+        std::fs::copy(&source, &alias).unwrap_or_else(|e| {
             panic!(
-                "Failed to create merged shim archive at {}",
-                merged.display()
-            );
-        }
-
-        // Expose the directory to dependent build scripts via DEP_IDAX_*.
-        println!("cargo:idax_lib_dir={}", out_dir.display());
+                "Failed to copy {} to {}: {}",
+                source.display(),
+                alias.display(),
+                e
+            )
+        });
 
         println!("cargo:rustc-link-search=native={}", out_dir.display());
-        println!("cargo:rustc-link-lib=static=idax_shim_merged");
+        println!("cargo:rustc-link-lib=static=idax_cpp");
     } else {
         println!("cargo:rustc-link-search=native={}", libidax_dir.display());
         println!("cargo:rustc-link-lib=static=idax");
