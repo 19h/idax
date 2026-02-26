@@ -35,6 +35,12 @@ case "$PROFILE" in
     ;;
 esac
 
+if [[ -z "${IDASDK:-}" ]]; then
+  echo "error: IDASDK is not set"
+  echo "set IDASDK to your ida-sdk path before running this script"
+  exit 1
+fi
+
 echo "[idax] validation profile: $PROFILE"
 echo "[idax] build dir: $BUILD_DIR"
 echo "[idax] build type: $BUILD_TYPE"

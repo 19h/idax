@@ -43,6 +43,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout IDA SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          path: ida-sdk
+          submodules: recursive
+
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
 
@@ -53,16 +60,34 @@ jobs:
         run: |
           LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -E "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1 | awk -F'│' '{print $2}' | tr -d ' ' | tr -d '\r')
           echo "Using license ID: $LICENSE_ID"
-          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id ida-pro:latest
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id ida-pro:9.3:windows:x86_64
+          else
+            uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id ida-pro:latest
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Resolve IDADIR path
+      - name: Resolve IDASDK and IDADIR paths
         shell: bash
         run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK bootstrap.cmake in SDK checkout"
+            exit 1
+          fi
+
           IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
           echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
 
