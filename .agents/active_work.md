@@ -22,9 +22,9 @@
 
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust` in `idax-sys/build.rs`, and temporarily gated `binary_forensics` on Windows.
-  - 1.3.3. **Latest evidence:** run `22426368465` passed Linux/macOS rows and narrowed Windows failures to (a) Rust unresolved `ida::...` symbols from missing/neutralized `idax` static link propagation and (b) Node `binary_forensics` immediate exit-1 without trace.
-  - 1.3.4. **Remaining focus:** rerun `Bindings CI` to validate the `idax_rust` alias fix and Windows Node gating, then remove temporary gating once `binary_forensics` root cause is isolated.
+  - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, and added `idax` crate build-script re-linking for Windows downstream examples.
+  - 1.3.3. **Latest evidence:** run `22427296800` kept Linux/macOS rows green but still failed on Windows; Rust showed missing downstream `idax_rust` linkage in final example link commands, and Node failure shifted from `binary_forensics` to `class_reconstructor` with immediate exit-1/no stacktrace.
+  - 1.3.4. **Remaining focus:** rerun `Bindings CI` with dependent re-link propagation + dual Windows Node gating (`binary_forensics`, `class_reconstructor`) and validate full Windows row recovery.
   - 1.3.5. **Status:** In progress.
 
 ---

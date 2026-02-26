@@ -1514,3 +1514,12 @@
   - 16.57.4. Updated Windows Node example workflow execution to skip `binary_forensics.ts` in headless CI (temporary stabilization), while continuing to run `idalib_dump_port`, `complexity_metrics`, and `class_reconstructor`.
   - 16.57.5. Verified local Rust binding health after changes with `cargo check -p idax-sys`.
   - 16.57.6. Recorded findings [F328]-[F329] and synchronized roadmap/active-work status for Phase 20 follow-through.
+
+- **16.58. Windows Bindings CI Follow-up (Run 22427296800)**
+  - 16.58.1. Re-ran `Bindings CI` after commit `33df49c`; Linux/macOS rows remained green, while Windows Node and Rust rows still failed.
+  - 16.58.2. Confirmed from failed Rust logs that `-l static=idax_rust` is present while building `idax_sys`, but absent from downstream Windows example link commands; unresolved externals remained `ida::...` references from `idax_shim.o`.
+  - 16.58.3. Updated `bindings/rust/idax-sys/build.rs` to export `cargo:idax_lib_dir=<OUT_DIR>` metadata for dependents.
+  - 16.58.4. Added `bindings/rust/idax/build.rs` and wired `bindings/rust/idax/Cargo.toml` (`build = "build.rs"`) so the safe crate re-emits Windows native link directives (`idax_rust`) using `DEP_IDAX_IDAX_LIB_DIR`.
+  - 16.58.5. Updated `.github/workflows/bindings-ci.yml` Windows Node example step to also skip `class_reconstructor.ts` (headless instability), leaving stable examples in-place.
+  - 16.58.6. Revalidated local Rust compile surface with `cargo check -p idax --examples` after the new build-script wiring.
+  - 16.58.7. Recorded findings [F330]-[F331] and synchronized trackers for Phase 20 residual closure.

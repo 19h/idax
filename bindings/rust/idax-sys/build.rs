@@ -359,6 +359,9 @@ fn main() {
             )
         });
 
+        // Expose the directory to dependent build scripts via DEP_IDAX_*.
+        println!("cargo:idax_lib_dir={}", out_dir.display());
+
         println!("cargo:rustc-link-search=native={}", out_dir.display());
         println!("cargo:rustc-link-lib=static=idax_rust");
     } else {
