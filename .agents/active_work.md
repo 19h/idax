@@ -22,9 +22,9 @@
 
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-- 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` and `idax`, and then converted those `#[link]` extern blocks to non-empty sentinel declarations.
-- 1.3.3. **Latest evidence:** run `22427902344` kept all Node rows green (Windows still runtime-gated) and Rust Linux/macOS green, but Rust Windows still failed with final example link lines missing `idax_rust.lib`.
-- 1.3.4. **Remaining focus:** rerun `Bindings CI` after non-empty sentinel `#[link]` updates, verify whether Windows final example `rustc`/`link.exe` command-lines finally include `idax_rust`, and if not, escalate to a hard-link strategy (explicit Windows rustc link-args for examples or native anchor symbol path).
+- 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` and `idax`, converted those `#[link]` blocks to non-empty sentinel extern declarations, then implemented a merged Windows shim strategy in `idax-sys/build.rs` (`idax_shim.lib` + `idax_rust.lib` -> `idax_shim_merged.lib` via `lib.exe`) and switched Windows native link output to `static=idax_shim_merged`.
+- 1.3.3. **Latest evidence:** run `22428113513` kept all Node rows green (Windows still runtime-gated) and Rust Linux/macOS green, but Rust Windows still failed with final example link lines missing `idax_rust` prior to merged-shim rollout.
+- 1.3.4. **Remaining focus:** rerun `Bindings CI` after merged-shim bundling change and verify Windows Rust examples link without requiring explicit downstream `idax_rust` propagation.
   - 1.3.5. **Status:** In progress.
 
 ---
