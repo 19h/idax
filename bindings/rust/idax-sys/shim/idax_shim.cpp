@@ -296,7 +296,12 @@ ida::Result<ida::loader::InputFile> wrap_loader_input(void* li_handle) {
     static_assert(std::is_trivially_copyable_v<ida::loader::InputFile>);
     static_assert(sizeof(ida::loader::InputFile) == sizeof(void*));
     ida::loader::InputFile input{};
+#pragma GCC diagnostic push
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
     std::memcpy(&input, &li_handle, sizeof(li_handle));
+#pragma GCC diagnostic pop
     return input;
 }
 
