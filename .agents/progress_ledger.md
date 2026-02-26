@@ -1480,3 +1480,9 @@
   - 16.52.4. Resolved MSVC Strict Linking Requirements: Explicitly located and linked `ida.lib`, `pro.lib`, and critically `idalib.lib` in `bindings/node/CMakeLists.txt` for MSVC builds, satisfying the linker's strict requirement for import libraries.
   - 16.52.5. Validation evidence: All GitHub Actions pipelines (`Bindings CI`, `Integrations CI`, `Validation Matrix`) now pass successfully.
   - 16.52.6. Recorded discoveries [F314]-[F316] for CMake scope propagation, Windows macro collision mitigation, and MSVC strict linking, updating the knowledge base.
+
+- **16.53. Stabilizing Real Headless IDA in CI Validation**
+  - 16.53.1. Addressed inconsistent `hcli ida install` failures in CI pipelines caused by download race conditions in the system temporary directory. Switched to `hcli download --output-dir ./ida-installer "$ASSET_KEY"` using precise OS-specific asset keys, feeding the deterministic file path to the installer.
+  - 16.53.2. Fixed `ts-node` throwing `ERR_UNKNOWN_FILE_EXTENSION` during Node.js examples execution by transitioning `bindings/node/examples/package.json` to CommonJS.
+  - 16.53.3. Addressed Rust C++ shim GCC compiler warnings by selectively suppressing `-Wclass-memaccess` when cloning the opaque `InputFile` struct.
+  - 16.53.4. Fixed dynamic runtime linking failures (`dyld`/`rpath` missing library crashes) in compiled Node and Rust bindings examples. Configured explicit environment exports for `LD_LIBRARY_PATH` and `DYLD_LIBRARY_PATH` natively inside the execution bash steps to ensure the underlying dynamic linker detects the real `libida.dylib`/`libida.so` inside `IDADIR`.

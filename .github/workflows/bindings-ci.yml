@@ -56,7 +56,7 @@ jobs:
           HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
         shell: bash
         run: |
-          LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -E "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1 | awk -F'│' '{print $2}' | tr -d ' ' | tr -d '\r')
+          LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -oE "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1)
           echo "Using license ID: $LICENSE_ID"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -75,7 +75,7 @@ jobs:
           uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
           
           INSTALLER_FILE=$(ls ./ida-installer/* | head -n 1)
-          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID "$INSTALLER_FILE"
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -190,7 +190,7 @@ jobs:
           HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
         shell: bash
         run: |
-          LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -E "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1 | awk -F'│' '{print $2}' | tr -d ' ' | tr -d '\r')
+          LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -oE "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1)
           echo "Using license ID: $LICENSE_ID"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -209,7 +209,7 @@ jobs:
           uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
           
           INSTALLER_FILE=$(ls ./ida-installer/* | head -n 1)
-          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID "$INSTALLER_FILE"
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
