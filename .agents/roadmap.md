@@ -30,6 +30,7 @@ Current overall phase status:
 - Phase 17: ~100% (Consolidated per-port gap audits into `docs/port_gap_audit_examples.md`, removed old per-port audit files, synchronized README/api/quickstart/coverage-matrix references, and pruned resolved entries from `.agents/active_work.md`)
 - Phase 18: ~100% (Scenario-driven documentation remediation complete: all 10 evaluated practical-use-case docs delivered, cross-cutting API-surface selection guide and scenario acceptance checklist mapping added, cookbook/traversal docs rebalanced to C++-first default presentation, and case-10 safety/perf guidance reframed as wrapper-vs-raw-SDK)
 - Phase 19: 100% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with procmod + plugin-style standalone flows including `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin`; `jbc_full_loader` rewritten to actively mutate database layout instead of just printing text; TypeScript + Cargo example checks passing; Node addon runtime linkage repaired via rebuild with correct IDA install path; runtime matrix passes for Node tool examples and expanded Rust adaptation set including JBC rows via synthetic fixture validation; ported UI-constrained `idapcode` and `lifter` analysis slices to headless examples)
+- Phase 20: ~60% (real-IDA CI hardening in progress: deterministic installer resolution + macOS `IDADIR` normalization landed; bindings workflow now corrected for Node example argument shape and Windows Rust release-mode builds; Windows Node import-library fallback logic hardened to avoid unresolved symbols when `IDADIR` is set)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -53,5 +54,14 @@ Current overall phase status:
 - [x] P19.4 Continue porting remaining feasible Rust adaptations for plugin/procmod/loader examples that can be represented without host plugin entrypoint macros (including `idapcode_headless_port` and `lifter_headless_port`).
 - [x] P19.5 Add/refresh per-example README mapping that labels each source example as direct port, adapted standalone port, or host-constrained/not-applicable.
 - [x] P19.6 Run deeper runtime validations on a known-good idalib host for newly added tool/adaptation examples and capture pass/fail matrix.
+
+---
+
+### Phase 20 TODO Action Items (Real-IDA CI Hardening)
+
+- [x] P20.1 Fix Node bindings workflow example invocation to pass only expected CLI arguments.
+- [x] P20.2 Avoid Windows debug CRT link failures in Rust bindings workflow by building/running examples in `--release`.
+- [x] P20.3 Harden Node Windows linkage discovery so MSVC import libs are resolved from `IDASDK` even when `IDADIR` is present.
+- [~] P20.4 Re-run `Bindings CI` matrix and close remaining runtime/linking regressions (`macOS _callui`, any residual Windows link gaps).
 
 ---

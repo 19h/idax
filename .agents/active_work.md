@@ -20,6 +20,12 @@
     - 1.2.3.1. Execute `full` rows with runtime installs when available.
   - 1.2.4. **Status:** Ongoing / license-gated.
 
+- **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
+  - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
+  - 1.3.2. **Completed this pass:** corrected Node example argv shape, switched Windows Rust example runs to `--release`, and enabled MSVC import-lib fallback even when `IDADIR` is set.
+  - 1.3.3. **Remaining focus:** close residual Node macOS runtime link failure (`_callui`) and verify no Windows unresolved-externals regressions remain.
+  - 1.3.4. **Status:** In progress.
+
 ---
 
 ### 2. JBC & Processor Module Parity
@@ -68,5 +74,4 @@
   - 5.1.6. **Status:** Pending triage.
 
 ---
-
 
