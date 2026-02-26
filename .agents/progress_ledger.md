@@ -1551,3 +1551,10 @@
   - 16.62.3. Implemented a deterministic Windows fallback in `bindings/rust/idax-sys/build.rs`: disable default `cc` cargo metadata on Windows, build `idax_shim.lib`, copy `idax.lib` to `idax_rust.lib`, merge both archives via `lib.exe` into `idax_shim_merged.lib`, and link `static=idax_shim_merged`.
   - 16.62.4. Revalidated local Rust surfaces after build-script change with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.62.5. Recorded finding [F336] and synchronized roadmap/active-work next focus to CI verification of merged-shim behavior.
+
+- **16.63. Windows Rust Merged-Shim Verification + CRT Alignment (Run 22428565402)**
+  - 16.63.1. Re-ran `Bindings CI` after commit `c1eb7bb`; all Node rows passed (Windows runtime examples still gated), Rust Linux/macOS rows passed, and Rust Windows remained the lone failing row.
+  - 16.63.2. Verified major progression in Windows Rust logs: final example `rustc`/`link.exe` commands now include `-l static=idax_shim_merged` and pass the merged archive path directly, confirming downstream merged-shim propagation.
+  - 16.63.3. Identified new blocker signature: `LNK2038` RuntimeLibrary mismatch (`MT_StaticRelease` from objects in `idax_shim_merged.lib` vs `MD_DynamicRelease` from Rust/`cc` objects).
+  - 16.63.4. Implemented CRT alignment in `bindings/rust/idax-sys/build.rs` by forcing CMake runtime mode on Windows: `CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL`.
+  - 16.63.5. Revalidated local Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only) and recorded finding [F337].
