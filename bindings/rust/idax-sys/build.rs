@@ -269,6 +269,15 @@ fn main() {
     config.define("IDAX_BUILD_TESTS", "OFF");
     // Ensure LTO is disabled when building the static idax library for Rust consumption
     config.define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "OFF");
+    if cfg!(target_os = "windows") {
+        // Match Rust's MSVC runtime (`/MD` in release) to avoid LNK2038
+        // RuntimeLibrary mismatches when linking CMake-built idax objects
+        // with the `cc`-built shim object.
+        config.define(
+            "CMAKE_MSVC_RUNTIME_LIBRARY",
+            "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+        );
+    }
 
     if idasdk_env.is_none() {
         // Force the CMake script to fetch the SDK since we don't have it locally in the env
