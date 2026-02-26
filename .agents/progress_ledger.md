@@ -1544,3 +1544,10 @@
   - 16.61.3. Hardened both Rust crates by converting Windows `#[link]` blocks to non-empty extern declarations with a sentinel item (`__idax_windows_link_metadata_sentinel`) in `bindings/rust/idax-sys/src/lib.rs` and `bindings/rust/idax/src/lib.rs`.
   - 16.61.4. Revalidated local Rust compile surface with `cargo check -p idax --examples` after sentinel declarations (pass; warnings only).
   - 16.61.5. Recorded finding [F335] and updated active-work focus for the next CI rerun.
+
+- **16.62. Windows Rust Link Propagation Follow-up (Run 22428113513)**
+  - 16.62.1. Re-ran `Bindings CI` after commit `91618e3`; all Node rows passed (Windows still runtime-gated) and Rust Linux/macOS rows passed, but Rust Windows still failed at example link stage.
+  - 16.62.2. Confirmed sentinel `#[link]` hardening was still insufficient: final example `rustc` command-lines continued omitting `-l static=idax_rust`, with the same unresolved `ida::...` externals from `idax_shim.o`.
+  - 16.62.3. Implemented a deterministic Windows fallback in `bindings/rust/idax-sys/build.rs`: disable default `cc` cargo metadata on Windows, build `idax_shim.lib`, copy `idax.lib` to `idax_rust.lib`, merge both archives via `lib.exe` into `idax_shim_merged.lib`, and link `static=idax_shim_merged`.
+  - 16.62.4. Revalidated local Rust surfaces after build-script change with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.62.5. Recorded finding [F336] and synchronized roadmap/active-work next focus to CI verification of merged-shim behavior.
