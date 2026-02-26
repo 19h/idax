@@ -1565,3 +1565,12 @@
   - 16.64.3. Log audit showed dual native output roots (`idax-sys-bfdc...` and `idax-sys-457a...`) in a single invocation; workflow `RUSTFLAGS` injection pinned `-L native` to the older directory (`bfdc`), potentially forcing stale merged archive selection.
   - 16.64.4. Removed Windows workflow `RUSTFLAGS` merged-shim injection block from `.github/workflows/bindings-ci.yml`, restoring reliance on crate-emitted link metadata only.
   - 16.64.5. Recorded finding [F338] and updated active focus to validate the workflow cleanup path on the next CI run.
+
+- **16.65. Cross-platform Integration Tests Linker Fix (Linux/Windows)**
+  - 16.65.1. Investigated build failures in GHA Unit Test matrix (`validation profile: unit`) on Linux and Windows.
+  - 16.65.2. Discovered that `tests/integration/CMakeLists.txt` hardcoded `libidalib.dylib` for linking, causing `LNK1104` on MSVC (which expects `.lib`) and `No rule to make target` on Linux (which expects `.so`).
+  - 16.65.3. Rewrote `idax_add_integration_test` in `tests/integration/CMakeLists.txt` to conditionally set `IDAX_IDALIB_LIB_NAME` and `IDAX_IDA_LIB_NAME` based on `WIN32`/`APPLE` flags.
+  - 16.65.4. Modified the integration test build logic to use the SDK's `ida_add_idalib` macro on Windows and Linux (which automatically links the correct SDK stub `.lib`/`.so`), while retaining the manual installation-dir linking exclusively for macOS to bypass the 2-level namespace stub issue.
+  - 16.65.5. Resolved multiple compiler `[[nodiscard]]` warnings (`warning C4834` on Windows) on `unsubscribe` and `handler_with_context` by casting to `(void)` in `include/ida/debugger.hpp`, `include/ida/ui.hpp`, and `src/plugin.cpp`.
+  - 16.65.6. Resolved unused parameter warning `stmt` in `tests/integration/smoke_test.cpp` by commenting out the parameter name `/*stmt*/`.
+  - 16.65.7. Logged finding [F339] and verified test configuration locally.

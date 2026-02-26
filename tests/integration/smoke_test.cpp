@@ -879,7 +879,7 @@ static void test_decompiler_ctree(ida::decompiler::DecompiledFunction& df) {
         }
 
         ida::decompiler::VisitAction visit_statement(
-            ida::decompiler::StatementView stmt) override {
+            ida::decompiler::StatementView /*stmt*/) override {
             ++stmt_count;
             return ida::decompiler::VisitAction::Continue;
         }

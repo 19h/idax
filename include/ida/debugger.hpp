@@ -284,13 +284,13 @@ Status unsubscribe(Token token);
 class ScopedSubscription {
 public:
     explicit ScopedSubscription(Token token) : token_(token) {}
-    ~ScopedSubscription() { unsubscribe(token_); }
+    ~ScopedSubscription() { (void)unsubscribe(token_); }
 
     ScopedSubscription(const ScopedSubscription&) = delete;
     ScopedSubscription& operator=(const ScopedSubscription&) = delete;
     ScopedSubscription(ScopedSubscription&& o) noexcept : token_(o.token_) { o.token_ = 0; }
     ScopedSubscription& operator=(ScopedSubscription&& o) noexcept {
-        if (this != &o) { unsubscribe(token_); token_ = o.token_; o.token_ = 0; }
+        if (this != &o) { (void)unsubscribe(token_); token_ = o.token_; o.token_ = 0; }
         return *this;
     }
 

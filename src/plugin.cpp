@@ -59,9 +59,9 @@ struct ActionAdapter : public action_handler_t {
     int idaapi activate(action_activation_ctx_t *ctx) override {
         if (handler_with_context) {
             auto context = to_action_context(ctx);
-            handler_with_context(context);
+            (void)handler_with_context(context);
         } else if (handler) {
-            handler();
+            (void)handler();
         }
         return 1; // refresh
     }
