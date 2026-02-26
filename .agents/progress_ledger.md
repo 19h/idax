@@ -1600,3 +1600,14 @@
   - 16.68.4. Removed obsolete Windows crate-level sentinel link block from `bindings/rust/idax-sys/src/lib.rs`.
   - 16.68.5. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.68.6. Recorded finding [F343] and updated active focus for CI verification.
+
+- **16.69. Windows Rust follow-up after user CI evidence (missing `idax_cpp` in final link command)**
+  - 16.69.1. Reviewed user-provided Windows linker command showing `ida.lib`/`idalib.lib` present but no `idax_cpp.lib`, with unresolved `ida::...` symbols reported from `idax_shim.o` and 589 unresolved externals.
+  - 16.69.2. Added crate-level Windows reinforcement in `bindings/rust/idax-sys/src/lib.rs`: non-empty `#[link(name = "idax_cpp", kind = "static")]` extern block.
+  - 16.69.3. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.69.4. Recorded finding [F344] and kept Phase 20 focus on CI verification.
+
+- **16.70. Windows Rust top-level crate reinforcement (`idax` -> `idax_cpp`)**
+  - 16.70.1. Added non-empty Windows `#[link(name = "idax_cpp", kind = "static")]` sentinel block to `bindings/rust/idax/src/lib.rs` so example binaries depending directly on `idax` carry explicit wrapper-archive linkage metadata.
+  - 16.70.2. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.70.3. Recorded finding [F345] and updated active focus to CI verification.
