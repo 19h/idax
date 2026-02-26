@@ -73,8 +73,14 @@ jobs:
           
           mkdir -p ./ida-installer
           uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
-          
-          INSTALLER_FILE=$(ls ./ida-installer/* | head -n 1)
+
+          INSTALLER_FILE=$(python3 -c "import glob; files=sorted(glob.glob('ida-installer/*')); print(files[0] if files else '')")
+          if [[ -z "$INSTALLER_FILE" ]]; then
+            echo "error: no installer file found in ./ida-installer"
+            ls -la ./ida-installer
+            exit 1
+          fi
+          echo "Using installer file: $INSTALLER_FILE"
           uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Node.js
@@ -100,6 +106,9 @@ jobs:
           fi
 
           IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
+          if [[ "$RUNNER_OS" == "macOS" && -f "$IDADIR/Contents/MacOS/libida.dylib" ]]; then
+            IDADIR="$IDADIR/Contents/MacOS"
+          fi
           echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -141,7 +150,7 @@ jobs:
         working-directory: bindings/node
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            export DYLD_LIBRARY_PATH="$IDADIR/Contents/MacOS:$DYLD_LIBRARY_PATH"
+            export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
           else
             export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           fi
@@ -219,8 +228,14 @@ jobs:
           
           mkdir -p ./ida-installer
           uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
-          
-          INSTALLER_FILE=$(ls ./ida-installer/* | head -n 1)
+
+          INSTALLER_FILE=$(python3 -c "import glob; files=sorted(glob.glob('ida-installer/*')); print(files[0] if files else '')")
+          if [[ -z "$INSTALLER_FILE" ]]; then
+            echo "error: no installer file found in ./ida-installer"
+            ls -la ./ida-installer
+            exit 1
+          fi
+          echo "Using installer file: $INSTALLER_FILE"
           uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Rust
@@ -244,6 +259,9 @@ jobs:
           fi
 
           IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
+          if [[ "$RUNNER_OS" == "macOS" && -f "$IDADIR/Contents/MacOS/libida.dylib" ]]; then
+            IDADIR="$IDADIR/Contents/MacOS"
+          fi
           echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -292,7 +310,7 @@ jobs:
         working-directory: bindings/rust
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            export DYLD_LIBRARY_PATH="$IDADIR/Contents/MacOS:$DYLD_LIBRARY_PATH"
+            export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
           else
             export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           fi
