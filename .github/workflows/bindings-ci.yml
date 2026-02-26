@@ -314,23 +314,6 @@ jobs:
         shell: pwsh
         run: |
           cargo build --release --verbose
-          $idaxSysBuild = Get-ChildItem "target/release/build" -Directory -Filter "idax-sys-*" |
-            Sort-Object LastWriteTime -Descending |
-            Select-Object -First 1
-
-          if (-not $idaxSysBuild) {
-            throw "Failed to locate idax-sys build output directory under target/release/build"
-          }
-
-          $nativeOut = Join-Path $idaxSysBuild.FullName "out"
-          $mergedShim = Join-Path $nativeOut "idax_shim_merged.lib"
-
-          if (-not (Test-Path $mergedShim)) {
-            throw "Expected merged shim archive at $mergedShim"
-          }
-
-          Write-Host "Using merged shim archive: $mergedShim"
-          $env:RUSTFLAGS = "$env:RUSTFLAGS -L native=$nativeOut -l static=idax_shim_merged"
           cargo build --release --examples --verbose
 
       - name: Run Rust examples (Unix)

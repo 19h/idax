@@ -1558,3 +1558,10 @@
   - 16.63.3. Identified new blocker signature: `LNK2038` RuntimeLibrary mismatch (`MT_StaticRelease` from objects in `idax_shim_merged.lib` vs `MD_DynamicRelease` from Rust/`cc` objects).
   - 16.63.4. Implemented CRT alignment in `bindings/rust/idax-sys/build.rs` by forcing CMake runtime mode on Windows: `CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>DLL`.
   - 16.63.5. Revalidated local Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only) and recorded finding [F337].
+
+- **16.64. Windows Rust Follow-up (Run 22428747919) — Stale RUSTFLAGS Link Source Identified**
+  - 16.64.1. Re-ran `Bindings CI` after commit `e7b01e5`; Node rows remained green and Rust Linux/macOS remained green, but Rust Windows still failed in `Build Rust bindings (Windows)`.
+  - 16.64.2. Confirmed the same `LNK2038` RuntimeLibrary mismatch while final example links continued to include `idax_shim_merged.lib`.
+  - 16.64.3. Log audit showed dual native output roots (`idax-sys-bfdc...` and `idax-sys-457a...`) in a single invocation; workflow `RUSTFLAGS` injection pinned `-L native` to the older directory (`bfdc`), potentially forcing stale merged archive selection.
+  - 16.64.4. Removed Windows workflow `RUSTFLAGS` merged-shim injection block from `.github/workflows/bindings-ci.yml`, restoring reliance on crate-emitted link metadata only.
+  - 16.64.5. Recorded finding [F338] and updated active focus to validate the workflow cleanup path on the next CI run.

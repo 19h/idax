@@ -63,6 +63,6 @@ Current overall phase status:
 - [x] P20.2 Avoid Windows debug CRT link failures in Rust bindings workflow by building/running examples in `--release`.
 - [x] P20.3 Harden Node Windows linkage discovery so MSVC import libs are resolved from `IDASDK` even when `IDADIR` is present.
 - [x] P20.4 Fix Windows workflow shell/runtime routing so Rust uses MSVC `link.exe` (not `/usr/bin/link`) and examples resolve IDA DLLs via `PATH`.
-- [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: Windows Rust CRT/runtime-library alignment after merged `idax_shim_merged.lib` propagation proved effective; force MSVC `/MD` consistency in `idax-sys` CMake build while keeping temporary full Windows Node example gating until headless runtime flakes are diagnosable).
+- [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: Windows Rust cleanup after merged-shim propagation + `/MD` alignment changes, specifically removing workflow-level `RUSTFLAGS` stale-output pinning so crate-emitted metadata selects current `idax-sys` artifacts; temporary full Windows Node example gating remains until headless runtime flakes are diagnosable).
 
 ---
