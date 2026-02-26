@@ -1574,3 +1574,14 @@
   - 16.65.5. Resolved multiple compiler `[[nodiscard]]` warnings (`warning C4834` on Windows) on `unsubscribe` and `handler_with_context` by casting to `(void)` in `include/ida/debugger.hpp`, `include/ida/ui.hpp`, and `src/plugin.cpp`.
   - 16.65.6. Resolved unused parameter warning `stmt` in `tests/integration/smoke_test.cpp` by commenting out the parameter name `/*stmt*/`.
   - 16.65.7. Logged finding [F339] and verified test configuration locally.
+
+- **16.66. Phase 20 CI Regression Fixes (Node macOS segfault + Windows Rust unresolved externals)**
+  - 16.66.1. Investigated macOS Node `complexity_metrics` crash signature where the script completes and then exits with `Segmentation fault: 11` at process shutdown.
+  - 16.66.2. Implemented addon-level decompiler wrapper lifetime hardening in `bindings/node/src/decompiler_bind.cpp`: track live `DecompiledFunctionWrapper` instances, add `DisposeAllLiveWrappers()`, and add post-disposal guard checks (`EnsureAlive`) on wrapper methods.
+  - 16.66.3. Wired `bindings/node/src/database_bind.cpp` `Close` path to invoke `DisposeAllDecompilerFunctions()` before `ida::database::close(...)`, and declared the helper in `bindings/node/src/helpers.hpp`.
+  - 16.66.4. Rebuilt Node addon (`npm run build --silent`) and re-ran `npx ts-node examples/complexity_metrics.ts tests/fixtures/simple_appcall_linux64`; analysis completed and process exited cleanly (no segfault).
+  - 16.66.5. Investigated new Windows Rust unresolved externals (`ida::ui`/`ida::lines` from `idax_shim.o`) and aligned native-link metadata after merged-shim rollout: switched `bindings/rust/idax-sys/src/lib.rs` sentinel link target to `idax_shim_merged`, switched `bindings/rust/idax/build.rs` to emit `static=idax_shim_merged`, and removed stale `idax_rust` crate-level link block from `bindings/rust/idax/src/lib.rs`.
+  - 16.66.6. Simplified merged archive construction in `bindings/rust/idax-sys/build.rs` by merging `idax_shim.lib` directly with `idax.lib` (no intermediate alias copy), while keeping `cargo:idax_lib_dir` + `static=idax_shim_merged` emission.
+  - 16.66.7. Added idax source-tree invalidation tracking in `bindings/rust/idax-sys/build.rs` via recursive `cargo:rerun-if-changed` over `CMakeLists.txt`, `cmake/`, `include/`, and `src/` to reduce stale archive reuse in cached CI environments.
+  - 16.66.8. Revalidated Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.66.9. Recorded findings [F340]-[F341] and updated roadmap/active-work focus for the next `Bindings CI` rerun.

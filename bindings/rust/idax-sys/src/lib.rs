@@ -10,9 +10,9 @@
 #![allow(clippy::all)]
 
 #[cfg(target_os = "windows")]
-#[link(name = "idax_rust", kind = "static")]
+#[link(name = "idax_shim_merged", kind = "static")]
 unsafe extern "C" {
-    fn __idax_windows_link_metadata_sentinel();
+    fn __idax_windows_merged_shim_link_sentinel();
 }
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

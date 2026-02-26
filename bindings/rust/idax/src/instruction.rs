@@ -525,7 +525,9 @@ pub fn operand_register_category(address: Address, n: i32) -> Result<RegisterCat
     let mut out: i32 = 0;
     let ret = unsafe { idax_sys::idax_instruction_operand_register_category(address, n, &mut out) };
     if ret != 0 {
-        return Err(error::consume_last_error("operand_register_category failed"));
+        return Err(error::consume_last_error(
+            "operand_register_category failed",
+        ));
     }
     register_category_from_i32(out)
 }

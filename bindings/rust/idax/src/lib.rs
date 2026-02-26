@@ -96,12 +96,6 @@
 //! All unsafe FFI calls are encapsulated within safe Rust functions.
 //! Users of this crate never need to write `unsafe` code.
 
-#[cfg(target_os = "windows")]
-#[link(name = "idax_rust", kind = "static")]
-unsafe extern "C" {
-    fn __idax_windows_link_metadata_sentinel();
-}
-
 // ── Public modules ──────────────────────────────────────────────────────
 
 pub mod address;

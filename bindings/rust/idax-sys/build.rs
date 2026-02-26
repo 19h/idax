@@ -11,6 +11,34 @@ fn canonicalize_safe<P: AsRef<Path>>(p: P) -> std::io::Result<PathBuf> {
     Ok(canon)
 }
 
+fn emit_rerun_for_tree(root: &Path) {
+    if !root.exists() {
+        return;
+    }
+
+    if root.is_file() {
+        println!("cargo:rerun-if-changed={}", root.display());
+        return;
+    }
+
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let entries = match std::fs::read_dir(&dir) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                println!("cargo:rerun-if-changed={}", path.display());
+            }
+        }
+    }
+}
+
 /// Discover the IDA runtime directory. Checks $IDADIR first, then scans
 /// standard installation locations.
 fn discover_ida_dir() -> Option<PathBuf> {
@@ -239,6 +267,10 @@ fn main() {
     }
 
     println!("cargo:rerun-if-env-changed=IDAX_DIR");
+    emit_rerun_for_tree(&idax_root.join("CMakeLists.txt"));
+    emit_rerun_for_tree(&idax_root.join("cmake"));
+    emit_rerun_for_tree(&idax_root.join("include"));
+    emit_rerun_for_tree(&idax_root.join("src"));
 
     let idasdk_env_str = env::var("IDASDK").ok().filter(|s| !s.is_empty());
 
@@ -363,18 +395,6 @@ fn main() {
             panic!("Expected idax static library at {}", source.display());
         }
 
-        // Avoid collision with the Rust crate name `idax` during downstream
-        // example linking on MSVC by linking an aliased copy.
-        let alias = out_dir.join("idax_rust.lib");
-        std::fs::copy(&source, &alias).unwrap_or_else(|e| {
-            panic!(
-                "Failed to copy {} to {}: {}",
-                source.display(),
-                alias.display(),
-                e
-            )
-        });
-
         // Merge the C shim archive and idax C++ archive so all C++ wrapper
         // symbols are bundled alongside the shim objects in a single static
         // library. This avoids downstream final-link propagation issues on
@@ -389,7 +409,7 @@ fn main() {
             .arg("/NOLOGO")
             .arg(format!("/OUT:{}", merged.display()))
             .arg(&shim_lib)
-            .arg(&alias)
+            .arg(&source)
             .status()
             .unwrap_or_else(|e| panic!("Failed to execute lib.exe: {}", e));
 

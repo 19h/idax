@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <mutex>
 
 namespace idax_node {
@@ -90,11 +91,33 @@ public:
         return scope.Escape(instance);
     }
 
+    static void DisposeAllLiveWrappers() {
+        std::lock_guard<std::mutex> lock(live_mutex());
+        for (auto* wrapper : live_wrappers()) {
+            if (wrapper != nullptr)
+                wrapper->func_.reset();
+        }
+        pending_func_.reset();
+    }
+
 private:
     explicit DecompiledFunctionWrapper(std::unique_ptr<ida::decompiler::DecompiledFunction> func)
-        : func_(std::move(func)) {}
+        : func_(std::move(func)) {
+        std::lock_guard<std::mutex> lock(live_mutex());
+        live_wrappers().insert(this);
+    }
 
-    ~DecompiledFunctionWrapper() override = default;
+    ~DecompiledFunctionWrapper() override {
+        std::lock_guard<std::mutex> lock(live_mutex());
+        live_wrappers().erase(this);
+    }
+
+    static bool EnsureAlive(DecompiledFunctionWrapper* wrapper) {
+        if (wrapper != nullptr && wrapper->func_ != nullptr)
+            return true;
+        Nan::ThrowError("DecompiledFunction handle is no longer valid");
+        return false;
+    }
 
     ida::decompiler::DecompiledFunction& func() {
         return *func_;
@@ -118,6 +141,7 @@ private:
     // pseudocode() -> string
     static NAN_METHOD(Pseudocode) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto text, wrapper->func().pseudocode());
         info.GetReturnValue().Set(FromString(text));
     }
@@ -125,6 +149,7 @@ private:
     // lines() -> string[]
     static NAN_METHOD(Lines) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto lns, wrapper->func().lines());
         info.GetReturnValue().Set(StringVectorToArray(lns));
     }
@@ -132,6 +157,7 @@ private:
     // rawLines() -> string[]
     static NAN_METHOD(RawLines) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto lns, wrapper->func().raw_lines());
         info.GetReturnValue().Set(StringVectorToArray(lns));
     }
@@ -139,6 +165,7 @@ private:
     // declaration() -> string
     static NAN_METHOD(Declaration) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto decl, wrapper->func().declaration());
         info.GetReturnValue().Set(FromString(decl));
     }
@@ -146,6 +173,7 @@ private:
     // variableCount() -> number
     static NAN_METHOD(VariableCount) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto count, wrapper->func().variable_count());
         info.GetReturnValue().Set(Nan::New(static_cast<double>(count)));
     }
@@ -153,6 +181,7 @@ private:
     // variables() -> [{ name, typeName, isArgument, width, hasUserName, hasNiceName, storage, comment }]
     static NAN_METHOD(Variables) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto vars, wrapper->func().variables());
 
         auto arr = Nan::New<v8::Array>(static_cast<int>(vars.size()));
@@ -165,6 +194,7 @@ private:
     // renameVariable(oldName: string, newName: string)
     static NAN_METHOD(RenameVariable) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
 
         std::string oldName;
         if (!GetStringArg(info, 0, oldName)) return;
@@ -180,6 +210,7 @@ private:
     //   - retypeVariable(0, "unsigned int")
     static NAN_METHOD(RetypeVariable) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
 
         if (info.Length() < 2) {
             Nan::ThrowTypeError("Expected (name|index, typeString) arguments");
@@ -213,6 +244,7 @@ private:
     // entryAddress() -> bigint
     static NAN_METHOD(EntryAddress) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         auto addr = wrapper->func().entry_address();
         info.GetReturnValue().Set(FromAddress(addr));
     }
@@ -220,6 +252,7 @@ private:
     // lineToAddress(line: number) -> bigint
     static NAN_METHOD(LineToAddress) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
 
         if (info.Length() < 1 || !info[0]->IsNumber()) {
             Nan::ThrowTypeError("Expected numeric line number argument");
@@ -234,6 +267,7 @@ private:
     // addressMap() -> [{ address: bigint, lineNumber: number }]
     static NAN_METHOD(AddressMap) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_UNWRAP(auto mappings, wrapper->func().address_map());
 
         auto arr = Nan::New<v8::Array>(static_cast<int>(mappings.size()));
@@ -246,6 +280,7 @@ private:
     // refresh()
     static NAN_METHOD(Refresh) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
         IDAX_CHECK_STATUS(wrapper->func().refresh());
     }
 
@@ -257,6 +292,16 @@ private:
     // wrapper during construction. Set before Nan::NewInstance and consumed
     // inside the New callback.
     static std::unique_ptr<ida::decompiler::DecompiledFunction> pending_func_;
+
+    static std::unordered_set<DecompiledFunctionWrapper*>& live_wrappers() {
+        static std::unordered_set<DecompiledFunctionWrapper*> wrappers;
+        return wrappers;
+    }
+
+    static std::mutex& live_mutex() {
+        static std::mutex m;
+        return m;
+    }
 
     static inline Nan::Persistent<v8::Function>& constructor() {
         static Nan::Persistent<v8::Function> ctor;
@@ -449,6 +494,10 @@ NAN_METHOD(MarkDirtyWithCallers) {
 }
 
 } // anonymous namespace
+
+void DisposeAllDecompilerFunctions() {
+    DecompiledFunctionWrapper::DisposeAllLiveWrappers();
+}
 
 // ── Module registration ─────────────────────────────────────────────────
 
