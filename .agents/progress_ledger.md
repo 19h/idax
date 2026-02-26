@@ -1627,3 +1627,13 @@
   - 16.72.5. Kept Windows direct-link mitigation (`cargo:rustc-link-lib=static:-bundle=idax_cpp`) in place to avoid LTCG bundling regressions.
   - 16.72.6. Revalidated local Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.72.7. Recorded finding [F347] and updated roadmap/active-work focus to CI verification.
+  - 16.72.8. Logged architecture/runtime decisions in `.agents/decision_log.md` under D-RUST-WINDOWS-CRT-STATIC-ALIGNMENT and D-RUST-WINDOWS-LTCG-NONBUNDLED-LINK.
+
+- **16.73. Windows Rust runtime follow-up (post-link success, example exit-code-1 mitigation)**
+  - 16.73.1. Incorporated user evidence that Windows Rust build/link now succeeds but runtime example executions still exit with code 1 (`idalib_dump_port`, `ida2py_port`).
+  - 16.73.2. Hardened Rust initialization path by updating `bindings/rust/idax/src/database.rs` `database::init()` to pass a synthetic argv (`argc=1`, `argv[0]="idax-rust"`) instead of null argv.
+  - 16.73.3. Hardened example session helper in `bindings/rust/idax/examples/common/mod.rs`: on Windows only, downgrade `analysis::wait()` failures to warnings (continue) instead of hard-failing helper session setup.
+  - 16.73.4. Revalidated local compile surfaces with `cargo check -p idax` and `cargo check -p idax --examples` (pass; warnings only).
+  - 16.73.5. Improved Rust example diagnostics in `bindings/rust/idax/examples/common/mod.rs` to include `[ErrorCategory:code]` in formatted error output for CI triage.
+  - 16.73.6. Logged runtime-behavior decision in `.agents/decision_log.md` under D-RUST-WINDOWS-RUNTIME-SESSION-ROBUSTNESS.
+  - 16.73.7. Recorded findings [F348]-[F349] and updated active/roadmap focus toward Windows runtime CI verification.
