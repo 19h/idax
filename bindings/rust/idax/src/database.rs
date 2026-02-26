@@ -191,7 +191,9 @@ impl ProcessorId {
 
 /// Initialise the IDA library (call once, before any other idax call).
 pub fn init() -> Status {
-    let ret = unsafe { idax_sys::idax_database_init(0, std::ptr::null_mut()) };
+    let argv0 = CString::new("idax-rust").expect("static argv0 must be valid CString");
+    let mut argv = [argv0.as_ptr() as *mut std::os::raw::c_char];
+    let ret = unsafe { idax_sys::idax_database_init(1, argv.as_mut_ptr()) };
     error::int_to_status(ret, "database::init failed")
 }
 

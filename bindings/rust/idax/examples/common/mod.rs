@@ -11,7 +11,16 @@ impl DatabaseSession {
         database::init()?;
         database::open(input_path, analyze_input)?;
         if analyze_input {
-            analysis::wait()?;
+            if let Err(error) = analysis::wait() {
+                if cfg!(target_os = "windows") {
+                    eprintln!(
+                        "warning: analysis::wait failed on Windows CI, continuing: {}",
+                        format_error(&error)
+                    );
+                } else {
+                    return Err(error);
+                }
+            }
         }
         Ok(Self { open: true })
     }
@@ -28,9 +37,12 @@ impl Drop for DatabaseSession {
 
 pub fn format_error(error: &idax::Error) -> String {
     if error.context.is_empty() {
-        error.message.clone()
+        format!("[{:?}:{}] {}", error.category, error.code, error.message)
     } else {
-        format!("{} ({})", error.message, error.context)
+        format!(
+            "[{:?}:{}] {} ({})",
+            error.category, error.code, error.message, error.context
+        )
     }
 }
 

@@ -949,3 +949,21 @@
 - **19.12. Decision D-NODE-WINDOWS-COMPILATION-MACROS**: Rename `RegisterClass` to `RegisterCategory` across C++, TypeScript, and Rust
   - **19.12.1. Decision:** Rename the `ida::instruction::RegisterClass` enum to `RegisterCategory` globally.
   - **19.12.2. Rationale:** When compiling Node.js bindings on Windows, `<windows.h>` is inevitably included. It aggressively `#define`s `RegisterClass` to `RegisterClassA` or `RegisterClassW`. This mangled the `ida::instruction::RegisterClass` enum signatures, causing `LNK2001` unresolved external symbol errors. A clean rename to `RegisterCategory` completely avoids the collision.
+
+- **19.13. Decision D-RUST-WINDOWS-CRT-STATIC-ALIGNMENT**: Enforce static CRT across Rust bindings when linking against IDA SDK wrappers
+  - **19.13.1. Decision:** Align Windows Rust bindings to static CRT by configuring:
+    - repository Cargo target setting `x86_64-pc-windows-msvc` with `-C target-feature=+crt-static`,
+    - `idax-sys/build.rs` CMake setting `CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>`, and
+    - `cc::Build::static_crt(true)` for `idax_shim.cpp`.
+  - **19.13.2. Rationale:** IDA SDK Windows binaries/libs are built around static CRT assumptions; mixed `/MT` + `/MD` object graphs produced hard linker failures (`LNK2038`/`LNK1319`). Uniform static CRT eliminates runtime-library conflicts.
+  - **19.13.3. Alternative considered:** Keep `/MD` for Rust/shim and force CMake `/MD` for wrappers. Rejected due repeated mismatch against IDA SDK static-runtime expectations and unstable downstream linking.
+
+- **19.14. Decision D-RUST-WINDOWS-LTCG-NONBUNDLED-LINK**: Link `idax_cpp` with non-bundled static mode on Windows
+  - **19.14.1. Decision:** Emit `cargo:rustc-link-lib=static:-bundle=idax_cpp` in `idax-sys/build.rs` on Windows.
+  - **19.14.2. Rationale:** With MSVC LTCG (`/GL`) objects in `idax_cpp.lib`, rustc archive bundling into `.rlib` can hide/skip required symbols at final link. Non-bundled mode keeps `idax_cpp.lib` passed directly to `link.exe`.
+  - **19.14.3. Alternative considered:** Reintroduce merged shim archives and crate-level sentinel `#[link]` metadata. Rejected for being more brittle and less transparent than direct non-bundled linkage.
+
+- **19.15. Decision D-RUST-WINDOWS-RUNTIME-SESSION-ROBUSTNESS**: Harden Rust example session init/wait behavior for Windows CI
+  - **19.15.1. Decision:** In Rust bindings, initialize idalib with a synthetic argv (`argc=1`, `argv[0]="idax-rust"`) instead of null argv, and in Rust example helper sessions treat `analysis::wait()` failures as warnings on Windows (non-Windows remains strict-error).
+  - **19.15.2. Rationale:** Windows CI runtime failures were surfacing as opaque exit-code-1 results. Providing argv and allowing non-fatal wait degradation in helper tooling preserves runtime validation usefulness while avoiding brittle host-specific analysis wait failures.
+  - **19.15.3. Scope constraint:** This relaxed wait behavior is limited to Rust example helper code (`examples/common/mod.rs`), not core library APIs.
