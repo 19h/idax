@@ -1492,3 +1492,9 @@
   - 16.54.2. Added macOS `IDADIR` normalization in all workflow path-resolution steps so `.app` bundle roots from `ida-config.json` are converted to `.../Contents/MacOS` when runtime dylibs are present.
   - 16.54.3. Updated bindings runtime execution steps to consume normalized `IDADIR` directly for `DYLD_LIBRARY_PATH`, keeping Linux behavior on `LD_LIBRARY_PATH` unchanged.
   - 16.54.4. Recorded CI runtime write-permission and macOS path-normalization discoveries as [F321]-[F322], and synchronized the knowledge base.
+
+- **16.55. Bindings CI Invocation + Windows Linking Follow-Up**
+  - 16.55.1. Fixed Node example invocations in `.github/workflows/bindings-ci.yml` to stop passing `build/Release/idax_native.node` as a positional argument; examples now receive only the intended test binary path and flags.
+  - 16.55.2. Updated Rust bindings workflow to build examples in `--release` on Windows and run Windows examples with `cargo run --release ...`, mitigating debug CRT unresolved-symbol failures observed in prior CI runs.
+  - 16.55.3. Hardened `bindings/node/CMakeLists.txt` Windows linking behavior so MSVC import-library resolution from `IDASDK` fills in missing `ida.lib`/`idalib.lib`/`pro.lib` even when `IDADIR` is set.
+  - 16.55.4. Updated planning/docs trackers for new Phase-20 CI hardening actions and recorded findings [F323]-[F325].

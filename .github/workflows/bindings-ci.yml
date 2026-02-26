@@ -165,16 +165,16 @@ jobs:
           fi
           
           echo "Running idalib_dump_port..."
-          npx ts-node examples/idalib_dump_port.ts build/Release/idax_native.node "$TEST_BIN" --list
+          npx ts-node examples/idalib_dump_port.ts "$TEST_BIN" --list
 
           echo "Running complexity_metrics..."
-          npx ts-node examples/complexity_metrics.ts build/Release/idax_native.node "$TEST_BIN"
+          npx ts-node examples/complexity_metrics.ts "$TEST_BIN"
 
           echo "Running class_reconstructor..."
-          npx ts-node examples/class_reconstructor.ts build/Release/idax_native.node "$TEST_BIN"
+          npx ts-node examples/class_reconstructor.ts "$TEST_BIN"
 
           echo "Running binary_forensics..."
-          npx ts-node examples/binary_forensics.ts build/Release/idax_native.node "$TEST_BIN"
+          npx ts-node examples/binary_forensics.ts "$TEST_BIN"
 
   build-rust:
     name: Rust Bindings - ${{ matrix.os }}
@@ -300,9 +300,15 @@ jobs:
 
       - name: Build Rust bindings
         working-directory: bindings/rust
+        shell: bash
         run: |
-          cargo build --verbose
-          cargo build --examples --verbose
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cargo build --release --verbose
+            cargo build --release --examples --verbose
+          else
+            cargo build --verbose
+            cargo build --examples --verbose
+          fi
 
       - name: Run Rust examples (Unix)
         if: runner.os != 'Windows'
@@ -333,7 +339,7 @@ jobs:
           TEST_BIN="./test_bin.exe"
           
           echo "Running idalib_dump_port..."
-          cargo run --example idalib_dump_port -- "$TEST_BIN" --list
+          cargo run --release --example idalib_dump_port -- "$TEST_BIN" --list
 
           echo "Running ida2py_port..."
-          cargo run --example ida2py_port -- "$TEST_BIN"
+          cargo run --release --example ida2py_port -- "$TEST_BIN"
