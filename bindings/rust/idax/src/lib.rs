@@ -98,7 +98,9 @@
 
 #[cfg(target_os = "windows")]
 #[link(name = "idax_rust", kind = "static")]
-unsafe extern "C" {}
+unsafe extern "C" {
+    fn __idax_windows_link_metadata_sentinel();
+}
 
 // ── Public modules ──────────────────────────────────────────────────────
 

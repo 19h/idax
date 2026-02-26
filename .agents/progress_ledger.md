@@ -1537,3 +1537,10 @@
   - 16.60.2. Added crate-local Windows native link attribute in `bindings/rust/idax/src/lib.rs` (`#[link(name = "idax_rust", kind = "static")]`) so examples that directly depend on `idax` carry an explicit native dependency at the top-level crate.
   - 16.60.3. Ran `cargo check -p idax --examples` in `bindings/rust` to validate local compile health after the change (pass; warnings only).
   - 16.60.4. Recorded finding [F334] and synchronized roadmap/active-work entries for the next CI rerun.
+
+- **16.61. Windows Rust Link Propagation Follow-up (Run 22427902344)**
+  - 16.61.1. Re-ran `Bindings CI` after commit `9d62568`; Node rows passed (including Windows under runtime-example gating) and Rust Linux/macOS rows passed, but Rust Windows still failed in `Build Rust bindings (Windows)`.
+  - 16.61.2. Confirmed from failed logs that final Rust example invocations still omitted `idax_rust.lib` despite crate-level `#[link]` additions in both `idax-sys` and `idax`; unresolved `ida::...` symbols from `idax_shim.o` persisted.
+  - 16.61.3. Hardened both Rust crates by converting Windows `#[link]` blocks to non-empty extern declarations with a sentinel item (`__idax_windows_link_metadata_sentinel`) in `bindings/rust/idax-sys/src/lib.rs` and `bindings/rust/idax/src/lib.rs`.
+  - 16.61.4. Revalidated local Rust compile surface with `cargo check -p idax --examples` after sentinel declarations (pass; warnings only).
+  - 16.61.5. Recorded finding [F335] and updated active-work focus for the next CI rerun.
