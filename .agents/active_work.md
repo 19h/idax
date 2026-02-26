@@ -23,8 +23,8 @@
 - **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
 - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` and `idax`, converted those `#[link]` blocks to non-empty sentinel extern declarations, then implemented a merged Windows shim strategy in `idax-sys/build.rs` (`idax_shim.lib` + `idax_rust.lib` -> `idax_shim_merged.lib` via `lib.exe`) and switched Windows native link output to `static=idax_shim_merged`.
-- 1.3.3. **Latest evidence:** user-provided linker transcript indicates MSVC Release/LTCG (`/GL`) object handling mismatch with Rust static bundling (`idax_cpp` not present in final `link.exe` arguments; unresolved `ida::...` from `idax_shim.o`).
-- 1.3.4. **Remaining focus:** rerun `Bindings CI` with `idax-sys` Windows emission set to `cargo:rustc-link-lib=static:-bundle=idax_cpp` and verify final Windows example link lines carry direct `idax_cpp.lib` participation.
+- 1.3.3. **Latest evidence:** after `static:-bundle` adoption, user rerun shifted failure mode to CRT mismatch (`MT_StaticRelease` vs `MD_DynamicRelease`) with `LNK2038`/`LNK1319` and `LIBCMT` conflict warnings in Windows Rust example links.
+- 1.3.4. **Remaining focus:** rerun `Bindings CI` with Windows static CRT alignment in place (`idax-sys/build.rs` CMake+shim static CRT settings plus repo-level Rust `+crt-static`) and verify `LNK2038` mismatches are cleared.
   - 1.3.5. **Status:** In progress.
 
 ---

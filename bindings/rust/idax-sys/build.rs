@@ -302,12 +302,11 @@ fn main() {
     // Ensure LTO is disabled when building the static idax library for Rust consumption
     config.define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "OFF");
     if cfg!(target_os = "windows") {
-        // Match Rust's MSVC runtime (`/MD` in release) to avoid LNK2038
-        // RuntimeLibrary mismatches when linking CMake-built idax objects
-        // with the `cc`-built shim object.
+        // IDA SDK libraries on Windows are built against static CRT settings.
+        // Keep idax C++ wrapper objects on the same runtime model.
         config.define(
             "CMAKE_MSVC_RUNTIME_LIBRARY",
-            "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+            "MultiThreaded$<$<CONFIG:Debug>:Debug>",
         );
     }
 
@@ -369,6 +368,11 @@ fn main() {
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-sign-compare")
         .flag_if_supported("-Wno-deprecated-declarations");
+
+    if cfg!(target_os = "windows") {
+        // Keep shim runtime model aligned with IDA SDK/link target.
+        build.static_crt(true);
+    }
 
     let compiler = build.get_compiler();
     if compiler.is_like_clang() && cfg!(target_os = "macos") {
