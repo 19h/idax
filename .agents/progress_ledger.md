@@ -1585,3 +1585,18 @@
   - 16.66.7. Added idax source-tree invalidation tracking in `bindings/rust/idax-sys/build.rs` via recursive `cargo:rerun-if-changed` over `CMakeLists.txt`, `cmake/`, `include/`, and `src/` to reduce stale archive reuse in cached CI environments.
   - 16.66.8. Revalidated Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.66.9. Recorded findings [F340]-[F341] and updated roadmap/active-work focus for the next `Bindings CI` rerun.
+
+- **16.67. Windows Rust follow-up: remove duplicate `idax` native-link emission**
+  - 16.67.1. Investigated new Windows failure signature reporting unresolved C++ wrapper symbols from `libidax-*.rlib(...idax_shim.o)` during final example link, indicating native archive content was being pulled from `idax` crate packaging path.
+  - 16.67.2. Removed `idax` crate build-script participation in native linking by deleting `bindings/rust/idax/build.rs` and dropping `build = "build.rs"` from `bindings/rust/idax/Cargo.toml`.
+  - 16.67.3. Kept `idax-sys` as the sole native-link metadata owner for Windows, reducing duplicate/bundled archive paths through `libidax.rlib`.
+  - 16.67.4. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.67.5. Recorded finding [F342] and updated roadmap/active-work focus toward CI verification.
+
+- **16.68. Windows Rust link strategy refinement: remove merged-archive dependency**
+  - 16.68.1. Reworked `bindings/rust/idax-sys/build.rs` Windows branch to drop `idax_shim_merged.lib` generation and return to explicit static-link inputs.
+  - 16.68.2. Kept `cc` cargo metadata enabled so `idax_shim` is emitted via standard native-link metadata.
+  - 16.68.3. Copied C++ wrapper archive `idax.lib` to `OUT_DIR/idax_cpp.lib` and emitted `cargo:rustc-link-lib=static=idax_cpp` to avoid `idax` crate-name collision while preserving full wrapper symbol availability.
+  - 16.68.4. Removed obsolete Windows crate-level sentinel link block from `bindings/rust/idax-sys/src/lib.rs`.
+  - 16.68.5. Revalidated local Rust compilation with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.68.6. Recorded finding [F343] and updated active focus for CI verification.

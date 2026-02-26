@@ -24,7 +24,7 @@
   - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
 - 1.3.2. **Completed this pass:** corrected Node example argv shape, enabled MSVC import-lib fallback even when `IDADIR` is set, moved Windows Rust build/run to PowerShell (MSVC-native linker path), added Windows `PATH` runtime propagation for Node/Rust examples, aliased Rust native static lib link target to `idax_rust`, exported `DEP_IDAX_*` metadata from `idax-sys`, added `idax` crate build-script re-linking, added explicit `#[link(name = "idax_rust", kind = "static")]` in `idax-sys` and `idax`, converted those `#[link]` blocks to non-empty sentinel extern declarations, then implemented a merged Windows shim strategy in `idax-sys/build.rs` (`idax_shim.lib` + `idax_rust.lib` -> `idax_shim_merged.lib` via `lib.exe`) and switched Windows native link output to `static=idax_shim_merged`.
 - 1.3.3. **Latest evidence:** after workflow `RUSTFLAGS` cleanup, new failures surfaced as (a) macOS Node runtime segfault on `complexity_metrics` process shutdown after successful analysis output, and (b) Windows Rust unresolved externals for `ida::ui`/`ida::lines` symbols from `idax_shim.o` during example final link.
-- 1.3.4. **Remaining focus:** rerun `Bindings CI` with current fixes (Node pre-close decompiler wrapper disposal + Windows `idax_shim_merged` metadata alignment and build-script source-change tracking) and verify both regressions are cleared.
+- 1.3.4. **Remaining focus:** rerun `Bindings CI` with current fixes (Node pre-close decompiler wrapper disposal + Windows `idax-sys`-owned dual-archive native-link path: `idax_shim` + aliased `idax_cpp`) and verify both regressions are cleared.
   - 1.3.5. **Status:** In progress.
 
 ---
