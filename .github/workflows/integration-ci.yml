@@ -51,7 +51,20 @@ jobs:
         run: |
           LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -E "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1 | awk -F'│' '{print $2}' | tr -d ' ' | tr -d '\r')
           echo "Using license ID: $LICENSE_ID"
-          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id "ida-pro:9.3"
+          
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64win.exe"
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64linux.run"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            if [[ "$(uname -m)" == "arm64" ]]; then
+              ASSET_KEY="release/9.3/ida-pro/ida-pro_93_armmac.app.zip"
+            else
+              ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64mac.app.zip"
+            fi
+          fi
+          
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id $LICENSE_ID --download-id "$ASSET_KEY"
 
       - name: Resolve IDASDK and IDADIR paths
         shell: bash
