@@ -63,6 +63,6 @@ Current overall phase status:
 - [x] P20.2 Avoid Windows debug CRT link failures in Rust bindings workflow by building/running examples in `--release`.
 - [x] P20.3 Harden Node Windows linkage discovery so MSVC import libs are resolved from `IDASDK` even when `IDADIR` is present.
 - [x] P20.4 Fix Windows workflow shell/runtime routing so Rust uses MSVC `link.exe` (not `/usr/bin/link`) and examples resolve IDA DLLs via `PATH`.
-- [~] P20.5 Re-run `Bindings CI` matrix and close any residual runtime/linking regressions (`macOS _callui`, Windows example/runtime outcomes).
+- [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: Windows Rust `idax` static-link resolution and Windows `binary_forensics` stability in headless CI).
 
 ---

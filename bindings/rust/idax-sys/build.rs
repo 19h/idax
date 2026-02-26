@@ -340,8 +340,31 @@ fn main() {
     build.compile("idax_shim");
 
     // ── Link libraries ──────────────────────────────────────────────────
-    println!("cargo:rustc-link-search=native={}", libidax_dir.display());
-    println!("cargo:rustc-link-lib=static=idax");
+    if cfg!(target_os = "windows") {
+        let source = libidax_dir.join("idax.lib");
+        if !source.exists() {
+            panic!("Expected idax static library at {}", source.display());
+        }
+
+        // Avoid collision with the Rust crate name `idax` during downstream
+        // example linking on MSVC by linking an aliased copy.
+        let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+        let alias = out_dir.join("idax_rust.lib");
+        std::fs::copy(&source, &alias).unwrap_or_else(|e| {
+            panic!(
+                "Failed to copy {} to {}: {}",
+                source.display(),
+                alias.display(),
+                e
+            )
+        });
+
+        println!("cargo:rustc-link-search=native={}", out_dir.display());
+        println!("cargo:rustc-link-lib=static=idax_rust");
+    } else {
+        println!("cargo:rustc-link-search=native={}", libidax_dir.display());
+        println!("cargo:rustc-link-lib=static=idax");
+    }
 
     println!("cargo:rerun-if-env-changed=IDADIR");
 
