@@ -1618,3 +1618,12 @@
   - 16.71.3. Removed temporary crate-level Windows `idax_cpp` sentinel link blocks from `bindings/rust/idax-sys/src/lib.rs` and `bindings/rust/idax/src/lib.rs` to avoid reintroducing bundled-static fallback paths.
   - 16.71.4. Revalidated local Rust compile surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.71.5. Recorded finding [F346] and shifted active focus to CI confirmation that final Windows link lines now include direct `idax_cpp` linkage.
+
+- **16.72. Windows Rust CRT alignment hardening (`/MT` + `+crt-static`)**
+  - 16.72.1. Incorporated new user-provided failure evidence showing shift to runtime-library mismatch diagnostics (`LNK2038`, `LNK1319`, `LNK4098`) between `idax_cpp` (`MT_StaticRelease`) and shim/Rust objects (`MD_DynamicRelease`).
+  - 16.72.2. Updated `bindings/rust/idax-sys/build.rs` CMake Windows runtime setting to static CRT (`CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>`).
+  - 16.72.3. Updated `bindings/rust/idax-sys/build.rs` shim compile path to force static CRT on Windows via `cc::Build::static_crt(true)`.
+  - 16.72.4. Added repository Cargo target config `.cargo/config.toml` with `[target.x86_64-pc-windows-msvc] rustflags = ["-C", "target-feature=+crt-static"]` so Rust artifacts align with static CRT expectations.
+  - 16.72.5. Kept Windows direct-link mitigation (`cargo:rustc-link-lib=static:-bundle=idax_cpp`) in place to avoid LTCG bundling regressions.
+  - 16.72.6. Revalidated local Rust surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.72.7. Recorded finding [F347] and updated roadmap/active-work focus to CI verification.
