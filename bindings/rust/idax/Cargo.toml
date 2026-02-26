@@ -10,6 +10,7 @@ keywords.workspace = true
 categories.workspace = true
 description = "Safe, idiomatic Rust bindings for the IDA SDK via idax"
 readme = "README.md"
+build = "build.rs"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
