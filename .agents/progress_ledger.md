@@ -1677,3 +1677,9 @@
   - 16.78.3. Updated `.github/workflows/bindings-ci.yml` Windows runtime step to remove `IDAX_RUST_IDA_LOG` handling while keeping direct-exec runner, tracing, and absolute input path resolution.
   - 16.78.4. Revalidated local Rust compile surfaces with `cargo check -p idax --examples` (pass; warnings only).
   - 16.78.5. Logged rollback decision D-RUST-WINDOWS-INIT-ARGV-ROLLBACK (19.21) and updated finding [F353] wording to capture unsupported init-arg behavior.
+
+- **16.79. Windows Rust runtime input-path correction (fixture IDB over raw PE)**
+  - 16.79.1. Incorporated new CI evidence showing deterministic stop at `database::open begin path=<test_bin.exe>` with exit code 1 and no wrapper-level error output when using copied `notepad.exe` input.
+  - 16.79.2. Validated locally that `idalib_dump_port` succeeds when opened against fixture IDB input (`tests/fixtures/simple_appcall_linux64.i64`) with trace output.
+  - 16.79.3. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to use absolute path to `tests/fixtures/simple_appcall_linux64.i64` instead of copied `test_bin.exe`.
+  - 16.79.4. Logged decision D-RUST-WINDOWS-EXAMPLE-FIXTURE-IDB-INPUT (19.22), recorded finding [F354], and refreshed active/roadmap focus for CI verification.
