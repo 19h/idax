@@ -967,3 +967,9 @@
   - **19.15.1. Decision:** In Rust bindings, initialize idalib with a synthetic argv (`argc=1`, `argv[0]="idax-rust"`) instead of null argv, and in Rust example helper sessions treat `analysis::wait()` failures as warnings on Windows (non-Windows remains strict-error).
   - **19.15.2. Rationale:** Windows CI runtime failures were surfacing as opaque exit-code-1 results. Providing argv and allowing non-fatal wait degradation in helper tooling preserves runtime validation usefulness while avoiding brittle host-specific analysis wait failures.
   - **19.15.3. Scope constraint:** This relaxed wait behavior is limited to Rust example helper code (`examples/common/mod.rs`), not core library APIs.
+
+- **19.16. Decision D-RUST-WINDOWS-USER-PLUGIN-SUPPRESSION**: Disable user-plugin discovery by default for Rust shim sessions on Windows
+  - **19.16.1. Decision:** In `idax-sys` shim (`idax_database_init`), call `ida::database::init(argc, argv, RuntimeOptions{plugin_policy.disable_user_plugins=true})` on Windows by default, with opt-in override via `IDAX_ENABLE_USER_PLUGINS=1`.
+  - **19.16.2. Decision:** In Windows Rust CI runtime step, explicitly set `IDAX_ENABLE_USER_PLUGINS=0` and point `IDAUSR` at an empty temp directory.
+  - **19.16.3. Rationale:** Post-link Windows runtime failures still produced opaque exit-code-1 behavior. Suppressing user plugins reduces host/plugin variability and avoids startup/runtime side effects from non-project plugins in CI agents.
+  - **19.16.4. Trade-off:** This narrows parity with default desktop user sessions for Rust example runs, but keeps CI deterministic and focused on core wrapper behavior.

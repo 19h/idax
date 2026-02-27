@@ -497,7 +497,20 @@ int idax_database_init(int argc, char** argv) {
         return -1;
     }
 #endif
+#if defined(_WIN32)
+    // Headless Windows CI can be destabilized by user plugins from IDAUSR.
+    // Default to disabling user plugins for Rust FFI sessions; allow override
+    // by setting IDAX_ENABLE_USER_PLUGINS=1 in the environment.
+    ida::database::RuntimeOptions options{};
+    options.plugin_policy.disable_user_plugins = true;
+    if (const char* v = std::getenv("IDAX_ENABLE_USER_PLUGINS")) {
+        if (std::strcmp(v, "1") == 0)
+            options.plugin_policy.disable_user_plugins = false;
+    }
+    RETURN_STATUS(ida::database::init(argc, argv, options));
+#else
     RETURN_STATUS(ida::database::init(argc, argv));
+#endif
 }
 
 int idax_database_open(const char* path, int auto_analysis) {
