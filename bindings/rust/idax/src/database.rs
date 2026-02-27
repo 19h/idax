@@ -191,10 +191,41 @@ impl ProcessorId {
 
 /// Initialise the IDA library (call once, before any other idax call).
 pub fn init() -> Status {
-    let argv0 = CString::new("idax-rust").expect("static argv0 must be valid CString");
-    let mut argv = [argv0.as_ptr() as *mut std::os::raw::c_char];
-    let ret = unsafe { idax_sys::idax_database_init(1, argv.as_mut_ptr()) };
-    error::int_to_status(ret, "database::init failed")
+    #[cfg(target_os = "windows")]
+    {
+        let mut args = Vec::new();
+        args.push(CString::new("idax-rust").expect("static argv0 must be valid CString"));
+        args.push(CString::new("-A").expect("static arg must be valid CString"));
+
+        if let Ok(log_path) = std::env::var("IDAX_RUST_IDA_LOG")
+            && !log_path.is_empty()
+        {
+            let arg = format!("-L{log_path}");
+            match CString::new(arg) {
+                Ok(v) => args.push(v),
+                Err(_) => {
+                    return Err(Error::validation(
+                        "IDAX_RUST_IDA_LOG contains an interior NUL byte",
+                    ));
+                }
+            }
+        }
+
+        let mut argv: Vec<*mut std::os::raw::c_char> = args
+            .iter()
+            .map(|s| s.as_ptr() as *mut std::os::raw::c_char)
+            .collect();
+        let ret = unsafe { idax_sys::idax_database_init(argv.len() as i32, argv.as_mut_ptr()) };
+        return error::int_to_status(ret, "database::init failed");
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let argv0 = CString::new("idax-rust").expect("static argv0 must be valid CString");
+        let mut argv = [argv0.as_ptr() as *mut std::os::raw::c_char];
+        let ret = unsafe { idax_sys::idax_database_init(1, argv.as_mut_ptr()) };
+        error::int_to_status(ret, "database::init failed")
+    }
 }
 
 /// Open (or create) a database for the given input file.

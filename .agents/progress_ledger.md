@@ -1662,3 +1662,11 @@
   - 16.76.4. Revalidated local Rust compile surfaces with `cargo check -p idax --examples` and confirmed trace output appears in sample run (`IDAX_RUST_EXAMPLE_TRACE=1 cargo run --example idalib_dump_port ...`).
   - 16.76.5. Updated Windows Rust workflow runtime execution from `cargo run` to build+direct-exec wrapper, with explicit decimal/hex exit-code reporting for failures.
   - 16.76.6. Logged decisions D-RUST-WINDOWS-RUNTIME-TRACE-TOGGLES (19.18) and D-RUST-WINDOWS-DIRECT-EXE-RUNNER (19.19), recorded findings [F351]-[F352], and refreshed active/roadmap focus for next CI evidence pass.
+
+- **16.77. Windows Rust runtime follow-up (open-stage failure attribution: `-A` + IDA log capture)**
+  - 16.77.1. Incorporated new user trace evidence showing deterministic stop at `database::open begin path=...` with exit code 1 and no wrapper-level error output.
+  - 16.77.2. Updated `bindings/rust/idax/src/database.rs` Windows init path to pass explicit `-A` via init argv.
+  - 16.77.3. Added optional `IDAX_RUST_IDA_LOG` env support in `database::init()` to forward `-L<path>` into idalib init argv.
+  - 16.77.4. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to set `IDAX_RUST_IDA_LOG`, print log contents on failure, and use absolute test binary path.
+  - 16.77.5. Revalidated local compile surfaces with `cargo check -p idax --examples` (pass; warnings only).
+  - 16.77.6. Logged decision D-RUST-WINDOWS-INIT-ARGV-AUTO-LOGGING (19.20), recorded finding [F353], and refreshed active/roadmap focus for CI rerun.

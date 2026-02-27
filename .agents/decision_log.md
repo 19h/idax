@@ -990,3 +990,8 @@
   - **19.19.1. Decision:** Replace `cargo run --release --example ...` in the Windows runtime step with `cargo build --release --example ...` followed by direct execution of `target\\release\\examples\\<name>.exe`.
   - **19.19.2. Decision:** Emit both decimal and hex exit code on failures in the workflow wrapper function.
   - **19.19.3. Rationale:** Direct execution gives cleaner runtime-stage diagnostics when the process exits before Rust-level error paths emit text.
+
+- **19.20. Decision D-RUST-WINDOWS-INIT-ARGV-AUTO-LOGGING**: Pass explicit headless args (`-A`) and optional IDA log path from Rust init wrapper
+  - **19.20.1. Decision:** On Windows, `database::init()` now forwards init argv with at least `"idax-rust"` and `"-A"`.
+  - **19.20.2. Decision:** If `IDAX_RUST_IDA_LOG` is set, append `-L<path>` to init argv for native IDA logging.
+  - **19.20.3. Rationale:** Open-time exits were occurring before wrapper-level diagnostics in CI. Explicit auto-mode and optional native logging improve reproducibility and observability for headless runtime failures.
