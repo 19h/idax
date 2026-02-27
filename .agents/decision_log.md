@@ -1000,3 +1000,7 @@
   - **19.21.1. Decision:** Restore `database::init()` to pass minimal argv (`argv0` only) on Windows.
   - **19.21.2. Rationale:** Injected init args produced deterministic `init_library failed [return code: 2]` in CI, blocking database open diagnostics.
   - **19.21.3. Supersedes:** D-RUST-WINDOWS-INIT-ARGV-AUTO-LOGGING (19.20).
+
+- **19.22. Decision D-RUST-WINDOWS-EXAMPLE-FIXTURE-IDB-INPUT**: Use stable fixture IDB as Windows Rust runtime input in CI
+  - **19.22.1. Decision:** In Windows Rust runtime workflow step, run examples against `tests/fixtures/simple_appcall_linux64.i64` (resolved absolute path) instead of a copied raw system binary.
+  - **19.22.2. Rationale:** Raw PE open path was exiting during `database::open` with opaque code 1 before wrapper-level errors; fixture IDB input removes loader-path variance and validates core wrapper/runtime behavior deterministically.
