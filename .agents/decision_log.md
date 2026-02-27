@@ -995,3 +995,8 @@
   - **19.20.1. Decision:** On Windows, `database::init()` now forwards init argv with at least `"idax-rust"` and `"-A"`.
   - **19.20.2. Decision:** If `IDAX_RUST_IDA_LOG` is set, append `-L<path>` to init argv for native IDA logging.
   - **19.20.3. Rationale:** Open-time exits were occurring before wrapper-level diagnostics in CI. Explicit auto-mode and optional native logging improve reproducibility and observability for headless runtime failures.
+
+- **19.21. Decision D-RUST-WINDOWS-INIT-ARGV-ROLLBACK**: Revert injected `-A`/`-L` init args; keep minimal argv
+  - **19.21.1. Decision:** Restore `database::init()` to pass minimal argv (`argv0` only) on Windows.
+  - **19.21.2. Rationale:** Injected init args produced deterministic `init_library failed [return code: 2]` in CI, blocking database open diagnostics.
+  - **19.21.3. Supersedes:** D-RUST-WINDOWS-INIT-ARGV-AUTO-LOGGING (19.20).
