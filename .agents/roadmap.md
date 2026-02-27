@@ -63,6 +63,6 @@ Current overall phase status:
 - [x] P20.2 Avoid Windows debug CRT link failures in Rust bindings workflow by building/running examples in `--release`.
 - [x] P20.3 Harden Node Windows linkage discovery so MSVC import libs are resolved from `IDASDK` even when `IDADIR` is present.
 - [x] P20.4 Fix Windows workflow shell/runtime routing so Rust uses MSVC `link.exe` (not `/usr/bin/link`) and examples resolve IDA DLLs via `PATH`.
-- [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: validate Node macOS decompiler-wrapper pre-close disposal for `complexity_metrics` exit segfaults and verify Windows Rust runtime hardening after link fixes: synthetic init argv, Windows-tolerant `analysis::wait` helper behavior, isolated `IDAUSR`, trace/analysis toggles (`IDAX_RUST_EXAMPLE_TRACE=1`, `IDAX_RUST_DISABLE_ANALYSIS=1`), and build+direct-exec workflow for improved exit-code attribution).
+- [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: validate Node macOS decompiler-wrapper pre-close disposal for `complexity_metrics` exit segfaults and verify Windows Rust runtime hardening after link fixes: synthetic init argv with `-A`, isolated `IDAUSR`, trace toggles (`IDAX_RUST_EXAMPLE_TRACE=1`), optional IDA log capture (`IDAX_RUST_IDA_LOG`), and build+direct-exec workflow for improved failure attribution).
 
 ---

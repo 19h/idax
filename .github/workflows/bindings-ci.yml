@@ -345,9 +345,9 @@ jobs:
           $env:IDAUSR = "$pwd\idax_empty_user"
           New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
           $env:IDAX_RUST_EXAMPLE_TRACE = "1"
-          $env:IDAX_RUST_DISABLE_ANALYSIS = "1"
+          $env:IDAX_RUST_IDA_LOG = "$pwd\idax_runtime.log"
           Copy-Item "C:\Windows\System32\notepad.exe" "test_bin.exe"
-          $testBin = ".\test_bin.exe"
+          $testBin = (Resolve-Path ".\test_bin.exe").Path
 
           function Invoke-RustExample {
             param(
@@ -366,6 +366,11 @@ jobs:
             & $exe @Args
             $code = $LASTEXITCODE
             if ($code -ne 0) {
+              if (Test-Path $env:IDAX_RUST_IDA_LOG) {
+                Write-Host "---- IDA log ($env:IDAX_RUST_IDA_LOG) ----"
+                Get-Content $env:IDAX_RUST_IDA_LOG -ErrorAction SilentlyContinue
+                Write-Host "---- end IDA log ----"
+              }
               $hex = ('0x{0:X8}' -f [uint32]$code)
               throw "$Name failed with exit code $code ($hex)"
             }
