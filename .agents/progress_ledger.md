@@ -1654,3 +1654,11 @@
   - 16.75.4. Revalidated local Rust build surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
   - 16.75.5. Updated decision tracking with D-RUST-WINDOWS-PLUGIN-POLICY-ROLLBACK (19.17), superseding 19.16 for Windows shim init behavior.
   - 16.75.6. Updated finding [F350] wording to reflect unsupported plugin-policy controls and retained CI `IDAUSR` isolation as the active mitigation.
+
+- **16.76. Windows Rust runtime attribution hardening (trace + analysis toggle path)**
+  - 16.76.1. Added env-driven tracing in `bindings/rust/idax/examples/common/mod.rs` with immediate stderr flush and step markers for `database::init/open/close` and `analysis::wait`.
+  - 16.76.2. Added env-driven analysis disable behavior in helper session open path (`IDAX_RUST_DISABLE_ANALYSIS=1`) for Windows CI diagnosis runs.
+  - 16.76.3. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to set `IDAX_RUST_EXAMPLE_TRACE=1` and `IDAX_RUST_DISABLE_ANALYSIS=1` (while keeping isolated empty `IDAUSR`).
+  - 16.76.4. Revalidated local Rust compile surfaces with `cargo check -p idax --examples` and confirmed trace output appears in sample run (`IDAX_RUST_EXAMPLE_TRACE=1 cargo run --example idalib_dump_port ...`).
+  - 16.76.5. Updated Windows Rust workflow runtime execution from `cargo run` to build+direct-exec wrapper, with explicit decimal/hex exit-code reporting for failures.
+  - 16.76.6. Logged decisions D-RUST-WINDOWS-RUNTIME-TRACE-TOGGLES (19.18) and D-RUST-WINDOWS-DIRECT-EXE-RUNNER (19.19), recorded findings [F351]-[F352], and refreshed active/roadmap focus for next CI evidence pass.

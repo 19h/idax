@@ -344,11 +344,32 @@ jobs:
           $env:PATH = "$env:IDADIR;$env:PATH"
           $env:IDAUSR = "$pwd\idax_empty_user"
           New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
+          $env:IDAX_RUST_EXAMPLE_TRACE = "1"
+          $env:IDAX_RUST_DISABLE_ANALYSIS = "1"
           Copy-Item "C:\Windows\System32\notepad.exe" "test_bin.exe"
           $testBin = ".\test_bin.exe"
 
-          Write-Host "Running idalib_dump_port..."
-          cargo run --release --example idalib_dump_port -- $testBin --list
+          function Invoke-RustExample {
+            param(
+              [Parameter(Mandatory = $true)] [string] $Name,
+              [Parameter(Mandatory = $true)] [string[]] $Args
+            )
 
-          Write-Host "Running ida2py_port..."
-          cargo run --release --example ida2py_port -- $testBin
+            Write-Host "Building $Name..."
+            cargo build --release --example $Name
+            if ($LASTEXITCODE -ne 0) {
+              throw "build failed for $Name"
+            }
+
+            $exe = "target\release\examples\$Name.exe"
+            Write-Host "Running $Name..."
+            & $exe @Args
+            $code = $LASTEXITCODE
+            if ($code -ne 0) {
+              $hex = ('0x{0:X8}' -f [uint32]$code)
+              throw "$Name failed with exit code $code ($hex)"
+            }
+          }
+
+          Invoke-RustExample -Name "idalib_dump_port" -Args @($testBin, "--list")
+          Invoke-RustExample -Name "ida2py_port" -Args @($testBin)

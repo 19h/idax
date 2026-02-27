@@ -1,6 +1,21 @@
 use idax::address::{Address, BAD_ADDRESS};
 use idax::error::Result;
 use idax::{analysis, database, name, Error};
+use std::io::Write;
+
+fn env_flag(name: &str) -> bool {
+    matches!(
+        std::env::var(name).ok().as_deref(),
+        Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("YES")
+    )
+}
+
+fn trace(message: impl AsRef<str>) {
+    if env_flag("IDAX_RUST_EXAMPLE_TRACE") {
+        eprintln!("[idax-rust-example] {}", message.as_ref());
+        let _ = std::io::stderr().flush();
+    }
+}
 
 pub struct DatabaseSession {
     open: bool,
@@ -8,19 +23,36 @@ pub struct DatabaseSession {
 
 impl DatabaseSession {
     pub fn open(input_path: &str, analyze_input: bool) -> Result<Self> {
+        let mut effective_analyze = analyze_input;
+        if cfg!(target_os = "windows") && analyze_input && env_flag("IDAX_RUST_DISABLE_ANALYSIS") {
+            trace("auto-analysis disabled by IDAX_RUST_DISABLE_ANALYSIS");
+            effective_analyze = false;
+        }
+
+        trace("database::init begin");
         database::init()?;
-        database::open(input_path, analyze_input)?;
-        if analyze_input {
+        trace("database::init ok");
+
+        trace(format!("database::open begin path={input_path}"));
+        database::open(input_path, effective_analyze)?;
+        trace("database::open ok");
+
+        if effective_analyze {
+            trace("analysis::wait begin");
             if let Err(error) = analysis::wait() {
                 if cfg!(target_os = "windows") {
                     eprintln!(
                         "warning: analysis::wait failed on Windows CI, continuing: {}",
                         format_error(&error)
                     );
+                    let _ = std::io::stderr().flush();
                 } else {
                     return Err(error);
                 }
             }
+            trace("analysis::wait done");
+        } else {
+            trace("analysis::wait skipped");
         }
         Ok(Self { open: true })
     }
@@ -29,8 +61,10 @@ impl DatabaseSession {
 impl Drop for DatabaseSession {
     fn drop(&mut self) {
         if self.open {
+            trace("database::close begin");
             let _ = database::close(false);
             self.open = false;
+            trace("database::close done");
         }
     }
 }
