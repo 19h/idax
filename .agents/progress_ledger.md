@@ -1670,3 +1670,10 @@
   - 16.77.4. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to set `IDAX_RUST_IDA_LOG`, print log contents on failure, and use absolute test binary path.
   - 16.77.5. Revalidated local compile surfaces with `cargo check -p idax --examples` (pass; warnings only).
   - 16.77.6. Logged decision D-RUST-WINDOWS-INIT-ARGV-AUTO-LOGGING (19.20), recorded finding [F353], and refreshed active/roadmap focus for CI rerun.
+
+- **16.78. Windows Rust init-argv rollback after explicit return-code-2 evidence**
+  - 16.78.1. Incorporated new CI evidence: `database::init` failed with `[Internal:0] init_library failed [return code: 2]` immediately after forwarding `-A`/`-L` style init args.
+  - 16.78.2. Reverted `bindings/rust/idax/src/database.rs` Windows init path to minimal argv (`argv0` only).
+  - 16.78.3. Updated `.github/workflows/bindings-ci.yml` Windows runtime step to remove `IDAX_RUST_IDA_LOG` handling while keeping direct-exec runner, tracing, and absolute input path resolution.
+  - 16.78.4. Revalidated local Rust compile surfaces with `cargo check -p idax --examples` (pass; warnings only).
+  - 16.78.5. Logged rollback decision D-RUST-WINDOWS-INIT-ARGV-ROLLBACK (19.21) and updated finding [F353] wording to capture unsupported init-arg behavior.
