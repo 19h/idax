@@ -973,3 +973,9 @@
   - **19.16.2. Decision:** In Windows Rust CI runtime step, explicitly set `IDAX_ENABLE_USER_PLUGINS=0` and point `IDAUSR` at an empty temp directory.
   - **19.16.3. Rationale:** Post-link Windows runtime failures still produced opaque exit-code-1 behavior. Suppressing user plugins reduces host/plugin variability and avoids startup/runtime side effects from non-project plugins in CI agents.
   - **19.16.4. Trade-off:** This narrows parity with default desktop user sessions for Rust example runs, but keeps CI deterministic and focused on core wrapper behavior.
+
+- **19.17. Decision D-RUST-WINDOWS-PLUGIN-POLICY-ROLLBACK**: Roll back shim-level plugin-policy init on Windows; keep environment isolation only
+  - **19.17.1. Decision:** Revert `idax_database_init` on Windows to the default `ida::database::init(argc, argv)` path (no `RuntimeOptions.plugin_policy`).
+  - **19.17.2. Decision:** Retain Windows CI isolation using an empty `IDAUSR` directory, without setting plugin-policy env controls.
+  - **19.17.3. Rationale:** Windows runtime produced explicit `SdkFailure: Plugin policy controls are not implemented on Windows yet` when plugin-policy runtime options were passed via shim init path.
+  - **19.17.4. Supersedes:** D-RUST-WINDOWS-USER-PLUGIN-SUPPRESSION (19.16) for Windows shim init behavior.

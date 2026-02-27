@@ -1646,3 +1646,11 @@
   - 16.74.5. Revalidated compile surfaces locally with `cargo check -p idax` and `cargo check -p idax --examples` (pass; warnings only).
   - 16.74.6. Logged architecture/runtime decision in `.agents/decision_log.md` under D-RUST-WINDOWS-USER-PLUGIN-SUPPRESSION.
   - 16.74.7. Recorded finding [F350] and refreshed active/roadmap focus for CI verification.
+
+- **16.75. Windows Rust runtime correction (unsupported plugin-policy rollback)**
+  - 16.75.1. Incorporated user runtime error evidence: both Windows Rust examples now fail with explicit `[SdkFailure:0] Plugin policy controls are not implemented on Windows yet`.
+  - 16.75.2. Rolled back shim-level Windows plugin-policy init in `bindings/rust/idax-sys/shim/idax_shim.cpp`, restoring default `ida::database::init(argc, argv)` path.
+  - 16.75.3. Updated Windows Rust workflow step in `.github/workflows/bindings-ci.yml` to remove `IDAX_ENABLE_USER_PLUGINS` control while retaining isolated empty `IDAUSR` directory setup.
+  - 16.75.4. Revalidated local Rust build surfaces with `cargo check -p idax-sys && cargo check -p idax --examples` (pass; warnings only).
+  - 16.75.5. Updated decision tracking with D-RUST-WINDOWS-PLUGIN-POLICY-ROLLBACK (19.17), superseding 19.16 for Windows shim init behavior.
+  - 16.75.6. Updated finding [F350] wording to reflect unsupported plugin-policy controls and retained CI `IDAUSR` isolation as the active mitigation.
