@@ -1637,3 +1637,12 @@
   - 16.73.5. Improved Rust example diagnostics in `bindings/rust/idax/examples/common/mod.rs` to include `[ErrorCategory:code]` in formatted error output for CI triage.
   - 16.73.6. Logged runtime-behavior decision in `.agents/decision_log.md` under D-RUST-WINDOWS-RUNTIME-SESSION-ROBUSTNESS.
   - 16.73.7. Recorded findings [F348]-[F349] and updated active/roadmap focus toward Windows runtime CI verification.
+
+- **16.74. Windows Rust runtime follow-up (user-plugin suppression hardening)**
+  - 16.74.1. Incorporated new user evidence: Windows Rust examples still exit code 1 post-build/post-link with no surfaced Rust error text.
+  - 16.74.2. Updated `bindings/rust/idax-sys/shim/idax_shim.cpp` `idax_database_init` on Windows to use `ida::database::RuntimeOptions` with `plugin_policy.disable_user_plugins=true` by default.
+  - 16.74.3. Added shim env override behavior: `IDAX_ENABLE_USER_PLUGINS=1` re-enables user-plugin discovery when needed.
+  - 16.74.4. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to set `IDAX_ENABLE_USER_PLUGINS=0` and use isolated empty `IDAUSR` directory before running examples.
+  - 16.74.5. Revalidated compile surfaces locally with `cargo check -p idax` and `cargo check -p idax --examples` (pass; warnings only).
+  - 16.74.6. Logged architecture/runtime decision in `.agents/decision_log.md` under D-RUST-WINDOWS-USER-PLUGIN-SUPPRESSION.
+  - 16.74.7. Recorded finding [F350] and refreshed active/roadmap focus for CI verification.

@@ -342,6 +342,9 @@ jobs:
         shell: pwsh
         run: |
           $env:PATH = "$env:IDADIR;$env:PATH"
+          $env:IDAX_ENABLE_USER_PLUGINS = "0"
+          $env:IDAUSR = "$pwd\idax_empty_user"
+          New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
           Copy-Item "C:\Windows\System32\notepad.exe" "test_bin.exe"
           $testBin = ".\test_bin.exe"
 
