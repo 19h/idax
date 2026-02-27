@@ -979,3 +979,14 @@
   - **19.17.2. Decision:** Retain Windows CI isolation using an empty `IDAUSR` directory, without setting plugin-policy env controls.
   - **19.17.3. Rationale:** Windows runtime produced explicit `SdkFailure: Plugin policy controls are not implemented on Windows yet` when plugin-policy runtime options were passed via shim init path.
   - **19.17.4. Supersedes:** D-RUST-WINDOWS-USER-PLUGIN-SUPPRESSION (19.16) for Windows shim init behavior.
+
+- **19.18. Decision D-RUST-WINDOWS-RUNTIME-TRACE-TOGGLES**: Add CI-only trace and analysis-control env toggles for Rust example sessions
+  - **19.18.1. Decision:** Add `IDAX_RUST_EXAMPLE_TRACE` support in Rust example helper (`examples/common/mod.rs`) to emit step-level lifecycle logs (`database::init/open/close`, `analysis::wait`) with immediate stderr flush.
+  - **19.18.2. Decision:** Add optional `IDAX_RUST_DISABLE_ANALYSIS` helper behavior to skip auto-analysis wait/open-analysis coupling when explicitly enabled (Windows CI diagnostics path).
+  - **19.18.3. Decision:** Set both env vars in Windows Rust CI runtime step to improve attribution for opaque runtime exits.
+  - **19.18.4. Rationale:** When runtime failures occur before regular error propagation, stage-level tracing is required to identify whether failure happens during init, open, or analysis wait.
+
+- **19.19. Decision D-RUST-WINDOWS-DIRECT-EXE-RUNNER**: Split build and execute phases for Rust example runtime checks on Windows
+  - **19.19.1. Decision:** Replace `cargo run --release --example ...` in the Windows runtime step with `cargo build --release --example ...` followed by direct execution of `target\\release\\examples\\<name>.exe`.
+  - **19.19.2. Decision:** Emit both decimal and hex exit code on failures in the workflow wrapper function.
+  - **19.19.3. Rationale:** Direct execution gives cleaner runtime-stage diagnostics when the process exits before Rust-level error paths emit text.
