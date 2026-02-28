@@ -514,6 +514,12 @@ public:
         saw_non_bad_address = context.address() != ida::BadAddress;
         saw_instruction_type = context.instruction_type() >= 0;
 
+        auto native_insn = context.instruction();
+        if (!native_insn) {
+            saw_emit_failure = true;
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        }
+
         auto local_variable_count = context.local_variable_count();
         if (!local_variable_count) {
             saw_emit_failure = true;
@@ -534,6 +540,14 @@ public:
             return ida::decompiler::MicrocodeApplyResult::Error;
         }
         saw_instruction_index_query = true;
+
+        if (*has_instruction_zero) {
+            auto check_zero = context.instruction_at_index(0);
+            if (!check_zero) {
+                saw_emit_failure = true;
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+        }
 
         auto has_last_emitted = context.has_last_emitted_instruction();
         if (!has_last_emitted) {
@@ -564,6 +578,13 @@ public:
                 && local_variable_echo_status.error().category != ida::ErrorCategory::Internal) {
                 saw_emit_failure = true;
                 return ida::decompiler::MicrocodeApplyResult::Error;
+            }
+            if (local_variable_echo_status) {
+                auto check_last = context.last_emitted_instruction();
+                if (!check_last || check_last->opcode != ida::decompiler::MicrocodeOpcode::Move) {
+                    saw_emit_failure = true;
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                }
             }
 
             saw_second_local_variable_rewrite_attempt = true;

@@ -27,6 +27,10 @@
 #include <mutex>
 #include <unordered_map>
 
+namespace ida::instruction {
+Result<Instruction> from_raw_insn(const void* raw_insn);
+}
+
 namespace ida::decompiler {
 
 // ── Availability ────────────────────────────────────────────────────────
@@ -322,6 +326,126 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
 }
 
 constexpr int kMaxNestedInstructionDepth = 32;
+
+Result<MicrocodeOpcode> parse_sdk_opcode(mcode_t op) {
+    switch (op) {
+        case m_nop: return MicrocodeOpcode::NoOperation;
+        case m_mov: return MicrocodeOpcode::Move;
+        case m_add: return MicrocodeOpcode::Add;
+        case m_sub: return MicrocodeOpcode::Subtract;
+        case m_mul: return MicrocodeOpcode::Multiply;
+        case m_xdu: return MicrocodeOpcode::ZeroExtend;
+        case m_ldx: return MicrocodeOpcode::LoadMemory;
+        case m_stx: return MicrocodeOpcode::StoreMemory;
+        case m_or:  return MicrocodeOpcode::BitwiseOr;
+        case m_and: return MicrocodeOpcode::BitwiseAnd;
+        case m_xor: return MicrocodeOpcode::BitwiseXor;
+        case m_shl: return MicrocodeOpcode::ShiftLeft;
+        case m_shr: return MicrocodeOpcode::ShiftRightLogical;
+        case m_sar: return MicrocodeOpcode::ShiftRightArithmetic;
+        case m_fadd: return MicrocodeOpcode::FloatAdd;
+        case m_fsub: return MicrocodeOpcode::FloatSub;
+        case m_fmul: return MicrocodeOpcode::FloatMul;
+        case m_fdiv: return MicrocodeOpcode::FloatDiv;
+        case m_i2f: return MicrocodeOpcode::IntegerToFloat;
+        case m_f2f: return MicrocodeOpcode::FloatToFloat;
+        default: return std::unexpected(Error::unsupported("Unsupported SDK opcode", std::to_string(op)));
+    }
+}
+
+Result<MicrocodeInstruction> parse_sdk_instruction(const minsn_t* minsn);
+
+Result<MicrocodeOperand> parse_sdk_operand(const mop_t& mop) {
+    MicrocodeOperand result;
+    result.byte_width = mop.size;
+    if (mop.is_udt()) result.mark_user_defined_type = true;
+
+    switch (mop.t) {
+        case mop_z:
+            result.kind = MicrocodeOperandKind::Empty;
+            break;
+        case mop_r:
+            result.kind = MicrocodeOperandKind::Register;
+            result.register_id = mop.r;
+            break;
+        case mop_n:
+            result.kind = MicrocodeOperandKind::UnsignedImmediate;
+            if (mop.nnn != nullptr) {
+                result.unsigned_immediate = mop.nnn->value;
+            }
+            break;
+        case mop_d:
+            result.kind = MicrocodeOperandKind::NestedInstruction;
+            if (mop.d != nullptr) {
+                auto nested = parse_sdk_instruction(mop.d);
+                if (!nested) return std::unexpected(nested.error());
+                result.nested_instruction = std::make_shared<MicrocodeInstruction>(*nested);
+            }
+            break;
+        case mop_v:
+            result.kind = MicrocodeOperandKind::GlobalAddress;
+            result.global_address = mop.g;
+            break;
+        case mop_b:
+            result.kind = MicrocodeOperandKind::BlockReference;
+            result.block_index = mop.b;
+            break;
+        case mop_h:
+            result.kind = MicrocodeOperandKind::HelperReference;
+            if (mop.helper != nullptr) {
+                result.helper_name = mop.helper;
+            }
+            break;
+        case mop_S:
+            result.kind = MicrocodeOperandKind::StackVariable;
+            if (mop.s != nullptr) {
+                result.stack_offset = mop.s->off;
+            }
+            break;
+        case mop_l:
+            result.kind = MicrocodeOperandKind::LocalVariable;
+            if (mop.l != nullptr) {
+                result.local_variable_index = mop.l->idx;
+                result.local_variable_offset = mop.l->off;
+            }
+            break;
+        case mop_p:
+            result.kind = MicrocodeOperandKind::RegisterPair;
+            if (mop.pair != nullptr && mop.pair->lop.t == mop_r && mop.pair->hop.t == mop_r) {
+                result.register_id = mop.pair->lop.r;
+                result.second_register_id = mop.pair->hop.r;
+            } else {
+                return std::unexpected(Error::unsupported("Unsupported register pair format"));
+            }
+            break;
+        default:
+            return std::unexpected(Error::unsupported("Unsupported SDK micro-operand type", std::to_string(mop.t)));
+    }
+    return result;
+}
+
+Result<MicrocodeInstruction> parse_sdk_instruction(const minsn_t* minsn) {
+    if (minsn == nullptr) return std::unexpected(Error::validation("Null minsn_t"));
+    MicrocodeInstruction result;
+    auto opcode_res = parse_sdk_opcode(minsn->opcode);
+    if (!opcode_res) return std::unexpected(opcode_res.error());
+    result.opcode = *opcode_res;
+    
+    auto left_res = parse_sdk_operand(minsn->l);
+    if (!left_res) return std::unexpected(left_res.error());
+    result.left = *left_res;
+
+    auto right_res = parse_sdk_operand(minsn->r);
+    if (!right_res) return std::unexpected(right_res.error());
+    result.right = *right_res;
+
+    auto dest_res = parse_sdk_operand(minsn->d);
+    if (!dest_res) return std::unexpected(dest_res.error());
+    result.destination = *dest_res;
+
+    result.floating_point_instruction = minsn->is_fpinsn();
+    return result;
+}
 
 Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
                                               mba_t* mba,
@@ -847,7 +971,7 @@ Status reposition_emitted_instruction(MicrocodeContextImpl* impl,
     return ida::ok();
 }
 
-minsn_t* instruction_at_index(mblock_t* block, int instruction_index) {
+minsn_t* find_minsn_at_index(mblock_t* block, int instruction_index) {
     if (block == nullptr || instruction_index < 0)
         return nullptr;
 
@@ -2231,7 +2355,36 @@ Result<bool> MicrocodeContext::has_instruction_at_index(int instruction_index) c
     if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    return instruction_at_index(impl->codegen->mb, instruction_index) != nullptr;
+    return find_minsn_at_index(impl->codegen->mb, instruction_index) != nullptr;
+}
+
+Result<ida::instruction::Instruction> MicrocodeContext::instruction() const {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    return ida::instruction::from_raw_insn(&impl->codegen->insn);
+}
+
+Result<MicrocodeInstruction> MicrocodeContext::instruction_at_index(int instruction_index) const {
+    if (instruction_index < 0)
+        return std::unexpected(Error::validation("Instruction index cannot be negative"));
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    minsn_t* instruction = find_minsn_at_index(impl->codegen->mb, instruction_index);
+    if (instruction == nullptr)
+        return std::unexpected(Error::not_found("Instruction not found at index",
+                                                std::to_string(instruction_index)));
+
+    return parse_sdk_instruction(instruction);
 }
 
 Result<bool> MicrocodeContext::has_last_emitted_instruction() const {
@@ -2243,6 +2396,20 @@ Result<bool> MicrocodeContext::has_last_emitted_instruction() const {
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
     return impl->last_emitted != nullptr;
+}
+
+Result<MicrocodeInstruction> MicrocodeContext::last_emitted_instruction() const {
+    if (raw_ == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext is empty"));
+
+    auto* impl = static_cast<MicrocodeContextImpl*>(raw_);
+    if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
+        return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
+
+    if (impl->last_emitted == nullptr)
+        return std::unexpected(Error::not_found("No tracked instruction has been emitted"));
+
+    return parse_sdk_instruction(impl->last_emitted);
 }
 
 Status MicrocodeContext::remove_last_emitted_instruction() {
@@ -2272,7 +2439,7 @@ Status MicrocodeContext::remove_instruction_at_index(int instruction_index) {
     if (impl->codegen == nullptr || impl->codegen->mb == nullptr)
         return std::unexpected(Error::internal("MicrocodeContext has incomplete codegen state"));
 
-    minsn_t* instruction = instruction_at_index(impl->codegen->mb, instruction_index);
+    minsn_t* instruction = find_minsn_at_index(impl->codegen->mb, instruction_index);
     if (instruction == nullptr) {
         return std::unexpected(Error::not_found(
             "No microcode instruction at index",
