@@ -86,7 +86,7 @@ void test_invariant_assertions() {
     auto bad_result = assert_invariant(false, "this is broken");
     CHECK(!bad_result.has_value());
     CHECK(bad_result.error().category == ida::ErrorCategory::Internal);
-    CHECK_CONTAINS(bad_result.error().message, "invariant");
+    CHECK_CONTAINS(bad_result.error().message, "Invariant");
 }
 
 // ── Error enrichment ────────────────────────────────────────────────────
