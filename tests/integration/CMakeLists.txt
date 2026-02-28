@@ -112,3 +112,7 @@ idax_add_integration_test(loader_processor_scenario        loader_processor_scen
 idax_add_integration_test(event_stress                      event_stress_test.cpp)
 idax_add_integration_test(decompiler_edge_cases            decompiler_edge_cases_test.cpp)
 idax_add_integration_test(performance_benchmark            performance_benchmark_test.cpp)
+
+# ── Torture tests (expanded coverage) ────────────────────────────────────
+idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)
+idax_add_integration_test(cross_domain_torture             cross_domain_torture_test.cpp)
