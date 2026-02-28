@@ -30,7 +30,7 @@ Public headers:
 | `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| `include/ida/decompiler.hpp` | Decompile (with structured failure details), pseudocode/microcode extraction, maturity subscriptions, cache-dirty helpers, typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`), microcode-filter registration, typed instruction/operand emission (including nested/block/local-variable forms), policy-aware low-level emits, microblock lifecycle helpers (`block_instruction_count`, `has_instruction_at_index`, `remove_instruction_at_index`, tracked last-emitted query/remove), typed helper-call builders (register/operand/micro-operand destinations), and advanced call-shaping/location hints (calling convention, role, return location/type, register-list + visible-memory controls). |
+| `include/ida/decompiler.hpp` | Decompile (with structured failure details), pseudocode/microcode extraction, maturity subscriptions, cache-dirty helpers, typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`), microcode-filter registration, typed instruction/operand emission (including nested/block/local-variable forms), policy-aware low-level emits, microblock lifecycle helpers (`block_instruction_count`, `has_instruction_at_index`, `remove_instruction_at_index`, tracked last-emitted query/remove), microcode introspection (`instruction`, `instruction_at_index`, `last_emitted_instruction`), typed helper-call builders (register/operand/micro-operand destinations), and advanced call-shaping/location hints (calling convention, role, return location/type, register-list + visible-memory controls). |
 | `include/ida/lines.hpp` | Tagged text/color helpers (`colstr`, `tag_remove`, `tag_advance`, `tag_strlen`, address-tag encode/decode) used by decompiler/listing filters |
 | `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
@@ -38,6 +38,7 @@ See also:
 
 - `docs/quickstart/` — Plugin, loader, processor module skeletons
 - `docs/cookbook/` — Common task recipes and disassembly workflows
+- `docs/cookbook/microcode_lifting.md` — Custom microcode lifting and Hex-Rays filters
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows
