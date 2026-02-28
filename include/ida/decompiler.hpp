@@ -10,6 +10,7 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <ida/instruction.hpp>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -456,8 +457,17 @@ public:
     /// Return true when an instruction exists at the specified block index.
     [[nodiscard]] Result<bool> has_instruction_at_index(int instruction_index) const;
 
+    /// Return the instruction currently being processed by the microcode lifter.
+    [[nodiscard]] Result<ida::instruction::Instruction> instruction() const;
+
+    /// Return the microcode instruction at the specified index in the active block.
+    [[nodiscard]] Result<MicrocodeInstruction> instruction_at_index(int instruction_index) const;
+
     /// Whether this context has tracked at least one emitted instruction.
     [[nodiscard]] Result<bool> has_last_emitted_instruction() const;
+
+    /// Return the most recently emitted microcode instruction tracked by this context.
+    [[nodiscard]] Result<MicrocodeInstruction> last_emitted_instruction() const;
 
     /// Remove the most recently emitted instruction tracked by this context.
     Status remove_last_emitted_instruction();

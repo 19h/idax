@@ -1193,6 +1193,9 @@ void check_decompiler_surface() {
     using MicrocodeContextBlockInstructionCountFn = ida::Result<int>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextHasInstructionAtIndexFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)(int) const;
     using MicrocodeContextHasLastEmittedFn = ida::Result<bool>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextInstructionFn = ida::Result<ida::instruction::Instruction>(ida::decompiler::MicrocodeContext::*)() const;
+    using MicrocodeContextInstructionAtIndexFn = ida::Result<ida::decompiler::MicrocodeInstruction>(ida::decompiler::MicrocodeContext::*)(int) const;
+    using MicrocodeContextLastEmittedFn = ida::Result<ida::decompiler::MicrocodeInstruction>(ida::decompiler::MicrocodeContext::*)() const;
     using MicrocodeContextRemoveLastEmittedFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
     using MicrocodeContextRemoveInstructionAtIndexFn = ida::Status(ida::decompiler::MicrocodeContext::*)(int);
     using MicrocodeContextEmitNopFn = ida::Status(ida::decompiler::MicrocodeContext::*)();
@@ -1509,7 +1512,10 @@ void check_decompiler_surface() {
     (void)static_cast<MicrocodeContextLocalVariableCountFn>(&ida::decompiler::MicrocodeContext::local_variable_count);
     (void)static_cast<MicrocodeContextBlockInstructionCountFn>(&ida::decompiler::MicrocodeContext::block_instruction_count);
     (void)static_cast<MicrocodeContextHasInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::has_instruction_at_index);
+    (void)static_cast<MicrocodeContextInstructionFn>(&ida::decompiler::MicrocodeContext::instruction);
+    (void)static_cast<MicrocodeContextInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::instruction_at_index);
     (void)static_cast<MicrocodeContextHasLastEmittedFn>(&ida::decompiler::MicrocodeContext::has_last_emitted_instruction);
+    (void)static_cast<MicrocodeContextLastEmittedFn>(&ida::decompiler::MicrocodeContext::last_emitted_instruction);
     (void)static_cast<MicrocodeContextRemoveLastEmittedFn>(&ida::decompiler::MicrocodeContext::remove_last_emitted_instruction);
     (void)static_cast<MicrocodeContextRemoveInstructionAtIndexFn>(&ida::decompiler::MicrocodeContext::remove_instruction_at_index);
     (void)static_cast<MicrocodeContextEmitNopFn>(&ida::decompiler::MicrocodeContext::emit_noop);

@@ -205,6 +205,17 @@ Result<Operand> Instruction::operand(std::size_t index) const {
 
 // ── Decode / create ─────────────────────────────────────────────────────
 
+Result<Instruction> from_raw_insn(const void* raw_insn) {
+    if (!raw_insn) return std::unexpected(Error::validation("Null raw_insn"));
+    const insn_t* raw = static_cast<const insn_t*>(raw_insn);
+    
+    qstring qmnem;
+    print_insn_mnem(&qmnem, raw->ea);
+    std::string mnem = ida::detail::to_string(qmnem);
+
+    return InstructionAccess::populate(*raw, mnem);
+}
+
 Result<Instruction> decode(Address ea) {
     insn_t raw;
     int sz = decode_insn(&raw, ea);
