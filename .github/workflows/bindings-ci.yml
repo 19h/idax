@@ -341,14 +341,14 @@ jobs:
         shell: bash
         working-directory: bindings/rust
         run: |
-          cargo test --verbose
+          cargo test --lib --verbose
 
       - name: Run Rust unit tests (Windows)
         if: runner.os == 'Windows'
         working-directory: bindings/rust
         shell: pwsh
         run: |
-          cargo test --release --verbose
+          cargo test --release --lib --verbose
 
       - name: Run Rust examples (Unix)
         if: runner.os != 'Windows'
