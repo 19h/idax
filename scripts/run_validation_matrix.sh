@@ -21,7 +21,7 @@ case "$PROFILE" in
   unit)
     BUILD_TESTS="ON"
     RUN_TESTS="1"
-    TEST_REGEX="idax_unit_test|api_surface_parity"
+    TEST_REGEX="idax_unit_test|api_surface_parity|error_torture|address_range_torture|diagnostics_torture|core_options_torture"
     ;;
   compile-only)
     BUILD_TESTS="OFF"

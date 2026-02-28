@@ -145,6 +145,12 @@ jobs:
           npm install --ignore-scripts
           npx cmake-js compile -v $(node -v | sed 's/v//')
 
+      - name: Run Node unit tests
+        shell: bash
+        working-directory: bindings/node
+        run: |
+          npm test
+
       - name: Run Node examples (Unix)
         if: runner.os != 'Windows'
         shell: bash
@@ -315,6 +321,20 @@ jobs:
         run: |
           cargo build --release --verbose
           cargo build --release --examples --verbose
+
+      - name: Run Rust unit tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        working-directory: bindings/rust
+        run: |
+          cargo test --verbose
+
+      - name: Run Rust unit tests (Windows)
+        if: runner.os == 'Windows'
+        working-directory: bindings/rust
+        shell: pwsh
+        run: |
+          cargo test --release --verbose
 
       - name: Run Rust examples (Unix)
         if: runner.os != 'Windows'

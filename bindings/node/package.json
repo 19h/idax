@@ -10,7 +10,9 @@
     "build": "cmake-js build",
     "rebuild": "cmake-js rebuild",
     "clean": "cmake-js clean",
-    "configure": "cmake-js configure"
+    "configure": "cmake-js configure",
+    "test": "node test/unit.test.js",
+    "test:integration": "node test/integration.test.js"
   },
   "files": [
     "lib/",

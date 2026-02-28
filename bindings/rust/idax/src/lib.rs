@@ -126,6 +126,9 @@ pub mod types;
 pub mod ui;
 pub mod xref;
 
+#[cfg(test)]
+mod tests;
+
 // ── Convenience re-exports ──────────────────────────────────────────────
 
 /// Re-export of the fundamental address type.
