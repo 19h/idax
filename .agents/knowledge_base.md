@@ -896,3 +896,6 @@ Note:
 - **For Windows Rust runtime triage, prefer `cargo build` + direct `.exe` execution over `cargo run`:** direct invocation makes it easier to emit/inspect raw process exit codes (decimal + hex) when failures occur before normal Rust error reporting. [F352]
 - **For this Windows Rust path, keep `database::init()` argv minimal (`argv0` only):** injecting `-A`/`-L` into init argv produced `init_library` return code 2. Runtime triage should rely on stage traces and absolute input-path invocation rather than extra init switches. [F353]
 - **For Windows Rust CI runtime checks, prefer opening a stable fixture IDB over raw PE binaries:** opening copied `notepad.exe` can terminate during `database::open` with exit code 1 and no wrapper error, while fixture IDB workflows are stable in local validation. [F354]
+
+### 35.13. Hex-Rays Microcode Context Read-Back Gap [F355]
+The Hex-Rays SDK's `codegen_t` and `mop_t` structures do not easily support safe, isolated inspection of generic operands when filtering or emitting microcode. `idax` works around this by maintaining recursive C++ parsers (`parse_sdk_instruction`, `parse_sdk_operand`) to safely reconstruct `MicrocodeInstruction` instances out of raw `minsn_t` nodes during a microcode filter's `apply` phase.

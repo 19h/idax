@@ -1683,3 +1683,11 @@
   - 16.79.2. Validated locally that `idalib_dump_port` succeeds when opened against fixture IDB input (`tests/fixtures/simple_appcall_linux64.i64`) with trace output.
   - 16.79.3. Updated `.github/workflows/bindings-ci.yml` Windows Rust runtime step to use absolute path to `tests/fixtures/simple_appcall_linux64.i64` instead of copied `test_bin.exe`.
   - 16.79.4. Logged decision D-RUST-WINDOWS-EXAMPLE-FIXTURE-IDB-INPUT (19.22), recorded finding [F354], and refreshed active/roadmap focus for CI verification.
+
+- **16.80. MicrocodeContext Read-Back Introspection APIs**
+  - 16.80.1. Validated user concern: `MicrocodeContext` previously lacked APIs to introspect `mop_t` types, effectively making it a write-only sink.
+  - 16.80.2. Implemented recursive SDK parsers (`parse_sdk_instruction`, `parse_sdk_operand`, `parse_sdk_opcode`) in `src/decompiler.cpp` to reverse-translate Hex-Rays IR into `idax::decompiler::MicrocodeInstruction`.
+  - 16.80.3. Added `instruction()`, `last_emitted_instruction()`, and `instruction_at_index()` methods to `MicrocodeContext`.
+  - 16.80.4. Tested via runtime instrumentation in `tests/integration/decompiler_storage_hardening_test.cpp` and ensured surface parity in `tests/unit/api_surface_parity_test.cpp`.
+  - 16.80.5. Documented in `docs/api_reference.md` and added comprehensive tutorial in `docs/cookbook/microcode_lifting.md`.
+  - 16.80.6. Recorded finding [F355] and updated `knowledge_base.md`.
