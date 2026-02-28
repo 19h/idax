@@ -177,6 +177,20 @@ jobs:
           echo "Running binary_forensics..."
           npx ts-node examples/binary_forensics.ts "$TEST_BIN"
 
+      - name: Run Node integration tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        working-directory: bindings/node
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
+          else
+            export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          fi
+          cp /bin/ls ./test_bin
+          echo "Running Node.js integration tests..."
+          node test/integration.test.js ./test_bin
+
       - name: Run Node examples (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -391,3 +405,27 @@ jobs:
 
           Invoke-RustExample -Name "idalib_dump_port" -Args @($testBin, "--list")
           Invoke-RustExample -Name "ida2py_port" -Args @($testBin)
+
+      - name: Run Rust integration tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        working-directory: bindings/rust
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
+          else
+            export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          fi
+          echo "Running Rust integration tests..."
+          cargo test --test integration -- --test-threads=1
+
+      - name: Run Rust integration tests (Windows)
+        if: runner.os == 'Windows'
+        working-directory: bindings/rust
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:IDADIR;$env:PATH"
+          $env:IDAUSR = "$pwd\idax_empty_user"
+          New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
+          Write-Host "Running Rust integration tests..."
+          cargo test --release --test integration -- --test-threads=1
