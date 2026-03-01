@@ -21,8 +21,9 @@ IDAX_LOADER(MyLoader)
 
 1. Detect magic in `accept()`.
 2. In `load()`, call `ida::loader::set_processor()`.
-3. Copy bytes with `ida::loader::file_to_database()`.
-4. Add context comment with `ida::loader::create_filename_comment()`.
+3. Set database bitness with `ida::database::set_address_bitness(16|32|64)` when the format declares pointer width.
+4. Copy bytes with `ida::loader::file_to_database()`.
+5. Add context comment with `ida::loader::create_filename_comment()`.
 
 ## Advanced load/reload/archive flow
 

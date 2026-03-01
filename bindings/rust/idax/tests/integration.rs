@@ -118,6 +118,14 @@ fn database_address_bitness() {
 }
 
 #[test]
+fn database_set_address_bitness_idempotent() {
+    require_db!();
+    let bits = database::address_bitness().unwrap();
+    database::set_address_bitness(bits).unwrap();
+    assert_eq!(database::address_bitness().unwrap(), bits);
+}
+
+#[test]
 fn database_processor_name() {
     require_db!();
     let pname = database::processor_name().unwrap();

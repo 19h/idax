@@ -281,7 +281,7 @@ PredicateRange unknown_bytes(Address start, Address end) {
 
 } // namespace ida::address
 
-// ── ida::database processor queries ─────────────────────────────────────
+// ── ida::database processor/architecture metadata ───────────────────────
 // Implemented here (not in database.cpp) to avoid pulling idalib-only
 // symbols into plugin link units that reference processor_id().
 
@@ -313,6 +313,19 @@ Result<int> address_bitness() {
     if (inf_is_32bit_exactly())
         return 32;
     return 16;
+}
+
+Status set_address_bitness(int bits) {
+    int sdk_bitness = ida::detail::bits_to_bitness(bits);
+    if (sdk_bitness < 0) {
+        return std::unexpected(Error::validation(
+            "Invalid address bitness (must be 16/32/64)",
+            std::to_string(bits)));
+    }
+
+    inf_set_64bit(sdk_bitness == 2);
+    inf_set_32bit(sdk_bitness == 1);
+    return ida::ok();
 }
 
 Result<bool> is_big_endian() {

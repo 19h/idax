@@ -146,7 +146,7 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.25 `ida::database` processor-context metadata extensions
 - `ProcessorId` enum + typed `processor()` helper
 - `ProcessorId` tracks full current SDK `PLFM_*` coverage (through `PLFM_MCORE`)
-- Architecture-shaping helpers: `address_bitness()`, `is_big_endian()`, `abi_name()`
+- Architecture-shaping helpers: `address_bitness()`, `set_address_bitness(bits)`, `is_big_endian()`, `abi_name()`
 - Port-driven metadata closure for external ISA-semantics integrations (e.g., idapcode + Sleigh)
 
 ---

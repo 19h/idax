@@ -1691,3 +1691,12 @@
   - 16.80.4. Tested via runtime instrumentation in `tests/integration/decompiler_storage_hardening_test.cpp` and ensured surface parity in `tests/unit/api_surface_parity_test.cpp`.
   - 16.80.5. Documented in `docs/api_reference.md` and added comprehensive tutorial in `docs/cookbook/microcode_lifting.md`.
   - 16.80.6. Recorded finding [F355] and updated `knowledge_base.md`.
+
+- **16.81. Database Bitness Mutator Parity Closure (`set_address_bitness`)**
+  - 16.81.1. Refined `src/address.cpp` metadata section labeling and normalized `set_address_bitness(int)` implementation to use shared bitness conversion helper (`ida::detail::bits_to_bitness`) before writing `inf_set_64bit/inf_set_32bit` flags.
+  - 16.81.2. Closed C++ API surface parity by adding `ida::database::set_address_bitness` to `tests/unit/api_surface_parity_test.cpp`.
+  - 16.81.3. Closed Node parity: added `database.setAddressBitness(bits)` binding (`bindings/node/src/database_bind.cpp`), type declaration (`bindings/node/lib/index.d.ts`), namespace-structure expectation (`bindings/node/test/unit.test.js`), and metadata integration assertion (`bindings/node/test/integration.test.js`).
+  - 16.81.4. Closed Rust parity: added shim export (`idax_database_set_address_bitness` in `bindings/rust/idax-sys/shim/idax_shim.h/.cpp`), bindgen surface declaration (`bindings/rust/idax-sys/src/bindings.rs`), safe wrapper API (`bindings/rust/idax/src/database.rs`), and idempotent integration check (`bindings/rust/idax/tests/integration.rs`).
+  - 16.81.5. Synced docs/catalog surfaces: `docs/sdk_domain_coverage_matrix.md`, `docs/quickstart/loader.md`, `.agents/api_catalog.md`, and `bindings/node/agents.md` now include the database bitness mutator.
+  - 16.81.6. Validation evidence: `cmake --build build-test --target idax_api_surface_check` passes with parity updates.
+  - 16.81.7. Recorded finding [F356] and mirrored it in `.agents/knowledge_base.md`.

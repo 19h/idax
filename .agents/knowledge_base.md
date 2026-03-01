@@ -899,3 +899,6 @@ Note:
 
 ### 35.13. Hex-Rays Microcode Context Read-Back Gap [F355]
 The Hex-Rays SDK's `codegen_t` and `mop_t` structures do not easily support safe, isolated inspection of generic operands when filtering or emitting microcode. `idax` works around this by maintaining recursive C++ parsers (`parse_sdk_instruction`, `parse_sdk_operand`) to safely reconstruct `MicrocodeInstruction` instances out of raw `minsn_t` nodes during a microcode filter's `apply` phase.
+
+### 35.14. Database Bitness Mutator Cross-Surface Parity Discipline [F356]
+For architecture-shaping APIs under `ida::database` (for example `set_address_bitness`), parity must be closed in one pass across C++ public headers/impl, API surface parity checks, Node bindings+types+tests, Rust shim/wrapper+tests, and docs/catalog references. Treating only the C++ header+impl as complete creates discoverability and behavior drift across official surfaces.

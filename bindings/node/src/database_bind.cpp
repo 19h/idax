@@ -338,6 +338,16 @@ NAN_METHOD(AddressBitness) {
     info.GetReturnValue().Set(Nan::New(bits));
 }
 
+NAN_METHOD(SetAddressBitness) {
+    if (info.Length() < 1 || !info[0]->IsNumber()) {
+        Nan::ThrowTypeError("Expected numeric bitness argument");
+        return;
+    }
+
+    int bits = Nan::To<int>(info[0]).FromJust();
+    IDAX_CHECK_STATUS(ida::database::set_address_bitness(bits));
+}
+
 NAN_METHOD(IsBigEndian) {
     IDAX_UNWRAP(auto big, ida::database::is_big_endian());
     info.GetReturnValue().Set(Nan::New(big));
@@ -422,6 +432,7 @@ void InitDatabase(v8::Local<v8::Object> target) {
     SetMethod(ns, "processor",        Processor);
     SetMethod(ns, "processorName",    ProcessorName);
     SetMethod(ns, "addressBitness",   AddressBitness);
+    SetMethod(ns, "setAddressBitness", SetAddressBitness);
     SetMethod(ns, "isBigEndian",      IsBigEndian);
     SetMethod(ns, "abiName",          AbiName);
 
