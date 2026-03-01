@@ -902,3 +902,15 @@ The Hex-Rays SDK's `codegen_t` and `mop_t` structures do not easily support safe
 
 ### 35.14. Database Bitness Mutator Cross-Surface Parity Discipline [F356]
 For architecture-shaping APIs under `ida::database` (for example `set_address_bitness`), parity must be closed in one pass across C++ public headers/impl, API surface parity checks, Node bindings+types+tests, Rust shim/wrapper+tests, and docs/catalog references. Treating only the C++ header+impl as complete creates discoverability and behavior drift across official surfaces.
+
+### 35.15. Microcode Context Binding Lifetime Discipline [F357]
+`ida::decompiler::MicrocodeContext` is callback-scoped runtime state and should never be modeled as a long-lived foreign handle in language bindings. Node bindings should expose an ephemeral wrapper object that is invalidated immediately after callback return; Rust bindings should expose callback-local `MicrocodeContext` methods backed by shim helpers (or equivalent scoped adapters). This preserves safe-by-default semantics while still exposing full read-back introspection (`instruction`, `instruction_at_index`, `last_emitted_instruction`) across public surfaces.
+
+### 35.16. Node `cmake-js` ABI Cache Discipline [F358]
+`cmake-js` may retain an old Node runtime target in `bindings/node/build/CMakeCache.txt` (`CMAKE_JS_INC`, `NODE_RUNTIMEVERSION`). In that state, addons can compile but fail to load with `NODE_MODULE_VERSION` mismatch against the current `node` binary. The reliable recovery path is `npm run clean` (or remove `build/`) followed by `npm run build` so configuration rebinds to the active runtime ABI.
+
+### 35.17. Bitness Mutator Runtime Regression Signal [F359]
+Runtime integration against `tests/fixtures/simple_appcall_linux64` surfaced an idempotent round-trip regression for `idax.database.setAddressBitness(bits)` in Node (`64 -> 16` on immediate read-back). This correctly identified a semantic correctness issue in the mutator behavior path (not merely a binding-discovery gap) and should be treated as a high-priority runtime parity signal.
+
+### 35.18. Bitness Setter Mutual-Exclusion Semantics (Resolved) [F360]
+`set_address_bitness` must apply architecture mode changes through mutually exclusive flag writes. Independent boolean writes to `inf_set_64bit` and `inf_set_32bit` can clobber 64-bit state in immediate read-back checks. A switch-based mode application (`64 -> inf_set_64bit(true)`, `32 -> inf_set_32bit(true)`, `16 -> inf_set_32bit(false)`) restores stable behavior and is validated in both Node integration and C++ smoke runs against `tests/fixtures/simple_appcall_linux64`.

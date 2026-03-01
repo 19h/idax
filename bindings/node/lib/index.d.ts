@@ -1885,6 +1885,71 @@ export namespace decompiler {
         functionAddress: Address;
     }
 
+    type MicrocodeApplyResult = 'notHandled' | 'handled' | 'error' | 0 | 1 | 2;
+
+    type MicrocodeOpcode =
+        | 'noOperation' | 'move' | 'add' | 'subtract' | 'multiply' | 'zeroExtend'
+        | 'loadMemory' | 'storeMemory' | 'bitwiseOr' | 'bitwiseAnd' | 'bitwiseXor'
+        | 'shiftLeft' | 'shiftRightLogical' | 'shiftRightArithmetic'
+        | 'floatAdd' | 'floatSub' | 'floatMul' | 'floatDiv'
+        | 'integerToFloat' | 'floatToFloat';
+
+    type MicrocodeOperandKind =
+        | 'empty' | 'register' | 'localVariable' | 'registerPair' | 'globalAddress'
+        | 'stackVariable' | 'helperReference' | 'blockReference' | 'nestedInstruction'
+        | 'unsignedImmediate' | 'signedImmediate';
+
+    interface MicrocodeOperand {
+        kind: MicrocodeOperandKind;
+        registerId: number;
+        localVariableIndex: number;
+        localVariableOffset: AddressDelta;
+        secondRegisterId: number;
+        globalAddress: Address;
+        stackOffset: AddressDelta;
+        helperName: string;
+        blockIndex: number;
+        nestedInstruction: MicrocodeInstruction | null;
+        unsignedImmediate: bigint;
+        signedImmediate: bigint;
+        byteWidth: number;
+        markUserDefinedType: boolean;
+    }
+
+    interface MicrocodeInstruction {
+        opcode: MicrocodeOpcode;
+        left: MicrocodeOperand;
+        right: MicrocodeOperand;
+        destination: MicrocodeOperand;
+        floatingPointInstruction: boolean;
+    }
+
+    interface MicrocodeContext {
+        /** Address currently being lifted. */
+        address(): Address;
+
+        /** Processor instruction type code (`insn_t::itype`). */
+        instructionType(): number;
+
+        /** Number of microcode instructions currently present in the active block. */
+        blockInstructionCount(): number;
+
+        /** Return true if an instruction exists at the specified zero-based block index. */
+        hasInstructionAtIndex(instructionIndex: number): boolean;
+
+        /** Return the native instruction currently being processed. */
+        instruction(): instruction.Instruction;
+
+        /** Return the typed microcode instruction at the specified block index. */
+        instructionAtIndex(instructionIndex: number): MicrocodeInstruction;
+
+        /** Whether this context has tracked at least one emitted instruction. */
+        hasLastEmittedInstruction(): boolean;
+
+        /** Return the most recently emitted typed microcode instruction. */
+        lastEmittedInstruction(): MicrocodeInstruction;
+    }
+
     // ── Free functions ──────────────────────────────────────────────────
 
     /** Whether the Hex-Rays decompiler is available. */
@@ -1892,6 +1957,15 @@ export namespace decompiler {
 
     /** Decompile the function at the given address. */
     function decompile(address: Address): DecompiledFunction;
+
+    /** Register a microcode filter callback pair. */
+    function registerMicrocodeFilter(
+        matchCallback: (context: MicrocodeContext) => boolean,
+        applyCallback: (context: MicrocodeContext) => MicrocodeApplyResult,
+    ): Token;
+
+    /** Unregister a previously registered microcode filter callback pair. */
+    function unregisterMicrocodeFilter(token: Token): void;
 
     // ── Event subscriptions ─────────────────────────────────────────────
 

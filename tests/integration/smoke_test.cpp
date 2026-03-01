@@ -101,6 +101,15 @@ static void test_database() {
 
     auto bitness = ida::database::address_bitness();
     CHECK_OK(bitness);
+    if (bitness) {
+        auto set_same_bitness = ida::database::set_address_bitness(*bitness);
+        CHECK_OK(set_same_bitness);
+
+        auto bitness_after_set = ida::database::address_bitness();
+        CHECK_OK(bitness_after_set);
+        if (bitness_after_set)
+            CHECK(*bitness_after_set == *bitness);
+    }
 
     auto big_endian = ida::database::is_big_endian();
     CHECK_OK(big_endian);

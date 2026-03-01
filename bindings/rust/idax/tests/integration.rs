@@ -9,7 +9,8 @@
 //! single database session initialized via `std::sync::Once`.  Tests must NOT
 //! call `database::close()` — that happens in the static destructor.
 
-use std::sync::Once;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Once};
 
 use idax::address::BAD_ADDRESS;
 use idax::{
@@ -835,6 +836,59 @@ fn decompiler_microcode() {
     let df = decompiler::decompile(f.start()).unwrap();
     // Microcode may or may not be available for all functions
     let _ = df.microcode();
+}
+
+#[test]
+fn decompiler_microcode_filter_context_introspection() {
+    require_db!();
+    if !decompiler::available().unwrap_or(false) {
+        eprintln!("  [skipped — decompiler not available]");
+        return;
+    }
+
+    let f = function::by_index(0).unwrap();
+    let saw_match = Arc::new(AtomicBool::new(false));
+    let saw_apply = Arc::new(AtomicBool::new(false));
+
+    let saw_match_cb = Arc::clone(&saw_match);
+    let saw_apply_cb = Arc::clone(&saw_apply);
+    let token = decompiler::register_microcode_filter_with_context(
+        move |_address, _itype| {
+            saw_match_cb.store(true, Ordering::SeqCst);
+            true
+        },
+        move |context| {
+            saw_apply_cb.store(true, Ordering::SeqCst);
+            let _ = context.address();
+            let _ = context.instruction_type();
+            let _ = context.instruction();
+            if let Ok(count) = context.block_instruction_count() {
+                if count > 0 {
+                    let _ = context.has_instruction_at_index(0);
+                    let _ = context.instruction_at_index(0);
+                }
+            }
+            if context.has_last_emitted_instruction().unwrap_or(false) {
+                let _ = context.last_emitted_instruction();
+            }
+            decompiler::MicrocodeApplyResult::NotHandled
+        },
+    )
+    .unwrap();
+
+    let decompile_result = decompiler::decompile(f.start());
+    let _ = decompiler::unregister_microcode_filter(token);
+
+    let df = decompile_result.unwrap();
+    let _ = df.pseudocode().unwrap_or_default();
+    assert!(
+        saw_match.load(Ordering::SeqCst),
+        "expected microcode filter match callback to be invoked"
+    );
+    assert!(
+        saw_apply.load(Ordering::SeqCst),
+        "expected microcode filter apply callback to be invoked"
+    );
 }
 
 #[test]

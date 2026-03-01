@@ -190,7 +190,7 @@ impl Instruction {
 
 /// Helper: construct a Rust `Instruction` from a filled-in FFI `IdaxInstruction`,
 /// then free the FFI struct's internal allocations.
-unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Result<Instruction> {
+pub(crate) unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Result<Instruction> {
     let insn_mnemonic = unsafe { error::cstr_to_string(raw.mnemonic, "mnemonic")? };
 
     let mut operands = Vec::new();

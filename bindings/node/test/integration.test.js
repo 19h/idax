@@ -514,6 +514,93 @@ describe('Decompiler', () => {
             expect(decompiled).toBe(true);
         }
     });
+
+    it('should expose microcode context introspection in filter callbacks', () => {
+        if (!idax.decompiler.available()) return;
+        const funcs = idax.function.all();
+        if (funcs.length === 0) return;
+
+        let sawMatch = false;
+        let sawApply = false;
+        let decompiled = false;
+        let token = null;
+
+        try {
+            token = idax.decompiler.registerMicrocodeFilter(
+                (context) => {
+                    sawMatch = true;
+
+                    const ea = context.address();
+                    expect(typeof ea).toBe('bigint');
+
+                    const itype = context.instructionType();
+                    expect(typeof itype).toBe('number');
+
+                    const nativeInstruction = context.instruction();
+                    expect(typeof nativeInstruction.mnemonic).toBe('string');
+                    return true;
+                },
+                (context) => {
+                    sawApply = true;
+
+                    const count = context.blockInstructionCount();
+                    expect(typeof count).toBe('number');
+                    expect(count).toBeGreaterThanOrEqual(0);
+
+                    const hasIndexZero = context.hasInstructionAtIndex(0);
+                    expect(typeof hasIndexZero).toBe('boolean');
+                    if (hasIndexZero) {
+                        const first = context.instructionAtIndex(0);
+                        expect(typeof first.opcode).toBe('string');
+                    }
+
+                    const hasLast = context.hasLastEmittedInstruction();
+                    expect(typeof hasLast).toBe('boolean');
+                    if (hasLast) {
+                        const last = context.lastEmittedInstruction();
+                        expect(typeof last.opcode).toBe('string');
+                    }
+
+                    return 'notHandled';
+                },
+            );
+
+            expect(typeof token).toBe('bigint');
+
+            const limit = Math.min(funcs.length, 20);
+            for (let i = 0; i < limit; i++) {
+                try {
+                    try {
+                        idax.decompiler.markDirty(funcs[i].start, true);
+                    } catch (e) {
+                        // Some functions may not support explicit cache invalidation.
+                    }
+
+                    const df = idax.decompiler.decompile(funcs[i].start);
+                    const pseudo = df.pseudocode();
+                    if (typeof pseudo === 'string' && pseudo.length > 0) {
+                        decompiled = true;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        } finally {
+            if (token !== null) {
+                try {
+                    idax.decompiler.unregisterMicrocodeFilter(token);
+                } catch (e) {
+                    // no-op: avoid masking primary assertion failures
+                }
+            }
+        }
+
+        if (decompiled) {
+            expect(sawMatch).toBe(true);
+            expect(sawApply).toBe(true);
+        }
+    });
 });
 
 // ── Storage ─────────────────────────────────────────────────────────────

@@ -4052,6 +4052,86 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_decompiler_unregister_microcode_filter(token: u64) -> ::std::os::raw::c_int;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeOperand {
+    pub kind: ::std::os::raw::c_int,
+    pub register_id: ::std::os::raw::c_int,
+    pub local_variable_index: ::std::os::raw::c_int,
+    pub local_variable_offset: i64,
+    pub second_register_id: ::std::os::raw::c_int,
+    pub global_address: u64,
+    pub stack_offset: i64,
+    pub helper_name: *mut ::std::os::raw::c_char,
+    pub block_index: ::std::os::raw::c_int,
+    pub nested_instruction: *mut IdaxMicrocodeInstruction,
+    pub unsigned_immediate: u64,
+    pub signed_immediate: i64,
+    pub byte_width: ::std::os::raw::c_int,
+    pub mark_user_defined_type: ::std::os::raw::c_int,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeInstruction {
+    pub opcode: ::std::os::raw::c_int,
+    pub left: IdaxMicrocodeOperand,
+    pub right: IdaxMicrocodeOperand,
+    pub destination: IdaxMicrocodeOperand,
+    pub floating_point_instruction: ::std::os::raw::c_int,
+}
+unsafe extern "C" {
+    pub fn idax_microcode_instruction_free(instruction: *mut IdaxMicrocodeInstruction);
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_address(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_instruction_type(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_block_instruction_count(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_has_instruction_at_index(
+        mctx: *const ::std::os::raw::c_void,
+        instruction_index: ::std::os::raw::c_int,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_instruction(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut IdaxInstruction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_instruction_at_index(
+        mctx: *const ::std::os::raw::c_void,
+        instruction_index: ::std::os::raw::c_int,
+        out: *mut IdaxMicrocodeInstruction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_has_last_emitted_instruction(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_context_last_emitted_instruction(
+        mctx: *const ::std::os::raw::c_void,
+        out: *mut IdaxMicrocodeInstruction,
+    ) -> ::std::os::raw::c_int;
+}
 #[doc = " Opaque handle to a storage node. Must be freed with idax_storage_node_free()."]
 pub type IdaxNodeHandle = *mut ::std::os::raw::c_void;
 unsafe extern "C" {
