@@ -723,6 +723,10 @@ int idax_database_address_bitness(int* out) {
     RETURN_RESULT_VALUE(ida::database::address_bitness());
 }
 
+int idax_database_set_address_bitness(int bits) {
+    RETURN_STATUS(ida::database::set_address_bitness(bits));
+}
+
 int idax_database_is_big_endian(int* out) {
     clear_error();
     auto r = ida::database::is_big_endian();

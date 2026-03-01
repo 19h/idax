@@ -71,6 +71,12 @@ describe('Database Metadata', () => {
         expect([16, 32, 64]).toContain(bits);
     });
 
+    it('should set address bitness to current value', () => {
+        const bits = idax.database.addressBitness();
+        idax.database.setAddressBitness(bits);
+        expect(idax.database.addressBitness()).toBe(bits);
+    });
+
     it('should return processor name', () => {
         const pname = idax.database.processorName();
         expect(typeof pname).toBe('string');

@@ -128,6 +128,7 @@ int idax_database_max_address(uint64_t* out);
 int idax_database_processor_id(int32_t* out);
 int idax_database_processor_name(char** out);
 int idax_database_address_bitness(int* out);
+int idax_database_set_address_bitness(int bits);
 int idax_database_is_big_endian(int* out);
 int idax_database_abi_name(char** out);
 int idax_database_address_span(uint64_t* out);

@@ -499,6 +499,12 @@ pub fn address_bitness() -> Result<i32> {
     }
 }
 
+/// Set program address bitness for the current database (16/32/64).
+pub fn set_address_bitness(bits: i32) -> Status {
+    let ret = unsafe { idax_sys::idax_database_set_address_bitness(bits) };
+    error::int_to_status(ret, "set_address_bitness failed")
+}
+
 /// Endianness of the current database.
 pub fn is_big_endian() -> Result<bool> {
     let mut big: i32 = 0;

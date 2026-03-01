@@ -259,6 +259,17 @@ Result<std::string> processor_name();
 /// Program address bitness for the current database (16/32/64).
 Result<int> address_bitness();
 
+/// Set the program address bitness for the current database.
+///
+/// Accepts 16, 32, or 64. This controls the database-level addressing mode
+/// which affects decompiler selection (e.g. ARM 32-bit vs 64-bit) and
+/// default segment addressing. Call this after set_processor() in a loader
+/// when the target architecture's bitness is known.
+///
+/// Note: this sets the database-level flag only. Individual segments may
+/// still have their own bitness overrides via segment::set_bitness().
+Status set_address_bitness(int bits);
+
 /// Endianness of the current database.
 Result<bool> is_big_endian();
 

@@ -573,6 +573,7 @@ void check_database_surface() {
     (void)&ida::database::processor_id;
     (void)&ida::database::processor_name;
     (void)&ida::database::address_bitness;
+    (void)&ida::database::set_address_bitness;
     (void)&ida::database::is_big_endian;
     (void)&ida::database::abi_name;
 }

@@ -180,6 +180,9 @@ export namespace database {
     /** Address bitness: 16, 32, or 64. */
     function addressBitness(): number;
 
+    /** Set database address bitness (16, 32, or 64). */
+    function setAddressBitness(bits: number): void;
+
     /** Whether the target uses big-endian byte ordering. */
     function isBigEndian(): boolean;
 

@@ -282,6 +282,9 @@ unsafe extern "C" {
     pub fn idax_database_address_bitness(out: *mut ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_database_set_address_bitness(bits: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_database_is_big_endian(out: *mut ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {

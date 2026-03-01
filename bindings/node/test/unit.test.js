@@ -81,7 +81,7 @@ describe('Database Namespace Structure', () => {
         'init', 'open', 'save', 'close',
         'inputFilePath', 'fileTypeName', 'inputMd5',
         'compilerInfo', 'importModules', 'imageBase',
-        'processorId', 'processorName', 'addressBitness',
+        'processorId', 'processorName', 'addressBitness', 'setAddressBitness',
         'isBigEndian', 'abiName',
         'minAddress', 'maxAddress', 'addressBounds', 'addressSpan',
     ];

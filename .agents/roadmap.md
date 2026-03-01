@@ -64,5 +64,6 @@ Current overall phase status:
 - [x] P20.3 Harden Node Windows linkage discovery so MSVC import libs are resolved from `IDASDK` even when `IDADIR` is present.
 - [x] P20.4 Fix Windows workflow shell/runtime routing so Rust uses MSVC `link.exe` (not `/usr/bin/link`) and examples resolve IDA DLLs via `PATH`.
 - [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: validate Node macOS decompiler-wrapper pre-close disposal for `complexity_metrics` exit segfaults and verify Windows Rust runtime hardening after link fixes: minimal init argv, isolated `IDAUSR`, trace toggles (`IDAX_RUST_EXAMPLE_TRACE=1`), fixture-IDB input (avoid raw PE loader path), and build+direct-exec workflow for improved failure attribution).
+- [x] P20.6 Close `ida::database::set_address_bitness` parity across C++ API surface checks, Node/Rust bindings, and docs/agent catalogs.
 
 ---
