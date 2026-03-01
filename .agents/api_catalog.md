@@ -132,6 +132,9 @@ This section captures the intended public API semantics at a concrete level so i
 - Decompiled function object + pseudocode access
 - Local variable rename/retype helpers
 - Ctree visitor abstractions and position/address mappings
+- Cache invalidation controls (`mark_dirty`, `mark_dirty_with_callers`)
+- Microcode-filter lifecycle (`register_microcode_filter`, `unregister_microcode_filter`)
+- `MicrocodeContext` typed block/introspection read-back (`instruction`, `instruction_at_index`, `last_emitted_instruction`)
 
 ### 17.23 `ida::storage` (advanced)
 - Opaque node abstraction

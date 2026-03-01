@@ -500,9 +500,23 @@ Whenever you see these aliases in the documentation, assume the following inputs
 ### API
 * `available(): boolean` - true if Hex-Rays is licensed/active.
 * `decompile(address: Address): DecompiledFunction`
+* `registerMicrocodeFilter(matchCb, applyCb): Token` - register microcode filter callbacks.
+  * `matchCb(context)` receives a `MicrocodeContext` and returns `boolean`.
+  * `applyCb(context)` receives a `MicrocodeContext` and returns `'notHandled' | 'handled' | 'error'` (or numeric `0 | 1 | 2`).
+* `unregisterMicrocodeFilter(token: Token): void`
 * `onMaturityChanged(callback: (event: {functionAddress, newMaturity}) => void): Token`
 * `onFuncPrinted(callback: (event: {functionAddress}) => void): Token`
 * `onRefreshPseudocode(callback: (event: {functionAddress}) => void): Token`
 * `unsubscribe(token: Token): void`
 * `markDirty(funcAddress: Address, closeViews?: boolean): void`
 * `markDirtyWithCallers(funcAddress: Address, closeViews?: boolean): void`
+
+**`MicrocodeContext` methods (valid only during callback execution):**
+* `address(): Address`
+* `instructionType(): number`
+* `blockInstructionCount(): number`
+* `hasInstructionAtIndex(index: number): boolean`
+* `instruction(): instruction.Instruction`
+* `instructionAtIndex(index: number): MicrocodeInstruction`
+* `hasLastEmittedInstruction(): boolean`
+* `lastEmittedInstruction(): MicrocodeInstruction`

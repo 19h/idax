@@ -323,8 +323,22 @@ Status set_address_bitness(int bits) {
             std::to_string(bits)));
     }
 
-    inf_set_64bit(sdk_bitness == 2);
-    inf_set_32bit(sdk_bitness == 1);
+    switch (sdk_bitness) {
+        case 2:
+            inf_set_64bit(true);
+            break;
+        case 1:
+            inf_set_32bit(true);
+            break;
+        case 0:
+            inf_set_32bit(false);
+            break;
+        default:
+            return std::unexpected(Error::internal(
+                "Unexpected bitness conversion result",
+                std::to_string(sdk_bitness)));
+    }
+
     return ida::ok();
 }
 

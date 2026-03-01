@@ -1383,6 +1383,49 @@ int idax_decompiler_register_microcode_filter(
     uint64_t* token_out);
 int idax_decompiler_unregister_microcode_filter(uint64_t token);
 
+typedef struct IdaxMicrocodeInstruction IdaxMicrocodeInstruction;
+
+typedef struct IdaxMicrocodeOperand {
+    int kind;
+    int register_id;
+    int local_variable_index;
+    int64_t local_variable_offset;
+    int second_register_id;
+    uint64_t global_address;
+    int64_t stack_offset;
+    char* helper_name;
+    int block_index;
+    IdaxMicrocodeInstruction* nested_instruction;
+    uint64_t unsigned_immediate;
+    int64_t signed_immediate;
+    int byte_width;
+    int mark_user_defined_type;
+} IdaxMicrocodeOperand;
+
+struct IdaxMicrocodeInstruction {
+    int opcode;
+    IdaxMicrocodeOperand left;
+    IdaxMicrocodeOperand right;
+    IdaxMicrocodeOperand destination;
+    int floating_point_instruction;
+};
+
+void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction);
+
+int idax_decompiler_microcode_context_address(const void* mctx, uint64_t* out);
+int idax_decompiler_microcode_context_instruction_type(const void* mctx, int* out);
+int idax_decompiler_microcode_context_block_instruction_count(const void* mctx, int* out);
+int idax_decompiler_microcode_context_has_instruction_at_index(const void* mctx,
+                                                               int instruction_index,
+                                                               int* out);
+int idax_decompiler_microcode_context_instruction(const void* mctx, IdaxInstruction* out);
+int idax_decompiler_microcode_context_instruction_at_index(const void* mctx,
+                                                           int instruction_index,
+                                                           IdaxMicrocodeInstruction* out);
+int idax_decompiler_microcode_context_has_last_emitted_instruction(const void* mctx, int* out);
+int idax_decompiler_microcode_context_last_emitted_instruction(const void* mctx,
+                                                               IdaxMicrocodeInstruction* out);
+
 /* ═══════════════════════════════════════════════════════════════════════════
  * Storage (ida::storage)
  * ═══════════════════════════════════════════════════════════════════════════ */

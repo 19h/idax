@@ -1700,3 +1700,30 @@
   - 16.81.5. Synced docs/catalog surfaces: `docs/sdk_domain_coverage_matrix.md`, `docs/quickstart/loader.md`, `.agents/api_catalog.md`, and `bindings/node/agents.md` now include the database bitness mutator.
   - 16.81.6. Validation evidence: `cmake --build build-test --target idax_api_surface_check` passes with parity updates.
   - 16.81.7. Recorded finding [F356] and mirrored it in `.agents/knowledge_base.md`.
+
+- **16.82. MicrocodeContext Introspection Cross-Surface Parity Closure**
+  - 16.82.1. Closed Node decompiler parity for microcode introspection by adding microcode-filter lifecycle bindings (`registerMicrocodeFilter`, `unregisterMicrocodeFilter`) and a callback-scoped `MicrocodeContext` wrapper exposing `address`, `instructionType`, `blockInstructionCount`, `hasInstructionAtIndex`, `instruction`, `instructionAtIndex`, `hasLastEmittedInstruction`, and `lastEmittedInstruction` in `bindings/node/src/decompiler_bind.cpp`.
+  - 16.82.2. Added Node typed-surface parity for the same APIs in `bindings/node/lib/index.d.ts`, including `MicrocodeContext`, `MicrocodeInstruction`, `MicrocodeOperand`, opcode/kind unions, and `MicrocodeApplyResult` return typing.
+  - 16.82.3. Added Node validation coverage: namespace shape checks in `bindings/node/test/unit.test.js` and callback-time microcode context introspection checks in `bindings/node/test/integration.test.js`.
+  - 16.82.4. Closed Rust FFI parity by adding microcode-context shim exports + recursive typed transfer structs (`IdaxMicrocodeInstruction`/`IdaxMicrocodeOperand`) and free helpers in `bindings/rust/idax-sys/shim/idax_shim.h/.cpp`, then exposing them in `bindings/rust/idax-sys/src/bindings.rs`.
+  - 16.82.5. Added Rust safe wrapper parity in `bindings/rust/idax/src/decompiler.rs`: new `MicrocodeContext` methods for the introspection APIs, typed `MicrocodeInstruction`/`MicrocodeOperand` models, and `register_microcode_filter_with_context` helper; updated shared instruction conversion visibility in `bindings/rust/idax/src/instruction.rs`.
+  - 16.82.6. Added Rust integration coverage for callback-scoped microcode context introspection in `bindings/rust/idax/tests/integration.rs`.
+  - 16.82.7. Synced documentation/catalog surfaces: updated decompiler row in `docs/sdk_domain_coverage_matrix.md`, Node binding API guide in `bindings/node/agents.md`, and decompiler API catalog bullets in `.agents/api_catalog.md`; marked roadmap completion in `.agents/roadmap.md` (`P20.7`).
+  - 16.82.8. Validation evidence: `cargo check -p idax`, `cargo test -p idax --tests --no-run`, `npm run build`, and `cmake --build build-test --target idax_api_surface_check` pass.
+  - 16.82.9. Environment note: `npm test` and `npm run test:integration -- <fixture>` load-skip locally due Node module ABI mismatch (`NODE_MODULE_VERSION 141` build artifact vs runtime requiring `93`), so Node runtime assertions are staged but not executable in this host runtime.
+  - 16.82.10. Recorded finding [F357] and mirrored it in `.agents/knowledge_base.md`.
+
+- **16.83. Node Runtime ABI Realignment + Executable Integration Recheck**
+  - 16.83.1. Verified local runtime/tooling state for Node bindings: `node v16.20.2` (`NODE_MODULE_VERSION 93`), `npm 8.19.4`, `cmake-js 7.4.0`.
+  - 16.83.2. Confirmed stale CMake cache mismatch (`CMAKE_JS_INC` pinned to cached Node `v25.x`) as root cause of addon load skips.
+  - 16.83.3. Realigned addon ABI to active runtime via `npm run clean && npm run build`, producing Node 16-targeted configuration (`NODE_RUNTIMEVERSION=16.20.2`, `CMAKE_JS_INC=.../node-arm64/v16.20.2/...`).
+  - 16.83.4. Re-ran Node unit tests (`npm test`) with successful native addon load and full pass (158/158).
+  - 16.83.5. Re-ran Node integration runtime (`npm run test:integration -- tests/fixtures/simple_appcall_linux64`): microcode callback-introspection scenario now executes and passes after cache-invalidation test hardening; one residual failure remains in pre-existing bitness round-trip assertion (`Expected 64 but got 16`).
+  - 16.83.6. Recorded findings [F358] (Node ABI cache discipline) and [F359] (bitness mutator runtime regression signal), mirrored to `.agents/knowledge_base.md`.
+
+- **16.84. Bitness Round-Trip Regression Fix + Runtime Closure Evidence**
+  - 16.84.1. Fixed semantic clobber in `src/address.cpp` `set_address_bitness(int)` by replacing independent `inf_set_64bit/inf_set_32bit` boolean writes with switch-based mutually exclusive mode application (`64`, `32`, `16`).
+  - 16.84.2. Re-ran Node integration runtime (`npm run test:integration -- /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64`) and confirmed full pass (`62 passed, 0 failed`), including `Database Metadata` bitness idempotent round-trip.
+  - 16.84.3. Executed native C++ smoke coverage (`build-test/tests/integration/idax_smoke_test /Users/int/dev/idax/tests/fixtures/simple_appcall_linux64`) with full pass evidence (`290 passed, 0 failed`), confirming cross-surface runtime parity for the same path.
+  - 16.84.4. Updated active-work tracking to remove the now-resolved residual bitness-runtime triage item.
+  - 16.84.5. Recorded finding [F360] and mirrored the resolution model in `.agents/knowledge_base.md` section 35.18.

@@ -5,8 +5,10 @@
 
 use crate::address::Address;
 use crate::error::{self, Error, Result, Status};
+use crate::instruction;
 use std::collections::HashMap;
 use std::ffi::{c_char, c_void, CStr, CString};
+use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
 
 pub type Token = u64;
@@ -111,6 +113,278 @@ pub enum MicrocodeApplyResult {
     NotHandled = 0,
     Handled = 1,
     Error = 2,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum MicrocodeOpcode {
+    NoOperation = 0,
+    Move = 1,
+    Add = 2,
+    Subtract = 3,
+    Multiply = 4,
+    ZeroExtend = 5,
+    LoadMemory = 6,
+    StoreMemory = 7,
+    BitwiseOr = 8,
+    BitwiseAnd = 9,
+    BitwiseXor = 10,
+    ShiftLeft = 11,
+    ShiftRightLogical = 12,
+    ShiftRightArithmetic = 13,
+    FloatAdd = 14,
+    FloatSub = 15,
+    FloatMul = 16,
+    FloatDiv = 17,
+    IntegerToFloat = 18,
+    FloatToFloat = 19,
+}
+
+impl MicrocodeOpcode {
+    fn from_raw(raw: i32) -> Self {
+        match raw {
+            1 => Self::Move,
+            2 => Self::Add,
+            3 => Self::Subtract,
+            4 => Self::Multiply,
+            5 => Self::ZeroExtend,
+            6 => Self::LoadMemory,
+            7 => Self::StoreMemory,
+            8 => Self::BitwiseOr,
+            9 => Self::BitwiseAnd,
+            10 => Self::BitwiseXor,
+            11 => Self::ShiftLeft,
+            12 => Self::ShiftRightLogical,
+            13 => Self::ShiftRightArithmetic,
+            14 => Self::FloatAdd,
+            15 => Self::FloatSub,
+            16 => Self::FloatMul,
+            17 => Self::FloatDiv,
+            18 => Self::IntegerToFloat,
+            19 => Self::FloatToFloat,
+            _ => Self::NoOperation,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum MicrocodeOperandKind {
+    Empty = 0,
+    Register = 1,
+    LocalVariable = 2,
+    RegisterPair = 3,
+    GlobalAddress = 4,
+    StackVariable = 5,
+    HelperReference = 6,
+    BlockReference = 7,
+    NestedInstruction = 8,
+    UnsignedImmediate = 9,
+    SignedImmediate = 10,
+}
+
+impl MicrocodeOperandKind {
+    fn from_raw(raw: i32) -> Self {
+        match raw {
+            1 => Self::Register,
+            2 => Self::LocalVariable,
+            3 => Self::RegisterPair,
+            4 => Self::GlobalAddress,
+            5 => Self::StackVariable,
+            6 => Self::HelperReference,
+            7 => Self::BlockReference,
+            8 => Self::NestedInstruction,
+            9 => Self::UnsignedImmediate,
+            10 => Self::SignedImmediate,
+            _ => Self::Empty,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct MicrocodeOperand {
+    pub kind: MicrocodeOperandKind,
+    pub register_id: i32,
+    pub local_variable_index: i32,
+    pub local_variable_offset: i64,
+    pub second_register_id: i32,
+    pub global_address: Address,
+    pub stack_offset: i64,
+    pub helper_name: String,
+    pub block_index: i32,
+    pub nested_instruction: Option<Box<MicrocodeInstruction>>,
+    pub unsigned_immediate: u64,
+    pub signed_immediate: i64,
+    pub byte_width: i32,
+    pub mark_user_defined_type: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct MicrocodeInstruction {
+    pub opcode: MicrocodeOpcode,
+    pub left: MicrocodeOperand,
+    pub right: MicrocodeOperand,
+    pub destination: MicrocodeOperand,
+    pub floating_point_instruction: bool,
+}
+
+#[derive(Debug)]
+pub struct MicrocodeContext {
+    raw: *mut c_void,
+}
+
+impl MicrocodeContext {
+    fn from_raw(raw: *mut c_void) -> Self {
+        Self { raw }
+    }
+
+    fn as_raw_const(&self) -> *const c_void {
+        self.raw as *const c_void
+    }
+
+    pub fn address(&self) -> Result<Address> {
+        let mut out: Address = 0;
+        let ret = unsafe {
+            idax_sys::idax_decompiler_microcode_context_address(self.as_raw_const(), &mut out)
+        };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::MicrocodeContext::address failed",
+            ))
+        } else {
+            Ok(out)
+        }
+    }
+
+    pub fn instruction_type(&self) -> Result<i32> {
+        let mut out: i32 = 0;
+        let ret = unsafe {
+            idax_sys::idax_decompiler_microcode_context_instruction_type(
+                self.as_raw_const(),
+                &mut out,
+            )
+        };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::MicrocodeContext::instruction_type failed",
+            ))
+        } else {
+            Ok(out)
+        }
+    }
+
+    pub fn block_instruction_count(&self) -> Result<i32> {
+        let mut out: i32 = 0;
+        let ret = unsafe {
+            idax_sys::idax_decompiler_microcode_context_block_instruction_count(
+                self.as_raw_const(),
+                &mut out,
+            )
+        };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::MicrocodeContext::block_instruction_count failed",
+            ))
+        } else {
+            Ok(out)
+        }
+    }
+
+    pub fn has_instruction_at_index(&self, instruction_index: i32) -> Result<bool> {
+        let mut out: i32 = 0;
+        let ret = unsafe {
+            idax_sys::idax_decompiler_microcode_context_has_instruction_at_index(
+                self.as_raw_const(),
+                instruction_index,
+                &mut out,
+            )
+        };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::MicrocodeContext::has_instruction_at_index failed",
+            ))
+        } else {
+            Ok(out != 0)
+        }
+    }
+
+    pub fn instruction(&self) -> Result<instruction::Instruction> {
+        unsafe {
+            let mut raw = MaybeUninit::<idax_sys::IdaxInstruction>::zeroed();
+            let ret = idax_sys::idax_decompiler_microcode_context_instruction(
+                self.as_raw_const(),
+                raw.as_mut_ptr(),
+            );
+            if ret != 0 {
+                return Err(error::consume_last_error(
+                    "decompiler::MicrocodeContext::instruction failed",
+                ));
+            }
+
+            let raw = raw.assume_init();
+            let parsed = instruction::instruction_from_ffi(&raw);
+            idax_sys::idax_instruction_free(&raw as *const _ as *mut _);
+            parsed
+        }
+    }
+
+    pub fn instruction_at_index(&self, instruction_index: i32) -> Result<MicrocodeInstruction> {
+        unsafe {
+            let mut raw = MaybeUninit::<idax_sys::IdaxMicrocodeInstruction>::zeroed();
+            let ret = idax_sys::idax_decompiler_microcode_context_instruction_at_index(
+                self.as_raw_const(),
+                instruction_index,
+                raw.as_mut_ptr(),
+            );
+            if ret != 0 {
+                return Err(error::consume_last_error(
+                    "decompiler::MicrocodeContext::instruction_at_index failed",
+                ));
+            }
+
+            let raw = raw.assume_init();
+            let parsed = microcode_instruction_from_ffi(&raw);
+            idax_sys::idax_microcode_instruction_free(&raw as *const _ as *mut _);
+            parsed
+        }
+    }
+
+    pub fn has_last_emitted_instruction(&self) -> Result<bool> {
+        let mut out: i32 = 0;
+        let ret = unsafe {
+            idax_sys::idax_decompiler_microcode_context_has_last_emitted_instruction(
+                self.as_raw_const(),
+                &mut out,
+            )
+        };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::MicrocodeContext::has_last_emitted_instruction failed",
+            ))
+        } else {
+            Ok(out != 0)
+        }
+    }
+
+    pub fn last_emitted_instruction(&self) -> Result<MicrocodeInstruction> {
+        unsafe {
+            let mut raw = MaybeUninit::<idax_sys::IdaxMicrocodeInstruction>::zeroed();
+            let ret = idax_sys::idax_decompiler_microcode_context_last_emitted_instruction(
+                self.as_raw_const(),
+                raw.as_mut_ptr(),
+            );
+            if ret != 0 {
+                return Err(error::consume_last_error(
+                    "decompiler::MicrocodeContext::last_emitted_instruction failed",
+                ));
+            }
+
+            let raw = raw.assume_init();
+            let parsed = microcode_instruction_from_ffi(&raw);
+            idax_sys::idax_microcode_instruction_free(&raw as *const _ as *mut _);
+            parsed
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -650,6 +924,11 @@ struct MicrocodeFilterContext {
     apply_callback: Box<dyn FnMut(*mut c_void) -> MicrocodeApplyResult + Send>,
 }
 
+struct MicrocodeFilterContextWithContext {
+    match_callback: Box<dyn FnMut(Address, i32) -> bool + Send>,
+    apply_callback: Box<dyn FnMut(&mut MicrocodeContext) -> MicrocodeApplyResult + Send>,
+}
+
 unsafe extern "C" fn microcode_match_trampoline(
     context: *mut c_void,
     address: u64,
@@ -666,12 +945,40 @@ unsafe extern "C" fn microcode_match_trampoline(
     }
 }
 
+unsafe extern "C" fn microcode_match_with_context_trampoline(
+    context: *mut c_void,
+    address: u64,
+    itype: i32,
+) -> i32 {
+    if context.is_null() {
+        return 0;
+    }
+    let ctx = unsafe { &mut *(context as *mut MicrocodeFilterContextWithContext) };
+    if (ctx.match_callback)(address, itype) {
+        1
+    } else {
+        0
+    }
+}
+
 unsafe extern "C" fn microcode_apply_trampoline(context: *mut c_void, mctx: *mut c_void) -> i32 {
     if context.is_null() {
         return MicrocodeApplyResult::Error as i32;
     }
     let ctx = unsafe { &mut *(context as *mut MicrocodeFilterContext) };
     (ctx.apply_callback)(mctx) as i32
+}
+
+unsafe extern "C" fn microcode_apply_with_context_trampoline(
+    context: *mut c_void,
+    mctx: *mut c_void,
+) -> i32 {
+    if context.is_null() || mctx.is_null() {
+        return MicrocodeApplyResult::Error as i32;
+    }
+    let ctx = unsafe { &mut *(context as *mut MicrocodeFilterContextWithContext) };
+    let mut wrapped = MicrocodeContext::from_raw(mctx);
+    (ctx.apply_callback)(&mut wrapped) as i32
 }
 
 pub fn available() -> Result<bool> {
@@ -1003,6 +1310,39 @@ where
     Ok(token)
 }
 
+pub fn register_microcode_filter_with_context<FM, FA>(
+    match_callback: FM,
+    apply_callback: FA,
+) -> Result<Token>
+where
+    FM: FnMut(Address, i32) -> bool + Send + 'static,
+    FA: FnMut(&mut MicrocodeContext) -> MicrocodeApplyResult + Send + 'static,
+{
+    let raw = Box::into_raw(Box::new(MicrocodeFilterContextWithContext {
+        match_callback: Box::new(match_callback),
+        apply_callback: Box::new(apply_callback),
+    }));
+
+    let mut token: Token = 0;
+    let ret = unsafe {
+        idax_sys::idax_decompiler_register_microcode_filter(
+            Some(microcode_match_with_context_trampoline),
+            Some(microcode_apply_with_context_trampoline),
+            raw as *mut c_void,
+            &mut token,
+        )
+    };
+    if ret != 0 {
+        unsafe { drop(Box::from_raw(raw)) };
+        return Err(error::consume_last_error(
+            "decompiler::register_microcode_filter_with_context failed",
+        ));
+    }
+
+    save_context(&FILTER_CONTEXTS, token, raw);
+    Ok(token)
+}
+
 pub fn unregister_microcode_filter(token: Token) -> Status {
     let ret = unsafe { idax_sys::idax_decompiler_unregister_microcode_filter(token) };
     let status = error::int_to_status(ret, "decompiler::unregister_microcode_filter failed");
@@ -1056,6 +1396,55 @@ where
     FS: FnMut(StatementInfo) -> VisitAction + 'static,
 {
     func.for_each_item(on_expr, on_stmt)
+}
+
+unsafe fn microcode_operand_from_ffi(
+    raw: &idax_sys::IdaxMicrocodeOperand,
+) -> Result<MicrocodeOperand> {
+    let helper_name = if raw.helper_name.is_null() {
+        String::new()
+    } else {
+        unsafe { CStr::from_ptr(raw.helper_name) }
+            .to_string_lossy()
+            .into_owned()
+    };
+
+    let nested_instruction = if raw.nested_instruction.is_null() {
+        None
+    } else {
+        Some(Box::new(unsafe {
+            microcode_instruction_from_ffi(&*raw.nested_instruction)?
+        }))
+    };
+
+    Ok(MicrocodeOperand {
+        kind: MicrocodeOperandKind::from_raw(raw.kind),
+        register_id: raw.register_id,
+        local_variable_index: raw.local_variable_index,
+        local_variable_offset: raw.local_variable_offset,
+        second_register_id: raw.second_register_id,
+        global_address: raw.global_address,
+        stack_offset: raw.stack_offset,
+        helper_name,
+        block_index: raw.block_index,
+        nested_instruction,
+        unsigned_immediate: raw.unsigned_immediate,
+        signed_immediate: raw.signed_immediate,
+        byte_width: raw.byte_width,
+        mark_user_defined_type: raw.mark_user_defined_type != 0,
+    })
+}
+
+unsafe fn microcode_instruction_from_ffi(
+    raw: &idax_sys::IdaxMicrocodeInstruction,
+) -> Result<MicrocodeInstruction> {
+    Ok(MicrocodeInstruction {
+        opcode: MicrocodeOpcode::from_raw(raw.opcode),
+        left: unsafe { microcode_operand_from_ffi(&raw.left)? },
+        right: unsafe { microcode_operand_from_ffi(&raw.right)? },
+        destination: unsafe { microcode_operand_from_ffi(&raw.destination)? },
+        floating_point_instruction: raw.floating_point_instruction != 0,
+    })
 }
 
 fn cstr_opt(ptr: *const c_char) -> String {

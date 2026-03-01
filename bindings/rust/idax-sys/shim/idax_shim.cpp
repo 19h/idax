@@ -4973,6 +4973,105 @@ int idax_decompiler_for_each_item(IdaxDecompiledHandle handle,
 // Microcode filter support
 namespace {
 
+ida::Status fill_microcode_instruction(IdaxMicrocodeInstruction* out,
+                                       const ida::decompiler::MicrocodeInstruction& instruction);
+
+void free_microcode_operand(IdaxMicrocodeOperand* operand) {
+    if (operand == nullptr)
+        return;
+
+    std::free(operand->helper_name);
+    operand->helper_name = nullptr;
+
+    if (operand->nested_instruction != nullptr) {
+        idax_microcode_instruction_free(operand->nested_instruction);
+        std::free(operand->nested_instruction);
+        operand->nested_instruction = nullptr;
+    }
+}
+
+ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
+                                   const ida::decompiler::MicrocodeOperand& operand) {
+    if (out == nullptr)
+        return std::unexpected(ida::Error::internal("null microcode operand output"));
+
+    std::memset(out, 0, sizeof(*out));
+    out->kind = static_cast<int>(operand.kind);
+    out->register_id = operand.register_id;
+    out->local_variable_index = operand.local_variable_index;
+    out->local_variable_offset = operand.local_variable_offset;
+    out->second_register_id = operand.second_register_id;
+    out->global_address = operand.global_address;
+    out->stack_offset = operand.stack_offset;
+    out->helper_name = dup_string(operand.helper_name);
+    out->block_index = operand.block_index;
+    out->unsigned_immediate = operand.unsigned_immediate;
+    out->signed_immediate = operand.signed_immediate;
+    out->byte_width = operand.byte_width;
+    out->mark_user_defined_type = operand.mark_user_defined_type ? 1 : 0;
+
+    if (out->helper_name == nullptr && !operand.helper_name.empty()) {
+        return std::unexpected(ida::Error::internal("malloc failed"));
+    }
+
+    if (operand.nested_instruction != nullptr) {
+        out->nested_instruction = static_cast<IdaxMicrocodeInstruction*>(
+            std::calloc(1, sizeof(IdaxMicrocodeInstruction)));
+        if (out->nested_instruction == nullptr) {
+            std::free(out->helper_name);
+            out->helper_name = nullptr;
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        auto status = fill_microcode_instruction(out->nested_instruction,
+                                                 *operand.nested_instruction);
+        if (!status) {
+            idax_microcode_instruction_free(out->nested_instruction);
+            std::free(out->nested_instruction);
+            out->nested_instruction = nullptr;
+            std::free(out->helper_name);
+            out->helper_name = nullptr;
+            return status;
+        }
+    }
+
+    return ida::ok();
+}
+
+ida::Status fill_microcode_instruction(IdaxMicrocodeInstruction* out,
+                                       const ida::decompiler::MicrocodeInstruction& instruction) {
+    if (out == nullptr)
+        return std::unexpected(ida::Error::internal("null microcode instruction output"));
+
+    std::memset(out, 0, sizeof(*out));
+    out->opcode = static_cast<int>(instruction.opcode);
+    out->floating_point_instruction = instruction.floating_point_instruction ? 1 : 0;
+
+    auto left_status = fill_microcode_operand(&out->left, instruction.left);
+    if (!left_status)
+        return left_status;
+
+    auto right_status = fill_microcode_operand(&out->right, instruction.right);
+    if (!right_status) {
+        free_microcode_operand(&out->left);
+        return right_status;
+    }
+
+    auto destination_status = fill_microcode_operand(&out->destination,
+                                                     instruction.destination);
+    if (!destination_status) {
+        free_microcode_operand(&out->right);
+        free_microcode_operand(&out->left);
+        return destination_status;
+    }
+
+    return ida::ok();
+}
+
+const ida::decompiler::MicrocodeContext* as_const_microcode_context(const void* raw_context) {
+    return static_cast<const ida::decompiler::MicrocodeContext*>(raw_context);
+}
+
 struct MicrocodeFilterBridge : ida::decompiler::MicrocodeFilter {
     IdaxMicrocodeMatchCallback match_cb;
     IdaxMicrocodeApplyCallback apply_cb;
@@ -4990,6 +5089,17 @@ struct MicrocodeFilterBridge : ida::decompiler::MicrocodeFilter {
 };
 
 } // anonymous namespace
+
+void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction) {
+    if (instruction == nullptr)
+        return;
+
+    free_microcode_operand(&instruction->left);
+    free_microcode_operand(&instruction->right);
+    free_microcode_operand(&instruction->destination);
+    instruction->opcode = 0;
+    instruction->floating_point_instruction = 0;
+}
 
 int idax_decompiler_register_microcode_filter(
     IdaxMicrocodeMatchCallback match_cb,
@@ -5009,6 +5119,123 @@ int idax_decompiler_register_microcode_filter(
 
 int idax_decompiler_unregister_microcode_filter(uint64_t token) {
     RETURN_STATUS(ida::decompiler::unregister_microcode_filter(token));
+}
+
+int idax_decompiler_microcode_context_address(const void* mctx, uint64_t* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/address output is null"));
+    }
+
+    *out = as_const_microcode_context(mctx)->address();
+    return 0;
+}
+
+int idax_decompiler_microcode_context_instruction_type(const void* mctx, int* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/instruction_type output is null"));
+    }
+
+    *out = as_const_microcode_context(mctx)->instruction_type();
+    return 0;
+}
+
+int idax_decompiler_microcode_context_block_instruction_count(const void* mctx, int* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/block instruction count output is null"));
+    }
+
+    auto result = as_const_microcode_context(mctx)->block_instruction_count();
+    if (!result)
+        return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_decompiler_microcode_context_has_instruction_at_index(const void* mctx,
+                                                               int instruction_index,
+                                                               int* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/has_instruction output is null"));
+    }
+
+    auto result = as_const_microcode_context(mctx)->has_instruction_at_index(instruction_index);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_decompiler_microcode_context_instruction(const void* mctx, IdaxInstruction* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/instruction output is null"));
+    }
+
+    std::memset(out, 0, sizeof(*out));
+    auto result = as_const_microcode_context(mctx)->instruction();
+    if (!result)
+        return fail(result.error());
+
+    fill_instruction(out, *result);
+    return 0;
+}
+
+int idax_decompiler_microcode_context_instruction_at_index(const void* mctx,
+                                                           int instruction_index,
+                                                           IdaxMicrocodeInstruction* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/instruction_at_index output is null"));
+    }
+
+    std::memset(out, 0, sizeof(*out));
+    auto result = as_const_microcode_context(mctx)->instruction_at_index(instruction_index);
+    if (!result)
+        return fail(result.error());
+
+    auto status = fill_microcode_instruction(out, *result);
+    if (!status) {
+        idax_microcode_instruction_free(out);
+        return fail(status.error());
+    }
+    return 0;
+}
+
+int idax_decompiler_microcode_context_has_last_emitted_instruction(const void* mctx, int* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/has_last output is null"));
+    }
+
+    auto result = as_const_microcode_context(mctx)->has_last_emitted_instruction();
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_decompiler_microcode_context_last_emitted_instruction(const void* mctx,
+                                                               IdaxMicrocodeInstruction* out) {
+    clear_error();
+    if (mctx == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("microcode context/last_emitted output is null"));
+    }
+
+    std::memset(out, 0, sizeof(*out));
+    auto result = as_const_microcode_context(mctx)->last_emitted_instruction();
+    if (!result)
+        return fail(result.error());
+
+    auto status = fill_microcode_instruction(out, *result);
+    if (!status) {
+        idax_microcode_instruction_free(out);
+        return fail(status.error());
+    }
+    return 0;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

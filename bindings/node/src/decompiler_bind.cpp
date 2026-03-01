@@ -4,6 +4,7 @@
 
 #include "helpers.hpp"
 #include <ida/decompiler.hpp>
+#include <ida/instruction.hpp>
 #include <ida/type.hpp>
 
 #include <memory>
@@ -48,6 +49,321 @@ static v8::Local<v8::Object> AddressMappingToJS(const ida::decompiler::AddressMa
         .setInt("lineNumber",  m.line_number)
         .build();
 }
+
+// ── Instruction -> JS object (for MicrocodeContext::instruction) ────────
+
+static const char* InstructionOperandTypeToString(ida::instruction::OperandType type) {
+    switch (type) {
+        case ida::instruction::OperandType::None:               return "none";
+        case ida::instruction::OperandType::Register:           return "register";
+        case ida::instruction::OperandType::MemoryDirect:       return "memoryDirect";
+        case ida::instruction::OperandType::MemoryPhrase:       return "memoryPhrase";
+        case ida::instruction::OperandType::MemoryDisplacement: return "memoryDisplacement";
+        case ida::instruction::OperandType::Immediate:          return "immediate";
+        case ida::instruction::OperandType::FarAddress:         return "farAddress";
+        case ida::instruction::OperandType::NearAddress:        return "nearAddress";
+        case ida::instruction::OperandType::ProcessorSpecific0: return "processorSpecific0";
+        case ida::instruction::OperandType::ProcessorSpecific1: return "processorSpecific1";
+        case ida::instruction::OperandType::ProcessorSpecific2: return "processorSpecific2";
+        case ida::instruction::OperandType::ProcessorSpecific3: return "processorSpecific3";
+        case ida::instruction::OperandType::ProcessorSpecific4: return "processorSpecific4";
+        case ida::instruction::OperandType::ProcessorSpecific5: return "processorSpecific5";
+    }
+    return "unknown";
+}
+
+static const char* InstructionRegisterCategoryToString(ida::instruction::RegisterCategory category) {
+    switch (category) {
+        case ida::instruction::RegisterCategory::Unknown:        return "unknown";
+        case ida::instruction::RegisterCategory::GeneralPurpose: return "generalPurpose";
+        case ida::instruction::RegisterCategory::Segment:        return "segment";
+        case ida::instruction::RegisterCategory::FloatingPoint:  return "floatingPoint";
+        case ida::instruction::RegisterCategory::Vector:         return "vector";
+        case ida::instruction::RegisterCategory::Mask:           return "mask";
+        case ida::instruction::RegisterCategory::Control:        return "control";
+        case ida::instruction::RegisterCategory::Debug:          return "debug";
+        case ida::instruction::RegisterCategory::Other:          return "other";
+    }
+    return "unknown";
+}
+
+static v8::Local<v8::Object> InstructionOperandToJS(const ida::instruction::Operand& operand) {
+    auto isolate = v8::Isolate::GetCurrent();
+    return ObjectBuilder()
+        .setInt("index", operand.index())
+        .setStr("type", InstructionOperandTypeToString(operand.type()))
+        .setBool("isRegister", operand.is_register())
+        .setBool("isImmediate", operand.is_immediate())
+        .setBool("isMemory", operand.is_memory())
+        .setInt("registerId", static_cast<int>(operand.register_id()))
+        .set("value", v8::BigInt::NewFromUnsigned(isolate, operand.value()))
+        .setAddr("targetAddress", operand.target_address())
+        .set("displacement", v8::BigInt::New(isolate, operand.displacement()))
+        .setInt("byteWidth", operand.byte_width())
+        .setStr("registerName", operand.register_name())
+        .setStr("registerCategory", InstructionRegisterCategoryToString(operand.register_category()))
+        .build();
+}
+
+static v8::Local<v8::Object> InstructionToJS(const ida::instruction::Instruction& instruction) {
+    auto operands = Nan::New<v8::Array>(static_cast<int>(instruction.operand_count()));
+    for (std::size_t i = 0; i < instruction.operand_count(); ++i) {
+        Nan::Set(operands,
+                 static_cast<uint32_t>(i),
+                 InstructionOperandToJS(instruction.operands()[i]));
+    }
+
+    return ObjectBuilder()
+        .setAddr("address", instruction.address())
+        .setAddressSize("size", instruction.size())
+        .setInt("opcode", static_cast<int>(instruction.opcode()))
+        .setStr("mnemonic", instruction.mnemonic())
+        .setInt("operandCount", static_cast<int>(instruction.operand_count()))
+        .set("operands", operands)
+        .build();
+}
+
+// ── Typed microcode model -> JS object ───────────────────────────────────
+
+static const char* MicrocodeOpcodeToString(ida::decompiler::MicrocodeOpcode opcode) {
+    switch (opcode) {
+        case ida::decompiler::MicrocodeOpcode::NoOperation:          return "noOperation";
+        case ida::decompiler::MicrocodeOpcode::Move:                 return "move";
+        case ida::decompiler::MicrocodeOpcode::Add:                  return "add";
+        case ida::decompiler::MicrocodeOpcode::Subtract:             return "subtract";
+        case ida::decompiler::MicrocodeOpcode::Multiply:             return "multiply";
+        case ida::decompiler::MicrocodeOpcode::ZeroExtend:           return "zeroExtend";
+        case ida::decompiler::MicrocodeOpcode::LoadMemory:           return "loadMemory";
+        case ida::decompiler::MicrocodeOpcode::StoreMemory:          return "storeMemory";
+        case ida::decompiler::MicrocodeOpcode::BitwiseOr:            return "bitwiseOr";
+        case ida::decompiler::MicrocodeOpcode::BitwiseAnd:           return "bitwiseAnd";
+        case ida::decompiler::MicrocodeOpcode::BitwiseXor:           return "bitwiseXor";
+        case ida::decompiler::MicrocodeOpcode::ShiftLeft:            return "shiftLeft";
+        case ida::decompiler::MicrocodeOpcode::ShiftRightLogical:    return "shiftRightLogical";
+        case ida::decompiler::MicrocodeOpcode::ShiftRightArithmetic: return "shiftRightArithmetic";
+        case ida::decompiler::MicrocodeOpcode::FloatAdd:             return "floatAdd";
+        case ida::decompiler::MicrocodeOpcode::FloatSub:             return "floatSub";
+        case ida::decompiler::MicrocodeOpcode::FloatMul:             return "floatMul";
+        case ida::decompiler::MicrocodeOpcode::FloatDiv:             return "floatDiv";
+        case ida::decompiler::MicrocodeOpcode::IntegerToFloat:       return "integerToFloat";
+        case ida::decompiler::MicrocodeOpcode::FloatToFloat:         return "floatToFloat";
+    }
+    return "unknown";
+}
+
+static const char* MicrocodeOperandKindToString(ida::decompiler::MicrocodeOperandKind kind) {
+    switch (kind) {
+        case ida::decompiler::MicrocodeOperandKind::Empty:             return "empty";
+        case ida::decompiler::MicrocodeOperandKind::Register:          return "register";
+        case ida::decompiler::MicrocodeOperandKind::LocalVariable:     return "localVariable";
+        case ida::decompiler::MicrocodeOperandKind::RegisterPair:      return "registerPair";
+        case ida::decompiler::MicrocodeOperandKind::GlobalAddress:     return "globalAddress";
+        case ida::decompiler::MicrocodeOperandKind::StackVariable:     return "stackVariable";
+        case ida::decompiler::MicrocodeOperandKind::HelperReference:   return "helperReference";
+        case ida::decompiler::MicrocodeOperandKind::BlockReference:    return "blockReference";
+        case ida::decompiler::MicrocodeOperandKind::NestedInstruction: return "nestedInstruction";
+        case ida::decompiler::MicrocodeOperandKind::UnsignedImmediate: return "unsignedImmediate";
+        case ida::decompiler::MicrocodeOperandKind::SignedImmediate:   return "signedImmediate";
+    }
+    return "unknown";
+}
+
+static v8::Local<v8::Object> MicrocodeInstructionToJS(const ida::decompiler::MicrocodeInstruction& instruction);
+
+static v8::Local<v8::Object> MicrocodeOperandToJS(const ida::decompiler::MicrocodeOperand& operand) {
+    auto isolate = v8::Isolate::GetCurrent();
+    auto object = ObjectBuilder()
+        .setStr("kind", MicrocodeOperandKindToString(operand.kind))
+        .setInt("registerId", operand.register_id)
+        .setInt("localVariableIndex", operand.local_variable_index)
+        .set("localVariableOffset", v8::BigInt::New(isolate, operand.local_variable_offset))
+        .setInt("secondRegisterId", operand.second_register_id)
+        .setAddr("globalAddress", operand.global_address)
+        .set("stackOffset", v8::BigInt::New(isolate, operand.stack_offset))
+        .setStr("helperName", operand.helper_name)
+        .setInt("blockIndex", operand.block_index)
+        .set("unsignedImmediate", v8::BigInt::NewFromUnsigned(isolate, operand.unsigned_immediate))
+        .set("signedImmediate", v8::BigInt::New(isolate, operand.signed_immediate))
+        .setInt("byteWidth", operand.byte_width)
+        .setBool("markUserDefinedType", operand.mark_user_defined_type);
+
+    if (operand.nested_instruction != nullptr)
+        object.set("nestedInstruction", MicrocodeInstructionToJS(*operand.nested_instruction));
+    else
+        object.setNull("nestedInstruction");
+
+    return object.build();
+}
+
+static v8::Local<v8::Object> MicrocodeInstructionToJS(const ida::decompiler::MicrocodeInstruction& instruction) {
+    return ObjectBuilder()
+        .setStr("opcode", MicrocodeOpcodeToString(instruction.opcode))
+        .set("left", MicrocodeOperandToJS(instruction.left))
+        .set("right", MicrocodeOperandToJS(instruction.right))
+        .set("destination", MicrocodeOperandToJS(instruction.destination))
+        .setBool("floatingPointInstruction", instruction.floating_point_instruction)
+        .build();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MicrocodeContextWrapper — ephemeral Nan::ObjectWrap for filter callbacks
+// ════════════════════════════════════════════════════════════════════════
+
+class MicrocodeContextWrapper : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init) {
+        auto tpl = Nan::New<v8::FunctionTemplate>(New);
+        tpl->SetClassName(FromString("MicrocodeContext"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        Nan::SetPrototypeMethod(tpl, "address", Address);
+        Nan::SetPrototypeMethod(tpl, "instructionType", InstructionType);
+        Nan::SetPrototypeMethod(tpl, "blockInstructionCount", BlockInstructionCount);
+        Nan::SetPrototypeMethod(tpl, "hasInstructionAtIndex", HasInstructionAtIndex);
+        Nan::SetPrototypeMethod(tpl, "instruction", Instruction);
+        Nan::SetPrototypeMethod(tpl, "instructionAtIndex", InstructionAtIndex);
+        Nan::SetPrototypeMethod(tpl, "hasLastEmittedInstruction", HasLastEmittedInstruction);
+        Nan::SetPrototypeMethod(tpl, "lastEmittedInstruction", LastEmittedInstruction);
+
+        constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+    }
+
+    static v8::Local<v8::Object> NewInstance(ida::decompiler::MicrocodeContext* context) {
+        Nan::EscapableHandleScope scope;
+        auto cons = Nan::New(constructor());
+        v8::Local<v8::Value> argv[] = {
+            v8::External::New(v8::Isolate::GetCurrent(), context),
+        };
+        auto instance = Nan::NewInstance(cons, 1, argv).ToLocalChecked();
+        return scope.Escape(instance);
+    }
+
+    static void Invalidate(v8::Local<v8::Object> object) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(object);
+        if (wrapper != nullptr)
+            wrapper->invalidate();
+    }
+
+private:
+    explicit MicrocodeContextWrapper(ida::decompiler::MicrocodeContext* context)
+        : context_(context) {}
+
+    static bool EnsureValid(MicrocodeContextWrapper* wrapper) {
+        if (wrapper != nullptr && wrapper->valid_ && wrapper->context_ != nullptr)
+            return true;
+        Nan::ThrowError("MicrocodeContext is only valid during filter callback execution");
+        return false;
+    }
+
+    void invalidate() {
+        valid_ = false;
+        context_ = nullptr;
+    }
+
+    static NAN_METHOD(New) {
+        if (!info.IsConstructCall()) {
+            Nan::ThrowError("MicrocodeContext must be called with new");
+            return;
+        }
+        if (info.Length() < 1 || !info[0]->IsExternal()) {
+            Nan::ThrowTypeError("Internal MicrocodeContext constructor misuse");
+            return;
+        }
+
+        auto* context = static_cast<ida::decompiler::MicrocodeContext*>(
+            info[0].As<v8::External>()->Value());
+        auto* wrapper = new MicrocodeContextWrapper(context);
+        wrapper->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+    }
+
+    static NAN_METHOD(Address) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+        info.GetReturnValue().Set(FromAddress(wrapper->context_->address()));
+    }
+
+    static NAN_METHOD(InstructionType) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+        info.GetReturnValue().Set(Nan::New(wrapper->context_->instruction_type()));
+    }
+
+    static NAN_METHOD(BlockInstructionCount) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+        IDAX_UNWRAP(auto count, wrapper->context_->block_instruction_count());
+        info.GetReturnValue().Set(Nan::New(count));
+    }
+
+    static NAN_METHOD(HasInstructionAtIndex) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+        if (info.Length() < 1 || !info[0]->IsNumber()) {
+            Nan::ThrowTypeError("Expected instruction index argument");
+            return;
+        }
+
+        int instruction_index = Nan::To<int>(info[0]).FromJust();
+        IDAX_UNWRAP(auto has_instruction,
+                    wrapper->context_->has_instruction_at_index(instruction_index));
+        info.GetReturnValue().Set(Nan::New(has_instruction));
+    }
+
+    static NAN_METHOD(Instruction) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+
+        IDAX_UNWRAP(auto instruction, wrapper->context_->instruction());
+        info.GetReturnValue().Set(InstructionToJS(instruction));
+    }
+
+    static NAN_METHOD(InstructionAtIndex) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+        if (info.Length() < 1 || !info[0]->IsNumber()) {
+            Nan::ThrowTypeError("Expected instruction index argument");
+            return;
+        }
+
+        int instruction_index = Nan::To<int>(info[0]).FromJust();
+        IDAX_UNWRAP(auto instruction,
+                    wrapper->context_->instruction_at_index(instruction_index));
+        info.GetReturnValue().Set(MicrocodeInstructionToJS(instruction));
+    }
+
+    static NAN_METHOD(HasLastEmittedInstruction) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+
+        IDAX_UNWRAP(auto has_instruction, wrapper->context_->has_last_emitted_instruction());
+        info.GetReturnValue().Set(Nan::New(has_instruction));
+    }
+
+    static NAN_METHOD(LastEmittedInstruction) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<MicrocodeContextWrapper>(info.Holder());
+        if (!EnsureValid(wrapper))
+            return;
+
+        IDAX_UNWRAP(auto instruction, wrapper->context_->last_emitted_instruction());
+        info.GetReturnValue().Set(MicrocodeInstructionToJS(instruction));
+    }
+
+    ida::decompiler::MicrocodeContext* context_{nullptr};
+    bool valid_{true};
+
+    static inline Nan::Persistent<v8::Function>& constructor() {
+        static Nan::Persistent<v8::Function> ctor;
+        return ctor;
+    }
+};
 
 // ════════════════════════════════════════════════════════════════════════
 // DecompiledFunctionWrapper — Nan::ObjectWrap around DecompiledFunction
@@ -341,6 +657,124 @@ static void RemoveCallback(ida::decompiler::Token token) {
     }
 }
 
+static std::mutex g_microcode_filters_mutex;
+static std::unordered_map<ida::decompiler::FilterToken,
+                          std::shared_ptr<ida::decompiler::MicrocodeFilter>>
+    g_microcode_filters;
+
+class JsMicrocodeFilter final : public ida::decompiler::MicrocodeFilter {
+public:
+    JsMicrocodeFilter(v8::Local<v8::Function> match_callback,
+                      v8::Local<v8::Function> apply_callback) {
+        match_callback_.Reset(match_callback);
+        apply_callback_.Reset(apply_callback);
+    }
+
+    ~JsMicrocodeFilter() override {
+        match_callback_.Reset();
+        apply_callback_.Reset();
+    }
+
+    bool match(const ida::decompiler::MicrocodeContext& context) override {
+        auto* isolate = v8::Isolate::GetCurrent();
+        if (isolate == nullptr)
+            return false;
+        Nan::HandleScope scope;
+
+        auto callback = Nan::New(match_callback_);
+        if (callback.IsEmpty())
+            return false;
+
+        auto context_object = MicrocodeContextWrapper::NewInstance(
+            const_cast<ida::decompiler::MicrocodeContext*>(&context));
+        v8::Local<v8::Value> argv[] = { context_object };
+
+        Nan::TryCatch try_catch;
+        auto result = Nan::Call(callback,
+                                Nan::GetCurrentContext()->Global(),
+                                1,
+                                argv);
+        MicrocodeContextWrapper::Invalidate(context_object);
+
+        v8::Local<v8::Value> value;
+        if (try_catch.HasCaught() || result.IsEmpty() || !result.ToLocal(&value))
+            return false;
+        return Nan::To<bool>(value).FromMaybe(false);
+    }
+
+    ida::decompiler::MicrocodeApplyResult apply(ida::decompiler::MicrocodeContext& context) override {
+        auto* isolate = v8::Isolate::GetCurrent();
+        if (isolate == nullptr)
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        Nan::HandleScope scope;
+
+        auto callback = Nan::New(apply_callback_);
+        if (callback.IsEmpty())
+            return ida::decompiler::MicrocodeApplyResult::Error;
+
+        auto context_object = MicrocodeContextWrapper::NewInstance(&context);
+        v8::Local<v8::Value> argv[] = { context_object };
+
+        Nan::TryCatch try_catch;
+        auto result = Nan::Call(callback,
+                                Nan::GetCurrentContext()->Global(),
+                                1,
+                                argv);
+        MicrocodeContextWrapper::Invalidate(context_object);
+
+        v8::Local<v8::Value> value;
+        if (try_catch.HasCaught() || result.IsEmpty() || !result.ToLocal(&value))
+            return ida::decompiler::MicrocodeApplyResult::Error;
+        return ParseApplyResult(value);
+    }
+
+private:
+    static ida::decompiler::MicrocodeApplyResult ParseApplyResult(v8::Local<v8::Value> value) {
+        if (value->IsString()) {
+            std::string text = ToString(value);
+            if (text == "handled")
+                return ida::decompiler::MicrocodeApplyResult::Handled;
+            if (text == "error")
+                return ida::decompiler::MicrocodeApplyResult::Error;
+            return ida::decompiler::MicrocodeApplyResult::NotHandled;
+        }
+
+        if (value->IsNumber()) {
+            int code = Nan::To<int>(value).FromMaybe(0);
+            switch (code) {
+                case 1:
+                    return ida::decompiler::MicrocodeApplyResult::Handled;
+                case 2:
+                    return ida::decompiler::MicrocodeApplyResult::Error;
+                default:
+                    return ida::decompiler::MicrocodeApplyResult::NotHandled;
+            }
+        }
+
+        if (value->IsBoolean()) {
+            return Nan::To<bool>(value).FromMaybe(false)
+                ? ida::decompiler::MicrocodeApplyResult::Handled
+                : ida::decompiler::MicrocodeApplyResult::NotHandled;
+        }
+
+        return ida::decompiler::MicrocodeApplyResult::NotHandled;
+    }
+
+    Nan::Persistent<v8::Function> match_callback_;
+    Nan::Persistent<v8::Function> apply_callback_;
+};
+
+static void StoreMicrocodeFilter(ida::decompiler::FilterToken token,
+                                 std::shared_ptr<ida::decompiler::MicrocodeFilter> filter) {
+    std::lock_guard<std::mutex> lock(g_microcode_filters_mutex);
+    g_microcode_filters[token] = std::move(filter);
+}
+
+static void RemoveMicrocodeFilter(ida::decompiler::FilterToken token) {
+    std::lock_guard<std::mutex> lock(g_microcode_filters_mutex);
+    g_microcode_filters.erase(token);
+}
+
 // ════════════════════════════════════════════════════════════════════════
 // Free functions
 // ════════════════════════════════════════════════════════════════════════
@@ -358,6 +792,47 @@ NAN_METHOD(Decompile) {
 
     IDAX_UNWRAP(auto func, ida::decompiler::decompile(addr));
     info.GetReturnValue().Set(DecompiledFunctionWrapper::NewInstance(std::move(func)));
+}
+
+// registerMicrocodeFilter(matchCallback, applyCallback) -> token (BigInt)
+NAN_METHOD(RegisterMicrocodeFilter) {
+    if (info.Length() < 2 || !info[0]->IsFunction() || !info[1]->IsFunction()) {
+        Nan::ThrowTypeError("Expected (matchCallback, applyCallback) function arguments");
+        return;
+    }
+
+    auto match_callback = info[0].As<v8::Function>();
+    auto apply_callback = info[1].As<v8::Function>();
+    auto filter = std::make_shared<JsMicrocodeFilter>(match_callback, apply_callback);
+
+    IDAX_UNWRAP(auto token, ida::decompiler::register_microcode_filter(filter));
+    StoreMicrocodeFilter(token, filter);
+
+    auto isolate = v8::Isolate::GetCurrent();
+    info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, token));
+}
+
+// unregisterMicrocodeFilter(token: BigInt)
+NAN_METHOD(UnregisterMicrocodeFilter) {
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("Expected microcode filter token argument");
+        return;
+    }
+
+    ida::decompiler::FilterToken token = 0;
+    if (info[0]->IsBigInt()) {
+        bool lossless;
+        token = info[0].As<v8::BigInt>()->Uint64Value(&lossless);
+    } else if (info[0]->IsNumber()) {
+        token = static_cast<ida::decompiler::FilterToken>(
+            Nan::To<double>(info[0]).FromJust());
+    } else {
+        Nan::ThrowTypeError("Expected BigInt or number for microcode filter token");
+        return;
+    }
+
+    IDAX_CHECK_STATUS(ida::decompiler::unregister_microcode_filter(token));
+    RemoveMicrocodeFilter(token);
 }
 
 // ── Event subscriptions ─────────────────────────────────────────────────
@@ -505,11 +980,14 @@ void InitDecompiler(v8::Local<v8::Object> target) {
     auto ns = CreateNamespace(target, "decompiler");
 
     // Initialize the ObjectWrap constructor template
+    MicrocodeContextWrapper::Init(ns);
     DecompiledFunctionWrapper::Init(ns);
 
     // Free functions
     SetMethod(ns, "available",  Available);
     SetMethod(ns, "decompile",  Decompile);
+    SetMethod(ns, "registerMicrocodeFilter", RegisterMicrocodeFilter);
+    SetMethod(ns, "unregisterMicrocodeFilter", UnregisterMicrocodeFilter);
 
     // Event subscriptions
     SetMethod(ns, "onMaturityChanged",     OnMaturityChanged);

@@ -325,7 +325,15 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
 
     it('should have decompiler functions', () => {
         if (!idax) return;
-        for (const fn of ['available', 'decompile', 'unsubscribe', 'markDirty']) {
+        for (const fn of [
+            'available',
+            'decompile',
+            'unsubscribe',
+            'markDirty',
+            'markDirtyWithCallers',
+            'registerMicrocodeFilter',
+            'unregisterMicrocodeFilter',
+        ]) {
             expect(typeof idax.decompiler[fn]).toBe('function');
         }
     });
