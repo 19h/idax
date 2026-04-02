@@ -653,6 +653,10 @@ fn search_next_data() {
 // ===========================================================================
 
 #[test]
+#[cfg_attr(
+    target_os = "linux",
+    ignore = "segfaults under headless idalib on Linux CI"
+)]
 fn analysis_is_idle() {
     require_db!();
     // After wait(), analysis should be idle
