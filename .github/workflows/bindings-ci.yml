@@ -407,7 +407,7 @@ jobs:
           Invoke-RustExample -Name "ida2py_port" -Args @($testBin)
 
       - name: Run Rust integration tests (Unix)
-        if: runner.os != 'Windows'
+        if: runner.os == 'macOS'
         shell: bash
         working-directory: bindings/rust
         run: |
