@@ -1727,3 +1727,29 @@
   - 16.84.3. Executed native C++ smoke coverage (`build-test/tests/integration/idax_smoke_test <userhome>/dev/idax/tests/fixtures/simple_appcall_linux64`) with full pass evidence (`290 passed, 0 failed`), confirming cross-surface runtime parity for the same path.
   - 16.84.4. Updated active-work tracking to remove the now-resolved residual bitness-runtime triage item.
   - 16.84.5. Recorded finding [F360] and mirrored the resolution model in `.agents/knowledge_base.md` section 35.18.
+
+- **16.85. Full Local Test Sweep (C++ + Node + Rust) on Current Tree**
+  - 16.85.1. Initial `ctest --test-dir build-test --output-on-failure` run surfaced stale/missing test executables in `build-test` (not a functional regression).
+  - 16.85.2. Rebuilt test artifacts via `cmake --build build-test`, then re-ran C++ suite with clean pass (`24/24` CTest tests passed).
+  - 16.85.3. Revalidated Node bindings test surfaces with `npm run build`, `npm test` (`158 passed, 0 failed`), and `npm run test:integration -- <userhome>/dev/idax/tests/fixtures/simple_appcall_linux64` (`62 passed, 0 failed`).
+  - 16.85.4. Revalidated Rust workspace with `cargo test --workspace` (library tests `105/105`, integration tests `79/79`, doctests passing with one explicitly ignored chooser impl doc test).
+  - 16.85.5. Net result: all locally runnable test suites on this host pass after test-target rebuild, providing fresh end-to-end validation evidence for current uncommitted state.
+
+- **16.86. SEP Firmware Example Loader Port from Binary Ninja**
+  - 16.86.1. Added `examples/loader/sep_firmware_loader.cpp` as a new idax loader example ported from `<userhome>/Downloads/sep-binja-main`, preserving the Binary Ninja loader's core workflow: SEP firmware detection via legion2 markers, SEP header/app-table parsing, boot/kernel/SEPOS/app/shared-library module extraction, and embedded Mach-O parsing.
+  - 16.86.2. Implemented IDA-oriented mapping behavior in the new example: `ida::loader::set_processor("arm")`, 64-bit segment creation, raw boot/kernel fallback mapping, Mach-O segment loading with file/data split handling, zero-fill tail materialization, entry-point registration, exported symbol naming, section labeling comments, and shared-library slide discovery for downstream pointer rewriting.
+  - 16.86.3. Ported the Binary Ninja plugin's omitted annotation and rewrite logic: named Mach-O/load-command structure definitions, header/load-command data annotations, firmware structure definitions/application (`SEPApp64`, `SEPRootserver`, `SEPDynamicObject`, `Legion64BootArgs`), init-array rebasing, shared-library GOT rewriting, and ARM64e tagged-pointer untagging in `__const` sections.
+  - 16.86.4. Wired the new source into `examples/CMakeLists.txt` as `idax_sep_firmware_loader` and documented the now-full behavior in `examples/README.md`.
+  - 16.86.5. Validation evidence: `cmake -S . -B build -DIDAX_BUILD_EXAMPLE_ADDONS=ON && cmake --build build --target idax_sep_firmware_loader` passes locally after the full-functionality port pass.
+
+- **16.87. `idax` Loader Bridge Runtime Fix (`LDSC` Export Restoration)**
+  - 16.87.1. Diagnosed SEP runtime non-recognition against `<userhome>/Downloads/UniversalMac_26.3_25D125_Restore/Firmware/all_flash/img4_dump/sep-firmware.j493.RELEASE.dec` as a framework-level bridge failure, not a SEP signature mismatch: the image still matched the `Built by legion2` marker checks.
+  - 16.87.2. Verified the built loader artifact existed and `dlopen()`ed successfully, but `nm -gU` showed only `_idax_loader_bridge_init` and no `_LDSC`, so IDA never consulted the loader.
+  - 16.87.3. Implemented the missing SDK-facing bridge in `src/loader.cpp`: added `accept_file`/`load_file` trampolines, translated `LoaderOptions` into `LDRF_*` flags, forwarded `accept()` and `load_with_request()` into the registered C++ loader instance, and exported `idaman loader_t ida_module_data LDSC`.
+  - 16.87.4. Rebuilt `idax_sep_firmware_loader`, copied the updated dylib into `~/.idapro/loaders/`, and verified the installed module now exports both `_LDSC` and `_idax_loader_bridge_init`.
+  - 16.87.5. Recorded finding [F361], mirrored it into the knowledge base, and logged the bridge-export architectural decision in `.agents/decision_log.md`.
+
+- **16.88. SEP Loader Rewrite Robustness Fix (`create_qword failed`)**
+  - 16.88.1. Traced the IDA popup `create_qword failed` to the SEP pointer-rewrite helper in `examples/loader/sep_firmware_loader.cpp`: after rewriting init/GOT/tagged-pointer entries, the loader attempted `ida::data::define_qword(slot, 1)` on bytes that may already belong to an existing item.
+  - 16.88.2. Hardened `rewrite_qwords(...)` to undefine the 8-byte slot and retry `define_qword(...)` before failing the entire load, matching the practical need to rewrite already-defined data in-place during loader execution.
+  - 16.88.3. Rebuilt `idax_sep_firmware_loader` and reinstalled the updated dylib into `~/.idapro/loaders/`.

@@ -5,6 +5,8 @@
 #include "detail/sdk_bridge.hpp"
 #include <ida/loader.hpp>
 
+extern "C" void idax_loader_bridge_init(void** out_loader, void** out_input);
+
 namespace ida::loader {
 
 // ── Internal access helper ──────────────────────────────────────────────
@@ -179,3 +181,77 @@ Status create_filename_comment() {
 }
 
 } // namespace ida::loader
+
+namespace {
+
+ida::loader::Loader& bridge_loader_instance() {
+    static ida::loader::Loader* loader = nullptr;
+    static bool initialized = false;
+    if (!initialized) {
+        void* out_loader = nullptr;
+        void* out_input = nullptr;
+        idax_loader_bridge_init(&out_loader, &out_input);
+        loader = static_cast<ida::loader::Loader*>(out_loader);
+        initialized = true;
+    }
+    return *loader;
+}
+
+uint32 bridge_loader_flags() {
+    uint32 flags = 0;
+    const auto options = bridge_loader_instance().options();
+    if (options.supports_reload)
+        flags |= LDRF_RELOAD;
+    if (options.requires_processor)
+        flags |= LDRF_REQ_PROC;
+    return flags;
+}
+
+int idaapi idax_accept_file_bridge(qstring* fileformatname,
+                                   qstring* processor,
+                                   linput_t* li,
+                                   const char* /*filename*/) {
+    auto input = ida::loader::InputFileAccess::wrap(li);
+    auto accepted = bridge_loader_instance().accept(input);
+    if (!accepted || !*accepted)
+        return 0;
+
+    fileformatname->sprnt("%s", (*accepted)->format_name.c_str());
+    if (!(*accepted)->processor_name.empty())
+        processor->sprnt("%s", (*accepted)->processor_name.c_str());
+
+    int rc = 1;
+    if ((*accepted)->archive_loader)
+        rc |= ACCEPT_ARCHIVE;
+    if ((*accepted)->continue_probe)
+        rc |= ACCEPT_CONTINUE;
+    if ((*accepted)->prefer_first || (*accepted)->priority > 0)
+        rc |= ACCEPT_FIRST;
+    return rc;
+}
+
+void idaapi idax_load_file_bridge(linput_t* li,
+                                  ushort neflags,
+                                  const char* fileformatname) {
+    auto input = ida::loader::InputFileAccess::wrap(li);
+    ida::loader::LoadRequest request;
+    if (fileformatname != nullptr)
+        request.format_name = fileformatname;
+    request.flags = ida::loader::decode_load_flags(neflags);
+
+    auto status = bridge_loader_instance().load_with_request(input, request);
+    if (!status)
+        ida::loader::abort_load(status.error().message);
+}
+
+} // namespace
+
+idaman loader_t ida_module_data LDSC = {
+    IDP_INTERFACE_VERSION,
+    bridge_loader_flags(),
+    idax_accept_file_bridge,
+    idax_load_file_bridge,
+    nullptr,
+    nullptr,
+    nullptr,
+};

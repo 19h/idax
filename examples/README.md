@@ -55,6 +55,17 @@ transfer, BSS gap filling, entry point registration with type application,
 fixup injection for relocatable binaries, save capability queries, and rebase
 handling.
 
+### `loader/sep_firmware_loader.cpp` — Apple SEP Firmware Loader Port
+
+Port of `<userhome>/Downloads/sep-binja-main` into an idax example loader.
+It detects raw 64-bit SEP firmware images via the `Built by legion2` markers,
+parses the SEP container header/app table, maps the boot/kernel/SEPOS/app/shared
+library modules into distinct IDA segments, loads embedded Mach-O segments with
+ARM64 permissions, registers discovered entry points plus exported symbols,
+annotates Mach-O headers/load commands, defines/applies SEP firmware structure
+types, and performs the Binary Ninja loader's init/GOT/tagged-pointer rewrite
+passes inside the IDA database.
+
 ### `procmod/advanced_procmod.cpp` — XRISC-32 Processor Module
 
 A full processor module for a hypothetical 32-bit RISC ISA with 16 instructions.

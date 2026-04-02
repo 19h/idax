@@ -597,6 +597,11 @@
   - 13.3.2. **Decision:** Expand appcall-smoke with hold-mode + default launches across path/cwd permutations
     - Rejected: Default-args-only (weaker diagnosis)
     - Rejected: Attach-only first (requires additional orchestration)
+
+- **13.4. Loader Bridge Export Semantics**
+  - 13.4.1. **Decision:** Make `src/loader.cpp` the single SDK-facing export point for `idax` loader modules by emitting `idaman loader_t ida_module_data LDSC` and trampoline callbacks that forward into the `IDAX_LOADER(...)`-registered C++ `ida::loader::Loader` instance.
+    - Rejected: Keep `IDAX_LOADER(...)` as `idax_loader_bridge_init`-only (builds but loader is invisible to IDA)
+    - Rejected: Require every example/user loader to hand-write a separate raw-SDK `LDSC` block (defeats the wrapper goal)
   - 13.3.3. **Decision:** Add spawn+attach fallback to appcall smoke for better root-cause classification
     - Rejected: Launch-only probes (ambiguous classification)
     - Rejected: Standalone attach utility (target sprawl)

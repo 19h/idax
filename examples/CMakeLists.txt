@@ -38,6 +38,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/idapcode_port_plugin.cpp
     plugin/driverbuddy_wdf_slots.inc
     loader/advanced_loader.cpp
+    loader/sep_firmware_loader.cpp
     procmod/advanced_procmod.cpp
 
     # Full parity example (real-world port pattern).
@@ -172,6 +173,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_loader(idax_xbin_loader
         SOURCES loader/advanced_loader.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_loader(idax_sep_firmware_loader
+        SOURCES loader/sep_firmware_loader.cpp
         LIBRARIES idax::idax
     )
 

@@ -914,3 +914,6 @@ Runtime integration against `tests/fixtures/simple_appcall_linux64` surfaced an 
 
 ### 35.18. Bitness Setter Mutual-Exclusion Semantics (Resolved) [F360]
 `set_address_bitness` must apply architecture mode changes through mutually exclusive flag writes. Independent boolean writes to `inf_set_64bit` and `inf_set_32bit` can clobber 64-bit state in immediate read-back checks. A switch-based mode application (`64 -> inf_set_64bit(true)`, `32 -> inf_set_32bit(true)`, `16 -> inf_set_32bit(false)`) restores stable behavior and is validated in both Node integration and C++ smoke runs against `tests/fixtures/simple_appcall_linux64`.
+
+### 35.19. `idax` Loader Modules Must Export `LDSC` Through a Framework Bridge [F361]
+For IDA loader modules, exporting a build artifact `.dylib` is not sufficient. IDA discovers loaders via the `LDSC` symbol (`loader_t`), not a private framework-specific helper. `idax` originally exposed only `idax_loader_bridge_init` from `IDAX_LOADER(...)`, so custom loaders built successfully but were invisible to IDA at runtime. The correct pattern is for `IDAX_LOADER(...)` to provide the C++ loader instance pointer while `src/loader.cpp` exports an SDK-facing `loader_t LDSC` whose `accept_file`/`load_file` callbacks trampoline into the registered `ida::loader::Loader` instance.
