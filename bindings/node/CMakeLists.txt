@@ -154,6 +154,8 @@ if(MSVC AND (NOT IDALIB_LIBRARY OR NOT LIBIDA_LIBRARY OR NOT LIBPRO_LIBRARY))
     set(IDA_LIB_DIR_CANDIDATES)
     if(IDASDK_LIB_ROOT)
         list(APPEND IDA_LIB_DIR_CANDIDATES
+            "${IDASDK_LIB_ROOT}/lib/x64_win_64"
+            "${IDASDK_LIB_ROOT}/lib/x64_win_64_s"
             "${IDASDK_LIB_ROOT}/lib/x64_win_vc_64"
             "${IDASDK_LIB_ROOT}/lib/x64_win_vc_64_s")
     endif()
@@ -165,13 +167,21 @@ if(MSVC AND (NOT IDALIB_LIBRARY OR NOT LIBIDA_LIBRARY OR NOT LIBPRO_LIBRARY))
 
     foreach(IDA_LIB_DIR IN LISTS IDA_LIB_DIR_CANDIDATES)
         if(NOT IDALIB_LIBRARY)
-            find_library(IDALIB_LIBRARY NAMES idalib PATHS "${IDA_LIB_DIR}" NO_DEFAULT_PATH)
+            if(EXISTS "${IDA_LIB_DIR}/idalib.lib")
+                set(IDALIB_LIBRARY "${IDA_LIB_DIR}/idalib.lib")
+            endif()
         endif()
         if(NOT LIBIDA_LIBRARY)
-            find_library(LIBIDA_LIBRARY NAMES ida ida64 PATHS "${IDA_LIB_DIR}" NO_DEFAULT_PATH)
+            if(EXISTS "${IDA_LIB_DIR}/ida.lib")
+                set(LIBIDA_LIBRARY "${IDA_LIB_DIR}/ida.lib")
+            elseif(EXISTS "${IDA_LIB_DIR}/ida64.lib")
+                set(LIBIDA_LIBRARY "${IDA_LIB_DIR}/ida64.lib")
+            endif()
         endif()
         if(NOT LIBPRO_LIBRARY)
-            find_library(LIBPRO_LIBRARY NAMES pro PATHS "${IDA_LIB_DIR}" NO_DEFAULT_PATH)
+            if(EXISTS "${IDA_LIB_DIR}/pro.lib")
+                set(LIBPRO_LIBRARY "${IDA_LIB_DIR}/pro.lib")
+            endif()
         endif()
     endforeach()
 

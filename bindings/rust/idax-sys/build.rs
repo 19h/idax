@@ -223,27 +223,37 @@ fn link_ida_linux(sdk_lib_dir: &Path) {
 }
 
 /// Windows: link against SDK .lib import stubs.
-fn link_ida_windows(sdk_lib_dir: &Path) {
+fn link_ida_windows(sdk_lib_root: &Path) {
     let ida_dir = discover_ida_dir();
 
-    if sdk_lib_dir.exists() {
-        println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
+    let sdk_lib_dirs = [
+        sdk_lib_root.join("lib").join("x64_win_64"),
+        sdk_lib_root.join("lib").join("x64_win_64_s"),
+        sdk_lib_root.join("lib").join("x64_win_vc_64"),
+        sdk_lib_root.join("lib").join("x64_win_vc_64_s"),
+        sdk_lib_root.join("lib"),
+    ];
+
+    for dir in &sdk_lib_dirs {
+        if dir.exists() {
+            println!("cargo:rustc-link-search=native={}", dir.display());
+        }
     }
     if let Some(ref dir) = ida_dir {
         println!("cargo:rustc-link-search=native={}", dir.display());
     }
 
-    let has_ida = sdk_lib_dir.join("ida.lib").exists()
+    let has_ida = sdk_lib_dirs.iter().any(|d| d.join("ida.lib").exists())
         || ida_dir.as_ref().is_some_and(|d| d.join("ida.lib").exists());
-    let has_ida64 = sdk_lib_dir.join("ida64.lib").exists()
+    let has_ida64 = sdk_lib_dirs.iter().any(|d| d.join("ida64.lib").exists())
         || ida_dir
             .as_ref()
             .is_some_and(|d| d.join("ida64.lib").exists());
-    let has_idalib = sdk_lib_dir.join("idalib.lib").exists()
+    let has_idalib = sdk_lib_dirs.iter().any(|d| d.join("idalib.lib").exists())
         || ida_dir
             .as_ref()
             .is_some_and(|d| d.join("idalib.lib").exists());
-    let has_pro = sdk_lib_dir.join("pro.lib").exists()
+    let has_pro = sdk_lib_dirs.iter().any(|d| d.join("pro.lib").exists())
         || ida_dir.as_ref().is_some_and(|d| d.join("pro.lib").exists());
 
     if has_ida {
@@ -504,7 +514,7 @@ fn main() {
         link_ida_linux(&sdk_lib_dir);
         println!("cargo:rustc-link-lib=stdc++");
     } else if cfg!(target_os = "windows") {
-        link_ida_windows(&sdk_lib_dir);
+        link_ida_windows(&sdk_lib_root);
     }
 
     // ── Run bindgen ─────────────────────────────────────────────────────

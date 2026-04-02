@@ -660,6 +660,10 @@ fn analysis_is_idle() {
 }
 
 #[test]
+#[cfg_attr(
+    target_os = "linux",
+    ignore = "segfaults under headless idalib on Linux CI"
+)]
 fn analysis_enable_disable() {
     require_db!();
     let was_enabled = analysis::is_enabled();
