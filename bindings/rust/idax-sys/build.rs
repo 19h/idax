@@ -108,6 +108,22 @@ fn discover_ida_dir() -> Option<PathBuf> {
     None
 }
 
+fn normalized_sdk_lib_root(idasdk: &Path) -> PathBuf {
+    if idasdk.join("lib").exists() {
+        return idasdk.to_path_buf();
+    }
+
+    if idasdk.file_name().and_then(|s| s.to_str()) == Some("src") {
+        if let Some(parent) = idasdk.parent() {
+            if parent.join("lib").exists() {
+                return parent.to_path_buf();
+            }
+        }
+    }
+
+    idasdk.to_path_buf()
+}
+
 /// macOS: Link against IDA libraries with symlinks in OUT_DIR for runtime.
 ///
 /// Strategy:
@@ -167,37 +183,79 @@ fn link_ida_macos(sdk_lib_dir: &Path, _dst: &Path) {
 /// Linux: link against SDK stubs normally. The C shim runtime loader
 /// handles finding the real libraries via dlopen.
 fn link_ida_linux(sdk_lib_dir: &Path) {
+    let ida_dir = discover_ida_dir();
+
     if sdk_lib_dir.exists() {
         println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
     }
-    if sdk_lib_dir.join("libida.so").exists() {
+    if let Some(ref dir) = ida_dir {
+        println!("cargo:rustc-link-search=native={}", dir.display());
+    }
+
+    let has_ida = sdk_lib_dir.join("libida.so").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("libida.so").exists());
+    let has_ida64 = sdk_lib_dir.join("libida64.so").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("libida64.so").exists());
+    let has_idalib = sdk_lib_dir.join("libidalib.so").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("libidalib.so").exists());
+    let has_pro = sdk_lib_dir.join("libpro.so").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("libpro.so").exists());
+
+    if has_ida {
         println!("cargo:rustc-link-lib=dylib=ida");
-        if sdk_lib_dir.join("libidalib.so").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("libida64.so").exists() {
+    } else if has_ida64 {
         println!("cargo:rustc-link-lib=dylib=ida64");
-        if sdk_lib_dir.join("libidalib.so").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
+    }
+    if has_idalib {
+        println!("cargo:rustc-link-lib=dylib=idalib");
+    }
+    if has_pro {
+        println!("cargo:rustc-link-lib=dylib=pro");
     }
 }
 
 /// Windows: link against SDK .lib import stubs.
 fn link_ida_windows(sdk_lib_dir: &Path) {
+    let ida_dir = discover_ida_dir();
+
     if sdk_lib_dir.exists() {
         println!("cargo:rustc-link-search=native={}", sdk_lib_dir.display());
     }
-    if sdk_lib_dir.join("ida.lib").exists() {
+    if let Some(ref dir) = ida_dir {
+        println!("cargo:rustc-link-search=native={}", dir.display());
+    }
+
+    let has_ida = sdk_lib_dir.join("ida.lib").exists()
+        || ida_dir.as_ref().is_some_and(|d| d.join("ida.lib").exists());
+    let has_ida64 = sdk_lib_dir.join("ida64.lib").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("ida64.lib").exists());
+    let has_idalib = sdk_lib_dir.join("idalib.lib").exists()
+        || ida_dir
+            .as_ref()
+            .is_some_and(|d| d.join("idalib.lib").exists());
+    let has_pro = sdk_lib_dir.join("pro.lib").exists()
+        || ida_dir.as_ref().is_some_and(|d| d.join("pro.lib").exists());
+
+    if has_ida {
         println!("cargo:rustc-link-lib=dylib=ida");
-        if sdk_lib_dir.join("idalib.lib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
-    } else if sdk_lib_dir.join("ida64.lib").exists() {
+    } else if has_ida64 {
         println!("cargo:rustc-link-lib=dylib=ida64");
-        if sdk_lib_dir.join("idalib.lib").exists() {
-            println!("cargo:rustc-link-lib=dylib=idalib");
-        }
+    }
+    if has_idalib {
+        println!("cargo:rustc-link-lib=dylib=idalib");
+    }
+    if has_pro {
+        println!("cargo:rustc-link-lib=dylib=pro");
     }
 }
 
@@ -334,16 +392,18 @@ fn main() {
     });
 
     // ── Locate IDA SDK libraries ────────────────────────────────────────
+    let sdk_lib_root = normalized_sdk_lib_root(&idasdk);
+
     let sdk_lib_dir = if cfg!(target_os = "macos") {
         if cfg!(target_arch = "aarch64") {
-            idasdk.join("lib").join("arm64_mac_clang_64")
+            sdk_lib_root.join("lib").join("arm64_mac_clang_64")
         } else {
-            idasdk.join("lib").join("x64_mac_clang_64")
+            sdk_lib_root.join("lib").join("x64_mac_clang_64")
         }
     } else if cfg!(target_os = "linux") {
-        idasdk.join("lib").join("x64_linux_gcc_64")
+        sdk_lib_root.join("lib").join("x64_linux_gcc_64")
     } else if cfg!(target_os = "windows") {
-        idasdk.join("lib").join("x64_win_vc_64")
+        sdk_lib_root.join("lib").join("x64_win_vc_64")
     } else {
         panic!("Unsupported target OS for IDA SDK");
     };
@@ -351,7 +411,7 @@ fn main() {
     let sdk_lib_dir = if sdk_lib_dir.exists() {
         sdk_lib_dir
     } else {
-        idasdk.join("lib")
+        sdk_lib_root.join("lib")
     };
 
     // ── Compile C++ shim ────────────────────────────────────────────────

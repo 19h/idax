@@ -1760,3 +1760,11 @@
   - 16.89.3. Revalidated the affected macOS build path in a fresh CI-style tree (`build-ci-unit`): `cmake -S . -B build-ci-unit -DIDAX_BUILD_TESTS=ON -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo`, `cmake --build build-ci-unit --target idax_loader_processor_scenario_test idax_sep_firmware_loader`, and `ctest --test-dir build-ci-unit -R loader_processor_scenario --output-on-failure` all pass.
   - 16.89.4. Verified the built loader artifact still exports both `_LDSC` and `_idax_loader_bridge_init` via `nm -gU build-ci-unit/idabin/loaders/idax_sep_firmware_loader.dylib`.
   - 16.89.5. Recorded finding [F362] and mirrored it into `.agents/knowledge_base.md`.
+
+- **16.90. Bindings SDK Library-Root Normalization for CI**
+  - 16.90.1. Rechecked the fresh post-fix GitHub runs after commit `7ddf749`: `Validation Matrix` (`23879120436`) and `Integrations CI` (`23879120439`) completed successfully, confirming the loader-bridge link regression was resolved.
+  - 16.90.2. Continued into `Bindings CI` (`23879120425`) and isolated a separate bindings-only link failure: Windows Node, Windows Rust, and Linux Rust builds all failed because their library discovery treated `IDASDK=/.../ida-sdk/src` as though import libraries lived under `src/lib`, while the workflow's checkout/runtime combination required resolving link libraries from the checkout root and/or installed `IDADIR` instead.
+  - 16.90.3. Hardened `bindings/node/CMakeLists.txt` to normalize a separate SDK library root from the SDK include root and search both SDK-root and installed-IDA Windows library locations for `ida`, `idalib`, and `pro` import libraries.
+  - 16.90.4. Hardened `bindings/rust/idax-sys/build.rs` with the same normalization rule, added installed-IDA fallback search paths for Linux/Windows, and extended the Rust link set to include `pro` when available.
+  - 16.90.5. Local validation evidence: `IDASDK=<userhome>/dev/ida-sdk/src cargo build -p idax --examples` now passes for the Rust bindings workspace, and `IDASDK=<userhome>/dev/ida-sdk/src npm run build` reconfigures the Node addon cleanly against the normalized SDK path on macOS.
+  - 16.90.6. Recorded finding [F363] and mirrored it into `.agents/knowledge_base.md`.
