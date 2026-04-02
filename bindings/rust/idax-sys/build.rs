@@ -109,16 +109,16 @@ fn discover_ida_dir() -> Option<PathBuf> {
 }
 
 fn normalized_sdk_lib_root(idasdk: &Path) -> PathBuf {
-    if idasdk.join("lib").exists() {
-        return idasdk.to_path_buf();
-    }
-
     if idasdk.file_name().and_then(|s| s.to_str()) == Some("src") {
         if let Some(parent) = idasdk.parent() {
             if parent.join("lib").exists() {
                 return parent.to_path_buf();
             }
         }
+    }
+
+    if idasdk.join("lib").exists() {
+        return idasdk.to_path_buf();
     }
 
     idasdk.to_path_buf()
