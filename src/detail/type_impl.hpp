@@ -33,17 +33,19 @@ struct NamedTypeIterator::Impl {
     std::string current_name;      // Current type name
     std::string current_library;   // Library name for current entry
     std::size_t base_index;      // Current base index (0 = root til)
-    std::size_t base_count;       // Total number of bases
+    std::size_t base_count;       // Total number of bases (root + nbases)
 
-    Impl(til_t* root, int f) : root_til(root), flags(f), base_index(0), base_count(0) {}
+    Impl(til_t* root, int f, std::size_t count = 0)
+        : root_til(root), flags(f), base_index(0), base_count(count) {}
 };
 
 struct NamedTypeRange::Impl {
     til_t* root_til;
     int flags;
-    std::size_t base_count;       // Total number of bases
+    std::size_t base_count;       // Total number of bases (root + nbases)
 
-    Impl(til_t* root, int f) : root_til(root), flags(f), base_count(0) {}
+    Impl(til_t* root, int f, std::size_t count = 0)
+        : root_til(root), flags(f), base_count(count) {}
 };
 
 struct NamedTypeAccess {

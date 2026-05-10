@@ -980,10 +980,10 @@ Result<TILTypeRange> named_types_in(std::string_view til_name, int flags) {
 NamedTypeIterator& NamedTypeIterator::operator++() {
     if (!impl_ || !impl_->root_til) return *this;
 
-    // Get the current til (root til is base 0, then base[1], base[2], etc.)
+    // Get the current til (root til is base 0, then base[0], base[1], etc.)
     til_t* current_til = (impl_->base_index == 0)
         ? impl_->root_til
-        : impl_->root_til->base[impl_->base_index];
+        : impl_->root_til->base[impl_->base_index - 1];
 
     const char* next = nullptr;
     if (impl_->current_name.empty()) {
@@ -1001,7 +1001,7 @@ NamedTypeIterator& NamedTypeIterator::operator++() {
         while (impl_->base_index < impl_->base_count) {
             til_t* next_til = (impl_->base_index == 0)
                 ? impl_->root_til
-                : impl_->root_til->base[impl_->base_index];
+                : impl_->root_til->base[impl_->base_index - 1];
             if (!next_til) break;
 
             impl_->current_name.clear();  // Reset before starting new til
@@ -1060,8 +1060,10 @@ bool NamedTypeIterator::operator!=(const NamedTypeIterator& other) const {
 }
 
 NamedTypeIterator NamedTypeRange::begin() const {
+    if (!impl_) return end();
     NamedTypeIterator it;
-    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(impl_->root_til, impl_->flags);
+    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(impl_->root_til,
+        impl_->flags, impl_->base_count);
     if (NamedTypeAccess::get(it)->root_til) {
         const char* first = first_named_type(NamedTypeAccess::get(it)->root_til, NamedTypeAccess::get(it)->flags);
         if (first) {
@@ -1074,8 +1076,10 @@ NamedTypeIterator NamedTypeRange::begin() const {
 }
 
 NamedTypeIterator NamedTypeRange::end() const {
+    if (!impl_) return NamedTypeIterator{};
     NamedTypeIterator it;
-    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(nullptr, impl_->flags);
+    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(nullptr,
+        impl_->flags, impl_->base_count);
     return it;
 }
 
@@ -1100,7 +1104,8 @@ Result<NamedTypeRange> named_types(std::string_view til_name, int flags) {
         return std::unexpected(Error::not_found("No type library available"));
 
     NamedTypeRange range;
-    NamedTypeAccess::get(range) = new NamedTypeRange::Impl(til, flags);
+    NamedTypeAccess::get(range) = new NamedTypeRange::Impl(til, flags,
+                                                            til->nbases + 1);
     return range;
 }
 
