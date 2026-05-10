@@ -45,7 +45,7 @@ public:
     TypeInfo(TypeInfo&&) noexcept;
     TypeInfo& operator=(TypeInfo&&) noexcept;
 
-    // ── Factory constructors ────────────────────────────────────────────
+    // â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•" Factory constructors â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
     static TypeInfo void_type();
     static TypeInfo int8();
     static TypeInfo int16();
@@ -78,7 +78,7 @@ public:
     /// Lookup a named type in the local type library.
     static Result<TypeInfo> by_name(std::string_view name);
 
-    // ── Introspection ───────────────────────────────────────────────────
+    // â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â• Introspection â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
     [[nodiscard]] bool is_void()           const;
     [[nodiscard]] bool is_integer()        const;
     [[nodiscard]] bool is_floating_point() const;
@@ -115,7 +115,7 @@ public:
     /// Number of struct/union members (0 for non-UDT types).
     [[nodiscard]] Result<std::size_t> member_count() const;
 
-    // ── Struct/union member access (declared below, after Member) ───────
+    // â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â• Struct/union member access (declared below, after Member) â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
 
     /// Retrieve all members of a struct/union.
     [[nodiscard]] Result<std::vector<struct Member>> members() const;
@@ -130,7 +130,7 @@ public:
     Status add_member(std::string_view name, const TypeInfo& member_type,
                       std::size_t byte_offset = 0);
 
-    // ── Application ─────────────────────────────────────────────────────
+    // â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â• Application â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
 
     /// Apply this type at the given address.
     Status apply(Address ea) const;
@@ -138,7 +138,7 @@ public:
     /// Save this type to the local type library under the given name.
     Status save_as(std::string_view name) const;
 
-    // ── Internal (opaque pimpl) ─────────────────────────────────────────
+    // â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â• Internal (opaque pimpl) â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
     struct Impl;
 
 private:
@@ -165,7 +165,7 @@ Result<TypeInfo> retrieve_operand(Address ea, int operand_index);
 /// Remove type information at an address.
 Status remove_type(Address ea);
 
-// ── Type library access ─────────────────────────────────────────────────
+// â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â• Type library access â•”"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•"â•
 
 /// Load a type library (.til file) and add it to the database's type library list.
 /// IDA will also apply function prototypes for matching function names.
@@ -189,6 +189,181 @@ Result<std::string> local_type_name(std::size_t ordinal);
 /// @return The ordinal assigned in the local type library.
 Result<std::size_t> import_type(std::string_view source_til_name,
                                  std::string_view type_name);
+
+/// Entry returned when iterating named types over multiple type libraries.
+/// Contains the type name and the library it belongs to.
+struct NamedTypeEntry {
+    std::string name;
+    std::string library_name;
+};
+
+// ============================================================================
+/// TIL Base Iterator - iterate over all TIL bases (root + base tils)
+// ============================================================================
+
+/// Entry returned when iterating over TIL bases.
+struct TilEntry {
+    std::string name;   ///< TIL library name
+    void* til;           ///< Raw til_t* pointer (opaque)
+};
+
+class TilBaseIterator {
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = TilEntry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const TilEntry*;
+    using reference = const TilEntry&;
+
+    TilBaseIterator() = default;
+    ~TilBaseIterator();
+    TilBaseIterator(const TilBaseIterator&);
+    TilBaseIterator& operator=(const TilBaseIterator&);
+
+    TilBaseIterator& operator++();
+    TilBaseIterator operator++(int);
+    reference operator*() const;
+    pointer operator->() const;
+    bool operator==(const TilBaseIterator&) const;
+    bool operator!=(const TilBaseIterator&) const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct TilBaseAccess;
+};
+
+class TilBaseRange {
+public:
+    TilBaseRange() = default;
+    ~TilBaseRange();
+    TilBaseRange(const TilBaseRange&);
+    TilBaseRange& operator=(const TilBaseRange&);
+
+    TilBaseIterator begin() const;
+    TilBaseIterator end() const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct TilBaseAccess;
+};
+
+/// Get all TIL bases (root til + all base tils).
+/// Returns a range that iterates over each TIL library.
+Result<TilBaseRange> all_tils();
+
+// ============================================================================
+/// TIL Type Iterator - iterate over type names in a single TIL
+// ============================================================================
+
+class TILTypeIterator {
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = std::string;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const std::string*;
+    using reference = const std::string&;
+
+    TILTypeIterator() = default;
+    ~TILTypeIterator();
+    TILTypeIterator(const TILTypeIterator&);
+    TILTypeIterator& operator=(const TILTypeIterator&);
+
+    TILTypeIterator& operator++();
+    TILTypeIterator operator++(int);
+    reference operator*() const;
+    pointer operator->() const;
+    bool operator==(const TILTypeIterator&) const;
+    bool operator!=(const TILTypeIterator&) const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct TILTypeAccess;
+};
+
+class TILTypeRange {
+public:
+    TILTypeRange() = default;
+    ~TILTypeRange();
+    TILTypeRange(const TILTypeRange&);
+    TILTypeRange& operator=(const TILTypeRange&);
+
+    TILTypeIterator begin() const;
+    TILTypeIterator end() const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct TILTypeAccess;
+};
+
+/// Get named types from a specific TIL.
+/// @param til  Raw til_t* pointer (from all_tils() or get_idati())
+/// @param flags  Combination of NTF_* flags (e.g., NTF_TYPE | NTF_FUNC)
+Result<TILTypeRange> named_types_in(void* til, int flags);
+
+/// Get named types from a TIL by name.
+/// @param til_name  Name of the TIL library
+/// @param flags  Combination of NTF_* flags (e.g., NTF_TYPE | NTF_FUNC)
+Result<TILTypeRange> named_types_in(std::string_view til_name, int flags);
+
+// ============================================================================
+/// Named Type Iterator - iterate over types across all TILs (existing API)
+// ============================================================================
+
+class NamedTypeIterator {
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = NamedTypeEntry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const NamedTypeEntry*;
+    using reference = const NamedTypeEntry&;
+
+    NamedTypeIterator() = default;
+    ~NamedTypeIterator();
+    NamedTypeIterator(const NamedTypeIterator&);
+    NamedTypeIterator& operator=(const NamedTypeIterator&);
+
+    NamedTypeIterator& operator++();
+    NamedTypeIterator operator++(int);
+    reference operator*() const;
+    pointer operator->() const;
+    bool operator==(const NamedTypeIterator&) const;
+    bool operator!=(const NamedTypeIterator&) const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct NamedTypeAccess;
+};
+
+class NamedTypeRange {
+public:
+    NamedTypeRange() = default;
+    ~NamedTypeRange();
+    NamedTypeRange(const NamedTypeRange&);
+    NamedTypeRange& operator=(const NamedTypeRange&);
+
+    NamedTypeIterator begin() const;
+    NamedTypeIterator end() const;
+
+    struct Impl;
+    Impl* impl_{nullptr};
+
+private:
+    friend struct NamedTypeAccess;
+};
+
+Result<NamedTypeRange> named_types();
+Result<NamedTypeRange> named_types(std::string_view til_name);
+Result<NamedTypeRange> named_types(std::string_view til_name, int flags);
 
 /// Ensure a named type exists in the local type library and return it.
 ///

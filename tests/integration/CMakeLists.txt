@@ -118,3 +118,4 @@ idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_
 idax_add_integration_test(cross_domain_torture             cross_domain_torture_test.cpp)
 idax_add_integration_test(type_data_comment_torture        type_data_comment_torture_test.cpp)
 idax_add_integration_test(operand_function_torture         operand_function_torture_test.cpp)
+idax_add_integration_test(named_type_iterator              named_type_iterator_test.cpp)

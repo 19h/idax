@@ -4,6 +4,14 @@
 #include "detail/type_impl.hpp"
 #include <ida/instruction.hpp>
 
+// IDA SDK type flags - fallback definitions if not provided by SDK headers
+#ifndef NTF_FUNC
+#define NTF_FUNC 0x0001
+#endif
+#ifndef NTF_TYPE
+#define NTF_TYPE 0x0002
+#endif
+
 namespace ida::type {
 
 // NOTE: TypeInfo::Impl and TypeInfoAccess are defined in detail/type_impl.hpp
@@ -629,6 +637,476 @@ Result<std::size_t> import_type(std::string_view source_til_name,
         return std::unexpected(Error::not_found("Type not found in source library",
                                                  tname));
     return static_cast<std::size_t>(ordinal);
+}
+
+NamedTypeIterator::~NamedTypeIterator() {
+    delete impl_;
+}
+
+NamedTypeRange::~NamedTypeRange() {
+    delete impl_;
+}
+
+NamedTypeIterator::NamedTypeIterator(const NamedTypeIterator& other)
+    : impl_(other.impl_ ? new NamedTypeIterator::Impl(*other.impl_) : nullptr) {
+}
+
+NamedTypeIterator& NamedTypeIterator::operator=(const NamedTypeIterator& other) {
+    if (this != &other) {
+        delete impl_;
+        impl_ = other.impl_ ? new NamedTypeIterator::Impl(*other.impl_) : nullptr;
+    }
+    return *this;
+}
+
+NamedTypeRange::NamedTypeRange(const NamedTypeRange& other)
+    : impl_(other.impl_ ? new NamedTypeRange::Impl(*other.impl_) : nullptr) {
+}
+
+NamedTypeRange& NamedTypeRange::operator=(const NamedTypeRange& other) {
+    if (this != &other) {
+        delete impl_;
+        impl_ = other.impl_ ? new NamedTypeRange::Impl(*other.impl_) : nullptr;
+    }
+    return *this;
+}
+
+
+namespace {
+// Helper to get library name from til_t*
+std::string get_library_name(til_t* til) {
+    if (!til) return {};
+    return std::string(til->name, strlen(til->name));
+}
+} // anonymous namespace
+
+// ============================================================================
+/// TilBaseIterator implementation
+// ============================================================================
+
+TilBaseIterator::~TilBaseIterator() {
+    delete TilBaseAccess::get(*this);
+}
+
+TilBaseIterator::TilBaseIterator(const TilBaseIterator& other) {
+    auto* copy = new TilBaseIterator::Impl(*TilBaseAccess::get(other));
+    TilBaseAccess::get(*this) = copy;
+}
+
+TilBaseIterator& TilBaseIterator::operator=(const TilBaseIterator& other) {
+    if (this != &other) {
+        delete TilBaseAccess::get(*this);
+        auto* copy = new TilBaseIterator::Impl(*TilBaseAccess::get(other));
+        TilBaseAccess::get(*this) = copy;
+    }
+    return *this;
+}
+
+TilBaseIterator& TilBaseIterator::operator++() {
+    auto* impl = TilBaseAccess::get(*this);
+    if (!impl || !impl->root_til) return *this;
+
+    impl->base_index++;
+    // base_index 0 = root til, base_index 1..base_count-1 = base[0..base_count-2]
+    // When exhausted, set base_index = base_count + 1 to match end() iterator
+    if (impl->base_index >= impl->base_count) {
+        impl->base_index = impl->base_count + 1;
+        impl->root_til = nullptr;
+        impl->current_name.clear();
+    } else {
+        til_t* current = (impl->base_index == 0)
+            ? impl->root_til
+            : impl->root_til->base[impl->base_index - 1];
+        impl->current_name = get_library_name(current);
+    }
+    return *this;
+}
+
+TilBaseIterator TilBaseIterator::operator++(int) {
+    TilBaseIterator tmp = *this;
+    ++(*this);
+    return tmp;
+}
+
+TilBaseIterator::reference TilBaseIterator::operator*() const {
+    static TilEntry entry;
+    auto* impl = TilBaseAccess::get(*this);
+    if (!impl || !impl->root_til || impl->base_index >= impl->base_count) {
+        entry.name.clear();
+        entry.til = nullptr;
+    } else {
+        til_t* current = (impl->base_index == 0)
+            ? impl->root_til
+            : impl->root_til->base[impl->base_index - 1];
+        entry.name = get_library_name(current);
+        entry.til = current;
+    }
+    return entry;
+}
+
+TilBaseIterator::pointer TilBaseIterator::operator->() const {
+    static TilEntry entry;
+    auto* impl = TilBaseAccess::get(*this);
+    if (!impl || !impl->root_til || impl->base_index >= impl->base_count) {
+        entry.name.clear();
+        entry.til = nullptr;
+    } else {
+        til_t* current = (impl->base_index == 0)
+            ? impl->root_til
+            : impl->root_til->base[impl->base_index - 1];
+        entry.name = get_library_name(current);
+        entry.til = current;
+    }
+    return &entry;
+}
+
+bool TilBaseIterator::operator==(const TilBaseIterator& other) const {
+    auto* a = TilBaseAccess::get(*this);
+    auto* b = TilBaseAccess::get(other);
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a->root_til != b->root_til) return false;
+    return a->base_index == b->base_index;
+}
+
+bool TilBaseIterator::operator!=(const TilBaseIterator& other) const {
+    return !(*this == other);
+}
+
+// ============================================================================
+/// TilBaseRange implementation
+// ============================================================================
+
+TilBaseRange::~TilBaseRange() {
+    delete TilBaseAccess::get(*this);
+}
+
+TilBaseRange::TilBaseRange(const TilBaseRange& other) {
+    auto* copy = new TilBaseRange::Impl(*TilBaseAccess::get(other));
+    TilBaseAccess::get(*this) = copy;
+}
+
+TilBaseRange& TilBaseRange::operator=(const TilBaseRange& other) {
+    if (this != &other) {
+        delete TilBaseAccess::get(*this);
+        auto* copy = new TilBaseRange::Impl(*TilBaseAccess::get(other));
+        TilBaseAccess::get(*this) = copy;
+    }
+    return *this;
+}
+
+TilBaseIterator TilBaseRange::begin() const {
+    TilBaseIterator it;
+    auto* impl = new TilBaseIterator::Impl(impl_->root_til, impl_->base_count);
+    TilBaseAccess::get(it) = impl;
+
+    // Initialize current_name to root til name
+    if (impl->root_til) {
+        impl->current_name = get_library_name(impl->root_til);
+    }
+    return it;
+}
+
+TilBaseIterator TilBaseRange::end() const {
+    TilBaseIterator it;
+    auto* eimpl = new TilBaseIterator::Impl(nullptr, impl_->base_count);
+    eimpl->base_index = impl_->base_count + 1;  // Past the last valid position
+    TilBaseAccess::get(it) = eimpl;
+    return it;
+}
+
+Result<TilBaseRange> all_tils() {
+    til_t* til = get_idati();
+    if (!til)
+        return std::unexpected(Error::not_found("No type library available"));
+
+    TilBaseRange range;
+    auto* rimpl = new TilBaseRange::Impl(til, til->nbases + 1);  // +1 for root til
+    TilBaseAccess::get(range) = rimpl;
+    return range;
+}
+
+// ============================================================================
+/// TILTypeIterator implementation
+// ============================================================================
+
+TILTypeIterator::~TILTypeIterator() {
+    delete TILTypeAccess::get(*this);
+}
+
+TILTypeIterator::TILTypeIterator(const TILTypeIterator& other) {
+    auto* copy = new TILTypeIterator::Impl(*TILTypeAccess::get(other));
+    TILTypeAccess::get(*this) = copy;
+}
+
+TILTypeIterator& TILTypeIterator::operator=(const TILTypeIterator& other) {
+    if (this != &other) {
+        delete TILTypeAccess::get(*this);
+        auto* copy = new TILTypeIterator::Impl(*TILTypeAccess::get(other));
+        TILTypeAccess::get(*this) = copy;
+    }
+    return *this;
+}
+
+TILTypeIterator& TILTypeIterator::operator++() {
+    auto* impl = TILTypeAccess::get(*this);
+    if (!impl || !impl->til) return *this;
+
+    if (impl->current_name.empty()) {
+        // First call - use first_named_type
+        const char* first = first_named_type(impl->til, impl->flags);
+        if (first) {
+            impl->current_name = first;
+        } else {
+            impl->til = nullptr;
+        }
+    } else {
+        // Subsequent call - use next_named_type
+        const char* next = next_named_type(impl->til, impl->current_name.c_str(), impl->flags);
+        if (next) {
+            impl->current_name = next;
+        } else {
+            impl->til = nullptr;
+            impl->current_name.clear();
+        }
+    }
+    return *this;
+}
+
+TILTypeIterator TILTypeIterator::operator++(int) {
+    TILTypeIterator tmp = *this;
+    ++(*this);
+    return tmp;
+}
+
+TILTypeIterator::reference TILTypeIterator::operator*() const {
+    static std::string name;
+    auto* impl = TILTypeAccess::get(*this);
+    name = impl ? impl->current_name : std::string{};
+    return name;
+}
+
+TILTypeIterator::pointer TILTypeIterator::operator->() const {
+    static std::string name;
+    auto* impl = TILTypeAccess::get(*this);
+    name = impl ? impl->current_name : std::string{};
+    return &name;
+}
+
+bool TILTypeIterator::operator==(const TILTypeIterator& other) const {
+    auto* a = TILTypeAccess::get(*this);
+    auto* b = TILTypeAccess::get(other);
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return a->til == b->til && a->current_name == b->current_name;
+}
+
+bool TILTypeIterator::operator!=(const TILTypeIterator& other) const {
+    return !(*this == other);
+}
+
+// ============================================================================
+/// TILTypeRange implementation
+// ============================================================================
+
+TILTypeRange::~TILTypeRange() {
+    delete TILTypeAccess::get(*this);
+}
+
+TILTypeRange::TILTypeRange(const TILTypeRange& other) {
+    auto* copy = new TILTypeRange::Impl(*TILTypeAccess::get(other));
+    TILTypeAccess::get(*this) = copy;
+}
+
+TILTypeRange& TILTypeRange::operator=(const TILTypeRange& other) {
+    if (this != &other) {
+        delete TILTypeAccess::get(*this);
+        auto* copy = new TILTypeRange::Impl(*TILTypeAccess::get(other));
+        TILTypeAccess::get(*this) = copy;
+    }
+    return *this;
+}
+
+TILTypeIterator TILTypeRange::begin() const {
+    TILTypeIterator it;
+    if (!impl_->til) return it;  // Early return if til is null
+
+    auto* impl = new TILTypeIterator::Impl(impl_->til, impl_->flags);
+    TILTypeAccess::get(it) = impl;
+
+    // Get first type name
+    const char* first = first_named_type(impl_->til, impl_->flags);
+    if (first) {
+        impl->current_name = first;
+    } else {
+        impl->til = nullptr;
+        impl->current_name.clear();
+    }
+    return it;
+}
+
+TILTypeIterator TILTypeRange::end() const {
+    TILTypeIterator it;
+    auto* eimpl = new TILTypeIterator::Impl(nullptr, impl_->flags);
+    TILTypeAccess::get(it) = eimpl;
+    return it;
+}
+
+Result<TILTypeRange> named_types_in(void* til_ptr, int flags) {
+    if (!til_ptr)
+        return std::unexpected(Error::validation("TIL pointer cannot be null"));
+
+    TILTypeRange range;
+    auto* rimpl = new TILTypeRange::Impl(static_cast<til_t*>(til_ptr), flags);
+    TILTypeAccess::get(range) = rimpl;
+    return range;
+}
+
+Result<TILTypeRange> named_types_in(std::string_view til_name, int flags) {
+    til_t* til = get_idati()->find_base(std::string(til_name).c_str());
+    if (!til) {
+        qstring errbuf;
+        til = load_til(std::string(til_name).c_str(), &errbuf, nullptr);
+        if (!til)
+            return std::unexpected(Error::not_found(
+                "Type library not found: " + std::string(til_name)));
+    }
+    return named_types_in(til, flags);
+}
+
+NamedTypeIterator& NamedTypeIterator::operator++() {
+    if (!impl_ || !impl_->root_til) return *this;
+
+    // Get the current til (root til is base 0, then base[1], base[2], etc.)
+    til_t* current_til = (impl_->base_index == 0)
+        ? impl_->root_til
+        : impl_->root_til->base[impl_->base_index];
+
+    const char* next = nullptr;
+    if (impl_->current_name.empty()) {
+        // Starting fresh on this til - use first_named_type
+        next = first_named_type(current_til, impl_->flags);
+    } else {
+        // Continue from where we left off - use next_named_type
+        next = next_named_type(current_til, impl_->current_name.c_str(), impl_->flags);
+    }
+    if (next) {
+        impl_->current_name = next;
+    } else {
+        // Exhausted current til, advance to next base
+        impl_->base_index++;
+        while (impl_->base_index < impl_->base_count) {
+            til_t* next_til = (impl_->base_index == 0)
+                ? impl_->root_til
+                : impl_->root_til->base[impl_->base_index];
+            if (!next_til) break;
+
+            impl_->current_name.clear();  // Reset before starting new til
+            const char* first = first_named_type(next_til, impl_->flags);
+            if (first) {
+                impl_->current_name = first;
+                impl_->current_library = get_library_name(next_til);
+                return *this;
+            }
+            impl_->base_index++;
+        }
+        // All bases exhausted, mark as end
+        impl_->current_name.clear();
+        impl_->current_library.clear();
+        impl_->root_til = nullptr;
+        impl_->base_index = 0;  // Must match end() iterator for equality comparison
+    }
+    return *this;
+}
+
+NamedTypeIterator NamedTypeIterator::operator++(int) {
+    NamedTypeIterator tmp = *this;
+    ++(*this);
+    return tmp;
+}
+
+NamedTypeIterator::reference NamedTypeIterator::operator*() const {
+    static NamedTypeEntry entry;
+    entry.name = impl_ ? impl_->current_name : std::string{};
+    entry.library_name = impl_ ? impl_->current_library : std::string{};
+    return entry;
+}
+
+NamedTypeIterator::pointer NamedTypeIterator::operator->() const {
+    static NamedTypeEntry entry;
+    if (impl_) {
+        entry.name = impl_->current_name;
+        entry.library_name = impl_->current_library;
+    } else {
+        entry.name.clear();
+        entry.library_name.clear();
+    }
+    return &entry;
+}
+
+bool NamedTypeIterator::operator==(const NamedTypeIterator& other) const {
+    if (!impl_ && !other.impl_) return true;
+    if (!impl_ || !other.impl_) return false;
+    return impl_->root_til == other.impl_->root_til
+        && impl_->base_index == other.impl_->base_index
+        && impl_->current_name == other.impl_->current_name;
+}
+
+bool NamedTypeIterator::operator!=(const NamedTypeIterator& other) const {
+    return !(*this == other);
+}
+
+NamedTypeIterator NamedTypeRange::begin() const {
+    NamedTypeIterator it;
+    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(impl_->root_til, impl_->flags);
+    if (NamedTypeAccess::get(it)->root_til) {
+        const char* first = first_named_type(NamedTypeAccess::get(it)->root_til, NamedTypeAccess::get(it)->flags);
+        if (first) {
+            NamedTypeAccess::get(it)->current_name = first;
+            NamedTypeAccess::get(it)->current_library = get_library_name(NamedTypeAccess::get(it)->root_til);
+            return it;
+        }
+    }
+    return end();
+}
+
+NamedTypeIterator NamedTypeRange::end() const {
+    NamedTypeIterator it;
+    NamedTypeAccess::get(it) = new NamedTypeIterator::Impl(nullptr, impl_->flags);
+    return it;
+}
+
+Result<NamedTypeRange> named_types(std::string_view til_name, int flags) {
+    std::string name_str(til_name);
+
+    til_t* til = nullptr;
+    if (!name_str.empty()) {
+        til = get_idati()->find_base(name_str.c_str());
+        if (til == nullptr) {
+            qstring errbuf;
+            til = load_til(name_str.c_str(), &errbuf, nullptr);
+            if (til == nullptr)
+                return std::unexpected(Error::not_found(
+                    "Type library not found: " + name_str));
+        }
+    } else {
+        til = get_idati();
+    }
+
+    if (til == nullptr)
+        return std::unexpected(Error::not_found("No type library available"));
+
+    NamedTypeRange range;
+    NamedTypeAccess::get(range) = new NamedTypeRange::Impl(til, flags);
+    return range;
+}
+
+Result<NamedTypeRange> named_types(std::string_view til_name) {
+    return named_types(til_name, NTF_TYPE);
+}
+
+Result<NamedTypeRange> named_types() {
+    return named_types({}, NTF_TYPE);
 }
 
 Result<TypeInfo> ensure_named_type(std::string_view type_name,
