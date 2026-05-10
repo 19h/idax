@@ -527,9 +527,12 @@ Status TypeInfo::apply(Address ea) const {
         return std::unexpected(Error::internal("TypeInfo has null impl"));
 
   if (ida::instruction::is_call(ea)) {
-    if (!apply_callee_tinfo(ea, impl_->ti))
+    if (apply_callee_tinfo(ea, impl_->ti))
+      return ida::ok();
+    if (!apply_tinfo(ea, impl_->ti, TINFO_DEFINITE))
       return std::unexpected(
-        Error::sdk("apply_callee_tinfo failed", std::to_string(ea)));
+        Error::sdk("apply_callee_tinfo and apply_tinfo fallback both failed",
+                   std::to_string(ea)));
   } else {
     if (!apply_tinfo(ea, impl_->ti, TINFO_DEFINITE))
       return std::unexpected(
