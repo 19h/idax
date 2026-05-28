@@ -44,9 +44,7 @@ static bool GetOrdinalArg(Nan::NAN_METHOD_ARGS_TYPE info, int idx, std::uint64_t
             Nan::ThrowTypeError("Invalid ordinal string");
             return false;
         }
-        char* end = nullptr;
-        out = std::strtoull(*str, &end, 0);
-        if (end == *str) {
+        if (!ParseUnsignedInteger(std::string_view(*str, std::strlen(*str)), 0, out)) {
             Nan::ThrowTypeError("Invalid ordinal string");
             return false;
         }

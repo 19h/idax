@@ -5,11 +5,13 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <limits>
 #include <map>
 #include <string>
 #include <string_view>
@@ -65,14 +67,28 @@ struct Options {
 
 Options g_options;
 
+bool parse_unsigned_value(std::string_view text, int base, std::uint64_t* out_value) {
+    if (text.empty() || out_value == nullptr) {
+        return false;
+    }
+    std::uint64_t parsed = 0;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    auto [ptr, ec] = std::from_chars(begin, end, parsed, base);
+    if (ec != std::errc{} || ptr != end) {
+        return false;
+    }
+    *out_value = parsed;
+    return true;
+}
+
 bool parse_size_value(std::string_view text, std::size_t* out_value) {
     if (text.empty() || out_value == nullptr) {
         return false;
     }
-    std::string copy(text);
-    char* end = nullptr;
-    unsigned long long parsed = std::strtoull(copy.c_str(), &end, 10);
-    if (end == nullptr || *end != '\0') {
+    std::uint64_t parsed = 0;
+    if (!parse_unsigned_value(text, 10, &parsed)
+        || parsed > (std::numeric_limits<std::size_t>::max)()) {
         return false;
     }
     *out_value = static_cast<std::size_t>(parsed);
@@ -96,7 +112,9 @@ ida::Address parse_address_token(std::string_view text) {
                 return ida::BadAddress;
             }
         }
-        return static_cast<ida::Address>(std::strtoull(token.c_str(), nullptr, 16));
+        std::uint64_t parsed = 0;
+        return parse_unsigned_value(token, 16, &parsed) ? static_cast<ida::Address>(parsed)
+                                                        : ida::BadAddress;
     }
 
     for (char c : token) {
@@ -104,7 +122,9 @@ ida::Address parse_address_token(std::string_view text) {
             return ida::BadAddress;
         }
     }
-    return static_cast<ida::Address>(std::strtoull(token.c_str(), nullptr, 10));
+    std::uint64_t parsed = 0;
+    return parse_unsigned_value(token, 10, &parsed) ? static_cast<ida::Address>(parsed)
+                                                    : ida::BadAddress;
 }
 
 ida::Result<ida::Address> resolve_target(std::string_view token) {

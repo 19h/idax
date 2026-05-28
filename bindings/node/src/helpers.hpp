@@ -12,7 +12,9 @@
 #include <ida/error.hpp>
 #include <ida/address.hpp>
 
+#include <charconv>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -26,6 +28,30 @@ namespace idax_node {
 /// This is used by database::close() bindings to release cfunc-backed
 /// wrappers before the IDA database is torn down.
 void DisposeAllDecompilerFunctions();
+
+inline bool ParseUnsignedInteger(std::string_view text, unsigned base, std::uint64_t& out) {
+    if (text.empty()) {
+        return false;
+    }
+    if (base == 0) {
+        if (text.size() > 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X')) {
+            text.remove_prefix(2);
+            base = 16;
+        } else if (text.size() > 1 && text[0] == '0') {
+            text.remove_prefix(1);
+            base = 8;
+        } else {
+            base = 10;
+        }
+    }
+    if (text.empty()) {
+        out = 0;
+        return true;
+    }
+    auto [ptr, ec] = std::from_chars(
+        text.data(), text.data() + text.size(), out, static_cast<int>(base));
+    return ec == std::errc{} && ptr == text.data() + text.size();
+}
 
 // ── Address conversion ──────────────────────────────────────────────────
 // Addresses are uint64_t. JavaScript numbers only have 53 bits of integer
@@ -49,9 +75,11 @@ inline bool ToAddress(v8::Local<v8::Value> val, ida::Address& out) {
     if (val->IsString()) {
         Nan::Utf8String str(val);
         if (*str == nullptr) return false;
-        char* end = nullptr;
-        out = std::strtoull(*str, &end, 0);
-        return end != *str;
+        std::uint64_t parsed = 0;
+        if (!ParseUnsignedInteger(std::string_view(*str, std::strlen(*str)), 0, parsed))
+            return false;
+        out = parsed;
+        return true;
     }
     return false;
 }

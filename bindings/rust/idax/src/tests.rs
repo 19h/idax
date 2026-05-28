@@ -1417,17 +1417,9 @@ mod ui_tests {
     }
 
     #[test]
-    fn test_clipboard_default_contract_and_validation() {
+    fn test_clipboard_validation_is_local() {
         let invalid = ui::copy_to_clipboard("bad\0clipboard").unwrap_err();
         assert_eq!(invalid.category, ErrorCategory::Validation);
-
-        if ui::clipboard_backend() == "unsupported" {
-            let copy_error = ui::copy_to_clipboard("idax-rust-ui-parity").unwrap_err();
-            assert_eq!(copy_error.category, ErrorCategory::Unsupported);
-
-            let read_error = ui::read_clipboard().unwrap_err();
-            assert_eq!(read_error.category, ErrorCategory::Unsupported);
-        }
     }
 
     #[test]

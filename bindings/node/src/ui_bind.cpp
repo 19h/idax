@@ -33,7 +33,7 @@ bool GetRequiredU16Arg(Nan::NAN_METHOD_ARGS_TYPE info, int idx, std::uint16_t& o
     std::int64_t value = 0;
     if (!GetRequiredInt64Arg(info, idx, value))
         return false;
-    if (value < 0 || value > std::numeric_limits<std::uint16_t>::max()) {
+    if (value < 0 || value > (std::numeric_limits<std::uint16_t>::max)()) {
         Nan::ThrowRangeError("Expected unsigned 16-bit integer argument");
         return false;
     }
@@ -84,7 +84,7 @@ bool GetAskTextOptions(Nan::NAN_METHOD_ARGS_TYPE info, int idx, AskTextOptions& 
             }
             double max_size = Nan::To<double>(value).FromJust();
             if (max_size < 0
-                || max_size > static_cast<double>(std::numeric_limits<std::size_t>::max())) {
+                || max_size > static_cast<double>((std::numeric_limits<std::size_t>::max)())) {
                 Nan::ThrowRangeError("Expected askText maxSize to fit size_t");
                 return false;
             }

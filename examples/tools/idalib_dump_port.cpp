@@ -8,6 +8,7 @@
 #include <ida/idax.hpp>
 
 #include <algorithm>
+#include <charconv>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -85,6 +86,21 @@ Stats g_stats;
 std::ostream* g_output = &std::cout;
 std::ofstream g_output_file;
 
+bool parse_hex_address_value(std::string_view text, ida::Address* out_value) {
+    if (text.empty() || out_value == nullptr) {
+        return false;
+    }
+    std::uint64_t parsed = 0;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    auto [ptr, ec] = std::from_chars(begin, end, parsed, 16);
+    if (ec != std::errc{} || ptr != end) {
+        return false;
+    }
+    *out_value = static_cast<ida::Address>(parsed);
+    return true;
+}
+
 std::vector<std::string> split_list(std::string_view text) {
     std::vector<std::string> out;
     std::string current;
@@ -144,7 +160,8 @@ ida::Address parse_address(std::string_view text) {
             return ida::BadAddress;
         }
     }
-    return static_cast<ida::Address>(std::strtoull(s.c_str(), nullptr, 16));
+    ida::Address parsed = ida::BadAddress;
+    return parse_hex_address_value(s, &parsed) ? parsed : ida::BadAddress;
 }
 
 bool regex_or_substring_match(const std::string& pattern, const std::string& candidate) {

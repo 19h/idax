@@ -169,8 +169,8 @@ public:
     Status prepare() {
         if (value_ == nullptr)
             return std::unexpected(Error::internal("Form integer binding is null"));
-        if (*value_ < static_cast<std::int64_t>(std::numeric_limits<sval_t>::min())
-            || *value_ > static_cast<std::int64_t>(std::numeric_limits<sval_t>::max())) {
+        if (*value_ < static_cast<std::int64_t>((std::numeric_limits<sval_t>::min)())
+            || *value_ > static_cast<std::int64_t>((std::numeric_limits<sval_t>::max)())) {
             return std::unexpected(Error::validation("Form integer value is out of SDK range"));
         }
         sdk_value_ = static_cast<sval_t>(*value_);
