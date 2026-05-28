@@ -1268,7 +1268,7 @@ mod plugin_tests {
 
 #[cfg(test)]
 mod path_tests {
-    use crate::error::Result;
+    use crate::error::{ErrorCategory, Result};
     use crate::path;
 
     #[test]
@@ -1279,10 +1279,19 @@ mod path_tests {
     }
 
     #[test]
-    fn test_path_helpers_are_locally_runnable() {
-        assert_eq!(path::basename("alpha/beta.bin").unwrap(), "beta.bin");
-        assert_eq!(path::dirname("alpha/beta.bin").unwrap(), "alpha");
-        assert!(path::is_directory(".").unwrap());
+    fn test_path_helpers_validate_before_ffi() {
+        assert_eq!(
+            path::basename("bad\0path").unwrap_err().category,
+            ErrorCategory::Validation
+        );
+        assert_eq!(
+            path::dirname("bad\0path").unwrap_err().category,
+            ErrorCategory::Validation
+        );
+        assert_eq!(
+            path::is_directory("bad\0path").unwrap_err().category,
+            ErrorCategory::Validation
+        );
     }
 }
 
