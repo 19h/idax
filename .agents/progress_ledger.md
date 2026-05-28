@@ -1794,3 +1794,8 @@
   - 16.93.2. Linked the concise talk brief (`presentation/idax_hexrays_talk_material.md`) to the new deep-comparison reference so the presentation materials now exist in both summary and detail forms.
   - 16.93.3. Grounded module-authoring comparisons in the canonical IDA SDK templates and sample artifacts (`src/cmake/templates/plugin/main.cpp`, `loader/loader.cpp`, `procmod/reg.cpp`, plus `hello.cpp` and `vds5` Hex-Rays sample) rather than relying only on header signatures, giving the presentation material source-backed examples of real exported ABI shapes (`PLUGIN`, `LDSC`, `LPH`).
   - 16.93.4. Recorded finding [F366] and mirrored it into `.agents/knowledge_base.md`.
+
+- **16.94. ida-cdump Parity Task Plan Established**
+  - 16.94.1. Reviewed the finalized `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` parity audit and translated it into concrete idax-side implementation work.
+  - 16.94.2. Added `docs/codedump_parity_tasks.md` with implementation tasks, deliverables, acceptance criteria, and a suggested execution order for typed forms, wait-box UI, Hex-Rays popup events, Local Types action context payloads, clipboard/text/path helpers, lvar-setting snapshots, prototype apply, and ctree migration helpers.
+  - 16.94.3. Added Phase 22 (`ida-cdump Parity Closure`) to `.agents/roadmap.md` and queued the work in `.agents/active_work.md`.

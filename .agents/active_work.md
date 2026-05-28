@@ -75,3 +75,13 @@
   - 5.1.6. **Status:** Pending triage.
 
 ---
+
+### 6. ida-cdump Parity Closure (Phase 22)
+
+- **6.1. Task Plan**
+  - 6.1.1. **Action:** Implement the concrete parity tasks documented in `docs/codedump_parity_tasks.md`.
+  - 6.1.2. **Scope:** Typed forms, wait-box UI, Hex-Rays popup events, Local Types action context payloads, clipboard/text/path helpers, lvar-setting snapshots, prototype apply, and read-only ctree migration helpers.
+  - 6.1.3. **Suggested order:** P22.5 low-risk helpers, P22.2 wait box, P22.3 popup event, P22.4 Local Types context, P22.6 lvar/prototype metadata, P22.1 typed forms, P22.7 ctree accessors, P22.8 docs/tests.
+  - 6.1.4. **Status:** Queued.
+
+---

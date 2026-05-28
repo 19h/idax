@@ -32,6 +32,7 @@ Current overall phase status:
 - Phase 19: 100% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with procmod + plugin-style standalone flows including `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin`; `jbc_full_loader` rewritten to actively mutate database layout instead of just printing text; TypeScript + Cargo example checks passing; Node addon runtime linkage repaired via rebuild with correct IDA install path; runtime matrix passes for Node tool examples and expanded Rust adaptation set including JBC rows via synthetic fixture validation; ported UI-constrained `idapcode` and `lifter` analysis slices to headless examples)
 - Phase 20: ~75% (real-IDA CI hardening in progress: deterministic installer resolution + macOS `IDADIR` normalization landed; Node example argv contract fixed; Windows Node import-library fallback hardened; workflow now uses Windows-native shells/runtime path propagation for Rust/Node example execution to avoid Git-Bash linker collisions and missing-DLL runtime failures)
 - Phase 21: 100% (example loader port continuation: completed `sep_firmware_loader.cpp` as a full-functionality idax loader port of the Binary Ninja SEP firmware plugin, covering SEP firmware detection, module-table parsing, Mach-O/raw module mapping, shared-library slide handling, header/load-command annotations, firmware type definitions/application, pointer rewrite passes, entry registration, symbol import, and example build/docs wiring)
+- Phase 22: 0% (ida-cdump parity task plan established in `docs/codedump_parity_tasks.md`; implementation pending for typed forms, wait-box UI, Hex-Rays popup events, Local Types action context payloads, clipboard/text/path helpers, lvar-setting snapshots, prototype apply, and read-only ctree migration helpers)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -75,5 +76,18 @@ Current overall phase status:
 - [~] P20.5 Re-run `Bindings CI` matrix and close residual runtime/linking regressions (current focus: validate Node macOS decompiler-wrapper pre-close disposal for `complexity_metrics` exit segfaults; verify Windows Rust runtime hardening after link fixes: minimal init argv, isolated `IDAUSR`, trace toggles (`IDAX_RUST_EXAMPLE_TRACE=1`), fixture-IDB input (avoid raw PE loader path), and build+direct-exec workflow for improved failure attribution; keep `Validation Matrix` link-safe after the loader bridge export change by providing a non-loader fallback for `idax_loader_bridge_init` while preserving real loader-module `LDSC` exports; normalize bindings-side SDK library discovery so `IDASDK=/.../ida-sdk/src` still resolves platform import libs/stubs from the checkout root or installed `IDADIR`; and account for current Windows SDK layout using `x64_win_64` / `x64_win_64_s` while restricting Rust integration execution to the stable macOS/Windows paths in `Bindings CI`).
 - [x] P20.6 Close `ida::database::set_address_bitness` parity across C++ API surface checks, Node/Rust bindings, and docs/agent catalogs.
 - [x] P20.7 Close `MicrocodeContext` introspection parity across Node/Rust bindings and documentation/catalog surfaces.
+
+---
+
+### Phase 22 TODO Action Items (ida-cdump Parity Closure)
+
+- [ ] P22.1 Add typed `ida::ui::ask_form` bindings and a compile-time typed `FormBuilder`.
+- [ ] P22.2 Add `ida::ui::WaitBox` RAII progress/cancellation helpers.
+- [ ] P22.3 Expose Hex-Rays `hxe_populating_popup` as `ida::decompiler::on_populating_popup`.
+- [ ] P22.4 Add Local Types `TypeRef` payload support to `ida::plugin::ActionContext`.
+- [ ] P22.5 Add Qt clipboard, multiline `ask_text`, `database::idb_path`, and path-helper coverage.
+- [ ] P22.6 Add Hex-Rays lvar-settings snapshot/writeback, lvar comment writeback, and function prototype apply APIs.
+- [ ] P22.7 Add read-only ctree migration helpers needed by `ida-cdump` analysis.
+- [ ] P22.8 Update docs/examples/tests and map each `ida-cdump` gap row to the new idax API.
 
 ---
