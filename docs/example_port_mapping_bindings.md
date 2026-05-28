@@ -42,7 +42,7 @@ Legend:
 | `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
 | `examples/plugin/driverbuddy_port_plugin.cpp` | `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` (`Adapted`) | `bindings/node/examples/binary_forensics.ts` (`Adapted`) | Headless driver fingerprinting/IOCTL scan subset |
 | `examples/plugin/ida_names_port_plugin.cpp` | `bindings/rust/idax/examples/ida_names_port_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless title-derivation report (demangled-short fallback to raw) |
-| `examples/plugin/qtform_renderer_plugin.cpp` | `bindings/rust/idax/examples/qtform_renderer_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless parser/report for form-declaration markup; `ask_form` call remains wrapper gap |
+| `examples/plugin/qtform_renderer_plugin.cpp` | `bindings/rust/idax/examples/qtform_renderer_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless parser/report for form-declaration markup; plugin-host "Test in ask_form" uses idax markup-only `ask_form` |
 | `examples/plugin/storage_metadata_plugin.cpp` | `bindings/rust/idax/examples/storage_metadata_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Fingerprint collection + netnode persistence |
 | `examples/plugin/deep_analysis_plugin.cpp` | `bindings/rust/idax/examples/deep_analysis_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Security-oriented audit report adaptation |
 | `examples/plugin/*` (GUI-heavy variants) | `Pending` | `Mostly N/A (host-constrained)` | Custom widgets/docked UI remain host/plugin-centric |

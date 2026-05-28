@@ -227,6 +227,11 @@ NAN_METHOD(InputFilePath) {
     info.GetReturnValue().Set(FromString(path));
 }
 
+NAN_METHOD(IdbPath) {
+    IDAX_UNWRAP(auto path, ida::database::idb_path());
+    info.GetReturnValue().Set(FromString(path));
+}
+
 NAN_METHOD(FileTypeName) {
     IDAX_UNWRAP(auto name, ida::database::file_type_name());
     info.GetReturnValue().Set(FromString(name));
@@ -418,6 +423,7 @@ void InitDatabase(v8::Local<v8::Object> target) {
 
     // Metadata
     SetMethod(ns, "inputFilePath",    InputFilePath);
+    SetMethod(ns, "idbPath",          IdbPath);
     SetMethod(ns, "fileTypeName",     FileTypeName);
     SetMethod(ns, "loaderFormatName", LoaderFormatName);
     SetMethod(ns, "inputMd5",        InputMd5);

@@ -1,9 +1,9 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
-use idax::{address, data, database, entry, fixup, function, segment, storage, Error, Result};
-use std::collections::hash_map::DefaultHasher;
+use common::{DatabaseSession, format_error, print_usage};
+use idax::{Error, Result, address, data, database, entry, fixup, function, segment, storage};
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Default)]

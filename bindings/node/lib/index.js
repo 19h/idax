@@ -83,7 +83,7 @@ try {
 // The native addon sets each namespace as a property on the exports object:
 //   database, address, segment, function, instruction, name, xref,
 //   comment, data, search, analysis, type, entry, fixup, event,
-//   storage, diagnostics, lumina, lines, decompiler
+//   storage, diagnostics, lumina, lines, ui, decompiler, path
 
 module.exports = native;
 
@@ -109,7 +109,9 @@ module.exports.storage = native.storage;
 module.exports.diagnostics = native.diagnostics;
 module.exports.lumina = native.lumina;
 module.exports.lines = native.lines;
+module.exports.ui = native.ui;
 module.exports.decompiler = native.decompiler;
+module.exports.path = native.path;
 
 // Convenience: export the BadAddress sentinel
 // This matches ida::BadAddress = ~uint64_t{0} = 0xFFFFFFFFFFFFFFFF

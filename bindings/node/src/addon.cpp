@@ -28,7 +28,9 @@ NAN_MODULE_INIT(InitAll) {
     InitDiagnostics(target);
     InitLumina(target);
     InitLines(target);
+    InitUi(target);
     InitDecompiler(target);
+    InitPath(target);
 }
 
 NODE_MODULE(idax_native, InitAll)

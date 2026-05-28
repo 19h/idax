@@ -67,6 +67,13 @@ static void test_database() {
     CHECK_OK(path);
     if (path) std::cout << "  input: " << *path << "\n";
 
+    auto idb_path = ida::database::idb_path();
+    CHECK_OK(idb_path);
+    if (idb_path) {
+        CHECK(!idb_path->empty());
+        std::cout << "  idb: " << *idb_path << "\n";
+    }
+
     auto file_type = ida::database::file_type_name();
     CHECK_OK(file_type);
     if (file_type)

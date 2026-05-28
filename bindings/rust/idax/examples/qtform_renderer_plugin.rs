@@ -318,11 +318,11 @@ fn render_report(fields: &[Field], source_kind: &str, ask_form_test: bool) -> St
     report.push_str("---------------\n");
     if ask_form_test {
         report.push_str(
-            "requested: yes\nstatus: not-executed (idax currently does not expose a public ui::ask_form wrapper)\n",
+            "requested: yes\nstatus: not-executed (ui::ask_form is host-modal and requires an interactive IDA UI host)\n",
         );
     } else {
         report.push_str(
-            "requested: no\nstatus: not-executed (idax currently does not expose a public ui::ask_form wrapper)\n",
+            "requested: no\nstatus: available through ui::ask_form in host-modal plugin contexts\n",
         );
     }
 

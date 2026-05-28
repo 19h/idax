@@ -3,9 +3,11 @@
 ///        dock widgets, navigation, and event subscriptions.
 
 #include "detail/sdk_bridge.hpp"
+#include "detail/qt_clipboard_bridge.hpp"
 #include <ida/ui.hpp>
 #include <mutex>
 #include <atomic>
+#include <limits>
 #include <memory>
 #include <unordered_map>
 
@@ -78,6 +80,32 @@ Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_valu
     return static_cast<std::int64_t>(val);
 }
 
+Result<std::string> ask_text(std::string_view prompt,
+                             std::string_view default_value,
+                             std::size_t max_size,
+                             bool accept_tabs,
+                             bool normal_font) {
+    qstring answer;
+    qstring qprompt = ida::detail::to_qstring(prompt);
+    qstring qdefault = ida::detail::to_qstring(default_value);
+
+    std::string formatted_prompt;
+    if (accept_tabs)
+        formatted_prompt += "ACCEPT TABS\n";
+    if (normal_font)
+        formatted_prompt += "NORMAL FONT\n";
+    formatted_prompt.append(qprompt.c_str(), qprompt.length());
+
+    if (!::ask_text(&answer,
+                    max_size,
+                    qdefault.empty() ? nullptr : qdefault.c_str(),
+                    "%s",
+                    formatted_prompt.c_str())) {
+        return std::unexpected(Error::validation("User cancelled multiline input"));
+    }
+    return ida::detail::to_string(answer);
+}
+
 Result<bool> ask_form(std::string_view markup) {
     if (markup.empty())
         return std::unexpected(Error::validation("Form markup cannot be empty"));
@@ -87,6 +115,67 @@ Result<bool> ask_form(std::string_view markup) {
     if (rc < 0)
         return std::unexpected(Error::sdk("ask_form failed"));
     return rc > 0;
+}
+
+std::string_view clipboard_backend() noexcept {
+#if IDAX_HAVE_QT_CLIPBOARD
+    return "Qt";
+#else
+    return "unsupported";
+#endif
+}
+
+Status copy_to_clipboard(std::string_view text) {
+    return detail::qt_copy_to_clipboard(text);
+}
+
+Result<std::string> read_clipboard() {
+    return detail::qt_read_clipboard();
+}
+
+// ── Wait/progress UI ───────────────────────────────────────────────────
+
+WaitBox::WaitBox(std::string_view message) {
+    qstring qmessage = ida::detail::to_qstring(message);
+    ::show_wait_box("%s", qmessage.c_str());
+    active_ = true;
+}
+
+WaitBox::~WaitBox() {
+    dismiss();
+}
+
+WaitBox::WaitBox(WaitBox&& other) noexcept
+    : active_(other.active_) {
+    other.active_ = false;
+}
+
+WaitBox& WaitBox::operator=(WaitBox&& other) noexcept {
+    if (this != &other) {
+        dismiss();
+        active_ = other.active_;
+        other.active_ = false;
+    }
+    return *this;
+}
+
+Status WaitBox::update(std::string_view message) {
+    if (!active_)
+        return std::unexpected(Error::validation("WaitBox is not active"));
+    qstring qmessage = ida::detail::to_qstring(message);
+    ::replace_wait_box("%s", qmessage.c_str());
+    return ida::ok();
+}
+
+bool WaitBox::cancelled() const noexcept {
+    return active_ && ::user_cancelled();
+}
+
+void WaitBox::dismiss() noexcept {
+    if (active_) {
+        ::hide_wait_box();
+        active_ = false;
+    }
 }
 
 // ── Navigation ──────────────────────────────────────────────────────────

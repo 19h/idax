@@ -3,12 +3,26 @@
 
 #include "drawida_port_widget.hpp"
 
+#include "drawida_port_bridge.hpp"
+
+#include <qaction.h>
+#include <qboxlayout.h>
 #include <qbrush.h>
+#include <qcolordialog.h>
+#include <qdialog.h>
+#include <qdialogbuttonbox.h>
 #include <qevent.h>
 #include <qfont.h>
 #include <qfontmetrics.h>
+#include <qformlayout.h>
+#include <qinputdialog.h>
+#include <qlineedit.h>
 #include <qpainter.h>
 #include <qpen.h>
+#include <qpushbutton.h>
+#include <qsize.h>
+#include <qspinbox.h>
+#include <qtoolbar.h>
 
 #include <algorithm>
 #include <unordered_set>
@@ -17,7 +31,172 @@ namespace {
 
 constexpr std::size_t kUndoLimit = 50;
 
+void add_text(DrawIdaCanvasWidget* canvas) {
+    if (canvas == nullptr) {
+        return;
+    }
+
+    bool ok = false;
+    const QString text = QInputDialog::getText(
+        canvas,
+        "Add Text",
+        "Enter text:",
+        QLineEdit::Normal,
+        QString(),
+        &ok);
+
+    if (ok && !text.isEmpty()) {
+        canvas->set_text_mode(text);
+    }
+}
+
+void apply_color_preview(QPushButton* button, const QColor& color) {
+    button->setStyleSheet(
+        QString("background-color: %1; color: white;").arg(color.name()));
+}
+
+void choose_style_dialog(DrawIdaCanvasWidget* canvas) {
+    if (canvas == nullptr) {
+        return;
+    }
+
+    QDialog dialog(canvas);
+    dialog.setWindowTitle("Configure Style");
+
+    auto* layout = new QFormLayout(&dialog);
+
+    auto* pen_size_input = new QSpinBox(&dialog);
+    pen_size_input->setRange(1, 50);
+    pen_size_input->setValue(canvas->pen_size());
+
+    auto* text_size_input = new QSpinBox(&dialog);
+    text_size_input->setRange(6, 72);
+    text_size_input->setValue(canvas->text_font_size());
+
+    QColor selected_pen_color = canvas->pen_color();
+    auto* pen_color_button = new QPushButton("Choose Pen Color", &dialog);
+    apply_color_preview(pen_color_button, selected_pen_color);
+    QObject::connect(pen_color_button, &QPushButton::clicked, [&]() {
+        const QColor chosen = QColorDialog::getColor(selected_pen_color, &dialog);
+        if (chosen.isValid()) {
+            selected_pen_color = chosen;
+            apply_color_preview(pen_color_button, selected_pen_color);
+        }
+    });
+
+    QColor selected_background_color = canvas->background_color();
+    auto* background_color_button = new QPushButton("Choose Background Color", &dialog);
+    apply_color_preview(background_color_button, selected_background_color);
+
+    QObject::connect(background_color_button, &QPushButton::clicked, [&]() {
+        const QColor chosen = QColorDialog::getColor(selected_background_color, &dialog);
+        if (chosen.isValid()) {
+            selected_background_color = chosen;
+            apply_color_preview(background_color_button, selected_background_color);
+        }
+    });
+
+    layout->addRow("Pen/Eraser Size:", pen_size_input);
+    layout->addRow("Text Size:", text_size_input);
+    layout->addRow("Pen Color:", pen_color_button);
+    layout->addRow("Background Color:", background_color_button);
+
+    auto* buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+        &dialog);
+    layout->addWidget(buttons);
+    QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        canvas->set_pen_size(pen_size_input->value());
+        canvas->set_text_font_size(text_size_input->value());
+        canvas->set_pen_color(selected_pen_color);
+        canvas->set_background_color(selected_background_color);
+    }
+}
+
 } // namespace
+
+bool mount_drawida_panel(void* host_widget, std::string* error) {
+    auto* host = static_cast<QWidget*>(host_widget);
+    if (host == nullptr) {
+        if (error != nullptr) {
+            *error = "DrawIDA widget host pointer is null";
+        }
+        return false;
+    }
+
+    auto* layout = host->layout();
+    if (layout == nullptr) {
+        auto* vbox = new QVBoxLayout(host);
+        vbox->setContentsMargins(0, 0, 0, 0);
+        layout = vbox;
+    }
+
+    auto* toolbar = new QToolBar(host);
+    toolbar->setIconSize(QSize(24, 24));
+
+    auto* canvas = new DrawIdaCanvasWidget(host);
+
+    auto* draw_action = toolbar->addAction("Draw");
+    QObject::connect(draw_action,
+                     &QAction::triggered,
+                     canvas,
+                     &DrawIdaCanvasWidget::set_draw_mode);
+
+    auto* text_action = toolbar->addAction("Text");
+    QObject::connect(text_action, &QAction::triggered, [canvas]() {
+        add_text(canvas);
+    });
+
+    auto* select_action = toolbar->addAction("Select");
+    QObject::connect(select_action,
+                     &QAction::triggered,
+                     canvas,
+                     &DrawIdaCanvasWidget::set_select_mode);
+
+    auto* erase_action = toolbar->addAction("Eraser");
+    QObject::connect(erase_action,
+                     &QAction::triggered,
+                     canvas,
+                     &DrawIdaCanvasWidget::set_erase_mode);
+
+    toolbar->addSeparator();
+
+    auto* style_action = toolbar->addAction("Style");
+    QObject::connect(style_action, &QAction::triggered, [canvas]() {
+        choose_style_dialog(canvas);
+    });
+
+    toolbar->addSeparator();
+
+    auto* undo_action = toolbar->addAction("Undo");
+    QObject::connect(undo_action,
+                     &QAction::triggered,
+                     canvas,
+                     &DrawIdaCanvasWidget::undo);
+
+    auto* redo_action = toolbar->addAction("Redo");
+    QObject::connect(redo_action,
+                     &QAction::triggered,
+                     canvas,
+                     &DrawIdaCanvasWidget::redo);
+
+    toolbar->addSeparator();
+
+    auto* clear_action = toolbar->addAction("Clear");
+    QObject::connect(clear_action, &QAction::triggered, [canvas]() {
+        if (canvas != nullptr && canvas->has_content()) {
+            canvas->clear_canvas();
+        }
+    });
+
+    layout->addWidget(toolbar);
+    layout->addWidget(canvas);
+    layout->setContentsMargins(0, 0, 0, 0);
+    return true;
+}
 
 DrawIdaCanvasWidget::DrawIdaCanvasWidget(QWidget* parent)
     : QWidget(parent) {

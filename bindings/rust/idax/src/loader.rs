@@ -4,7 +4,7 @@
 
 use crate::address::{Address, AddressSize};
 use crate::error::{self, Error, Result, Status};
-use std::ffi::{c_void, CString};
+use std::ffi::{CString, c_void};
 
 /// Decoded load-file flags (`NEF_*`) as typed booleans.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

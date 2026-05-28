@@ -145,9 +145,5 @@ pub fn decode_addr_tag(tagged_text: &str, pos: usize) -> Option<i32> {
         Err(_) => return None,
     };
     let result = unsafe { idax_sys::idax_lines_decode_addr_tag(c_text.as_ptr(), pos) };
-    if result < 0 {
-        None
-    } else {
-        Some(result)
-    }
+    if result < 0 { None } else { Some(result) }
 }

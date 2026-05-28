@@ -35,9 +35,11 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <ida/type.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -124,6 +126,11 @@ void* make_plugin_export(PluginFactory factory,
 ///
 /// This is a normalized, SDK-opaque snapshot of key fields from
 /// internal SDK activation/update payloads.
+struct TypeRef {
+    std::string name;
+    ida::type::TypeInfo type;
+};
+
 struct ActionContext {
     std::string action_id;
     std::string widget_title;
@@ -147,6 +154,10 @@ struct ActionContext {
     /// Opaque decompiler-view handle (`vdui_t*` cast to `void*`) when
     /// available for pseudocode widget contexts.
     void* decompiler_view_handle{nullptr};
+
+    /// Current Local Types item when the action context comes from a type
+    /// listing widget and the SDK provided `action_ctx_base_t::type_ref`.
+    std::optional<TypeRef> type_ref;
 };
 
 /// Scoped callback for advanced action-context host access.

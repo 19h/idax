@@ -26,12 +26,12 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "nan": "^2.22.2",
-    "cmake-js": "^7.3.0"
+    "cmake-js": "^7.3.0",
+    "nan": "^2.27.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
   },
   "cmake-js": {
     "CMakeLists.txt": "CMakeLists.txt"

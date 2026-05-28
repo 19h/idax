@@ -39,12 +39,15 @@ static bool s_hexrays_initialized = false;
 
 namespace {
 
+std::mutex g_hexrays_lifecycle_mutex;
+std::size_t g_scoped_session_count = 0;
 std::mutex g_subscription_mutex;
 std::unordered_map<Token, std::function<void(const MaturityEvent&)>> g_maturity_callbacks;
 std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_func_printed_callbacks;
 std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_refresh_pseudocode_callbacks;
 std::unordered_map<Token, std::function<void(const CursorPositionEvent&)>> g_curpos_callbacks;
 std::unordered_map<Token, std::function<HintResult(const HintRequestEvent&)>> g_create_hint_callbacks;
+std::unordered_map<Token, std::function<void(const PopulatingPopupEvent&)>> g_populating_popup_callbacks;
 std::atomic<std::uint64_t> g_next_token{1};
 bool g_hexrays_callback_installed = false;
 
@@ -54,7 +57,23 @@ bool all_callbacks_empty_locked() {
         && g_func_printed_callbacks.empty()
         && g_refresh_pseudocode_callbacks.empty()
         && g_curpos_callbacks.empty()
-        && g_create_hint_callbacks.empty();
+        && g_create_hint_callbacks.empty()
+        && g_populating_popup_callbacks.empty();
+}
+
+bool hexrays_ready_locked() {
+    return s_hexrays_initialized || g_scoped_session_count > 0;
+}
+
+Status release_scoped_hexrays_session() {
+    std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
+    if (g_scoped_session_count == 0)
+        return std::unexpected(Error::conflict("Hex-Rays scoped session is not active"));
+
+    --g_scoped_session_count;
+    if (g_scoped_session_count == 0)
+        term_hexrays_plugin();
+    return ida::ok();
 }
 
 /// Try to erase a token from any callback map. Returns true if found and erased.
@@ -77,6 +96,10 @@ bool erase_from_any_map_locked(Token token) {
     }
     if (auto it = g_create_hint_callbacks.find(token); it != g_create_hint_callbacks.end()) {
         g_create_hint_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_populating_popup_callbacks.find(token); it != g_populating_popup_callbacks.end()) {
+        g_populating_popup_callbacks.erase(it);
         return true;
     }
     return false;
@@ -2073,6 +2096,30 @@ ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
         return 0;
     }
 
+    case hxe_populating_popup: {
+        TWidget* widget = va_arg(va, TWidget*);
+        TPopupMenu* popup = va_arg(va, TPopupMenu*);
+        vdui_t* vu = va_arg(va, vdui_t*);
+
+        PopulatingPopupEvent evt;
+        evt.widget_handle = static_cast<void*>(widget);
+        evt.popup_handle = static_cast<void*>(popup);
+        evt.view_handle = static_cast<void*>(vu);
+        if (vu != nullptr && vu->cfunc != nullptr)
+            evt.function_address = static_cast<Address>(vu->cfunc->entry_ea);
+
+        std::vector<std::function<void(const PopulatingPopupEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_populating_popup_callbacks.size());
+            for (const auto& [_, cb] : g_populating_popup_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
+        return 0;
+    }
+
     default:
         return 0;
     }
@@ -2091,8 +2138,37 @@ Status ensure_callback_installed_locked() {
 
 static Status ensure_hexrays();
 
+ScopedSession::~ScopedSession() {
+    release_noexcept();
+}
+
+void ScopedSession::release_noexcept() noexcept {
+    if (!active_)
+        return;
+    active_ = false;
+    (void)release_scoped_hexrays_session();
+}
+
+Status ScopedSession::close() {
+    if (!active_)
+        return std::unexpected(Error::conflict("Hex-Rays scoped session is already closed"));
+    active_ = false;
+    return release_scoped_hexrays_session();
+}
+
+Result<ScopedSession> initialize() {
+    std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
+    if (!init_hexrays_plugin()) {
+        return std::unexpected(Error::unsupported(
+            "Decompiler not available (Hex-Rays plugin not loaded)"));
+    }
+    ++g_scoped_session_count;
+    return ScopedSession(ScopedSession::AdoptTag{});
+}
+
 Result<bool> available() {
-    if (s_hexrays_initialized)
+    std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
+    if (hexrays_ready_locked())
         return true;
     if (init_hexrays_plugin()) {
         s_hexrays_initialized = true;
@@ -2188,6 +2264,24 @@ Result<Token> on_create_hint(std::function<HintResult(const HintRequestEvent&)> 
 
     const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
     g_create_hint_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Result<Token> on_populating_popup(std::function<void(const PopulatingPopupEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("populating_popup callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_populating_popup_callbacks.emplace(token, std::move(callback));
     return token;
 }
 
@@ -3325,7 +3419,8 @@ ScopedMicrocodeFilter::~ScopedMicrocodeFilter() {
 // ── Helper: ensure decompiler is initialized ────────────────────────────
 
 static Status ensure_hexrays() {
-    if (s_hexrays_initialized)
+    std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
+    if (hexrays_ready_locked())
         return ida::ok();
     if (init_hexrays_plugin()) {
         s_hexrays_initialized = true;
@@ -3339,6 +3434,54 @@ static Status ensure_hexrays() {
 
 static ItemType from_ctype(ctype_t ct) {
     return static_cast<ItemType>(static_cast<int>(ct));
+}
+
+static CtreeItemView make_ctree_item_view(const citem_t* item) {
+    if (item == nullptr)
+        return {};
+    CtreeItemView view;
+    view.type = from_ctype(item->op);
+    view.address = item->ea;
+    view.is_expression = item->is_expr();
+    return view;
+}
+
+static std::shared_ptr<const std::vector<CtreeItemView>> append_parent(
+    const std::shared_ptr<const std::vector<CtreeItemView>>& parents,
+    const citem_t* item) {
+    auto next = std::make_shared<std::vector<CtreeItemView>>();
+    if (parents != nullptr)
+        *next = *parents;
+    if (item != nullptr)
+        next->push_back(make_ctree_item_view(item));
+    return next;
+}
+
+static LocalVariable make_local_variable(const lvar_t& v, std::size_t index) {
+    LocalVariable lv;
+    lv.index       = index;
+    lv.name        = ida::detail::to_string(v.name);
+    lv.is_argument = v.is_arg_var();
+    lv.width       = v.width;
+
+    qstring type_str;
+    if (v.type().print(&type_str))
+        lv.type_name = ida::detail::to_string(type_str);
+    else
+        lv.type_name = "(unknown)";
+
+    lv.has_user_name = v.has_user_name();
+    lv.has_nice_name = v.has_nice_name();
+    lv.comment       = ida::detail::to_string(v.cmt);
+
+    if (v.is_stk_var())
+        lv.storage = VariableStorage::Stack;
+    else if (v.is_reg_var())
+        lv.storage = VariableStorage::Register;
+    else
+        lv.storage = VariableStorage::Unknown;
+
+    return lv;
 }
 
 // ── ExpressionView implementation ───────────────────────────────────────
@@ -3377,6 +3520,25 @@ Result<int> ExpressionView::variable_index() const {
     return e->v.idx;
 }
 
+Result<std::string> ExpressionView::helper_name() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->op != cot_helper || e->helper == nullptr)
+        return std::unexpected(Error::validation("Expression is not a helper"));
+    return std::string(e->helper);
+}
+
+Result<std::string> ExpressionView::type_declaration() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->type.empty())
+        return std::unexpected(Error::not_found("Expression has no materialized type"));
+    qstring type_str;
+    if (!e->type.print(&type_str))
+        return std::unexpected(Error::sdk("Failed to print expression type"));
+    return ida::detail::to_string(type_str);
+}
+
 Result<std::string> ExpressionView::string_value() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
@@ -3398,7 +3560,8 @@ Result<ExpressionView> ExpressionView::call_callee() const {
     auto* e = static_cast<cexpr_t*>(raw_);
     if (e->op != cot_call || e->x == nullptr)
         return std::unexpected(Error::validation("Expression is not a call"));
-    return ExpressionView(ExpressionView::Tag{}, e->x);
+    return ExpressionView(ExpressionView::Tag{}, e->x,
+                          append_parent(parents_, static_cast<citem_t*>(e)));
 }
 
 Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
@@ -3408,7 +3571,8 @@ Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
         return std::unexpected(Error::validation("Expression is not a call"));
     if (index >= e->a->size())
         return std::unexpected(Error::validation("Call argument index out of range"));
-    return ExpressionView(ExpressionView::Tag{}, &(*e->a)[index]);
+    return ExpressionView(ExpressionView::Tag{}, &(*e->a)[index],
+                          append_parent(parents_, static_cast<citem_t*>(e)));
 }
 
 Result<std::uint32_t> ExpressionView::member_offset() const {
@@ -3426,7 +3590,8 @@ Result<ExpressionView> ExpressionView::left() const {
     // Leaf ops: cot_num, cot_fnum, cot_str, cot_obj, cot_var, cot_insn, cot_helper, cot_empty
     if (e->x == nullptr)
         return std::unexpected(Error::validation("Expression has no left operand (leaf expression)"));
-    return ExpressionView(ExpressionView::Tag{}, e->x);
+    return ExpressionView(ExpressionView::Tag{}, e->x,
+                          append_parent(parents_, static_cast<citem_t*>(e)));
 }
 
 Result<ExpressionView> ExpressionView::right() const {
@@ -3442,7 +3607,8 @@ Result<ExpressionView> ExpressionView::right() const {
     // Guard: for member access, y is `m` (uint32), not a cexpr_t*
     if (e->op == cot_memref || e->op == cot_memptr)
         return std::unexpected(Error::validation("Use member_offset() for member access expressions"));
-    return ExpressionView(ExpressionView::Tag{}, e->y);
+    return ExpressionView(ExpressionView::Tag{}, e->y,
+                          append_parent(parents_, static_cast<citem_t*>(e)));
 }
 
 int ExpressionView::operand_count() const noexcept {
@@ -3493,6 +3659,20 @@ Result<std::string> ExpressionView::to_string() const {
     return std::string("(unknown)");
 }
 
+Result<std::optional<CtreeItemView>> ExpressionView::parent() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    if (parents_ == nullptr || parents_->empty())
+        return std::optional<CtreeItemView>{};
+    return parents_->back();
+}
+
+Result<std::vector<CtreeItemView>> ExpressionView::parents() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    if (parents_ == nullptr)
+        return std::vector<CtreeItemView>{};
+    return *parents_;
+}
+
 // ── StatementView implementation ────────────────────────────────────────
 
 ItemType StatementView::type() const noexcept {
@@ -3511,6 +3691,20 @@ Result<int> StatementView::goto_target_label() const {
     if (s->op != cit_goto || s->cgoto == nullptr)
         return std::unexpected(Error::validation("Statement is not a goto"));
     return s->cgoto->label_num;
+}
+
+Result<std::optional<CtreeItemView>> StatementView::parent() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    if (parents_ == nullptr || parents_->empty())
+        return std::optional<CtreeItemView>{};
+    return parents_->back();
+}
+
+Result<std::vector<CtreeItemView>> StatementView::parents() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    if (parents_ == nullptr)
+        return std::vector<CtreeItemView>{};
+    return *parents_;
 }
 
 // ── CtreeVisitor default implementations ────────────────────────────────
@@ -3569,7 +3763,7 @@ public:
 
     int idaapi visit_insn(cinsn_t* insn) override {
         ++items_visited_;
-        StatementView sv(StatementView::Tag{}, insn);
+        StatementView sv(StatementView::Tag{}, insn, parent_snapshot());
         auto action = visitor_.visit_statement(sv);
         if (action == VisitAction::Stop)
             return 1;  // Non-zero stops traversal.
@@ -3580,7 +3774,7 @@ public:
 
     int idaapi visit_expr(cexpr_t* expr) override {
         ++items_visited_;
-        ExpressionView ev(ExpressionView::Tag{}, expr);
+        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot());
         auto action = visitor_.visit_expression(ev);
         if (action == VisitAction::Stop)
             return 1;
@@ -3590,13 +3784,13 @@ public:
     }
 
     int idaapi leave_insn(cinsn_t* insn) override {
-        StatementView sv(StatementView::Tag{}, insn);
+        StatementView sv(StatementView::Tag{}, insn, parent_snapshot());
         auto action = visitor_.leave_statement(sv);
         return action == VisitAction::Stop ? 1 : 0;
     }
 
     int idaapi leave_expr(cexpr_t* expr) override {
-        ExpressionView ev(ExpressionView::Tag{}, expr);
+        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot());
         auto action = visitor_.leave_expression(ev);
         return action == VisitAction::Stop ? 1 : 0;
     }
@@ -3604,11 +3798,43 @@ public:
     int items_visited() const { return items_visited_; }
 
 private:
+    std::shared_ptr<const std::vector<CtreeItemView>> parent_snapshot() const {
+        if (!maintain_parents())
+            return {};
+
+        auto snapshot = std::make_shared<std::vector<CtreeItemView>>();
+        snapshot->reserve(parents.size());
+        for (const citem_t* item : parents)
+            snapshot->push_back(make_ctree_item_view(item));
+        return snapshot;
+    }
+
     CtreeVisitor& visitor_;
     int items_visited_;
 };
 
 } // anonymous namespace
+
+// ── LvarSnapshot impl ───────────────────────────────────────────────────
+
+struct LvarSnapshot::Impl {
+    lvar_uservec_t settings;
+};
+
+LvarSnapshot::LvarSnapshot() : impl_(std::make_shared<Impl>()) {}
+LvarSnapshot::~LvarSnapshot() = default;
+LvarSnapshot::LvarSnapshot(const LvarSnapshot&) = default;
+LvarSnapshot& LvarSnapshot::operator=(const LvarSnapshot&) = default;
+LvarSnapshot::LvarSnapshot(LvarSnapshot&&) noexcept = default;
+LvarSnapshot& LvarSnapshot::operator=(LvarSnapshot&&) noexcept = default;
+
+bool LvarSnapshot::empty() const noexcept {
+    return impl_ == nullptr || impl_->settings.empty();
+}
+
+std::size_t LvarSnapshot::saved_variable_count() const noexcept {
+    return impl_ == nullptr ? 0 : static_cast<std::size_t>(impl_->settings.lvvec.size());
+}
 
 // ── DecompiledFunction impl ─────────────────────────────────────────────
 
@@ -3758,34 +3984,19 @@ Result<std::vector<LocalVariable>> DecompiledFunction::variables() const {
     std::vector<LocalVariable> result;
     result.reserve(vars->size());
     for (std::size_t i = 0; i < vars->size(); ++i) {
-        const lvar_t& v = (*vars)[i];
-        LocalVariable lv;
-        lv.name        = ida::detail::to_string(v.name);
-        lv.is_argument = v.is_arg_var();
-        lv.width       = v.width;
-
-        // Get the type as a C string.
-        qstring type_str;
-        if (v.type().print(&type_str))
-            lv.type_name = ida::detail::to_string(type_str);
-        else
-            lv.type_name = "(unknown)";
-
-        // Extended properties
-        lv.has_user_name = v.has_user_name();
-        lv.has_nice_name = v.has_nice_name();
-        lv.comment       = ida::detail::to_string(v.cmt);
-
-        if (v.is_stk_var())
-            lv.storage = VariableStorage::Stack;
-        else if (v.is_reg_var())
-            lv.storage = VariableStorage::Register;
-        else
-            lv.storage = VariableStorage::Unknown;
-
-        result.push_back(std::move(lv));
+        result.push_back(make_local_variable((*vars)[i], i));
     }
     return result;
+}
+
+Result<LocalVariable> DecompiledFunction::variable(std::size_t variable_index) const {
+    CHECK_IMPL();
+
+    lvars_t* vars = impl_->cfunc->get_lvars();
+    if (vars == nullptr || variable_index >= vars->size())
+        return std::unexpected(Error::not_found("Variable index out of range",
+                                                std::to_string(variable_index)));
+    return make_local_variable((*vars)[variable_index], variable_index);
 }
 
 Status DecompiledFunction::rename_variable(std::string_view old_name,
@@ -3852,6 +4063,66 @@ Status DecompiledFunction::retype_variable(std::size_t variable_index,
 
     if (!modify_user_lvar_info(impl_->func_ea, MLI_TYPE, info))
         return std::unexpected(Error::sdk("modify_user_lvar_info(type) failed", context));
+    return ida::ok();
+}
+
+Result<LvarSnapshot> DecompiledFunction::capture_user_lvar_settings() const {
+    CHECK_IMPL();
+
+    LvarSnapshot snapshot;
+    if (!::restore_user_lvar_settings(&snapshot.impl_->settings, impl_->func_ea))
+        snapshot.impl_->settings.clear();
+    return snapshot;
+}
+
+Status DecompiledFunction::restore_user_lvar_settings(const LvarSnapshot& snapshot) {
+    CHECK_IMPL();
+
+    if (snapshot.impl_ == nullptr)
+        return std::unexpected(Error::validation("LvarSnapshot is empty or moved-from"));
+
+    ::save_user_lvar_settings(impl_->func_ea, snapshot.impl_->settings);
+    mark_cfunc_dirty(impl_->func_ea, true);
+    return ida::ok();
+}
+
+Status DecompiledFunction::set_variable_comment(std::string_view variable_name,
+                                                std::string_view comment) {
+    CHECK_IMPL();
+
+    if (variable_name.empty())
+        return std::unexpected(Error::validation("Variable name cannot be empty"));
+
+    std::string name_str(variable_name);
+    lvar_saved_info_t info;
+    if (!locate_lvar(&info.ll, impl_->func_ea, name_str.c_str()))
+        return std::unexpected(Error::not_found("Local variable not found", name_str));
+
+    info.cmt = qstring(comment.data(), comment.size());
+    if (!modify_user_lvar_info(impl_->func_ea, MLI_CMT, info))
+        return std::unexpected(Error::sdk("modify_user_lvar_info(comment) failed", name_str));
+    return ida::ok();
+}
+
+Status DecompiledFunction::set_variable_comment(std::size_t variable_index,
+                                                std::string_view comment) {
+    CHECK_IMPL();
+
+    lvars_t* variables = impl_->cfunc->get_lvars();
+    if (variables == nullptr || variable_index >= variables->size())
+        return std::unexpected(Error::not_found("Variable index out of range",
+                                                std::to_string(variable_index)));
+
+    lvar_saved_info_t info;
+    info.ll = (*variables)[variable_index];
+    info.cmt = qstring(comment.data(), comment.size());
+
+    std::string context = std::to_string(variable_index);
+    if (!(*variables)[variable_index].name.empty())
+        context = ida::detail::to_string((*variables)[variable_index].name);
+
+    if (!modify_user_lvar_info(impl_->func_ea, MLI_CMT, info))
+        return std::unexpected(Error::sdk("modify_user_lvar_info(comment) failed", context));
     return ida::ok();
 }
 
@@ -4092,6 +4363,36 @@ Status DecompilerView::retype_variable(std::size_t variable_index,
     if (!function)
         return std::unexpected(function.error());
     return function->retype_variable(variable_index, new_type);
+}
+
+Result<LvarSnapshot> DecompilerView::capture_user_lvar_settings() const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->capture_user_lvar_settings();
+}
+
+Status DecompilerView::restore_user_lvar_settings(const LvarSnapshot& snapshot) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->restore_user_lvar_settings(snapshot);
+}
+
+Status DecompilerView::set_variable_comment(std::string_view variable_name,
+                                            std::string_view comment) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->set_variable_comment(variable_name, comment);
+}
+
+Status DecompilerView::set_variable_comment(std::size_t variable_index,
+                                            std::string_view comment) const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->set_variable_comment(variable_index, comment);
 }
 
 Status DecompilerView::set_comment(Address address,

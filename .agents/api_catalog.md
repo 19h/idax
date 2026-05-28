@@ -28,6 +28,7 @@ This section captures the intended public API semantics at a concrete level so i
 - Introspection: name, size, bitness, returns/thunk/library flags
 - Frame surface: local/arg/register frame helpers with explicit stack semantics
 - Relationship helpers: callers/callees, chunk iteration, address iteration
+- Prototype application helpers (`set_prototype`, `apply_decl`)
 
 ### 17.5 `ida::instruction`
 - Decode/create operations with explicit DB mutation distinction
@@ -60,6 +61,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Apply/retrieve type operations
 - Type library access wrappers and import/export helpers
 - Standard-type bootstrap helper (`ensure_named_type`)
+- Bulk local type declaration import (`parse_declarations`) over SDK
+  `parse_decls` for ida-cdump metadata-apply migration
 
 ### 17.10 `ida::entry`
 - Entry listing and ordinal/index-safe APIs
@@ -84,13 +87,19 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.14 `ida::database`
 - Open/load/save/close wrappers
 - File-to-database and memory-to-database helpers
-- Snapshot wrappers and metadata APIs (hashes/image base/bounds)
+- Snapshot wrappers and metadata APIs (input path, IDB path, hashes/image base/bounds)
+
+### 17.14.a `ida::path`
+- Portable basename/dirname helpers
+- Directory existence checks for plugin UI/file workflows
+- Node/Rust wrappers for binding-side codedump path-cleanup parity
 
 ### 17.15 `ida::plugin`
 - Plugin base classes and lifecycle abstraction
 - Multi-instance support
 - Action/menu/toolbar/popup helper APIs
 - Registration helpers with type-safe callback signatures
+- Action-context Local Types `TypeRef` snapshots
 
 ### 17.16 `ida::loader`
 - Loader base class with accept/load/save lifecycle
@@ -113,7 +122,13 @@ This section captures the intended public API semantics at a concrete level so i
 
 ### 17.19 `ida::ui`
 - Typed action wrappers replacing unsafe vararg routes
-- Dialog/form abstractions
+- Dialog/form abstractions, including multiline text prompts, typed
+  `ask_form` binding packs, compile-time `FormBuilder`, and fixed-shape
+  Node/Rust typed-form entrypoints for audited codedump dialog packs
+- Optional Qt clipboard helpers (`copy_to_clipboard`, `read_clipboard`,
+  `clipboard_backend`) behind `IDAX_ENABLE_QT_CLIPBOARD`; enabling the Qt
+  backend requires an IDA-compatible `QT_NAMESPACE=QT` Qt package
+- Wait-box progress/cancellation RAII helpers
 - Chooser abstractions
 - Notification/event wrappers with clear ownership
 
@@ -129,10 +144,14 @@ This section captures the intended public API semantics at a concrete level so i
 
 ### 17.22 `ida::decompiler`
 - Availability and decompile entrypoints
+- Scoped Hex-Rays ownership (`initialize`, `ScopedSession`) for plugin-host
+  lifecycle code, with Node/Rust owned-session wrappers
 - Decompiled function object + pseudocode access
-- Local variable rename/retype helpers
-- Ctree visitor abstractions and position/address mappings
+- Local variable stable index, direct lookup, rename/retype/comment helpers
+- Local-variable user-settings snapshots (`LvarSnapshot`)
+- Ctree visitor abstractions, helper/type accessors, parent-chain snapshots, and position/address mappings
 - Cache invalidation controls (`mark_dirty`, `mark_dirty_with_callers`)
+- Hex-Rays event subscriptions including popup-population callbacks for dynamic decompiler menus
 - Microcode-filter lifecycle (`register_microcode_filter`, `unregister_microcode_filter`)
 - `MicrocodeContext` typed block/introspection read-back (`instruction`, `instruction_at_index`, `last_emitted_instruction`)
 

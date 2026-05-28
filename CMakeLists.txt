@@ -147,6 +147,38 @@ target_include_directories(idax
 # Consumers bring their own idasdk::plugin / idasdk::idalib / etc.
 target_link_libraries(idax PUBLIC idasdk_headers)
 
+# Qt clipboard support is opt-in because enabling it makes the static idax
+# archive carry Qt symbols into downstream plugin/addon links. IDA requires
+# a Qt build configured with QT_NAMESPACE=QT; using the host system Qt can
+# compile but will fail or misbehave once linked against IDA.
+option(IDAX_ENABLE_QT_CLIPBOARD "Enable Qt-backed ida::ui clipboard helpers" OFF)
+set(IDAX_QT6_DIR "" CACHE PATH "Qt6 CMake package directory built with QT_NAMESPACE=QT for IDA")
+if(IDAX_ENABLE_QT_CLIPBOARD)
+    if(IDAX_QT6_DIR)
+        set(Qt6_DIR "${IDAX_QT6_DIR}" CACHE PATH "Qt6 CMake package directory" FORCE)
+    endif()
+
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+
+    get_target_property(_idax_qt_core_defs Qt6::Core INTERFACE_COMPILE_DEFINITIONS)
+    if(NOT _idax_qt_core_defs)
+        set(_idax_qt_core_defs "")
+    endif()
+    if(NOT _idax_qt_core_defs MATCHES "(^|;)QT_NAMESPACE=QT(;|$)")
+        message(FATAL_ERROR
+            "IDAX_ENABLE_QT_CLIPBOARD requires an IDA-compatible Qt6 build "
+            "configured with QT_NAMESPACE=QT. Build the SDK-provided Qt with "
+            "`cmake --build ${CMAKE_BINARY_DIR} --target build_qt`, then "
+            "reconfigure with `-DIDAX_QT6_DIR=${QT_INSTALL_PREFIX}/lib/cmake/Qt6`, "
+            "or set Qt6_DIR to that package directory.")
+    endif()
+
+    target_link_libraries(idax PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
+    target_compile_definitions(idax PRIVATE IDAX_HAVE_QT_CLIPBOARD=1)
+else()
+    target_compile_definitions(idax PRIVATE IDAX_HAVE_QT_CLIPBOARD=0)
+endif()
+
 # C++23 for idax consumers
 target_compile_features(idax PUBLIC cxx_std_23)
 

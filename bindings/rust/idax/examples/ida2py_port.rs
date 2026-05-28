@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, resolve_symbol_or_address, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage, resolve_symbol_or_address};
 use idax::address::BAD_ADDRESS;
-use idax::{data, database, function, instruction, name, types, xref, Error, Result};
+use idax::{Error, Result, data, database, function, instruction, name, types, xref};
 
 #[derive(Debug, Clone)]
 struct CastRequest {
@@ -203,7 +203,8 @@ fn show_callsites(target: &str, output: &mut String) -> Result<()> {
         let caller = function::at(reference.from)
             .map(|f| f.name().to_string())
             .unwrap_or_else(|_| "<unknown>".to_string());
-        let line = instruction::text(reference.from).unwrap_or_else(|_| "<decode failed>".to_string());
+        let line =
+            instruction::text(reference.from).unwrap_or_else(|_| "<decode failed>".to_string());
         output.push_str(&format!(
             "  from 0x{:x} ({caller}) -> 0x{:x} : {line}\n",
             reference.from, reference.to

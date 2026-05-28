@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
-use idax::{comment, database, data, Error, Result, segment};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::address::BAD_ADDRESS;
+use idax::{Error, Result, comment, data, database, segment};
 
 const MAGIC_V1: u32 = 0x0043424a;
 const MAGIC_V2: u32 = 0x0143424a;
@@ -85,7 +85,7 @@ fn run() -> Result<()> {
         .unwrap_or(64);
 
     let input_path = &args[1];
-    
+
     // We open a session and try to decode from within the database instead of from argv
     let _session = DatabaseSession::open(input_path, true)?;
 
@@ -94,7 +94,7 @@ fn run() -> Result<()> {
 
     // Search for code segment. It's either explicitly named CODE, or we fallback to the first execution-capable segment, or min_address.
     let mut offset = database::min_address().unwrap_or(BAD_ADDRESS);
-    
+
     // Attempt to locate a segment named "CODE" or similar
     if let Ok(seg) = segment::by_name("CODE") {
         offset = seg.start();
@@ -106,9 +106,9 @@ fn run() -> Result<()> {
             println!("disassembling from first segment offset: 0x{offset:08x}");
         }
     }
-    
+
     if offset == BAD_ADDRESS {
-         return Err(Error::internal("Could not find start address in database"));
+        return Err(Error::internal("Could not find start address in database"));
     }
 
     let mut count = 0usize;

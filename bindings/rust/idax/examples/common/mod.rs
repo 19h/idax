@@ -1,6 +1,6 @@
 use idax::address::{Address, BAD_ADDRESS};
 use idax::error::Result;
-use idax::{analysis, database, name, Error};
+use idax::{Error, analysis, database, name};
 use std::io::Write;
 
 fn env_flag(name: &str) -> bool {

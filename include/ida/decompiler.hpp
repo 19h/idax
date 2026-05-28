@@ -17,6 +17,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace ida::type {
@@ -73,6 +74,23 @@ struct HintRequestEvent {
     void* view_handle{nullptr};
 };
 
+/// Event payload for hxe_populating_popup events.
+///
+/// All handles are callback-scoped and become invalid after the callback
+/// returns. Use `popup_handle` immediately with popup-action helpers.
+struct PopulatingPopupEvent {
+    Address function_address{BadAddress};
+
+    /// Opaque handle to the TWidget* (as void*).
+    void* widget_handle{nullptr};
+
+    /// Opaque handle to the TPopupMenu* (as void*).
+    void* popup_handle{nullptr};
+
+    /// Opaque handle to the vdui_t* (as void*).
+    void* view_handle{nullptr};
+};
+
 /// Hint result returned from create_hint subscribers.
 struct HintResult {
     std::string text;    ///< Hint text to display (empty = no hint).
@@ -81,6 +99,52 @@ struct HintResult {
 
 /// Decompiler event subscription token.
 using Token = std::uint64_t;
+
+/// Move-only ownership handle for an explicit Hex-Rays plugin session.
+///
+/// Use this in plugin-host lifecycle code that would otherwise call
+/// `init_hexrays_plugin()` / `term_hexrays_plugin()` directly. The existing
+/// `available()` query remains non-owning.
+class ScopedSession {
+public:
+    ScopedSession() = default;
+    ~ScopedSession();
+
+    ScopedSession(const ScopedSession&) = delete;
+    ScopedSession& operator=(const ScopedSession&) = delete;
+
+    ScopedSession(ScopedSession&& other) noexcept
+        : active_(std::exchange(other.active_, false)) {}
+
+    ScopedSession& operator=(ScopedSession&& other) noexcept {
+        if (this != &other) {
+            release_noexcept();
+            active_ = std::exchange(other.active_, false);
+        }
+        return *this;
+    }
+
+    [[nodiscard]] bool valid() const noexcept { return active_; }
+    explicit operator bool() const noexcept { return valid(); }
+
+    /// Release this owned Hex-Rays session before destruction.
+    Status close();
+
+private:
+    struct AdoptTag {};
+    explicit ScopedSession(AdoptTag) noexcept : active_(true) {}
+    friend Result<ScopedSession> initialize();
+
+    void release_noexcept() noexcept;
+
+    bool active_{false};
+};
+
+/// Initialize Hex-Rays for explicit plugin ownership.
+///
+/// This takes an owned Hex-Rays session and releases it when the returned
+/// handle is closed or destroyed. Use `available()` for a non-owning query.
+Result<ScopedSession> initialize();
 
 /// Subscribe to decompiler maturity transitions.
 /// Callback is fired on `hxe_maturity` events.
@@ -102,6 +166,12 @@ Result<Token> on_curpos_changed(std::function<void(const CursorPositionEvent&)> 
 /// Subscribe to the create_hint event (fired when IDA wants a tooltip).
 /// Return a non-empty HintResult to provide a tooltip.
 Result<Token> on_create_hint(std::function<HintResult(const HintRequestEvent&)> callback);
+
+/// Subscribe to the Hex-Rays popup-population event.
+///
+/// Callback is fired on `hxe_populating_popup`, while the popup menu can still
+/// be extended with dynamic actions.
+Result<Token> on_populating_popup(std::function<void(const PopulatingPopupEvent&)> callback);
 
 /// Remove a previously registered decompiler subscription.
 Status unsubscribe(Token token);
@@ -754,6 +824,7 @@ enum class VariableStorage {
 
 /// A local variable in a decompiled function.
 struct LocalVariable {
+    std::size_t index{0};      ///< Stable index used by ExprVariable references.
     std::string name;
     std::string type_name;   ///< Type as a C declaration string.
     bool        is_argument{false};
@@ -772,6 +843,28 @@ struct LocalVariable {
 
     /// User comment on this variable (may be empty).
     std::string comment;
+};
+
+/// Opaque snapshot of saved Hex-Rays local-variable user settings.
+///
+/// The snapshot owns SDK-derived state privately; it can be captured from one
+/// decompiled function and restored later to the same function address.
+class LvarSnapshot {
+public:
+    LvarSnapshot();
+    ~LvarSnapshot();
+    LvarSnapshot(const LvarSnapshot&);
+    LvarSnapshot& operator=(const LvarSnapshot&);
+    LvarSnapshot(LvarSnapshot&&) noexcept;
+    LvarSnapshot& operator=(LvarSnapshot&&) noexcept;
+
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] std::size_t saved_variable_count() const noexcept;
+
+private:
+    friend class DecompiledFunction;
+    struct Impl;
+    std::shared_ptr<Impl> impl_;
 };
 
 // ── Ctree item types ────────────────────────────────────────────────────
@@ -884,6 +977,15 @@ enum class ItemType : int {
 
 // ── Opaque ctree item views ─────────────────────────────────────────────
 
+/// Read-only value snapshot for a ctree item in a parent chain.
+///
+/// Parent snapshots are valid values and do not expose raw SDK pointers.
+struct CtreeItemView {
+    ItemType type{ItemType::ExprEmpty};
+    Address  address{BadAddress};
+    bool     is_expression{true};
+};
+
 /// Read-only view of a ctree expression.
 ///
 /// Lightweight non-owning handle. Valid only during visitor callbacks.
@@ -903,6 +1005,12 @@ public:
 
     /// For ExprVariable: return the local variable index. Error otherwise.
     [[nodiscard]] Result<int> variable_index() const;
+
+    /// For ExprHelper: return the helper name. Error otherwise.
+    [[nodiscard]] Result<std::string> helper_name() const;
+
+    /// Return Hex-Rays' type/declaration string for this expression.
+    [[nodiscard]] Result<std::string> type_declaration() const;
 
     /// For ExprString: return the string constant. Error otherwise.
     [[nodiscard]] Result<std::string> string_value() const;
@@ -937,12 +1045,23 @@ public:
     /// Get a C-like text representation of the expression.
     [[nodiscard]] Result<std::string> to_string() const;
 
+    /// Parent item when VisitOptions::track_parents was enabled.
+    [[nodiscard]] Result<std::optional<CtreeItemView>> parent() const;
+
+    /// Parent chain from outermost ancestor to direct parent.
+    [[nodiscard]] Result<std::vector<CtreeItemView>> parents() const;
+
     // ── Internal ────────────────────────────────────────────────────────
     struct Tag {};
-    explicit ExpressionView(Tag, void* raw) noexcept : raw_(raw) {}
+    explicit ExpressionView(
+        Tag,
+        void* raw,
+        std::shared_ptr<const std::vector<CtreeItemView>> parents = {}) noexcept
+        : raw_(raw), parents_(std::move(parents)) {}
 
 private:
     void* raw_{nullptr};
+    std::shared_ptr<const std::vector<CtreeItemView>> parents_{};
 };
 
 /// Read-only view of a ctree statement.
@@ -959,12 +1078,23 @@ public:
     /// For StmtGoto: return the target label number. Error otherwise.
     [[nodiscard]] Result<int> goto_target_label() const;
 
+    /// Parent item when VisitOptions::track_parents was enabled.
+    [[nodiscard]] Result<std::optional<CtreeItemView>> parent() const;
+
+    /// Parent chain from outermost ancestor to direct parent.
+    [[nodiscard]] Result<std::vector<CtreeItemView>> parents() const;
+
     // ── Internal ────────────────────────────────────────────────────────
     struct Tag {};
-    explicit StatementView(Tag, void* raw) noexcept : raw_(raw) {}
+    explicit StatementView(
+        Tag,
+        void* raw,
+        std::shared_ptr<const std::vector<CtreeItemView>> parents = {}) noexcept
+        : raw_(raw), parents_(std::move(parents)) {}
 
 private:
     void* raw_{nullptr};
+    std::shared_ptr<const std::vector<CtreeItemView>> parents_{};
 };
 
 // ── Visitor ─────────────────────────────────────────────────────────────
@@ -1002,7 +1132,7 @@ public:
 /// Traversal options for ctree visiting.
 struct VisitOptions {
     bool post_order{false};     ///< Also call leave_* callbacks.
-    bool track_parents{false};  ///< Maintain parent chain (unused in current API).
+    bool track_parents{false};  ///< Maintain callback-scoped parent chains.
     bool expressions_only{false}; ///< Only visit expressions, skip statements.
 };
 
@@ -1069,6 +1199,9 @@ public:
     /// Get all local variables.
     [[nodiscard]] Result<std::vector<LocalVariable>> variables() const;
 
+    /// Get a local variable by the stable index used by ExprVariable.
+    [[nodiscard]] Result<LocalVariable> variable(std::size_t variable_index) const;
+
     /// Rename a local variable (persistent — saved to database).
     Status rename_variable(std::string_view old_name, std::string_view new_name);
 
@@ -1081,6 +1214,20 @@ public:
     /// Call refresh() after success to update pseudocode text.
     Status retype_variable(std::size_t variable_index,
                            const ida::type::TypeInfo& new_type);
+
+    /// Capture saved user local-variable settings for this function.
+    [[nodiscard]] Result<LvarSnapshot> capture_user_lvar_settings() const;
+
+    /// Restore previously captured user local-variable settings for this function.
+    Status restore_user_lvar_settings(const LvarSnapshot& snapshot);
+
+    /// Set a persistent local-variable comment by name.
+    Status set_variable_comment(std::string_view variable_name,
+                                std::string_view comment);
+
+    /// Set a persistent local-variable comment by variables() index.
+    Status set_variable_comment(std::size_t variable_index,
+                                std::string_view comment);
 
     // ── Ctree traversal ─────────────────────────────────────────────────
 
@@ -1172,6 +1319,20 @@ public:
     /// Retype local variable by index.
     Status retype_variable(std::size_t variable_index,
                            const ida::type::TypeInfo& new_type) const;
+
+    /// Capture saved user local-variable settings.
+    [[nodiscard]] Result<LvarSnapshot> capture_user_lvar_settings() const;
+
+    /// Restore saved user local-variable settings.
+    Status restore_user_lvar_settings(const LvarSnapshot& snapshot) const;
+
+    /// Set local-variable comment by name.
+    Status set_variable_comment(std::string_view variable_name,
+                                std::string_view comment) const;
+
+    /// Set local-variable comment by variables() index.
+    Status set_variable_comment(std::size_t variable_index,
+                                std::string_view comment) const;
 
     /// Set user comment for represented function pseudocode.
     Status set_comment(Address address,

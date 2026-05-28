@@ -9,7 +9,7 @@
 use crate::address::{Address, Range};
 use crate::error::{self, Error, Result, Status};
 use std::cell::RefCell;
-use std::ffi::{c_char, c_void, CString};
+use std::ffi::{CString, c_char, c_void};
 use std::mem::ManuallyDrop;
 
 // ── Node/edge primitives ────────────────────────────────────────────────
@@ -443,11 +443,7 @@ unsafe extern "C" fn cb_on_node_color(context: *mut c_void, node: i32) -> u32 {
 
 unsafe extern "C" fn cb_on_clicked(context: *mut c_void, node: i32) -> i32 {
     let ctx = unsafe { &mut *(context as *mut GraphCallbackContext) };
-    if ctx.callback.on_clicked(node) {
-        1
-    } else {
-        0
-    }
+    if ctx.callback.on_clicked(node) { 1 } else { 0 }
 }
 
 unsafe extern "C" fn cb_on_double_clicked(context: *mut c_void, node: i32) -> i32 {

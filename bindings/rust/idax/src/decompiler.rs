@@ -7,7 +7,7 @@ use crate::address::Address;
 use crate::error::{self, Error, Result, Status};
 use crate::instruction;
 use std::collections::HashMap;
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{CStr, CString, c_char, c_void};
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
 
@@ -413,6 +413,14 @@ pub struct HintRequestEvent {
     pub view_handle: *mut c_void,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct PopulatingPopupEvent {
+    pub function_address: Address,
+    pub widget_handle: *mut c_void,
+    pub popup_handle: *mut c_void,
+    pub view_handle: *mut c_void,
+}
+
 #[derive(Debug, Clone)]
 pub struct HintResult {
     pub text: String,
@@ -421,6 +429,7 @@ pub struct HintResult {
 
 #[derive(Debug, Clone)]
 pub struct LocalVariable {
+    pub index: usize,
     pub name: String,
     pub type_name: String,
     pub is_argument: bool,
@@ -433,12 +442,26 @@ pub struct LocalVariable {
 pub struct ExpressionInfo {
     pub item_type: ItemType,
     pub address: Address,
+    pub variable_index: Option<i32>,
+    pub helper_name: Option<String>,
+    pub type_declaration: Option<String>,
+    pub parent: Option<CtreeItemInfo>,
+    pub parent_depth: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct StatementInfo {
     pub item_type: ItemType,
     pub address: Address,
+    pub parent: Option<CtreeItemInfo>,
+    pub parent_depth: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct CtreeItemInfo {
+    pub item_type: ItemType,
+    pub address: Address,
+    pub is_expression: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -469,10 +492,67 @@ impl DecompilerView {
     pub fn decompiled_function(&self) -> Result<DecompiledFunction> {
         decompile(self.function_address)
     }
+
+    pub fn capture_user_lvar_settings(&self) -> Result<LvarSnapshot> {
+        self.decompiled_function()?.capture_user_lvar_settings()
+    }
+
+    pub fn restore_user_lvar_settings(&self, snapshot: &LvarSnapshot) -> Status {
+        self.decompiled_function()?
+            .restore_user_lvar_settings(snapshot)
+    }
+
+    pub fn set_variable_comment_by_name(&self, variable_name: &str, comment: &str) -> Status {
+        self.decompiled_function()?
+            .set_variable_comment_by_name(variable_name, comment)
+    }
+
+    pub fn set_variable_comment_by_index(&self, variable_index: usize, comment: &str) -> Status {
+        self.decompiled_function()?
+            .set_variable_comment_by_index(variable_index, comment)
+    }
 }
 
 pub struct DecompiledFunction {
     handle: *mut c_void,
+}
+
+pub struct LvarSnapshot {
+    handle: idax_sys::IdaxLvarSnapshotHandle,
+}
+
+impl LvarSnapshot {
+    pub fn empty(&self) -> Result<bool> {
+        let mut out: i32 = 0;
+        let ret = unsafe { idax_sys::idax_lvar_snapshot_empty(self.handle, &mut out) };
+        if ret != 0 {
+            Err(error::consume_last_error("lvar_snapshot::empty failed"))
+        } else {
+            Ok(out != 0)
+        }
+    }
+
+    pub fn saved_variable_count(&self) -> Result<usize> {
+        let mut out: usize = 0;
+        let ret =
+            unsafe { idax_sys::idax_lvar_snapshot_saved_variable_count(self.handle, &mut out) };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "lvar_snapshot::saved_variable_count failed",
+            ))
+        } else {
+            Ok(out)
+        }
+    }
+}
+
+impl Drop for LvarSnapshot {
+    fn drop(&mut self) {
+        if !self.handle.is_null() {
+            unsafe { idax_sys::idax_lvar_snapshot_free(self.handle) };
+            self.handle = std::ptr::null_mut();
+        }
+    }
 }
 
 impl DecompiledFunction {
@@ -581,16 +661,22 @@ impl DecompiledFunction {
             let mut out = Vec::with_capacity(count);
             let slice = std::slice::from_raw_parts(ptr, count);
             for raw in slice {
-                out.push(LocalVariable {
-                    name: cstr_opt(raw.name),
-                    type_name: cstr_opt(raw.type_name),
-                    is_argument: raw.is_argument != 0,
-                    width: raw.width,
-                    has_user_name: raw.has_user_name != 0,
-                    comment: cstr_opt(raw.comment),
-                });
+                out.push(local_variable_from_raw(raw));
             }
             idax_sys::idax_decompiled_variables_free(ptr, count);
+            Ok(out)
+        }
+    }
+
+    pub fn variable(&self, index: usize) -> Result<LocalVariable> {
+        unsafe {
+            let mut raw = idax_sys::IdaxLocalVariable::default();
+            let ret = idax_sys::idax_decompiled_variable(self.handle, index, &mut raw);
+            if ret != 0 {
+                return Err(error::consume_last_error("variable failed"));
+            }
+            let out = local_variable_from_raw(&raw);
+            idax_sys::idax_local_variable_free(&mut raw);
             Ok(out)
         }
     }
@@ -602,6 +688,52 @@ impl DecompiledFunction {
             idax_sys::idax_decompiled_rename_variable(self.handle, c_old.as_ptr(), c_new.as_ptr())
         };
         error::int_to_status(ret, "rename_variable failed")
+    }
+
+    pub fn capture_user_lvar_settings(&self) -> Result<LvarSnapshot> {
+        let mut out: idax_sys::IdaxLvarSnapshotHandle = std::ptr::null_mut();
+        let ret =
+            unsafe { idax_sys::idax_decompiled_capture_user_lvar_settings(self.handle, &mut out) };
+        if ret != 0 || out.is_null() {
+            Err(error::consume_last_error(
+                "capture_user_lvar_settings failed",
+            ))
+        } else {
+            Ok(LvarSnapshot { handle: out })
+        }
+    }
+
+    pub fn restore_user_lvar_settings(&self, snapshot: &LvarSnapshot) -> Status {
+        let ret = unsafe {
+            idax_sys::idax_decompiled_restore_user_lvar_settings(self.handle, snapshot.handle)
+        };
+        error::int_to_status(ret, "restore_user_lvar_settings failed")
+    }
+
+    pub fn set_variable_comment_by_name(&self, variable_name: &str, comment: &str) -> Status {
+        let c_name =
+            CString::new(variable_name).map_err(|_| Error::validation("invalid variable name"))?;
+        let c_comment = CString::new(comment).map_err(|_| Error::validation("invalid comment"))?;
+        let ret = unsafe {
+            idax_sys::idax_decompiled_set_variable_comment_by_name(
+                self.handle,
+                c_name.as_ptr(),
+                c_comment.as_ptr(),
+            )
+        };
+        error::int_to_status(ret, "set_variable_comment_by_name failed")
+    }
+
+    pub fn set_variable_comment_by_index(&self, variable_index: usize, comment: &str) -> Status {
+        let c_comment = CString::new(comment).map_err(|_| Error::validation("invalid comment"))?;
+        let ret = unsafe {
+            idax_sys::idax_decompiled_set_variable_comment_by_index(
+                self.handle,
+                variable_index,
+                c_comment.as_ptr(),
+            )
+        };
+        error::int_to_status(ret, "set_variable_comment_by_index failed")
     }
 
     pub fn set_comment(&self, ea: Address, text: &str, position: i32) -> Status {
@@ -776,6 +908,10 @@ struct HintContext {
     scratch: Option<CString>,
 }
 
+struct PopulatingPopupContext {
+    callback: Box<dyn FnMut(PopulatingPopupEvent) + Send>,
+}
+
 unsafe extern "C" fn maturity_trampoline(
     context: *mut c_void,
     event: *const idax_sys::IdaxDecompilerMaturityEvent,
@@ -865,6 +1001,23 @@ unsafe extern "C" fn hint_trampoline(
     1
 }
 
+unsafe extern "C" fn populating_popup_trampoline(
+    context: *mut c_void,
+    event: *const idax_sys::IdaxDecompilerPopulatingPopupEvent,
+) {
+    if context.is_null() || event.is_null() {
+        return;
+    }
+    let ctx = unsafe { &mut *(context as *mut PopulatingPopupContext) };
+    let event = unsafe { &*event };
+    (ctx.callback)(PopulatingPopupEvent {
+        function_address: event.function_address,
+        widget_handle: event.widget_handle,
+        popup_handle: event.popup_handle,
+        view_handle: event.view_handle,
+    });
+}
+
 struct ExpressionVisitorContext {
     callback: Box<dyn FnMut(ExpressionInfo) -> VisitAction>,
 }
@@ -883,10 +1036,7 @@ unsafe extern "C" fn expression_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ExpressionVisitorContext) };
     let raw = unsafe { &*expression };
-    (ctx.callback)(ExpressionInfo {
-        item_type: ItemType::from_raw(raw.type_),
-        address: raw.address,
-    }) as i32
+    (ctx.callback)(expression_info_from_raw(raw)) as i32
 }
 
 unsafe extern "C" fn item_expr_visitor_trampoline(
@@ -898,10 +1048,7 @@ unsafe extern "C" fn item_expr_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ItemVisitorContext) };
     let raw = unsafe { &*expression };
-    (ctx.on_expr)(ExpressionInfo {
-        item_type: ItemType::from_raw(raw.type_),
-        address: raw.address,
-    }) as i32
+    (ctx.on_expr)(expression_info_from_raw(raw)) as i32
 }
 
 unsafe extern "C" fn item_stmt_visitor_trampoline(
@@ -913,10 +1060,7 @@ unsafe extern "C" fn item_stmt_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ItemVisitorContext) };
     let raw = unsafe { &*statement };
-    (ctx.on_stmt)(StatementInfo {
-        item_type: ItemType::from_raw(raw.type_),
-        address: raw.address,
-    }) as i32
+    (ctx.on_stmt)(statement_info_from_raw(raw)) as i32
 }
 
 struct MicrocodeFilterContext {
@@ -989,6 +1133,65 @@ pub fn available() -> Result<bool> {
     } else {
         Ok(avail != 0)
     }
+}
+
+/// Owned Hex-Rays plugin session.
+///
+/// This mirrors C++ `ida::decompiler::ScopedSession`: call [`initialize`] when
+/// plugin lifecycle code needs to own a Hex-Rays initialization reference, and
+/// let `Drop` release it.
+pub struct ScopedSession {
+    handle: idax_sys::IdaxDecompilerSessionHandle,
+}
+
+impl ScopedSession {
+    /// Return whether this scoped session still owns a live Hex-Rays reference.
+    pub fn valid(&self) -> Result<bool> {
+        let mut out = 0;
+        let ret = unsafe { idax_sys::idax_decompiler_session_valid(self.handle, &mut out) };
+        if ret != 0 {
+            Err(error::consume_last_error(
+                "decompiler::ScopedSession::valid failed",
+            ))
+        } else {
+            Ok(out != 0)
+        }
+    }
+
+    /// Release this session before destruction.
+    pub fn close(&mut self) -> Status {
+        if self.handle.is_null() {
+            return Ok(());
+        }
+        let ret = unsafe { idax_sys::idax_decompiler_session_close(self.handle) };
+        error::int_to_status(ret, "decompiler::ScopedSession::close failed")
+    }
+}
+
+impl Drop for ScopedSession {
+    fn drop(&mut self) {
+        if !self.handle.is_null() {
+            unsafe { idax_sys::idax_decompiler_session_free(self.handle) };
+            self.handle = std::ptr::null_mut();
+        }
+    }
+}
+
+/// Initialize Hex-Rays and return an owned session reference.
+///
+/// Use [`available`] for a non-owning query.
+pub fn initialize() -> Result<ScopedSession> {
+    let mut handle: idax_sys::IdaxDecompilerSessionHandle = std::ptr::null_mut();
+    let ret = unsafe { idax_sys::idax_decompiler_initialize(&mut handle) };
+    if ret != 0 {
+        return Err(error::consume_last_error("decompiler::initialize failed"));
+    }
+    if handle.is_null() {
+        return Err(Error::internal(
+            "decompiler::initialize returned a null session",
+        ));
+    }
+    Ok(ScopedSession { handle })
 }
 
 pub fn decompile(ea: Address) -> Result<DecompiledFunction> {
@@ -1271,6 +1474,31 @@ where
     Ok(token)
 }
 
+pub fn on_populating_popup<F>(callback: F) -> Result<Token>
+where
+    F: FnMut(PopulatingPopupEvent) + Send + 'static,
+{
+    let raw = Box::into_raw(Box::new(PopulatingPopupContext {
+        callback: Box::new(callback),
+    }));
+    let mut token: Token = 0;
+    let ret = unsafe {
+        idax_sys::idax_decompiler_on_populating_popup(
+            Some(populating_popup_trampoline),
+            raw as *mut c_void,
+            &mut token,
+        )
+    };
+    if ret != 0 {
+        unsafe { drop(Box::from_raw(raw)) };
+        return Err(error::consume_last_error(
+            "decompiler::on_populating_popup failed",
+        ));
+    }
+    save_context(&SUB_CONTEXTS, token, raw);
+    Ok(token)
+}
+
 pub fn unsubscribe(token: Token) -> Status {
     let ret = unsafe { idax_sys::idax_decompiler_unsubscribe(token) };
     let status = error::int_to_status(ret, "decompiler::unsubscribe failed");
@@ -1454,6 +1682,79 @@ fn cstr_opt(ptr: *const c_char) -> String {
         unsafe { CStr::from_ptr(ptr) }
             .to_string_lossy()
             .into_owned()
+    }
+}
+
+fn cstr_option(ptr: *const c_char) -> Option<String> {
+    if ptr.is_null() {
+        None
+    } else {
+        Some(
+            unsafe { CStr::from_ptr(ptr) }
+                .to_string_lossy()
+                .into_owned(),
+        )
+    }
+}
+
+fn ctree_parent_from_expression(
+    raw: &idax_sys::IdaxDecompilerExpressionInfo,
+) -> Option<CtreeItemInfo> {
+    if raw.has_parent == 0 {
+        None
+    } else {
+        Some(CtreeItemInfo {
+            item_type: ItemType::from_raw(raw.parent_type),
+            address: raw.parent_address,
+            is_expression: raw.parent_is_expression != 0,
+        })
+    }
+}
+
+fn ctree_parent_from_statement(
+    raw: &idax_sys::IdaxDecompilerStatementInfo,
+) -> Option<CtreeItemInfo> {
+    if raw.has_parent == 0 {
+        None
+    } else {
+        Some(CtreeItemInfo {
+            item_type: ItemType::from_raw(raw.parent_type),
+            address: raw.parent_address,
+            is_expression: raw.parent_is_expression != 0,
+        })
+    }
+}
+
+fn expression_info_from_raw(raw: &idax_sys::IdaxDecompilerExpressionInfo) -> ExpressionInfo {
+    ExpressionInfo {
+        item_type: ItemType::from_raw(raw.type_),
+        address: raw.address,
+        variable_index: (raw.variable_index >= 0).then_some(raw.variable_index),
+        helper_name: cstr_option(raw.helper_name),
+        type_declaration: cstr_option(raw.type_declaration),
+        parent: ctree_parent_from_expression(raw),
+        parent_depth: raw.parent_depth,
+    }
+}
+
+fn statement_info_from_raw(raw: &idax_sys::IdaxDecompilerStatementInfo) -> StatementInfo {
+    StatementInfo {
+        item_type: ItemType::from_raw(raw.type_),
+        address: raw.address,
+        parent: ctree_parent_from_statement(raw),
+        parent_depth: raw.parent_depth,
+    }
+}
+
+fn local_variable_from_raw(raw: &idax_sys::IdaxLocalVariable) -> LocalVariable {
+    LocalVariable {
+        index: raw.index,
+        name: cstr_opt(raw.name),
+        type_name: cstr_opt(raw.type_name),
+        is_argument: raw.is_argument != 0,
+        width: raw.width,
+        has_user_name: raw.has_user_name != 0,
+        comment: cstr_opt(raw.comment),
     }
 }
 

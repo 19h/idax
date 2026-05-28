@@ -4,7 +4,7 @@
 
 use crate::address::Address;
 use crate::error::{self, Error, Result, Status};
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{CStr, CString, c_char, c_void};
 
 /// Calling convention.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -52,6 +52,26 @@ pub struct Member {
     pub byte_offset: usize,
     pub bit_size: usize,
     pub comment: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ParseDeclarationsOptions {
+    pub suppress_warnings: bool,
+    pub relaxed_namespaces: bool,
+    pub raw_argument_names: bool,
+    pub no_mangle: bool,
+    pub pack_alignment: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ParseDeclarationsReport {
+    pub error_count: usize,
+}
+
+impl ParseDeclarationsReport {
+    pub fn ok(&self) -> bool {
+        self.error_count == 0
+    }
 }
 
 /// Opaque handle representing a type in the IDA database.
@@ -679,4 +699,30 @@ pub fn apply_named_type(ea: Address, type_name: &str) -> Status {
     let c = CString::new(type_name).map_err(|_| Error::validation("invalid type name"))?;
     let ret = unsafe { idax_sys::idax_type_apply_named(ea, c.as_ptr()) };
     error::int_to_status(ret, "apply_named_type failed")
+}
+
+/// Parse and import a block of local type declarations into the current IDB.
+pub fn parse_declarations(
+    declarations: &str,
+    options: ParseDeclarationsOptions,
+) -> Result<ParseDeclarationsReport> {
+    let c =
+        CString::new(declarations).map_err(|_| Error::validation("invalid declaration block"))?;
+    let mut error_count: usize = 0;
+    let ret = unsafe {
+        idax_sys::idax_type_parse_declarations(
+            c.as_ptr(),
+            options.suppress_warnings as i32,
+            options.relaxed_namespaces as i32,
+            options.raw_argument_names as i32,
+            options.no_mangle as i32,
+            options.pack_alignment,
+            &mut error_count,
+        )
+    };
+    if ret != 0 {
+        Err(error::consume_last_error("parse_declarations failed"))
+    } else {
+        Ok(ParseDeclarationsReport { error_count })
+    }
 }

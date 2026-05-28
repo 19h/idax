@@ -34,6 +34,20 @@ struct EnumMember {
     std::string comment;
 };
 
+struct ParseDeclarationsOptions {
+    bool suppress_warnings{false};
+    bool relaxed_namespaces{false};
+    bool raw_argument_names{false};
+    bool no_mangle{false};
+    std::size_t pack_alignment{0};  ///< 0=default, otherwise one of 1,2,4,8,16.
+};
+
+struct ParseDeclarationsReport {
+    std::size_t error_count{0};
+
+    [[nodiscard]] bool ok() const noexcept { return error_count == 0; }
+};
+
 /// Opaque handle representing a type in the IDA database.
 /// This class is movable, copyable, and cheap to construct for primitives.
 class TypeInfo {
@@ -201,6 +215,14 @@ Result<TypeInfo> ensure_named_type(std::string_view type_name,
 /// Apply a named type from the local type library at an address.
 /// Equivalent to looking up the type by name and calling apply().
 Status apply_named_type(Address ea, std::string_view type_name);
+
+/// Parse and import a block of local type declarations into the current IDB.
+///
+/// This wraps IDA's bulk declaration parser for workflows that need to import
+/// ordered type-definition blocks rather than parse one standalone TypeInfo.
+Result<ParseDeclarationsReport>
+parse_declarations(std::string_view declarations,
+                   const ParseDeclarationsOptions& options = ParseDeclarationsOptions{});
 
 } // namespace ida::type
 

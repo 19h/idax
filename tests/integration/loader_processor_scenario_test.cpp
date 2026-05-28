@@ -499,6 +499,10 @@ void test_plugin_action_types() {
         .has_selection = true,
         .is_external_address = false,
         .register_name = "rax",
+        .widget_handle = nullptr,
+        .focused_widget_handle = nullptr,
+        .decompiler_view_handle = nullptr,
+        .type_ref = std::nullopt,
     };
 
     auto missing_widget_host = ida::plugin::widget_host(context);
@@ -510,9 +514,18 @@ void test_plugin_action_types() {
     CHECK(!missing_decompiler_host.has_value(), "missing decompiler host returns error");
     CHECK(missing_decompiler_host.error().category == ida::ErrorCategory::NotFound,
           "missing decompiler host -> NotFound");
+    CHECK(!context.type_ref.has_value(), "default action context has no type ref");
 
     context.widget_handle = reinterpret_cast<void*>(0x1000);
     context.decompiler_view_handle = reinterpret_cast<void*>(0x2000);
+    context.type_ref = ida::plugin::TypeRef{
+        .name = "idax_test_type",
+        .type = ida::type::TypeInfo::int32(),
+    };
+    CHECK(context.type_ref.has_value(), "type ref can be attached to action context");
+    CHECK(context.type_ref->name == "idax_test_type", "type ref name roundtrip");
+    auto type_ref_text = context.type_ref->type.to_string();
+    CHECK(type_ref_text.has_value(), "type ref owns printable TypeInfo");
 
     auto widget_host = ida::plugin::widget_host(context);
     CHECK(widget_host.has_value(), "widget host available");

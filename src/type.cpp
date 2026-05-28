@@ -205,6 +205,37 @@ Result<TypeInfo> TypeInfo::from_declaration(std::string_view c_decl) {
     return result;
 }
 
+namespace {
+
+Result<int> parse_declarations_flags(const ParseDeclarationsOptions& options) {
+    int flags = HTI_DCL;
+    if (options.suppress_warnings)
+        flags |= HTI_NWR;
+    if (options.relaxed_namespaces)
+        flags |= HTI_RELAXED;
+    if (options.raw_argument_names)
+        flags |= HTI_RAWARGS;
+    if (options.no_mangle)
+        flags |= HTI_NO_MANGLE;
+
+    switch (options.pack_alignment) {
+        case 0: break;
+        case 1: flags |= HTI_PAK1; break;
+        case 2: flags |= HTI_PAK2; break;
+        case 4: flags |= HTI_PAK4; break;
+        case 8: flags |= HTI_PAK8; break;
+        case 16: flags |= HTI_PAK16; break;
+        default:
+            return std::unexpected(Error::validation(
+                "Pack alignment must be 0, 1, 2, 4, 8, or 16",
+                std::to_string(options.pack_alignment)));
+    }
+
+    return flags;
+}
+
+} // anonymous namespace
+
 TypeInfo TypeInfo::create_struct() {
     TypeInfo result;
     TypeInfoAccess::get(result)->ti.create_udt(false);
@@ -650,6 +681,29 @@ Status apply_named_type(Address ea, std::string_view type_name) {
     if (!::apply_named_type(ea, name_str.c_str()))
         return std::unexpected(Error::sdk("apply_named_type failed", name_str));
     return ida::ok();
+}
+
+Result<ParseDeclarationsReport>
+parse_declarations(std::string_view declarations,
+                   const ParseDeclarationsOptions& options) {
+    if (declarations.empty())
+        return std::unexpected(Error::validation("Type declaration block cannot be empty"));
+    if (declarations.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation(
+            "Type declaration block cannot contain embedded NUL bytes"));
+
+    auto flags = parse_declarations_flags(options);
+    if (!flags)
+        return std::unexpected(flags.error());
+
+    qstring input = ida::detail::to_qstring(declarations);
+    int rc = ::parse_decls(nullptr, input.c_str(), nullptr, *flags);
+    if (rc < 0)
+        return std::unexpected(Error::sdk("parse_decls failed", std::to_string(rc)));
+
+    ParseDeclarationsReport report;
+    report.error_count = static_cast<std::size_t>(rc);
+    return report;
 }
 
 } // namespace ida::type

@@ -287,6 +287,18 @@ pub fn input_file_path() -> Result<String> {
     }
 }
 
+/// Path of the current IDB/I64 database file.
+pub fn idb_path() -> Result<String> {
+    unsafe {
+        let mut ptr: *mut std::ffi::c_char = std::ptr::null_mut();
+        let ret = idax_sys::idax_database_idb_path(&mut ptr);
+        if ret != 0 {
+            return Err(error::consume_last_error("idb_path failed"));
+        }
+        error::cstr_to_string_free(ptr, "idb_path null")
+    }
+}
+
 /// Human-readable input file type name (e.g. "Portable executable").
 pub fn file_type_name() -> Result<String> {
     unsafe {

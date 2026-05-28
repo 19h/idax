@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::address::BAD_ADDRESS;
-use idax::{comment, database, function, instruction, name, Error, Result};
+use idax::{Error, Result, comment, database, function, instruction, name};
 use std::collections::{BTreeMap, HashSet};
 
 #[derive(Debug, Clone, Copy)]

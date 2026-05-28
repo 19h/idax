@@ -32,7 +32,7 @@ Current overall phase status:
 - Phase 19: 100% (examples-to-bindings continuation: Node tool-style ports added for `idalib_dump`/`idalib_lumina`/`ida2py`; Rust standalone adaptation set expanded with procmod + plugin-style standalone flows including `ida_names_port_plugin`, `qtform_renderer_plugin`, `driverbuddy_port_plugin`, and `abyss_port_plugin`; `jbc_full_loader` rewritten to actively mutate database layout instead of just printing text; TypeScript + Cargo example checks passing; Node addon runtime linkage repaired via rebuild with correct IDA install path; runtime matrix passes for Node tool examples and expanded Rust adaptation set including JBC rows via synthetic fixture validation; ported UI-constrained `idapcode` and `lifter` analysis slices to headless examples)
 - Phase 20: ~75% (real-IDA CI hardening in progress: deterministic installer resolution + macOS `IDADIR` normalization landed; Node example argv contract fixed; Windows Node import-library fallback hardened; workflow now uses Windows-native shells/runtime path propagation for Rust/Node example execution to avoid Git-Bash linker collisions and missing-DLL runtime failures)
 - Phase 21: 100% (example loader port continuation: completed `sep_firmware_loader.cpp` as a full-functionality idax loader port of the Binary Ninja SEP firmware plugin, covering SEP firmware detection, module-table parsing, Mach-O/raw module mapping, shared-library slide handling, header/load-command annotations, firmware type definitions/application, pointer rewrite passes, entry registration, symbol import, and example build/docs wiring)
-- Phase 22: 0% (ida-cdump parity task plan established in `docs/codedump_parity_tasks.md`; implementation pending for typed forms, wait-box UI, Hex-Rays popup events, Local Types action context payloads, clipboard/text/path helpers, lvar-setting snapshots, prototype apply, and read-only ctree migration helpers)
+- Phase 22: ~99% (ida-cdump parity closure in progress: wait-box UI, multiline text, typed-form C++ bindings/FormBuilder plus fixed-shape Node/Rust typed-form entrypoints, optional Qt clipboard helpers with Node/Rust wrappers and an IDA-compatible `QT_NAMESPACE=QT` build gate, IDB path, portable path helpers, Hex-Rays popup-population events, scoped Hex-Rays ownership, Local Types action-context type references, lvar/prototype metadata helpers, read-only ctree migration helpers, bulk local type declaration import, host-gated runtime harness and runner script including Hex-Rays scoped-session runtime evidence, compact parity probe example, Qt example build bridge, Node native build/runtime validation, and Rust high-level no-run validation are implemented; the updated remaining queue is interactive modal form and Qt clipboard evidence)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -81,13 +81,15 @@ Current overall phase status:
 
 ### Phase 22 TODO Action Items (ida-cdump Parity Closure)
 
-- [ ] P22.1 Add typed `ida::ui::ask_form` bindings and a compile-time typed `FormBuilder`.
-- [ ] P22.2 Add `ida::ui::WaitBox` RAII progress/cancellation helpers.
-- [ ] P22.3 Expose Hex-Rays `hxe_populating_popup` as `ida::decompiler::on_populating_popup`.
-- [ ] P22.4 Add Local Types `TypeRef` payload support to `ida::plugin::ActionContext`.
-- [ ] P22.5 Add Qt clipboard, multiline `ask_text`, `database::idb_path`, and path-helper coverage.
-- [ ] P22.6 Add Hex-Rays lvar-settings snapshot/writeback, lvar comment writeback, and function prototype apply APIs.
-- [ ] P22.7 Add read-only ctree migration helpers needed by `ida-cdump` analysis.
-- [ ] P22.8 Update docs/examples/tests and map each `ida-cdump` gap row to the new idax API.
+- [~] P22.1 Add typed `ida::ui::ask_form` bindings and a compile-time typed `FormBuilder`. (C++ API, Node/Rust fixed-entrypoint bindings, and host-gated modal test path landed; interactive host execution remains pending.)
+- [x] P22.2 Add `ida::ui::WaitBox` RAII progress/cancellation helpers.
+- [x] P22.3 Expose Hex-Rays `hxe_populating_popup` as `ida::decompiler::on_populating_popup`.
+- [x] P22.4 Add Local Types `TypeRef` payload support to `ida::plugin::ActionContext`.
+- [~] P22.5 Add Qt clipboard, multiline `ask_text`, `database::idb_path`, and path-helper coverage. (`ask_text`, `idb_path`, `ida::path`, optional Qt clipboard helpers, Node/Rust wrappers for clipboard/text/path helpers, host-gated clipboard test path, Qt header bridge, and `QT_NAMESPACE=QT` configure guard landed; Qt UI-host execution remains pending.)
+- [x] P22.6 Add Hex-Rays lvar-settings snapshot/writeback, lvar comment writeback, and function prototype apply APIs.
+- [x] P22.7 Add read-only ctree migration helpers needed by `ida-cdump` analysis.
+- [x] P22.8 Update docs/examples/tests and map each `ida-cdump` gap row to the new idax API. (`docs/codedump_migration_checklist.md` maps every updated gap row; compact parity probe example, local validation, Node native/runtime validation, and Rust no-run validation landed.)
+- [x] P22.9 Add a scoped Hex-Rays initialization/lifetime helper for plugin-host ownership. (C++ API, Node/Rust owned-session wrappers, example lifecycle coverage, and `IDAX_RUN_HEXRAYS_SESSION=1` host runtime execution pass.)
+- [x] P22.10 Add bulk local type declaration import over SDK `parse_decls` for `ida-cdump` metadata-apply migration, with Node/Rust wrappers.
 
 ---

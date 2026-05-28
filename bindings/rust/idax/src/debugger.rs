@@ -6,7 +6,7 @@ use crate::address::{Address, AddressSize, BAD_ADDRESS};
 use crate::error::{self, Error, Result, Status};
 use crate::types::TypeInfo;
 use std::collections::HashMap;
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{CStr, CString, c_char, c_void};
 use std::sync::{Mutex, OnceLock};
 
 pub type Token = u64;
@@ -1088,11 +1088,7 @@ unsafe extern "C" fn trace_trampoline(context: *mut c_void, thread_id: i32, ip: 
             return 0;
         }
         let ctx = &mut *(context as *mut TraceContext);
-        if (ctx.callback)(thread_id, ip) {
-            1
-        } else {
-            0
-        }
+        if (ctx.callback)(thread_id, ip) { 1 } else { 0 }
     }
 }
 

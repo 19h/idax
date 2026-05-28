@@ -10,8 +10,10 @@
 
 #include <ida/idax.hpp>
 
+#include <array>
 #include <cstdio>
 #include <type_traits>
+#include <utility>
 
 static int g_pass = 0;
 static int g_fail = 0;
@@ -201,6 +203,8 @@ void check_function_surface() {
     using FunctionRegisterVarsFn = ida::Result<std::vector<ida::function::RegisterVariable>>(*)(ida::Address);
     using FunctionItemAddressesFn = ida::Result<std::vector<ida::Address>>(*)(ida::Address);
     using FunctionCodeAddressesFn = ida::Result<std::vector<ida::Address>>(*)(ida::Address);
+    using FunctionSetPrototypeFn = ida::Status(*)(ida::Address, const ida::type::TypeInfo&);
+    using FunctionApplyDeclFn = ida::Status(*)(ida::Address, std::string_view);
 
     (void)static_cast<FunctionUpdateFn>(&ida::function::update);
     (void)static_cast<FunctionReanalyzeFn>(&ida::function::reanalyze);
@@ -211,6 +215,8 @@ void check_function_surface() {
     (void)static_cast<FunctionRegisterVarsFn>(&ida::function::register_variables);
     (void)static_cast<FunctionItemAddressesFn>(&ida::function::item_addresses);
     (void)static_cast<FunctionCodeAddressesFn>(&ida::function::code_addresses);
+    (void)static_cast<FunctionSetPrototypeFn>(&ida::function::set_prototype);
+    (void)static_cast<FunctionApplyDeclFn>(&ida::function::apply_decl);
 }
 
 // ─── ida::instruction ───────────────────────────────────────────────────
@@ -396,6 +402,9 @@ void check_type_surface() {
     using ResolveTypedefFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using EnsureNamedTypeFn = ida::Result<ida::type::TypeInfo>(*)(std::string_view,
                                                                    std::string_view);
+    using ParseDeclarationsFn = ida::Result<ida::type::ParseDeclarationsReport>(*)(
+        std::string_view,
+        const ida::type::ParseDeclarationsOptions&);
 
     (void)static_cast<FunctionTypeFactoryFn>(&ida::type::TypeInfo::function_type);
     (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
@@ -410,6 +419,17 @@ void check_type_surface() {
     (void)static_cast<ArrayLengthFn>(&ida::type::TypeInfo::array_length);
     (void)static_cast<ResolveTypedefFn>(&ida::type::TypeInfo::resolve_typedef);
     (void)static_cast<EnsureNamedTypeFn>(&ida::type::ensure_named_type);
+    (void)static_cast<ParseDeclarationsFn>(&ida::type::parse_declarations);
+
+    ida::type::ParseDeclarationsOptions parse_options;
+    parse_options.suppress_warnings = true;
+    parse_options.relaxed_namespaces = true;
+    parse_options.raw_argument_names = true;
+    parse_options.no_mangle = true;
+    parse_options.pack_alignment = 1;
+    ida::type::ParseDeclarationsReport parse_report;
+    parse_report.error_count = 0;
+    CHECK(parse_report.ok(), "ParseDeclarationsReport::ok reports zero errors");
 }
 
 // ─── ida::fixup ─────────────────────────────────────────────────────────
@@ -550,6 +570,7 @@ void check_database_surface() {
     using CompilerInfoFn = ida::Result<ida::database::CompilerInfo>(*)();
     using ImportModulesFn = ida::Result<std::vector<ida::database::ImportModule>>(*)();
     using ProcessorEnumFn = ida::Result<ida::database::ProcessorId>(*)();
+    using IdbPathFn = ida::Result<std::string>(*)();
 
     (void)static_cast<InitBasicFn>(&ida::database::init);
     (void)static_cast<InitWithOptionsFn>(&ida::database::init);
@@ -566,6 +587,7 @@ void check_database_surface() {
     (void)static_cast<CompilerInfoFn>(&ida::database::compiler_info);
     (void)static_cast<ImportModulesFn>(&ida::database::import_modules);
     (void)static_cast<ProcessorEnumFn>(&ida::database::processor);
+    (void)static_cast<IdbPathFn>(&ida::database::idb_path);
 
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
@@ -576,6 +598,24 @@ void check_database_surface() {
     (void)&ida::database::set_address_bitness;
     (void)&ida::database::is_big_endian;
     (void)&ida::database::abi_name;
+}
+
+// ─── ida::path ──────────────────────────────────────────────────────────
+
+void check_path_surface() {
+    using PathStringFn = std::string(*)(std::string_view);
+    using PathBoolFn = bool(*)(std::string_view);
+
+    (void)static_cast<PathStringFn>(&ida::path::basename);
+    (void)static_cast<PathStringFn>(&ida::path::dirname);
+    (void)static_cast<PathBoolFn>(&ida::path::is_directory);
+
+    CHECK(ida::path::basename("alpha/beta.bin") == "beta.bin",
+          "path::basename returns final component");
+    CHECK(ida::path::dirname("alpha/beta.bin") == "alpha",
+          "path::dirname returns parent component");
+    CHECK(ida::path::is_directory("."),
+          "path::is_directory recognizes current directory");
 }
 
 // ─── ida::lumina ────────────────────────────────────────────────────────
@@ -663,6 +703,13 @@ void check_plugin_surface() {
     (void)context.widget_handle;
     (void)context.focused_widget_handle;
     (void)context.decompiler_view_handle;
+    (void)context.type_ref;
+
+    ida::plugin::TypeRef type_ref;
+    type_ref.name = "MY_TYPE";
+    type_ref.type = ida::type::TypeInfo::int32();
+    (void)type_ref.name;
+    (void)type_ref.type;
 
     ida::plugin::Action action;
     (void)action.id;
@@ -1022,6 +1069,9 @@ void check_ui_surface() {
     using WidgetHostFn = ida::Result<ida::ui::WidgetHost>(*)(const ida::ui::Widget&);
     using WithWidgetHostFn = ida::Status(*)(const ida::ui::Widget&, ida::ui::WidgetHostCallback);
     using AskFormFn = ida::Result<bool>(*)(std::string_view);
+    using ClipboardCopyFn = ida::Status(*)(std::string_view);
+    using ClipboardReadFn = ida::Result<std::string>(*)();
+    using ClipboardBackendFn = std::string_view(*)() noexcept;
 
     using OnWidgetVisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
     using OnWidgetInvisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
@@ -1038,6 +1088,21 @@ void check_ui_surface() {
     using OnUiEventFn = ida::Result<ida::ui::Token>(*)(std::function<void(const ida::ui::Event&)>);
     using OnUiEventFilteredFn = ida::Result<ida::ui::Token>(*)(std::function<bool(const ida::ui::Event&)>,
                                                                std::function<void(const ida::ui::Event&)>);
+    using AskTextFn = ida::Result<std::string>(*)(std::string_view,
+                                                  std::string_view,
+                                                  std::size_t,
+                                                  bool,
+                                                  bool);
+    using TypedAskFormResult = decltype(
+        ida::ui::ask_form(std::declval<std::string_view>(),
+                          std::declval<ida::ui::FormIntBinding&>(),
+                          std::declval<ida::ui::FormU16Binding&>(),
+                          std::declval<ida::ui::FormTextBinding&>()));
+    using WaitUpdateFn = ida::Status(ida::ui::WaitBox::*)(std::string_view);
+    using WaitCancelledFn = bool(ida::ui::WaitBox::*)() const noexcept;
+    using WaitDismissFn = void(ida::ui::WaitBox::*)() noexcept;
+    using WaitActiveFn = bool(ida::ui::WaitBox::*)() const noexcept;
+    static_assert(std::is_same_v<TypedAskFormResult, ida::Result<bool>>);
 
     (void)static_cast<CreateWidgetFn>(&ida::ui::create_widget);
     (void)static_cast<CreateCustomViewerFn>(&ida::ui::create_custom_viewer);
@@ -1055,6 +1120,9 @@ void check_ui_surface() {
     (void)static_cast<WidgetHostFn>(&ida::ui::widget_host);
     (void)static_cast<WithWidgetHostFn>(&ida::ui::with_widget_host);
     (void)static_cast<AskFormFn>(&ida::ui::ask_form);
+    (void)static_cast<ClipboardCopyFn>(&ida::ui::copy_to_clipboard);
+    (void)static_cast<ClipboardReadFn>(&ida::ui::read_clipboard);
+    (void)static_cast<ClipboardBackendFn>(&ida::ui::clipboard_backend);
 
     auto typed_widget_host = ida::ui::widget_host_as<int>(widget);
     (void)typed_widget_host;
@@ -1077,6 +1145,46 @@ void check_ui_surface() {
     (void)static_cast<OnWidgetClosingHandleFn>(&ida::ui::on_widget_closing);
     (void)static_cast<OnUiEventFn>(&ida::ui::on_event);
     (void)static_cast<OnUiEventFilteredFn>(&ida::ui::on_event_filtered);
+    (void)static_cast<AskTextFn>(&ida::ui::ask_text);
+
+    std::int64_t form_int_value = 3;
+    sval_t form_sval_value = 4;
+    std::uint16_t form_flags = 1;
+    ida::Address form_address = 0x401000;
+    std::string form_text_value = "name";
+    std::string form_path_value = "/tmp/out.txt";
+    auto int_binding = ida::ui::form_int(form_int_value);
+    auto sval_binding = ida::ui::form_sval(form_sval_value);
+    auto bitset_binding = ida::ui::form_bitset(form_flags);
+    auto radio_binding = ida::ui::form_radio(form_flags);
+    auto address_binding = ida::ui::form_address(form_address);
+    auto text_binding = ida::ui::form_text(form_text_value);
+    auto path_binding = ida::ui::form_path(form_path_value);
+    (void)int_binding;
+    (void)sval_binding;
+    (void)bitset_binding;
+    (void)radio_binding;
+    (void)address_binding;
+    (void)text_binding;
+    (void)path_binding;
+
+    std::array<std::string_view, 2> choices{"Enabled", "Verbose"};
+    auto form_builder = ida::ui::form_builder("Codedump options")
+        .add_int("Depth", form_int_value)
+        .add_sval("Limit", form_sval_value)
+        .add_bitset("Flags", form_flags, {"Enabled", "Verbose"})
+        .add_radio("Mode", form_flags, choices)
+        .add_address("Start", form_address)
+        .add_text("Prefix", form_text_value)
+        .add_path("Output", form_path_value);
+    using BuilderAskResult = decltype(form_builder.ask());
+    static_assert(std::is_same_v<BuilderAskResult, ida::Result<bool>>);
+    CHECK(!form_builder.markup().empty(), "FormBuilder should synthesize markup");
+
+    (void)static_cast<WaitUpdateFn>(&ida::ui::WaitBox::update);
+    (void)static_cast<WaitCancelledFn>(&ida::ui::WaitBox::cancelled);
+    (void)static_cast<WaitDismissFn>(&ida::ui::WaitBox::dismiss);
+    (void)static_cast<WaitActiveFn>(&ida::ui::WaitBox::active);
 
     static_assert(std::is_abstract_v<ida::ui::Chooser>,
                   "Chooser should be abstract");
@@ -1086,6 +1194,11 @@ void check_ui_surface() {
 
     ida::ui::Row row;
     (void)row.columns; (void)row.icon; (void)row.style;
+
+    static_assert(std::is_move_constructible_v<ida::ui::WaitBox>);
+    static_assert(std::is_move_assignable_v<ida::ui::WaitBox>);
+    static_assert(!std::is_copy_constructible_v<ida::ui::WaitBox>);
+    static_assert(!std::is_copy_assignable_v<ida::ui::WaitBox>);
 
     static_assert(std::is_move_constructible_v<ida::ui::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::ui::ScopedSubscription>);
@@ -1143,7 +1256,14 @@ void check_event_surface() {
 // ─── ida::decompiler ────────────────────────────────────────────────────
 
 void check_decompiler_surface() {
+    ida::decompiler::LvarSnapshot lvar_snapshot;
+    (void)lvar_snapshot.empty();
+    (void)lvar_snapshot.saved_variable_count();
+
     using DecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(ida::Address);
+    using InitializeDecompilerFn = ida::Result<ida::decompiler::ScopedSession>(*)();
+    using ScopedSessionCloseFn = ida::Status(ida::decompiler::ScopedSession::*)();
+    using ScopedSessionValidFn = bool(ida::decompiler::ScopedSession::*)() const noexcept;
     using DecompileWithFailureFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(
         ida::Address,
         ida::decompiler::DecompileFailure*);
@@ -1153,6 +1273,16 @@ void check_decompiler_surface() {
         std::string_view, const ida::type::TypeInfo&);
     using RetypeByIndexFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
         std::size_t, const ida::type::TypeInfo&);
+    using CaptureLvarSettingsFn = ida::Result<ida::decompiler::LvarSnapshot>(
+        ida::decompiler::DecompiledFunction::*)() const;
+    using RestoreLvarSettingsFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        const ida::decompiler::LvarSnapshot&);
+    using SetVariableCommentByNameFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        std::string_view, std::string_view);
+    using SetVariableCommentByIndexFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        std::size_t, std::string_view);
+    using VariableByIndexFn = ida::Result<ida::decompiler::LocalVariable>(
+        ida::decompiler::DecompiledFunction::*)(std::size_t) const;
     using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
     using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
     using DecompilerViewFunctionNameFn = ida::Result<std::string>(ida::decompiler::DecompilerView::*)() const;
@@ -1164,6 +1294,14 @@ void check_decompiler_surface() {
     using DecompilerViewRetypeByIndexFn = ida::Status(ida::decompiler::DecompilerView::*)(
         std::size_t,
         const ida::type::TypeInfo&) const;
+    using DecompilerViewCaptureLvarSettingsFn = ida::Result<ida::decompiler::LvarSnapshot>(
+        ida::decompiler::DecompilerView::*)() const;
+    using DecompilerViewRestoreLvarSettingsFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        const ida::decompiler::LvarSnapshot&) const;
+    using DecompilerViewSetVariableCommentByNameFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        std::string_view, std::string_view) const;
+    using DecompilerViewSetVariableCommentByIndexFn = ida::Status(ida::decompiler::DecompilerView::*)(
+        std::size_t, std::string_view) const;
     using DecompilerViewSetCommentFn = ida::Status(ida::decompiler::DecompilerView::*)(
         ida::Address,
         std::string_view,
@@ -1178,6 +1316,16 @@ void check_decompiler_surface() {
     using ExprCallArgCountFn = ida::Result<std::size_t>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallCalleeFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)() const;
     using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
+    using ExprHelperNameFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
+    using ExprTypeDeclarationFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
+    using ExprParentFn = ida::Result<std::optional<ida::decompiler::CtreeItemView>>(
+        ida::decompiler::ExpressionView::*)() const;
+    using ExprParentsFn = ida::Result<std::vector<ida::decompiler::CtreeItemView>>(
+        ida::decompiler::ExpressionView::*)() const;
+    using StmtParentFn = ida::Result<std::optional<ida::decompiler::CtreeItemView>>(
+        ida::decompiler::StatementView::*)() const;
+    using StmtParentsFn = ida::Result<std::vector<ida::decompiler::CtreeItemView>>(
+        ida::decompiler::StatementView::*)() const;
     using OnMaturityChangedFn = ida::Result<ida::decompiler::Token>(*)(
         std::function<void(const ida::decompiler::MaturityEvent&)>);
     using DecompilerUnsubscribeFn = ida::Status(*)(ida::decompiler::Token);
@@ -1330,7 +1478,20 @@ void check_decompiler_surface() {
     ida::decompiler::MaturityEvent event;
     (void)event.function_address;
     (void)event.new_maturity;
+    ida::decompiler::PopulatingPopupEvent popup_event;
+    (void)popup_event.function_address;
+    (void)popup_event.widget_handle;
+    (void)popup_event.popup_handle;
+    (void)popup_event.view_handle;
+    ida::decompiler::CtreeItemView ctree_parent;
+    (void)ctree_parent.type;
+    (void)ctree_parent.address;
+    (void)ctree_parent.is_expression;
     (void)ida::decompiler::Maturity::Final;
+    static_assert(std::is_move_constructible_v<ida::decompiler::ScopedSession>);
+    static_assert(std::is_move_assignable_v<ida::decompiler::ScopedSession>);
+    static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSession>);
+    static_assert(!std::is_copy_assignable_v<ida::decompiler::ScopedSession>);
     static_assert(std::is_move_constructible_v<ida::decompiler::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::decompiler::ScopedSubscription>);
     (void)ida::decompiler::MicrocodeApplyResult::NotHandled;
@@ -1489,17 +1650,34 @@ void check_decompiler_surface() {
 
     (void)&ida::decompiler::available;
     (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
+    (void)static_cast<InitializeDecompilerFn>(&ida::decompiler::initialize);
+    (void)static_cast<ScopedSessionCloseFn>(&ida::decompiler::ScopedSession::close);
+    (void)static_cast<ScopedSessionValidFn>(&ida::decompiler::ScopedSession::valid);
     (void)static_cast<DecompileWithFailureFn>(&ida::decompiler::decompile);
     (void)static_cast<MicrocodeFn>(&ida::decompiler::DecompiledFunction::microcode);
     (void)static_cast<MicrocodeLinesFn>(&ida::decompiler::DecompiledFunction::microcode_lines);
     (void)static_cast<RetypeByNameFn>(&ida::decompiler::DecompiledFunction::retype_variable);
     (void)static_cast<RetypeByIndexFn>(&ida::decompiler::DecompiledFunction::retype_variable);
+    (void)static_cast<CaptureLvarSettingsFn>(&ida::decompiler::DecompiledFunction::capture_user_lvar_settings);
+    (void)static_cast<RestoreLvarSettingsFn>(&ida::decompiler::DecompiledFunction::restore_user_lvar_settings);
+    (void)static_cast<SetVariableCommentByNameFn>(&ida::decompiler::DecompiledFunction::set_variable_comment);
+    (void)static_cast<SetVariableCommentByIndexFn>(&ida::decompiler::DecompiledFunction::set_variable_comment);
+    (void)static_cast<VariableByIndexFn>(&ida::decompiler::DecompiledFunction::variable);
     (void)static_cast<HasOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::has_orphan_comments);
     (void)static_cast<RemoveOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::remove_orphan_comments);
     (void)static_cast<ExprCallArgCountFn>(&ida::decompiler::ExpressionView::call_argument_count);
     (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::call_callee);
     (void)static_cast<ExprCallArgFn>(&ida::decompiler::ExpressionView::call_argument);
+    (void)static_cast<ExprHelperNameFn>(&ida::decompiler::ExpressionView::helper_name);
+    (void)static_cast<ExprTypeDeclarationFn>(&ida::decompiler::ExpressionView::type_declaration);
+    (void)static_cast<ExprParentFn>(&ida::decompiler::ExpressionView::parent);
+    (void)static_cast<ExprParentsFn>(&ida::decompiler::ExpressionView::parents);
+    (void)static_cast<StmtParentFn>(&ida::decompiler::StatementView::parent);
+    (void)static_cast<StmtParentsFn>(&ida::decompiler::StatementView::parents);
     (void)static_cast<OnMaturityChangedFn>(&ida::decompiler::on_maturity_changed);
+    using OnPopulatingPopupFn = ida::Result<ida::decompiler::Token>(*)(
+        std::function<void(const ida::decompiler::PopulatingPopupEvent&)>);
+    (void)static_cast<OnPopulatingPopupFn>(&ida::decompiler::on_populating_popup);
     (void)static_cast<DecompilerUnsubscribeFn>(&ida::decompiler::unsubscribe);
     (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty);
     (void)static_cast<MarkDirtyFn>(&ida::decompiler::mark_dirty_with_callers);
@@ -1559,6 +1737,10 @@ void check_decompiler_surface() {
     (void)static_cast<DecompilerViewRenameVariableFn>(&ida::decompiler::DecompilerView::rename_variable);
     (void)static_cast<DecompilerViewRetypeByNameFn>(&ida::decompiler::DecompilerView::retype_variable);
     (void)static_cast<DecompilerViewRetypeByIndexFn>(&ida::decompiler::DecompilerView::retype_variable);
+    (void)static_cast<DecompilerViewCaptureLvarSettingsFn>(&ida::decompiler::DecompilerView::capture_user_lvar_settings);
+    (void)static_cast<DecompilerViewRestoreLvarSettingsFn>(&ida::decompiler::DecompilerView::restore_user_lvar_settings);
+    (void)static_cast<DecompilerViewSetVariableCommentByNameFn>(&ida::decompiler::DecompilerView::set_variable_comment);
+    (void)static_cast<DecompilerViewSetVariableCommentByIndexFn>(&ida::decompiler::DecompilerView::set_variable_comment);
     (void)static_cast<DecompilerViewSetCommentFn>(&ida::decompiler::DecompilerView::set_comment);
     (void)static_cast<DecompilerViewGetCommentFn>(&ida::decompiler::DecompilerView::get_comment);
     (void)static_cast<DecompilerViewStatusFn>(&ida::decompiler::DecompilerView::save_comments);
@@ -1690,6 +1872,7 @@ int main() {
     surface_check::check_search_surface();     namespaces_verified++;
     surface_check::check_analysis_surface();   namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
+    surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
     surface_check::check_plugin_surface();     namespaces_verified++;
     surface_check::check_loader_surface();     namespaces_verified++;
@@ -1703,9 +1886,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 27, "all 27 namespace surfaces verified");
+    CHECK(namespaces_verified == 28, "all 28 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (27 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (28 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

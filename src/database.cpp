@@ -98,6 +98,13 @@ Result<std::string> input_file_path() {
     return std::string(buf);
 }
 
+Result<std::string> idb_path() {
+    const char* path = get_path(PATH_TYPE_IDB);
+    if (path == nullptr || path[0] == '\0')
+        return std::unexpected(Error::not_found("No IDB path available"));
+    return std::string(path);
+}
+
 Result<std::string> file_type_name() {
     char buf[256] = {0};
     if (get_file_type_name(buf, sizeof(buf)) == 0 || buf[0] == '\0')

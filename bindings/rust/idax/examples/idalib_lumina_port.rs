@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::address::BAD_ADDRESS;
-use idax::{function, lumina, name, Result};
+use idax::{Result, function, lumina, name};
 
 fn resolve_target_function() -> Result<u64> {
     if let Ok(main) = name::resolve("main", BAD_ADDRESS) {

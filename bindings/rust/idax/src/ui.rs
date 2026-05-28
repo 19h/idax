@@ -3,10 +3,10 @@
 //!
 //! Mirrors the C++ `ida::ui` namespace.
 
-use crate::address::{Address, Range, BAD_ADDRESS};
+use crate::address::{Address, BAD_ADDRESS, Range};
 use crate::error::{self, Error, Result, Status};
 use std::collections::HashMap;
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{CStr, CString, c_char, c_void};
 use std::sync::{Mutex, OnceLock};
 
 // ── Widget type constants ───────────────────────────────────────────────
@@ -207,13 +207,394 @@ pub fn ask_long(prompt: &str, default_value: i64) -> Result<i64> {
 
 /// Show an IDA form and return whether it was accepted.
 pub fn ask_form(markup: &str) -> Result<bool> {
-    let c_markup = CString::new(markup).map_err(|_| Error::validation("invalid form markup"))?;
+    let c_markup = form_markup_cstring(markup)?;
     let mut out: i32 = 0;
     let rc = unsafe { idax_sys::idax_ui_ask_form(c_markup.as_ptr(), &mut out) };
     if rc != 0 {
         return Err(error::consume_last_error("ui::ask_form failed"));
     }
     Ok(out != 0)
+}
+
+fn form_markup_cstring(markup: &str) -> Result<CString> {
+    if markup.is_empty() {
+        return Err(Error::validation("form markup cannot be empty"));
+    }
+    CString::new(markup).map_err(|_| Error::validation("form markup contains an embedded NUL"))
+}
+
+/// RAII wait-box progress dialog shown by an IDA UI host.
+pub struct WaitBox {
+    handle: idax_sys::IdaxUIWaitBoxHandle,
+}
+
+impl WaitBox {
+    /// Show a wait box with the initial message.
+    pub fn new(message: &str) -> Result<Self> {
+        let c_message =
+            CString::new(message).map_err(|_| Error::validation("invalid wait-box message"))?;
+        let mut handle: idax_sys::IdaxUIWaitBoxHandle = std::ptr::null_mut();
+        let rc = unsafe { idax_sys::idax_ui_wait_box_create(c_message.as_ptr(), &mut handle) };
+        if rc != 0 {
+            return Err(error::consume_last_error("ui::WaitBox::new failed"));
+        }
+        if handle.is_null() {
+            return Err(Error::internal("ui::WaitBox::new returned null"));
+        }
+        Ok(Self { handle })
+    }
+
+    /// Replace the wait-box message.
+    pub fn update(&mut self, message: &str) -> Status {
+        let c_message =
+            CString::new(message).map_err(|_| Error::validation("invalid wait-box message"))?;
+        let rc = unsafe { idax_sys::idax_ui_wait_box_update(self.handle, c_message.as_ptr()) };
+        error::int_to_status(rc, "ui::WaitBox::update failed")
+    }
+
+    /// Whether the user requested cancellation.
+    pub fn cancelled(&self) -> Result<bool> {
+        let mut out: i32 = 0;
+        let rc = unsafe { idax_sys::idax_ui_wait_box_cancelled(self.handle, &mut out) };
+        if rc != 0 {
+            return Err(error::consume_last_error("ui::WaitBox::cancelled failed"));
+        }
+        Ok(out != 0)
+    }
+
+    /// Whether this wrapper currently owns an active wait box.
+    pub fn active(&self) -> Result<bool> {
+        let mut out: i32 = 0;
+        let rc = unsafe { idax_sys::idax_ui_wait_box_active(self.handle, &mut out) };
+        if rc != 0 {
+            return Err(error::consume_last_error("ui::WaitBox::active failed"));
+        }
+        Ok(out != 0)
+    }
+
+    /// Hide the wait box before this object is dropped.
+    pub fn dismiss(&mut self) {
+        unsafe { idax_sys::idax_ui_wait_box_dismiss(self.handle) };
+    }
+}
+
+impl Drop for WaitBox {
+    fn drop(&mut self) {
+        unsafe { idax_sys::idax_ui_wait_box_free(self.handle) };
+        self.handle = std::ptr::null_mut();
+    }
+}
+
+/// Options for [`ask_text`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct AskTextOptions {
+    /// Maximum accepted text size. Zero means IDA's unlimited default.
+    pub max_size: usize,
+    /// Allow tab characters in the editor.
+    pub accept_tabs: bool,
+    /// Use the normal UI font instead of the fixed-width editor font.
+    pub normal_font: bool,
+}
+
+/// Ask the user for multiline text in an IDA UI host.
+pub fn ask_text(prompt: &str, default_value: &str, options: AskTextOptions) -> Result<String> {
+    let c_prompt = CString::new(prompt).map_err(|_| Error::validation("invalid text prompt"))?;
+    let c_default =
+        CString::new(default_value).map_err(|_| Error::validation("invalid default text"))?;
+    let mut out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_text(
+            c_prompt.as_ptr(),
+            c_default.as_ptr(),
+            options.max_size,
+            options.accept_tabs as i32,
+            options.normal_font as i32,
+            &mut out,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error("ui::ask_text failed"));
+    }
+    Ok(unsafe { error::consume_c_string(out) })
+}
+
+/// Result of a fixed `sval_t*`, `ushort*` typed form.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SvalBitsetFormResult {
+    pub accepted: bool,
+    pub sval: i64,
+    pub bitset: u16,
+}
+
+/// Result of a fixed `sval_t*`, path-buffer, `ushort*` typed form.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SvalPathBitsetFormResult {
+    pub accepted: bool,
+    pub sval: i64,
+    pub path: String,
+    pub bitset: u16,
+}
+
+/// Result of a fixed path-buffer, `ushort*` typed form.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PathBitsetFormResult {
+    pub accepted: bool,
+    pub path: String,
+    pub bitset: u16,
+}
+
+/// Result of a fixed radio-group, `sval_t*`, path-buffer, `ushort*` typed form.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RadioSvalPathBitsetFormResult {
+    pub accepted: bool,
+    pub radio: u16,
+    pub sval: i64,
+    pub path: String,
+    pub bitset: u16,
+}
+
+/// Result of a fixed three-`sval_t*`, path-buffer, two-`ushort*` typed form.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ThreeSvalsPathTwoBitsetsFormResult {
+    pub accepted: bool,
+    pub first: i64,
+    pub second: i64,
+    pub third: i64,
+    pub path: String,
+    pub first_bitset: u16,
+    pub second_bitset: u16,
+}
+
+/// Show a typed form with fixed `sval_t*`, `ushort*` bindings.
+pub fn ask_form_sval_bitset(markup: &str, sval: i64, bitset: u16) -> Result<SvalBitsetFormResult> {
+    let c_markup = form_markup_cstring(markup)?;
+    let mut sval_out = sval;
+    let mut bitset_out = bitset;
+    let mut accepted: i32 = 0;
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_form_sval_bitset(
+            c_markup.as_ptr(),
+            &mut sval_out,
+            &mut bitset_out,
+            &mut accepted,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error("ui::ask_form_sval_bitset failed"));
+    }
+    Ok(SvalBitsetFormResult {
+        accepted: accepted != 0,
+        sval: sval_out,
+        bitset: bitset_out,
+    })
+}
+
+/// Show a typed form with fixed `sval_t*`, path-buffer, `ushort*` bindings.
+pub fn ask_form_sval_path_bitset(
+    markup: &str,
+    sval: i64,
+    path: &str,
+    bitset: u16,
+    for_saving: bool,
+) -> Result<SvalPathBitsetFormResult> {
+    let c_markup = form_markup_cstring(markup)?;
+    let c_path = CString::new(path).map_err(|_| Error::validation("invalid form path"))?;
+    let mut sval_out = sval;
+    let mut bitset_out = bitset;
+    let mut accepted: i32 = 0;
+    let mut path_out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_form_sval_path_bitset(
+            c_markup.as_ptr(),
+            &mut sval_out,
+            c_path.as_ptr(),
+            for_saving as i32,
+            &mut bitset_out,
+            &mut accepted,
+            &mut path_out,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error(
+            "ui::ask_form_sval_path_bitset failed",
+        ));
+    }
+    Ok(SvalPathBitsetFormResult {
+        accepted: accepted != 0,
+        sval: sval_out,
+        path: unsafe { error::consume_c_string(path_out) },
+        bitset: bitset_out,
+    })
+}
+
+/// Show a typed form with fixed path-buffer, `ushort*` bindings.
+pub fn ask_form_path_bitset(
+    markup: &str,
+    path: &str,
+    bitset: u16,
+    for_saving: bool,
+) -> Result<PathBitsetFormResult> {
+    let c_markup = form_markup_cstring(markup)?;
+    let c_path = CString::new(path).map_err(|_| Error::validation("invalid form path"))?;
+    let mut bitset_out = bitset;
+    let mut accepted: i32 = 0;
+    let mut path_out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_form_path_bitset(
+            c_markup.as_ptr(),
+            c_path.as_ptr(),
+            for_saving as i32,
+            &mut bitset_out,
+            &mut accepted,
+            &mut path_out,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error("ui::ask_form_path_bitset failed"));
+    }
+    Ok(PathBitsetFormResult {
+        accepted: accepted != 0,
+        path: unsafe { error::consume_c_string(path_out) },
+        bitset: bitset_out,
+    })
+}
+
+/// Show a typed form with fixed radio, `sval_t*`, path-buffer, `ushort*` bindings.
+pub fn ask_form_radio_sval_path_bitset(
+    markup: &str,
+    radio: u16,
+    sval: i64,
+    path: &str,
+    bitset: u16,
+    for_saving: bool,
+) -> Result<RadioSvalPathBitsetFormResult> {
+    let c_markup = form_markup_cstring(markup)?;
+    let c_path = CString::new(path).map_err(|_| Error::validation("invalid form path"))?;
+    let mut radio_out = radio;
+    let mut sval_out = sval;
+    let mut bitset_out = bitset;
+    let mut accepted: i32 = 0;
+    let mut path_out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_form_radio_sval_path_bitset(
+            c_markup.as_ptr(),
+            &mut radio_out,
+            &mut sval_out,
+            c_path.as_ptr(),
+            for_saving as i32,
+            &mut bitset_out,
+            &mut accepted,
+            &mut path_out,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error(
+            "ui::ask_form_radio_sval_path_bitset failed",
+        ));
+    }
+    Ok(RadioSvalPathBitsetFormResult {
+        accepted: accepted != 0,
+        radio: radio_out,
+        sval: sval_out,
+        path: unsafe { error::consume_c_string(path_out) },
+        bitset: bitset_out,
+    })
+}
+
+/// Show a typed form with fixed three-`sval_t*`, path-buffer,
+/// two-`ushort*` bindings.
+pub fn ask_form_three_svals_path_two_bitsets(
+    markup: &str,
+    first: i64,
+    second: i64,
+    third: i64,
+    path: &str,
+    first_bitset: u16,
+    second_bitset: u16,
+    for_saving: bool,
+) -> Result<ThreeSvalsPathTwoBitsetsFormResult> {
+    let c_markup = form_markup_cstring(markup)?;
+    let c_path = CString::new(path).map_err(|_| Error::validation("invalid form path"))?;
+    let mut first_out = first;
+    let mut second_out = second;
+    let mut third_out = third;
+    let mut first_bitset_out = first_bitset;
+    let mut second_bitset_out = second_bitset;
+    let mut accepted: i32 = 0;
+    let mut path_out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe {
+        idax_sys::idax_ui_ask_form_three_svals_path_two_bitsets(
+            c_markup.as_ptr(),
+            &mut first_out,
+            &mut second_out,
+            &mut third_out,
+            c_path.as_ptr(),
+            for_saving as i32,
+            &mut first_bitset_out,
+            &mut second_bitset_out,
+            &mut accepted,
+            &mut path_out,
+        )
+    };
+    if rc != 0 {
+        return Err(error::consume_last_error(
+            "ui::ask_form_three_svals_path_two_bitsets failed",
+        ));
+    }
+    Ok(ThreeSvalsPathTwoBitsetsFormResult {
+        accepted: accepted != 0,
+        first: first_out,
+        second: second_out,
+        third: third_out,
+        path: unsafe { error::consume_c_string(path_out) },
+        first_bitset: first_bitset_out,
+        second_bitset: second_bitset_out,
+    })
+}
+
+/// Copy text to the host clipboard.
+///
+/// The native idax library must be built with Qt clipboard support, otherwise
+/// this returns an unsupported error.
+pub fn copy_to_clipboard(text: &str) -> Status {
+    let c_text = CString::new(text).map_err(|_| Error::validation("invalid clipboard text"))?;
+    let rc = unsafe { idax_sys::idax_ui_copy_to_clipboard(c_text.as_ptr()) };
+    if rc == 0 {
+        Ok(())
+    } else {
+        Err(clipboard_error("ui::copy_to_clipboard failed"))
+    }
+}
+
+/// Read text from the host clipboard.
+pub fn read_clipboard() -> Result<String> {
+    let mut out: *mut c_char = std::ptr::null_mut();
+    let rc = unsafe { idax_sys::idax_ui_read_clipboard(&mut out) };
+    if rc != 0 {
+        return Err(clipboard_error("ui::read_clipboard failed"));
+    }
+    Ok(unsafe { error::consume_c_string(out) })
+}
+
+/// Clipboard backend name, such as `"Qt"` or `"unsupported"`.
+pub fn clipboard_backend() -> String {
+    let ptr = unsafe { idax_sys::idax_ui_clipboard_backend() };
+    if ptr.is_null() {
+        String::new()
+    } else {
+        unsafe { CStr::from_ptr(ptr).to_string_lossy().into_owned() }
+    }
+}
+
+fn clipboard_error(fallback_msg: &str) -> Error {
+    let err = error::consume_last_error(fallback_msg);
+    if err.category == crate::error::ErrorCategory::SdkFailure
+        && clipboard_backend() == "unsupported"
+    {
+        Error::unsupported("Qt clipboard support is disabled")
+    } else {
+        err
+    }
 }
 
 // ── Navigation ──────────────────────────────────────────────────────────
@@ -924,11 +1305,7 @@ unsafe extern "C" fn event_filter_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut FilteredEventCallbackContext) };
     let ev = unsafe { from_ffi_event(&*event) };
-    if (ctx.filter)(&ev) {
-        1
-    } else {
-        0
-    }
+    if (ctx.filter)(&ev) { 1 } else { 0 }
 }
 
 unsafe extern "C" fn filtered_event_callback_trampoline(

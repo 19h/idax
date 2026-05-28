@@ -181,6 +181,13 @@ void test_function_edge_cases() {
     CHECK_OK(ida::function::update(fn0->start()));
     CHECK_OK(ida::function::reanalyze(fn0->start()));
 
+    auto prototype = ida::type::TypeInfo::function_type(ida::type::TypeInfo::int32());
+    CHECK_OK(prototype);
+    if (prototype) {
+        CHECK_OK(ida::function::set_prototype(fn0->start(), *prototype));
+    }
+    CHECK_OK(ida::function::apply_decl(fn0->start(), "int idax_decl_probe(void);"));
+
     auto outlined_before = ida::function::is_outlined(fn0->start());
     CHECK_OK(outlined_before);
     if (outlined_before) {

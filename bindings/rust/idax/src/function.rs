@@ -564,6 +564,19 @@ pub fn define_stack_variable(
     error::int_to_status(ret, "function::define_stack_variable failed")
 }
 
+/// Apply a definite function prototype/type at the function entry.
+pub fn set_prototype(function_address: Address, ty: &TypeInfo) -> Status {
+    let ret = unsafe { idax_sys::idax_function_set_prototype(function_address, ty.as_raw()) };
+    error::int_to_status(ret, "function::set_prototype failed")
+}
+
+/// Parse and apply a C declaration as a function prototype at the entry.
+pub fn apply_decl(function_address: Address, c_decl: &str) -> Status {
+    let c_decl = CString::new(c_decl).map_err(|_| Error::validation("invalid c_decl"))?;
+    let ret = unsafe { idax_sys::idax_function_apply_decl(function_address, c_decl.as_ptr()) };
+    error::int_to_status(ret, "function::apply_decl failed")
+}
+
 /// Add a register variable alias for a range in the function.
 pub fn add_register_variable(
     function_address: Address,

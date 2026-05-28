@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::decompiler::{self, ItemType, VisitAction};
-use idax::{comment, function, Error, Result};
+use idax::{Error, Result, comment, function};
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]

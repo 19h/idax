@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::{
-    address, comment, data, database, entry, fixup, function, instruction, segment, Error, Result,
+    Error, Result, address, comment, data, database, entry, fixup, function, instruction, segment,
 };
 use std::collections::HashMap;
 
@@ -98,7 +98,9 @@ fn scan_suspicious_instructions(report: &mut AuditReport, max_scan: usize) {
 
     let scan_end = (report.addr_min + 0x20000).min(report.addr_max);
     for ea in address::code_items(report.addr_min, scan_end).take(max_scan) {
-        let text = instruction::text(ea).unwrap_or_default().to_ascii_lowercase();
+        let text = instruction::text(ea)
+            .unwrap_or_default()
+            .to_ascii_lowercase();
         if text.contains("int3") || text.contains("hlt") {
             report.suspicious_instructions.push(ea);
             continue;
@@ -144,7 +146,10 @@ fn annotate_report(report: &AuditReport) {
     for wx in &report.wx_violations {
         let _ = comment::set(
             wx.start,
-            &format!("[Audit] W+X segment {} [0x{:x},0x{:x})", wx.name, wx.start, wx.end),
+            &format!(
+                "[Audit] W+X segment {} [0x{:x},0x{:x})",
+                wx.name, wx.start, wx.end
+            ),
             true,
         );
     }

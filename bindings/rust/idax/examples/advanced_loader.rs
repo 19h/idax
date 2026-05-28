@@ -1,7 +1,7 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
-use idax::{loader, segment, Error, Result};
+use common::{DatabaseSession, format_error, print_usage};
+use idax::{Error, Result, loader, segment};
 
 #[derive(Debug, Clone)]
 struct XbinHeader {
@@ -101,7 +101,7 @@ fn run() -> Result<()> {
     let input_path = &args[1];
     let data = std::fs::read(input_path)
         .map_err(|err| Error::internal(format!("failed reading '{input_path}': {err}")))?;
-    
+
     let header = parse_header(&data)?;
     let segments = parse_segments(&data, &header)?;
 
@@ -137,7 +137,7 @@ fn run() -> Result<()> {
     for seg_entry in &segments {
         let start = header.base_address as u64 + seg_entry.virtual_address as u64;
         let end = start + seg_entry.virtual_size as u64;
-        
+
         let sclass = if seg_entry.flags & SEG_BSS != 0 {
             "BSS"
         } else if seg_entry.flags & SEG_EXTERN != 0 {
@@ -159,7 +159,7 @@ fn run() -> Result<()> {
         };
 
         segment::create(start, end, &seg_entry.name, sclass, stype)?;
-        
+
         let perm = segment::Permissions {
             read: (seg_entry.flags & SEG_READ) != 0,
             write: (seg_entry.flags & SEG_WRITE) != 0,
@@ -171,9 +171,12 @@ fn run() -> Result<()> {
         // Only load data if raw_size > 0 and it fits in the file
         if seg_entry.raw_size > 0 {
             let offset = seg_entry.file_offset as usize;
-            let size = std::cmp::min(seg_entry.raw_size as usize, data.len().saturating_sub(offset));
+            let size = std::cmp::min(
+                seg_entry.raw_size as usize,
+                data.len().saturating_sub(offset),
+            );
             if size > 0 {
-                loader::memory_to_database(&data[offset..offset+size], start, size as u64)?;
+                loader::memory_to_database(&data[offset..offset + size], start, size as u64)?;
             }
         }
     }
@@ -182,7 +185,7 @@ fn run() -> Result<()> {
     println!("input: {}", input_path);
     println!("version: {}", header.version);
     println!("mapped {} segments", segments.len());
-    
+
     Ok(())
 }
 

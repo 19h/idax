@@ -55,6 +55,12 @@ describe('Database Metadata', () => {
         expect(path.length).toBeGreaterThan(0);
     });
 
+    it('should return IDB path', () => {
+        const path = idax.database.idbPath();
+        expect(typeof path).toBe('string');
+        expect(path.length).toBeGreaterThan(0);
+    });
+
     it('should return file type name', () => {
         const ftype = idax.database.fileTypeName();
         expect(typeof ftype).toBe('string');
@@ -502,6 +508,84 @@ describe('Decompiler', () => {
                 const lines = df.lines();
                 expect(Array.isArray(lines)).toBe(true);
                 expect(lines.length).toBeGreaterThan(0);
+
+                expect(typeof df.declaration).toBe('function');
+                expect(typeof df.variableCount).toBe('function');
+                expect(typeof df.variables).toBe('function');
+                expect(typeof df.variable).toBe('function');
+                expect(typeof df.captureUserLvarSettings).toBe('function');
+                expect(typeof df.restoreUserLvarSettings).toBe('function');
+                expect(typeof df.setVariableComment).toBe('function');
+                expect(typeof df.forEachExpression).toBe('function');
+                expect(typeof df.forEachItem).toBe('function');
+
+                const declaration = df.declaration();
+                expect(typeof declaration).toBe('string');
+
+                const variableCount = df.variableCount();
+                expect(typeof variableCount).toBe('number');
+                expect(variableCount).toBeGreaterThanOrEqual(0);
+
+                const variables = df.variables();
+                expect(Array.isArray(variables)).toBe(true);
+                if (variables.length > 0 && typeof variables[0].index === 'number') {
+                    const variable = df.variable(variables[0].index);
+                    expect(variable.index).toBe(variables[0].index);
+                }
+
+                const snapshot = df.captureUserLvarSettings();
+                expect(typeof snapshot.empty).toBe('function');
+                expect(typeof snapshot.savedVariableCount).toBe('function');
+                expect(typeof snapshot.empty()).toBe('boolean');
+                expect(typeof snapshot.savedVariableCount()).toBe('number');
+
+                let sawExpressionPayload = false;
+                const expressionVisited = df.forEachExpression((expr) => {
+                    sawExpressionPayload = true;
+                    expect(typeof expr.type).toBe('number');
+                    expect(typeof expr.address).toBe('bigint');
+                    expect(
+                        expr.variableIndex === null || typeof expr.variableIndex === 'number',
+                    ).toBe(true);
+                    expect(
+                        expr.helperName === null || typeof expr.helperName === 'string',
+                    ).toBe(true);
+                    expect(
+                        expr.typeDeclaration === null || typeof expr.typeDeclaration === 'string',
+                    ).toBe(true);
+                    expect(
+                        expr.parent === null || typeof expr.parent.type === 'number',
+                    ).toBe(true);
+                    expect(typeof expr.parentDepth).toBe('number');
+                    return 'stop';
+                });
+                expect(typeof expressionVisited).toBe('number');
+                expect(expressionVisited).toBeGreaterThan(0);
+                expect(sawExpressionPayload).toBe(true);
+
+                let sawItemExpressionPayload = false;
+                let sawStatementPayload = false;
+                const itemVisited = df.forEachItem(
+                    (expr) => {
+                        sawItemExpressionPayload = true;
+                        expect(typeof expr.parentDepth).toBe('number');
+                        return sawStatementPayload ? 'stop' : 'continue';
+                    },
+                    (stmt) => {
+                        sawStatementPayload = true;
+                        expect(typeof stmt.type).toBe('number');
+                        expect(typeof stmt.address).toBe('bigint');
+                        expect(
+                            stmt.parent === null || typeof stmt.parent.isExpression === 'boolean',
+                        ).toBe(true);
+                        expect(typeof stmt.parentDepth).toBe('number');
+                        return 'stop';
+                    },
+                );
+                expect(typeof itemVisited).toBe('number');
+                expect(itemVisited).toBeGreaterThan(0);
+                expect(sawItemExpressionPayload || sawStatementPayload).toBe(true);
+
                 decompiled = true;
                 break;
             } catch (e) {

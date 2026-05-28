@@ -362,6 +362,31 @@ NAN_METHOD(DefineStackVariable) {
     info.GetReturnValue().Set(Nan::True());
 }
 
+// setPrototype(funcAddr, typeDecl)
+NAN_METHOD(SetPrototype) {
+    ida::Address funcAddr;
+    if (!GetAddressArg(info, 0, funcAddr)) return;
+
+    std::string typeDecl;
+    if (!GetStringArg(info, 1, typeDecl)) return;
+
+    IDAX_UNWRAP(auto typeInfo, ida::type::TypeInfo::from_declaration(typeDecl));
+    IDAX_CHECK_STATUS(ida::function::set_prototype(funcAddr, typeInfo));
+    info.GetReturnValue().Set(Nan::True());
+}
+
+// applyDecl(funcAddr, cDecl)
+NAN_METHOD(ApplyDecl) {
+    ida::Address funcAddr;
+    if (!GetAddressArg(info, 0, funcAddr)) return;
+
+    std::string cDecl;
+    if (!GetStringArg(info, 1, cDecl)) return;
+
+    IDAX_CHECK_STATUS(ida::function::apply_decl(funcAddr, cDecl));
+    info.GetReturnValue().Set(Nan::True());
+}
+
 // addRegisterVariable(funcAddr, rangeStart, rangeEnd, registerName, userName, comment?)
 NAN_METHOD(AddRegisterVariable) {
     ida::Address funcAddr, rangeStart, rangeEnd;
@@ -528,6 +553,8 @@ void InitFunction(v8::Local<v8::Object> target) {
     SetMethod(ns, "frameVariableByName",   FrameVariableByName);
     SetMethod(ns, "frameVariableByOffset", FrameVariableByOffset);
     SetMethod(ns, "defineStackVariable",   DefineStackVariable);
+    SetMethod(ns, "setPrototype",          SetPrototype);
+    SetMethod(ns, "applyDecl",             ApplyDecl);
 
     // Register variables
     SetMethod(ns, "addRegisterVariable",    AddRegisterVariable);

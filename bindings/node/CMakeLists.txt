@@ -51,8 +51,15 @@ set(IDAX_LIB_SEARCH_PATHS
     "${IDAX_ROOT}/build/Release"
     "${IDAX_ROOT}/build/Debug"
     "${IDAX_ROOT}/build/RelWithDebInfo"
+    "${IDAX_ROOT}/build-test"
+    "${IDAX_ROOT}/build-test-fetch"
+    "${IDAX_ROOT}/build-examples-fetch"
     "${CMAKE_INSTALL_PREFIX}/lib"
 )
+
+if(DEFINED ENV{IDAX_BUILD_DIR})
+    list(PREPEND IDAX_LIB_SEARCH_PATHS "$ENV{IDAX_BUILD_DIR}")
+endif()
 
 find_library(IDAX_LIBRARY
     NAMES idax libidax
@@ -226,7 +233,9 @@ set(BINDING_SOURCES
     src/diagnostics_bind.cpp
     src/lumina_bind.cpp
     src/lines_bind.cpp
+    src/ui_bind.cpp
     src/decompiler_bind.cpp
+    src/path_bind.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${BINDING_SOURCES})

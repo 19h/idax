@@ -9,10 +9,11 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::address        Predicates, traversal, range iteration          [1 struct, 1 enum, 2 classes, ~12 free fns]
  |-- ida::data           Read/write/patch/define bytes, patterns         [~30 free fns, 2 templates]
- |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~24 free fns]
+ |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~25 free fns]
+ |-- ida::path           Portable path splitting and directory checks    [~3 free fns]
  |
  |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
-|-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~27 free fns]
+|-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~29 free fns]
  |-- ida::instruction    Decode/create, operands, representation         [1 enum, 2 classes, ~25 free fns]
  |
  |-- ida::name           Set/get/force/remove, demangling                [1 enum, ~11 free fns]
@@ -28,14 +29,14 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |
  |-- ida::event          Typed IDB subscriptions, generic routing        [1 enum, 1 struct, 1 class, ~10 free fns]
- |-- ida::plugin         Plugin base, actions, menu/toolbar              [2 structs, 1 class, ~4 free fns]
+ |-- ida::plugin         Plugin base, actions, menu/toolbar              [3 structs, 1 class, ~4 free fns]
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, backend routing, request queue, events [2 enums, 5 structs, 1 class, ~42 free fns]
-|-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [15 enums, 13 structs, 8 classes, ~11 free fns]
+|-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [15 enums, 15 structs, 9 classes, ~12 free fns]
  |-- ida::lines          Tagged text, color spans, address-tag helpers     [1 enum, ~6 free fns, constants]
-|-- ida::ui             Messages, dialogs, widgets, custom viewers       [1 enum, 4 structs, 2 classes, ~30 free fns]
+|-- ida::ui             Messages, dialogs, wait boxes, widgets/viewers   [1 enum, 5 structs, 3 classes, ~31 free fns]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
  |
  |-- ida::storage        Netnode abstraction, id/open-by-id, alt/sup/hash/blob [1 class (Node), ~18 methods]
@@ -70,6 +71,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::address` | Navigation and predicates | `Range`, `ItemRange`, `Predicate` |
 | `ida::data` | Byte-level access | (free functions only) |
 | `ida::database` | Database lifecycle | `ProcessorId`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
+| `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding | `Instruction`, `Operand`, `OperandType` |
@@ -106,18 +108,24 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `BackendInfo`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
-| `ida::decompiler` | Decompilation | `DecompiledFunction` (pseudocode+microcode), `DecompileFailure`, `MaturityEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
+| `ida::decompiler` | Decompilation | `ScopedSession`, `DecompiledFunction` (pseudocode+microcode), `LvarSnapshot`, `DecompileFailure`, `MaturityEvent`, `PopulatingPopupEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
 | `ida::lines` | Tagged text/color utilities | `Color`, `kColorOn`, `kColorOff`, `kColorEsc`, `kColorInv`, `kColorAddr`, `kColorAddrSize` |
-| `ida::ui` | User interface | `Widget`, `Chooser`, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
+| `ida::ui` | User interface | `Widget`, `Chooser`, `WaitBox`, `Progress`, `FormBuilder`, typed form bindings, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |
 | `ida::event` | IDB event routing | `Event`, `EventKind`, `ScopedSubscription` |
 | `ida::storage` | Persistent key-value | `Node` |
 
 ## Header Dependency Map
 
-No public header includes any SDK header. The only internal dependency is:
+Most public headers avoid SDK includes. `include/ida/ui.hpp` is the deliberate
+exception for typed `ask_form`: the SDK consumes a true C vararg pointer pack,
+so the forwarding template must see the SDK form types and inline
+`ask_form(...)` declaration. The header defines `USE_DANGEROUS_FUNCTIONS`
+only while including the SDK headers to avoid exporting the SDK's dangerous C
+function macro rewrites through `ida/idax.hpp`.
 
 - `function.hpp` forward-declares `ida::type::TypeInfo`
 - All other public headers are self-contained (depend only on `error.hpp` / `address.hpp`)
 
-The internal bridge (`src/detail/sdk_bridge.hpp`) is the single point where SDK headers are included. It is never exposed in any public header.
+The internal bridge (`src/detail/sdk_bridge.hpp`) remains the common
+implementation-side SDK include point for non-template wrapper code.

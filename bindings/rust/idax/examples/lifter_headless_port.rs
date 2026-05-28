@@ -1,7 +1,7 @@
 mod common;
 
-use common::{format_error, print_usage, resolve_symbol_or_address, write_output, DatabaseSession};
-use idax::{function, instruction, Error, Result};
+use common::{DatabaseSession, format_error, print_usage, resolve_symbol_or_address, write_output};
+use idax::{Error, Result, function, instruction};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]

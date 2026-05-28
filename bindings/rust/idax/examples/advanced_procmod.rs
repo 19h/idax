@@ -1,10 +1,10 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
+use idax::address::BAD_ADDRESS;
 use idax::processor;
 use idax::processor::Processor;
-use idax::{comment, database, data, Error, Result, segment};
-use idax::address::BAD_ADDRESS;
+use idax::{Error, Result, comment, data, database, segment};
 
 #[derive(Debug, Clone, Copy)]
 struct Decoded {
@@ -158,15 +158,12 @@ fn parse_word(token: &str) -> Result<u32> {
 fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        print_usage(
-            &args[0],
-            "<idb_file_or_binary> [start_ea]",
-        );
+        print_usage(&args[0], "<idb_file_or_binary> [start_ea]");
         return Err(Error::validation("missing target file"));
     }
 
     let input_path = &args[1];
-    
+
     // We open a session and try to decode from within the database instead of from argv
     let _session = DatabaseSession::open(input_path, true)?;
 
@@ -188,7 +185,7 @@ fn run() -> Result<()> {
     if ea == BAD_ADDRESS {
         return Err(Error::internal("Could not find start address in database"));
     }
-    
+
     // We just limit our iteration to 20 instructions or end of segment
     println!("Disassembling at address 0x{:08x}:", ea);
 
@@ -211,10 +208,10 @@ fn run() -> Result<()> {
                 decoded.rs2,
                 decoded.imm16
             );
-            
+
             // We can also try to add an IDA comment with the mock disassembled form
             let _ = comment::set(ea, &render(decoded), false);
-            
+
             ea += 4;
         } else {
             println!("0x{:08x}: <read error>", ea);

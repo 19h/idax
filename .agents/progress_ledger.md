@@ -1799,3 +1799,368 @@
   - 16.94.1. Reviewed the finalized `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` parity audit and translated it into concrete idax-side implementation work.
   - 16.94.2. Added `docs/codedump_parity_tasks.md` with implementation tasks, deliverables, acceptance criteria, and a suggested execution order for typed forms, wait-box UI, Hex-Rays popup events, Local Types action context payloads, clipboard/text/path helpers, lvar-setting snapshots, prototype apply, and ctree migration helpers.
   - 16.94.3. Added Phase 22 (`ida-cdump Parity Closure`) to `.agents/roadmap.md` and queued the work in `.agents/active_work.md`.
+
+- **16.95. ida-cdump Parity First Implementation Slice**
+  - 16.95.1. Implemented the low-risk Phase 22 helper slice in C++: `ida::ui::ask_text`, `ida::ui::WaitBox`, `ida::ui::Progress`/`ProgressFn`, `ida::database::idb_path`, and new `ida::path::{basename, dirname, is_directory}` helpers.
+  - 16.95.2. Added compile/smoke coverage for the new C++ APIs: API surface parity now verifies 28 namespace surfaces and checks `WaitBox` move-only semantics plus `ida::path` symbol availability; unit coverage validates `ida::path` helper behavior; smoke coverage calls `database::idb_path`.
+  - 16.95.3. Wired `database::idb_path` through Node (`database.idbPath`) and Rust (`database::idb_path`) bindings with declarations, unit/integration tests, and Rust README/lib examples.
+  - 16.95.4. Synchronized docs and tracking: `api_reference`, `sdk_domain_coverage_matrix`, `namespace_topology`, `validation_report`, README, `codedump_parity_tasks`, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.95.5. Validation evidence: `env -u IDASDK cmake -S . -B build-test-fetch -DIDAX_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo`, `cmake --build build-test-fetch --target idax_api_surface_check -j2`, and `ctest --test-dir build-test-fetch -R api_surface_parity --output-on-failure` pass. `cmake --build build-test-fetch --target idax_unit_test -j2 && ctest --test-dir build-test-fetch -R '^idax_unit_test$' --output-on-failure` passes. `cmake --build build-test-fetch --target idax_smoke_test -j2` passes; runtime `ctest -R '^smoke$'` reaches and prints a non-empty `idb_path` but fails later at pre-existing `file_to_database` fixture input-path resolution (`<userhome>/...` not present in this checkout). Node `npm test` passes structurally with native addon skipped. Rust `cargo check -p idax` is blocked by the local `IDASDK=<userhome>/ida-sdk` missing `bootstrap.cmake`; with `IDASDK` unset it reaches bindgen but fails on an existing generated-layout assertion for `IdaxMicrocodeInstruction`.
+
+- **16.96. ida-cdump Hex-Rays Popup Event Parity**
+  - 16.96.1. Implemented P22.3 by adding `ida::decompiler::PopulatingPopupEvent` and `ida::decompiler::on_populating_popup(...)` over Hex-Rays `hxe_populating_popup`, carrying callback-scoped opaque `TWidget*`, `TPopupMenu*`, and `vdui_t*` handles plus `function_address` when available.
+  - 16.96.2. Wired the event into the existing single Hex-Rays callback bridge and subscription lifecycle, including token erase and callback-removal logic alongside maturity, pseudocode, cursor, and hint events.
+  - 16.96.3. Added binding coverage: Node `decompiler.onPopulatingPopup` with opaque handle payloads and TypeScript declarations; Rust shim, FFI declarations, safe `decompiler::on_populating_popup`, event payload type, and unit-level construction check.
+  - 16.96.4. Updated `examples/plugin/abyss_port_plugin.cpp` to consume `on_populating_popup` for its Hex-Rays pseudocode popup menu and documented the pattern in `docs/quickstart/plugin.md` and `examples/README.md`.
+  - 16.96.5. Synchronized Phase 22 tracking and docs: `docs/codedump_parity_tasks.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, README, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.96.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check -j2` and `ctest --test-dir build-test-fetch -R api_surface_parity --output-on-failure` pass. Example coverage passes with `env -u IDASDK cmake -S . -B build-examples-fetch -DIDAX_BUILD_EXAMPLES=ON -DIDAX_BUILD_EXAMPLE_ADDONS=ON -DIDAX_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo` and `cmake --build build-examples-fetch --target idax_abyss_port_plugin -j2`. Node `npm test` passes structurally with native addon skipped. Native Node addon build remains blocked before the changed binding by Node v26/NAN API incompatibility (`GetAlignedPointerFromInternalField` signature). Rust targeted test remains blocked by the existing bindgen `IdaxMicrocodeInstruction` layout assertion before reaching high-level tests.
+
+- **16.97. ida-cdump Local Types Action Context Parity**
+  - 16.97.1. Implemented P22.4 by adding `ida::plugin::TypeRef` and `std::optional<TypeRef> ActionContext::type_ref`.
+  - 16.97.2. Populated the payload from SDK `action_ctx_base_t::type_ref` when `ACF_HAS_TYPE_REF` is present, snapshotting the referenced `tinfo_t` into owned `ida::type::TypeInfo` and deriving a stable display name from the named type, ordinal, selected member, or printed type fallback.
+  - 16.97.3. Added Rust binding coverage through `IdaxPluginActionContext` (`type_ref_name`, `type_ref_type`), shim conversion, safe `plugin::TypeRef`, `ActionContext::type_ref`, and unit-level construction/default tests.
+  - 16.97.4. Added C++ surface/scenario coverage for `ActionContext::type_ref` and updated plugin quickstart docs with a Local Types enable/handler pattern.
+  - 16.97.5. Synchronized Phase 22 tracking and docs: `docs/codedump_parity_tasks.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, README, Rust README/lib docs, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.97.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check -j2`, `ctest --test-dir build-test-fetch -R api_surface_parity --output-on-failure`, `cmake --build build-test-fetch --target idax_loader_processor_scenario_test -j2`, and `ctest --test-dir build-test-fetch -R '^loader_processor_scenario$' --output-on-failure` pass. Rust `env -u IDASDK cargo test -p idax plugin_tests --lib --no-run` remains blocked before high-level tests by the existing generated-layout assertion for `IdaxMicrocodeInstruction`.
+
+- **16.98. ida-cdump Lvar/Prototype Metadata C++ Slice**
+  - 16.98.1. Implemented the C++ P22.6 metadata slice: `ida::decompiler::LvarSnapshot`, `DecompiledFunction::{capture_user_lvar_settings,restore_user_lvar_settings}`, variable comment writeback by name/index, matching `DecompilerView` forwarding helpers, and `ida::function::{set_prototype,apply_decl}`.
+  - 16.98.2. Added compile and integration coverage: API surface checks include all new function/decompiler symbols; `segment_function_edge_cases_test` applies a function prototype from both `TypeInfo` and parsed C declaration; `decompiler_storage_hardening_test` captures lvar settings, writes a variable comment by name/index, verifies it after redecompile, then restores the snapshot.
+  - 16.98.3. Synchronized C++ docs/tracking for the partial P22.6 state: `docs/codedump_parity_tasks.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, README, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.98.4. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_segment_function_edge_cases_test idax_decompiler_storage_hardening_test -j2` passes, and `ctest --test-dir build-test-fetch -R 'api_surface_parity|segment_function_edge_cases|decompiler_storage_hardening|loader_processor_scenario' --output-on-failure` passes. P22.6 Node/Rust binding coverage remains pending.
+
+- **16.99. ida-cdump Lvar/Prototype Metadata Binding Coverage**
+  - 16.99.1. Completed P22.6 binding coverage for Node: added `function.setPrototype`, `function.applyDecl`, an owned `decompiler.LvarSnapshot` wrapper, `DecompiledFunction.captureUserLvarSettings`, `restoreUserLvarSettings`, and `setVariableComment`, plus TypeScript declarations and structural unit expectations.
+  - 16.99.2. Completed P22.6 binding coverage for Rust: added shim declarations/implementations for function prototype apply, lvar snapshot handle lifecycle/query, lvar snapshot capture/restore, and variable comment writeback; added safe Rust wrappers on `function`, `DecompiledFunction`, and `DecompilerView`; updated Rust README/lib docs.
+  - 16.99.3. Updated Phase 22 tracking so P22.6 is complete with the same validation caveat already affecting Rust high-level tests: generated `IdaxMicrocodeInstruction` layout assertion fails before new Rust wrappers are compiled/tested.
+  - 16.99.4. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_segment_function_edge_cases_test idax_decompiler_storage_hardening_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|segment_function_edge_cases|decompiler_storage_hardening' --output-on-failure` pass. `npm test` passes structurally with native addon skipped. `npm run build` is blocked by missing local `cmake-js`. `env -u IDASDK cargo test -p idax plugin_tests --lib --no-run` remains blocked by the existing generated `IdaxMicrocodeInstruction` layout assertion.
+
+- **16.100. ida-cdump Updated Gap Notes Reconciled Into Concrete Tasks**
+  - 16.100.1. Re-read the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` and reconciled it against Phase 22 work already landed in idax.
+  - 16.100.2. Updated `docs/codedump_parity_tasks.md` with a current gap-to-task map that marks wait-boxes, popup events, Local Types `type_ref`, multiline text, IDB path/path helpers, and lvar/prototype metadata as implemented while leaving typed forms, read-only ctree helpers, Qt clipboard, and Hex-Rays owning initialization as active tasks.
+  - 16.100.3. Expanded the remaining task definitions with concrete subtask IDs for P22.1 typed form bindings, P22.5 Qt clipboard, P22.7 ctree helper accessors, and new P22.9 scoped Hex-Rays lifetime handling.
+  - 16.100.4. Synchronized `.agents/active_work.md` and `.agents/roadmap.md` so the active Phase 22 queue matches the updated ida-cdump notes.
+
+- **16.101. ida-cdump Read-Only Ctree Helper C++ Slice**
+  - 16.101.1. Implemented the C++ P22.7 helper surface: `ExpressionView::helper_name()`, `ExpressionView::type_declaration()`, callback-scoped `CtreeItemView` parent snapshots, `ExpressionView`/`StatementView` `parent()` and `parents()`, stable `LocalVariable::index`, and `DecompiledFunction::variable(index)`.
+  - 16.101.2. Preserved view safety boundaries by exposing parent chains as value snapshots rather than raw `citem_t*` pointers; child expression navigation now extends the parent snapshot for call callees/arguments and left/right operands.
+  - 16.101.3. Added C++ coverage in `tests/unit/api_surface_parity_test.cpp` and `tests/integration/decompiler_storage_hardening_test.cpp`, including typed-expression reads, variable-index lookup, parent-chain checks, and call-argument parent checks.
+  - 16.101.4. Added partial binding coverage for the stable local-variable index and direct variable lookup in Node (`LocalVariable.index`, `DecompiledFunction.variable(index)`) and Rust (`LocalVariable::index`, `DecompiledFunction::variable(index)`, plus shim transfer/ABI fields). Full ctree callback payload expansion remains pending because current binding visitor callbacks are shallow.
+  - 16.101.5. Synchronized docs and tracking: `docs/codedump_parity_tasks.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, `docs/namespace_topology.md`, `docs/validation_report.md`, README, Rust README/lib docs, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.101.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_decompiler_storage_hardening_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|decompiler_storage_hardening' --output-on-failure` pass. `npm test` passes structurally with the native addon skipped. `env -u IDASDK cargo test -p idax plugin_tests --lib --no-run` remains blocked before high-level tests by the pre-existing generated `IdaxMicrocodeInstruction` layout assertion.
+
+- **16.102. ida-cdump Read-Only Ctree Binding Payload Coverage**
+  - 16.102.1. Expanded the Rust ctree callback ABI (`IdaxDecompilerExpressionInfo`, `IdaxDecompilerStatementInfo`) to carry expression variable index, helper name, type declaration, direct parent item summary, and parent-chain depth.
+  - 16.102.2. Updated Rust safe `ExpressionInfo`/`StatementInfo` with optional helper/type/parent fields and copied callback-scoped C strings before returning to user callbacks.
+  - 16.102.3. Added Node synchronous ctree visitor methods on `DecompiledFunction`: `forEachExpression(callback)` and `forEachItem(onExpression, onStatement?)`, carrying helper/type/parent metadata and supporting continue/stop/skip-children callback return actions.
+  - 16.102.4. Updated TypeScript declarations and Rust docs so binding consumers can discover the P22.7 read-only ctree metadata without raw SDK access.
+  - 16.102.5. Updated Phase 22 tracking so P22.7 is complete; remaining concrete ida-cdump parity work is typed forms, Qt clipboard, scoped Hex-Rays initialization, and final migration-validation docs.
+  - 16.102.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_decompiler_storage_hardening_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|decompiler_storage_hardening' --output-on-failure` pass after the P22.7 surface changes. `npm test` passes structurally with native addon skipped; `npm run build` remains blocked by missing local `cmake-js`. `env -u IDASDK cargo test -p idax plugin_tests --lib --no-run` regenerates bindings from the updated shim and still fails at the pre-existing generated `IdaxMicrocodeInstruction` layout assertion before high-level wrapper tests execute.
+
+- **16.103. ida-cdump Remaining Parity Queue Concretized**
+  - 16.103.1. Re-read the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` after P22.7 landed and confirmed the remaining audited parity blockers are P22.1 typed forms, P22.5 Qt clipboard, P22.9 scoped Hex-Rays initialization, and P22.8 migration validation.
+  - 16.103.2. Updated `docs/codedump_parity_tasks.md` with a current implementation queue that assigns primary idax files, binding posture, and exit conditions for each remaining blocker.
+  - 16.103.3. Expanded P22.1 into concrete direct-binding, SDK-buffer, compile-time vararg, `FormBuilder`, validation, test, and binding-deferral tasks.
+  - 16.103.4. Expanded P22.5/P22.9/P22.8 with concrete Qt linkage, clipboard helper, Hex-Rays RAII session, migration checklist, example, and validation tasks.
+  - 16.103.5. Synchronized `.agents/active_work.md` and `.agents/roadmap.md` so the active Phase 22 queue matches the refined task breakdown.
+
+- **16.104. ida-cdump Typed Form C++ Surface**
+  - 16.104.1. Implemented the P22.1 C++ typed form surface in `include/ida/ui.hpp`: direct binding factories (`form_int`, `form_sval`, `form_bitset`, `form_radio`, `form_address`, `form_text`, `form_path`), SDK-side storage adapters, and a variadic template `ask_form(markup, bindings...)` that forwards a concrete SDK pointer pack to IDA's true-vararg `ask_form(...)`.
+  - 16.104.2. Added compile-time `FormBuilder<Bound...>` with chaining methods for codedump-shaped signed integer, checkbox bitset, radio, address, text, and path fields. The builder stores the binding tuple in the type and dispatches through the typed form overload instead of any runtime `va_list` synthesis.
+  - 16.104.3. Added validation for empty/embedded-NUL markup, embedded-NUL text/path values, path `QMAXPATH` overflow, numeric SDK-range checks, and SDK rejection errors. Accepted forms commit results back to caller storage; cancelled forms leave caller storage untouched.
+  - 16.104.4. Added API surface coverage for direct binding factories, typed `ask_form` overload resolution, `FormBuilder` construction, and synthesized codedump-shaped markup. Added pure unit coverage for numeric/address/path adapter prepare/commit and path overflow validation.
+  - 16.104.5. Documented the public-header SDK include exception for typed forms in `docs/namespace_topology.md`; `ui.hpp` gates the SDK include with `USE_DANGEROUS_FUNCTIONS` so including `ida/idax.hpp` does not export the SDK dangerous C-function macro rewrites.
+  - 16.104.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_unit_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|^idax_unit_test$' --output-on-failure` pass. P22.1 Node/Rust typed form bindings remain pending because they need fixed-shape entrypoints rather than runtime vararg synthesis.
+
+- **16.105. ida-cdump Optional Qt Clipboard C++ Surface**
+  - 16.105.1. Added the P22.5 C++ clipboard API to `ida::ui`: `copy_to_clipboard(std::string_view)`, `read_clipboard()`, and `clipboard_backend()`.
+  - 16.105.2. Added an explicit `IDAX_ENABLE_QT_CLIPBOARD` CMake option. The default build keeps idax free of Qt link requirements and returns structured `Unsupported` errors; enabling the option requires Qt6 Core/Gui/Widgets and uses `QApplication::clipboard()` / `QClipboard`.
+  - 16.105.3. Implemented structured failure modes for disabled Qt support, missing `QApplication`, null clipboard handle, too-large text, and empty clipboard reads.
+  - 16.105.4. Added C++ API surface coverage for all clipboard helpers and documented the optional Qt backend in README, API reference, SDK coverage matrix, and the Phase 22 task tracker.
+  - 16.105.5. Validation evidence: reconfigured `build-test-fetch` with default `IDAX_ENABLE_QT_CLIPBOARD=OFF`, then `cmake --build build-test-fetch --target idax_api_surface_check idax_unit_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|^idax_unit_test$' --output-on-failure` pass. Host-gated Qt runtime coverage and Node/Rust clipboard wrappers remain pending.
+
+- **16.106. ida-cdump Scoped Hex-Rays Session C++ Surface**
+  - 16.106.1. Implemented P22.9 C++ scoped ownership with `ida::decompiler::ScopedSession` and `ida::decompiler::initialize()`, allowing plugin-host lifecycle code to replace direct `init_hexrays_plugin()` / `term_hexrays_plugin()` calls.
+  - 16.106.2. Preserved existing `available()` / `ensure_hexrays()` behavior as a non-owning sticky query/use path while adding a separate mutex-guarded owned-session reference count for explicit scoped sessions.
+  - 16.106.3. Added move-only semantics, `valid()`, boolean conversion, destructor release, and explicit `close()` with a structured conflict error for already-closed sessions.
+  - 16.106.4. Added API surface coverage for `initialize`, `ScopedSession::close`, `ScopedSession::valid`, and move-only/copy-disabled semantics.
+  - 16.106.5. Updated README, API reference, SDK coverage matrix, namespace topology, API catalog, and Phase 22 tracking to document scoped Hex-Rays ownership.
+  - 16.106.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check -j2` and `ctest --test-dir build-test-fetch -R api_surface_parity --output-on-failure` pass. Host-gated plugin/example runtime evidence remains pending.
+
+- **16.107. ida-cdump Clipboard Binding Coverage**
+  - 16.107.1. Added Node `ui` namespace bindings for `copyToClipboard`, `readClipboard`, and `clipboardBackend`, plus TypeScript declarations, module export wiring, CMake source wiring, and structural unit-test expectations.
+  - 16.107.2. Added Rust shim functions `idax_ui_copy_to_clipboard`, `idax_ui_read_clipboard`, and `idax_ui_clipboard_backend`, updated the docs.rs fallback bindings, and exposed safe Rust `ui::{copy_to_clipboard,read_clipboard,clipboard_backend}` wrappers.
+  - 16.107.3. Updated Phase 22 tracking so P22.5 clipboard binding wrappers are complete; remaining P22.5 work is host-gated Qt runtime evidence.
+  - 16.107.4. Validation evidence: `npm test` passes structurally with the native addon skipped. `env -u IDASDK cargo test -p idax plugin_tests --lib --no-run` regenerates bindings from the updated shim and still fails at the pre-existing generated `IdaxMicrocodeInstruction` layout assertion before high-level wrapper tests execute.
+
+- **16.108. ida-cdump Updated Gap Checklist and Concrete Residual Tasks**
+  - 16.108.1. Re-read the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` and checked the cited `ida-cdump` call sites, including the six concrete `ask_form` vararg signatures in `codedump_plugin.cpp` and the metadata-apply `parse_decls` path.
+  - 16.108.2. Added `docs/codedump_migration_checklist.md`, mapping each updated gap row to the idax replacement API, implementation status, binding posture, residual caveat, and concrete remaining task.
+  - 16.108.3. Updated `docs/codedump_parity_tasks.md` to add P22.10 for bulk local type declaration import over SDK `parse_decls`, with C++, Node, Rust, test, and documentation tasks.
+  - 16.108.4. Updated API/docs/tracking references: README, API reference, SDK coverage matrix, API catalog, roadmap, and active work. The type domain is now marked partial specifically for the pending P22.10 bulk declaration import gap.
+
+- **16.109. ida-cdump Bulk Local Type Declaration Import**
+  - 16.109.1. Implemented P22.10 C++ API coverage with `ida::type::ParseDeclarationsOptions`, `ParseDeclarationsReport`, and `parse_declarations(...)` over SDK `parse_decls`, including empty-input, embedded-NUL, and pack-alignment validation.
+  - 16.109.2. Added focused C++ coverage in `type_roundtrip_test` that imports a small ordered struct/typedef declaration block and verifies local type lookup, plus API surface coverage for the new report/options types.
+  - 16.109.3. Added Node binding coverage through `type.parseDeclarations(declarations, options?)`, TypeScript declarations, and structural unit expectations.
+  - 16.109.4. Added Rust binding coverage through `idax_type_parse_declarations`, fallback FFI declarations, safe `types::parse_declarations`, `ParseDeclarationsOptions`, `ParseDeclarationsReport`, and an integration test.
+  - 16.109.5. Updated docs/tracking so `parse_decls` is no longer a pending ida-cdump migration blocker: `docs/codedump_parity_tasks.md`, `docs/codedump_migration_checklist.md`, `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`, README, `.agents/api_catalog.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.109.6. Validation evidence: `cmake --build build-test-fetch --target idax_api_surface_check idax_type_roundtrip_test -j2` and `ctest --test-dir build-test-fetch -R 'api_surface_parity|type_roundtrip' --output-on-failure` pass. Node `npm test` passes structurally with the native addon skipped. `env -u IDASDK cargo test -p idax types_parse_declarations --test integration --no-run` now compiles the updated shim and reaches the pre-existing generated `IdaxMicrocodeInstruction` layout assertion in `idax-sys` before high-level Rust tests execute.
+
+- **16.110. ida-cdump Scoped Hex-Rays Example Lifecycle**
+  - 16.110.1. Updated `examples/plugin/abyss_port_plugin.cpp` to use `ida::decompiler::initialize()` and hold a move-only `ScopedSession` across plugin lifetime, releasing it after manager teardown instead of relying on non-owning `decompiler::available()`.
+  - 16.110.2. Documented the plugin-host lifecycle replacement pattern in `docs/quickstart/plugin.md`, including teardown ordering before releasing scoped Hex-Rays ownership.
+  - 16.110.3. Updated P22.9 tracking in `docs/codedump_parity_tasks.md`, `docs/codedump_migration_checklist.md`, `.agents/roadmap.md`, and `.agents/active_work.md` so example lifecycle coverage is no longer pending; only host-gated runtime execution remains.
+  - 16.110.4. Validation evidence: reconfigured `build-examples-fetch` with `IDASDK` unset and built `idax_abyss_port_plugin` successfully. The build produced only existing SDK/example warnings (`std::is_pod` deprecation from SDK headers, missing optional `help` field, and existing unused `kMaxRecursion`).
+
+- **16.111. ida-cdump Typed Form Binding Entry Points**
+  - 16.111.1. Added fixed-shape Node `ui` typed-form bindings for the audited codedump dialog packs: `(sval,bitset)`, `(sval,path,bitset)`, `(path,bitset)`, `(radio,sval,path,bitset)`, and `(sval,sval,sval,path,bitset,bitset)`. These call concrete C++ typed `ask_form` instantiations and never expose a runtime vararg vector.
+  - 16.111.2. Added matching TypeScript declarations and structural unit-test expectations for `askFormSvalBitset`, `askFormSvalPathBitset`, `askFormPathBitset`, `askFormRadioSvalPathBitset`, and `askFormThreeSvalsPathTwoBitsets`.
+  - 16.111.3. Added Rust shim exports and safe wrappers for the same fixed packs in `bindings/rust/idax-sys/shim/*`, `bindings/rust/idax-sys/src/bindings.rs`, and `bindings/rust/idax/src/ui.rs`.
+  - 16.111.4. Updated Phase 22 docs/tracking so P22.1 binding-side typed forms are no longer pending; remaining P22.1 work is host-gated modal runtime evidence.
+  - 16.111.5. Validation evidence: `git diff --check`, `cmake --build build-test-fetch --target idax_api_surface_check -j2`, and `ctest --test-dir build-test-fetch -R api_surface_parity --output-on-failure` pass. Node `npm test` passes structurally with the native addon skipped; native addon build remains blocked by missing local `cmake-js`. `env -u IDASDK cargo test -p idax ask_form_sval_bitset --lib --no-run` compiles the updated shim and remains blocked before high-level Rust tests by the pre-existing generated `IdaxMicrocodeInstruction` layout assertion.
+
+- **16.112. ida-cdump Host-Gated Runtime Harness and Compact Example**
+  - 16.112.1. Added `tests/integration/codedump_parity_host_gates_test.cpp` and registered it as `codedump_parity_host_gates`. The default path verifies the structured unsupported clipboard contract and skips interactive rows cleanly.
+  - 16.112.2. Added opt-in runtime gates for the remaining host-only evidence: `IDAX_RUN_MODAL_FORMS=1` for a codedump-shaped typed form, `IDAX_RUN_QT_CLIPBOARD=1` for Qt clipboard write/read/restore, and `IDAX_RUN_HEXRAYS_SESSION=1` for scoped Hex-Rays initialize/close under a real database.
+  - 16.112.3. Added `examples/plugin/codedump_parity_probe_plugin.cpp`, an independent compact plugin that demonstrates typed `FormBuilder` dialogs, `WaitBox`, clipboard fallback to `ask_text`, scoped Hex-Rays ownership, pseudocode popup attachment, Local Types `type_ref`, lvar snapshot restore, and prototype reapply.
+  - 16.112.4. Updated `examples/plugin/qtform_renderer_plugin.cpp` so its "Test in ask_form" path now calls the idax markup-only `ask_form` wrapper instead of reporting the old wrapper gap.
+  - 16.112.5. Synchronized Phase 22 docs/tracking: `docs/codedump_parity_tasks.md`, `docs/codedump_migration_checklist.md`, `docs/validation_report.md`, `examples/README.md`, `.agents/roadmap.md`, and `.agents/active_work.md`.
+  - 16.112.6. Validation evidence: reconfigured `build-test-fetch`, built `idax_codedump_parity_host_gates_test`, and `ctest --test-dir build-test-fetch -R codedump_parity_host_gates --output-on-failure` passes. Reconfigured `build-examples-fetch` and built `idax_codedump_parity_probe_plugin`. `idax_api_surface_check` and `ctest -R api_surface_parity` pass.
+
+- **16.113. Qt Example Header-Boundary Repair for Parity Evidence**
+  - 16.113.1. Added non-Qt bridge headers for `qtform_renderer` and `drawida`, keeping plugin glue translation units on `ida/idax.hpp` plus bridge declarations and moving Qt-heavy widget construction into widget-only implementation files.
+  - 16.113.2. Updated `examples/CMakeLists.txt` so the bridge headers are part of the example source inventory and Qt plugin targets.
+  - 16.113.3. Validation evidence: `env -u IDASDK cmake --build build-examples-fetch --target idax_qtform_renderer_plugin idax_drawida_port_plugin -j2` passes, closing the local Qt/IDA global `q*` helper conflict that previously blocked those example plugin targets.
+
+- **16.114. Binding Validation Blocker Closure**
+  - 16.114.1. Fixed Rust bindgen generation for recursive `IdaxMicrocodeInstruction` by using a struct-tag forward declaration in the shim header and adding a narrow build-script patch for bindgen's opaque recursive output. The checked-in fallback binding shape remains the authoritative field layout.
+  - 16.114.2. Upgraded Node's NAN dependency to `^2.27.0`, fixed `MaybeLocal` handling in decompiler visitor callback wrappers, and expanded Node CMake's idax library search paths with common local build dirs plus `IDAX_BUILD_DIR`.
+  - 16.114.3. Validation evidence: `env -u IDASDK cargo test -p idax ask_form_sval_bitset --lib --no-run`, `env -u IDASDK cargo test -p idax --lib --no-run`, and `env -u IDASDK cargo test -p idax types_parse_declarations --test integration --no-run` pass.
+  - 16.114.4. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build` passes on local Node 26.1.0 after dependency install and NAN upgrade. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` loads the native addon and passes 170/170 assertions; `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64` passes 63/63 assertions.
+
+- **16.115. Hex-Rays Host Gate Evidence**
+  - 16.115.1. Ran `codedump_parity_host_gates` directly with `IDAX_RUN_HEXRAYS_SESSION=1` against `tests/fixtures/simple_appcall_linux64` under `<userhome>/ida-pro-9.3`.
+  - 16.115.2. Validation evidence: the gated run passed 9 checks with 0 failures; only the intentionally interactive modal form and Qt clipboard gates skipped. The `.i64` fixture was restored to HEAD afterward.
+
+- **16.116. Qt Clipboard Host Evidence Prerequisite**
+  - 16.116.1. Split Qt clipboard implementation into `src/detail/qt_clipboard_bridge.*` so `src/ui.cpp` no longer includes Qt headers in the same translation unit as IDA SDK headers, avoiding the `qstrlen`/`qstrncmp` global helper collision seen in the Qt-enabled build.
+  - 16.116.2. Added an `IDAX_QT6_DIR` CMake cache path and an early `QT_NAMESPACE=QT` guard for `IDAX_ENABLE_QT_CLIPBOARD=ON`. Plain system Qt packages are now rejected at configure time with instructions to build/use the SDK-provided IDA-compatible Qt package instead of reaching a mixed Qt/IDA link failure.
+  - 16.116.3. Validation evidence: `env -u IDASDK cmake -S . -B build-test-qt-clipboard -DIDAX_BUILD_TESTS=ON -DIDAX_ENABLE_QT_CLIPBOARD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo` now fails at configure with the intended `QT_NAMESPACE=QT` prerequisite message. Qt clipboard runtime evidence remains host-gated until an interactive IDA Qt host and matching namespaced Qt package are available.
+
+- **16.117. Parity Host-Gate Runner**
+  - 16.117.1. Added `scripts/run_codedump_parity_host_gates.sh` to configure, build, and run `idax_codedump_parity_host_gates_test` with a stable interface for `IDAX_RUN_MODAL_FORMS`, `IDAX_RUN_QT_CLIPBOARD`, `IDAX_ENABLE_QT_CLIPBOARD`, and `IDAX_QT6_DIR`.
+  - 16.117.2. Documented the runner in `docs/codedump_migration_checklist.md`, `docs/codedump_parity_tasks.md`, and `docs/validation_report.md` so the remaining host-only parity evidence has a repeatable command path instead of prose-only instructions.
+  - 16.117.3. Validation evidence: `env -u IDASDK scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 3 checks, 0 failures, and 3 expected skips. `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1 scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 9 checks, 0 failures, and 2 expected skips; the runner restores the default `.i64` fixture afterward.
+  - 16.117.4. Final focused verification: `ctest --test-dir build-test-fetch -R '^idax_unit_test$|api_surface_parity|codedump_parity_host_gates' --output-on-failure` passes, `git diff --check` passes, the `IDAX_ENABLE_QT_CLIPBOARD=ON` configure path fails with the intended `QT_NAMESPACE=QT` prerequisite, and the default fixture is clean after host-gate runs.
+
+- **16.118. Typed Form Audited-Pack Unit Coverage**
+  - 16.118.1. Added non-modal `FormBuilder` unit checks for the audited ida-cdump dialog packs: three `sval_t` fields plus path and two bitsets, `sval_t` plus path and bitset, `sval_t` plus bitset, radio plus `sval_t` plus path and bitset, and path plus bitset.
+  - 16.118.2. Validation evidence: `env -u IDASDK cmake --build build-test-fetch --target idax_unit_test -j2 && ctest --test-dir build-test-fetch -R '^idax_unit_test$' --output-on-failure` passes.
+  - 16.118.3. Focused verification: `ctest --test-dir build-test-fetch -R '^idax_unit_test$|api_surface_parity|codedump_parity_host_gates' --output-on-failure` passes, `git diff --check` passes, the `IDAX_ENABLE_QT_CLIPBOARD=ON` configure path still fails with the intended `QT_NAMESPACE=QT` prerequisite, and the default `.i64` fixture remains clean.
+
+- **16.119. Rust UI Binding Evidence Closure**
+  - 16.119.1. Updated the Rust `qtform_renderer_plugin` adaptation so the report states that `ui::ask_form` exists but is host-modal, instead of the stale claim that idax has no public `ui::ask_form` wrapper.
+  - 16.119.2. Added Rust unit no-run coverage for the safe fixed typed-form result structs/function signatures and clipboard helper signatures, covering the same audited ida-cdump dialog packs exposed through the C++/Node surfaces.
+  - 16.119.3. Validation evidence: from `bindings/rust`, `env -u IDASDK cargo test -p idax ui_tests --lib --no-run` passes and `env -u IDASDK cargo check -p idax --example qtform_renderer_plugin` passes.
+  - 16.119.4. Node validation evidence: from `bindings/node`, `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` loads the native addon and passes 170/170 structural assertions, including the UI clipboard and fixed typed-form entrypoints.
+  - 16.119.5. Focused verification: `ctest --test-dir build-test-fetch -R '^idax_unit_test$|api_surface_parity|codedump_parity_host_gates' --output-on-failure` passes, `git diff --check` passes, and the default `.i64` fixture remains clean.
+
+- **16.120. Node UI Non-Modal Runtime Coverage**
+  - 16.120.1. Added Node native unit assertions for locally runnable UI behavior: default unsupported clipboard errors expose `category === "Unsupported"` and every fixed typed-form entrypoint rejects empty markup with `category === "Validation"` before any modal UI opens.
+  - 16.120.2. Validation evidence: from `bindings/node`, `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` loads the native addon and passes 172/172 assertions.
+
+- **16.121. Updated Gap Notes Reconciliation**
+  - 16.121.1. Re-read `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` and reconciled each documented gap against the idax Phase 22 task tracker and migration checklist.
+  - 16.121.2. Confirmed no new idax API implementation task is introduced by the updated notes: typed forms, wait boxes, Hex-Rays popup events, Local Types `type_ref`, clipboard API surface, multiline text, IDB/path helpers, lvar/prototype metadata, read-only ctree helpers, scoped Hex-Rays ownership, and bulk local type declarations are all mapped to implemented idax APIs.
+  - 16.121.3. Tightened `docs/codedump_parity_tasks.md`, `docs/codedump_migration_checklist.md`, and `.agents/active_work.md` so the active ida-cdump parity queue is only host-executed modal typed-form evidence and Qt clipboard evidence with an IDA-compatible `QT_NAMESPACE=QT` Qt package.
+
+- **16.122. Multiline Text Binding Parity**
+  - 16.122.1. Added Node `ui.askText(prompt, defaultValue?, options?)` over `ida::ui::ask_text`, with `maxSize`, `acceptTabs`, and `normalFont` options plus non-modal argument-shape validation coverage.
+  - 16.122.2. Added Rust shim and safe wrapper coverage for `ui::ask_text(prompt, default_value, AskTextOptions)`, including checked fallback FFI declarations and no-run signature/options tests.
+  - 16.122.3. Updated parity docs so the ida-cdump clipboard-fallback `ask_text` row no longer carries a C++-only binding caveat.
+  - 16.122.4. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build` and `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` pass from `bindings/node` with 174/174 assertions; `env -u IDASDK cargo test -p idax ui_tests --lib --no-run` and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`; `git diff --check` passes.
+
+- **16.123. Wait-Box Binding Parity**
+  - 16.123.1. Added Node `ui.WaitBox` as an owned wrapper over `ida::ui::WaitBox`, with `update`, `cancelled`, `dismiss`, and `active` methods plus structural tests that inspect the constructor/prototype without opening host UI.
+  - 16.123.2. Added Rust FFI shims and a safe RAII `ui::WaitBox` wrapper that owns the wait-box handle, preserves the C++ lifetime rule, and dismisses/frees through `Drop`.
+  - 16.123.3. Updated parity tracking docs and the SDK matrix so wait-box binding coverage no longer carries a C++-only caveat; runtime behavior remains intentionally gated on an interactive IDA UI host.
+  - 16.123.4. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build` and `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` pass from `bindings/node` with 175/175 assertions; `env -u IDASDK cargo test -p idax ui_tests --lib --no-run` and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.124. Path Helper Binding Parity**
+  - 16.124.1. Added Node `path.basename`, `path.dirname`, and `path.isDirectory` over `ida::path::{basename, dirname, is_directory}`, with TypeScript declarations and unit coverage that runs the pure helper behavior locally.
+  - 16.124.2. Added Rust FFI shims plus safe `path::{basename, dirname, is_directory}` wrappers, and exported the new `path` module from the high-level crate.
+  - 16.124.3. Updated parity tracking docs so the ida-cdump `qbasename` / `qdirname` / `qisdir` row no longer carries a C++-only binding caveat.
+  - 16.124.4. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build` passes from `bindings/node`; `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` passes from `bindings/node` with 180/180 assertions; `env -u IDASDK cargo test -p idax path_tests --lib --no-run`, `env -u IDASDK cargo test -p idax path_tests --lib`, and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.125. Scoped Hex-Rays Session Binding Parity**
+  - 16.125.1. Added Node `decompiler.initialize()` and `decompiler.ScopedSession` with `valid` and `close`, wrapping `ida::decompiler::initialize()` without changing the existing non-owning `available()` query.
+  - 16.125.2. Added Rust FFI shims and safe `decompiler::{initialize, ScopedSession}` with `valid`, `close`, and RAII `Drop` release for owned Hex-Rays session references.
+  - 16.125.3. Updated parity tracking docs so the ida-cdump Hex-Rays init/term row no longer carries a binding-out-of-scope caveat; runtime execution remains Hex-Rays-host gated.
+  - 16.125.4. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build` and `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` pass from `bindings/node` with 180/180 assertions; `env -u IDASDK cargo test -p idax decompiler_tests --lib --no-run`, `env -u IDASDK cargo test -p idax decompiler_tests::test_scoped_session_function_signatures --lib`, and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.126. Host-Gate Evidence Refresh**
+  - 16.126.1. Reran the default parity host-gate runner after the additional binding closures: `env -u IDASDK scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 3 checks, 0 failures, and 3 expected skips.
+  - 16.126.2. Reran the locally available Hex-Rays scoped-session gate: `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1 scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 9 checks, 0 failures, and 2 expected skips.
+  - 16.126.3. The host-gate runner restored the default `.i64` fixture afterward; modal typed-form and Qt clipboard evidence remain gated on an interactive IDA Qt host and, for clipboard, an IDA-compatible `QT_NAMESPACE=QT` Qt package.
+
+- **16.127. Focused C++ Parity Validation Refresh**
+  - 16.127.1. Reran the focused C++ parity build after the binding/doc closures: `env -u IDASDK cmake --build build-test-fetch --target idax_api_surface_check idax_unit_test idax_codedump_parity_host_gates_test -j2` passes.
+  - 16.127.2. Reran the selected CTest set: `ctest --test-dir build-test-fetch -R '^idax_unit_test$|api_surface_parity|codedump_parity_host_gates' --output-on-failure` passes all 3 selected tests.
+
+- **16.128. ida-cdump Concrete Parity Task Map**
+  - 16.128.1. Re-read `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` and established a concrete idax task matrix in `docs/codedump_parity_tasks.md` for P22.1-P22.10, naming the gap covered, concrete idax work, primary files, binding posture, and exit condition for each row.
+  - 16.128.2. Split the remaining queue into explicit host/evidence tasks: P22.H1 modal typed-form host evidence, P22.H2 Qt clipboard host evidence with an IDA-compatible `QT_NAMESPACE=QT` Qt package, and P22.V1 final validation refresh.
+  - 16.128.3. Added an evidence map to `docs/codedump_migration_checklist.md` so every gap row points to current C++ proof, Node/Rust binding proof, and any remaining host/runtime gate.
+
+- **16.129. Rust Lvar/Prototype Binding Evidence Tightening**
+  - 16.129.1. Added Rust unit signature checks for `function::set_prototype`, `function::apply_decl`, `DecompiledFunction` and `DecompilerView` lvar snapshot capture/restore, variable comment setters, and `LvarSnapshot` accessors.
+  - 16.129.2. Updated `docs/codedump_migration_checklist.md` and `docs/validation_report.md` so the P22.6 binding evidence row points at named Rust tests rather than broad compile-validation wording.
+  - 16.129.3. Validation evidence: `env -u IDASDK cargo test -p idax function_tests::test_prototype_apply_function_signatures --lib`, `env -u IDASDK cargo test -p idax decompiler_tests::test_lvar_snapshot_and_comment_function_signatures --lib`, and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.130. Node Decompiler Metadata Binding Evidence Tightening**
+  - 16.130.1. Extended `bindings/node/test/integration.test.js` so the Hex-Rays decompile path asserts P22 decompiled-function metadata/snapshot methods on an actual `DecompiledFunction` instance: declaration, variable count/list, stable `variable(index)`, lvar snapshot capture, restore/comment method availability, and ctree visitor method availability.
+  - 16.130.2. Updated `docs/codedump_migration_checklist.md` and `docs/validation_report.md` so P22.6 binding evidence records Node fixture integration coverage rather than only structural namespace coverage.
+  - 16.130.3. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64` passes from `bindings/node` with 63/63 integration checks; `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` passes with 180/180 unit checks; the default `.i64` fixture remains clean afterward.
+
+- **16.131. Bulk Declaration Binding Evidence Tightening**
+  - 16.131.1. Added Node unit validation that `type.parseDeclarations` rejects an empty declaration block before SDK import, strengthening P22.10 evidence beyond structural namespace exposure.
+  - 16.131.2. Added Rust unit coverage for `types::parse_declarations` signature, `ParseDeclarationsOptions`, and `ParseDeclarationsReport::ok`, complementing the existing Rust fixture integration import test.
+  - 16.131.3. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` passes from `bindings/node` with 182/182 unit checks, and `env -u IDASDK cargo test -p idax types_tests::test_parse_declarations_function_signature_and_report --lib` passes from `bindings/rust`.
+
+- **16.132. Hex-Rays Popup Binding Evidence Tightening**
+  - 16.132.1. Added Node unit validation that `decompiler.onPopulatingPopup` rejects non-callback arguments before attempting a Hex-Rays event subscription.
+  - 16.132.2. Added Rust compile-time callback signature coverage to `decompiler_tests::test_populating_popup_event_defaults` while retaining payload default checks.
+  - 16.132.3. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` passes from `bindings/node` with 182/182 unit checks, `env -u IDASDK cargo test -p idax decompiler_tests::test_populating_popup_event_defaults --lib` passes from `bindings/rust`, and `env -u IDASDK cargo test -p idax --lib --no-run` passes after the additional signature coverage.
+
+- **16.133. Read-Only Ctree Binding Evidence Tightening**
+  - 16.133.1. Extended `bindings/node/test/integration.test.js` so the real Hex-Rays decompile path inspects `forEachExpression` and `forEachItem` callback payload fields, including variable index, helper name, type declaration, parent summary, and parent depth.
+  - 16.133.2. Added Rust unit coverage for `ExpressionInfo`, `StatementInfo`, `CtreeItemInfo`, and the `for_each_expression` / `for_each_item` visitor signatures.
+  - 16.133.3. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64` passes from `bindings/node` with 63/63 integration checks, and `env -u IDASDK cargo test -p idax decompiler_tests::test_ctree_callback_payload_shapes --lib` passes from `bindings/rust`.
+
+- **16.134. Local Types Action-Context Binding Evidence Tightening**
+  - 16.134.1. Added an internal Rust plugin bridge test that verifies a safe `ActionContext` with `type_ref` exposes the Local Types name through the FFI action-context payload used by context-aware callbacks.
+  - 16.134.2. Kept the inbound FFI portion structural and ownership-neutral: an FFI context without a type handle maps back to `ActionContext::type_ref == None`, while real `TypeInfo` ownership remains covered by the safe `TypeRef` construction test.
+  - 16.134.3. Validation evidence: `env -u IDASDK cargo test -p idax plugin::tests::action_context_type_ref_is_exposed_in_ffi_shape --lib` passes from `bindings/rust`, and `env -u IDASDK cargo test -p idax --lib --no-run` remains green.
+
+- **16.135. Rust Clipboard Binding Evidence Tightening**
+  - 16.135.1. Hardened Rust `ui::{copy_to_clipboard,read_clipboard}` so the default native `unsupported` backend maps failed clipboard operations to `ErrorCategory::Unsupported` even when the FFI error slot is empty.
+  - 16.135.2. Added `ui_tests::test_clipboard_default_contract_and_validation`, covering embedded-NUL validation and default unsupported read/write behavior when the backend reports `unsupported`.
+  - 16.135.3. Validation evidence: `env -u IDASDK cargo test -p idax ui_tests::test_clipboard_default_contract_and_validation --lib`, `env -u IDASDK cargo test -p idax ui_tests --lib --no-run`, and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.136. Rust Typed-Form Validation Evidence Tightening**
+  - 16.136.1. Added Rust non-modal validation coverage for every fixed ida-cdump typed-form binding shape, matching the Node empty-markup checks and proving wrappers reject invalid markup before opening modal UI.
+  - 16.136.2. Hardened Rust fixed typed-form wrappers so empty markup maps to `ErrorCategory::Validation` before entering the FFI/modal path.
+  - 16.136.3. Updated migration checklist/validation docs so typed-form binding evidence points at the named Rust test instead of broad no-run signature wording.
+  - 16.136.4. Validation evidence: `env -u IDASDK cargo test -p idax ui_tests::test_codedump_typed_forms_reject_empty_markup_without_modal_ui --lib`, `env -u IDASDK cargo test -p idax ui_tests --lib --no-run`, and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.137. P22.V1 Final Local Validation Refresh**
+  - 16.137.1. Reran focused C++ parity build and CTest coverage for API surface, unit, codedump host gates, decompiler storage hardening, segment/function edge cases, and type roundtrip; all selected targets passed.
+  - 16.137.2. Reran the parity host-gate script in default mode and in locally available `IDAX_RUN_HEXRAYS_SESSION=1` mode. Default passes with 3 checks and 3 expected skips; Hex-Rays passes with 9 checks and 2 expected skips.
+  - 16.137.3. Reran Node native build/unit/integration validation. `npm run build`, `npm test` (182/182), and fixture integration (63/63) pass from `bindings/node`.
+  - 16.137.4. Reran Rust typed-form validation, high-level no-run, and type-declaration integration no-run. The remaining evidence gap is host-only: `IDAX_RUN_MODAL_FORMS=1` in interactive IDA UI and `IDAX_RUN_QT_CLIPBOARD=1` with an IDA-compatible `QT_NAMESPACE=QT` Qt package.
+
+- **16.138. P22 Host-Evidence Workflow Hardening**
+  - 16.138.1. Added `docs/codedump_host_evidence.md` with explicit commands, prerequisites, expected output criteria, and validation-report recording requirements for P22.H1 modal typed forms and P22.H2 Qt clipboard evidence.
+  - 16.138.2. Extended `scripts/run_codedump_parity_host_gates.sh` with `IDAX_EVIDENCE_LOG` so configure/build/run output can be captured as durable host evidence.
+  - 16.138.3. Tightened Qt clipboard preflight: requesting `IDAX_RUN_QT_CLIPBOARD=1` now requires both `IDAX_ENABLE_QT_CLIPBOARD=ON` and a real `IDAX_QT6_DIR` path before CMake runs.
+  - 16.138.4. Validation evidence: default runner with `IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-default.log` passes with 3 checks, 0 failures, and 3 expected skips; the missing-`IDAX_QT6_DIR` Qt preflight exits nonzero with the intended requirement message.
+
+- **16.139. Binding Documentation Parity Refresh**
+  - 16.139.1. Updated `bindings/node/agents.md` so the agent-facing Node API reference documents the P22 UI namespace, fixed typed-form entrypoints, wait-box wrapper, clipboard backend contract, bulk declaration import, lvar snapshots/comments, ctree callbacks, and Hex-Rays popup event binding.
+  - 16.139.2. Updated `bindings/rust/idax/README.md` with an ida-cdump parity section naming the Rust fixed-form, UI, clipboard, decompiler, function prototype, type-import, database, and path-helper surfaces plus host-runtime caveats.
+  - 16.139.3. Validation evidence: `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test` passes from `bindings/node` with 182/182 checks; `env -u IDASDK cargo test -p idax ui_tests::test_codedump_typed_forms_reject_empty_markup_without_modal_ui --lib` and `env -u IDASDK cargo test -p idax --lib --no-run` pass from `bindings/rust`.
+
+- **16.140. P22 Host-Evidence Log Verifier**
+  - 16.140.1. Added `scripts/check_codedump_parity_evidence_log.sh` to mechanically validate default, Hex-Rays, modal typed-form, and Qt clipboard evidence logs before P22.H1/P22.H2 closure is recorded.
+  - 16.140.2. Updated `docs/codedump_host_evidence.md` and `docs/codedump_parity_tasks.md` so host evidence collection includes the verifier command.
+  - 16.140.3. Added `--self-test` to the verifier so default, Hex-Rays, unskipped modal, skipped modal, missing modal, unskipped Qt clipboard, skipped Qt clipboard, missing Qt clipboard, and missing Hex-Rays section cases can be validated with one local command.
+  - 16.140.4. Validation evidence: the verifier accepts `build-codedump-parity-host/codedump-host-default.log` as a valid default run, rejects missing host-gate sections, and `scripts/check_codedump_parity_evidence_log.sh --self-test` passes.
+
+- **16.141. P22 Local Validation Runner**
+  - 16.141.1. Added `scripts/run_codedump_parity_local_validation.sh` to centralize the focused local parity sweep: C++ build/CTest, default host-gate evidence log plus verifier, Node native build/unit, optional Node fixture integration, Rust typed-form validation, Rust high-level no-run, and Rust type-declaration integration no-run.
+  - 16.141.2. The runner clears stale `IDASDK` for C++/host/Rust paths, uses the configured generated SDK path for Node, and restores the default `.i64` fixture when local host/integration runs dirty it.
+  - 16.141.3. Validation evidence: `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes with Node integration skipped, and `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3 scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes including 63/63 Node integration checks.
+
+- **16.142. P22 Host-Evidence Semantics Hardening**
+  - 16.142.1. Tightened `codedump_parity_host_gates`: when `IDAX_RUN_MODAL_FORMS=1` is set, the codedump-shaped typed form must be accepted. Cancelling the dialog now fails the host run instead of producing weak modal evidence.
+  - 16.142.2. Tightened `scripts/check_codedump_parity_evidence_log.sh` so default evidence requires the default clipboard-backend section, modal evidence requires at least 4 passed checks, and Qt clipboard evidence requires at least 2 passed checks. The self-test now rejects missing default clipboard evidence and weak one-check modal/Qt logs.
+  - 16.142.3. Updated `docs/codedump_host_evidence.md`, `docs/codedump_parity_tasks.md`, and `docs/validation_report.md` so P22.H1 instructions explicitly require accepting the modal dialog and P22.H2 instructions require a write/read roundtrip-strength log.
+  - 16.142.4. Validation evidence: `bash -n scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test` passes; `cmake --build build-test-fetch --target idax_codedump_parity_host_gates_test -j2` passes; `ctest --test-dir build-test-fetch -R codedump_parity_host_gates --output-on-failure` passes; refreshed default host evidence passes `scripts/check_codedump_parity_evidence_log.sh build-codedump-parity-host/codedump-host-default.log default`.
+
+- **16.143. P22 Host-Gate Runner Fixture Preflight**
+  - 16.143.1. Moved fixture canonicalization and validation before CMake configure/build work in `scripts/run_codedump_parity_host_gates.sh`.
+  - 16.143.2. Added an early `IDAX_RUN_HEXRAYS_SESSION=1` preflight requiring the fixture file to exist, so host evidence failures point at the missing input rather than a later runtime symptom.
+  - 16.143.3. Documented the runner's optional build-dir, fixture, and build-type arguments plus the Hex-Rays fixture requirement in `docs/codedump_host_evidence.md`.
+  - 16.143.4. Validation evidence: `bash -n scripts/run_codedump_parity_host_gates.sh` passes; `env -u IDASDK IDAX_RUN_HEXRAYS_SESSION=1 scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/does-not-exist RelWithDebInfo` fails early with the intended fixture error; `env -u IDASDK scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 3 checks, 0 failures, and 3 expected skips; `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes after the runner preflight change.
+
+- **16.144. P22 Host-Gate Evidence Auto-Verification**
+  - 16.144.1. Updated `scripts/run_codedump_parity_host_gates.sh` so setting `IDAX_EVIDENCE_LOG` now wraps the build/run phase, waits for the capture stream to close, and then triggers evidence-log verification before the runner exits.
+  - 16.144.2. The runner infers verifier modes from enabled gates: `modal` for `IDAX_RUN_MODAL_FORMS`, `qt-clipboard` for `IDAX_RUN_QT_CLIPBOARD`, `hexrays` for `IDAX_RUN_HEXRAYS_SESSION`, and `default` when no opt-in host gate is enabled.
+  - 16.144.3. Updated `docs/codedump_host_evidence.md`, `docs/codedump_parity_tasks.md`, and `docs/validation_report.md` so host evidence collection records that captured logs are mechanically checked by the runner itself after capture completes.
+  - 16.144.4. Validation evidence: `bash -n scripts/run_codedump_parity_host_gates.sh scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_local_validation.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test` passes; `env -u IDASDK IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-default.log scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes and records automatic `default` verification; a logged missing-fixture run exits nonzero with the intended preflight error; `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes with the race-free auto-verifying runner.
+
+- **16.145. P22 Composable Host-Gate Evidence Verification**
+  - 16.145.1. Relaxed non-default evidence modes in `scripts/check_codedump_parity_evidence_log.sh` so stronger combined host-gate runs can verify each enabled gate. Hex-Rays now requires the section to be present and unskipped plus at least 9 passed checks, rather than exactly `9 passed, 0 failed, 2 skipped`.
+  - 16.145.2. Added self-test coverage for a synthetic combined 14-pass/0-failure/0-skip log that verifies under `hexrays`, `modal`, and `qt-clipboard`, plus a weak 8-pass Hex-Rays log that fails.
+  - 16.145.3. Updated `docs/codedump_host_evidence.md`, `docs/codedump_parity_tasks.md`, and `docs/validation_report.md` to document that non-default verifier modes are composable for multi-gate host evidence.
+  - 16.145.4. Validation evidence: `bash -n scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test` passes; `scripts/check_codedump_parity_evidence_log.sh build-codedump-parity-host/codedump-host-default.log default` passes; `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes.
+
+- **16.146. P22 Hex-Rays Auto-Verifying Host Evidence Refresh**
+  - 16.146.1. Reran the locally available `IDAX_RUN_HEXRAYS_SESSION=1` host gate through the current race-free `IDAX_EVIDENCE_LOG` runner.
+  - 16.146.2. Validation evidence: `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1 IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-hexrays.log scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo` passes with 9 checks, 0 failures, and 2 expected skips; the runner appends automatic `hexrays` verifier output, and an explicit `scripts/check_codedump_parity_evidence_log.sh build-codedump-parity-host/codedump-host-hexrays.log hexrays` passes.
+  - 16.146.3. The runner restored the default `.i64` fixture after the Hex-Rays host run, and `git status --short tests/fixtures/simple_appcall_linux64.i64` remains clean.
+
+- **16.147. P22 Full Local Parity Sweep with Binding Integration**
+  - 16.147.1. Reran the consolidated local parity sweep with Node fixture integration enabled after the composable verifier and race-free logged runner changes.
+  - 16.147.2. Validation evidence: `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3 scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes focused C++ build/CTest (6/6 selected tests), default host-gate evidence with automatic verifier output, verifier self-test, compact parity probe example build, Node native build/unit coverage (182/182), Node fixture integration (63/63), Rust typed-form validation, Rust library no-run, and Rust type-declaration integration no-run.
+
+- **16.148. P22 Lower-Level Migration Cleanup Classification**
+  - 16.148.1. Re-audited the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` lower-level direct SDK call notes against idax's existing `function`, `instruction`, `comment`, `name`, `type`, `database`, and `path` APIs.
+  - 16.148.2. Updated `docs/codedump_parity_tasks.md` and `docs/codedump_migration_checklist.md` to classify `get_func`, `decode_insn`, `generate_disasm_line`, `get_cmt` / `set_cmt`, `get_func_cmt` / `set_func_cmt`, `set_name`, `get_tinfo` / `apply_tinfo`, `parse_decls`, `get_input_file_path`, `get_path(PATH_TYPE_IDB)`, and `qbasename` / `qdirname` / `qisdir` as existing-API migration cleanup rather than missing idax surfaces.
+  - 16.148.3. Validation evidence: `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes focused C++ build/CTest (6/6 selected tests), default host-gate evidence with automatic verifier output, verifier self-test, compact parity probe example build, Node native build/unit coverage (182/182), Rust typed-form validation, Rust library no-run, and Rust type-declaration integration no-run; Node fixture integration was intentionally skipped because `IDAX_RUN_NODE_INTEGRATION=1` was not set for this refresh.
+  - 16.148.4. Remaining idax parity blockers stay unchanged: P22.H1 interactive modal typed-form evidence and P22.H2 Qt clipboard evidence with an IDA-compatible `QT_NAMESPACE=QT` Qt package.
+
+- **16.149. P22 Local Validation Host-Mode Support**
+  - 16.149.1. Updated `scripts/run_codedump_parity_local_validation.sh` so its host-gate evidence pass infers enabled verifier modes from `IDAX_RUN_MODAL_FORMS`, `IDAX_RUN_QT_CLIPBOARD`, and `IDAX_RUN_HEXRAYS_SESSION`, matching `scripts/run_codedump_parity_host_gates.sh`.
+  - 16.149.2. The local runner now writes mode-specific host logs for opt-in gates (`codedump-host-hexrays.log`, `codedump-host-modal-qt-clipboard.log`, etc.) and verifies every enabled mode instead of always re-checking the log as default skip-only evidence.
+  - 16.149.3. Validation evidence: `bash -n scripts/run_codedump_parity_local_validation.sh scripts/run_codedump_parity_host_gates.sh scripts/check_codedump_parity_evidence_log.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test` passes; `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<userhome>/ida-pro-9.3 scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes focused C++ build/CTest (6/6 selected tests), Hex-Rays host evidence with automatic and explicit `hexrays` verification, compact parity probe example build, Node native build/unit coverage (182/182), Rust typed-form validation, Rust library no-run, and Rust type-declaration integration no-run. The default path also passes with `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo`, including default host evidence verification.
+
+- **16.150. P22 Local Validation Mode Self-Test**
+  - 16.150.1. Added `scripts/run_codedump_parity_local_validation.sh --self-test` to validate default, modal, Qt clipboard, Hex-Rays, and combined host-evidence mode inference without running the full build/test sweep.
+  - 16.150.2. Updated `docs/codedump_host_evidence.md` and `docs/codedump_parity_tasks.md` so host evidence preflight instructions include both the evidence-log verifier self-test and the local runner mode self-test.
+  - 16.150.3. Validation evidence: `bash -n scripts/run_codedump_parity_local_validation.sh scripts/run_codedump_parity_host_gates.sh scripts/check_codedump_parity_evidence_log.sh` passes; `scripts/run_codedump_parity_local_validation.sh --self-test` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test` passes; current default and Hex-Rays evidence logs verify; `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes the full default local sweep after the self-test addition.
+
+- **16.151. P22 Host-Gate Runner Mode Self-Test**
+  - 16.151.1. Refactored `scripts/run_codedump_parity_host_gates.sh` so auto-verification uses a shared host-evidence mode inference helper.
+  - 16.151.2. Added `scripts/run_codedump_parity_host_gates.sh --self-test` to validate default, modal, Qt clipboard, Hex-Rays, and combined mode inference without configuring or building.
+  - 16.151.3. Updated `docs/codedump_host_evidence.md` and `docs/codedump_parity_tasks.md` so host-evidence preflight instructions include the host runner self-test.
+  - 16.151.4. Validation evidence: `bash -n scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh scripts/check_codedump_parity_evidence_log.sh` passes; `scripts/run_codedump_parity_host_gates.sh --self-test`, `scripts/run_codedump_parity_local_validation.sh --self-test`, and `scripts/check_codedump_parity_evidence_log.sh --self-test` all pass. Refreshed default evidence with `env -u IDASDK IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-default.log scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo`, and refreshed Hex-Rays evidence with `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1 IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-hexrays.log scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo`; both runs append the expected verifier output.
+
+- **16.152. P22 Evidence Verifier Negative Coverage Expansion**
+  - 16.152.1. Expanded `scripts/check_codedump_parity_evidence_log.sh --self-test` to reject failed summaries, unknown gate names, and skipped Hex-Rays evidence in addition to missing sections, weak pass counts, and skipped modal/Qt sections.
+  - 16.152.2. Updated `docs/codedump_host_evidence.md`, `docs/codedump_parity_tasks.md`, `docs/validation_report.md`, and `.agents/active_work.md` to reflect the stronger verifier self-test coverage.
+  - 16.152.3. Validation evidence: `bash -n scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test`, `scripts/run_codedump_parity_host_gates.sh --self-test`, and `scripts/run_codedump_parity_local_validation.sh --self-test` pass; current default and Hex-Rays evidence logs verify. The Qt clipboard gate still fails before CMake with the intended `IDAX_QT6_DIR` requirement when requested as `IDAX_RUN_QT_CLIPBOARD=1 IDAX_ENABLE_QT_CLIPBOARD=ON` without a namespaced Qt package.
+
+- **16.153. P22 Host Runner Preflight Self-Test Coverage**
+  - 16.153.1. Expanded `scripts/run_codedump_parity_host_gates.sh --self-test` beyond mode inference to verify no-build preflight failures for missing `IDAX_QT6_DIR`, a nonexistent `IDAX_QT6_DIR` path, and a missing Hex-Rays fixture.
+  - 16.153.2. Updated `docs/codedump_host_evidence.md` and `docs/codedump_parity_tasks.md` so host-evidence preflight guidance records that the self-test covers local preflight failures as well as mode inference.
+  - 16.153.3. Validation evidence: `bash -n scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh scripts/check_codedump_parity_evidence_log.sh` passes; `scripts/run_codedump_parity_host_gates.sh --self-test`, `scripts/run_codedump_parity_local_validation.sh --self-test`, and `scripts/check_codedump_parity_evidence_log.sh --self-test` all pass. `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` also passes the full default local sweep after the preflight self-test expansion.
+
+- **16.154. P22 Evidence Verifier Contaminated Log Rejection**
+  - 16.154.1. Hardened `scripts/check_codedump_parity_evidence_log.sh` to reject any `codedump_parity_host_gates_test` summary with a nonzero failure count before accepting a matching successful summary.
+  - 16.154.2. Expanded the verifier self-test with a contaminated log containing both a failed summary and a later successful default summary; the verifier now rejects it.
+  - 16.154.3. Updated `.agents/active_work.md`, `docs/codedump_parity_tasks.md`, and `docs/validation_report.md` to document the stricter contaminated-log behavior.
+  - 16.154.4. Validation evidence: `bash -n scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh` passes; `scripts/check_codedump_parity_evidence_log.sh --self-test`, `scripts/run_codedump_parity_host_gates.sh --self-test`, and `scripts/run_codedump_parity_local_validation.sh --self-test` pass; current default and Hex-Rays evidence logs verify.
+
+- **16.155. P22 Concrete Remaining Task Establishment**
+  - 16.155.1. Reconciled the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` notes with the current idax P22 implementation and confirmed the audited parity queue has no newly missing C++/Node/Rust API surface.
+  - 16.155.2. Updated `docs/codedump_parity_tasks.md` with execution-grade subtasks for P22.H1 modal evidence, P22.H2 Qt clipboard evidence, and P22.V1 final validation/documentation refresh.
+  - 16.155.3. Updated `docs/codedump_migration_checklist.md` with the same closure subtasks and `docs/codedump_host_evidence.md` with explicit per-gate closure criteria.
+  - 16.155.4. Remaining idax work is host-only evidence collection plus final validation refresh; lower-level ida-cdump raw SDK call removal remains downstream migration cleanup backed by existing idax APIs.
+
+- **16.156. P22 Refreshed Local Parity Evidence**
+  - 16.156.1. Re-ran script syntax and parity harness self-tests: `bash -n scripts/check_codedump_parity_evidence_log.sh scripts/run_codedump_parity_host_gates.sh scripts/run_codedump_parity_local_validation.sh`, `scripts/check_codedump_parity_evidence_log.sh --self-test`, `scripts/run_codedump_parity_host_gates.sh --self-test`, and `scripts/run_codedump_parity_local_validation.sh --self-test` all pass.
+  - 16.156.2. Re-ran the consolidated default local parity sweep with Node fixture integration enabled: `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3 scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes focused C++ build/CTest (6/6 selected tests), default host evidence and verifier, compact parity probe example build, Node build/unit (182/182), Node fixture integration (63/63), Rust typed-form validation, Rust library no-run, and Rust type-declaration integration no-run.
+  - 16.156.3. Re-ran the locally available Hex-Rays opt-in host mode: `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<userhome>/ida-pro-9.3 scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo` passes and verifies `build-codedump-parity-host/codedump-host-hexrays.log` in `hexrays` mode with 9 checks, zero failures, and expected modal/Qt skips.
+  - 16.156.4. Explicit `scripts/check_codedump_parity_evidence_log.sh build-codedump-parity-host/codedump-host-default.log default` and `scripts/check_codedump_parity_evidence_log.sh build-codedump-parity-host/codedump-host-hexrays.log hexrays` both pass; `git status --short tests/fixtures/simple_appcall_linux64.i64` remains clean.

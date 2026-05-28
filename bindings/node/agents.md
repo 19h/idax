@@ -20,7 +20,7 @@ This guide is structured specifically for AI agents, emphasizing type signatures
    * All failing operations (C++ `Result<T>` or `Status`) **throw exceptions**.
    * Thrown exceptions are of type `IdaxError` which extends `Error` and includes `.category` (string) and `.code` (number), and optionally `.context` (string).
 4. **Opaque Objects (Wrappers)**
-   * Several namespaces return persistent native-backed objects: `decompiler.DecompiledFunction`, `storage.StorageNode`, and `type.TypeInfo`. These objects possess instance methods and manage native C++ state.
+   * Several namespaces return persistent native-backed objects: `ui.WaitBox`, `decompiler.DecompiledFunction`, `decompiler.LvarSnapshot`, `decompiler.ScopedSession`, `storage.StorageNode`, and `type.TypeInfo`. These objects possess instance methods and manage native C++ state.
 
 ---
 
@@ -51,6 +51,7 @@ Whenever you see these aliases in the documentation, assume the following inputs
 
 ### Metadata
 * `inputFilePath(): string`
+* `idbPath(): string`
 * `fileTypeName(): string`
 * `loaderFormatName(): string`
 * `inputMd5(): string`
@@ -73,6 +74,51 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `snapshots(): Snapshot[]` - Returns snapshot tree. `Snapshot` has `{ id: bigint, flags: number, description: string, filename: string, children: Snapshot[] }`.
 * `setSnapshotDescription(description: string): void`
 * `isSnapshotDatabase(): boolean`
+
+---
+
+## Namespace: `idax.path`
+*Portable path splitting and directory checks.*
+
+* `basename(path: string): string`
+* `dirname(path: string): string`
+* `isDirectory(path: string): boolean`
+
+---
+
+## Namespace: `idax.ui`
+*Dialogs, wait boxes, typed forms, and host clipboard helpers.*
+
+Host-modal APIs require an interactive IDA UI. Non-modal validation errors are
+thrown before a dialog opens.
+
+### Wait box
+* `new ui.WaitBox(message: string)` - show a host wait box.
+  * `update(message: string): void`
+  * `cancelled(): boolean`
+  * `active(): boolean`
+  * `dismiss(): void`
+
+### Multiline text and fixed typed-form entrypoints
+* `askText(prompt: string, defaultValue?: string, options?: { maxSize?: number, acceptTabs?: boolean, normalFont?: boolean }): string`
+* `askFormSvalBitset(markup: string, sval: bigint | number, bitset: number): { accepted: boolean, sval: bigint, bitset: number }`
+* `askFormSvalPathBitset(markup: string, sval: bigint | number, path: string, bitset: number, options?: { forSaving?: boolean }): { accepted: boolean, sval: bigint, path: string, bitset: number }`
+* `askFormPathBitset(markup: string, path: string, bitset: number, options?: { forSaving?: boolean }): { accepted: boolean, path: string, bitset: number }`
+* `askFormRadioSvalPathBitset(markup: string, radio: number, sval: bigint | number, path: string, bitset: number, options?: { forSaving?: boolean }): { accepted: boolean, radio: number, sval: bigint, path: string, bitset: number }`
+* `askFormThreeSvalsPathTwoBitsets(markup: string, first: bigint | number, second: bigint | number, third: bigint | number, path: string, firstBitset: number, secondBitset: number, options?: { forSaving?: boolean }): { accepted: boolean, first: bigint, second: bigint, third: bigint, path: string, firstBitset: number, secondBitset: number }`
+
+The fixed typed-form entrypoints deliberately cover only the audited ida-cdump
+dialog packs. They do not expose a runtime vararg vector.
+
+### Clipboard
+* `copyToClipboard(text: string): void`
+* `readClipboard(): string`
+* `clipboardBackend(): string`
+
+The default native build reports `clipboardBackend() === "unsupported"` and
+clipboard read/write throw `Unsupported`. Qt clipboard runtime support requires
+the native idax build to use `IDAX_ENABLE_QT_CLIPBOARD=ON` with an
+IDA-compatible Qt package built with `QT_NAMESPACE=QT`.
 
 ---
 
@@ -372,6 +418,7 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `importType(sourceTilName: string, typeName: string): number`
 * `ensureNamedType(typeName: string, sourceTil?: string): TypeInfo`
 * `applyNamedType(address: Address, typeName: string): void`
+* `parseDeclarations(declarations: string, options?: { silent?: boolean, replace?: boolean }): { errorCount: number, ok: boolean }`
 
 ---
 
@@ -496,9 +543,22 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `lineToAddress(lineNumber: number): Address`
 * `addressMap(): { address: Address, lineNumber: number }[]`
 * `refresh(): void`
+* `captureUserLvarSettings(): LvarSnapshot`
+* `restoreUserLvarSettings(snapshot: LvarSnapshot): void`
+* `setVariableComment(nameOrIndex: string | number, comment: string): void`
+* `variable(index: number): LocalVariable`
+* `forEachExpression(callback: (expr: ExpressionInfo) => void): void`
+* `forEachItem(callback: (item: CtreeItemInfo) => void): void`
+
+**Wrapper Object (`LvarSnapshot`):**
+* `empty(): boolean`
+* `count(): number`
 
 ### API
 * `available(): boolean` - true if Hex-Rays is licensed/active.
+* `initialize(): ScopedSession` - take an owned Hex-Rays session reference for plugin lifecycle code.
+  * `ScopedSession.valid(): boolean`
+  * `ScopedSession.close(): void`
 * `decompile(address: Address): DecompiledFunction`
 * `registerMicrocodeFilter(matchCb, applyCb): Token` - register microcode filter callbacks.
   * `matchCb(context)` receives a `MicrocodeContext` and returns `boolean`.
@@ -507,6 +567,7 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `onMaturityChanged(callback: (event: {functionAddress, newMaturity}) => void): Token`
 * `onFuncPrinted(callback: (event: {functionAddress}) => void): Token`
 * `onRefreshPseudocode(callback: (event: {functionAddress}) => void): Token`
+* `onPopulatingPopup(callback: (event: { widgetHandle, popupHandle, viewHandle, functionAddress }) => void): Token`
 * `unsubscribe(token: Token): void`
 * `markDirty(funcAddress: Address, closeViews?: boolean): void`
 * `markDirtyWithCallers(funcAddress: Address, closeViews?: boolean): void`

@@ -214,6 +214,12 @@ Status memory_to_database(std::span<const std::uint8_t> bytes,
 /// Path of the original input file.
 Result<std::string> input_file_path();
 
+/// Path of the current IDB/I64 database file.
+///
+/// This is useful as a fallback when the original input file path is not
+/// available, for example for databases created without a backing input file.
+Result<std::string> idb_path();
+
 /// Human-readable input file type name (for example: "Portable executable").
 Result<std::string> file_type_name();
 

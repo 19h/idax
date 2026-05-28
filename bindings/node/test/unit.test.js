@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'lumina', 'lines', 'decompiler',
+        'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -66,6 +66,100 @@ describe('Namespace Exports', () => {
             expect(typeof idax[ns]).toBe('object');
         });
     }
+});
+
+describe('UI Namespace Structure', () => {
+    let ui;
+
+    beforeAll(() => {
+        try { ui = require('../lib/index').ui; } catch (e) { /* skip */ }
+    });
+
+    const EXPECTED_FUNCTIONS = [
+        'copyToClipboard', 'readClipboard', 'clipboardBackend', 'askText',
+        'askFormSvalBitset', 'askFormSvalPathBitset', 'askFormPathBitset',
+        'askFormRadioSvalPathBitset', 'askFormThreeSvalsPathTwoBitsets',
+    ];
+
+    for (const fn of EXPECTED_FUNCTIONS) {
+        it(`should have function: ui.${fn}`, () => {
+            if (!ui) return;
+            expect(typeof ui[fn]).toBe('function');
+        });
+    }
+
+    it('should expose WaitBox constructor without opening UI', () => {
+        if (!ui) return;
+        expect(typeof ui.WaitBox).toBe('function');
+        expect(typeof ui.WaitBox.prototype.update).toBe('function');
+        expect(typeof ui.WaitBox.prototype.cancelled).toBe('function');
+        expect(typeof ui.WaitBox.prototype.dismiss).toBe('function');
+        expect(typeof ui.WaitBox.prototype.active).toBe('function');
+    });
+
+    function expectIdaxCategory(fn, category) {
+        let error;
+        try {
+            fn();
+        } catch (e) {
+            error = e;
+        }
+        expect(error).toBeTruthy();
+        expect(error.category).toBe(category);
+    }
+
+    it('should expose deterministic default clipboard unsupported behavior', () => {
+        if (!ui) return;
+        const backend = ui.clipboardBackend();
+        expect(typeof backend).toBe('string');
+        if (backend === 'unsupported') {
+            expectIdaxCategory(() => ui.copyToClipboard('idax-node-ui-parity'), 'Unsupported');
+            expectIdaxCategory(() => ui.readClipboard(), 'Unsupported');
+        }
+    });
+
+    it('should validate askText argument shape before opening modal UI', () => {
+        if (!ui) return;
+        expect(() => ui.askText(123)).toThrow(/string argument/);
+        expect(() => ui.askText('Prompt', 123)).toThrow(/default value string or options object/);
+        expect(() => ui.askText('Prompt', { maxSize: -1 })).toThrow(/maxSize/);
+    });
+
+    it('should reject empty typed-form markup before opening modal UI', () => {
+        if (!ui) return;
+        expectIdaxCategory(() => ui.askFormSvalBitset('', 1, 0), 'Validation');
+        expectIdaxCategory(() => ui.askFormSvalPathBitset('', 1, '/tmp/out.json', 0), 'Validation');
+        expectIdaxCategory(() => ui.askFormPathBitset('', '/tmp/out.json', 0), 'Validation');
+        expectIdaxCategory(() => ui.askFormRadioSvalPathBitset('', 0, 1, '/tmp/out.json', 0), 'Validation');
+        expectIdaxCategory(
+            () => ui.askFormThreeSvalsPathTwoBitsets('', 1, 2, 3, '/tmp/out.json', 0, 0),
+            'Validation',
+        );
+    });
+});
+
+describe('Path Namespace Structure', () => {
+    let path;
+
+    beforeAll(() => {
+        try { path = require('../lib/index').path; } catch (e) { /* skip */ }
+    });
+
+    const EXPECTED_FUNCTIONS = ['basename', 'dirname', 'isDirectory'];
+
+    for (const fn of EXPECTED_FUNCTIONS) {
+        it(`should have function: path.${fn}`, () => {
+            if (!path) return;
+            expect(typeof path[fn]).toBe('function');
+        });
+    }
+
+    it('should expose deterministic portable path helpers', () => {
+        if (!path) return;
+        expect(path.basename('alpha/beta.bin')).toBe('beta.bin');
+        expect(path.dirname('alpha/beta.bin')).toBe('alpha');
+        expect(path.isDirectory('.')).toBe(true);
+    });
 });
 
 // ── Database Namespace Functions ─────────────────────────────────────────
@@ -79,7 +173,7 @@ describe('Database Namespace Structure', () => {
 
     const EXPECTED_FUNCTIONS = [
         'init', 'open', 'save', 'close',
-        'inputFilePath', 'fileTypeName', 'inputMd5',
+        'inputFilePath', 'idbPath', 'fileTypeName', 'inputMd5',
         'compilerInfo', 'importModules', 'imageBase',
         'processorId', 'processorName', 'addressBitness', 'setAddressBitness',
         'isBigEndian', 'abiName',
@@ -159,6 +253,7 @@ describe('Function Namespace Structure', () => {
         'setStart', 'setEnd', 'update', 'reanalyze',
         'comment', 'setComment',
         'callers', 'callees', 'chunks', 'tailChunks',
+        'setPrototype', 'applyDecl',
         'frame', 'all',
         'itemAddresses', 'codeAddresses',
     ];
@@ -311,9 +406,22 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
     it('should have type constructor functions', () => {
         if (!idax) return;
         for (const fn of ['voidType', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32', 'uint64',
-                          'float32', 'float64', 'pointerTo', 'arrayOf', 'fromDeclaration', 'createStruct', 'createUnion']) {
+                          'float32', 'float64', 'pointerTo', 'arrayOf', 'fromDeclaration', 'createStruct',
+                          'createUnion', 'parseDeclarations']) {
             expect(typeof idax.type[fn]).toBe('function');
         }
+    });
+
+    it('should validate parseDeclarations input before SDK import', () => {
+        if (!idax) return;
+        let error;
+        try {
+            idax.type.parseDeclarations('');
+        } catch (e) {
+            error = e;
+        }
+        expect(error).toBeTruthy();
+        expect(error.category).toBe('Validation');
     });
 
     it('should have storage functions', () => {
@@ -327,15 +435,28 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         if (!idax) return;
         for (const fn of [
             'available',
+            'initialize',
             'decompile',
             'unsubscribe',
             'markDirty',
             'markDirtyWithCallers',
             'registerMicrocodeFilter',
             'unregisterMicrocodeFilter',
+            'onMaturityChanged',
+            'onFuncPrinted',
+            'onRefreshPseudocode',
+            'onPopulatingPopup',
         ]) {
             expect(typeof idax.decompiler[fn]).toBe('function');
         }
+        expect(typeof idax.decompiler.ScopedSession).toBe('function');
+        expect(typeof idax.decompiler.ScopedSession.prototype.valid).toBe('function');
+        expect(typeof idax.decompiler.ScopedSession.prototype.close).toBe('function');
+    });
+
+    it('should validate onPopulatingPopup callback argument shape', () => {
+        if (!idax) return;
+        expect(() => idax.decompiler.onPopulatingPopup(123)).toThrow(/callback function/);
     });
 
     it('should have lines functions', () => {

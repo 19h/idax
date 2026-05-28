@@ -124,6 +124,48 @@ static v8::Local<v8::Object> MemberToObject(const ida::type::Member& m) {
     return obj;
 }
 
+static bool GetParseDeclarationsOptions(Nan::NAN_METHOD_ARGS_TYPE info,
+                                        int idx,
+                                        ida::type::ParseDeclarationsOptions& out) {
+    if (idx >= info.Length() || info[idx]->IsUndefined() || info[idx]->IsNull())
+        return true;
+    if (!info[idx]->IsObject()) {
+        Nan::ThrowTypeError("Expected parse declaration options object");
+        return false;
+    }
+
+    auto obj = info[idx].As<v8::Object>();
+    auto read_bool = [&](const char* key, bool& field) -> bool {
+        auto js_key = FromString(key);
+        if (!Nan::Has(obj, js_key).FromMaybe(false))
+            return true;
+        auto value = Nan::Get(obj, js_key).ToLocalChecked();
+        if (!value->IsBoolean()) {
+            Nan::ThrowTypeError("Expected boolean parse declaration option");
+            return false;
+        }
+        field = Nan::To<bool>(value).FromJust();
+        return true;
+    };
+
+    if (!read_bool("suppressWarnings", out.suppress_warnings)) return false;
+    if (!read_bool("relaxedNamespaces", out.relaxed_namespaces)) return false;
+    if (!read_bool("rawArgumentNames", out.raw_argument_names)) return false;
+    if (!read_bool("noMangle", out.no_mangle)) return false;
+
+    auto pack_key = FromString("packAlignment");
+    if (Nan::Has(obj, pack_key).FromMaybe(false)) {
+        auto value = Nan::Get(obj, pack_key).ToLocalChecked();
+        if (!value->IsNumber()) {
+            Nan::ThrowTypeError("Expected numeric packAlignment option");
+            return false;
+        }
+        out.pack_alignment = static_cast<std::size_t>(Nan::To<double>(value).FromJust());
+    }
+
+    return true;
+}
+
 // ── TypeInfoWrapper::Init — register the constructor + prototype ────────
 
 NAN_MODULE_INIT(TypeInfoWrapper::Init) {
@@ -694,6 +736,21 @@ NAN_METHOD(ApplyNamedType) {
     IDAX_CHECK_STATUS(ida::type::apply_named_type(addr, typeName));
 }
 
+NAN_METHOD(ParseDeclarations) {
+    // parseDeclarations(declarations, options?) -> { errorCount, ok }
+    std::string declarations;
+    if (!GetStringArg(info, 0, declarations)) return;
+
+    ida::type::ParseDeclarationsOptions options;
+    if (!GetParseDeclarationsOptions(info, 1, options)) return;
+
+    IDAX_UNWRAP(auto report, ida::type::parse_declarations(declarations, options));
+    info.GetReturnValue().Set(ObjectBuilder()
+        .setSize("errorCount", report.error_count)
+        .setBool("ok", report.ok())
+        .build());
+}
+
 } // anonymous namespace
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -741,6 +798,7 @@ void InitType(v8::Local<v8::Object> target) {
     SetMethod(ns, "importType",        ImportType);
     SetMethod(ns, "ensureNamedType",   EnsureNamedType);
     SetMethod(ns, "applyNamedType",    ApplyNamedType);
+    SetMethod(ns, "parseDeclarations", ParseDeclarations);
 }
 
 } // namespace idax_node

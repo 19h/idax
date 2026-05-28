@@ -71,40 +71,43 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 29 public headers across 25 domain namespaces plus cross-cutting core headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 30 public headers across 26 domain namespaces plus cross-cutting core headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
 | **Addresses** | `ida::address` | Predicates, item traversal, range iteration, predicate search |
 | **Byte access** | `ida::data` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
 | **Database** | `ida::database` | Open/save/close, metadata, snapshots, file/memory transfer |
+| **Paths** | `ida::path` | Portable basename/dirname/directory helpers for plugin workflows |
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |
-| **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees |
+| **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototypes |
 | **Instructions** | `ida::instruction` | Decode/create, operand access, representation controls, xref conveniences |
 | **Names** | `ida::name` | Set/get/force/remove, demangling, resolution, properties |
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
-| **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, type libraries |
+| **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import, type libraries |
 | **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
 | **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar/popup attach+detach, context callbacks |
+| **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar/popup attach+detach, context callbacks with optional Local Types refs |
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
-| **Decompiler** | `ida::decompiler` | Decompile, pseudocode, variables, ctree visitor, user comments, address mapping |
+| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, user comments, popup events, address mapping |
 | **Lines** | `ida::lines` | Tagged text/color helpers for pseudocode and listing output |
-| **UI** | `ida::ui` | Messages, dialogs/forms, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
+| **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
 
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
 
 Real-world port parity notes are tracked in
-[`docs/port_gap_audit_examples.md`](docs/port_gap_audit_examples.md).
+[`docs/port_gap_audit_examples.md`](docs/port_gap_audit_examples.md), with the
+current ida-cdump migration checklist in
+[`docs/codedump_migration_checklist.md`](docs/codedump_migration_checklist.md).
 
 ---
 
@@ -203,14 +206,18 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
         auto variables = df->variables();
         if (variables) {
             for (const auto& var : *variables)
-                std::cout << var.name << " : " << var.type_name << "\n";
+                std::cout << var.index << ": " << var.name
+                          << " : " << var.type_name << "\n";
         }
 
-        // Walk the ctree
+        // Walk the ctree.
         ida::decompiler::for_each_expression(*df,
-            [](const ida::decompiler::ExpressionView& expr) {
-                if (expr.type() == ida::decompiler::ItemType::ExprCall)
-                    std::cout << "call found\n";
+            [](ida::decompiler::ExpressionView expr) {
+                if (expr.type() == ida::decompiler::ItemType::ExprHelper) {
+                    auto helper = expr.helper_name();
+                    if (helper)
+                        std::cout << *helper << "\n";
+                }
                 return ida::decompiler::VisitAction::Continue;
             });
     }
@@ -523,6 +530,7 @@ Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated 
 | [`docs/namespace_topology.md`](docs/namespace_topology.md) | Namespace map and type inventory |
 | [`docs/storage_migration_caveats.md`](docs/storage_migration_caveats.md) | Netnode migration safety notes |
 | [`docs/port_gap_audit_examples.md`](docs/port_gap_audit_examples.md) | Consolidated real-world example port gap findings |
+| [`docs/codedump_migration_checklist.md`](docs/codedump_migration_checklist.md) | ida-cdump gap-to-idax migration checklist |
 
 ---
 

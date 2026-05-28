@@ -1,7 +1,7 @@
 mod common;
 
-use common::{format_error, print_usage, resolve_symbol_or_address, DatabaseSession};
-use idax::{address, comment, function, Error, Result};
+use common::{DatabaseSession, format_error, print_usage, resolve_symbol_or_address};
+use idax::{Error, Result, address, comment, function};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static BOOKMARK_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -65,9 +65,7 @@ fn clear_marks(target: u64) -> Result<()> {
         }
     }
 
-    println!(
-        "cleared {cleared} plugin annotation(s) in [0x{start:x}, 0x{end:x})"
-    );
+    println!("cleared {cleared} plugin annotation(s) in [0x{start:x}, 0x{end:x})");
     Ok(())
 }
 

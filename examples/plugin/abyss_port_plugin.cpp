@@ -6,12 +6,12 @@
 /// All 8 original filters are implemented using idax APIs.
 ///
 /// API surface exercised:
-///   ida::decompiler (decompile, on_maturity_changed, on_func_printed,
+///   ida::decompiler (initialize, ScopedSession, decompile, on_maturity_changed, on_func_printed,
 ///       on_refresh_pseudocode, on_curpos_changed, on_create_hint,
 ///       raw_pseudocode_lines, set_pseudocode_line, pseudocode_header_line_count,
 ///       item_at_position, item_type_name, ExpressionView::left/right,
 ///       LocalVariable extended properties, ScopedSubscription, CtreeVisitor)
-///   ida::ui (on_popup_ready, attach_dynamic_action, on_rendering_info,
+///   ida::ui (attach_dynamic_action, on_rendering_info,
 ///       widget_type, user_directory, refresh_all_views, on_screen_ea_changed,
 ///       screen_address, jump_to, message)
 ///   ida::lines (colstr, tag_remove, tag_advance, tag_strlen,
@@ -718,9 +718,14 @@ public:
         if (!t5) return std::unexpected(t5.error());
         subs_.emplace_back(*t5);
 
-        // Subscribe to UI events
-        auto t6 = ui::on_popup_ready(
-            [this](const ui::PopupEvent& ev) {
+        auto t6 = decompiler::on_populating_popup(
+            [this](const decompiler::PopulatingPopupEvent& ev) {
+                ui::PopupEvent popup_event{
+                    ui::Widget{},
+                    ev.popup_handle,
+                    ui::WidgetType::Pseudocode,
+                };
+
                 // Build the abyss toggle menu
                 for (std::size_t i = 0; i < filters_.size(); ++i) {
                     auto& f = filters_[i];
@@ -729,7 +734,7 @@ public:
                                       + f->name();
                     auto* filter_ptr = f.get();
                     (void)ui::attach_dynamic_action(
-                        ev.popup, ev.widget, action_id, label,
+                        popup_event.popup, popup_event.widget, action_id, label,
                         [filter_ptr]() {
                             filter_ptr->set_activated(!filter_ptr->is_activated());
                         },
@@ -738,10 +743,10 @@ public:
 
                 // Forward to activated filters
                 for (auto& f : filters_)
-                    if (f->is_activated()) f->popup_ready(ev);
+                    if (f->is_activated()) f->popup_ready(popup_event);
             });
         if (!t6) return std::unexpected(t6.error());
-        ui_subs_.push_back(*t6);
+        subs_.emplace_back(*t6);
 
         auto t7 = ui::on_rendering_info(
             [this](ui::RenderingEvent& ev) {
@@ -802,17 +807,20 @@ public:
     }
 
     bool init() override {
-        auto avail = decompiler::available();
-        if (!avail || !*avail) {
-            ui::message("[abyss] Hex-Rays decompiler not available\n");
+        auto session = decompiler::initialize();
+        if (!session) {
+            ui::message("[abyss] Hex-Rays decompiler not available: "
+                        + session.error().message + "\n");
             return false;
         }
+        decompiler_session_ = std::move(*session);
 
         manager_ = std::make_unique<AbyssManager>();
         auto st = manager_->install();
         if (!st) {
             ui::message("[abyss] Failed to install: " + st.error().message + "\n");
             manager_.reset();
+            (void)decompiler_session_.close();
             return false;
         }
 
@@ -834,9 +842,11 @@ public:
             manager_->uninstall();
             manager_.reset();
         }
+        (void)decompiler_session_.close();
     }
 
 private:
+    decompiler::ScopedSession decompiler_session_;
     std::unique_ptr<AbyssManager> manager_;
 };
 

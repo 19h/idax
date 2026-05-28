@@ -30,6 +30,7 @@ static const char* StorageToString(ida::decompiler::VariableStorage storage) {
 
 static v8::Local<v8::Object> VariableToJS(const ida::decompiler::LocalVariable& var) {
     return ObjectBuilder()
+        .setInt("index",        static_cast<int>(var.index))
         .setStr("name",         var.name)
         .setStr("typeName",     var.type_name)
         .setBool("isArgument",  var.is_argument)
@@ -39,6 +40,84 @@ static v8::Local<v8::Object> VariableToJS(const ida::decompiler::LocalVariable& 
         .setStr("storage",      StorageToString(var.storage))
         .setStr("comment",      var.comment)
         .build();
+}
+
+static v8::Local<v8::Object> CtreeItemToJS(const ida::decompiler::CtreeItemView& item) {
+    return ObjectBuilder()
+        .setInt("type", static_cast<int>(item.type))
+        .setAddr("address", item.address)
+        .setBool("isExpression", item.is_expression)
+        .build();
+}
+
+static void SetParentInfo(ObjectBuilder& builder,
+                          const std::optional<ida::decompiler::CtreeItemView>& parent,
+                          std::size_t parent_depth) {
+    if (parent.has_value())
+        builder.set("parent", CtreeItemToJS(*parent));
+    else
+        builder.setNull("parent");
+    builder.setSize("parentDepth", parent_depth);
+}
+
+static v8::Local<v8::Object> ExpressionInfoToJS(ida::decompiler::ExpressionView expr) {
+    auto builder = ObjectBuilder()
+        .setInt("type", static_cast<int>(expr.type()))
+        .setAddr("address", expr.address());
+
+    if (auto variable_index = expr.variable_index())
+        builder.setInt("variableIndex", *variable_index);
+    else
+        builder.setNull("variableIndex");
+
+    if (auto helper_name = expr.helper_name())
+        builder.setStr("helperName", *helper_name);
+    else
+        builder.setNull("helperName");
+
+    if (auto type_declaration = expr.type_declaration())
+        builder.setStr("typeDeclaration", *type_declaration);
+    else
+        builder.setNull("typeDeclaration");
+
+    auto parent = expr.parent();
+    auto parents = expr.parents();
+    SetParentInfo(builder,
+                  parent ? *parent : std::optional<ida::decompiler::CtreeItemView>{},
+                  parents ? parents->size() : 0);
+    return builder.build();
+}
+
+static v8::Local<v8::Object> StatementInfoToJS(ida::decompiler::StatementView stmt) {
+    auto builder = ObjectBuilder()
+        .setInt("type", static_cast<int>(stmt.type()))
+        .setAddr("address", stmt.address());
+    auto parent = stmt.parent();
+    auto parents = stmt.parents();
+    SetParentInfo(builder,
+                  parent ? *parent : std::optional<ida::decompiler::CtreeItemView>{},
+                  parents ? parents->size() : 0);
+    return builder.build();
+}
+
+static ida::decompiler::VisitAction VisitActionFromJS(v8::Local<v8::Value> value) {
+    if (value.IsEmpty() || value->IsUndefined() || value->IsNull())
+        return ida::decompiler::VisitAction::Continue;
+    if (value->IsNumber()) {
+        switch (Nan::To<int>(value).FromMaybe(0)) {
+            case 1: return ida::decompiler::VisitAction::Stop;
+            case 2: return ida::decompiler::VisitAction::SkipChildren;
+            default: return ida::decompiler::VisitAction::Continue;
+        }
+    }
+    if (value->IsString()) {
+        const std::string action = ToString(value);
+        if (action == "stop")
+            return ida::decompiler::VisitAction::Stop;
+        if (action == "skipChildren")
+            return ida::decompiler::VisitAction::SkipChildren;
+    }
+    return ida::decompiler::VisitAction::Continue;
 }
 
 // ── AddressMapping -> JS object ─────────────────────────────────────────
@@ -366,6 +445,93 @@ private:
 };
 
 // ════════════════════════════════════════════════════════════════════════
+// LvarSnapshotWrapper — Nan::ObjectWrap around LvarSnapshot
+// ════════════════════════════════════════════════════════════════════════
+
+class LvarSnapshotWrapper : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init) {
+        auto tpl = Nan::New<v8::FunctionTemplate>(New);
+        tpl->SetClassName(FromString("LvarSnapshot"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        Nan::SetPrototypeMethod(tpl, "empty", Empty);
+        Nan::SetPrototypeMethod(tpl, "savedVariableCount", SavedVariableCount);
+
+        constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+    }
+
+    static v8::Local<v8::Object> NewInstance(ida::decompiler::LvarSnapshot snapshot) {
+        Nan::EscapableHandleScope scope;
+        pending_snapshot_ =
+            std::make_unique<ida::decompiler::LvarSnapshot>(std::move(snapshot));
+
+        auto cons = Nan::New(constructor());
+        auto instance = Nan::NewInstance(cons, 0, nullptr).ToLocalChecked();
+        return scope.Escape(instance);
+    }
+
+    static LvarSnapshotWrapper* UnwrapSnapshot(v8::Local<v8::Value> value) {
+        if (!value->IsObject())
+            return nullptr;
+
+        auto object = value.As<v8::Object>();
+        auto cons = Nan::New(constructor());
+        auto context = v8::Isolate::GetCurrent()->GetCurrentContext();
+        bool is_instance = false;
+        if (object->InstanceOf(context, cons).To(&is_instance) && is_instance)
+            return Nan::ObjectWrap::Unwrap<LvarSnapshotWrapper>(object);
+        return nullptr;
+    }
+
+    const ida::decompiler::LvarSnapshot& snapshot() const {
+        return snapshot_;
+    }
+
+private:
+    explicit LvarSnapshotWrapper(ida::decompiler::LvarSnapshot snapshot)
+        : snapshot_(std::move(snapshot)) {}
+
+    static NAN_METHOD(New) {
+        if (!info.IsConstructCall()) {
+            Nan::ThrowError("LvarSnapshot must be called with new");
+            return;
+        }
+
+        auto snapshot = pending_snapshot_ != nullptr
+            ? std::move(*pending_snapshot_)
+            : ida::decompiler::LvarSnapshot{};
+        pending_snapshot_.reset();
+
+        auto* wrapper = new LvarSnapshotWrapper(std::move(snapshot));
+        wrapper->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+    }
+
+    static NAN_METHOD(Empty) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<LvarSnapshotWrapper>(info.Holder());
+        info.GetReturnValue().Set(Nan::New(wrapper->snapshot_.empty()));
+    }
+
+    static NAN_METHOD(SavedVariableCount) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<LvarSnapshotWrapper>(info.Holder());
+        info.GetReturnValue().Set(
+            Nan::New(static_cast<double>(wrapper->snapshot_.saved_variable_count())));
+    }
+
+    static inline Nan::Persistent<v8::Function>& constructor() {
+        static Nan::Persistent<v8::Function> ctor;
+        return ctor;
+    }
+
+    ida::decompiler::LvarSnapshot snapshot_;
+    static std::unique_ptr<ida::decompiler::LvarSnapshot> pending_snapshot_;
+};
+
+std::unique_ptr<ida::decompiler::LvarSnapshot>
+    LvarSnapshotWrapper::pending_snapshot_ = nullptr;
+
+// ════════════════════════════════════════════════════════════════════════
 // DecompiledFunctionWrapper — Nan::ObjectWrap around DecompiledFunction
 // ════════════════════════════════════════════════════════════════════════
 
@@ -383,8 +549,14 @@ public:
         Nan::SetPrototypeMethod(tpl, "declaration",    Declaration);
         Nan::SetPrototypeMethod(tpl, "variableCount",  VariableCount);
         Nan::SetPrototypeMethod(tpl, "variables",      Variables);
+        Nan::SetPrototypeMethod(tpl, "variable",       Variable);
         Nan::SetPrototypeMethod(tpl, "renameVariable", RenameVariable);
         Nan::SetPrototypeMethod(tpl, "retypeVariable", RetypeVariable);
+        Nan::SetPrototypeMethod(tpl, "captureUserLvarSettings", CaptureUserLvarSettings);
+        Nan::SetPrototypeMethod(tpl, "restoreUserLvarSettings", RestoreUserLvarSettings);
+        Nan::SetPrototypeMethod(tpl, "setVariableComment", SetVariableComment);
+        Nan::SetPrototypeMethod(tpl, "forEachExpression", ForEachExpression);
+        Nan::SetPrototypeMethod(tpl, "forEachItem", ForEachItem);
         Nan::SetPrototypeMethod(tpl, "entryAddress",   EntryAddress);
         Nan::SetPrototypeMethod(tpl, "lineToAddress",  LineToAddress);
         Nan::SetPrototypeMethod(tpl, "addressMap",     AddressMap);
@@ -507,6 +679,21 @@ private:
         info.GetReturnValue().Set(arr);
     }
 
+    // variable(index) -> { index, name, typeName, isArgument, width, ... }
+    static NAN_METHOD(Variable) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        if (info.Length() < 1 || !info[0]->IsNumber()) {
+            Nan::ThrowTypeError("Expected numeric variable index argument");
+            return;
+        }
+
+        auto index = static_cast<std::size_t>(Nan::To<uint32_t>(info[0]).FromJust());
+        IDAX_UNWRAP(auto var, wrapper->func().variable(index));
+        info.GetReturnValue().Set(VariableToJS(var));
+    }
+
     // renameVariable(oldName: string, newName: string)
     static NAN_METHOD(RenameVariable) {
         auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
@@ -555,6 +742,158 @@ private:
             Nan::ThrowTypeError("First argument must be a variable name (string) or index (number)");
             return;
         }
+    }
+
+    // captureUserLvarSettings() -> LvarSnapshot
+    static NAN_METHOD(CaptureUserLvarSettings) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        IDAX_UNWRAP(auto snapshot, wrapper->func().capture_user_lvar_settings());
+        info.GetReturnValue().Set(LvarSnapshotWrapper::NewInstance(std::move(snapshot)));
+    }
+
+    // restoreUserLvarSettings(snapshot: LvarSnapshot)
+    static NAN_METHOD(RestoreUserLvarSettings) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        if (info.Length() < 1) {
+            Nan::ThrowTypeError("Expected LvarSnapshot argument");
+            return;
+        }
+
+        auto* snapshot = LvarSnapshotWrapper::UnwrapSnapshot(info[0]);
+        if (snapshot == nullptr) {
+            Nan::ThrowTypeError("Expected LvarSnapshot argument");
+            return;
+        }
+
+        IDAX_CHECK_STATUS(wrapper->func().restore_user_lvar_settings(snapshot->snapshot()));
+    }
+
+    // setVariableComment(nameOrIndex, comment)
+    static NAN_METHOD(SetVariableComment) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        if (info.Length() < 2) {
+            Nan::ThrowTypeError("Expected (name|index, comment) arguments");
+            return;
+        }
+
+        std::string comment;
+        if (!GetStringArg(info, 1, comment)) return;
+
+        if (info[0]->IsString()) {
+            std::string varName = ToString(info[0]);
+            IDAX_CHECK_STATUS(wrapper->func().set_variable_comment(varName, comment));
+        } else if (info[0]->IsNumber()) {
+            auto index = static_cast<std::size_t>(Nan::To<uint32_t>(info[0]).FromJust());
+            IDAX_CHECK_STATUS(wrapper->func().set_variable_comment(index, comment));
+        } else {
+            Nan::ThrowTypeError("First argument must be a variable name (string) or index (number)");
+            return;
+        }
+    }
+
+    // forEachExpression(callback) -> number visited
+    // callback receives { type, address, variableIndex, helperName,
+    // typeDeclaration, parent, parentDepth } and may return:
+    //   0/"continue", 1/"stop", or 2/"skipChildren".
+    static NAN_METHOD(ForEachExpression) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        if (info.Length() < 1 || !info[0]->IsFunction()) {
+            Nan::ThrowTypeError("Expected callback function");
+            return;
+        }
+
+        Nan::Callback callback(info[0].As<v8::Function>());
+        class Visitor final : public ida::decompiler::CtreeVisitor {
+        public:
+            explicit Visitor(Nan::Callback& cb) : callback(cb) {}
+
+            ida::decompiler::VisitAction visit_expression(
+                ida::decompiler::ExpressionView expr) override {
+                Nan::HandleScope scope;
+                auto object = ExpressionInfoToJS(expr);
+                v8::Local<v8::Value> argv[] = { object };
+                Nan::AsyncResource resource("idax:forEachExpression");
+                v8::Local<v8::Value> result;
+                if (!callback.Call(1, argv, &resource).ToLocal(&result))
+                    return ida::decompiler::VisitAction::Stop;
+                return VisitActionFromJS(result);
+            }
+
+            Nan::Callback& callback;
+        };
+
+        Visitor visitor(callback);
+        ida::decompiler::VisitOptions options;
+        options.expressions_only = true;
+        options.track_parents = true;
+        IDAX_UNWRAP(auto visited, wrapper->func().visit(visitor, options));
+        info.GetReturnValue().Set(Nan::New(visited));
+    }
+
+    // forEachItem(onExpression, onStatement?) -> number visited
+    static NAN_METHOD(ForEachItem) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+
+        if (info.Length() < 1 || !info[0]->IsFunction()) {
+            Nan::ThrowTypeError("Expected expression callback function");
+            return;
+        }
+
+        Nan::Callback expression_callback(info[0].As<v8::Function>());
+        std::optional<Nan::Callback> statement_callback;
+        if (info.Length() >= 2 && info[1]->IsFunction())
+            statement_callback.emplace(info[1].As<v8::Function>());
+
+        class Visitor final : public ida::decompiler::CtreeVisitor {
+        public:
+            Visitor(Nan::Callback& expr_cb,
+                    std::optional<Nan::Callback>& stmt_cb)
+                : expression_callback(expr_cb), statement_callback(stmt_cb) {}
+
+            ida::decompiler::VisitAction visit_expression(
+                ida::decompiler::ExpressionView expr) override {
+                Nan::HandleScope scope;
+                auto object = ExpressionInfoToJS(expr);
+                v8::Local<v8::Value> argv[] = { object };
+                Nan::AsyncResource resource("idax:forEachItemExpression");
+                v8::Local<v8::Value> result;
+                if (!expression_callback.Call(1, argv, &resource).ToLocal(&result))
+                    return ida::decompiler::VisitAction::Stop;
+                return VisitActionFromJS(result);
+            }
+
+            ida::decompiler::VisitAction visit_statement(
+                ida::decompiler::StatementView stmt) override {
+                if (!statement_callback.has_value())
+                    return ida::decompiler::VisitAction::Continue;
+                Nan::HandleScope scope;
+                auto object = StatementInfoToJS(stmt);
+                v8::Local<v8::Value> argv[] = { object };
+                Nan::AsyncResource resource("idax:forEachItemStatement");
+                v8::Local<v8::Value> result;
+                if (!statement_callback->Call(1, argv, &resource).ToLocal(&result))
+                    return ida::decompiler::VisitAction::Stop;
+                return VisitActionFromJS(result);
+            }
+
+            Nan::Callback& expression_callback;
+            std::optional<Nan::Callback>& statement_callback;
+        };
+
+        Visitor visitor(expression_callback, statement_callback);
+        ida::decompiler::VisitOptions options;
+        options.track_parents = true;
+        IDAX_UNWRAP(auto visited, wrapper->func().visit(visitor, options));
+        info.GetReturnValue().Set(Nan::New(visited));
     }
 
     // entryAddress() -> bigint
@@ -776,6 +1115,77 @@ static void RemoveMicrocodeFilter(ida::decompiler::FilterToken token) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
+// ScopedSessionWrapper — Nan::ObjectWrap around ScopedSession
+// ════════════════════════════════════════════════════════════════════════
+
+class ScopedSessionWrapper : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init) {
+        auto tpl = Nan::New<v8::FunctionTemplate>(New);
+        tpl->SetClassName(FromString("ScopedSession"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        Nan::SetPrototypeMethod(tpl, "valid", Valid);
+        Nan::SetPrototypeMethod(tpl, "close", Close);
+
+        constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+        Nan::Set(target, FromString("ScopedSession"),
+                 Nan::GetFunction(tpl).ToLocalChecked());
+    }
+
+    static v8::Local<v8::Object> NewInstance(ida::decompiler::ScopedSession session) {
+        Nan::EscapableHandleScope scope;
+        pending_session_ =
+            std::make_unique<ida::decompiler::ScopedSession>(std::move(session));
+
+        auto cons = Nan::New(constructor());
+        auto instance = Nan::NewInstance(cons, 0, nullptr).ToLocalChecked();
+        return scope.Escape(instance);
+    }
+
+private:
+    explicit ScopedSessionWrapper(ida::decompiler::ScopedSession session)
+        : session_(std::move(session)) {}
+
+    static NAN_METHOD(New) {
+        if (!info.IsConstructCall()) {
+            Nan::ThrowError("ScopedSession must be called with new");
+            return;
+        }
+
+        auto session = pending_session_ != nullptr
+            ? std::move(*pending_session_)
+            : ida::decompiler::ScopedSession{};
+        pending_session_.reset();
+
+        auto* wrapper = new ScopedSessionWrapper(std::move(session));
+        wrapper->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+    }
+
+    static NAN_METHOD(Valid) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<ScopedSessionWrapper>(info.Holder());
+        info.GetReturnValue().Set(Nan::New(wrapper->session_.valid()));
+    }
+
+    static NAN_METHOD(Close) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<ScopedSessionWrapper>(info.Holder());
+        IDAX_CHECK_STATUS(wrapper->session_.close());
+    }
+
+    static inline Nan::Persistent<v8::Function>& constructor() {
+        static Nan::Persistent<v8::Function> ctor;
+        return ctor;
+    }
+
+    ida::decompiler::ScopedSession session_;
+    static std::unique_ptr<ida::decompiler::ScopedSession> pending_session_;
+};
+
+std::unique_ptr<ida::decompiler::ScopedSession>
+    ScopedSessionWrapper::pending_session_ = nullptr;
+
+// ════════════════════════════════════════════════════════════════════════
 // Free functions
 // ════════════════════════════════════════════════════════════════════════
 
@@ -783,6 +1193,12 @@ static void RemoveMicrocodeFilter(ida::decompiler::FilterToken token) {
 NAN_METHOD(Available) {
     IDAX_UNWRAP(auto avail, ida::decompiler::available());
     info.GetReturnValue().Set(Nan::New(avail));
+}
+
+// initialize() -> ScopedSessionWrapper
+NAN_METHOD(Initialize) {
+    IDAX_UNWRAP(auto session, ida::decompiler::initialize());
+    info.GetReturnValue().Set(ScopedSessionWrapper::NewInstance(std::move(session)));
 }
 
 // decompile(address) -> DecompiledFunctionWrapper
@@ -925,6 +1341,39 @@ NAN_METHOD(OnRefreshPseudocode) {
     info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, token));
 }
 
+// onPopulatingPopup(callback) -> token (BigInt)
+// callback receives: { functionAddress: bigint, widgetHandle: External,
+//                      popupHandle: External, viewHandle: External }
+NAN_METHOD(OnPopulatingPopup) {
+    if (info.Length() < 1 || !info[0]->IsFunction()) {
+        Nan::ThrowTypeError("Expected callback function");
+        return;
+    }
+
+    auto jsFn = info[0].As<v8::Function>();
+    auto* persistent = new Nan::Callback(jsFn);
+
+    IDAX_UNWRAP(auto token, ida::decompiler::on_populating_popup(
+        [persistent](const ida::decompiler::PopulatingPopupEvent& event) {
+            Nan::HandleScope scope;
+            auto isolate = v8::Isolate::GetCurrent();
+            auto obj = ObjectBuilder()
+                .setAddr("functionAddress", event.function_address)
+                .set("widgetHandle", v8::External::New(isolate, event.widget_handle))
+                .set("popupHandle", v8::External::New(isolate, event.popup_handle))
+                .set("viewHandle", v8::External::New(isolate, event.view_handle))
+                .build();
+            v8::Local<v8::Value> argv[] = { obj };
+            Nan::AsyncResource resource("idax:populatingPopup");
+            persistent->Call(1, argv, &resource);
+        }));
+
+    StoreCallback(token, jsFn);
+
+    auto isolate = v8::Isolate::GetCurrent();
+    info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, token));
+}
+
 // unsubscribe(token: BigInt)
 NAN_METHOD(Unsubscribe) {
     if (info.Length() < 1) {
@@ -981,10 +1430,13 @@ void InitDecompiler(v8::Local<v8::Object> target) {
 
     // Initialize the ObjectWrap constructor template
     MicrocodeContextWrapper::Init(ns);
+    LvarSnapshotWrapper::Init(ns);
     DecompiledFunctionWrapper::Init(ns);
+    ScopedSessionWrapper::Init(ns);
 
     // Free functions
     SetMethod(ns, "available",  Available);
+    SetMethod(ns, "initialize", Initialize);
     SetMethod(ns, "decompile",  Decompile);
     SetMethod(ns, "registerMicrocodeFilter", RegisterMicrocodeFilter);
     SetMethod(ns, "unregisterMicrocodeFilter", UnregisterMicrocodeFilter);
@@ -993,6 +1445,7 @@ void InitDecompiler(v8::Local<v8::Object> target) {
     SetMethod(ns, "onMaturityChanged",     OnMaturityChanged);
     SetMethod(ns, "onFuncPrinted",         OnFuncPrinted);
     SetMethod(ns, "onRefreshPseudocode",   OnRefreshPseudocode);
+    SetMethod(ns, "onPopulatingPopup",     OnPopulatingPopup);
     SetMethod(ns, "unsubscribe",           Unsubscribe);
 
     // Cache invalidation

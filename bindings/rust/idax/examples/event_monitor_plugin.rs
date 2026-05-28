@@ -1,7 +1,7 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
-use idax::{comment, data, event, function, name, storage, Error, Result};
+use common::{DatabaseSession, format_error, print_usage};
+use idax::{Error, Result, comment, data, event, function, name, storage};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};

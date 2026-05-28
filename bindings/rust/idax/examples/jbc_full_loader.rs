@@ -1,8 +1,8 @@
 mod common;
 
-use common::{format_error, print_usage, DatabaseSession};
+use common::{DatabaseSession, format_error, print_usage};
 use idax::{
-    address::BAD_ADDRESS, analysis, data, entry, loader, name, segment, storage, Error, Result,
+    Error, Result, address::BAD_ADDRESS, analysis, data, entry, loader, name, segment, storage,
 };
 
 const MAGIC_V1: u32 = 0x0043424a;

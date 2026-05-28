@@ -356,7 +356,9 @@ void InitStorage(v8::Local<v8::Object> target);
 void InitDiagnostics(v8::Local<v8::Object> target);
 void InitLumina(v8::Local<v8::Object> target);
 void InitLines(v8::Local<v8::Object> target);
+void InitUi(v8::Local<v8::Object> target);
 void InitDecompiler(v8::Local<v8::Object> target);
+void InitPath(v8::Local<v8::Object> target);
 
 } // namespace idax_node
 

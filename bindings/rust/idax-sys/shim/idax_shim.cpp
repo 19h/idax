@@ -687,6 +687,10 @@ int idax_database_input_file_path(char** out) {
     RETURN_RESULT_STRING(ida::database::input_file_path());
 }
 
+int idax_database_idb_path(char** out) {
+    RETURN_RESULT_STRING(ida::database::idb_path());
+}
+
 int idax_database_file_type_name(char** out) {
     RETURN_RESULT_STRING(ida::database::file_type_name());
 }
@@ -741,6 +745,39 @@ int idax_database_abi_name(char** out) {
 
 int idax_database_address_span(uint64_t* out) {
     RETURN_RESULT_VALUE(ida::database::address_span());
+}
+
+int idax_path_basename(const char* path, char** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = dup_string(ida::path::basename(path == nullptr ? "" : path));
+    if (*out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_path_dirname(const char* path, char** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = dup_string(ida::path::dirname(path == nullptr ? "" : path));
+    if (*out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_path_is_directory(const char* path, int* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = ida::path::is_directory(path == nullptr ? "" : path) ? 1 : 0;
+    return 0;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1237,6 +1274,24 @@ int idax_function_define_stack_variable(uint64_t function_ea,
                                                   name == nullptr ? "" : name,
                                                   frame_offset,
                                                   *ti);
+    if (!s) return fail(s.error());
+    return 0;
+}
+
+int idax_function_set_prototype(uint64_t function_ea, void* type) {
+    clear_error();
+    if (type == nullptr) {
+        return fail(ida::Error::validation("Type pointer is null"));
+    }
+    auto* ti = static_cast<ida::type::TypeInfo*>(type);
+    auto s = ida::function::set_prototype(function_ea, *ti);
+    if (!s) return fail(s.error());
+    return 0;
+}
+
+int idax_function_apply_decl(uint64_t function_ea, const char* c_decl) {
+    clear_error();
+    auto s = ida::function::apply_decl(function_ea, c_decl == nullptr ? "" : c_decl);
     if (!s) return fail(s.error());
     return 0;
 }
@@ -2949,6 +3004,33 @@ int idax_type_apply_named(uint64_t ea, const char* type_name) {
     RETURN_STATUS(ida::type::apply_named_type(ea, type_name));
 }
 
+int idax_type_parse_declarations(const char* declarations,
+                                 int suppress_warnings,
+                                 int relaxed_namespaces,
+                                 int raw_argument_names,
+                                 int no_mangle,
+    size_t pack_alignment,
+    size_t* error_count) {
+    clear_error();
+    if (error_count == nullptr) {
+        return fail(ida::Error::validation("error_count output pointer is null"));
+    }
+
+    ida::type::ParseDeclarationsOptions options;
+    options.suppress_warnings = suppress_warnings != 0;
+    options.relaxed_namespaces = relaxed_namespaces != 0;
+    options.raw_argument_names = raw_argument_names != 0;
+    options.no_mangle = no_mangle != 0;
+    options.pack_alignment = pack_alignment;
+
+    auto report = ida::type::parse_declarations(declarations ? declarations : "", options);
+    if (!report) {
+        return fail(report.error());
+    }
+    *error_count = report->error_count;
+    return 0;
+}
+
 void idax_type_handle_array_free(IdaxTypeHandle* handles, size_t count) {
     if (handles == nullptr) {
         return;
@@ -3357,6 +3439,12 @@ void fill_plugin_action_context(IdaxPluginActionContext* out,
     out->widget_handle = in.widget_handle;
     out->focused_widget_handle = in.focused_widget_handle;
     out->decompiler_view_handle = in.decompiler_view_handle;
+    out->type_ref_name = nullptr;
+    out->type_ref_type = nullptr;
+    if (in.type_ref) {
+        out->type_ref_name = in.type_ref->name.c_str();
+        out->type_ref_type = new ida::type::TypeInfo(in.type_ref->type);
+    }
 }
 
 ida::plugin::ActionContext parse_plugin_action_context(
@@ -3376,6 +3464,12 @@ ida::plugin::ActionContext parse_plugin_action_context(
     out.widget_handle = in->widget_handle;
     out.focused_widget_handle = in->focused_widget_handle;
     out.decompiler_view_handle = in->decompiler_view_handle;
+    if (in->type_ref_type != nullptr) {
+        out.type_ref = ida::plugin::TypeRef{
+            .name = in->type_ref_name == nullptr ? "" : in->type_ref_name,
+            .type = *static_cast<ida::type::TypeInfo*>(in->type_ref_type),
+        };
+    }
     return out;
 }
 
@@ -4562,6 +4656,44 @@ int idax_decompiler_available(int* out) {
     return 0;
 }
 
+int idax_decompiler_initialize(IdaxDecompilerSessionHandle* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+
+    auto r = ida::decompiler::initialize();
+    if (!r) return fail(r.error());
+
+    *out = new ida::decompiler::ScopedSession(std::move(*r));
+    return 0;
+}
+
+int idax_decompiler_session_valid(IdaxDecompilerSessionHandle handle, int* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("ScopedSession pointer is null"));
+    }
+
+    auto* session = static_cast<ida::decompiler::ScopedSession*>(handle);
+    *out = session->valid() ? 1 : 0;
+    return 0;
+}
+
+int idax_decompiler_session_close(IdaxDecompilerSessionHandle handle) {
+    clear_error();
+    if (handle == nullptr) {
+        return fail(ida::Error::validation("ScopedSession pointer is null"));
+    }
+
+    auto* session = static_cast<ida::decompiler::ScopedSession*>(handle);
+    RETURN_STATUS(session->close());
+}
+
+void idax_decompiler_session_free(IdaxDecompilerSessionHandle handle) {
+    delete static_cast<ida::decompiler::ScopedSession*>(handle);
+}
+
 int idax_decompiler_decompile(uint64_t ea, IdaxDecompiledHandle* out) {
     clear_error();
     auto r = ida::decompiler::decompile(ea);
@@ -4688,6 +4820,28 @@ int idax_decompiler_on_create_hint(
     return 0;
 }
 
+int idax_decompiler_on_populating_popup(
+    IdaxDecompilerPopulatingPopupCallback callback,
+    void* context,
+    IdaxDecompilerToken* token_out) {
+    clear_error();
+    if (callback == nullptr) {
+        return fail(ida::Error::validation("decompiler populating_popup callback is null"));
+    }
+    auto r = ida::decompiler::on_populating_popup([callback, context](
+        const ida::decompiler::PopulatingPopupEvent& event) {
+        IdaxDecompilerPopulatingPopupEvent raw{};
+        raw.function_address = event.function_address;
+        raw.widget_handle = event.widget_handle;
+        raw.popup_handle = event.popup_handle;
+        raw.view_handle = event.view_handle;
+        callback(context, &raw);
+    });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
 int idax_decompiler_unsubscribe(IdaxDecompilerToken token) {
     RETURN_STATUS(ida::decompiler::unsubscribe(token));
 }
@@ -4758,6 +4912,7 @@ void idax_local_variable_free(IdaxLocalVariable* var) {
         var->name = nullptr;
         var->type_name = nullptr;
         var->comment = nullptr;
+        var->index = 0;
     }
 }
 
@@ -4769,6 +4924,18 @@ void idax_decompiled_variables_free(IdaxLocalVariable* vars, size_t count) {
         idax_local_variable_free(&vars[i]);
     }
     std::free(vars);
+}
+
+static void fill_local_variable(IdaxLocalVariable* out,
+                                const ida::decompiler::LocalVariable& variable) {
+    out->name          = dup_string(variable.name);
+    out->type_name     = dup_string(variable.type_name);
+    out->is_argument   = variable.is_argument ? 1 : 0;
+    out->width         = variable.width;
+    out->has_user_name = variable.has_user_name ? 1 : 0;
+    out->storage       = static_cast<int>(variable.storage);
+    out->comment       = dup_string(variable.comment);
+    out->index         = variable.index;
 }
 
 int idax_decompiled_variable_count(IdaxDecompiledHandle handle, size_t* out) {
@@ -4789,14 +4956,22 @@ int idax_decompiled_variables(IdaxDecompiledHandle handle,
         std::malloc(v.size() * sizeof(IdaxLocalVariable)));
     if (!*out) return fail(ida::Error::internal("malloc failed"));
     for (size_t i = 0; i < v.size(); ++i) {
-        (*out)[i].name          = dup_string(v[i].name);
-        (*out)[i].type_name     = dup_string(v[i].type_name);
-        (*out)[i].is_argument   = v[i].is_argument ? 1 : 0;
-        (*out)[i].width         = v[i].width;
-        (*out)[i].has_user_name = v[i].has_user_name ? 1 : 0;
-        (*out)[i].storage       = static_cast<int>(v[i].storage);
-        (*out)[i].comment       = dup_string(v[i].comment);
+        fill_local_variable(&(*out)[i], v[i]);
     }
+    return 0;
+}
+
+int idax_decompiled_variable(IdaxDecompiledHandle handle,
+                             size_t index,
+                             IdaxLocalVariable* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("local variable output is null"));
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto r = df->variable(index);
+    if (!r) return fail(r.error());
+    std::memset(out, 0, sizeof(*out));
+    fill_local_variable(out, *r);
     return 0;
 }
 
@@ -4804,6 +4979,85 @@ int idax_decompiled_rename_variable(IdaxDecompiledHandle handle,
                                     const char* old_name, const char* new_name) {
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
     RETURN_STATUS(df->rename_variable(old_name, new_name));
+}
+
+int idax_decompiled_capture_user_lvar_settings(IdaxDecompiledHandle handle,
+                                               IdaxLvarSnapshotHandle* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("decompiled handle/output pointer is null"));
+    }
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto snapshot = df->capture_user_lvar_settings();
+    if (!snapshot) return fail(snapshot.error());
+    *out = new ida::decompiler::LvarSnapshot(std::move(*snapshot));
+    return 0;
+}
+
+int idax_decompiled_restore_user_lvar_settings(IdaxDecompiledHandle handle,
+                                               IdaxLvarSnapshotHandle snapshot) {
+    clear_error();
+    if (handle == nullptr || snapshot == nullptr) {
+        return fail(ida::Error::validation("decompiled/snapshot handle is null"));
+    }
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto* snap = static_cast<ida::decompiler::LvarSnapshot*>(snapshot);
+    auto status = df->restore_user_lvar_settings(*snap);
+    if (!status) return fail(status.error());
+    return 0;
+}
+
+int idax_decompiled_set_variable_comment_by_name(IdaxDecompiledHandle handle,
+                                                 const char* variable_name,
+                                                 const char* comment) {
+    clear_error();
+    if (handle == nullptr) {
+        return fail(ida::Error::validation("decompiled handle is null"));
+    }
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto status = df->set_variable_comment(variable_name == nullptr ? "" : variable_name,
+                                           comment == nullptr ? "" : comment);
+    if (!status) return fail(status.error());
+    return 0;
+}
+
+int idax_decompiled_set_variable_comment_by_index(IdaxDecompiledHandle handle,
+                                                  size_t variable_index,
+                                                  const char* comment) {
+    clear_error();
+    if (handle == nullptr) {
+        return fail(ida::Error::validation("decompiled handle is null"));
+    }
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto status = df->set_variable_comment(variable_index,
+                                           comment == nullptr ? "" : comment);
+    if (!status) return fail(status.error());
+    return 0;
+}
+
+void idax_lvar_snapshot_free(IdaxLvarSnapshotHandle snapshot) {
+    delete static_cast<ida::decompiler::LvarSnapshot*>(snapshot);
+}
+
+int idax_lvar_snapshot_empty(IdaxLvarSnapshotHandle snapshot, int* out) {
+    clear_error();
+    if (snapshot == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("snapshot/output pointer is null"));
+    }
+    auto* snap = static_cast<ida::decompiler::LvarSnapshot*>(snapshot);
+    *out = snap->empty() ? 1 : 0;
+    return 0;
+}
+
+int idax_lvar_snapshot_saved_variable_count(IdaxLvarSnapshotHandle snapshot,
+                                            size_t* out) {
+    clear_error();
+    if (snapshot == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("snapshot/output pointer is null"));
+    }
+    auto* snap = static_cast<ida::decompiler::LvarSnapshot*>(snapshot);
+    *out = snap->saved_variable_count();
+    return 0;
 }
 
 int idax_decompiled_set_comment(IdaxDecompiledHandle handle, uint64_t ea,
@@ -4914,6 +5168,67 @@ int idax_decompiler_item_type_name(int item_type, char** out) {
     return 0;
 }
 
+static void fill_expression_info(IdaxDecompilerExpressionInfo* raw,
+                                 ida::decompiler::ExpressionView expr,
+                                 std::string* helper_name,
+                                 std::string* type_declaration) {
+    std::memset(raw, 0, sizeof(*raw));
+    raw->type = static_cast<int>(expr.type());
+    raw->address = expr.address();
+    raw->variable_index = -1;
+
+    auto variable_index = expr.variable_index();
+    if (variable_index)
+        raw->variable_index = *variable_index;
+
+    if (helper_name != nullptr) {
+        auto helper = expr.helper_name();
+        if (helper) {
+            *helper_name = *helper;
+            raw->helper_name = helper_name->c_str();
+        }
+    }
+
+    if (type_declaration != nullptr) {
+        auto type = expr.type_declaration();
+        if (type) {
+            *type_declaration = *type;
+            raw->type_declaration = type_declaration->c_str();
+        }
+    }
+
+    auto parents = expr.parents();
+    if (parents) {
+        raw->parent_depth = parents->size();
+        if (!parents->empty()) {
+            const auto& parent = parents->back();
+            raw->has_parent = 1;
+            raw->parent_type = static_cast<int>(parent.type);
+            raw->parent_address = parent.address;
+            raw->parent_is_expression = parent.is_expression ? 1 : 0;
+        }
+    }
+}
+
+static void fill_statement_info(IdaxDecompilerStatementInfo* raw,
+                                ida::decompiler::StatementView stmt) {
+    std::memset(raw, 0, sizeof(*raw));
+    raw->type = static_cast<int>(stmt.type());
+    raw->address = stmt.address();
+
+    auto parents = stmt.parents();
+    if (parents) {
+        raw->parent_depth = parents->size();
+        if (!parents->empty()) {
+            const auto& parent = parents->back();
+            raw->has_parent = 1;
+            raw->parent_type = static_cast<int>(parent.type);
+            raw->parent_address = parent.address;
+            raw->parent_is_expression = parent.is_expression ? 1 : 0;
+        }
+    }
+}
+
 int idax_decompiler_for_each_expression(IdaxDecompiledHandle handle,
                                         IdaxDecompilerExpressionVisitor callback,
                                         void* context,
@@ -4924,13 +5239,29 @@ int idax_decompiler_for_each_expression(IdaxDecompiledHandle handle,
     }
 
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
-    auto visited = ida::decompiler::for_each_expression(*df,
-        [callback, context](ida::decompiler::ExpressionView expr) {
+    class Visitor final : public ida::decompiler::CtreeVisitor {
+    public:
+        Visitor(IdaxDecompilerExpressionVisitor cb, void* ctx)
+            : callback(cb), context(ctx) {}
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView expr) override {
+            std::string helper_name;
+            std::string type_declaration;
             IdaxDecompilerExpressionInfo raw{};
-            raw.type = static_cast<int>(expr.type());
-            raw.address = expr.address();
+            fill_expression_info(&raw, expr, &helper_name, &type_declaration);
             return visit_action_from_c_int(callback(context, &raw));
-        });
+        }
+
+        IdaxDecompilerExpressionVisitor callback;
+        void* context;
+    };
+
+    Visitor visitor(callback, context);
+    ida::decompiler::VisitOptions options;
+    options.expressions_only = true;
+    options.track_parents = true;
+    auto visited = df->visit(visitor, options);
     if (!visited) return fail(visited.error());
     *out_visited = *visited;
     return 0;
@@ -4947,24 +5278,44 @@ int idax_decompiler_for_each_item(IdaxDecompiledHandle handle,
     }
 
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
-    auto visited = ida::decompiler::for_each_item(
-        *df,
-        [expression_callback, context](ida::decompiler::ExpressionView expr) {
+    class Visitor final : public ida::decompiler::CtreeVisitor {
+    public:
+        Visitor(IdaxDecompilerExpressionVisitor expr_cb,
+                IdaxDecompilerStatementVisitor stmt_cb,
+                void* ctx)
+            : expression_callback(expr_cb),
+              statement_callback(stmt_cb),
+              context(ctx) {}
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView expr) override {
             if (expression_callback == nullptr)
                 return ida::decompiler::VisitAction::Continue;
+            std::string helper_name;
+            std::string type_declaration;
             IdaxDecompilerExpressionInfo raw{};
-            raw.type = static_cast<int>(expr.type());
-            raw.address = expr.address();
+            fill_expression_info(&raw, expr, &helper_name, &type_declaration);
             return visit_action_from_c_int(expression_callback(context, &raw));
-        },
-        [statement_callback, context](ida::decompiler::StatementView stmt) {
+        }
+
+        ida::decompiler::VisitAction visit_statement(
+            ida::decompiler::StatementView stmt) override {
             if (statement_callback == nullptr)
                 return ida::decompiler::VisitAction::Continue;
             IdaxDecompilerStatementInfo raw{};
-            raw.type = static_cast<int>(stmt.type());
-            raw.address = stmt.address();
+            fill_statement_info(&raw, stmt);
             return visit_action_from_c_int(statement_callback(context, &raw));
-        });
+        }
+
+        IdaxDecompilerExpressionVisitor expression_callback;
+        IdaxDecompilerStatementVisitor statement_callback;
+        void* context;
+    };
+
+    Visitor visitor(expression_callback, statement_callback, context);
+    ida::decompiler::VisitOptions options;
+    options.track_parents = true;
+    auto visited = df->visit(visitor, options);
     if (!visited) return fail(visited.error());
     *out_visited = *visited;
     return 0;
@@ -5911,6 +6262,59 @@ int idax_ui_ask_long(const char* prompt, int64_t default_value, int64_t* out) {
     RETURN_RESULT_VALUE(ida::ui::ask_long(prompt != nullptr ? prompt : "", default_value));
 }
 
+int idax_ui_wait_box_create(const char* message, IdaxUIWaitBoxHandle* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("out pointer is null"));
+    }
+    *out = new ida::ui::WaitBox(message != nullptr ? message : "");
+    return 0;
+}
+
+int idax_ui_wait_box_update(IdaxUIWaitBoxHandle handle, const char* message) {
+    clear_error();
+    if (handle == nullptr) {
+        return fail(ida::Error::validation("WaitBox handle is null"));
+    }
+    auto* wait_box = static_cast<ida::ui::WaitBox*>(handle);
+    auto status = wait_box->update(message != nullptr ? message : "");
+    if (!status) {
+        return fail(status.error());
+    }
+    return 0;
+}
+
+int idax_ui_wait_box_cancelled(IdaxUIWaitBoxHandle handle, int* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("WaitBox pointer is null"));
+    }
+    auto* wait_box = static_cast<ida::ui::WaitBox*>(handle);
+    *out = wait_box->cancelled() ? 1 : 0;
+    return 0;
+}
+
+int idax_ui_wait_box_active(IdaxUIWaitBoxHandle handle, int* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr) {
+        return fail(ida::Error::validation("WaitBox pointer is null"));
+    }
+    auto* wait_box = static_cast<ida::ui::WaitBox*>(handle);
+    *out = wait_box->active() ? 1 : 0;
+    return 0;
+}
+
+void idax_ui_wait_box_dismiss(IdaxUIWaitBoxHandle handle) {
+    if (handle != nullptr) {
+        auto* wait_box = static_cast<ida::ui::WaitBox*>(handle);
+        wait_box->dismiss();
+    }
+}
+
+void idax_ui_wait_box_free(IdaxUIWaitBoxHandle handle) {
+    delete static_cast<ida::ui::WaitBox*>(handle);
+}
+
 int idax_ui_ask_form(const char* markup, int* out) {
     clear_error();
     if (out == nullptr) {
@@ -5922,6 +6326,197 @@ int idax_ui_ask_form(const char* markup, int* out) {
     }
     *out = *r ? 1 : 0;
     return 0;
+}
+
+int idax_ui_ask_form_sval_bitset(const char* markup,
+                                 int64_t* sval,
+                                 uint16_t* bitset,
+                                 int* accepted_out) {
+    clear_error();
+    if (sval == nullptr || bitset == nullptr || accepted_out == nullptr) {
+        return fail(ida::Error::validation("form output pointer is null"));
+    }
+    auto sval_binding = ida::ui::form_int(*sval);
+    auto bitset_binding = ida::ui::form_bitset(*bitset);
+    auto r = ida::ui::ask_form(markup != nullptr ? markup : "",
+                               sval_binding,
+                               bitset_binding);
+    if (!r) {
+        return fail(r.error());
+    }
+    *accepted_out = *r ? 1 : 0;
+    return 0;
+}
+
+int idax_ui_ask_form_sval_path_bitset(const char* markup,
+                                      int64_t* sval,
+                                      const char* path_in,
+                                      int for_saving,
+                                      uint16_t* bitset,
+                                      int* accepted_out,
+                                      char** path_out) {
+    clear_error();
+    if (sval == nullptr || bitset == nullptr || accepted_out == nullptr || path_out == nullptr) {
+        return fail(ida::Error::validation("form output pointer is null"));
+    }
+    std::string path = path_in != nullptr ? path_in : "";
+    auto sval_binding = ida::ui::form_int(*sval);
+    auto path_binding = ida::ui::form_path(path, for_saving != 0);
+    auto bitset_binding = ida::ui::form_bitset(*bitset);
+    auto r = ida::ui::ask_form(markup != nullptr ? markup : "",
+                               sval_binding,
+                               path_binding,
+                               bitset_binding);
+    if (!r) {
+        return fail(r.error());
+    }
+    *accepted_out = *r ? 1 : 0;
+    *path_out = dup_string(path);
+    if (*path_out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_ui_ask_form_path_bitset(const char* markup,
+                                 const char* path_in,
+                                 int for_saving,
+                                 uint16_t* bitset,
+                                 int* accepted_out,
+                                 char** path_out) {
+    clear_error();
+    if (bitset == nullptr || accepted_out == nullptr || path_out == nullptr) {
+        return fail(ida::Error::validation("form output pointer is null"));
+    }
+    std::string path = path_in != nullptr ? path_in : "";
+    auto path_binding = ida::ui::form_path(path, for_saving != 0);
+    auto bitset_binding = ida::ui::form_bitset(*bitset);
+    auto r = ida::ui::ask_form(markup != nullptr ? markup : "",
+                               path_binding,
+                               bitset_binding);
+    if (!r) {
+        return fail(r.error());
+    }
+    *accepted_out = *r ? 1 : 0;
+    *path_out = dup_string(path);
+    if (*path_out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_ui_ask_form_radio_sval_path_bitset(const char* markup,
+                                            uint16_t* radio,
+                                            int64_t* sval,
+                                            const char* path_in,
+                                            int for_saving,
+                                            uint16_t* bitset,
+                                            int* accepted_out,
+                                            char** path_out) {
+    clear_error();
+    if (radio == nullptr || sval == nullptr || bitset == nullptr
+        || accepted_out == nullptr || path_out == nullptr) {
+        return fail(ida::Error::validation("form output pointer is null"));
+    }
+    std::string path = path_in != nullptr ? path_in : "";
+    auto radio_binding = ida::ui::form_radio(*radio);
+    auto sval_binding = ida::ui::form_int(*sval);
+    auto path_binding = ida::ui::form_path(path, for_saving != 0);
+    auto bitset_binding = ida::ui::form_bitset(*bitset);
+    auto r = ida::ui::ask_form(markup != nullptr ? markup : "",
+                               radio_binding,
+                               sval_binding,
+                               path_binding,
+                               bitset_binding);
+    if (!r) {
+        return fail(r.error());
+    }
+    *accepted_out = *r ? 1 : 0;
+    *path_out = dup_string(path);
+    if (*path_out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_ui_ask_form_three_svals_path_two_bitsets(const char* markup,
+                                                  int64_t* first,
+                                                  int64_t* second,
+                                                  int64_t* third,
+                                                  const char* path_in,
+                                                  int for_saving,
+                                                  uint16_t* first_bitset,
+                                                  uint16_t* second_bitset,
+                                                  int* accepted_out,
+                                                  char** path_out) {
+    clear_error();
+    if (first == nullptr || second == nullptr || third == nullptr
+        || first_bitset == nullptr || second_bitset == nullptr
+        || accepted_out == nullptr || path_out == nullptr) {
+        return fail(ida::Error::validation("form output pointer is null"));
+    }
+    std::string path = path_in != nullptr ? path_in : "";
+    auto first_binding = ida::ui::form_int(*first);
+    auto second_binding = ida::ui::form_int(*second);
+    auto third_binding = ida::ui::form_int(*third);
+    auto path_binding = ida::ui::form_path(path, for_saving != 0);
+    auto first_bitset_binding = ida::ui::form_bitset(*first_bitset);
+    auto second_bitset_binding = ida::ui::form_bitset(*second_bitset);
+    auto r = ida::ui::ask_form(markup != nullptr ? markup : "",
+                               first_binding,
+                               second_binding,
+                               third_binding,
+                               path_binding,
+                               first_bitset_binding,
+                               second_bitset_binding);
+    if (!r) {
+        return fail(r.error());
+    }
+    *accepted_out = *r ? 1 : 0;
+    *path_out = dup_string(path);
+    if (*path_out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_ui_ask_text(const char* prompt,
+                     const char* default_value,
+                     size_t max_size,
+                     int accept_tabs,
+                     int normal_font,
+                     char** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("out pointer is null"));
+    }
+    auto r = ida::ui::ask_text(prompt != nullptr ? prompt : "",
+                               default_value != nullptr ? default_value : "",
+                               max_size,
+                               accept_tabs != 0,
+                               normal_font != 0);
+    if (!r) {
+        return fail(r.error());
+    }
+    *out = dup_string(*r);
+    if (*out == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int idax_ui_copy_to_clipboard(const char* text) {
+    RETURN_STATUS(ida::ui::copy_to_clipboard(text != nullptr ? text : ""));
+}
+
+int idax_ui_read_clipboard(char** out) {
+    RETURN_RESULT_STRING(ida::ui::read_clipboard());
+}
+
+const char* idax_ui_clipboard_backend(void) {
+    static thread_local std::string backend;
+    backend = std::string(ida::ui::clipboard_backend());
+    return backend.c_str();
 }
 
 int idax_ui_jump_to(uint64_t address) {

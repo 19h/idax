@@ -124,6 +124,54 @@ fn normalized_sdk_lib_root(idasdk: &Path) -> PathBuf {
     idasdk.to_path_buf()
 }
 
+fn patch_bindgen_output(path: &Path) {
+    let text = std::fs::read_to_string(path).unwrap_or_else(|e| {
+        panic!(
+            "Failed to read generated bindings {}: {}",
+            path.display(),
+            e
+        )
+    });
+
+    if !text.contains("pub struct IdaxMicrocodeInstruction {\n    pub _address: u8,\n}") {
+        return;
+    }
+
+    let marker = "#[repr(C)]\n#[derive(Debug, Default, Copy, Clone)]\npub struct IdaxMicrocodeInstruction {\n    pub _address: u8,\n}\n";
+    let start = text.find(marker).unwrap_or_else(|| {
+        panic!(
+            "Generated bindings for {} contain opaque IdaxMicrocodeInstruction, \
+             but the expected patch marker was not found",
+            path.display()
+        )
+    });
+
+    let remainder = &text[start..];
+    let end_marker = "unsafe extern \"C\" {\n    pub fn idax_microcode_instruction_free";
+    let end = remainder.find(end_marker).unwrap_or_else(|| {
+        panic!(
+            "Generated bindings for {} contain opaque IdaxMicrocodeInstruction, \
+             but the following FFI marker was not found",
+            path.display()
+        )
+    });
+
+    let replacement = "#[repr(C)]\n#[derive(Debug, Copy, Clone)]\npub struct IdaxMicrocodeInstruction {\n    pub opcode: ::std::os::raw::c_int,\n    pub left: IdaxMicrocodeOperand,\n    pub right: IdaxMicrocodeOperand,\n    pub destination: IdaxMicrocodeOperand,\n    pub floating_point_instruction: ::std::os::raw::c_int,\n}\n";
+
+    let mut patched = String::with_capacity(text.len());
+    patched.push_str(&text[..start]);
+    patched.push_str(replacement);
+    patched.push_str(&remainder[end..]);
+
+    std::fs::write(path, patched).unwrap_or_else(|e| {
+        panic!(
+            "Failed to write patched generated bindings {}: {}",
+            path.display(),
+            e
+        )
+    });
+}
+
 /// macOS: Link against IDA libraries with symlinks in OUT_DIR for runtime.
 ///
 /// Strategy:
@@ -531,9 +579,11 @@ fn main() {
         .expect("Failed to generate bindings via bindgen");
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let bindings_path = out_dir.join("bindings.rs");
     bindings
-        .write_to_file(out_dir.join("bindings.rs"))
+        .write_to_file(&bindings_path)
         .expect("Failed to write bindings.rs");
+    patch_bindgen_output(&bindings_path);
 
     println!("cargo:rerun-if-changed=shim/idax_shim.h");
     println!("cargo:rerun-if-changed=shim/idax_shim.cpp");

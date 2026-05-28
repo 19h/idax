@@ -5,7 +5,7 @@
 use crate::address::{Address, BAD_ADDRESS};
 use crate::error::{self, Result, Status};
 use std::collections::HashMap;
-use std::ffi::{c_void, CStr};
+use std::ffi::{CStr, c_void};
 use std::sync::{Mutex, OnceLock};
 
 /// Opaque subscription handle.
@@ -215,11 +215,7 @@ unsafe extern "C" fn event_filter_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut FilteredEventContext) };
     let ev = unsafe { from_ffi_event(&*event) };
-    if (ctx.filter)(&ev) {
-        1
-    } else {
-        0
-    }
+    if (ctx.filter)(&ev) { 1 } else { 0 }
 }
 
 unsafe extern "C" fn filtered_event_trampoline(

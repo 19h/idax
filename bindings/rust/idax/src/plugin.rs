@@ -4,8 +4,9 @@
 
 use crate::address::{Address, BAD_ADDRESS};
 use crate::error::{self, Error, Result, Status};
+use crate::types::TypeInfo;
 use std::collections::HashMap;
-use std::ffi::{c_char, c_void, CStr, CString};
+use std::ffi::{CStr, CString, c_char, c_void};
 use std::sync::{Mutex, OnceLock};
 
 /// Plugin metadata.
@@ -32,6 +33,14 @@ pub struct ActionContext {
     pub widget_handle: *mut c_void,
     pub focused_widget_handle: *mut c_void,
     pub decompiler_view_handle: *mut c_void,
+    pub type_ref: Option<TypeRef>,
+}
+
+/// Local Types reference carried by action contexts from type-listing widgets.
+#[derive(Debug, Clone)]
+pub struct TypeRef {
+    pub name: String,
+    pub r#type: TypeInfo,
 }
 
 /// Action descriptor.
@@ -61,6 +70,15 @@ fn c_ptr_to_string(ptr: *const c_char) -> String {
 }
 
 fn from_ffi_action_context(ctx: &idax_sys::IdaxPluginActionContext) -> ActionContext {
+    let type_ref = if ctx.type_ref_type.is_null() {
+        None
+    } else {
+        Some(TypeRef {
+            name: c_ptr_to_string(ctx.type_ref_name),
+            r#type: TypeInfo::from_raw(ctx.type_ref_type),
+        })
+    };
+
     ActionContext {
         action_id: c_ptr_to_string(ctx.action_id),
         widget_title: c_ptr_to_string(ctx.widget_title),
@@ -73,6 +91,7 @@ fn from_ffi_action_context(ctx: &idax_sys::IdaxPluginActionContext) -> ActionCon
         widget_handle: ctx.widget_handle,
         focused_widget_handle: ctx.focused_widget_handle,
         decompiler_view_handle: ctx.decompiler_view_handle,
+        type_ref,
     }
 }
 
@@ -86,6 +105,19 @@ where
         .map_err(|_| Error::validation("invalid widget_title"))?;
     let register_name = CString::new(context.register_name.as_str())
         .map_err(|_| Error::validation("invalid register_name"))?;
+    let type_ref_name = CString::new(
+        context
+            .type_ref
+            .as_ref()
+            .map(|type_ref| type_ref.name.as_str())
+            .unwrap_or(""),
+    )
+    .map_err(|_| Error::validation("invalid type_ref name"))?;
+    let type_ref_type = context
+        .type_ref
+        .as_ref()
+        .map(|type_ref| type_ref.r#type.as_raw())
+        .unwrap_or(std::ptr::null_mut());
 
     let ffi = idax_sys::IdaxPluginActionContext {
         action_id: action_id.as_ptr(),
@@ -99,6 +131,12 @@ where
         widget_handle: context.widget_handle,
         focused_widget_handle: context.focused_widget_handle,
         decompiler_view_handle: context.decompiler_view_handle,
+        type_ref_name: if context.type_ref.is_some() {
+            type_ref_name.as_ptr()
+        } else {
+            std::ptr::null()
+        },
+        type_ref_type,
     };
 
     f(&ffi)
@@ -165,11 +203,7 @@ unsafe extern "C" fn action_enabled_ex_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ActionEnabledContext) };
     let action_ctx = unsafe { from_ffi_action_context(&*action_context) };
-    if (ctx.callback)(&action_ctx) {
-        1
-    } else {
-        0
-    }
+    if (ctx.callback)(&action_ctx) { 1 } else { 0 }
 }
 
 /// Register a UI action.
@@ -417,6 +451,66 @@ impl Default for ActionContext {
             widget_handle: std::ptr::null_mut(),
             focused_widget_handle: std::ptr::null_mut(),
             decompiler_view_handle: std::ptr::null_mut(),
+            type_ref: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn action_context_type_ref_is_exposed_in_ffi_shape() {
+        let context = ActionContext {
+            action_id: "idax:test:type_ref".to_string(),
+            widget_title: "Local Types".to_string(),
+            widget_type: 42,
+            current_address: 0x401000,
+            current_value: 7,
+            has_selection: true,
+            is_external_address: false,
+            register_name: "rax".to_string(),
+            type_ref: Some(TypeRef {
+                name: "idax_test_type".to_string(),
+                r#type: TypeInfo::from_raw(std::ptr::null_mut()),
+            }),
+            ..ActionContext::default()
+        };
+
+        with_ffi_action_context(&context, |ffi| {
+            assert!(!ffi.type_ref_name.is_null());
+            assert!(ffi.type_ref_type.is_null());
+            assert_eq!(c_ptr_to_string(ffi.type_ref_name), "idax_test_type");
+            assert_eq!(ffi.current_address, 0x401000);
+            assert_eq!(ffi.has_selection, 1);
+            Ok(())
+        })
+        .unwrap();
+
+        let action_id = CString::new("idax:test:type_ref").unwrap();
+        let widget_title = CString::new("Local Types").unwrap();
+        let register_name = CString::new("rax").unwrap();
+        let ffi = idax_sys::IdaxPluginActionContext {
+            action_id: action_id.as_ptr(),
+            widget_title: widget_title.as_ptr(),
+            widget_type: 42,
+            current_address: 0x401000,
+            current_value: 7,
+            has_selection: 1,
+            is_external_address: 0,
+            register_name: register_name.as_ptr(),
+            widget_handle: std::ptr::null_mut(),
+            focused_widget_handle: std::ptr::null_mut(),
+            decompiler_view_handle: std::ptr::null_mut(),
+            type_ref_name: std::ptr::null(),
+            type_ref_type: std::ptr::null_mut(),
+        };
+
+        let safe = from_ffi_action_context(&ffi);
+        assert_eq!(safe.action_id, "idax:test:type_ref");
+        assert_eq!(safe.widget_title, "Local Types");
+        assert_eq!(safe.current_address, 0x401000);
+        assert!(safe.type_ref.is_none());
     }
 }

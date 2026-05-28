@@ -10,9 +10,10 @@ Public headers:
 | `include/ida/diagnostics.hpp` | Logging levels, counters, diagnostic message helpers |
 | `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
-| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (file type/compiler/imports/processor+ABI/endian), snapshots, file/memory transfer |
+| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (input path, IDB path, file type/compiler/imports/processor+ABI/endian), snapshots, file/memory transfer |
+| `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
-| `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers |
+| `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers, prototype application |
 | `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`), representation controls (including struct-offset helpers), xref conveniences |
 | `include/ida/name.hpp` | Set/get/force/remove names, demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
@@ -20,17 +21,17 @@ Public headers:
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
-| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, type libraries (`ensure_named_type`, import/apply named helpers) |
+| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import, type libraries (`ensure_named_type`, import/apply named helpers) |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
-| `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar/popup attachment, action-context host bridges |
+| `include/ida/plugin.hpp` | Plugin base class, action registration, menu/toolbar/popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |
 | `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
 | `include/ida/processor.hpp` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | `include/ida/debugger.hpp` | Process lifecycle, backend discovery/selection, breakpoints, memory, registers, appcall/executor APIs, typed event subscriptions |
-| `include/ida/ui.hpp` | Messages, dialogs, choosers, timers, UI event subscriptions |
+| `include/ida/ui.hpp` | Messages, dialogs (`ask_text`, markup-only and typed `ask_form`, `FormBuilder`; fixed-shape Node/Rust typed-form entrypoints for audited dialog packs), optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` plus IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, choosers, timers, UI event subscriptions |
 | `include/ida/graph.hpp` | Graph objects, node/edge CRUD, flow charts, basic blocks |
 | `include/ida/event.hpp` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| `include/ida/decompiler.hpp` | Decompile (with structured failure details), pseudocode/microcode extraction, maturity subscriptions, cache-dirty helpers, typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`), microcode-filter registration, typed instruction/operand emission (including nested/block/local-variable forms), policy-aware low-level emits, microblock lifecycle helpers (`block_instruction_count`, `has_instruction_at_index`, `remove_instruction_at_index`, tracked last-emitted query/remove), microcode introspection (`instruction`, `instruction_at_index`, `last_emitted_instruction`), typed helper-call builders (register/operand/micro-operand destinations), and advanced call-shaping/location hints (calling convention, role, return location/type, register-list + visible-memory controls). |
+| `include/ida/decompiler.hpp` | Decompile (with structured failure details), scoped Hex-Rays ownership (`initialize`, `ScopedSession`), pseudocode/microcode extraction, maturity/pseudocode/popup subscriptions (`on_populating_popup`), cache-dirty helpers, typed decompiler-view sessions (`DecompilerView`, `view_from_host`, `view_for_function`, `current_view`), read-only ctree helpers (`ExpressionView::helper_name`, `type_declaration`, parent-chain snapshots, stable `LocalVariable::index` and direct variable lookup), lvar user-settings snapshots and variable comment writeback, microcode-filter registration, typed instruction/operand emission (including nested/block/local-variable forms), policy-aware low-level emits, microblock lifecycle helpers (`block_instruction_count`, `has_instruction_at_index`, `remove_instruction_at_index`, tracked last-emitted query/remove), microcode introspection (`instruction`, `instruction_at_index`, `last_emitted_instruction`), typed helper-call builders (register/operand/micro-operand destinations), and advanced call-shaping/location hints (calling convention, role, return location/type, register-list + visible-memory controls). |
 | `include/ida/lines.hpp` | Tagged text/color helpers (`colstr`, `tag_remove`, `tag_advance`, `tag_strlen`, address-tag encode/decode) used by decompiler/listing filters |
 | `include/ida/storage.hpp` | Netnode abstraction, alt/sup/hash/blob operations |
 
@@ -52,3 +53,4 @@ See also:
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands
 - `docs/storage_migration_caveats.md` — Netnode migration safety notes
 - `docs/port_gap_audit_examples.md` — consolidated real-world port audits and remaining parity gaps
+- `docs/codedump_migration_checklist.md` — ida-cdump gap-to-idax migration checklist and remaining Phase 22 tasks

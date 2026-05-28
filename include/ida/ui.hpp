@@ -6,14 +6,32 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <array>
+#include <concepts>
 #include <cstdint>
+#include <cstring>
 #include <functional>
+#include <initializer_list>
+#include <limits>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#ifndef USE_DANGEROUS_FUNCTIONS
+#define IDAX_UI_RESTORE_USE_DANGEROUS_FUNCTIONS
+#define USE_DANGEROUS_FUNCTIONS
+#endif
+#include <pro.h>
+#include <kernwin.hpp>
+#ifdef IDAX_UI_RESTORE_USE_DANGEROUS_FUNCTIONS
+#undef USE_DANGEROUS_FUNCTIONS
+#undef IDAX_UI_RESTORE_USE_DANGEROUS_FUNCTIONS
+#endif
 
 namespace ida::ui {
 
@@ -92,11 +110,472 @@ Result<Address> ask_address(std::string_view prompt, Address default_value = Bad
 /// Ask the user for a long integer value.
 Result<std::int64_t> ask_long(std::string_view prompt, std::int64_t default_value = 0);
 
+/// Ask the user for multiline text.
+///
+/// The default value is shown as the initial text. If `max_size` is zero,
+/// IDA accepts an unlimited-length answer. Returns a validation error when
+/// the user cancels the dialog.
+Result<std::string> ask_text(std::string_view prompt,
+                             std::string_view default_value = {},
+                             std::size_t max_size = 0,
+                             bool accept_tabs = false,
+                             bool normal_font = false);
+
 /// Show an IDA form and return whether it was accepted.
 ///
 /// This overload is for markup-only forms that do not require typed vararg
 /// bindings. Returns true when accepted, false when cancelled.
 Result<bool> ask_form(std::string_view markup);
+
+/// Copy text to the host clipboard.
+///
+/// Uses the Qt clipboard backend when idax was built with
+/// `IDAX_ENABLE_QT_CLIPBOARD=ON`; otherwise returns `Unsupported`.
+Status copy_to_clipboard(std::string_view text);
+
+/// Read text from the host clipboard.
+Result<std::string> read_clipboard();
+
+/// Clipboard backend name for diagnostics (`"Qt"` or `"unsupported"`).
+[[nodiscard]] std::string_view clipboard_backend() noexcept;
+
+// ── Typed forms ────────────────────────────────────────────────────────
+
+/// Signed decimal form field backed by the SDK's `sval_t`.
+class FormSvalBinding {
+public:
+    explicit FormSvalBinding(sval_t& value) noexcept : value_(&value) {}
+
+    Status prepare() noexcept {
+        sdk_value_ = value_ != nullptr ? *value_ : sval_t{};
+        return ida::ok();
+    }
+    [[nodiscard]] sval_t* sdk_arg() noexcept { return &sdk_value_; }
+    void commit() noexcept {
+        if (value_ != nullptr)
+            *value_ = sdk_value_;
+    }
+
+private:
+    sval_t* value_{nullptr};
+    sval_t  sdk_value_{};
+};
+
+/// Signed decimal form field backed by a portable 64-bit integer.
+class FormIntBinding {
+public:
+    explicit FormIntBinding(std::int64_t& value) noexcept : value_(&value) {}
+
+    Status prepare() {
+        if (value_ == nullptr)
+            return std::unexpected(Error::internal("Form integer binding is null"));
+        if (*value_ < static_cast<std::int64_t>(std::numeric_limits<sval_t>::min())
+            || *value_ > static_cast<std::int64_t>(std::numeric_limits<sval_t>::max())) {
+            return std::unexpected(Error::validation("Form integer value is out of SDK range"));
+        }
+        sdk_value_ = static_cast<sval_t>(*value_);
+        return ida::ok();
+    }
+    [[nodiscard]] sval_t* sdk_arg() noexcept { return &sdk_value_; }
+    void commit() noexcept {
+        if (value_ != nullptr)
+            *value_ = static_cast<std::int64_t>(sdk_value_);
+    }
+
+private:
+    std::int64_t* value_{nullptr};
+    sval_t        sdk_value_{};
+};
+
+/// Checkbox bitset or radio-group form field backed by `ushort`.
+class FormU16Binding {
+public:
+    explicit FormU16Binding(std::uint16_t& value) noexcept : value_(&value) {}
+
+    Status prepare() noexcept {
+        sdk_value_ = value_ != nullptr ? static_cast<ushort>(*value_) : ushort{};
+        return ida::ok();
+    }
+    [[nodiscard]] ushort* sdk_arg() noexcept { return &sdk_value_; }
+    void commit() noexcept {
+        if (value_ != nullptr)
+            *value_ = static_cast<std::uint16_t>(sdk_value_);
+    }
+
+private:
+    std::uint16_t* value_{nullptr};
+    ushort         sdk_value_{};
+};
+
+/// Address form field backed by the SDK's `ea_t`.
+class FormAddressBinding {
+public:
+    explicit FormAddressBinding(Address& value) noexcept : value_(&value) {}
+
+    Status prepare() noexcept {
+        sdk_value_ = value_ != nullptr ? static_cast<ea_t>(*value_) : ea_t{};
+        return ida::ok();
+    }
+    [[nodiscard]] ea_t* sdk_arg() noexcept { return &sdk_value_; }
+    void commit() noexcept {
+        if (value_ != nullptr)
+            *value_ = static_cast<Address>(sdk_value_);
+    }
+
+private:
+    Address* value_{nullptr};
+    ea_t     sdk_value_{};
+};
+
+/// UTF-8 text form field backed by an SDK `qstring`.
+class FormTextBinding {
+public:
+    explicit FormTextBinding(std::string& value) noexcept : value_(&value) {}
+
+    Status prepare() {
+        if (value_ == nullptr)
+            return std::unexpected(Error::internal("Form text binding is null"));
+        if (value_->find('\0') != std::string::npos)
+            return std::unexpected(Error::validation("Form text contains an embedded NUL"));
+        sdk_value_ = qstring(value_->data(), value_->size());
+        return ida::ok();
+    }
+    [[nodiscard]] qstring* sdk_arg() noexcept { return &sdk_value_; }
+    void commit() {
+        if (value_ != nullptr)
+            *value_ = std::string(sdk_value_.c_str(), sdk_value_.length());
+    }
+
+private:
+    std::string* value_{nullptr};
+    qstring      sdk_value_;
+};
+
+/// File or directory path form field backed by a bounded SDK path buffer.
+class FormPathBinding {
+public:
+    explicit FormPathBinding(std::string& value, bool for_saving = true) noexcept
+        : value_(&value), for_saving_(for_saving) {}
+
+    Status prepare() {
+        if (value_ == nullptr)
+            return std::unexpected(Error::internal("Form path binding is null"));
+        if (value_->find('\0') != std::string::npos)
+            return std::unexpected(Error::validation("Form path contains an embedded NUL"));
+        if (value_->size() >= buffer_.size())
+            return std::unexpected(Error::validation("Form path exceeds QMAXPATH"));
+
+        buffer_.fill('\0');
+        std::memcpy(buffer_.data(), value_->data(), value_->size());
+        return ida::ok();
+    }
+    [[nodiscard]] char* sdk_arg() noexcept { return buffer_.data(); }
+    void commit() {
+        if (value_ != nullptr)
+            *value_ = std::string(buffer_.data());
+    }
+    [[nodiscard]] bool for_saving() const noexcept { return for_saving_; }
+
+private:
+    std::string* value_{nullptr};
+    bool         for_saving_{true};
+    std::array<char, QMAXPATH> buffer_{};
+};
+
+[[nodiscard]] inline FormSvalBinding form_sval(sval_t& value) noexcept {
+    return FormSvalBinding(value);
+}
+[[nodiscard]] inline FormIntBinding form_int(std::int64_t& value) noexcept {
+    return FormIntBinding(value);
+}
+[[nodiscard]] inline FormU16Binding form_bitset(std::uint16_t& value) noexcept {
+    return FormU16Binding(value);
+}
+[[nodiscard]] inline FormU16Binding form_radio(std::uint16_t& value) noexcept {
+    return FormU16Binding(value);
+}
+[[nodiscard]] inline FormAddressBinding form_address(Address& value) noexcept {
+    return FormAddressBinding(value);
+}
+[[nodiscard]] inline FormTextBinding form_text(std::string& value) noexcept {
+    return FormTextBinding(value);
+}
+[[nodiscard]] inline FormPathBinding form_path(std::string& value,
+                                               bool for_saving = true) noexcept {
+    return FormPathBinding(value, for_saving);
+}
+
+namespace detail {
+
+template <typename T>
+concept FormBinding = requires(T& binding) {
+    { binding.prepare() } -> std::same_as<Status>;
+    binding.sdk_arg();
+    binding.commit();
+};
+
+template <FormBinding... Bindings>
+Status prepare_form_bindings(Bindings&... bindings) {
+    std::optional<Error> first_error;
+    auto prepare_one = [&](auto& binding) {
+        if (first_error.has_value())
+            return;
+        Status status = binding.prepare();
+        if (!status)
+            first_error = status.error();
+    };
+    (prepare_one(bindings), ...);
+    if (first_error.has_value())
+        return std::unexpected(*first_error);
+    return ida::ok();
+}
+
+template <FormBinding... Bindings>
+void commit_form_bindings(Bindings&... bindings) {
+    (bindings.commit(), ...);
+}
+
+inline Status validate_form_markup(std::string_view markup) {
+    if (markup.empty())
+        return std::unexpected(Error::validation("Form markup cannot be empty"));
+    if (markup.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation("Form markup contains an embedded NUL"));
+    return ida::ok();
+}
+
+inline void append_form_field(std::string& markup,
+                              std::string_view label,
+                              char type,
+                              int width,
+                              int visible_width) {
+    markup.push_back('<');
+    markup.append(label);
+    markup.push_back(':');
+    markup.push_back(type);
+    markup.push_back(':');
+    if (width >= 0)
+        markup.append(std::to_string(width));
+    markup.push_back(':');
+    if (visible_width >= 0)
+        markup.append(std::to_string(visible_width));
+    markup.append("::>\n");
+}
+
+inline void append_choice_group(std::string& markup,
+                                std::string_view group_label,
+                                char type,
+                                std::span<const std::string_view> choices) {
+    if (choices.empty())
+        choices = std::span<const std::string_view>(&group_label, 1);
+
+    for (std::size_t i = 0; i < choices.size(); ++i) {
+        markup.push_back('<');
+        if (i == 0 && !group_label.empty()) {
+            markup.append("##");
+            markup.append(group_label);
+            markup.append("##");
+        }
+        markup.append(choices[i]);
+        markup.push_back(':');
+        markup.push_back(type);
+        markup.push_back('>');
+        if (i + 1 == choices.size())
+            markup.push_back('>');
+        markup.push_back('\n');
+    }
+}
+
+template <typename...>
+class FormBuilder;
+
+} // namespace detail
+
+/// Show an IDA form with a compile-time typed SDK vararg binding pack.
+template <typename... Bindings>
+    requires(sizeof...(Bindings) > 0
+             && (detail::FormBinding<std::remove_reference_t<Bindings>> && ...))
+Result<bool> ask_form(std::string_view markup, Bindings&&... bindings) {
+    Status valid_markup = detail::validate_form_markup(markup);
+    if (!valid_markup)
+        return std::unexpected(valid_markup.error());
+
+    Status prepared = detail::prepare_form_bindings(bindings...);
+    if (!prepared)
+        return std::unexpected(prepared.error());
+
+    qstring qmarkup(markup.data(), markup.size());
+    int rc = ::ask_form(qmarkup.c_str(), bindings.sdk_arg()...);
+    if (rc < 0)
+        return std::unexpected(Error::sdk("ask_form failed"));
+    if (rc > 0)
+        detail::commit_form_bindings(bindings...);
+    return rc > 0;
+}
+
+template <typename... Bound>
+class FormBuilder {
+public:
+    FormBuilder() = default;
+    explicit FormBuilder(std::string_view title) {
+        markup_.append(title);
+        markup_.append("\n\n");
+    }
+
+    [[nodiscard]] std::string_view markup() const noexcept { return markup_; }
+
+    [[nodiscard]] auto add_int(std::string_view label,
+                               std::int64_t& value,
+                               int width = 10,
+                               int visible_width = 10) const {
+        auto next_markup = markup_;
+        detail::append_form_field(next_markup, label, 'D', width, visible_width);
+        return append_binding(std::move(next_markup), form_int(value));
+    }
+
+    [[nodiscard]] auto add_sval(std::string_view label,
+                                sval_t& value,
+                                int width = 10,
+                                int visible_width = 10) const {
+        auto next_markup = markup_;
+        detail::append_form_field(next_markup, label, 'D', width, visible_width);
+        return append_binding(std::move(next_markup), form_sval(value));
+    }
+
+    [[nodiscard]] auto add_bitset(std::string_view group_label,
+                                  std::uint16_t& value,
+                                  std::span<const std::string_view> choices) const {
+        auto next_markup = markup_;
+        detail::append_choice_group(next_markup, group_label, 'C', choices);
+        return append_binding(std::move(next_markup), form_bitset(value));
+    }
+
+    [[nodiscard]] auto add_bitset(std::string_view group_label,
+                                  std::uint16_t& value,
+                                  std::initializer_list<std::string_view> choices) const {
+        return add_bitset(group_label, value, std::span<const std::string_view>(
+            choices.begin(), choices.size()));
+    }
+
+    [[nodiscard]] auto add_radio(std::string_view group_label,
+                                 std::uint16_t& value,
+                                 std::span<const std::string_view> choices) const {
+        auto next_markup = markup_;
+        detail::append_choice_group(next_markup, group_label, 'R', choices);
+        return append_binding(std::move(next_markup), form_radio(value));
+    }
+
+    [[nodiscard]] auto add_radio(std::string_view group_label,
+                                 std::uint16_t& value,
+                                 std::initializer_list<std::string_view> choices) const {
+        return add_radio(group_label, value, std::span<const std::string_view>(
+            choices.begin(), choices.size()));
+    }
+
+    [[nodiscard]] auto add_address(std::string_view label,
+                                   Address& value,
+                                   int width = 16,
+                                   int visible_width = 16) const {
+        auto next_markup = markup_;
+        detail::append_form_field(next_markup, label, '$', width, visible_width);
+        return append_binding(std::move(next_markup), form_address(value));
+    }
+
+    [[nodiscard]] auto add_text(std::string_view label,
+                                std::string& value,
+                                int width = 256,
+                                int visible_width = 40) const {
+        auto next_markup = markup_;
+        detail::append_form_field(next_markup, label, 'q', width, visible_width);
+        return append_binding(std::move(next_markup), form_text(value));
+    }
+
+    [[nodiscard]] auto add_path(std::string_view label,
+                                std::string& value,
+                                bool for_saving = true,
+                                int visible_width = 64) const {
+        auto next_markup = markup_;
+        detail::append_form_field(next_markup, label, 'f', for_saving ? 1 : 0, visible_width);
+        return append_binding(std::move(next_markup), form_path(value, for_saving));
+    }
+
+    [[nodiscard]] Result<bool> ask() const {
+        auto local_bindings = bindings_;
+        return std::apply(
+            [&](auto&... bindings) {
+                if constexpr (sizeof...(bindings) == 0)
+                    return ida::ui::ask_form(markup_);
+                else
+                    return ida::ui::ask_form(markup_, bindings...);
+            },
+            local_bindings);
+    }
+
+private:
+    template <typename...>
+    friend class FormBuilder;
+
+    FormBuilder(std::string markup, std::tuple<Bound...> bindings)
+        : markup_(std::move(markup)), bindings_(std::move(bindings)) {}
+
+    template <typename Binding>
+    [[nodiscard]] auto append_binding(std::string markup, Binding binding) const {
+        auto next_bindings = std::tuple_cat(bindings_, std::tuple<Binding>{std::move(binding)});
+        return FormBuilder<Bound..., Binding>(std::move(markup), std::move(next_bindings));
+    }
+
+    std::string markup_;
+    std::tuple<Bound...> bindings_;
+};
+
+using EmptyFormBuilder = FormBuilder<>;
+
+[[nodiscard]] inline EmptyFormBuilder form_builder(std::string_view title) {
+    return EmptyFormBuilder(title);
+}
+
+// ── Wait/progress UI ───────────────────────────────────────────────────
+
+/// RAII wrapper around IDA's wait-box progress dialog.
+///
+/// The wait box is shown by the constructor and hidden by the destructor
+/// unless dismissed early. Use `cancelled()` between long-running phases to
+/// cooperate with the user's cancel request.
+class WaitBox {
+public:
+    explicit WaitBox(std::string_view message);
+    ~WaitBox();
+
+    WaitBox(const WaitBox&) = delete;
+    WaitBox& operator=(const WaitBox&) = delete;
+    WaitBox(WaitBox&& other) noexcept;
+    WaitBox& operator=(WaitBox&& other) noexcept;
+
+    /// Replace the wait-box message.
+    Status update(std::string_view message);
+
+    /// Whether the user requested cancellation.
+    [[nodiscard]] bool cancelled() const noexcept;
+
+    /// Hide the wait box before destruction.
+    void dismiss() noexcept;
+
+    /// Whether this object currently owns a visible wait box.
+    [[nodiscard]] bool active() const noexcept { return active_; }
+
+private:
+    bool active_{false};
+};
+
+/// Generic progress payload for long-running idax algorithms.
+struct Progress {
+    std::string_view phase;
+    std::size_t      processed{0};
+    std::size_t      total{0};
+    std::string_view current_item;
+};
+
+/// Return false from the callback to request cooperative cancellation.
+using ProgressFn = std::function<bool(const Progress&)>;
 
 // ── Navigation ──────────────────────────────────────────────────────────
 

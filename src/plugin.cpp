@@ -3,6 +3,7 @@
 ///        and the plugmod_t bridge for the IDAX_PLUGIN() export macro.
 
 #include "detail/sdk_bridge.hpp"
+#include "detail/type_impl.hpp"
 #include <ida/plugin.hpp>
 
 #include <kernwin.hpp>
@@ -16,6 +17,47 @@ namespace ida::plugin {
 // Bridges std::function-based Action to SDK's action_handler_t.
 
 namespace {
+
+std::string type_ref_name(const til_type_ref_t& ref) {
+    qstring name;
+    if (ref.tif.get_type_name(&name))
+        return ida::detail::to_string(name);
+
+    const uint32 ordinal = ref.ordinal != 0 ? ref.ordinal : ref.tif.get_ordinal();
+    if (ordinal != 0) {
+        if (const char* numbered = get_numbered_type_name(ref.tif.get_til(), ordinal);
+            numbered != nullptr) {
+            return numbered;
+        }
+    }
+
+    if (ref.on_member()) {
+        if (ref.is_udt() && !ref.udm.name.empty())
+            return ida::detail::to_string(ref.udm.name);
+        if (ref.is_enum() && !ref.edm.name.empty())
+            return ida::detail::to_string(ref.edm.name);
+    }
+
+    qstring printed;
+    if (ref.tif.print(&printed))
+        return ida::detail::to_string(printed);
+
+    return {};
+}
+
+std::optional<TypeRef> snapshot_type_ref(const action_ctx_base_t* ctx) {
+    if (ctx == nullptr
+        || !ctx->has_flag(ACF_HAS_TYPE_REF)
+        || ctx->type_ref == nullptr
+        || ctx->type_ref->tif.empty()) {
+        return std::nullopt;
+    }
+
+    TypeRef out;
+    out.name = type_ref_name(*ctx->type_ref);
+    ida::type::TypeInfoAccess::get(out.type)->ti = ctx->type_ref->tif;
+    return out;
+}
 
 struct ActionAdapter : public action_handler_t {
     std::function<Status()> handler;
@@ -45,6 +87,7 @@ struct ActionAdapter : public action_handler_t {
 
         out.widget_handle = static_cast<void*>(ctx->widget);
         out.focused_widget_handle = static_cast<void*>(ctx->focus);
+        out.type_ref = snapshot_type_ref(ctx);
 
         if (ctx->widget != nullptr
             && ctx->widget_type == BWN_PSEUDOCODE

@@ -91,6 +91,13 @@ fn database_input_file_path() {
 }
 
 #[test]
+fn database_idb_path() {
+    require_db!();
+    let path = database::idb_path().unwrap();
+    assert!(!path.is_empty(), "idb_path should not be empty");
+}
+
+#[test]
 fn database_file_type_name() {
     require_db!();
     let name = database::file_type_name().unwrap();
@@ -747,6 +754,21 @@ fn types_from_declaration() {
         ti.is_pointer() || ti.is_function(),
         "should parse function pointer decl"
     );
+}
+
+#[test]
+fn types_parse_declarations() {
+    require_db!();
+    let report = types::parse_declarations(
+        "typedef struct idax_rust_bulk_decl { int alpha; int beta; } idax_rust_bulk_decl_alias;",
+        types::ParseDeclarationsOptions {
+            suppress_warnings: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(report.ok());
+    assert_eq!(report.error_count, 0);
 }
 
 #[test]

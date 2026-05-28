@@ -246,6 +246,57 @@ void test_from_declaration() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: bulk declaration import
+// ---------------------------------------------------------------------------
+void test_parse_declarations() {
+    std::cout << "--- parse_declarations bulk import ---\n";
+
+    auto empty = ida::type::parse_declarations("");
+    CHECK(!empty.has_value());
+    if (!empty)
+        CHECK(empty.error().category == ida::ErrorCategory::Validation);
+
+    ida::type::ParseDeclarationsOptions bad_options;
+    bad_options.pack_alignment = 3;
+    auto bad_pack = ida::type::parse_declarations("typedef int idax_bad_pack_t;",
+                                                  bad_options);
+    CHECK(!bad_pack.has_value());
+    if (!bad_pack)
+        CHECK(bad_pack.error().category == ida::ErrorCategory::Validation);
+
+    ida::type::ParseDeclarationsOptions options;
+    options.suppress_warnings = true;
+
+    const char declarations[] =
+        "typedef struct idax_bulk_decl_struct {\n"
+        "  int alpha;\n"
+        "  int beta;\n"
+        "} idax_bulk_decl_alias;\n"
+        "typedef idax_bulk_decl_alias *idax_bulk_decl_alias_ptr;\n";
+
+    auto report = ida::type::parse_declarations(declarations, options);
+    CHECK_OK(report);
+    if (report) {
+        CHECK(report->ok());
+        CHECK(report->error_count == 0);
+    }
+
+    auto found = ida::type::TypeInfo::by_name("idax_bulk_decl_alias");
+    CHECK_OK(found);
+    if (found) {
+        auto resolved = found->resolve_typedef();
+        CHECK_OK(resolved);
+        if (resolved)
+            CHECK(resolved->is_struct() || found->is_struct());
+    }
+
+    auto ptr = ida::type::TypeInfo::by_name("idax_bulk_decl_alias_ptr");
+    CHECK_OK(ptr);
+    if (ptr)
+        CHECK(ptr->is_pointer() || ptr->is_typedef());
+}
+
+// ---------------------------------------------------------------------------
 // Test: function type + calling convention workflows
 // ---------------------------------------------------------------------------
 void test_function_type_workflows() {
@@ -728,6 +779,7 @@ int main(int argc, char* argv[]) {
     test_composite_factories();
     test_type_decomposition_helpers();
     test_from_declaration();
+    test_parse_declarations();
     test_function_type_workflows();
     test_enum_workflows();
     test_struct_lifecycle();

@@ -3,20 +3,16 @@
 ///
 /// This port uses idax's opaque widget host bridge (`with_widget_host`) to
 /// mount a Qt renderer widget into an IDA dock panel. The original plugin's
-/// "Test in ask_form" behavior is preserved as a callback surface, but the
-/// direct `ask_form()` invocation itself is intentionally reported as a gap
-/// because idax does not expose a public wrapper for that API yet.
-
-#include "qtform_renderer_widget.hpp"
+/// "Test in ask_form" behavior is preserved through the idax markup-only
+/// `ida::ui::ask_form(std::string_view)` wrapper.
 
 #include <ida/idax.hpp>
 
-#include <qlayout.h>
-#include <qboxlayout.h>
-#include <qwidget.h>
+#include "qtform_renderer_bridge.hpp"
 
 #include <cstdio>
 #include <string>
+#include <utility>
 
 namespace {
 
@@ -58,25 +54,21 @@ public:
         }
         panel_ = *panel;
 
-        auto mount = ida::ui::with_widget_host_as<QWidget>(panel_,
-            [this](QWidget* host_widget) -> ida::Status {
-                if (host_widget == nullptr) {
+        auto mount = ida::ui::with_widget_host(panel_,
+            [this](void* host_widget) -> ida::Status {
+                std::string error;
+                const bool mounted = mount_form_renderer_widget(
+                    host_widget,
+                    [this](const std::string& form_text) {
+                        on_test_in_ask_form(form_text);
+                    },
+                    &error);
+                if (!mounted) {
                     return std::unexpected(ida::Error::internal(
-                        "Widget host pointer is null"));
+                        error.empty()
+                            ? "Failed to mount form renderer widget"
+                            : error));
                 }
-
-                auto* layout = host_widget->layout();
-                if (layout == nullptr) {
-                    auto* vbox = new QVBoxLayout(host_widget);
-                    vbox->setContentsMargins(0, 0, 0, 0);
-                    layout = vbox;
-                }
-
-                renderer_ = new FormRendererWidget(host_widget);
-                renderer_->set_test_callback([this](const std::string& form_text) {
-                    on_test_in_ask_form(form_text);
-                });
-                layout->addWidget(renderer_);
                 return ida::ok();
             });
         if (!mount) {
@@ -99,7 +91,6 @@ public:
         if (panel_.valid()) {
             ida::ui::close_widget(panel_);
         }
-        renderer_ = nullptr;
     }
 
 private:
@@ -109,18 +100,19 @@ private:
             return;
         }
 
-        ida::ui::warning(
-            "idax gap: ui::ask_form() is not exposed yet. "
-            "The current form markup was captured, but cannot be executed "
-            "through an idax wrapper today.");
+        auto accepted = ida::ui::ask_form(form_text);
+        if (!accepted) {
+            ida::ui::warning(fmt(
+                "ask_form failed: %s", accepted.error().message.c_str()));
+            return;
+        }
 
         ida::ui::message(fmt(
-            "[qtform:idax] ask_form test requested for %zu bytes of markup.\n",
-            form_text.size()));
+            "[qtform:idax] ask_form tested %zu bytes of markup: %s.\n",
+            form_text.size(), *accepted ? "accepted" : "cancelled"));
     }
 
     ida::ui::Widget panel_;
-    FormRendererWidget* renderer_{nullptr};
 };
 
 } // namespace

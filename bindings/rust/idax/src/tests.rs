@@ -878,7 +878,10 @@ mod instruction_tests {
 
 #[cfg(test)]
 mod types_tests {
-    use crate::types::CallingConvention;
+    use crate::error::Result;
+    use crate::types::{
+        self, CallingConvention, ParseDeclarationsOptions, ParseDeclarationsReport,
+    };
 
     #[test]
     fn test_calling_convention_discriminants() {
@@ -891,6 +894,39 @@ mod types_tests {
         assert_eq!(CallingConvention::Swift as i32, 6);
         assert_eq!(CallingConvention::Golang as i32, 7);
         assert_eq!(CallingConvention::UserDefined as i32, 8);
+    }
+
+    #[test]
+    fn test_parse_declarations_function_signature_and_report() {
+        let _: fn(&str, ParseDeclarationsOptions) -> Result<ParseDeclarationsReport> =
+            types::parse_declarations;
+
+        let options = ParseDeclarationsOptions {
+            suppress_warnings: true,
+            pack_alignment: 1,
+            ..Default::default()
+        };
+        assert!(options.suppress_warnings);
+        assert_eq!(options.pack_alignment, 1);
+
+        let ok_report = ParseDeclarationsReport { error_count: 0 };
+        assert!(ok_report.ok());
+        let error_report = ParseDeclarationsReport { error_count: 2 };
+        assert!(!error_report.ok());
+    }
+}
+
+#[cfg(test)]
+mod function_tests {
+    use crate::address::Address;
+    use crate::error::Status;
+    use crate::function;
+    use crate::types::TypeInfo;
+
+    #[test]
+    fn test_prototype_apply_function_signatures() {
+        let _: fn(Address, &TypeInfo) -> Status = function::set_prototype;
+        let _: fn(Address, &str) -> Status = function::apply_decl;
     }
 }
 
@@ -911,6 +947,7 @@ mod fixup_tests {
 #[cfg(test)]
 mod decompiler_tests {
     use crate::decompiler::*;
+    use crate::error::{Result, Status};
 
     #[test]
     fn test_maturity_discriminants() {
@@ -948,6 +985,97 @@ mod decompiler_tests {
         assert_eq!(VisitAction::Continue as i32, 0);
         assert_eq!(VisitAction::Stop as i32, 1);
         assert_eq!(VisitAction::SkipChildren as i32, 2);
+    }
+
+    #[test]
+    fn test_populating_popup_event_defaults() {
+        let _: fn(fn(PopulatingPopupEvent)) -> Result<Token> =
+            on_populating_popup::<fn(PopulatingPopupEvent)>;
+
+        let event = PopulatingPopupEvent {
+            function_address: 0,
+            widget_handle: std::ptr::null_mut(),
+            popup_handle: std::ptr::null_mut(),
+            view_handle: std::ptr::null_mut(),
+        };
+        assert_eq!(event.function_address, 0);
+        assert!(event.widget_handle.is_null());
+        assert!(event.popup_handle.is_null());
+        assert!(event.view_handle.is_null());
+    }
+
+    #[test]
+    fn test_scoped_session_function_signatures() {
+        let _: fn() -> Result<ScopedSession> = initialize;
+        let _: fn(&ScopedSession) -> Result<bool> = ScopedSession::valid;
+        let _: fn(&mut ScopedSession) -> Status = ScopedSession::close;
+    }
+
+    #[test]
+    fn test_lvar_snapshot_and_comment_function_signatures() {
+        let _: fn(&DecompiledFunction) -> Result<LvarSnapshot> =
+            DecompiledFunction::capture_user_lvar_settings;
+        let _: fn(&DecompiledFunction, &LvarSnapshot) -> Status =
+            DecompiledFunction::restore_user_lvar_settings;
+        let _: fn(&DecompiledFunction, &str, &str) -> Status =
+            DecompiledFunction::set_variable_comment_by_name;
+        let _: fn(&DecompiledFunction, usize, &str) -> Status =
+            DecompiledFunction::set_variable_comment_by_index;
+        let _: fn(&DecompilerView) -> Result<LvarSnapshot> =
+            DecompilerView::capture_user_lvar_settings;
+        let _: fn(&DecompilerView, &LvarSnapshot) -> Status =
+            DecompilerView::restore_user_lvar_settings;
+        let _: fn(&DecompilerView, &str, &str) -> Status =
+            DecompilerView::set_variable_comment_by_name;
+        let _: fn(&DecompilerView, usize, &str) -> Status =
+            DecompilerView::set_variable_comment_by_index;
+        let _: fn(&LvarSnapshot) -> Result<bool> = LvarSnapshot::empty;
+        let _: fn(&LvarSnapshot) -> Result<usize> = LvarSnapshot::saved_variable_count;
+    }
+
+    #[test]
+    fn test_ctree_callback_payload_shapes() {
+        let parent = CtreeItemInfo {
+            item_type: ItemType::ExprCall,
+            address: 0x401000,
+            is_expression: true,
+        };
+        assert!(parent.is_expression);
+
+        let expression = ExpressionInfo {
+            item_type: ItemType::ExprCall,
+            address: 0x401010,
+            variable_index: Some(2),
+            helper_name: Some("__PAIR__".to_string()),
+            type_declaration: Some("int".to_string()),
+            parent: Some(parent.clone()),
+            parent_depth: 1,
+        };
+        assert!(is_expression(expression.item_type));
+        assert_eq!(expression.variable_index, Some(2));
+        assert_eq!(expression.helper_name.as_deref(), Some("__PAIR__"));
+        assert_eq!(expression.type_declaration.as_deref(), Some("int"));
+        assert_eq!(expression.parent_depth, 1);
+        assert!(expression.parent.as_ref().unwrap().is_expression);
+
+        let statement = StatementInfo {
+            item_type: ItemType::StmtReturn,
+            address: 0x401020,
+            parent: Some(parent),
+            parent_depth: 2,
+        };
+        assert!(is_statement(statement.item_type));
+        assert_eq!(statement.parent_depth, 2);
+        assert!(statement.parent.as_ref().unwrap().is_expression);
+
+        let _: fn(&DecompiledFunction, fn(ExpressionInfo) -> VisitAction) -> Result<i32> =
+            for_each_expression::<fn(ExpressionInfo) -> VisitAction>;
+        let _: fn(
+            &DecompiledFunction,
+            fn(ExpressionInfo) -> VisitAction,
+            fn(StatementInfo) -> VisitAction,
+        ) -> Result<i32> =
+            for_each_item::<fn(ExpressionInfo) -> VisitAction, fn(StatementInfo) -> VisitAction>;
     }
 }
 
@@ -1106,5 +1234,211 @@ mod database_tests {
             // Some values may not have a mapping (gaps in the enum)
             // This is OK - from_raw just checks the range
         }
+    }
+}
+
+#[cfg(test)]
+mod plugin_tests {
+    use crate::address::BAD_ADDRESS;
+    use crate::plugin::{ActionContext, TypeRef};
+    use crate::types::TypeInfo;
+
+    #[test]
+    fn test_action_context_type_ref_default() {
+        let context = ActionContext::default();
+        assert_eq!(context.current_address, BAD_ADDRESS);
+        assert!(context.type_ref.is_none());
+    }
+
+    #[test]
+    fn test_action_context_type_ref_construction() {
+        let context = ActionContext {
+            type_ref: Some(TypeRef {
+                name: "idax_test_type".to_string(),
+                r#type: TypeInfo::int32(),
+            }),
+            ..ActionContext::default()
+        };
+
+        let type_ref = context.type_ref.as_ref().expect("type ref present");
+        assert_eq!(type_ref.name, "idax_test_type");
+        assert!(type_ref.r#type.is_integer());
+    }
+}
+
+#[cfg(test)]
+mod path_tests {
+    use crate::error::Result;
+    use crate::path;
+
+    #[test]
+    fn test_path_function_signatures() {
+        let _: fn(&str) -> Result<String> = path::basename;
+        let _: fn(&str) -> Result<String> = path::dirname;
+        let _: fn(&str) -> Result<bool> = path::is_directory;
+    }
+
+    #[test]
+    fn test_path_helpers_are_locally_runnable() {
+        assert_eq!(path::basename("alpha/beta.bin").unwrap(), "beta.bin");
+        assert_eq!(path::dirname("alpha/beta.bin").unwrap(), "alpha");
+        assert!(path::is_directory(".").unwrap());
+    }
+}
+
+#[cfg(test)]
+mod ui_tests {
+    use crate::error::{ErrorCategory, Result, Status};
+    use crate::ui::{
+        self, PathBitsetFormResult, RadioSvalPathBitsetFormResult, SvalBitsetFormResult,
+        SvalPathBitsetFormResult, ThreeSvalsPathTwoBitsetsFormResult,
+    };
+
+    #[test]
+    fn test_codedump_typed_form_result_shapes() {
+        let simple = SvalBitsetFormResult {
+            accepted: true,
+            sval: 3,
+            bitset: 1,
+        };
+        assert!(simple.accepted);
+        assert_eq!(simple.sval, 3);
+        assert_eq!(simple.bitset, 1);
+
+        let with_path = SvalPathBitsetFormResult {
+            accepted: false,
+            sval: 4,
+            path: "out.json".to_string(),
+            bitset: 2,
+        };
+        assert!(!with_path.accepted);
+        assert_eq!(with_path.path, "out.json");
+
+        let path_only = PathBitsetFormResult {
+            accepted: true,
+            path: "metadata.json".to_string(),
+            bitset: 3,
+        };
+        assert_eq!(path_only.bitset, 3);
+
+        let radio = RadioSvalPathBitsetFormResult {
+            accepted: true,
+            radio: 1,
+            sval: 5,
+            path: "graph.dot".to_string(),
+            bitset: 4,
+        };
+        assert_eq!(radio.radio, 1);
+        assert_eq!(radio.sval, 5);
+
+        let full = ThreeSvalsPathTwoBitsetsFormResult {
+            accepted: true,
+            first: 1,
+            second: 2,
+            third: 3,
+            path: "dump.json".to_string(),
+            first_bitset: 4,
+            second_bitset: 5,
+        };
+        assert_eq!(full.first + full.second + full.third, 6);
+        assert_eq!(full.first_bitset, 4);
+        assert_eq!(full.second_bitset, 5);
+    }
+
+    #[test]
+    fn test_codedump_typed_form_function_signatures() {
+        let _: fn(&str, i64, u16) -> Result<SvalBitsetFormResult> = ui::ask_form_sval_bitset;
+        let _: fn(&str, i64, &str, u16, bool) -> Result<SvalPathBitsetFormResult> =
+            ui::ask_form_sval_path_bitset;
+        let _: fn(&str, &str, u16, bool) -> Result<PathBitsetFormResult> = ui::ask_form_path_bitset;
+        let _: fn(&str, u16, i64, &str, u16, bool) -> Result<RadioSvalPathBitsetFormResult> =
+            ui::ask_form_radio_sval_path_bitset;
+        let _: fn(
+            &str,
+            i64,
+            i64,
+            i64,
+            &str,
+            u16,
+            u16,
+            bool,
+        ) -> Result<ThreeSvalsPathTwoBitsetsFormResult> = ui::ask_form_three_svals_path_two_bitsets;
+    }
+
+    fn expect_validation_error<T>(result: Result<T>) {
+        match result {
+            Ok(_) => panic!("expected validation error"),
+            Err(error) => assert_eq!(error.category, ErrorCategory::Validation),
+        }
+    }
+
+    #[test]
+    fn test_codedump_typed_forms_reject_empty_markup_without_modal_ui() {
+        expect_validation_error(ui::ask_form_sval_bitset("", 1, 0));
+        expect_validation_error(ui::ask_form_sval_path_bitset(
+            "",
+            1,
+            "/tmp/out.json",
+            0,
+            true,
+        ));
+        expect_validation_error(ui::ask_form_path_bitset("", "/tmp/out.json", 0, true));
+        expect_validation_error(ui::ask_form_radio_sval_path_bitset(
+            "",
+            0,
+            1,
+            "/tmp/out.json",
+            0,
+            true,
+        ));
+        expect_validation_error(ui::ask_form_three_svals_path_two_bitsets(
+            "",
+            1,
+            2,
+            3,
+            "/tmp/out.json",
+            0,
+            0,
+            true,
+        ));
+    }
+
+    #[test]
+    fn test_clipboard_function_signatures() {
+        let _: fn(&str) -> Result<ui::WaitBox> = ui::WaitBox::new;
+        let _: fn(&mut ui::WaitBox, &str) -> Status = ui::WaitBox::update;
+        let _: fn(&ui::WaitBox) -> Result<bool> = ui::WaitBox::cancelled;
+        let _: fn(&ui::WaitBox) -> Result<bool> = ui::WaitBox::active;
+        let _: fn(&mut ui::WaitBox) = ui::WaitBox::dismiss;
+        let _: fn(&str, &str, ui::AskTextOptions) -> Result<String> = ui::ask_text;
+        let _: fn(&str) -> Status = ui::copy_to_clipboard;
+        let _: fn() -> Result<String> = ui::read_clipboard;
+        let _: fn() -> String = ui::clipboard_backend;
+    }
+
+    #[test]
+    fn test_clipboard_default_contract_and_validation() {
+        let invalid = ui::copy_to_clipboard("bad\0clipboard").unwrap_err();
+        assert_eq!(invalid.category, ErrorCategory::Validation);
+
+        if ui::clipboard_backend() == "unsupported" {
+            let copy_error = ui::copy_to_clipboard("idax-rust-ui-parity").unwrap_err();
+            assert_eq!(copy_error.category, ErrorCategory::Unsupported);
+
+            let read_error = ui::read_clipboard().unwrap_err();
+            assert_eq!(read_error.category, ErrorCategory::Unsupported);
+        }
+    }
+
+    #[test]
+    fn test_ask_text_options_are_plain_value() {
+        let options = ui::AskTextOptions {
+            max_size: 4096,
+            accept_tabs: true,
+            normal_font: false,
+        };
+        assert_eq!(options.max_size, 4096);
+        assert!(options.accept_tabs);
+        assert_eq!(ui::AskTextOptions::default().max_size, 0);
     }
 }

@@ -3,6 +3,8 @@
 
 #include "qtform_renderer_widget.hpp"
 
+#include "qtform_renderer_bridge.hpp"
+
 #include <qcheckbox.h>
 #include <qfont.h>
 #include <qframe.h>
@@ -18,6 +20,8 @@
 #include <qsplitter.h>
 #include <qstring.h>
 #include <qstringlist.h>
+
+#include <utility>
 
 namespace {
 
@@ -124,6 +128,31 @@ void FormRendererWidget::set_test_callback(AskFormTestCallback callback) {
 
 std::string FormRendererWidget::form_text() const {
     return input_edit_->toPlainText().toStdString();
+}
+
+bool mount_form_renderer_widget(
+    void* host_widget,
+    std::function<void(const std::string&)> test_callback,
+    std::string* error) {
+    auto* host = static_cast<QWidget*>(host_widget);
+    if (host == nullptr) {
+        if (error != nullptr) {
+            *error = "Widget host pointer is null";
+        }
+        return false;
+    }
+
+    auto* layout = host->layout();
+    if (layout == nullptr) {
+        auto* vbox = new QVBoxLayout(host);
+        vbox->setContentsMargins(0, 0, 0, 0);
+        layout = vbox;
+    }
+
+    auto* renderer = new FormRendererWidget(host);
+    renderer->set_test_callback(std::move(test_callback));
+    layout->addWidget(renderer);
+    return true;
 }
 
 void FormRendererWidget::on_input_changed() {

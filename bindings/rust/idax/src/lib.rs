@@ -23,15 +23,16 @@
 //! | [`search`] | `ida::search` | Text, binary, and immediate value searches |
 //! | [`analysis`] | `ida::analysis` | Auto-analysis control |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
-//! | [`types`] | `ida::type` | Type system: construction, introspection, application |
+//! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
 //! | [`fixup`] | `ida::fixup` | Fixup/relocation information |
 //! | [`event`] | `ida::event` | IDB event subscriptions |
-//! | [`plugin`] | `ida::plugin` | Plugin lifecycle, action registration |
+//! | [`plugin`] | `ida::plugin` | Plugin lifecycle, action registration, action-context type refs |
 //! | [`loader`] | `ida::loader` | Loader module helpers |
+//! | [`path`] | `ida::path` | Portable basename, dirname, and directory helpers |
 //! | [`processor`] | `ida::processor` | Processor module data types |
 //! | [`debugger`] | `ida::debugger` | Debugger control, breakpoints, memory, appcall |
-//! | [`decompiler`] | `ida::decompiler` | Decompiler facade, pseudocode, ctree, microcode |
+//! | [`decompiler`] | `ida::decompiler` | Decompiler facade, pseudocode, stable lvar indices, lvar snapshots, ctree helper/type/parent metadata, microcode, Hex-Rays events |
 //! | [`storage`] | `ida::storage` | Low-level persistent key-value storage (netnodes) |
 //! | [`graph`] | `ida::graph` | Custom graphs, flow charts |
 //! | [`ui`] | `ida::ui` | UI utilities: messages, dialogs, widgets, events |
@@ -52,8 +53,9 @@
 //!
 //!     // Query metadata
 //!     let path = database::input_file_path()?;
+//!     let idb_path = database::idb_path()?;
 //!     let md5 = database::input_md5()?;
-//!     println!("Analyzing: {path} (MD5: {md5})");
+//!     println!("Analyzing: {path} from database {idb_path} (MD5: {md5})");
 //!
 //!     // Iterate over functions
 //!     let count = function::count()?;
@@ -89,6 +91,7 @@
 //! - [`types::TypeInfo`] — pimpl-wrapped type handle
 //! - [`storage::Node`] — netnode handle
 //! - [`decompiler::DecompiledFunction`] — decompilation result
+//! - [`decompiler::LvarSnapshot`] — saved local-variable metadata
 //! - [`graph::Graph`] — interactive graph handle
 //!
 //! # Safety
@@ -117,6 +120,7 @@ pub mod lines;
 pub mod loader;
 pub mod lumina;
 pub mod name;
+pub mod path;
 pub mod plugin;
 pub mod processor;
 pub mod search;

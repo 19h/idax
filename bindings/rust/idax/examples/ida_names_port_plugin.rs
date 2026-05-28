@@ -1,7 +1,7 @@
 mod common;
 
-use common::{format_error, print_usage, resolve_symbol_or_address, DatabaseSession};
-use idax::{comment, function, name, Error, Result};
+use common::{DatabaseSession, format_error, print_usage, resolve_symbol_or_address};
+use idax::{Error, Result, comment, function, name};
 
 #[derive(Debug, Clone)]
 struct Options {

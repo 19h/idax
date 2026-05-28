@@ -119,6 +119,7 @@ int idax_database_set_snapshot_description(const char* description);
 int idax_database_is_snapshot_database(int* out);
 
 int idax_database_input_file_path(char** out);
+int idax_database_idb_path(char** out);
 int idax_database_file_type_name(char** out);
 int idax_database_loader_format_name(char** out);
 int idax_database_input_md5(char** out);
@@ -132,6 +133,14 @@ int idax_database_set_address_bitness(int bits);
 int idax_database_is_big_endian(int* out);
 int idax_database_abi_name(char** out);
 int idax_database_address_span(uint64_t* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Path (ida::path)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+int idax_path_basename(const char* path, char** out);
+int idax_path_dirname(const char* path, char** out);
+int idax_path_is_directory(const char* path, int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Address (ida::address)
@@ -300,6 +309,8 @@ int idax_function_define_stack_variable(uint64_t function_ea,
                                         const char* name,
                                         int32_t frame_offset,
                                         void* type);
+int idax_function_set_prototype(uint64_t function_ea, void* type);
+int idax_function_apply_decl(uint64_t function_ea, const char* c_decl);
 int idax_function_add_register_variable(uint64_t function_ea,
                                         uint64_t range_start,
                                         uint64_t range_end,
@@ -716,6 +727,13 @@ int idax_type_local_type_count(size_t* out);
 int idax_type_local_type_name(size_t ordinal, char** out);
 int idax_type_import(const char* source_til_name, const char* type_name, size_t* out);
 int idax_type_apply_named(uint64_t ea, const char* type_name);
+int idax_type_parse_declarations(const char* declarations,
+                                 int suppress_warnings,
+                                 int relaxed_namespaces,
+                                 int raw_argument_names,
+                                 int no_mangle,
+                                 size_t pack_alignment,
+                                 size_t* error_count);
 
 void idax_type_handle_array_free(IdaxTypeHandle* handles, size_t count);
 void idax_type_enum_members_free(IdaxTypeEnumMember* members, size_t count);
@@ -863,6 +881,8 @@ typedef struct IdaxPluginActionContext {
     void*       widget_handle;
     void*       focused_widget_handle;
     void*       decompiler_view_handle;
+    const char* type_ref_name;
+    IdaxTypeHandle type_ref_type;
 } IdaxPluginActionContext;
 
 typedef void (*IdaxActionHandler)(void* context);
@@ -1208,6 +1228,10 @@ int idax_debugger_unsubscribe(uint64_t token);
 
 /** Opaque handle to a decompiled function. Must be freed with idax_decompiled_free(). */
 typedef void* IdaxDecompiledHandle;
+/** Opaque handle to lvar user settings. Must be freed with idax_lvar_snapshot_free(). */
+typedef void* IdaxLvarSnapshotHandle;
+/** Opaque handle to an owned Hex-Rays session. Must be freed with idax_decompiler_session_free(). */
+typedef void* IdaxDecompilerSessionHandle;
 typedef uint64_t IdaxDecompilerToken;
 
 typedef struct IdaxDecompilerMaturityEvent {
@@ -1232,6 +1256,13 @@ typedef struct IdaxDecompilerHintRequestEvent {
     void*    view_handle;
 } IdaxDecompilerHintRequestEvent;
 
+typedef struct IdaxDecompilerPopulatingPopupEvent {
+    uint64_t function_address;
+    void*    widget_handle;
+    void*    popup_handle;
+    void*    view_handle;
+} IdaxDecompilerPopulatingPopupEvent;
+
 typedef void (*IdaxDecompilerMaturityChangedCallback)(
     void* context,
     const IdaxDecompilerMaturityEvent* event);
@@ -1246,6 +1277,9 @@ typedef int (*IdaxDecompilerCreateHintCallback)(
     const IdaxDecompilerHintRequestEvent* event,
     const char** out_text,
     int* out_lines);
+typedef void (*IdaxDecompilerPopulatingPopupCallback)(
+    void* context,
+    const IdaxDecompilerPopulatingPopupEvent* event);
 
 typedef struct IdaxDecompilerItemAtPosition {
     int      type;
@@ -1255,13 +1289,26 @@ typedef struct IdaxDecompilerItemAtPosition {
 } IdaxDecompilerItemAtPosition;
 
 typedef struct IdaxDecompilerExpressionInfo {
-    int      type;
-    uint64_t address;
+    int         type;
+    uint64_t    address;
+    int         variable_index;
+    const char* helper_name;
+    const char* type_declaration;
+    int         has_parent;
+    int         parent_type;
+    uint64_t    parent_address;
+    int         parent_is_expression;
+    size_t      parent_depth;
 } IdaxDecompilerExpressionInfo;
 
 typedef struct IdaxDecompilerStatementInfo {
     int      type;
     uint64_t address;
+    int      has_parent;
+    int      parent_type;
+    uint64_t parent_address;
+    int      parent_is_expression;
+    size_t   parent_depth;
 } IdaxDecompilerStatementInfo;
 
 typedef int (*IdaxDecompilerExpressionVisitor)(
@@ -1272,6 +1319,10 @@ typedef int (*IdaxDecompilerStatementVisitor)(
     const IdaxDecompilerStatementInfo* statement);
 
 int idax_decompiler_available(int* out);
+int idax_decompiler_initialize(IdaxDecompilerSessionHandle* out);
+int idax_decompiler_session_valid(IdaxDecompilerSessionHandle handle, int* out);
+int idax_decompiler_session_close(IdaxDecompilerSessionHandle handle);
+void idax_decompiler_session_free(IdaxDecompilerSessionHandle handle);
 int idax_decompiler_decompile(uint64_t ea, IdaxDecompiledHandle* out);
 void idax_decompiled_free(IdaxDecompiledHandle handle);
 
@@ -1293,6 +1344,10 @@ int idax_decompiler_on_curpos_changed(
     IdaxDecompilerToken* token_out);
 int idax_decompiler_on_create_hint(
     IdaxDecompilerCreateHintCallback callback,
+    void* context,
+    IdaxDecompilerToken* token_out);
+int idax_decompiler_on_populating_popup(
+    IdaxDecompilerPopulatingPopupCallback callback,
     void* context,
     IdaxDecompilerToken* token_out);
 int idax_decompiler_unsubscribe(IdaxDecompilerToken token);
@@ -1321,6 +1376,7 @@ typedef struct IdaxLocalVariable {
     int      has_user_name;
     int      storage;       /**< 0=unknown, 1=register, 2=stack */
     char*    comment;
+    size_t   index;
 } IdaxLocalVariable;
 
 void idax_local_variable_free(IdaxLocalVariable* var);
@@ -1329,8 +1385,24 @@ void idax_decompiled_variables_free(IdaxLocalVariable* vars, size_t count);
 int idax_decompiled_variable_count(IdaxDecompiledHandle handle, size_t* out);
 int idax_decompiled_variables(IdaxDecompiledHandle handle,
                               IdaxLocalVariable** out, size_t* count);
+int idax_decompiled_variable(IdaxDecompiledHandle handle,
+                             size_t index, IdaxLocalVariable* out);
 int idax_decompiled_rename_variable(IdaxDecompiledHandle handle,
                                     const char* old_name, const char* new_name);
+int idax_decompiled_capture_user_lvar_settings(IdaxDecompiledHandle handle,
+                                               IdaxLvarSnapshotHandle* out);
+int idax_decompiled_restore_user_lvar_settings(IdaxDecompiledHandle handle,
+                                               IdaxLvarSnapshotHandle snapshot);
+int idax_decompiled_set_variable_comment_by_name(IdaxDecompiledHandle handle,
+                                                 const char* variable_name,
+                                                 const char* comment);
+int idax_decompiled_set_variable_comment_by_index(IdaxDecompiledHandle handle,
+                                                  size_t variable_index,
+                                                  const char* comment);
+void idax_lvar_snapshot_free(IdaxLvarSnapshotHandle snapshot);
+int idax_lvar_snapshot_empty(IdaxLvarSnapshotHandle snapshot, int* out);
+int idax_lvar_snapshot_saved_variable_count(IdaxLvarSnapshotHandle snapshot,
+                                            size_t* out);
 
 int idax_decompiled_set_comment(IdaxDecompiledHandle handle, uint64_t ea,
                                 const char* text, int position);
@@ -1383,7 +1455,7 @@ int idax_decompiler_register_microcode_filter(
     uint64_t* token_out);
 int idax_decompiler_unregister_microcode_filter(uint64_t token);
 
-typedef struct IdaxMicrocodeInstruction IdaxMicrocodeInstruction;
+struct IdaxMicrocodeInstruction;
 
 typedef struct IdaxMicrocodeOperand {
     int kind;
@@ -1395,20 +1467,20 @@ typedef struct IdaxMicrocodeOperand {
     int64_t stack_offset;
     char* helper_name;
     int block_index;
-    IdaxMicrocodeInstruction* nested_instruction;
+    struct IdaxMicrocodeInstruction* nested_instruction;
     uint64_t unsigned_immediate;
     int64_t signed_immediate;
     int byte_width;
     int mark_user_defined_type;
 } IdaxMicrocodeOperand;
 
-struct IdaxMicrocodeInstruction {
+typedef struct IdaxMicrocodeInstruction {
     int opcode;
     IdaxMicrocodeOperand left;
     IdaxMicrocodeOperand right;
     IdaxMicrocodeOperand destination;
     int floating_point_instruction;
-};
+} IdaxMicrocodeInstruction;
 
 void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction);
 
@@ -1676,7 +1748,60 @@ int idax_ui_widget_host(IdaxWidgetHandle widget, void** out);
 int idax_ui_with_widget_host(IdaxWidgetHandle widget, IdaxWidgetHostCallback callback,
                              void* context);
 
+typedef void* IdaxUIWaitBoxHandle;
+
+int idax_ui_wait_box_create(const char* message, IdaxUIWaitBoxHandle* out);
+int idax_ui_wait_box_update(IdaxUIWaitBoxHandle handle, const char* message);
+int idax_ui_wait_box_cancelled(IdaxUIWaitBoxHandle handle, int* out);
+int idax_ui_wait_box_active(IdaxUIWaitBoxHandle handle, int* out);
+void idax_ui_wait_box_dismiss(IdaxUIWaitBoxHandle handle);
+void idax_ui_wait_box_free(IdaxUIWaitBoxHandle handle);
+
 int idax_ui_ask_form(const char* markup, int* out);
+int idax_ui_ask_form_sval_bitset(const char* markup,
+                                 int64_t* sval,
+                                 uint16_t* bitset,
+                                 int* accepted_out);
+int idax_ui_ask_form_sval_path_bitset(const char* markup,
+                                      int64_t* sval,
+                                      const char* path_in,
+                                      int for_saving,
+                                      uint16_t* bitset,
+                                      int* accepted_out,
+                                      char** path_out);
+int idax_ui_ask_form_path_bitset(const char* markup,
+                                 const char* path_in,
+                                 int for_saving,
+                                 uint16_t* bitset,
+                                 int* accepted_out,
+                                 char** path_out);
+int idax_ui_ask_form_radio_sval_path_bitset(const char* markup,
+                                            uint16_t* radio,
+                                            int64_t* sval,
+                                            const char* path_in,
+                                            int for_saving,
+                                            uint16_t* bitset,
+                                            int* accepted_out,
+                                            char** path_out);
+int idax_ui_ask_form_three_svals_path_two_bitsets(const char* markup,
+                                                  int64_t* first,
+                                                  int64_t* second,
+                                                  int64_t* third,
+                                                  const char* path_in,
+                                                  int for_saving,
+                                                  uint16_t* first_bitset,
+                                                  uint16_t* second_bitset,
+                                                  int* accepted_out,
+                                                  char** path_out);
+int idax_ui_ask_text(const char* prompt,
+                     const char* default_value,
+                     size_t max_size,
+                     int accept_tabs,
+                     int normal_font,
+                     char** out);
+int idax_ui_copy_to_clipboard(const char* text);
+int idax_ui_read_clipboard(char** out);
+const char* idax_ui_clipboard_backend(void);
 
 int idax_ui_create_custom_viewer(const char* title,
                                  const char* const* lines,

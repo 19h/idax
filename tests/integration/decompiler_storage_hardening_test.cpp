@@ -313,6 +313,148 @@ void test_expression_view_accessors(ida::Address fn_ea) {
 }
 
 // ---------------------------------------------------------------------------
+// P22.7: read-only ctree migration helpers
+// ---------------------------------------------------------------------------
+void test_ctree_readonly_migration_helpers(ida::Address fn_ea) {
+    std::cout << "--- ctree read-only migration helpers ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) {
+        std::cout << "  (decompiler not available; skipping)\n";
+        return;
+    }
+
+    auto decomp = ida::decompiler::decompile(fn_ea);
+    CHECK_HAS_VALUE(decomp);
+    if (!decomp) return;
+
+    auto vars = decomp->variables();
+    CHECK_OK(vars);
+    if (vars) {
+        for (std::size_t i = 0; i < vars->size(); ++i)
+            CHECK((*vars)[i].index == i);
+    }
+
+    bool saw_typed_expression = false;
+    bool saw_variable_lookup = false;
+    bool saw_helper_expression = false;
+    bool saw_parent = false;
+    bool saw_call_argument_parent = false;
+    bool saw_negative_helper_check = false;
+
+    class MigrationVisitor : public ida::decompiler::CtreeVisitor {
+    public:
+        ida::decompiler::DecompiledFunction& decomp;
+        bool& saw_typed_expression;
+        bool& saw_variable_lookup;
+        bool& saw_helper_expression;
+        bool& saw_parent;
+        bool& saw_call_argument_parent;
+        bool& saw_negative_helper_check;
+
+        MigrationVisitor(ida::decompiler::DecompiledFunction& decompiled,
+                         bool& typed_expression,
+                         bool& variable_lookup,
+                         bool& helper_expression,
+                         bool& parent,
+                         bool& call_argument_parent,
+                         bool& negative_helper_check)
+            : decomp(decompiled),
+              saw_typed_expression(typed_expression),
+              saw_variable_lookup(variable_lookup),
+              saw_helper_expression(helper_expression),
+              saw_parent(parent),
+              saw_call_argument_parent(call_argument_parent),
+              saw_negative_helper_check(negative_helper_check) {}
+
+        ida::decompiler::VisitAction visit_expression(
+            ida::decompiler::ExpressionView expr) override
+        {
+            auto type_decl = expr.type_declaration();
+            if (type_decl && !type_decl->empty())
+                saw_typed_expression = true;
+
+            auto parent = expr.parent();
+            CHECK_OK(parent);
+            if (parent && parent->has_value()) {
+                saw_parent = true;
+                auto chain = expr.parents();
+                CHECK_OK(chain);
+                if (chain)
+                    CHECK(!chain->empty());
+            }
+
+            if (expr.type() == ida::decompiler::ItemType::ExprHelper) {
+                auto helper = expr.helper_name();
+                CHECK_OK(helper);
+                if (helper && !helper->empty())
+                    saw_helper_expression = true;
+            } else if (!saw_negative_helper_check) {
+                auto not_helper = expr.helper_name();
+                CHECK(!not_helper.has_value());
+                saw_negative_helper_check = true;
+            }
+
+            if (expr.type() == ida::decompiler::ItemType::ExprVariable && !saw_variable_lookup) {
+                auto index = expr.variable_index();
+                CHECK_OK(index);
+                if (index && *index >= 0) {
+                    auto variable = decomp.variable(static_cast<std::size_t>(*index));
+                    CHECK_OK(variable);
+                    if (variable) {
+                        CHECK(variable->index == static_cast<std::size_t>(*index));
+                        saw_variable_lookup = true;
+                    }
+                }
+            }
+
+            if (expr.type() == ida::decompiler::ItemType::ExprCall && !saw_call_argument_parent) {
+                auto argc = expr.call_argument_count();
+                CHECK_OK(argc);
+                if (argc && *argc > 0) {
+                    auto arg0 = expr.call_argument(0);
+                    CHECK_OK(arg0);
+                    if (arg0) {
+                        auto arg_parent = arg0->parent();
+                        CHECK_OK(arg_parent);
+                        if (arg_parent && arg_parent->has_value()) {
+                            CHECK((*arg_parent)->type == ida::decompiler::ItemType::ExprCall);
+                            saw_call_argument_parent = true;
+                        }
+                    }
+                }
+            }
+
+            return ida::decompiler::VisitAction::Continue;
+        }
+    };
+
+    MigrationVisitor visitor(*decomp,
+                             saw_typed_expression,
+                             saw_variable_lookup,
+                             saw_helper_expression,
+                             saw_parent,
+                             saw_call_argument_parent,
+                             saw_negative_helper_check);
+    ida::decompiler::VisitOptions opts;
+    opts.track_parents = true;
+    auto result = decomp->visit(visitor, opts);
+    CHECK_OK(result);
+
+    CHECK(saw_typed_expression);
+    CHECK(saw_variable_lookup);
+    CHECK(saw_parent);
+    CHECK(saw_negative_helper_check);
+
+    std::cout << "  typed_expr=" << (saw_typed_expression ? "yes" : "no")
+              << " variable_lookup=" << (saw_variable_lookup ? "yes" : "no")
+              << " parent=" << (saw_parent ? "yes" : "no")
+              << " helper=" << (saw_helper_expression ? "yes" : "no")
+              << " call_arg_parent=" << (saw_call_argument_parent ? "yes" : "no")
+              << "\n";
+}
+
+// ---------------------------------------------------------------------------
 // P8.4.b: for_each_item covering both expressions and statements
 // ---------------------------------------------------------------------------
 void test_for_each_item(ida::Address fn_ea) {
@@ -2119,6 +2261,17 @@ void test_decompiler_retype_variable(ida::Address fn_ea) {
     if (selected_index == vars->size()) return;
 
     const auto& selected = (*vars)[selected_index];
+    auto snapshot = decomp->capture_user_lvar_settings();
+    CHECK_OK(snapshot);
+    if (snapshot) {
+        (void)snapshot->empty();
+        (void)snapshot->saved_variable_count();
+    }
+
+    const std::string test_comment = "idax variable metadata parity";
+    CHECK_OK(decomp->set_variable_comment(selected_index, test_comment));
+    CHECK_OK(decomp->set_variable_comment(selected.name, test_comment));
+
     auto parsed_type = ida::type::TypeInfo::from_declaration(selected.type_name);
     if (!parsed_type) {
         // Fallback: use an explicit primitive type if declaration parsing fails.
@@ -2142,10 +2295,15 @@ void test_decompiler_retype_variable(ida::Address fn_ea) {
         for (const auto& v : *vars_after) {
             if (v.name == selected.name) {
                 found = true;
+                CHECK(v.comment == test_comment);
                 break;
             }
         }
         CHECK(found);
+    }
+
+    if (snapshot) {
+        CHECK_OK(redecomp->restore_user_lvar_settings(*snapshot));
     }
 }
 
@@ -2595,6 +2753,7 @@ int main(int argc, char* argv[]) {
                   << fn_ea << std::dec << "\n";
         test_ctree_traversal(fn_ea);
         test_expression_view_accessors(fn_ea);
+        test_ctree_readonly_migration_helpers(fn_ea);
         test_for_each_item(fn_ea);
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);
