@@ -1255,14 +1255,14 @@ mod plugin_tests {
         let context = ActionContext {
             type_ref: Some(TypeRef {
                 name: "idax_test_type".to_string(),
-                r#type: TypeInfo::int32(),
+                r#type: TypeInfo::from_raw(std::ptr::null_mut()),
             }),
             ..ActionContext::default()
         };
 
         let type_ref = context.type_ref.as_ref().expect("type ref present");
         assert_eq!(type_ref.name, "idax_test_type");
-        assert!(type_ref.r#type.is_integer());
+        assert!(type_ref.r#type.as_raw().is_null());
     }
 }
 
