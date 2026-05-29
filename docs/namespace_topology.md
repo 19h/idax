@@ -37,7 +37,7 @@ ida::                                     (root: type aliases, error model, opti
 |-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [15 enums, 15 structs, 9 classes, ~12 free fns]
  |-- ida::lines          Tagged text, color spans, address-tag helpers     [1 enum, ~6 free fns, constants]
 |-- ida::ui             Messages, dialogs, wait boxes, widgets/viewers   [1 enum, 5 structs, 3 classes, ~31 free fns]
-|-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 4 structs, 2 classes, ~9 free fns]
+|-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 5 structs, 2 classes, ~10 free fns]
  |
  |-- ida::storage        Netnode abstraction, id/open-by-id, alt/sup/hash/blob [1 class (Node), ~18 methods]
  |-- ida::diagnostics    Logging, counters, diagnostic messages          [1 enum, ~5 free fns]

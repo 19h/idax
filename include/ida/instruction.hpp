@@ -85,6 +85,10 @@ public:
     [[nodiscard]] std::int64_t  displacement()   const noexcept { return static_cast<std::int64_t>(value_); }
     [[nodiscard]] int           byte_width()     const noexcept { return byte_width_; }
     [[nodiscard]] std::string   register_name()  const { return register_name_; }
+    /// True when the processor module marks this operand as used/read.
+    [[nodiscard]] bool          is_read()        const noexcept { return read_; }
+    /// True when the processor module marks this operand as changed/written.
+    [[nodiscard]] bool          is_written()     const noexcept { return written_; }
     [[nodiscard]] RegisterCategory register_category() const noexcept { return register_category_; }
     [[nodiscard]] bool is_vector_register() const noexcept {
         return register_category_ == RegisterCategory::Vector;
@@ -103,6 +107,8 @@ private:
     Address        addr_{};
     int            byte_width_{};
     std::string    register_name_;
+    bool           read_{};
+    bool           written_{};
     RegisterCategory  register_category_{RegisterCategory::Unknown};
 };
 

@@ -130,15 +130,17 @@ Result<insn_t> decode_raw_instruction(Address ea) {
     return raw;
 }
 
-std::string decode_register_name(Address address,
-                                 int operand_index,
-                                 const op_t& op,
-                                 int byte_width) {
-    if (op.type != o_reg)
+std::string decode_operand_register_name(Address address,
+                                         int operand_index,
+                                         const op_t& op,
+                                         int byte_width) {
+    if (op.type != o_reg && op.type != o_phrase && op.type != o_displ)
         return {};
 
     qstring text;
-    const size_t width = byte_width > 0 ? static_cast<size_t>(byte_width) : 1;
+    const size_t width = op.type == o_reg && byte_width > 0
+        ? static_cast<size_t>(byte_width)
+        : 8;
     if (get_reg_name(&text, op.reg, width, -1) <= 0)
         return {};
 
@@ -166,6 +168,9 @@ struct InstructionAccess {
         insn.itype_ = raw.itype;
         insn.mnemonic_ = mnemonic_text;
 
+        processor_t* processor = get_ph();
+        const uint32 feature = processor ? raw.get_canon_feature(*processor) : 0;
+
         // Collect non-void operands.
         for (int i = 0; i < UA_MAXOP; ++i) {
             const op_t& op = raw.ops[i];
@@ -179,11 +184,15 @@ struct InstructionAccess {
             operand.value_ = static_cast<std::uint64_t>(op.value);
             operand.addr_  = static_cast<Address>(op.addr);
             operand.byte_width_ = operand_byte_width(op);
+            operand.read_ = has_cf_use(feature, i);
+            operand.written_ = has_cf_chg(feature, i);
 
-            if (operand.type_ == OperandType::Register) {
-                operand.register_name_ = decode_register_name(insn.ea_, i, op, operand.byte_width_);
+            if (operand.type_ == OperandType::Register
+                || operand.type_ == OperandType::MemoryPhrase
+                || operand.type_ == OperandType::MemoryDisplacement) {
+                operand.register_name_ = decode_operand_register_name(insn.ea_, i, op, operand.byte_width_);
                 operand.register_category_ = classify_register_name(operand.register_name_);
-                if (operand.byte_width_ <= 0)
+                if (operand.type_ == OperandType::Register && operand.byte_width_ <= 0)
                     operand.byte_width_ = width_from_register_name(operand.register_name_);
             }
 

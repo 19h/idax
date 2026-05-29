@@ -457,6 +457,31 @@ Status apply_decl(Address func_ea, std::string_view c_decl) {
     return ida::ok();
 }
 
+Result<std::string> declaration(Address func_ea, std::string_view name_override) {
+    func_t* fn = get_func(func_ea);
+    if (fn == nullptr)
+        return std::unexpected(Error::not_found("No function at address",
+                                                std::to_string(func_ea)));
+
+    tinfo_t type;
+    if (!get_tinfo(&type, fn->start_ea))
+        return std::unexpected(Error::not_found("No function type at address",
+                                                std::to_string(fn->start_ea)));
+
+    qstring qname;
+    if (!name_override.empty()) {
+        qname = ida::detail::to_qstring(name_override);
+    } else if (get_func_name(&qname, fn->start_ea) <= 0 || qname.empty()) {
+        qname.sprnt("sub_%llX", static_cast<unsigned long long>(fn->start_ea));
+    }
+
+    qstring printed;
+    if (!type.print(&printed, qname.c_str(), PRTYPE_1LINE | PRTYPE_TYPE | PRTYPE_SEMI))
+        return std::unexpected(Error::sdk("Failed to print function declaration",
+                                          std::to_string(fn->start_ea)));
+    return ida::detail::to_string(printed);
+}
+
 // ── Register variable operations ────────────────────────────────────────
 
 Status add_register_variable(Address func_ea,

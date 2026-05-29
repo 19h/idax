@@ -1417,6 +1417,44 @@ Status attach_dynamic_action(PopupHandle popup,
     return ida::ok();
 }
 
+Status attach_registered_action(PopupHandle popup,
+                                const Widget& widget,
+                                std::string_view action_id,
+                                std::string_view menu_path) {
+    return attach_registered_action(popup,
+                                    static_cast<void*>(WidgetAccess::raw(widget)),
+                                    action_id,
+                                    menu_path);
+}
+
+Status attach_registered_action(PopupHandle popup,
+                                void* widget_handle,
+                                std::string_view action_id,
+                                std::string_view menu_path) {
+    if (popup == nullptr)
+        return std::unexpected(Error::validation("Popup handle is null"));
+    if (widget_handle == nullptr)
+        return std::unexpected(Error::validation("Widget handle is null"));
+    if (action_id.empty())
+        return std::unexpected(Error::validation("Action id is empty"));
+
+    auto* widget = static_cast<TWidget*>(widget_handle);
+    auto* popup_menu = static_cast<TPopupMenu*>(popup);
+    std::string id(action_id);
+    std::string path(menu_path);
+
+    if (!attach_action_to_popup(widget,
+                                popup_menu,
+                                id.c_str(),
+                                path.empty() ? nullptr : path.c_str(),
+                                SETMENU_INS)) {
+        return std::unexpected(Error::sdk("attach_action_to_popup failed",
+                                          std::string(action_id)));
+    }
+
+    return ida::ok();
+}
+
 // ── Line rendering ──────────────────────────────────────────────────────
 
 Result<Token> on_rendering_info(std::function<void(RenderingEvent&)> callback) {

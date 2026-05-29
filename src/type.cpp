@@ -3,6 +3,13 @@
 
 #include "detail/type_impl.hpp"
 
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <queue>
+#include <set>
+#include <sstream>
+
 namespace ida::type {
 
 // NOTE: TypeInfo::Impl and TypeInfoAccess are defined in detail/type_impl.hpp
@@ -704,6 +711,770 @@ parse_declarations(std::string_view declarations,
     ParseDeclarationsReport report;
     report.error_count = static_cast<std::size_t>(rc);
     return report;
+}
+
+namespace {
+
+std::map<std::string, std::set<int>>
+used_offsets_map(const TypeRenderOptions& options) {
+    std::map<std::string, std::set<int>> result;
+    for (const auto& entry : options.used_offsets) {
+        if (entry.type_name.empty())
+            continue;
+        auto& offsets = result[entry.type_name];
+        offsets.insert(entry.byte_offsets.begin(), entry.byte_offsets.end());
+    }
+    return result;
+}
+
+bool tinfo_from_ordinal(std::uint32_t ordinal, tinfo_t* out) {
+    if (ordinal == 0 || out == nullptr)
+        return false;
+    return out->get_numbered_type(nullptr, static_cast<uint32>(ordinal));
+}
+
+bool tinfo_from_name(std::string_view name, tinfo_t* out) {
+    if (name.empty() || out == nullptr)
+        return false;
+    std::string name_string(name);
+    return out->get_named_type(nullptr, name_string.c_str());
+}
+
+std::string type_name(const tinfo_t& ti) {
+    qstring name;
+    if (!ti.get_type_name(&name) || name.empty())
+        return {};
+    return ida::detail::to_string(name);
+}
+
+std::string hex_size(std::uint64_t value) {
+    char buffer[32];
+    qsnprintf(buffer, sizeof(buffer), "0x%llX",
+              static_cast<unsigned long long>(value));
+    return buffer;
+}
+
+std::string print_member_decl(const udm_t& member) {
+    qstring declaration;
+    member.type.print(&declaration,
+                      member.name.c_str(),
+                      PRTYPE_1LINE | PRTYPE_SEMI | PRTYPE_OFFSETS);
+    return std::string("    ") + declaration.c_str();
+}
+
+std::string print_type_decl(const tinfo_t& ti,
+                            const char* name = nullptr,
+                            int flags = PRTYPE_1LINE | PRTYPE_SEMI) {
+    qstring output;
+    ti.print(&output, name, flags);
+    return ida::detail::to_string(output);
+}
+
+class StringSink : public text_sink_t {
+public:
+    qstring output;
+
+    int idaapi print(const char* text) override {
+        if (text != nullptr)
+            output.append(text);
+        return 0;
+    }
+};
+
+class TypeDeclarationFormatter {
+public:
+    explicit TypeDeclarationFormatter(const TypeRenderOptions& options)
+        : options_(options), used_offsets_(used_offsets_map(options)) {}
+
+    std::string render_named(const std::vector<std::string>& names, int max_depth) {
+        std::vector<OrderedType> order;
+        std::set<std::string> emitted;
+        std::set<std::string> on_stack;
+
+        for (const auto& name : names) {
+            tinfo_t ti;
+            if (!tinfo_from_name(name, &ti))
+                continue;
+            walk(ti, 0, max_depth, order, emitted, on_stack);
+        }
+        return render_order(order);
+    }
+
+    std::string render_ordinals(const std::vector<std::uint32_t>& ordinals) {
+        std::vector<OrderedType> order;
+        std::set<std::string> emitted;
+        std::set<std::string> on_stack;
+
+        for (std::uint32_t ordinal : ordinals) {
+            tinfo_t ti;
+            if (!tinfo_from_ordinal(ordinal, &ti))
+                continue;
+            walk(ti, 0, -1, order, emitted, on_stack);
+        }
+        return render_order(order);
+    }
+
+private:
+    struct OrderedType {
+        std::string name;
+        tinfo_t type;
+    };
+
+    void walk(const tinfo_t& ti,
+              int depth,
+              int max_depth,
+              std::vector<OrderedType>& out,
+              std::set<std::string>& emitted,
+              std::set<std::string>& on_stack) {
+        if (!ti.present())
+            return;
+
+        if (ti.is_ptr()) {
+            walk(ti.get_pointed_object(), depth, max_depth, out, emitted, on_stack);
+            return;
+        }
+        if (ti.is_array()) {
+            walk(ti.get_array_element(), depth, max_depth, out, emitted, on_stack);
+            return;
+        }
+        if (ti.is_func()) {
+            func_type_data_t function_data;
+            if (ti.get_func_details(&function_data)) {
+                walk(function_data.rettype, depth, max_depth, out, emitted, on_stack);
+                for (std::size_t i = 0; i < function_data.size(); ++i)
+                    walk(function_data[i].type, depth, max_depth, out, emitted, on_stack);
+            }
+            return;
+        }
+
+        std::string name = type_name(ti);
+        if (name.empty())
+            return;
+        if (max_depth >= 0 && depth > max_depth)
+            return;
+        if (emitted.count(name) != 0 || on_stack.count(name) != 0)
+            return;
+
+        on_stack.insert(name);
+
+        bool drop_this = false;
+        if (ti.is_udt()) {
+            udt_type_data_t udt;
+            if (ti.get_udt_details(&udt)) {
+                const std::set<int>* accessed = nullptr;
+                if (options_.trim_unreferenced && !udt.is_union) {
+                    auto it = used_offsets_.find(name);
+                    if (it != used_offsets_.end() && !it->second.empty())
+                        accessed = &it->second;
+                }
+
+                if (options_.trim_unreferenced && accessed == nullptr && !udt.is_union) {
+                    drop_this = true;
+                } else {
+                    for (std::size_t i = 0; i < udt.size(); ++i) {
+                        if (accessed != nullptr) {
+                            const int offset = static_cast<int>(udt[i].offset / 8);
+                            int size = static_cast<int>(udt[i].size / 8);
+                            if (size == 0)
+                                size = 1;
+                            auto lower = accessed->lower_bound(offset);
+                            if (lower == accessed->end() || *lower >= offset + size)
+                                continue;
+                        }
+                        walk(udt[i].type, depth + 1, max_depth, out, emitted, on_stack);
+                    }
+                }
+            }
+        }
+
+        if (!drop_this) {
+            out.push_back(OrderedType{name, ti});
+            emitted.insert(name);
+        }
+        on_stack.erase(name);
+    }
+
+    std::string render_order(const std::vector<OrderedType>& order) {
+        std::ostringstream output;
+        for (const auto& item : order) {
+            std::string text = emit_one(item.type, item.name);
+            if (text.empty())
+                continue;
+            output << text;
+            if (text.back() != '\n')
+                output << '\n';
+            output << '\n';
+        }
+        return output.str();
+    }
+
+    std::string emit_one(const tinfo_t& ti, const std::string& name) {
+        if (!ti.present())
+            return {};
+        if (ti.is_udt())
+            return emit_udt(ti, name);
+        if (ti.is_enum())
+            return emit_enum(ti, name);
+        return emit_typedef_or_other(ti, name);
+    }
+
+    std::string emit_udt(const tinfo_t& ti, const std::string& name) {
+        udt_type_data_t udt;
+        if (!ti.get_udt_details(&udt))
+            return emit_typedef_or_other(ti, name);
+
+        const std::set<int>* accessed = nullptr;
+        const bool trim_active = options_.trim_unreferenced && !udt.is_union;
+        if (trim_active) {
+            auto it = used_offsets_.find(name);
+            if (it != used_offsets_.end() && !it->second.empty())
+                accessed = &it->second;
+        }
+        if (trim_active && accessed == nullptr)
+            return {};
+
+        std::set<int> keep_indices;
+        if (accessed != nullptr) {
+            for (std::size_t i = 0; i < udt.size(); ++i) {
+                const udm_t& member = udt[i];
+                const int offset = static_cast<int>(member.offset / 8);
+                int size = static_cast<int>(member.size / 8);
+                if (size == 0)
+                    size = 1;
+                auto lower = accessed->lower_bound(offset);
+                if (lower != accessed->end() && *lower < offset + size)
+                    keep_indices.insert(static_cast<int>(i));
+            }
+            if (keep_indices.empty()) {
+                std::ostringstream blob;
+                blob << (udt.is_union ? "union" : "struct") << ' ' << name
+                     << " // sizeof=" << hex_size(udt.total_size)
+                     << " (opaque: no fields accessed)\n"
+                     << "{\n"
+                     << "    __int8 _pad_0[0x" << std::hex << udt.total_size
+                     << std::dec << "];  // no fields accessed\n"
+                     << "};\n";
+                return blob.str();
+            }
+        } else {
+            for (std::size_t i = 0; i < udt.size(); ++i)
+                keep_indices.insert(static_cast<int>(i));
+        }
+
+        std::ostringstream output;
+        output << (udt.is_union ? "union" : "struct") << ' ' << name;
+        if (options_.size_comments || accessed != nullptr)
+            output << " // sizeof=" << hex_size(udt.total_size);
+        if (accessed != nullptr) {
+            output << " (trimmed: " << keep_indices.size()
+                   << "/" << udt.size() << " members)";
+        }
+        output << "\n{\n";
+
+        struct Line {
+            std::string declaration;
+            std::uint64_t byte_offset{0};
+            std::uint64_t byte_size{0};
+            bool is_bitfield{false};
+            int bit_offset{0};
+            int bit_size{0};
+            bool emit_comment{false};
+            bool is_padding{false};
+        };
+
+        std::vector<Line> lines;
+        std::size_t max_length = 0;
+
+        auto add_line = [&](Line line) {
+            max_length = std::max(max_length, line.declaration.size());
+            lines.push_back(std::move(line));
+        };
+
+        auto add_padding = [&](std::uint64_t from, std::uint64_t to) {
+            if (to <= from)
+                return;
+            const std::uint64_t bytes = to - from;
+            char buffer[80];
+            if (bytes == 1) {
+                qsnprintf(buffer, sizeof(buffer),
+                          "    __int8 _pad_%llX;",
+                          static_cast<unsigned long long>(from));
+            } else {
+                qsnprintf(buffer, sizeof(buffer),
+                          "    __int8 _pad_%llX[0x%llX];",
+                          static_cast<unsigned long long>(from),
+                          static_cast<unsigned long long>(bytes));
+            }
+            Line line;
+            line.declaration = buffer;
+            line.byte_offset = from;
+            line.byte_size = bytes;
+            line.is_padding = true;
+            line.emit_comment = options_.size_comments || accessed != nullptr;
+            add_line(std::move(line));
+        };
+
+        auto add_member = [&](const udm_t& member) {
+            Line line;
+            line.declaration = print_member_decl(member);
+            line.is_bitfield = member.is_bitfield();
+            if (line.is_bitfield) {
+                line.byte_offset = member.offset / 8;
+                line.bit_offset = static_cast<int>(member.offset % 8);
+                line.bit_size = static_cast<int>(member.size);
+            } else {
+                line.byte_offset = member.offset / 8;
+                line.byte_size = member.size / 8;
+            }
+            line.emit_comment = options_.size_comments;
+            add_line(std::move(line));
+        };
+
+        if (accessed != nullptr) {
+            std::uint64_t cursor = 0;
+            for (int index : keep_indices) {
+                const udm_t& member = udt[static_cast<std::size_t>(index)];
+                const std::uint64_t offset = member.offset / 8;
+                if (offset > cursor)
+                    add_padding(cursor, offset);
+                add_member(member);
+                std::uint64_t end = offset + (member.is_bitfield() ? 0 : (member.size / 8));
+                if (member.is_bitfield())
+                    end = (member.offset + member.size + 7) / 8;
+                cursor = std::max(cursor, end);
+            }
+            if (cursor < udt.total_size)
+                add_padding(cursor, udt.total_size);
+        } else {
+            for (std::size_t i = 0; i < udt.size(); ++i)
+                add_member(udt[i]);
+        }
+
+        for (const auto& line : lines) {
+            output << line.declaration;
+            if (line.emit_comment) {
+                output << std::string(max_length - line.declaration.size() + 1, ' ');
+                if (line.is_padding) {
+                    output << "// off=" << hex_size(line.byte_offset)
+                           << " size=" << hex_size(line.byte_size)
+                           << " (padding)";
+                } else if (line.is_bitfield) {
+                    output << "// off=" << hex_size(line.byte_offset)
+                           << " bits=" << line.bit_offset
+                           << ".." << (line.bit_offset + line.bit_size - 1);
+                } else {
+                    output << "// off=" << hex_size(line.byte_offset)
+                           << " size=" << hex_size(line.byte_size);
+                }
+            }
+            output << '\n';
+        }
+
+        output << "};\n";
+        return output.str();
+    }
+
+    std::string emit_enum(const tinfo_t& ti, const std::string& name) {
+        return print_type_decl(ti,
+                               name.c_str(),
+                               PRTYPE_MULTI | PRTYPE_DEF | PRTYPE_TYPE | PRTYPE_SEMI);
+    }
+
+    std::string emit_typedef_or_other(const tinfo_t& ti, const std::string& name) {
+        return print_type_decl(ti,
+                               name.c_str(),
+                               PRTYPE_MULTI | PRTYPE_DEF | PRTYPE_TYPE | PRTYPE_SEMI);
+    }
+
+    TypeRenderOptions options_;
+    std::map<std::string, std::set<int>> used_offsets_;
+};
+
+class TypeGraphRenderer {
+public:
+    explicit TypeGraphRenderer(const TypeGraphOptions& options) : options_(options) {}
+
+    std::string render(std::string_view root_name) {
+        nodes_.clear();
+        seen_.clear();
+
+        tinfo_t root;
+        if (!tinfo_from_name(root_name, &root))
+            return {};
+
+        walk(root, 0);
+        if (nodes_.empty())
+            return {};
+
+        return options_.mode == TypeGraphOptions::Mode::Table ? emit_table() : emit_simple();
+    }
+
+private:
+    struct FieldEdge {
+        std::string field_name;
+        int field_index{0};
+        std::string target_name;
+        std::string field_type_text;
+    };
+
+    struct Node {
+        std::string name;
+        tinfo_t type;
+        std::vector<FieldEdge> edges;
+    };
+
+    static tinfo_t resolve_named(const tinfo_t& ti) {
+        tinfo_t current = ti;
+        int hops = 0;
+        while (hops++ < 16 && current.present()) {
+            if (current.is_ptr()) {
+                current = current.get_pointed_object();
+                continue;
+            }
+            if (current.is_array()) {
+                current = current.get_array_element();
+                continue;
+            }
+            if (!type_name(current).empty())
+                return current;
+            return tinfo_t();
+        }
+        return tinfo_t();
+    }
+
+    void walk(const tinfo_t& ti, int depth) {
+        if (!ti.present())
+            return;
+        if (options_.max_depth >= 0 && depth > options_.max_depth)
+            return;
+
+        std::string name = type_name(ti);
+        if (name.empty() || !seen_.insert(name).second)
+            return;
+
+        if (ti.is_enum() && !options_.include_enums)
+            return;
+        if (ti.is_typedef() && !options_.include_typedefs)
+            return;
+
+        Node node;
+        node.name = name;
+        node.type = ti;
+
+        if (ti.is_udt()) {
+            udt_type_data_t udt;
+            if (ti.get_udt_details(&udt)) {
+                for (std::size_t i = 0; i < udt.size(); ++i) {
+                    const udm_t& member = udt[i];
+                    tinfo_t target = resolve_named(member.type);
+                    std::string target_name = type_name(target);
+                    if (target_name.empty() || target_name == name)
+                        continue;
+                    if (target.is_enum() && !options_.include_enums)
+                        continue;
+                    if (target.is_typedef() && !options_.include_typedefs)
+                        continue;
+
+                    FieldEdge edge;
+                    edge.field_name = member.name.empty()
+                        ? std::string("(anon)")
+                        : ida::detail::to_string(member.name);
+                    edge.field_index = static_cast<int>(i);
+                    edge.target_name = target_name;
+                    edge.field_type_text = print_type_decl(member.type, nullptr, PRTYPE_1LINE);
+                    if (!edge.field_type_text.empty() && edge.field_type_text.back() == ';')
+                        edge.field_type_text.pop_back();
+                    node.edges.push_back(std::move(edge));
+                }
+            }
+        }
+
+        nodes_.push_back(std::move(node));
+
+        for (const auto& edge : nodes_.back().edges) {
+            if (seen_.count(edge.target_name) != 0)
+                continue;
+            tinfo_t target;
+            if (!tinfo_from_name(edge.target_name, &target))
+                continue;
+            walk(target, depth + 1);
+        }
+    }
+
+    static std::string sanitize_id(const std::string& name) {
+        std::string output;
+        output.reserve(name.size() + 2);
+        output += "n_";
+        for (char c : name) {
+            if ((c >= '0' && c <= '9')
+                || (c >= 'A' && c <= 'Z')
+                || (c >= 'a' && c <= 'z')) {
+                output.push_back(c);
+            } else {
+                output.push_back('_');
+            }
+        }
+        return output;
+    }
+
+    static std::string html_escape(const std::string& text) {
+        std::string output;
+        output.reserve(text.size());
+        for (char c : text) {
+            switch (c) {
+            case '<': output += "&lt;"; break;
+            case '>': output += "&gt;"; break;
+            case '&': output += "&amp;"; break;
+            case '"': output += "&quot;"; break;
+            default: output.push_back(c); break;
+            }
+        }
+        return output;
+    }
+
+    static const char* kind_of(const tinfo_t& ti) {
+        if (ti.is_enum())
+            return "enum";
+        if (ti.is_typedef())
+            return "typedef";
+        if (ti.is_udt())
+            return "udt";
+        return "type";
+    }
+
+    static const char* fill_for(const tinfo_t& ti) {
+        if (ti.is_enum())
+            return "lightyellow";
+        if (ti.is_typedef())
+            return "lightgray";
+        if (ti.is_udt()) {
+            udt_type_data_t udt;
+            if (ti.get_udt_details(&udt) && udt.is_union)
+                return "mistyrose";
+            return "lightblue";
+        }
+        return "white";
+    }
+
+    std::string emit_simple() const {
+        std::ostringstream output;
+        output << "digraph types {\n";
+        output << "    rankdir=LR;\n";
+        output << "    node  [shape=box, fontname=\"Courier\", fontsize=10];\n";
+        output << "    edge  [fontname=\"Courier\", fontsize=8];\n\n";
+
+        for (const Node& node : nodes_) {
+            output << "    " << sanitize_id(node.name) << " [label=\"" << node.name
+                   << "\\n[" << kind_of(node.type) << "]\"";
+            output << " style=filled fillcolor=" << fill_for(node.type);
+            output << "];\n";
+        }
+        output << "\n";
+
+        std::set<std::pair<std::string, std::string>> seen_edges;
+        for (const Node& node : nodes_) {
+            for (const FieldEdge& edge : node.edges) {
+                auto key = std::make_pair(node.name, edge.target_name);
+                if (!seen_edges.insert(key).second)
+                    continue;
+                output << "    " << sanitize_id(node.name)
+                       << " -> " << sanitize_id(edge.target_name) << ";\n";
+            }
+        }
+
+        output << "}\n";
+        return output.str();
+    }
+
+    std::string emit_table() const {
+        std::ostringstream output;
+        output << "digraph types {\n";
+        output << "    rankdir=LR;\n";
+        output << "    node  [shape=plain, fontname=\"Courier\", fontsize=10];\n";
+        output << "    edge  [fontname=\"Courier\", fontsize=8];\n\n";
+
+        for (const Node& node : nodes_) {
+            const char* header_bg = fill_for(node.type);
+            const char* kind = node.type.is_enum() ? "enum"
+                : node.type.is_typedef() ? "typedef"
+                : node.type.is_udt() ? "struct"
+                : "type";
+
+            if (node.type.is_udt()) {
+                udt_type_data_t udt;
+                if (node.type.get_udt_details(&udt) && udt.is_union)
+                    kind = "union";
+            }
+
+            output << "    " << sanitize_id(node.name) << " [label=<\n"
+                   << "      <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n";
+            output << "        <TR><TD COLSPAN=\"2\" BGCOLOR=\""
+                   << header_bg << "\"><B>" << html_escape(node.name)
+                   << "</B>  <FONT POINT-SIZE=\"8\">" << kind << "</FONT></TD></TR>\n";
+
+            if (node.type.is_udt()) {
+                udt_type_data_t udt;
+                if (node.type.get_udt_details(&udt)) {
+                    for (std::size_t i = 0; i < udt.size(); ++i) {
+                        const udm_t& member = udt[i];
+                        char offset_buffer[24];
+                        qsnprintf(offset_buffer, sizeof(offset_buffer), "0x%llX",
+                                  static_cast<unsigned long long>(member.offset / 8));
+                        qstring type_text;
+                        member.type.print(&type_text, nullptr, PRTYPE_1LINE);
+                        output << "        <TR>";
+                        output << "<TD ALIGN=\"RIGHT\"><FONT POINT-SIZE=\"8\">"
+                               << offset_buffer << "</FONT></TD>";
+                        output << "<TD ALIGN=\"LEFT\" PORT=\"f" << i << "\">"
+                               << html_escape(type_text.c_str())
+                               << " <B>" << html_escape(member.name.empty()
+                                   ? "(anon)"
+                                   : member.name.c_str())
+                               << "</B></TD>";
+                        output << "</TR>\n";
+                    }
+                }
+            } else if (node.type.is_enum()) {
+                enum_type_data_t enum_data;
+                if (node.type.get_enum_details(&enum_data)) {
+                    std::size_t shown = 0;
+                    for (std::size_t i = 0; i < enum_data.size() && shown < 12; ++i, ++shown) {
+                        const edm_t& item = enum_data[i];
+                        char value_buffer[32];
+                        qsnprintf(value_buffer, sizeof(value_buffer), "0x%llX",
+                                  static_cast<unsigned long long>(item.value));
+                        output << "        <TR><TD ALIGN=\"RIGHT\"><FONT POINT-SIZE=\"8\">"
+                               << value_buffer << "</FONT></TD><TD ALIGN=\"LEFT\">"
+                               << html_escape(item.name.c_str())
+                               << "</TD></TR>\n";
+                    }
+                    if (enum_data.size() > 12) {
+                        output << "        <TR><TD COLSPAN=\"2\" ALIGN=\"LEFT\">"
+                               << "<I>... " << (enum_data.size() - 12)
+                               << " more</I></TD></TR>\n";
+                    }
+                }
+            }
+
+            output << "      </TABLE>\n    >];\n\n";
+        }
+
+        for (const Node& node : nodes_) {
+            for (const FieldEdge& edge : node.edges) {
+                output << "    " << sanitize_id(node.name) << ":f" << edge.field_index
+                       << " -> " << sanitize_id(edge.target_name) << ";\n";
+            }
+        }
+
+        output << "}\n";
+        return output.str();
+    }
+
+    TypeGraphOptions options_;
+    std::vector<Node> nodes_;
+    std::set<std::string> seen_;
+};
+
+} // anonymous namespace
+
+Result<std::string> render_named_declarations(const std::vector<std::string>& names,
+                                              int max_depth,
+                                              const TypeRenderOptions& options) {
+    TypeDeclarationFormatter formatter(options);
+    return formatter.render_named(names, max_depth);
+}
+
+Result<std::string> render_ordinal_declarations(const std::vector<std::uint32_t>& ordinals,
+                                                const TypeRenderOptions& options) {
+    if (!options.size_comments && !options.trim_unreferenced) {
+        ordvec_t sdk_ordinals;
+        for (std::uint32_t ordinal : ordinals) {
+            if (ordinal != 0)
+                sdk_ordinals.push_back(static_cast<uint32>(ordinal));
+        }
+
+        if (!sdk_ordinals.empty()) {
+            StringSink sink;
+            (void)::print_decls(sink, nullptr, &sdk_ordinals, PDF_INCL_DEPS | PDF_DEF_FWD);
+            if (!sink.output.empty()) {
+                std::string text = ida::detail::to_string(sink.output);
+                if (text.empty() || text.back() != '\n')
+                    text.push_back('\n');
+                return text;
+            }
+        }
+    }
+
+    TypeDeclarationFormatter formatter(options);
+    return formatter.render_ordinals(ordinals);
+}
+
+Result<std::string> render_type_graph(std::string_view root_name,
+                                      const TypeGraphOptions& options) {
+    TypeGraphRenderer renderer(options);
+    std::string dot = renderer.render(root_name);
+    if (dot.empty())
+        return std::unexpected(Error::not_found("Type graph root not found",
+                                                std::string(root_name)));
+    return dot;
+}
+
+Result<std::vector<TypeDeclaration>>
+declarations_for_ordinals(const std::vector<std::uint32_t>& ordinals) {
+    std::vector<TypeDeclaration> result;
+    std::set<std::string> seen;
+
+    std::function<void(const tinfo_t&)> walk;
+    walk = [&](const tinfo_t& ti) {
+        if (!ti.present())
+            return;
+        if (ti.is_ptr()) {
+            walk(ti.get_pointed_object());
+            return;
+        }
+        if (ti.is_array()) {
+            walk(ti.get_array_element());
+            return;
+        }
+        if (ti.is_func()) {
+            func_type_data_t function_data;
+            if (ti.get_func_details(&function_data)) {
+                walk(function_data.rettype);
+                for (std::size_t i = 0; i < function_data.size(); ++i)
+                    walk(function_data[i].type);
+            }
+            return;
+        }
+
+        std::string name = type_name(ti);
+        if (name.empty() || !seen.insert(name).second)
+            return;
+
+        if (ti.is_udt()) {
+            udt_type_data_t udt;
+            if (ti.get_udt_details(&udt)) {
+                for (std::size_t i = 0; i < udt.size(); ++i)
+                    walk(udt[i].type);
+            }
+        }
+
+        TypeDeclaration declaration;
+        declaration.ordinal = ti.get_ordinal();
+        declaration.name = name;
+        declaration.declaration = print_type_decl(
+            ti,
+            name.c_str(),
+            PRTYPE_MULTI | PRTYPE_DEF | PRTYPE_TYPE | PRTYPE_SEMI);
+        result.push_back(std::move(declaration));
+    };
+
+    for (std::uint32_t ordinal : ordinals) {
+        tinfo_t ti;
+        if (tinfo_from_ordinal(ordinal, &ti))
+            walk(ti);
+    }
+
+    return result;
 }
 
 } // namespace ida::type

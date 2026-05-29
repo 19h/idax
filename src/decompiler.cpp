@@ -3539,6 +3539,31 @@ Result<std::string> ExpressionView::type_declaration() const {
     return ida::detail::to_string(type_str);
 }
 
+Result<int> ExpressionView::type_byte_width() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->type.empty())
+        return std::unexpected(Error::not_found("Expression has no materialized type"));
+    const size_t size = e->type.get_size();
+    if (size == BADSIZE)
+        return 0;
+    return static_cast<int>(size);
+}
+
+Result<int> ExpressionView::pointed_type_byte_width() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->type.empty() || !e->type.is_ptr())
+        return std::unexpected(Error::validation("Expression is not pointer typed"));
+    tinfo_t pointed = e->type.get_pointed_object();
+    if (pointed.empty())
+        return std::unexpected(Error::not_found("Pointed object type is unavailable"));
+    const size_t size = pointed.get_size();
+    if (size == BADSIZE)
+        return 0;
+    return static_cast<int>(size);
+}
+
 Result<std::string> ExpressionView::string_value() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
@@ -3561,7 +3586,8 @@ Result<ExpressionView> ExpressionView::call_callee() const {
     if (e->op != cot_call || e->x == nullptr)
         return std::unexpected(Error::validation("Expression is not a call"));
     return ExpressionView(ExpressionView::Tag{}, e->x,
-                          append_parent(parents_, static_cast<citem_t*>(e)));
+                          append_parent(parents_, static_cast<citem_t*>(e)),
+                          e);
 }
 
 Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
@@ -3572,7 +3598,8 @@ Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
     if (index >= e->a->size())
         return std::unexpected(Error::validation("Call argument index out of range"));
     return ExpressionView(ExpressionView::Tag{}, &(*e->a)[index],
-                          append_parent(parents_, static_cast<citem_t*>(e)));
+                          append_parent(parents_, static_cast<citem_t*>(e)),
+                          e);
 }
 
 Result<std::uint32_t> ExpressionView::member_offset() const {
@@ -3583,6 +3610,52 @@ Result<std::uint32_t> ExpressionView::member_offset() const {
     return e->m;
 }
 
+Result<std::string> ExpressionView::member_name() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if ((e->op != cot_memref && e->op != cot_memptr) || e->x == nullptr)
+        return std::unexpected(Error::validation("Expression is not a member access"));
+
+    tinfo_t base_type = e->x->type;
+    if (base_type.empty())
+        return std::unexpected(Error::not_found("Member base type is unavailable"));
+    if (e->op == cot_memptr && base_type.is_ptr())
+        base_type = base_type.get_pointed_object();
+    if (!base_type.is_struct())
+        return std::unexpected(Error::not_found("Member base type is not a struct"));
+
+    udt_type_data_t udt;
+    if (!base_type.get_udt_details(&udt))
+        return std::unexpected(Error::sdk("get_udt_details failed"));
+
+    const int offset = static_cast<int>(e->m);
+    for (std::size_t i = 0; i < udt.size(); ++i) {
+        const udm_t& member = udt[i];
+        const int member_offset = static_cast<int>(member.offset / 8);
+        int member_size = static_cast<int>(member.size / 8);
+        if (member_size == 0)
+            member_size = 1;
+
+        if (member_offset == offset
+            || (member_offset < offset && offset < member_offset + member_size)) {
+            return ida::detail::to_string(member.name);
+        }
+    }
+
+    return std::unexpected(Error::not_found("Member name not found",
+                                            std::to_string(offset)));
+}
+
+bool ExpressionView::is_assignment_lhs() const noexcept {
+    if (raw_ == nullptr || raw_parent_ == nullptr)
+        return false;
+    auto* parent = static_cast<citem_t*>(raw_parent_);
+    if (!parent->is_expr())
+        return false;
+    auto* parent_expr = reinterpret_cast<cexpr_t*>(parent);
+    return parent_expr->op == cot_asg && parent_expr->x == raw_;
+}
+
 Result<ExpressionView> ExpressionView::left() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
@@ -3591,7 +3664,8 @@ Result<ExpressionView> ExpressionView::left() const {
     if (e->x == nullptr)
         return std::unexpected(Error::validation("Expression has no left operand (leaf expression)"));
     return ExpressionView(ExpressionView::Tag{}, e->x,
-                          append_parent(parents_, static_cast<citem_t*>(e)));
+                          append_parent(parents_, static_cast<citem_t*>(e)),
+                          e);
 }
 
 Result<ExpressionView> ExpressionView::right() const {
@@ -3608,7 +3682,8 @@ Result<ExpressionView> ExpressionView::right() const {
     if (e->op == cot_memref || e->op == cot_memptr)
         return std::unexpected(Error::validation("Use member_offset() for member access expressions"));
     return ExpressionView(ExpressionView::Tag{}, e->y,
-                          append_parent(parents_, static_cast<citem_t*>(e)));
+                          append_parent(parents_, static_cast<citem_t*>(e)),
+                          e);
 }
 
 int ExpressionView::operand_count() const noexcept {
@@ -3626,6 +3701,16 @@ int ExpressionView::operand_count() const noexcept {
     if (e->y != nullptr || e->op == cot_call || e->op == cot_memref || e->op == cot_memptr)
         return 2;
     return 1;
+}
+
+Result<ExpressionView> ExpressionView::third() const {
+    if (!raw_) return std::unexpected(Error::internal("null expression"));
+    auto* e = static_cast<cexpr_t*>(raw_);
+    if (e->op != cot_tern || e->z == nullptr)
+        return std::unexpected(Error::validation("Expression has no third operand"));
+    return ExpressionView(ExpressionView::Tag{}, e->z,
+                          append_parent(parents_, static_cast<citem_t*>(e)),
+                          e);
 }
 
 Result<std::string> ExpressionView::to_string() const {
@@ -3774,7 +3859,7 @@ public:
 
     int idaapi visit_expr(cexpr_t* expr) override {
         ++items_visited_;
-        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot());
+        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot(), raw_parent());
         auto action = visitor_.visit_expression(ev);
         if (action == VisitAction::Stop)
             return 1;
@@ -3790,7 +3875,7 @@ public:
     }
 
     int idaapi leave_expr(cexpr_t* expr) override {
-        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot());
+        ExpressionView ev(ExpressionView::Tag{}, expr, parent_snapshot(), raw_parent());
         auto action = visitor_.leave_expression(ev);
         return action == VisitAction::Stop ? 1 : 0;
     }
@@ -3807,6 +3892,12 @@ private:
         for (const citem_t* item : parents)
             snapshot->push_back(make_ctree_item_view(item));
         return snapshot;
+    }
+
+    void* raw_parent() const {
+        if (!maintain_parents() || parents.empty())
+            return nullptr;
+        return const_cast<citem_t*>(parents.back());
     }
 
     CtreeVisitor& visitor_;
@@ -3834,6 +3925,249 @@ bool LvarSnapshot::empty() const noexcept {
 
 std::size_t LvarSnapshot::saved_variable_count() const noexcept {
     return impl_ == nullptr ? 0 : static_cast<std::size_t>(impl_->settings.lvvec.size());
+}
+
+static LocalVariableUserSetting make_lvar_user_setting(const lvar_saved_info_t& info) {
+    LocalVariableUserSetting setting;
+
+    if (info.ll.location.is_reg1()) {
+        setting.locator.kind = LocalVariableLocationKind::Register;
+        setting.locator.register_id = info.ll.location.reg1();
+    } else if (info.ll.location.is_stkoff()) {
+        setting.locator.kind = LocalVariableLocationKind::Stack;
+        setting.locator.stack_offset = static_cast<std::int64_t>(info.ll.location.stkoff());
+    }
+
+    setting.locator.definition_address =
+        info.ll.defea == BADADDR ? BadAddress : static_cast<Address>(info.ll.defea);
+    setting.name = ida::detail::to_string(info.name);
+    setting.comment = ida::detail::to_string(info.cmt);
+
+    if (!info.type.empty()) {
+        qstring type_text;
+        info.type.print(&type_text, nullptr, PRTYPE_1LINE | PRTYPE_TYPE);
+        setting.type_declaration = ida::detail::to_string(type_text);
+    }
+
+    return setting;
+}
+
+static Status apply_lvar_user_setting_impl(ea_t function_address,
+                                           const LocalVariableUserSetting& setting) {
+    lvar_saved_info_t info;
+
+    if (setting.locator.kind == LocalVariableLocationKind::Register) {
+        vdloc_t location;
+        location.set_reg1(setting.locator.register_id);
+        info.ll.location = location;
+    } else if (setting.locator.kind == LocalVariableLocationKind::Stack) {
+        vdloc_t location;
+        location.set_stkoff(static_cast<sval_t>(setting.locator.stack_offset));
+        info.ll.location = location;
+    }
+
+    info.ll.defea = setting.locator.definition_address == BadAddress
+        ? BADADDR
+        : static_cast<ea_t>(setting.locator.definition_address);
+
+    uint flags = 0;
+    if (!setting.name.empty()) {
+        info.name = ida::detail::to_qstring(setting.name);
+        flags |= MLI_NAME;
+    }
+
+    if (!setting.comment.empty()) {
+        info.cmt = ida::detail::to_qstring(setting.comment);
+        flags |= MLI_CMT;
+    }
+
+    if (!setting.type_declaration.empty()) {
+        qstring declaration = ida::detail::to_qstring(setting.type_declaration);
+        if (!declaration.empty() && declaration.last() != ';')
+            declaration.append(';');
+        tinfo_t parsed;
+        if (::parse_decl(&parsed, nullptr, nullptr,
+                         declaration.c_str(), PT_SIL | PT_TYP)) {
+            info.type = parsed;
+            const size_t size = info.type.get_size();
+            if (size != BADSIZE)
+                info.size = static_cast<ssize_t>(size);
+            flags |= MLI_TYPE;
+        } else if (flags == 0) {
+            return std::unexpected(Error::sdk("parse_decl failed",
+                                              setting.type_declaration));
+        }
+    }
+
+    if (flags == 0)
+        return ida::ok();
+
+    if (!::modify_user_lvar_info(function_address, flags, info)) {
+        return std::unexpected(Error::sdk("modify_user_lvar_info failed",
+                                          std::to_string(function_address)));
+    }
+
+    return ida::ok();
+}
+
+Result<std::vector<LocalVariableUserSetting>>
+saved_user_lvar_settings(Address function_address) {
+    lvar_uservec_t settings;
+    if (!::restore_user_lvar_settings(&settings, static_cast<ea_t>(function_address)))
+        return std::vector<LocalVariableUserSetting>{};
+
+    std::vector<LocalVariableUserSetting> result;
+    result.reserve(settings.lvvec.size());
+    for (const auto& setting : settings.lvvec)
+        result.push_back(make_lvar_user_setting(setting));
+    return result;
+}
+
+Status apply_user_lvar_setting(Address function_address,
+                               const LocalVariableUserSetting& setting) {
+    return apply_lvar_user_setting_impl(static_cast<ea_t>(function_address), setting);
+}
+
+Status apply_user_lvar_settings(Address function_address,
+                                const std::vector<LocalVariableUserSetting>& settings) {
+    for (const auto& setting : settings) {
+        auto status = apply_user_lvar_setting(function_address, setting);
+        if (!status)
+            return status;
+    }
+    return ida::ok();
+}
+
+namespace {
+
+struct ReferencedTypeCollector {
+    std::set<std::uint32_t> ordinals;
+    std::set<std::string> seen_names;
+    std::map<std::string, std::set<int>> used_offsets;
+
+    void collect(const tinfo_t& ti, int depth = 0) {
+        if (!ti.present() || depth > 32)
+            return;
+
+        if (ti.is_ptr()) {
+            collect(ti.get_pointed_object(), depth + 1);
+            return;
+        }
+        if (ti.is_array()) {
+            collect(ti.get_array_element(), depth + 1);
+            return;
+        }
+        if (ti.is_func()) {
+            func_type_data_t function_data;
+            if (ti.get_func_details(&function_data)) {
+                collect(function_data.rettype, depth + 1);
+                for (std::size_t i = 0; i < function_data.size(); ++i)
+                    collect(function_data[i].type, depth + 1);
+            }
+            return;
+        }
+
+        if (ti.is_typeref() || ti.is_udt() || ti.is_enum() || ti.is_typedef()) {
+            qstring name;
+            if (ti.get_type_name(&name) && !name.empty()) {
+                std::string key = ida::detail::to_string(name);
+                if (!seen_names.insert(key).second)
+                    return;
+            }
+
+            const std::uint32_t ordinal = ti.get_ordinal();
+            if (ordinal != 0)
+                ordinals.insert(ordinal);
+        }
+    }
+
+    void record_member_access(const tinfo_t& parent_type, int offset_bytes) {
+        if (!parent_type.present())
+            return;
+        qstring name;
+        if (!parent_type.get_type_name(&name) || name.empty())
+            return;
+        used_offsets[ida::detail::to_string(name)].insert(offset_bytes);
+    }
+};
+
+class ReferencedTypeWalker : public ctree_visitor_t {
+public:
+    explicit ReferencedTypeWalker(ReferencedTypeCollector& collector)
+        : ctree_visitor_t(CV_FAST), collector_(collector) {}
+
+    int idaapi visit_expr(cexpr_t* expression) override {
+        if (expression == nullptr)
+            return 0;
+
+        if (expression->type.present())
+            collector_.collect(expression->type);
+
+        if (expression->op == cot_obj) {
+            tinfo_t object_type;
+            if (::get_tinfo(&object_type, expression->obj_ea))
+                collector_.collect(object_type);
+        }
+
+        if (expression->op == cot_memref || expression->op == cot_memptr) {
+            cexpr_t* parent = expression->x;
+            if (parent != nullptr && parent->type.present()) {
+                tinfo_t parent_type = parent->type;
+                if (expression->op == cot_memptr && parent_type.is_ptr())
+                    parent_type = parent_type.get_pointed_object();
+                collector_.record_member_access(parent_type,
+                                                static_cast<int>(expression->m));
+            }
+        }
+
+        return 0;
+    }
+
+private:
+    ReferencedTypeCollector& collector_;
+};
+
+} // anonymous namespace
+
+Result<ReferencedTypeCollection> collect_referenced_types(Address function_address) {
+    func_t* function = ::get_func(static_cast<ea_t>(function_address));
+    if (function == nullptr)
+        return std::unexpected(Error::not_found("Function not found",
+                                                std::to_string(function_address)));
+
+    hexrays_failure_t failure;
+    cfuncptr_t cfunc = ::decompile(function, &failure);
+    if (!cfunc) {
+        return std::unexpected(Error::sdk("decompile failed",
+                                          std::to_string(function_address)));
+    }
+
+    ReferencedTypeCollector collector;
+
+    tinfo_t function_type;
+    if (cfunc->get_func_type(&function_type))
+        collector.collect(function_type);
+
+    lvars_t* variables = cfunc->get_lvars();
+    if (variables != nullptr) {
+        for (std::size_t i = 0; i < variables->size(); ++i)
+            collector.collect(variables->at(i).type());
+    }
+
+    ReferencedTypeWalker walker(collector);
+    walker.apply_to(&cfunc->body, nullptr);
+
+    ReferencedTypeCollection result;
+    result.ordinals.assign(collector.ordinals.begin(), collector.ordinals.end());
+    result.used_offsets.reserve(collector.used_offsets.size());
+    for (const auto& [name, offsets] : collector.used_offsets) {
+        ida::type::UsedMemberOffsets entry;
+        entry.type_name = name;
+        entry.byte_offsets.assign(offsets.begin(), offsets.end());
+        result.used_offsets.push_back(std::move(entry));
+    }
+
+    return result;
 }
 
 // ── DecompiledFunction impl ─────────────────────────────────────────────

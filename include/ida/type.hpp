@@ -48,6 +48,35 @@ struct ParseDeclarationsReport {
     [[nodiscard]] bool ok() const noexcept { return error_count == 0; }
 };
 
+struct UsedMemberOffsets {
+    std::string type_name;
+    std::vector<int> byte_offsets;
+};
+
+struct TypeRenderOptions {
+    bool size_comments{false};
+    bool trim_unreferenced{false};
+    std::vector<UsedMemberOffsets> used_offsets;
+};
+
+struct TypeGraphOptions {
+    enum class Mode {
+        Simple,
+        Table,
+    };
+
+    Mode mode{Mode::Simple};
+    int max_depth{-1};
+    bool include_enums{true};
+    bool include_typedefs{true};
+};
+
+struct TypeDeclaration {
+    std::uint32_t ordinal{0};
+    std::string name;
+    std::string declaration;
+};
+
 /// Opaque handle representing a type in the IDA database.
 /// This class is movable, copyable, and cheap to construct for primitives.
 class TypeInfo {
@@ -223,6 +252,25 @@ Status apply_named_type(Address ea, std::string_view type_name);
 Result<ParseDeclarationsReport>
 parse_declarations(std::string_view declarations,
                    const ParseDeclarationsOptions& options = ParseDeclarationsOptions{});
+
+/// Render named local types plus dependencies as C declarations.
+Result<std::string> render_named_declarations(
+    const std::vector<std::string>& names,
+    int max_depth = -1,
+    const TypeRenderOptions& options = TypeRenderOptions{});
+
+/// Render local type ordinals plus dependencies as C declarations.
+Result<std::string> render_ordinal_declarations(
+    const std::vector<std::uint32_t>& ordinals,
+    const TypeRenderOptions& options = TypeRenderOptions{});
+
+/// Render a Graphviz DOT type dependency graph rooted at a named type.
+Result<std::string> render_type_graph(std::string_view root_name,
+                                      const TypeGraphOptions& options = TypeGraphOptions{});
+
+/// Return dependency-ordered declarations for types reachable from ordinals.
+Result<std::vector<TypeDeclaration>>
+declarations_for_ordinals(const std::vector<std::uint32_t>& ordinals);
 
 } // namespace ida::type
 

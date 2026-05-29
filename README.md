@@ -80,12 +80,12 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Database** | `ida::database` | Open/save/close, metadata, snapshots, file/memory transfer |
 | **Paths** | `ida::path` | Portable basename/dirname/directory helpers for plugin workflows |
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |
-| **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototypes |
-| **Instructions** | `ida::instruction` | Decode/create, operand access, representation controls, xref conveniences |
+| **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototype export/apply |
+| **Instructions** | `ida::instruction` | Decode/create, operand access/read-write metadata, representation controls, xref conveniences |
 | **Names** | `ida::name` | Set/get/force/remove, demangling, resolution, properties |
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
-| **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import, type libraries |
+| **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
 | **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
@@ -96,10 +96,10 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
-| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, user comments, popup events, address mapping |
+| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, user comments, popup events, address mapping |
 | **Lines** | `ida::lines` | Tagged text/color helpers for pseudocode and listing output |
 | **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
-| **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks |
+| **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks, switch-table metadata |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
 
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
@@ -184,8 +184,10 @@ if (insn) {
 
     for (size_t i = 0; i < insn->operand_count(); ++i) {
         auto op = insn->operand(i);
-        if (op && op->is_immediate())
-            std::cout << "  imm: " << *op->immediate_value() << "\n";
+        if (op && op->is_register())
+            std::cout << "  reg: " << op->register_name()
+                      << " read=" << op->is_read()
+                      << " written=" << op->is_written() << "\n";
     }
 
     // Change operand display format
@@ -221,6 +223,11 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
                 return ida::decompiler::VisitAction::Continue;
             });
     }
+
+    auto refs = ida::decompiler::collect_referenced_types(function_address);
+    if (refs)
+        std::cout << "referenced type ordinals: "
+                  << refs->ordinals.size() << "\n";
 }
 ```
 

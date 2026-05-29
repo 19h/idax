@@ -259,6 +259,16 @@ struct BasicBlock {
     std::vector<int> predecessors;
 };
 
+/// Switch/jump-table descriptor discovered by IDA for an indirect jump.
+struct SwitchTable {
+    Address table_address{BadAddress};
+    std::size_t entry_count{0};
+    std::size_t entry_size{0};
+};
+
+/// Return switch/jump-table metadata for the indirect jump at \p jump_address.
+Result<SwitchTable> switch_table(Address jump_address);
+
 /// Create a flow chart for the function at \p function_address.
 /// Returns a list of basic blocks.
 Result<std::vector<BasicBlock>> flowchart(Address function_address);

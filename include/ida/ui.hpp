@@ -1079,6 +1079,23 @@ Status attach_dynamic_action(PopupHandle popup,
                              std::string_view menu_path = {},
                              int icon = -1);
 
+/// Attach an already-registered action to a popup menu being constructed.
+///
+/// Use this when the action should receive IDA's normal action context
+/// (including current address and Local Types `type_ref`) instead of a
+/// callback-only dynamic action.
+Status attach_registered_action(PopupHandle popup,
+                                const Widget& widget,
+                                std::string_view action_id,
+                                std::string_view menu_path = {});
+
+/// Attach an already-registered action using an opaque widget handle from
+/// another idax event payload.
+Status attach_registered_action(PopupHandle popup,
+                                void* widget_handle,
+                                std::string_view action_id,
+                                std::string_view menu_path = {});
+
 // ── Line rendering ──────────────────────────────────────────────────────
 
 /// A single line rendering overlay entry.

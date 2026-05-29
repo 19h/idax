@@ -5,6 +5,7 @@
 #include <ida/graph.hpp>
 #include <graph.hpp>  // SDK graph header (interactive_graph_t, etc.)
 #include <gdl.hpp>    // SDK graph drawing library (qflow_chart_t, etc.)
+#include <nalt.hpp>   // SDK switch_info_t
 
 namespace ida::graph {
 
@@ -516,6 +517,19 @@ static BlockType convert_block_type(fc_block_type_t bt) {
     case fcb_error:   return BlockType::Error;
     default:          return BlockType::Normal;
     }
+}
+
+Result<SwitchTable> switch_table(Address jump_address) {
+    switch_info_t si;
+    if (get_switch_info(&si, static_cast<ea_t>(jump_address)) <= 0)
+        return std::unexpected(Error::not_found("No switch table at address",
+                                                std::to_string(jump_address)));
+
+    SwitchTable table;
+    table.table_address = static_cast<Address>(si.jumps);
+    table.entry_count = static_cast<std::size_t>(si.get_jtable_size());
+    table.entry_size = static_cast<std::size_t>(si.get_jtable_element_size());
+    return table;
 }
 
 Result<std::vector<BasicBlock>> flowchart(Address function_address) {

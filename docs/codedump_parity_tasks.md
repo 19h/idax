@@ -17,6 +17,12 @@ Secondary migration helpers:
 
 - bulk local type-declaration import and lower-level transfer-module cleanups
 
+Post-port residual API blockers:
+
+- serializable Hex-Rays local-variable locator metadata
+- structured type dependency traversal beyond declaration strings
+- read-only ctree/type collection data sufficient to remove `cfunc_t`
+
 Already addressed in idax during Phase 22:
 
 - wait-box / cancellation UI
@@ -26,6 +32,8 @@ Already addressed in idax during Phase 22:
 - Hex-Rays lvar settings snapshot/writeback, per-lvar comments, and
   function prototype apply
 - read-only ctree accessors needed by `analysis/ctree_analyzer.cpp`
+- processor operand read/write feature metadata
+- serializable Hex-Rays local-variable locator metadata
 
 ## Current gap-to-task map
 
@@ -45,14 +53,15 @@ notes as of 2026-05-28 and maps each still-relevant gap to idax work.
 | Hex-Rays init/term ownership | P22.9 scoped Hex-Rays session or plugin option | implemented with example lifecycle and host-runtime coverage |
 | Bulk local type declarations | P22.10 `type::parse_declarations`, options, structured report, and validation | implemented |
 | `generate_disasm_line`, input path, `PLUGIN_HIDE` | Existing `instruction::text`, `database::input_file_path`, `ExportFlags::hidden` | no task |
-| Lower-level transfer/analysis SDK calls | Existing `function`, `instruction`, `comment`, `name`, and `type` wrappers | no new idax API task; migration cleanup only |
+| Lower-level transfer/analysis SDK calls | Existing wrappers plus P22.R1-P22.R6 cover the current ida-cdump analysis, graph, metadata, type, and popup call sites | migrated for current ida-cdump parity |
 | `info(...)` / `warning(...)` printf comfort overloads | Existing `ida::ui::info(std::string_view)` / `warning(std::string_view)` with caller-side formatting | no parity task |
 
 ## Concrete idax implementation work items
 
-These are the idax-side tasks established from the updated gap notes. Completed
-items remain listed so the parity scope is auditable; the open rows are
-evidence/host-execution tasks, not missing API design work.
+These are the idax-side tasks established from the updated gap notes and the
+follow-up ida-cdump port audit. Completed items remain listed so the parity
+scope is auditable; open rows include both host-evidence tasks and residual API
+work that is not covered by today's public wrappers.
 
 | ID | Gap covered | Concrete idax work | Primary files | Binding work | Exit condition |
 | --- | --- | --- | --- | --- | --- |
@@ -61,32 +70,39 @@ evidence/host-execution tasks, not missing API design work.
 | P22.3 | Hex-Rays `hxe_populating_popup` | Add `PopulatingPopupEvent` and `ida::decompiler::on_populating_popup` through the decompiler event bridge | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `examples/plugin/abyss_port_plugin.cpp`, `tests/unit/api_surface_parity_test.cpp` | Node/Rust callback wrappers | Complete |
 | P22.4 | Local Types `type_ref` action context | Snapshot `til_type_ref_t` into owned `plugin::TypeRef` on `ActionContext` | `include/ida/plugin.hpp`, `src/plugin.cpp`, action/plugin coverage | Rust safe/FFI callback context coverage; Node has no plugin/action namespace | Complete |
 | P22.5 | Clipboard, `ask_text`, IDB path, portable path helpers | Add optional Qt clipboard bridge with default `Unsupported` contract, multiline `ask_text`, `database::idb_path`, and `ida::path` helpers | `include/ida/ui.hpp`, `src/ui.cpp`, `src/detail/qt_clipboard_bridge.*`, `include/ida/database.hpp`, `src/database.cpp`, `include/ida/path.hpp`, `src/path.cpp`, `tests/integration/codedump_parity_host_gates_test.cpp` | Node/Rust wrappers for clipboard, `ask_text`, `database::idb_path`, and `ida::path` | API and binding work complete; remaining clipboard exit is `IDAX_ENABLE_QT_CLIPBOARD=ON` with IDA-compatible `QT_NAMESPACE=QT` Qt plus `IDAX_RUN_QT_CLIPBOARD=1` in an IDA Qt host |
-| P22.6 | Bulk lvar settings, lvar comments, prototype apply | Add `LvarSnapshot`, capture/restore, `set_variable_comment`, `function::set_prototype`, and `function::apply_decl` | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `include/ida/function.hpp`, `src/function.cpp`, `tests/integration/decompiler_storage_hardening_test.cpp`, `tests/integration/type_roundtrip_test.cpp` | Node/Rust lvar snapshot/comment and prototype wrappers | Complete |
+| P22.6 | Bulk lvar settings, lvar comments, prototype export/apply | Add `LvarSnapshot`, capture/restore, `set_variable_comment`, `function::declaration`, `function::set_prototype`, and `function::apply_decl` | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `include/ida/function.hpp`, `src/function.cpp`, `tests/integration/decompiler_storage_hardening_test.cpp`, `tests/integration/type_roundtrip_test.cpp` | Node/Rust lvar snapshot/comment and prototype wrappers | Complete |
 | P22.7 | Read-only ctree/lvar analysis helpers | Add helper-name/type accessors, callback-scoped parent snapshots, stable local-variable indexes, and lookup by ctree index | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `tests/integration/decompiler_storage_hardening_test.cpp` | Node/Rust visitor payload and direct local-variable lookup coverage | Complete |
 | P22.8 | Migration documentation, example, and validation harness | Maintain parity task list, migration checklist, host-evidence runbook, compact codedump-parity example, validation report, host-gate runner, evidence-log verifier, and local validation runner | `docs/codedump_parity_tasks.md`, `docs/codedump_migration_checklist.md`, `docs/codedump_host_evidence.md`, `docs/validation_report.md`, `examples/plugin/codedump_parity_probe_plugin.cpp`, `scripts/run_codedump_parity_host_gates.sh`, `scripts/check_codedump_parity_evidence_log.sh`, `scripts/run_codedump_parity_local_validation.sh` | Binding docs and tests record C++/Node/Rust coverage | Complete except the two host-evidence rows below |
 | P22.9 | Hex-Rays init/term ownership | Add move-only `ScopedSession` and `decompiler::initialize()` with ownership/refcount behavior separate from non-owning `available()` | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `examples/plugin/abyss_port_plugin.cpp`, `tests/integration/codedump_parity_host_gates_test.cpp` | Node/Rust owned scoped-session wrappers | Complete; local `IDAX_RUN_HEXRAYS_SESSION=1` host gate passes |
 | P22.10 | Bulk local type declaration import | Add `type::parse_declarations`, options, structured report, and validation | `include/ida/type.hpp`, `src/type.cpp`, `tests/integration/type_roundtrip_test.cpp` | Node/Rust parse-declarations wrappers | Complete |
-| P22.M1 | Lower-level transfer/analysis SDK cleanup | Migrate ida-cdump call sites that already have idax replacements: function lookup/comments, instruction decode/text, address comments, names, applied types, and bulk type declarations | ida-cdump-side `src/transfer/*`, `src/analysis/*`, `src/graph/*`, `src/plugin/codedump_plugin.cpp` | Existing binding coverage applies where those namespaces are exposed | No new idax API task; track as downstream ida-cdump migration work |
+| P22.M1 | Lower-level transfer/analysis SDK cleanup | Migrate ida-cdump call sites that already have idax replacements: function lookup/comments, instruction decode/text, address comments, names, applied prototypes, flowcharts, switch tables, bulk type declarations, register operand metadata, lvar locator metadata, type rendering, ctree/type collection, and popup attachment | ida-cdump-side `src/transfer/*`, `src/analysis/*`, `src/graph/*`, `src/plugin/codedump_plugin.cpp` | Existing binding coverage applies where those namespaces are exposed | Complete for current ida-cdump parity; remaining raw usage is IDA ABI primitives or local formatting |
+| P22.R1 | Processor operand access metadata | Expose per-operand read/write/change/use classification, canonical register display, operand size, and instruction feature bits needed by register analysis without `insn_t`/`op_t`/`get_ph()` | `include/ida/instruction.hpp`, `src/instruction.cpp`, `tests/unit/api_surface_parity_test.cpp`, ida-cdump `analysis/register_analyzer.cpp` | C++ surface complete; bindings only if a binding caller needs feature bits | Complete; `analysis/register_analyzer.cpp` no longer uses `decode_insn`, `get_canon_feature`, `has_cf_use`, `has_cf_chg`, `get_dtype_size`, or `get_reg_name` |
+| P22.R2 | Type dependency traversal | Add declaration rendering, ordinal dependency ordering, used-member trimming, size comments, type graph rendering, and ordinal declaration snapshots without exposing raw `tinfo_t` at ida-cdump call sites | `include/ida/type.hpp`, `src/type.cpp`, `tests/unit/api_surface_parity_test.cpp` | Bind traversal snapshots only if a binding caller needs these richer renderers | Complete; ida-cdump removed local `type_formatter` / `type_graph_dot` and no longer uses direct `typeinf.hpp` for type rendering/metadata export |
+| P22.R3 | Ctree/type collection facade | Add read-only expression helpers plus a dedicated `collect_referenced_types(Address)` API for type ordinals and used member offsets by function address | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `tests/unit/api_surface_parity_test.cpp` | Mirror stable snapshot payloads in bindings only if needed by a binding caller | Complete for current ida-cdump parity; `ctree_analyzer.cpp` and `type_collector.cpp` no longer consume raw `cfunc_t`, `cexpr_t`, `ctree_visitor_t`, or direct `decompile(get_func(...))` |
+| P22.R4 | Serializable lvar locator metadata | Add an enumerable/applicable local-variable user-settings model with stable locator fields, name/type/comment payloads, and declaration parsing for per-lvar type apply | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `tests/unit/api_surface_parity_test.cpp`, ida-cdump `transfer/metadata_export.cpp`, `transfer/metadata_apply.cpp` | C++ surface complete; bindings only if a binding caller needs serializable lvar settings | Complete; `transfer/metadata_export.cpp` and `transfer/metadata_apply.cpp` no longer need `lvar_uservec_t`, `restore_user_lvar_settings`, `lvar_saved_info_t`, `modify_user_lvar_info`, or direct `parse_decl` |
+| P22.R5 | Graph recovery switch metadata | Expose switch/jump-table descriptors needed by graph recovery without `switch_info_t` or `get_switch_info` | `include/ida/graph.hpp`, `src/graph.cpp`, `tests/unit/api_surface_parity_test.cpp` | C++ surface complete; bindings only if graph recovery becomes a binding use case | Complete; ida-cdump `graph_builder.cpp` now uses `ida::graph::switch_table` |
+| P22.R6 | Registered action popup attachment | Attach an already-registered action to a currently-building popup while preserving normal action context payloads such as Local Types `type_ref` | `include/ida/ui.hpp`, `src/ui.cpp`, `tests/unit/api_surface_parity_test.cpp` | Bind only if a binding plugin/action surface needs popup attachment | Complete; ida-cdump `codedump_plugin.cpp` now uses `ida::ui::on_popup_ready` and `attach_registered_action` instead of a raw `HT_UI` listener / `attach_action_to_popup` path |
 | P22.F1 | Future Hex-Rays positioned user comments | Add `DecompiledFunction::user_comments()` and batch setter only if ida-cdump starts exporting `cfunc->user_cmts` | Not scheduled | Not scheduled | Out of scope for current parity because the updated gap notes identify it as future/non-blocking |
 | P22.F2 | Mutable ctree / broader microcode mutation | Design explicit mutable APIs only for a concrete caller that needs them | Not scheduled | Not scheduled | Out of scope for current ida-cdump parity |
 | P22.F3 | Printf-style UI diagnostic overloads | Add formatting overloads for `ida::ui::info` / `warning` only if a future port needs idax-owned formatting | Not scheduled | Existing string-view API is sufficient for current ida-cdump, which already preformats messages | Comfort gap only; no direct SDK dependency remains when callers format before invoking idax |
 
 ## Current closure queue
 
-The updated gap notes no longer leave a missing idax API for the audited
-high-value areas. The remaining work is host evidence:
+The high-value UI/plugin/decompiler lifecycle gaps and the follow-up
+ida-cdump residual API work are implemented. What remains is host-only
+evidence for modal/Qt behavior:
 
 | Priority | Task | Primary files | Binding posture | Exit condition |
 | --- | --- | --- | --- | --- |
 | 1 | P22.H1 modal typed-form evidence | `tests/integration/codedump_parity_host_gates_test.cpp`, `docs/validation_report.md` | C++ plus fixed-shape Node/Rust entrypoints implemented | Run `IDAX_RUN_MODAL_FORMS=1` in an interactive IDA UI host and record the result |
 | 2 | P22.H2 Qt clipboard host evidence | `CMakeLists.txt`, `src/detail/qt_clipboard_bridge.*`, `tests/integration/codedump_parity_host_gates_test.cpp`, `scripts/run_codedump_parity_host_gates.sh` | C++ optional Qt backend and Node/Rust wrappers implemented | Build with an IDA-compatible `QT_NAMESPACE=QT` Qt package, then run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA Qt host |
-| 3 | P22.V1 final parity validation refresh | CMake, parity example, Node, Rust validation targets; `docs/validation_report.md`; `.agents/*` | Binding tests cover the new surfaces structurally, compile-time, and through non-modal validation where available | Latest local refresh passes including the compact parity probe example; rerun focused C++/example/Node/Rust checks after host evidence is collected and record any host-only skips separately |
+| 3 | P22.V1 final parity validation refresh | CMake, parity example, Node, Rust validation targets; `docs/validation_report.md`; `.agents/*` | Binding tests cover the new surfaces structurally, compile-time, and through non-modal validation where available | Rerun focused C++/example/Node/Rust checks after host evidence changes |
 
 ## Actionable remaining task breakdown
 
-The concrete idax implementation backlog is now limited to evidence execution
-and final documentation refresh. New C++/Node/Rust API work should only be
-opened if one of these evidence runs exposes a real implementation defect.
+The concrete idax backlog now contains only the host-evidence items below.
+The current ida-cdump C++ parity port does not have an open implementation
+task.
 
 | ID | Task | Exact action | Closure proof |
 | --- | --- | --- | --- |
@@ -99,25 +115,28 @@ opened if one of these evidence runs exposes a real implementation defect.
 | P22.V1.1 | Local final sweep | After P22.H1/P22.H2 evidence, rerun `scripts/run_codedump_parity_local_validation.sh build-test-fetch RelWithDebInfo`; set `IDAX_RUN_NODE_INTEGRATION=1 IDADIR=/path/to/ida` when fixture integration is available. | Focused C++, default/opt-in host evidence verification, compact parity example, Node, and Rust parity checks pass or host-only skips are explicitly justified. |
 | P22.V1.2 | Closure documentation | Update `docs/validation_report.md`, `.agents/active_work.md`, and `.agents/progress_ledger.md` with final evidence; keep `docs/codedump_migration_checklist.md` aligned. | P22.H1/P22.H2 are marked closed only with verified logs; remaining ida-cdump raw SDK use is classified as downstream migration cleanup or future/non-blocking scope. |
 
-P22.8 migration validation is complete: every updated `IDAX_GAPS.md` row maps
-to an implemented API, an explicit host-evidence item, or an out-of-scope
-future note in `docs/codedump_migration_checklist.md`.
+P22.8 migration validation is complete for the original updated gap-note rows,
+but the follow-up ida-cdump port audit added P22.R1-P22.R4 as concrete idax
+implementation tasks. P22.R1 has since been implemented with operand read/write
+metadata, P22.R4 with serializable lvar settings, and P22.R5 by
+`ida::graph::switch_table`.
 
 ## Existing-API Migration Candidates
 
 The updated gap notes also mention lower-level direct SDK calls that remain in
-ida-cdump after the high-value parity surfaces are available. These are not
-new idax implementation tasks because idax already exposes stable replacements:
+ida-cdump after the high-value parity surfaces are available. Some call sites
+can already migrate with existing wrappers; call sites needing the extra
+metadata named in P22.R2-P22.R3 are not equivalent yet.
 
 | SDK shape in ida-cdump | idax replacement | Notes |
 | --- | --- | --- |
 | `get_func(ea)` | `ida::function::at(ea)` / `name_at(ea)` | Use value snapshots instead of raw `func_t*` where callers only need bounds, entry, name, flags, comments, or relationships. |
-| `decode_insn(&insn, ea)` | `ida::instruction::decode(ea)` | Use operand accessors for register/immediate/target decoding; keep raw SDK only where a missing operand detail is proven. |
+| `decode_insn(&insn, ea)` | `ida::instruction::decode(ea)` | Use operand accessors for register/immediate/target decoding and `Operand::is_read` / `is_written` for register analysis. |
 | `generate_disasm_line` | `ida::instruction::text(ea)` | Already listed as corrected in the updated gap notes. |
 | `get_cmt` / `set_cmt` | `ida::comment::get` / `set` | Covers ida-cdump's plain address comments. Hex-Rays positioned comments remain future-only. |
 | `get_func_cmt` / `set_func_cmt` | `ida::function::comment` / `set_comment` | Covers function comments in metadata export/apply. |
 | `set_name` | `ida::name::set` / `force_set` | Choose `force_set` only for SDK paths that currently use force-like flags. |
-| `get_tinfo` | `ida::type::retrieve` plus `TypeInfo::to_string()` | Covers applied type retrieval; function prototypes use `DecompiledFunction::declaration()` or `function::apply_decl` depending on direction. |
+| `get_tinfo` | `ida::type::retrieve` plus `TypeInfo::to_string()` or `function::declaration()` | Covers simple applied type retrieval and function prototype export; recursive dependency traversal remains P22.R2. Function prototypes use `function::declaration()` or `function::apply_decl` depending on direction. |
 | `parse_decls` | `ida::type::parse_declarations` | P22.10 closes the bulk local type import path. |
 | `get_input_file_path` / `get_path(PATH_TYPE_IDB)` | `ida::database::input_file_path()` / `idb_path()` | P22.5 closes the IDB fallback. |
 | `qbasename` / `qdirname` / `qisdir` | `ida::path::{basename, dirname, is_directory}` or `<filesystem>` | P22.5 provides shared helper semantics for C++ and bindings. |
@@ -352,8 +371,8 @@ Status: implemented. C++ now exposes `ida::decompiler::LvarSnapshot`,
 `DecompiledFunction::{capture_user_lvar_settings,restore_user_lvar_settings}`,
 `DecompiledFunction::set_variable_comment(...)`,
 `DecompilerView` forwarding helpers, and
-`ida::function::{set_prototype,apply_decl}`. Node and Rust bindings expose the
-same lvar snapshot/comment and function prototype workflows. Rust no-run
+`ida::function::{declaration,set_prototype,apply_decl}`. Node and Rust bindings expose the
+same lvar snapshot/comment and function prototype apply workflows. Rust no-run
 validation now reaches the high-level wrapper tests after repairing the
 recursive microcode bindgen output.
 
@@ -365,6 +384,8 @@ Deliverables:
   `restore_user_lvar_settings(const LvarSnapshot&)`.
 - Add `DecompiledFunction::set_variable_comment(...)` using the same user
   lvar settings path.
+- Add `ida::function::declaration(Address, std::string_view name_override = {})`
+  for applied prototype export without requiring Hex-Rays.
 - Add `ida::function::set_prototype(Address, const ida::type::TypeInfo&)`.
 - Add `ida::function::apply_decl(Address, std::string_view c_decl)`.
 - Bulk local type declaration import is tracked separately as P22.10 because
@@ -605,10 +626,13 @@ Concrete implementation tasks:
   integration no-run validation pass after repairing the recursive microcode
   bindgen output.
 - P22.8.5 [x] Record known blockers separately from parity tasks. No local
-  Node/Rust binding blocker remains; only modal typed-form evidence and
-  Qt clipboard evidence remain host-gated. The Qt clipboard build additionally
-  requires an IDA-compatible `QT_NAMESPACE=QT` Qt package; a plain system Qt
-  package is rejected at configure time.
+  Node/Rust binding blocker remains for the implemented P22 surfaces. The
+  follow-up ida-cdump port audit added C++ residual API tasks P22.R1-P22.R4;
+  P22.R1 and P22.R4 are now implemented, leaving P22.R2-P22.R3;
+  modal typed-form evidence and Qt clipboard evidence also remain host-gated.
+  The Qt clipboard build additionally requires an IDA-compatible
+  `QT_NAMESPACE=QT` Qt package; a plain system Qt package is rejected at
+  configure time.
 
 Acceptance:
 
@@ -618,7 +642,6 @@ Acceptance:
 
 ## Suggested order
 
-1. P22.1 typed forms and builder.
-2. P22.5 Qt clipboard helpers.
-3. P22.9 Hex-Rays lifetime helper.
-4. P22.8 docs, migration checklist, examples, bindings sweep, and validation.
+1. P22.R2/P22.R3 type dependency and ctree/type collection snapshots.
+2. P22.H1/P22.H2 host evidence for modal forms and Qt clipboard.
+3. P22.V1 final validation and documentation refresh.

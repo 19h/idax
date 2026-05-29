@@ -533,9 +533,49 @@ tracked in `docs/compatibility_matrix.md`.
   into concrete closure subtasks: P22.H1.1-H1.3 for accepted modal typed-form
   evidence, P22.H2.1-H2.3 for Qt clipboard evidence with an IDA-compatible
   `QT_NAMESPACE=QT` Qt package, and P22.V1.1-V1.2 for final local validation
-  and documentation refresh. No new missing idax C++/Node/Rust API surface was
-  identified; lower-level ida-cdump raw SDK calls remain downstream migration
-  cleanup backed by existing idax APIs.
+  and documentation refresh. The follow-up ida-cdump port audit then identified
+  concrete residual C++ API tasks P22.R1-P22.R4 for processor operand access
+  metadata, type dependency traversal, ctree/type collection snapshots,
+  and serializable lvar locator metadata. P22.R5 graph recovery switch
+  metadata was subsequently implemented with `ida::graph::switch_table`.
+- 2026-05-28 P22.R1 processor operand metadata closure:
+  Added `ida::instruction::Operand::is_read()` / `is_written()` metadata from
+  canonical processor operand feature bits and migrated ida-cdump
+  `analysis/register_analyzer.cpp` to `ida::instruction::decode()` without
+  raw `insn_t`, `decode_insn`, `get_canon_feature`, `has_cf_use`,
+  `has_cf_chg`, `get_dtype_size`, or `get_reg_name`. Verified with
+  `cmake --build build-test-fetch --target idax_api_surface_check -j2` and
+  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+- 2026-05-28 P22.R4 lvar locator metadata closure:
+  Added serializable `LocalVariableUserSetting` / `LocalVariableLocator`
+  plus `saved_user_lvar_settings`, `apply_user_lvar_setting`, and
+  `apply_user_lvar_settings`. Migrated ida-cdump metadata lvar export/apply
+  to those APIs, removing direct `lvar_uservec_t`, `lvar_saved_info_t`,
+  `restore_user_lvar_settings`, `modify_user_lvar_info`, and direct per-lvar
+  `parse_decl` use from `transfer/metadata*.cpp`. Verified with
+  `cmake --build build-test-fetch --target idax_api_surface_check -j2` and
+  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+- 2026-05-28 P22.R3 partial ctree provenance migration:
+  Added read-only `ExpressionView` helpers for expression type sizing,
+  pointed-object sizing, member-name resolution, ternary third operands, and
+  assignment-LHS detection. Migrated ida-cdump `analysis/ctree_analyzer.*` to
+  `ida::decompiler::DecompiledFunction` / `ExpressionView` traversal without
+  raw `cfunc_t`, `cexpr_t`, `carg_t`, `ctree_visitor_t`, or `get_func`.
+  Verified with `cmake --build build-test-fetch --target idax_api_surface_check -j2`
+  and `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+- 2026-05-28 P22.R2/R3/R6 ida-cdump parity closure:
+  Added idax type declaration renderers, dependency-ordered ordinal
+  declarations, used-member trimming, DOT type graph rendering,
+  `ida::decompiler::collect_referenced_types(Address)`, and
+  `ida::ui::attach_registered_action` for popup-ready registered actions.
+  Migrated ida-cdump type collection, type rendering, type graph output,
+  metadata type export, and Local Types popup attachment to those APIs;
+  removed the local `type_formatter` and `type_graph_dot` sources. Residual
+  ida-cdump scan hits are idax calls, field names, IDA ABI primitives, or
+  local formatting utilities rather than parity-blocking SDK analysis calls.
+  Verified with `cmake --build build-test-fetch --target idax_api_surface_check -j2`,
+  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`,
+  and `git diff --check` in both checkouts.
 - 2026-05-28 P22 refreshed local parity evidence:
   `bash -n scripts/check_codedump_parity_evidence_log.sh
   scripts/run_codedump_parity_host_gates.sh

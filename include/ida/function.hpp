@@ -209,6 +209,12 @@ Status set_prototype(Address function_address, const ida::type::TypeInfo& type);
 /// Parse and apply a C declaration as a function prototype at the entry.
 Status apply_decl(Address function_address, std::string_view c_decl);
 
+/// Print the function's applied prototype/declaration.
+///
+/// If \p name_override is empty, the current function name is used.
+Result<std::string> declaration(Address function_address,
+                                std::string_view name_override = {});
+
 // ── Register variable operations ────────────────────────────────────────
 
 /// A register variable definition: renames a CPU register within a range.

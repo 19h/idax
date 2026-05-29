@@ -205,6 +205,7 @@ void check_function_surface() {
     using FunctionCodeAddressesFn = ida::Result<std::vector<ida::Address>>(*)(ida::Address);
     using FunctionSetPrototypeFn = ida::Status(*)(ida::Address, const ida::type::TypeInfo&);
     using FunctionApplyDeclFn = ida::Status(*)(ida::Address, std::string_view);
+    using FunctionDeclarationFn = ida::Result<std::string>(*)(ida::Address, std::string_view);
 
     (void)static_cast<FunctionUpdateFn>(&ida::function::update);
     (void)static_cast<FunctionReanalyzeFn>(&ida::function::reanalyze);
@@ -217,6 +218,7 @@ void check_function_surface() {
     (void)static_cast<FunctionCodeAddressesFn>(&ida::function::code_addresses);
     (void)static_cast<FunctionSetPrototypeFn>(&ida::function::set_prototype);
     (void)static_cast<FunctionApplyDeclFn>(&ida::function::apply_decl);
+    (void)static_cast<FunctionDeclarationFn>(&ida::function::declaration);
 }
 
 // ─── ida::instruction ───────────────────────────────────────────────────
@@ -236,6 +238,10 @@ void check_instruction_surface() {
     ida::instruction::StructOffsetPath stroff_path;
     (void)stroff_path.structure_ids;
     (void)stroff_path.delta;
+
+    ida::instruction::Operand operand;
+    (void)operand.is_read();
+    (void)operand.is_written();
 
     using InstructionSetOperandFormatFn = ida::Status(*)(ida::Address,
                                                          int,
@@ -405,6 +411,18 @@ void check_type_surface() {
     using ParseDeclarationsFn = ida::Result<ida::type::ParseDeclarationsReport>(*)(
         std::string_view,
         const ida::type::ParseDeclarationsOptions&);
+    using RenderNamedDeclarationsFn = ida::Result<std::string>(*)(
+        const std::vector<std::string>&,
+        int,
+        const ida::type::TypeRenderOptions&);
+    using RenderOrdinalDeclarationsFn = ida::Result<std::string>(*)(
+        const std::vector<std::uint32_t>&,
+        const ida::type::TypeRenderOptions&);
+    using RenderTypeGraphFn = ida::Result<std::string>(*)(
+        std::string_view,
+        const ida::type::TypeGraphOptions&);
+    using DeclarationsForOrdinalsFn = ida::Result<std::vector<ida::type::TypeDeclaration>>(*)(
+        const std::vector<std::uint32_t>&);
 
     (void)static_cast<FunctionTypeFactoryFn>(&ida::type::TypeInfo::function_type);
     (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
@@ -420,6 +438,10 @@ void check_type_surface() {
     (void)static_cast<ResolveTypedefFn>(&ida::type::TypeInfo::resolve_typedef);
     (void)static_cast<EnsureNamedTypeFn>(&ida::type::ensure_named_type);
     (void)static_cast<ParseDeclarationsFn>(&ida::type::parse_declarations);
+    (void)static_cast<RenderNamedDeclarationsFn>(&ida::type::render_named_declarations);
+    (void)static_cast<RenderOrdinalDeclarationsFn>(&ida::type::render_ordinal_declarations);
+    (void)static_cast<RenderTypeGraphFn>(&ida::type::render_type_graph);
+    (void)static_cast<DeclarationsForOrdinalsFn>(&ida::type::declarations_for_ordinals);
 
     ida::type::ParseDeclarationsOptions parse_options;
     parse_options.suppress_warnings = true;
@@ -427,6 +449,21 @@ void check_type_surface() {
     parse_options.raw_argument_names = true;
     parse_options.no_mangle = true;
     parse_options.pack_alignment = 1;
+
+    ida::type::TypeRenderOptions render_options;
+    render_options.size_comments = true;
+    render_options.trim_unreferenced = true;
+    ida::type::UsedMemberOffsets offsets;
+    offsets.type_name = "sample";
+    offsets.byte_offsets = {0, 4};
+    render_options.used_offsets.push_back(offsets);
+    ida::type::TypeGraphOptions graph_options;
+    graph_options.mode = ida::type::TypeGraphOptions::Mode::Table;
+    graph_options.max_depth = 2;
+    ida::type::TypeDeclaration declaration;
+    (void)declaration.ordinal;
+    (void)declaration.name;
+    (void)declaration.declaration;
     ida::type::ParseDeclarationsReport parse_report;
     parse_report.error_count = 0;
     CHECK(parse_report.ok(), "ParseDeclarationsReport::ok reports zero errors");
@@ -1072,6 +1109,16 @@ void check_ui_surface() {
     using ClipboardCopyFn = ida::Status(*)(std::string_view);
     using ClipboardReadFn = ida::Result<std::string>(*)();
     using ClipboardBackendFn = std::string_view(*)() noexcept;
+    using AttachRegisteredPopupFn = ida::Status(*)(
+        ida::ui::PopupHandle,
+        const ida::ui::Widget&,
+        std::string_view,
+        std::string_view);
+    using AttachRegisteredPopupHandleFn = ida::Status(*)(
+        ida::ui::PopupHandle,
+        void*,
+        std::string_view,
+        std::string_view);
 
     using OnWidgetVisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
     using OnWidgetInvisibleTitleFn = ida::Result<ida::ui::Token>(*)(std::function<void(std::string)>);
@@ -1123,6 +1170,8 @@ void check_ui_surface() {
     (void)static_cast<ClipboardCopyFn>(&ida::ui::copy_to_clipboard);
     (void)static_cast<ClipboardReadFn>(&ida::ui::read_clipboard);
     (void)static_cast<ClipboardBackendFn>(&ida::ui::clipboard_backend);
+    (void)static_cast<AttachRegisteredPopupFn>(&ida::ui::attach_registered_action);
+    (void)static_cast<AttachRegisteredPopupHandleFn>(&ida::ui::attach_registered_action);
 
     auto typed_widget_host = ida::ui::widget_host_as<int>(widget);
     (void)typed_widget_host;
@@ -1219,6 +1268,8 @@ void check_graph_surface() {
 
     ida::graph::BasicBlock bb;
     (void)bb.start; (void)bb.end; (void)bb.type;
+    ida::graph::SwitchTable st;
+    (void)st.table_address; (void)st.entry_count; (void)st.entry_size;
 
     using RefreshGraphFn = ida::Status(*)(std::string_view);
     using HasGraphViewerFn = ida::Result<bool>(*)(std::string_view);
@@ -1226,6 +1277,7 @@ void check_graph_surface() {
     using ActivateGraphViewerFn = ida::Status(*)(std::string_view);
     using CloseGraphViewerFn = ida::Status(*)(std::string_view);
     using CurrentLayoutFn = ida::graph::Layout(ida::graph::Graph::*)() const;
+    using SwitchTableFn = ida::Result<ida::graph::SwitchTable>(*)(ida::Address);
 
     (void)static_cast<RefreshGraphFn>(&ida::graph::refresh_graph);
     (void)static_cast<HasGraphViewerFn>(&ida::graph::has_graph_viewer);
@@ -1233,6 +1285,7 @@ void check_graph_surface() {
     (void)static_cast<ActivateGraphViewerFn>(&ida::graph::activate_graph_viewer);
     (void)static_cast<CloseGraphViewerFn>(&ida::graph::close_graph_viewer);
     (void)static_cast<CurrentLayoutFn>(&ida::graph::Graph::current_layout);
+    (void)static_cast<SwitchTableFn>(&ida::graph::switch_table);
 
     static_assert(std::is_move_constructible_v<ida::graph::Graph>);
     static_assert(!std::is_copy_constructible_v<ida::graph::Graph>);
@@ -1259,8 +1312,25 @@ void check_decompiler_surface() {
     ida::decompiler::LvarSnapshot lvar_snapshot;
     (void)lvar_snapshot.empty();
     (void)lvar_snapshot.saved_variable_count();
+    ida::decompiler::LocalVariableUserSetting lvar_setting;
+    (void)lvar_setting.locator.kind;
+    (void)lvar_setting.locator.register_id;
+    (void)lvar_setting.locator.stack_offset;
+    (void)lvar_setting.locator.definition_address;
+    (void)lvar_setting.name;
+    (void)lvar_setting.type_declaration;
+    (void)lvar_setting.comment;
+    (void)ida::decompiler::LocalVariableLocationKind::None;
+    (void)ida::decompiler::LocalVariableLocationKind::Register;
+    (void)ida::decompiler::LocalVariableLocationKind::Stack;
 
     using DecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(ida::Address);
+    using SavedUserLvarSettingsFn = ida::Result<std::vector<ida::decompiler::LocalVariableUserSetting>>(*)(ida::Address);
+    using ApplyUserLvarSettingFn = ida::Status(*)(ida::Address, const ida::decompiler::LocalVariableUserSetting&);
+    using ApplyUserLvarSettingsFn = ida::Status(*)(
+        ida::Address,
+        const std::vector<ida::decompiler::LocalVariableUserSetting>&);
+    using CollectReferencedTypesFn = ida::Result<ida::decompiler::ReferencedTypeCollection>(*)(ida::Address);
     using InitializeDecompilerFn = ida::Result<ida::decompiler::ScopedSession>(*)();
     using ScopedSessionCloseFn = ida::Status(ida::decompiler::ScopedSession::*)();
     using ScopedSessionValidFn = bool(ida::decompiler::ScopedSession::*)() const noexcept;
@@ -1318,6 +1388,8 @@ void check_decompiler_surface() {
     using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
     using ExprHelperNameFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
     using ExprTypeDeclarationFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
+    using ExprTypeByteWidthFn = ida::Result<int>(ida::decompiler::ExpressionView::*)() const;
+    using ExprBoolNoexceptFn = bool(ida::decompiler::ExpressionView::*)() const noexcept;
     using ExprParentFn = ida::Result<std::optional<ida::decompiler::CtreeItemView>>(
         ida::decompiler::ExpressionView::*)() const;
     using ExprParentsFn = ida::Result<std::vector<ida::decompiler::CtreeItemView>>(
@@ -1650,6 +1722,10 @@ void check_decompiler_surface() {
 
     (void)&ida::decompiler::available;
     (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
+    (void)static_cast<SavedUserLvarSettingsFn>(&ida::decompiler::saved_user_lvar_settings);
+    (void)static_cast<ApplyUserLvarSettingFn>(&ida::decompiler::apply_user_lvar_setting);
+    (void)static_cast<ApplyUserLvarSettingsFn>(&ida::decompiler::apply_user_lvar_settings);
+    (void)static_cast<CollectReferencedTypesFn>(&ida::decompiler::collect_referenced_types);
     (void)static_cast<InitializeDecompilerFn>(&ida::decompiler::initialize);
     (void)static_cast<ScopedSessionCloseFn>(&ida::decompiler::ScopedSession::close);
     (void)static_cast<ScopedSessionValidFn>(&ida::decompiler::ScopedSession::valid);
@@ -1670,6 +1746,11 @@ void check_decompiler_surface() {
     (void)static_cast<ExprCallArgFn>(&ida::decompiler::ExpressionView::call_argument);
     (void)static_cast<ExprHelperNameFn>(&ida::decompiler::ExpressionView::helper_name);
     (void)static_cast<ExprTypeDeclarationFn>(&ida::decompiler::ExpressionView::type_declaration);
+    (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::type_byte_width);
+    (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::pointed_type_byte_width);
+    (void)static_cast<ExprHelperNameFn>(&ida::decompiler::ExpressionView::member_name);
+    (void)static_cast<ExprBoolNoexceptFn>(&ida::decompiler::ExpressionView::is_assignment_lhs);
+    (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::third);
     (void)static_cast<ExprParentFn>(&ida::decompiler::ExpressionView::parent);
     (void)static_cast<ExprParentsFn>(&ida::decompiler::ExpressionView::parents);
     (void)static_cast<StmtParentFn>(&ida::decompiler::StatementView::parent);

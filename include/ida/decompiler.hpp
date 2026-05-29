@@ -11,6 +11,7 @@
 #include <ida/error.hpp>
 #include <ida/address.hpp>
 #include <ida/instruction.hpp>
+#include <ida/type.hpp>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -822,6 +823,21 @@ enum class VariableStorage {
     Stack,     ///< Stored on the stack.
 };
 
+/// Serializable storage locator kind for a saved local-variable setting.
+enum class LocalVariableLocationKind {
+    None,
+    Register,
+    Stack,
+};
+
+/// Serializable Hex-Rays local-variable locator.
+struct LocalVariableLocator {
+    LocalVariableLocationKind kind{LocalVariableLocationKind::None};
+    int         register_id{0};
+    std::int64_t stack_offset{0};
+    Address     definition_address{BadAddress};
+};
+
 /// A local variable in a decompiled function.
 struct LocalVariable {
     std::size_t index{0};      ///< Stable index used by ExprVariable references.
@@ -845,6 +861,19 @@ struct LocalVariable {
     std::string comment;
 };
 
+/// Serializable saved Hex-Rays local-variable user setting.
+struct LocalVariableUserSetting {
+    LocalVariableLocator locator;
+    std::string name;
+    std::string type_declaration;
+    std::string comment;
+};
+
+struct ReferencedTypeCollection {
+    std::vector<std::uint32_t> ordinals;
+    std::vector<ida::type::UsedMemberOffsets> used_offsets;
+};
+
 /// Opaque snapshot of saved Hex-Rays local-variable user settings.
 ///
 /// The snapshot owns SDK-derived state privately; it can be captured from one
@@ -866,6 +895,22 @@ private:
     struct Impl;
     std::shared_ptr<Impl> impl_;
 };
+
+/// Enumerate saved user local-variable settings for a function.
+Result<std::vector<LocalVariableUserSetting>>
+saved_user_lvar_settings(Address function_address);
+
+/// Apply one saved user local-variable setting to a function.
+Status apply_user_lvar_setting(Address function_address,
+                               const LocalVariableUserSetting& setting);
+
+/// Apply saved user local-variable settings to a function.
+Status apply_user_lvar_settings(Address function_address,
+                                const std::vector<LocalVariableUserSetting>& settings);
+
+/// Collect named local type ordinals and accessed member offsets referenced by
+/// a decompiled function.
+Result<ReferencedTypeCollection> collect_referenced_types(Address function_address);
 
 // ── Ctree item types ────────────────────────────────────────────────────
 
@@ -1012,6 +1057,12 @@ public:
     /// Return Hex-Rays' type/declaration string for this expression.
     [[nodiscard]] Result<std::string> type_declaration() const;
 
+    /// Return the expression type size in bytes.
+    [[nodiscard]] Result<int> type_byte_width() const;
+
+    /// For pointer-typed expressions, return the pointed-object size in bytes.
+    [[nodiscard]] Result<int> pointed_type_byte_width() const;
+
     /// For ExprString: return the string constant. Error otherwise.
     [[nodiscard]] Result<std::string> string_value() const;
 
@@ -1026,6 +1077,12 @@ public:
 
     /// For ExprMemberRef/ExprMemberPtr: return the member offset. Error otherwise.
     [[nodiscard]] Result<std::uint32_t> member_offset() const;
+
+    /// For ExprMemberRef/ExprMemberPtr: return the resolved member name, if any.
+    [[nodiscard]] Result<std::string> member_name() const;
+
+    /// True when this expression is the left operand of a simple assignment.
+    [[nodiscard]] bool is_assignment_lhs() const noexcept;
 
     // ── Sub-expression navigation ───────────────────────────────────────
 
@@ -1042,6 +1099,9 @@ public:
     /// Get the operand count (0 for leaves, 1 for unary, 2 for binary, etc.).
     [[nodiscard]] int operand_count() const noexcept;
 
+    /// For ternary expressions: return the third operand.
+    [[nodiscard]] Result<ExpressionView> third() const;
+
     /// Get a C-like text representation of the expression.
     [[nodiscard]] Result<std::string> to_string() const;
 
@@ -1056,12 +1116,14 @@ public:
     explicit ExpressionView(
         Tag,
         void* raw,
-        std::shared_ptr<const std::vector<CtreeItemView>> parents = {}) noexcept
-        : raw_(raw), parents_(std::move(parents)) {}
+        std::shared_ptr<const std::vector<CtreeItemView>> parents = {},
+        void* raw_parent = nullptr) noexcept
+        : raw_(raw), parents_(std::move(parents)), raw_parent_(raw_parent) {}
 
 private:
     void* raw_{nullptr};
     std::shared_ptr<const std::vector<CtreeItemView>> parents_{};
+    void* raw_parent_{nullptr};
 };
 
 /// Read-only view of a ctree statement.
