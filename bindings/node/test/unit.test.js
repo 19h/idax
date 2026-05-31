@@ -108,7 +108,7 @@ describe('UI Namespace Structure', () => {
         expect(error.category).toBe(category);
     }
 
-    it('should expose deterministic default clipboard unsupported behavior', () => {
+    it('should expose deterministic clipboard backend behavior', () => {
         if (!ui) return;
         const backend = ui.clipboardBackend();
         expect(typeof backend).toBe('string');

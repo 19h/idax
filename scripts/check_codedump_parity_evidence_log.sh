@@ -7,9 +7,9 @@ if [[ "${1:-}" == "--self-test" ]]; then
 
   default_log="${tmpdir}/default.log"
   cat > "${default_log}" <<'LOG'
-=== clipboard default backend contract ===
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== clipboard backend contract ===
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 === host-gated Hex-Rays scoped session ===
@@ -20,9 +20,9 @@ LOG
 
   failed_summary_log="${tmpdir}/failed-summary.log"
   cat > "${failed_summary_log}" <<'LOG'
-=== clipboard default backend contract ===
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== clipboard backend contract ===
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 === host-gated Hex-Rays scoped session ===
@@ -36,9 +36,9 @@ LOG
 
   contaminated_summary_log="${tmpdir}/contaminated-summary.log"
   cat > "${contaminated_summary_log}" <<'LOG'
-=== clipboard default backend contract ===
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== clipboard backend contract ===
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 === host-gated Hex-Rays scoped session ===
@@ -58,8 +58,8 @@ LOG
 
   default_missing_clipboard_log="${tmpdir}/default-missing-clipboard.log"
   cat > "${default_missing_clipboard_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 === host-gated Hex-Rays scoped session ===
@@ -73,8 +73,8 @@ LOG
 
   hexrays_log="${tmpdir}/hexrays.log"
   cat > "${hexrays_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 === host-gated Hex-Rays scoped session ===
@@ -95,9 +95,9 @@ LOG
 
   combined_log="${tmpdir}/combined.log"
   cat > "${combined_log}" <<'LOG'
-=== clipboard default backend contract ===
+=== clipboard backend contract ===
 
-=== host-gated Qt clipboard roundtrip ===
+=== host-gated clipboard roundtrip ===
 
 === host-gated codedump-shaped typed form ===
 
@@ -158,15 +158,15 @@ LOG
 
   qt_ok_log="${tmpdir}/qt-ok.log"
   cat > "${qt_ok_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
+=== host-gated clipboard roundtrip ===
 codedump_parity_host_gates_test: 2 passed, 0 failed, 3 skipped
 LOG
   "$0" "${qt_ok_log}" qt-clipboard >/dev/null
 
   qt_skip_log="${tmpdir}/qt-skip.log"
   cat > "${qt_skip_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 codedump_parity_host_gates_test: 3 passed, 0 failed, 3 skipped
 LOG
   if "$0" "${qt_skip_log}" qt-clipboard >/dev/null 2>&1; then
@@ -185,7 +185,7 @@ LOG
 
   qt_too_few_passes_log="${tmpdir}/qt-too-few-passes.log"
   cat > "${qt_too_few_passes_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
+=== host-gated clipboard roundtrip ===
 codedump_parity_host_gates_test: 1 passed, 0 failed, 3 skipped
 LOG
   if "$0" "${qt_too_few_passes_log}" qt-clipboard >/dev/null 2>&1; then
@@ -195,8 +195,8 @@ LOG
 
   hexrays_missing_log="${tmpdir}/hexrays-missing.log"
   cat > "${hexrays_missing_log}" <<'LOG'
-=== host-gated Qt clipboard roundtrip ===
-[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host
+=== host-gated clipboard roundtrip ===
+[SKIP] set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
 === host-gated codedump-shaped typed form ===
 [SKIP] set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
 codedump_parity_host_gates_test: 9 passed, 0 failed, 2 skipped
@@ -269,14 +269,14 @@ require_line '^codedump_parity_host_gates_test: [0-9]+ passed, 0 failed, [0-9]+ 
 
 case "${GATE}" in
   default)
-    require_section "clipboard default backend contract"
-    require_section "host-gated Qt clipboard roundtrip"
+    require_section "clipboard backend contract"
+    require_section "host-gated clipboard roundtrip"
     require_section "host-gated codedump-shaped typed form"
     require_section "host-gated Hex-Rays scoped session"
     require_line '^codedump_parity_host_gates_test: 3 passed, 0 failed, 3 skipped$' \
       "default 3-pass/3-skip summary"
-    require_line 'set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host' \
-      "Qt clipboard skip"
+    require_line 'set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access' \
+      "clipboard roundtrip skip"
     require_line 'set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host' \
       "modal typed-form skip"
     require_line 'set IDAX_RUN_HEXRAYS_SESSION=1 under a licensed Hex-Rays host' \
@@ -295,10 +295,10 @@ case "${GATE}" in
       "modal accepted-form success summary"
     ;;
   qt-clipboard)
-    require_section "host-gated Qt clipboard roundtrip"
-    reject_section_skip "host-gated Qt clipboard roundtrip"
+    require_section "host-gated clipboard roundtrip"
+    reject_section_skip "host-gated clipboard roundtrip"
     require_line '^codedump_parity_host_gates_test: ([2-9]|[1-9][0-9]+) passed, 0 failed, [0-9]+ skipped$' \
-      "Qt clipboard roundtrip success summary"
+      "clipboard roundtrip success summary"
     ;;
   *)
     echo "error: unknown gate '${GATE}'" >&2

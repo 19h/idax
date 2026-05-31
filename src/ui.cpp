@@ -94,13 +94,13 @@ Result<std::string> ask_text(std::string_view prompt,
         formatted_prompt += "ACCEPT TABS\n";
     if (normal_font)
         formatted_prompt += "NORMAL FONT\n";
-    formatted_prompt.append(qprompt.c_str(), qprompt.length());
+    formatted_prompt += "%s";
 
     if (!::ask_text(&answer,
                     max_size,
                     qdefault.empty() ? nullptr : qdefault.c_str(),
-                    "%s",
-                    formatted_prompt.c_str())) {
+                    formatted_prompt.c_str(),
+                    qprompt.c_str())) {
         return std::unexpected(Error::validation("User cancelled multiline input"));
     }
     return ida::detail::to_string(answer);
@@ -118,11 +118,7 @@ Result<bool> ask_form(std::string_view markup) {
 }
 
 std::string_view clipboard_backend() noexcept {
-#if IDAX_HAVE_QT_CLIPBOARD
-    return "Qt";
-#else
-    return "unsupported";
-#endif
+    return detail::clipboard_backend_name();
 }
 
 Status copy_to_clipboard(std::string_view text) {

@@ -75,6 +75,15 @@ tracked in `docs/compatibility_matrix.md`.
 
 ## Recent focused validation
 
+- 2026-05-31 clipboard fallback availability:
+  `cmake --build build-test-fetch --target idax_api_surface_check -j2`
+  passed after adding external clipboard-command fallback and backend
+  detection. `scripts/check_codedump_parity_evidence_log.sh --self-test` and
+  `git diff --check` passed. The host has working `xclip` clipboard access
+  (`xclip` write/read/restore roundtrip passed). The mirrored ida-cdump cached
+  idax dependency also rebuilt successfully with
+  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build
+  -j2` from `<dev-root_>/ida-cdump`.
 - 2026-05-28 P22.10 bulk type declaration import:
   `cmake --build build-test-fetch --target idax_api_surface_check idax_type_roundtrip_test -j2`
   passed.
@@ -176,9 +185,9 @@ tracked in `docs/compatibility_matrix.md`.
   `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm
   test` passed from `bindings/node`, loading the native addon and confirming
   structural assertions including `WaitBox`, `askText`, the UI clipboard, and
-  fixed typed-form entrypoints. The UI assertions now also exercise non-modal
-  runtime behavior: `askText` argument-shape validation, default unsupported
-  clipboard errors, and empty-markup validation failures for each fixed
+  fixed typed-form entrypoints. The UI assertions also exercise non-modal
+  runtime behavior: `askText` argument-shape validation, clipboard backend
+  contract behavior, and empty-markup validation failures for each fixed
   typed-form entrypoint. Current result: 175/175 passed.
 - 2026-05-28 Node/Rust path binding parity:
   Node now exposes `path.basename`, `path.dirname`, and `path.isDirectory`;
@@ -277,8 +286,8 @@ tracked in `docs/compatibility_matrix.md`.
   Hardened Rust `ui::{copy_to_clipboard,read_clipboard}` so the default
   native `unsupported` backend maps failed clipboard operations to
   `ErrorCategory::Unsupported` even if the FFI error slot is empty, and added
-  `ui_tests::test_clipboard_default_contract_and_validation` for embedded-NUL
-  validation plus default unsupported read/write behavior.
+  clipboard wrapper validation for embedded-NUL input plus unsupported-backend
+  error mapping when no backend is available.
   `env -u IDASDK cargo test -p idax ui_tests::test_clipboard_default_contract_and_validation --lib`
   and `env -u IDASDK cargo test -p idax --lib --no-run` pass from
   `bindings/rust`.
@@ -594,9 +603,9 @@ tracked in `docs/compatibility_matrix.md`.
   `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<userhome>/ida-pro-9.3
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo`, including Hex-Rays evidence verification with 9 checks,
-  zero failures, and the expected modal/Qt skips. Explicit verification of
+  zero failures, and the expected modal/clipboard skips. Explicit verification of
   `build-codedump-parity-host/codedump-host-default.log` in `default` mode and
   `build-codedump-parity-host/codedump-host-hexrays.log` in `hexrays` mode
   passes. Remaining closure evidence is unchanged: P22.H1 accepted modal form
-  execution and P22.H2 Qt clipboard execution in an IDA Qt UI host with a
-  namespaced Qt package.
+  execution and P22.H2 clipboard execution in an IDA UI host with clipboard
+  access.

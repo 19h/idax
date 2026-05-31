@@ -130,13 +130,15 @@ Result<bool> ask_form(std::string_view markup);
 /// Copy text to the host clipboard.
 ///
 /// Uses the Qt clipboard backend when idax was built with
-/// `IDAX_ENABLE_QT_CLIPBOARD=ON`; otherwise returns `Unsupported`.
+/// `IDAX_ENABLE_QT_CLIPBOARD=ON`; otherwise falls back to common host
+/// clipboard commands such as `wl-copy`, `xclip`, `xsel`, `pbcopy`, or
+/// `clip.exe`.
 Status copy_to_clipboard(std::string_view text);
 
 /// Read text from the host clipboard.
 Result<std::string> read_clipboard();
 
-/// Clipboard backend name for diagnostics (`"Qt"` or `"unsupported"`).
+/// Clipboard backend name for diagnostics.
 [[nodiscard]] std::string_view clipboard_backend() noexcept;
 
 // ── Typed forms ────────────────────────────────────────────────────────

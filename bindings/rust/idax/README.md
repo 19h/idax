@@ -142,7 +142,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`loader`] | Loader modules | `InputFileHandle` (seek, read, filename), `LoadFlags` decode/encode, `file_to_database`, `memory_to_database`, `set_processor`, `abort_load` |
 | [`processor`] | Processor modules | `Processor` trait (5 required + 15 optional methods), `InstructionFeature` / `RegisterInfo` / `AssemblerInfo` types |
 | [`graph`] | Custom graphs | `Graph` (RAII handle), `GraphCallback` trait for interactive event handling, `flow_chart` for function CFG extraction |
-| [`ui`] | UI utilities | `message`, `warning`, `error`, `info` dialogs, `ask_*` input prompts, fixed ida-cdump typed-form entrypoints, `WaitBox`, `ChooserImpl` trait for custom list dialogs, widget management, timer scheduling, optional Qt clipboard helpers, UI event subscriptions |
+| [`ui`] | UI utilities | `message`, `warning`, `error`, `info` dialogs, `ask_*` input prompts, fixed ida-cdump typed-form entrypoints, `WaitBox`, `ChooserImpl` trait for custom list dialogs, widget management, timer scheduling, clipboard helpers, UI event subscriptions |
 | [`lines`] | Color tags | `strip_color_tags`, `has_color_tags` |
 | [`diagnostics`] | Logging | `log`, `log_error`, `performance_counter`, `reset_performance_counter`, `dump_performance_counters`, `is_verbose`, `set_verbose` |
 
@@ -156,19 +156,19 @@ represent without raw SDK escape hatches:
   `ask_form_three_svals_path_two_bitsets` cover the audited fixed typed-form
   packs. They validate empty or NUL-containing markup before opening modal UI.
 - `ui::WaitBox`, `ui::ask_text`, `ui::{copy_to_clipboard, read_clipboard,
-  clipboard_backend}` cover progress UI, multiline fallback text, and optional
-  Qt clipboard behavior. Default non-Qt builds report the clipboard backend as
-  `unsupported`.
+  clipboard_backend}` cover progress UI, multiline fallback text, and host
+  clipboard behavior through Qt or common external clipboard commands.
 - `decompiler::initialize() -> ScopedSession`,
   `decompiler::on_populating_popup`, lvar snapshots/comment setters, ctree
   callback payload metadata, `function::{set_prototype, apply_decl}`,
   `types::parse_declarations`, `database::idb_path`, and `path::{basename,
   dirname, is_directory}` mirror the C++ parity APIs.
 
-Runtime execution of modal forms, wait boxes, and Qt clipboard still requires
-an interactive IDA UI host. Qt clipboard support also requires idax to be built
-with `IDAX_ENABLE_QT_CLIPBOARD=ON` against an IDA-compatible Qt package built
-with `QT_NAMESPACE=QT`.
+Runtime execution of modal forms and wait boxes still requires an interactive
+IDA UI host. Qt clipboard support requires idax to be built with
+`IDAX_ENABLE_QT_CLIPBOARD=ON` against an IDA-compatible Qt package built with
+`QT_NAMESPACE=QT`; non-Qt builds can use `wl-copy`, `xclip`, `xsel`, `pbcopy`,
+or `clip.exe` when available on the host.
 
 ## Error handling
 

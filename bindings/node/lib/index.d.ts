@@ -119,13 +119,13 @@ export namespace ui {
     function askText(prompt: string, defaultValue?: string, options?: AskTextOptions): string;
     function askText(prompt: string, options?: AskTextOptions): string;
 
-    /** Copy text to the host clipboard. Requires Qt clipboard support in native idax. */
+    /** Copy text to the host clipboard via Qt or a host clipboard command. */
     function copyToClipboard(text: string): void;
 
     /** Read text from the host clipboard. */
     function readClipboard(): string;
 
-    /** Clipboard backend name, e.g. "Qt" or "unsupported". */
+    /** Clipboard backend name, e.g. "Qt", "external:xclip", or "unsupported". */
     function clipboardBackend(): string;
 }
 

@@ -21,7 +21,7 @@ bool env_enabled(const char* name) {
 }
 
 void test_default_clipboard_contract() {
-    SECTION("clipboard default backend contract");
+    SECTION("clipboard backend contract");
 
     auto backend = ida::ui::clipboard_backend();
     CHECK(!backend.empty());
@@ -31,15 +31,16 @@ void test_default_clipboard_contract() {
                   ida::ErrorCategory::Unsupported);
         CHECK_ERR(ida::ui::read_clipboard(), ida::ErrorCategory::Unsupported);
     } else {
-        SKIP("clipboard backend is available; run IDAX_RUN_QT_CLIPBOARD=1 for roundtrip");
+        CHECK(backend == "Qt" || backend.rfind("external:", 0) == 0);
+        CHECK(backend.find(' ') == std::string_view::npos);
     }
 }
 
 void test_qt_clipboard_roundtrip() {
-    SECTION("host-gated Qt clipboard roundtrip");
+    SECTION("host-gated clipboard roundtrip");
 
     if (!env_enabled("IDAX_RUN_QT_CLIPBOARD")) {
-        SKIP("set IDAX_RUN_QT_CLIPBOARD=1 under an IDA Qt UI host");
+        SKIP("set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access");
         return;
     }
 

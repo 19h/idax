@@ -115,10 +115,11 @@ dialog packs. They do not expose a runtime vararg vector.
 * `readClipboard(): string`
 * `clipboardBackend(): string`
 
-The default native build reports `clipboardBackend() === "unsupported"` and
-clipboard read/write throw `Unsupported`. Qt clipboard runtime support requires
-the native idax build to use `IDAX_ENABLE_QT_CLIPBOARD=ON` with an
-IDA-compatible Qt package built with `QT_NAMESPACE=QT`.
+Native builds use Qt when `IDAX_ENABLE_QT_CLIPBOARD=ON`; otherwise idax falls
+back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
+`pbcopy`, or `clip.exe`. If no usable backend is present,
+`clipboardBackend() === "unsupported"` and clipboard read/write throw
+`Unsupported`.
 
 ---
 

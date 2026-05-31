@@ -21,7 +21,7 @@ The runner arguments are optional and default to
 must exist; the runner now fails before execution if it does not.
 
 The default run should pass with expected skips for the interactive modal form,
-Qt clipboard, and Hex-Rays session gates unless their opt-in environment
+clipboard roundtrip, and Hex-Rays session gates unless their opt-in environment
 variables are set.
 
 When `IDAX_EVIDENCE_LOG` is set, the runner captures the build/run output,
@@ -61,10 +61,10 @@ host sweeps write a mode-specific log such as `codedump-host-hexrays.log` or
 
 | Gate | Required section | Minimum summary | Verifier mode |
 | --- | --- | --- | --- |
-| Default local evidence | `clipboard default backend contract`; modal, Qt clipboard, and Hex-Rays sections skipped with expected reasons | exactly `3 passed, 0 failed, 3 skipped` | `default` |
+| Default local evidence | `clipboard backend contract`; modal, clipboard roundtrip, and Hex-Rays sections skipped with expected reasons | exactly `3 passed, 0 failed, 3 skipped` | `default` |
 | Hex-Rays scoped session | `host-gated Hex-Rays scoped session` present and unskipped | at least `9 passed`, zero failures | `hexrays` |
 | Modal typed form | `host-gated codedump-shaped typed form` present and unskipped | at least `4 passed`, zero failures | `modal` |
-| Qt clipboard | `host-gated Qt clipboard roundtrip` present and unskipped | at least `2 passed`, zero failures | `qt-clipboard` |
+| Clipboard | `host-gated clipboard roundtrip` present and unskipped | at least `2 passed`, zero failures | `qt-clipboard` |
 
 Any log containing a nonzero-failure
 `codedump_parity_host_gates_test` summary is rejected even if a later
@@ -94,28 +94,28 @@ scripts/check_codedump_parity_evidence_log.sh \
   logs/codedump-modal-forms.log modal
 ```
 
-## Qt clipboard evidence
+## Clipboard Evidence
 
 Prerequisites:
 
-- IDA Qt UI host.
-- `IDAX_ENABLE_QT_CLIPBOARD=ON`.
-- `IDAX_QT6_DIR` pointing at an IDA-compatible Qt6 package built with
-  `QT_NAMESPACE=QT`; plain system Qt is intentionally rejected.
+- IDA UI host with clipboard access.
+- Either a Qt-enabled idax build, or an external clipboard command available on
+  the host (`wl-copy`, `xclip`, `xsel`, `pbcopy`, or `clip.exe`).
+- For Qt-backed runs, set `IDAX_ENABLE_QT_CLIPBOARD=ON` and `IDAX_QT6_DIR` to
+  an IDA-compatible Qt6 package built with `QT_NAMESPACE=QT`; plain system Qt
+  is intentionally rejected.
 
 Run:
 
 ```bash
-IDAX_ENABLE_QT_CLIPBOARD=ON \
-IDAX_QT6_DIR=/path/to/qt-install/lib/cmake/Qt6 \
 IDAX_RUN_QT_CLIPBOARD=1 \
 IDAX_EVIDENCE_LOG=logs/codedump-qt-clipboard.log \
   scripts/run_codedump_parity_host_gates.sh
 ```
 
 Evidence is complete when the log contains the
-`host-gated Qt clipboard roundtrip` section without a skip and the final summary
-reports at least 2 checks, zero failures, and no Qt clipboard-section skip.
+`host-gated clipboard roundtrip` section without a skip and the final summary
+reports at least 2 checks, zero failures, and no clipboard-section skip.
 
 Verify the log mechanically:
 
