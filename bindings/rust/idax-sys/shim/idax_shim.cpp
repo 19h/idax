@@ -2519,11 +2519,39 @@ int calling_convention_to_int(ida::type::CallingConvention cc) {
     return static_cast<int>(cc);
 }
 
+int type_kind_to_int(ida::type::TypeKind kind) {
+    return static_cast<int>(kind);
+}
+
+int enum_radix_to_int(ida::type::EnumRadix radix) {
+    return static_cast<int>(radix);
+}
+
+int fill_enum_member(IdaxTypeEnumMember* out, const ida::type::EnumMember& member) {
+    out->name = dup_string(member.name);
+    out->value = member.value;
+    out->comment = dup_string(member.comment);
+    if (out->name == nullptr || out->comment == nullptr) {
+        std::free(out->name);
+        out->name = nullptr;
+        std::free(out->comment);
+        out->comment = nullptr;
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
 int fill_type_member(IdaxTypeMember* out, const ida::type::Member& member) {
     out->name = dup_string(member.name);
     out->type = new ida::type::TypeInfo(member.type);
     out->byte_offset = member.byte_offset;
     out->bit_size = member.bit_size;
+    out->bit_offset = member.bit_offset;
+    out->storage_byte_width = member.storage_byte_width;
+    out->is_baseclass = member.is_baseclass ? 1 : 0;
+    out->is_vftable = member.is_vftable ? 1 : 0;
+    out->is_gap = member.is_gap ? 1 : 0;
+    out->is_bitfield = member.is_bitfield ? 1 : 0;
     out->comment = dup_string(member.comment);
     if (out->name == nullptr || out->comment == nullptr) {
         std::free(out->name);
@@ -2532,6 +2560,18 @@ int fill_type_member(IdaxTypeMember* out, const ida::type::Member& member) {
         out->type = nullptr;
         std::free(out->comment);
         out->comment = nullptr;
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int fill_function_argument(IdaxTypeFunctionArgument* out,
+                           const ida::type::FunctionArgument& argument) {
+    out->name = dup_string(argument.name);
+    out->type = new ida::type::TypeInfo(argument.type);
+    if (out->name == nullptr) {
+        delete static_cast<ida::type::TypeInfo*>(out->type);
+        out->type = nullptr;
         return fail(ida::Error::internal("malloc failed"));
     }
     return 0;
@@ -2547,6 +2587,16 @@ void free_type_member_contents(IdaxTypeMember* member) {
     member->type = nullptr;
     std::free(member->comment);
     member->comment = nullptr;
+}
+
+void free_function_argument_contents(IdaxTypeFunctionArgument* argument) {
+    if (argument == nullptr) {
+        return;
+    }
+    std::free(argument->name);
+    argument->name = nullptr;
+    delete static_cast<ida::type::TypeInfo*>(argument->type);
+    argument->type = nullptr;
 }
 
 void free_enum_member_contents(IdaxTypeEnumMember* member) {
@@ -2749,12 +2799,46 @@ int idax_type_is_typedef(IdaxTypeHandle ti) {
     return static_cast<ida::type::TypeInfo*>(ti)->is_typedef() ? 1 : 0;
 }
 
+int idax_type_is_bool(IdaxTypeHandle ti) {
+    return static_cast<ida::type::TypeInfo*>(ti)->is_bool() ? 1 : 0;
+}
+
+int idax_type_is_char(IdaxTypeHandle ti) {
+    return static_cast<ida::type::TypeInfo*>(ti)->is_char() ? 1 : 0;
+}
+
+int idax_type_is_unsigned_char(IdaxTypeHandle ti) {
+    return static_cast<ida::type::TypeInfo*>(ti)->is_unsigned_char() ? 1 : 0;
+}
+
+int idax_type_is_signed(IdaxTypeHandle ti) {
+    return static_cast<ida::type::TypeInfo*>(ti)->is_signed() ? 1 : 0;
+}
+
+int idax_type_kind(IdaxTypeHandle ti, int* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = type_kind_to_int(static_cast<ida::type::TypeInfo*>(ti)->kind());
+    return 0;
+}
+
 int idax_type_size(IdaxTypeHandle ti, size_t* out) {
     RETURN_RESULT_VALUE(static_cast<ida::type::TypeInfo*>(ti)->size());
 }
 
 int idax_type_to_string(IdaxTypeHandle ti, char** out) {
     RETURN_RESULT_STRING(static_cast<ida::type::TypeInfo*>(ti)->to_string());
+}
+
+int idax_type_name(IdaxTypeHandle ti, char** out) {
+    RETURN_RESULT_STRING(static_cast<ida::type::TypeInfo*>(ti)->name());
+}
+
+int idax_type_declaration(IdaxTypeHandle ti, const char* declarator_name, char** out) {
+    RETURN_RESULT_STRING(static_cast<ida::type::TypeInfo*>(ti)->declaration(
+        declarator_name ? declarator_name : ""));
 }
 
 int idax_type_pointee_type(IdaxTypeHandle ti, IdaxTypeHandle* out) {
@@ -2817,6 +2901,46 @@ int idax_type_function_argument_types(IdaxTypeHandle ti,
     return 0;
 }
 
+int idax_type_function_details(IdaxTypeHandle ti, IdaxTypeFunctionDetails** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = nullptr;
+
+    auto r = static_cast<ida::type::TypeInfo*>(ti)->function_details();
+    if (!r) return fail(r.error());
+
+    auto* details = static_cast<IdaxTypeFunctionDetails*>(
+        std::calloc(1, sizeof(IdaxTypeFunctionDetails)));
+    if (details == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+
+    details->return_type = new ida::type::TypeInfo(r->return_type);
+    details->calling_convention = calling_convention_to_int(r->calling_convention);
+    details->variadic = r->variadic ? 1 : 0;
+    details->argument_count = r->arguments.size();
+
+    if (!r->arguments.empty()) {
+        details->arguments = static_cast<IdaxTypeFunctionArgument*>(
+            std::calloc(r->arguments.size(), sizeof(IdaxTypeFunctionArgument)));
+        if (details->arguments == nullptr) {
+            idax_type_function_details_free(details);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        for (size_t i = 0; i < r->arguments.size(); ++i) {
+            if (fill_function_argument(&details->arguments[i], r->arguments[i]) != 0) {
+                idax_type_function_details_free(details);
+                return -1;
+            }
+        }
+    }
+
+    *out = details;
+    return 0;
+}
+
 int idax_type_calling_convention(IdaxTypeHandle ti, int* out) {
     clear_error();
     auto r = static_cast<ida::type::TypeInfo*>(ti)->calling_convention();
@@ -2850,19 +2974,57 @@ int idax_type_enum_members(IdaxTypeHandle ti, IdaxTypeEnumMember** out,
         return fail(ida::Error::internal("malloc failed"));
     }
     for (size_t i = 0; i < members.size(); ++i) {
-        raw[i].name = dup_string(members[i].name);
-        raw[i].value = members[i].value;
-        raw[i].comment = dup_string(members[i].comment);
-        if (raw[i].name == nullptr || raw[i].comment == nullptr) {
+        raw[i].name = nullptr;
+        raw[i].comment = nullptr;
+        if (fill_enum_member(&raw[i], members[i]) != 0) {
             for (size_t j = 0; j <= i; ++j) {
                 free_enum_member_contents(&raw[j]);
             }
             std::free(raw);
-            return fail(ida::Error::internal("malloc failed"));
+            return -1;
         }
     }
 
     *out = raw;
+    return 0;
+}
+
+int idax_type_enum_details(IdaxTypeHandle ti, IdaxTypeEnumDetails** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = nullptr;
+
+    auto r = static_cast<ida::type::TypeInfo*>(ti)->enum_details();
+    if (!r) return fail(r.error());
+
+    auto* details = static_cast<IdaxTypeEnumDetails*>(
+        std::calloc(1, sizeof(IdaxTypeEnumDetails)));
+    if (details == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    details->byte_width = r->byte_width;
+    details->signed_values = r->signed_values ? 1 : 0;
+    details->radix = enum_radix_to_int(r->radix);
+    details->member_count = r->members.size();
+
+    if (!r->members.empty()) {
+        details->members = static_cast<IdaxTypeEnumMember*>(
+            std::calloc(r->members.size(), sizeof(IdaxTypeEnumMember)));
+        if (details->members == nullptr) {
+            idax_type_enum_details_free(details);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        for (size_t i = 0; i < r->members.size(); ++i) {
+            if (fill_enum_member(&details->members[i], r->members[i]) != 0) {
+                idax_type_enum_details_free(details);
+                return -1;
+            }
+        }
+    }
+
+    *out = details;
     return 0;
 }
 
@@ -2944,6 +3106,47 @@ int idax_type_members(IdaxTypeHandle ti, IdaxTypeMember** out, size_t* count) {
     }
 
     *out = raw;
+    return 0;
+}
+
+int idax_type_udt_details(IdaxTypeHandle ti, IdaxTypeUdtDetails** out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = nullptr;
+
+    auto r = static_cast<ida::type::TypeInfo*>(ti)->udt_details();
+    if (!r) return fail(r.error());
+
+    auto* details = static_cast<IdaxTypeUdtDetails*>(
+        std::calloc(1, sizeof(IdaxTypeUdtDetails)));
+    if (details == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+
+    details->total_size = r->total_size;
+    details->is_union = r->is_union ? 1 : 0;
+    details->is_cpp_object = r->is_cpp_object ? 1 : 0;
+    details->is_vftable = r->is_vftable ? 1 : 0;
+    details->member_count = r->members.size();
+
+    if (!r->members.empty()) {
+        details->members = static_cast<IdaxTypeMember*>(
+            std::calloc(r->members.size(), sizeof(IdaxTypeMember)));
+        if (details->members == nullptr) {
+            idax_type_udt_details_free(details);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        for (size_t i = 0; i < r->members.size(); ++i) {
+            if (fill_type_member(&details->members[i], r->members[i]) != 0) {
+                idax_type_udt_details_free(details);
+                return -1;
+            }
+        }
+    }
+
+    *out = details;
     return 0;
 }
 
@@ -3063,6 +3266,53 @@ void idax_type_members_free(IdaxTypeMember* members, size_t count) {
         free_type_member_contents(&members[i]);
     }
     std::free(members);
+}
+
+void idax_type_function_details_free(IdaxTypeFunctionDetails* details) {
+    if (details == nullptr) {
+        return;
+    }
+    delete static_cast<ida::type::TypeInfo*>(details->return_type);
+    details->return_type = nullptr;
+    if (details->arguments != nullptr) {
+        for (size_t i = 0; i < details->argument_count; ++i) {
+            free_function_argument_contents(&details->arguments[i]);
+        }
+        std::free(details->arguments);
+        details->arguments = nullptr;
+    }
+    details->argument_count = 0;
+    std::free(details);
+}
+
+void idax_type_enum_details_free(IdaxTypeEnumDetails* details) {
+    if (details == nullptr) {
+        return;
+    }
+    if (details->members != nullptr) {
+        for (size_t i = 0; i < details->member_count; ++i) {
+            free_enum_member_contents(&details->members[i]);
+        }
+        std::free(details->members);
+        details->members = nullptr;
+    }
+    details->member_count = 0;
+    std::free(details);
+}
+
+void idax_type_udt_details_free(IdaxTypeUdtDetails* details) {
+    if (details == nullptr) {
+        return;
+    }
+    if (details->members != nullptr) {
+        for (size_t i = 0; i < details->member_count; ++i) {
+            free_type_member_contents(&details->members[i]);
+        }
+        std::free(details->members);
+        details->members = nullptr;
+    }
+    details->member_count = 0;
+    std::free(details);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

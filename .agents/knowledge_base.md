@@ -926,3 +926,6 @@ Bindings build systems cannot assume the path exported as `IDASDK` is also the c
 
 ### 35.22. Windows SDK Import-Lib Directory Names Vary Across IDA Layouts [F364]
 Bindings and custom build scripts should not assume Windows import libs always live under `lib/x64_win_vc_64`. Current IDA 9.3 SDK layouts can instead provide `ida.lib` and `idalib.lib` in `lib/x64_win_64`, while `pro.lib` may live separately in `lib/x64_win_64_s`. Search logic that only probes the legacy `vc`-suffixed path will incorrectly conclude the SDK has no Windows libs and fall back to useless generic `lib/` directories. The robust fix is to search both `x64_win_64` / `x64_win_64_s` and the older `x64_win_vc_64` / `_s` naming scheme, resolving exact `.lib` files independently.
+
+### 35.23. Node TypeInfo Structural Test Initialization Boundary [F365]
+Node unit tests that are intended to be pure structural binding checks should avoid constructing `TypeInfo` factory objects before an IDA runtime/database has been initialized. A direct `idax.type.int32()` call in the structural suite segfaulted before returning the wrapper object. Keep those tests focused on TypeScript/API-shape documentation or move runtime TypeInfo assertions into initialized integration tests; C++ integration remains the primary proof path for primitive factory/type layout semantics.

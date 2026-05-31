@@ -104,6 +104,16 @@ CallingConvention from_sdk_calling_convention(callcnv_t cc) {
     }
 }
 
+EnumRadix from_sdk_enum_radix(int radix) {
+    switch (radix) {
+        case 2: return EnumRadix::Binary;
+        case 8: return EnumRadix::Octal;
+        case 10: return EnumRadix::Decimal;
+        case 16: return EnumRadix::Hexadecimal;
+        default: return EnumRadix::Unknown;
+    }
+}
+
 Result<tinfo_t> as_function_type(const tinfo_t& ti) {
     if (ti.is_func())
         return ti;
@@ -259,9 +269,12 @@ Result<TypeInfo> TypeInfo::by_name(std::string_view name) {
     TypeInfo result;
     std::string name_str(name);
     if (!TypeInfoAccess::get(result)->ti.get_named_type(
-            get_idati(), name_str.c_str(), BTF_TYPEDEF, true, true))
+            get_idati(), name_str.c_str(), BTF_TYPEDEF, true, true)
+        && !TypeInfoAccess::get(result)->ti.get_named_type(
+            nullptr, name_str.c_str(), BTF_TYPEDEF, true, true)) {
         return std::unexpected(Error::not_found("Type not found in local type library",
                                                 name_str));
+    }
     return result;
 }
 
@@ -277,6 +290,50 @@ bool TypeInfo::is_struct()         const { return impl_ && impl_->ti.is_struct()
 bool TypeInfo::is_union()          const { return impl_ && impl_->ti.is_union(); }
 bool TypeInfo::is_enum()           const { return impl_ && impl_->ti.is_enum(); }
 bool TypeInfo::is_typedef()        const { return impl_ && impl_->ti.is_typedef(); }
+bool TypeInfo::is_bool()           const { return impl_ && impl_->ti.is_bool(); }
+bool TypeInfo::is_char()           const { return impl_ && impl_->ti.is_char(); }
+bool TypeInfo::is_unsigned_char()  const { return impl_ && impl_->ti.is_uchar(); }
+bool TypeInfo::is_signed()         const { return impl_ && impl_->ti.is_signed(); }
+
+TypeKind TypeInfo::kind() const {
+    if (!impl_ || !impl_->ti.present())
+        return TypeKind::Unknown;
+    const tinfo_t& ti = impl_->ti;
+    if (ti.is_void())
+        return TypeKind::Void;
+    if (ti.is_bool())
+        return TypeKind::Bool;
+    if (ti.is_char() || ti.is_uchar())
+        return TypeKind::Character;
+    if (ti.is_floating())
+        return TypeKind::FloatingPoint;
+    if (ti.is_ptr())
+        return TypeKind::Pointer;
+    if (ti.is_array())
+        return TypeKind::Array;
+    if (ti.is_func())
+        return TypeKind::Function;
+    if (ti.is_struct())
+        return TypeKind::Struct;
+    if (ti.is_union())
+        return TypeKind::Union;
+    if (ti.is_enum())
+        return TypeKind::Enum;
+    if (ti.is_integral())
+        return ti.is_signed() ? TypeKind::SignedInteger : TypeKind::UnsignedInteger;
+    if (ti.is_typedef())
+        return TypeKind::Typedef;
+    return TypeKind::Unknown;
+}
+
+Result<std::string> TypeInfo::name() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    qstring out;
+    if (!impl_->ti.get_type_name(&out) || out.empty())
+        return std::unexpected(Error::not_found("Type has no named type"));
+    return ida::detail::to_string(out);
+}
 
 Result<std::size_t> TypeInfo::size() const {
     if (!impl_)
@@ -294,6 +351,19 @@ Result<std::string> TypeInfo::to_string() const {
     if (!impl_->ti.print(&buf))
         return std::unexpected(Error::sdk("Failed to print type"));
     return ida::detail::to_string(buf);
+}
+
+Result<std::string> TypeInfo::declaration(std::string_view declarator_name) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    qstring out;
+    qstring qname = ida::detail::to_qstring(declarator_name);
+    if (!impl_->ti.print(&out,
+                         qname.empty() ? nullptr : qname.c_str(),
+                         PRTYPE_1LINE | PRTYPE_TYPE | PRTYPE_OFFSETS)) {
+        return std::unexpected(Error::sdk("Failed to print type declaration"));
+    }
+    return ida::detail::to_string(out);
 }
 
 Result<TypeInfo> TypeInfo::pointee_type() const {
@@ -408,6 +478,34 @@ Result<std::vector<TypeInfo>> TypeInfo::function_argument_types() const {
     return arguments;
 }
 
+Result<FunctionDetails> TypeInfo::function_details() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    func_type_data_t function_data;
+    if (!function_type->get_func_details(&function_data))
+        return std::unexpected(Error::sdk("Failed to get function details"));
+
+    FunctionDetails details;
+    TypeInfoAccess::get(details.return_type)->ti = function_data.rettype;
+    details.calling_convention = from_sdk_calling_convention(function_data.get_cc());
+    details.variadic = function_data.is_vararg_cc();
+    details.arguments.reserve(function_data.size());
+
+    for (const auto& argument : function_data) {
+        FunctionArgument wrapped;
+        wrapped.name = ida::detail::to_string(argument.name);
+        TypeInfoAccess::get(wrapped.type)->ti = argument.type;
+        details.arguments.push_back(std::move(wrapped));
+    }
+
+    return details;
+}
+
 Result<CallingConvention> TypeInfo::calling_convention() const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));
@@ -452,6 +550,35 @@ Result<std::vector<EnumMember>> TypeInfo::enum_members() const {
     return members;
 }
 
+Result<EnumDetails> TypeInfo::enum_details() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_enum())
+        return std::unexpected(Error::validation("Type is not an enum"));
+
+    enum_type_data_t enum_data;
+    if (!impl_->ti.get_enum_details(&enum_data))
+        return std::unexpected(Error::sdk("Failed to get enum details"));
+
+    EnumDetails details;
+    size_t sz = impl_->ti.get_size();
+    if (sz != BADSIZE)
+        details.byte_width = sz;
+    details.signed_values = enum_data.is_number_signed();
+    details.radix = from_sdk_enum_radix(enum_data.get_enum_radix());
+    details.members.reserve(enum_data.size());
+
+    for (const auto& item : enum_data) {
+        EnumMember member;
+        member.name = ida::detail::to_string(item.name);
+        member.value = item.value;
+        member.comment = ida::detail::to_string(item.cmt);
+        details.members.push_back(std::move(member));
+    }
+
+    return details;
+}
+
 Result<std::size_t> TypeInfo::member_count() const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));
@@ -474,8 +601,18 @@ Member make_member(const udm_t& m) {
     TypeInfo ti;
     TypeInfoAccess::get(ti)->ti = m.type;
     result.type = std::move(ti);
+    result.bit_offset = static_cast<std::size_t>(m.offset);
     result.byte_offset = static_cast<std::size_t>(m.offset / 8);
     result.bit_size = static_cast<std::size_t>(m.size);
+    result.is_baseclass = m.is_baseclass();
+    result.is_vftable = m.is_vftable();
+    result.is_gap = m.is_gap();
+    result.is_bitfield = m.is_bitfield();
+    if (m.is_bitfield()) {
+        bitfield_type_data_t bitfield;
+        if (m.type.get_bitfield_details(&bitfield))
+            result.storage_byte_width = bitfield.nbytes;
+    }
     result.comment = ida::detail::to_string(m.cmt);
     return result;
 }
@@ -499,6 +636,27 @@ Result<std::vector<Member>> TypeInfo::members() const {
     return result;
 }
 
+Result<UdtDetails> TypeInfo::udt_details() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_udt())
+        return std::unexpected(Error::validation("Type is not a struct or union"));
+
+    udt_type_data_t udt;
+    if (!impl_->ti.get_udt_details(&udt))
+        return std::unexpected(Error::sdk("Failed to get UDT details"));
+
+    UdtDetails details;
+    details.total_size = static_cast<std::size_t>(udt.total_size);
+    details.is_union = impl_->ti.is_union();
+    details.is_cpp_object = udt.is_cppobj();
+    details.is_vftable = udt.is_vftable();
+    details.members.reserve(udt.size());
+    for (std::size_t i = 0; i < udt.size(); ++i)
+        details.members.push_back(make_member(udt[i]));
+    return details;
+}
+
 Result<Member> TypeInfo::member_by_name(std::string_view name) const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));
@@ -507,10 +665,9 @@ Result<Member> TypeInfo::member_by_name(std::string_view name) const {
 
     udm_t udm;
     std::string name_str(name);
-    int idx = impl_->ti.find_udm(&udm, STRMEM_NAME);
     // find_udm with STRMEM_NAME needs the name in udm.name.
     udm.name = ida::detail::to_qstring(name);
-    idx = impl_->ti.find_udm(&udm, STRMEM_NAME);
+    int idx = impl_->ti.find_udm(&udm, STRMEM_NAME);
     if (idx < 0)
         return std::unexpected(Error::not_found("Member not found", name_str));
     return make_member(udm);

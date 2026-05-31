@@ -1009,3 +1009,8 @@
 - **19.22. Decision D-RUST-WINDOWS-EXAMPLE-FIXTURE-IDB-INPUT**: Use stable fixture IDB as Windows Rust runtime input in CI
   - **19.22.1. Decision:** In Windows Rust runtime workflow step, run examples against `tests/fixtures/simple_appcall_linux64.i64` (resolved absolute path) instead of a copied raw system binary.
   - **19.22.2. Rationale:** Raw PE open path was exiting during `database::open` with opaque code 1 before wrapper-level errors; fixture IDB input removes loader-path variance and validates core wrapper/runtime behavior deterministically.
+
+- **19.23. Decision D-RICH-TYPE-METADATA-OPAQUE-SURFACE**: Expose trida-required type layout metadata through opaque idax APIs
+  - **19.23.1. Decision:** Add first-class opaque `ida::type` metadata structs and methods for type kind/name/declaration, function details, enum details, UDT details, and rich member layout flags instead of allowing plugin ports to include `typeinf.hpp` and inspect `tinfo_t`, `udt_type_data_t`, or related SDK structs.
+  - **19.23.2. Rationale:** ida-trida needs bit offsets, bitfield backing width, baseclass/vftable/gap flags, named function arguments, enum width/radix, and UDT total-size/object metadata to generate faithful Frida helpers. Keeping this data in idax preserves the fully opaque public API rule while making real generator ports practical.
+  - **19.23.3. Binding posture:** Node and Rust expose the same concepts structurally, but structural Node tests must not construct `TypeInfo` factory objects in an uninitialized Node-only process; runtime TypeInfo behavior remains covered by initialized C++/integration paths.

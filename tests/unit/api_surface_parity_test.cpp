@@ -379,13 +379,25 @@ void check_type_surface() {
     static_assert(std::is_copy_constructible_v<ida::type::TypeInfo>);
 
     ida::type::Member m;
-    (void)m.name; (void)m.byte_offset; (void)m.bit_size;
+    (void)m.name; (void)m.byte_offset; (void)m.bit_offset; (void)m.bit_size;
+    (void)m.storage_byte_width;
+    (void)m.is_baseclass; (void)m.is_vftable; (void)m.is_gap; (void)m.is_bitfield;
 
     (void)ida::type::CallingConvention::Cdecl;
     (void)ida::type::CallingConvention::Stdcall;
+    (void)ida::type::TypeKind::SignedInteger;
+    (void)ida::type::EnumRadix::Hexadecimal;
 
     ida::type::EnumMember em;
     (void)em.name; (void)em.value; (void)em.comment;
+    ida::type::FunctionArgument fa;
+    (void)fa.name; (void)fa.type;
+    ida::type::FunctionDetails fd;
+    (void)fd.return_type; (void)fd.arguments; (void)fd.calling_convention; (void)fd.variadic;
+    ida::type::UdtDetails ud;
+    (void)ud.total_size; (void)ud.is_union; (void)ud.is_cpp_object; (void)ud.is_vftable; (void)ud.members;
+    ida::type::EnumDetails ed;
+    (void)ed.byte_width; (void)ed.signed_values; (void)ed.radix; (void)ed.members;
 
     using FunctionTypeFactoryFn = ida::Result<ida::type::TypeInfo>(*)(
         const ida::type::TypeInfo&,
@@ -398,9 +410,15 @@ void check_type_surface() {
         bool);
     using FunctionReturnTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using FunctionArgsFn = ida::Result<std::vector<ida::type::TypeInfo>>(ida::type::TypeInfo::*)() const;
+    using FunctionDetailsFn = ida::Result<ida::type::FunctionDetails>(ida::type::TypeInfo::*)() const;
     using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
     using VariadicFn = ida::Result<bool>(ida::type::TypeInfo::*)() const;
     using EnumMembersFn = ida::Result<std::vector<ida::type::EnumMember>>(ida::type::TypeInfo::*)() const;
+    using EnumDetailsFn = ida::Result<ida::type::EnumDetails>(ida::type::TypeInfo::*)() const;
+    using UdtDetailsFn = ida::Result<ida::type::UdtDetails>(ida::type::TypeInfo::*)() const;
+    using TypeNameFn = ida::Result<std::string>(ida::type::TypeInfo::*)() const;
+    using TypeDeclarationFn = ida::Result<std::string>(ida::type::TypeInfo::*)(std::string_view) const;
+    using TypeKindFn = ida::type::TypeKind(ida::type::TypeInfo::*)() const;
     using IsTypedefFn = bool(ida::type::TypeInfo::*)() const;
     using PointeeTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using ArrayElementTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
@@ -428,9 +446,15 @@ void check_type_surface() {
     (void)static_cast<EnumTypeFactoryFn>(&ida::type::TypeInfo::enum_type);
     (void)static_cast<FunctionReturnTypeFn>(&ida::type::TypeInfo::function_return_type);
     (void)static_cast<FunctionArgsFn>(&ida::type::TypeInfo::function_argument_types);
+    (void)static_cast<FunctionDetailsFn>(&ida::type::TypeInfo::function_details);
     (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);
     (void)static_cast<VariadicFn>(&ida::type::TypeInfo::is_variadic_function);
     (void)static_cast<EnumMembersFn>(&ida::type::TypeInfo::enum_members);
+    (void)static_cast<EnumDetailsFn>(&ida::type::TypeInfo::enum_details);
+    (void)static_cast<UdtDetailsFn>(&ida::type::TypeInfo::udt_details);
+    (void)static_cast<TypeNameFn>(&ida::type::TypeInfo::name);
+    (void)static_cast<TypeDeclarationFn>(&ida::type::TypeInfo::declaration);
+    (void)static_cast<TypeKindFn>(&ida::type::TypeInfo::kind);
     (void)static_cast<IsTypedefFn>(&ida::type::TypeInfo::is_typedef);
     (void)static_cast<PointeeTypeFn>(&ida::type::TypeInfo::pointee_type);
     (void)static_cast<ArrayElementTypeFn>(&ida::type::TypeInfo::array_element_type);

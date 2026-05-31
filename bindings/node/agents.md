@@ -390,14 +390,15 @@ back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
 *Type library (TIL) and localized type manipulation.*
 
 **Wrapper Object (`TypeInfo`):** Most APIs return or accept a `TypeInfo` object. This is a persistent JS wrapper for the C++ type representation.
+TypeInfo factory/runtime operations require an initialized IDA runtime/database; pure structural tests should inspect declarations or initialized integration tests rather than constructing TypeInfo objects in an uninitialized Node process.
 
 ### `TypeInfo` Class Methods
-* `isVoid(): boolean`, `isInteger()`, `isFloatingPoint()`, `isPointer()`, `isArray()`, `isFunction()`, `isStruct()`, `isUnion()`, `isEnum()`, `isTypedef()`
-* `size(): number`, `toString(): string`
+* `isVoid(): boolean`, `isInteger()`, `isFloatingPoint()`, `isPointer()`, `isArray()`, `isFunction()`, `isStruct()`, `isUnion()`, `isEnum()`, `isTypedef()`, `isBool()`, `isChar()`, `isUnsignedChar()`, `isSigned()`, `kind()`, `name()`
+* `size(): number`, `toString(): string`, `declaration(declaratorName?: string): string`
 * `pointeeType(): TypeInfo`, `arrayElementType(): TypeInfo`, `arrayLength(): number`, `resolveTypedef(): TypeInfo`
-* `functionReturnType(): TypeInfo`, `functionArgumentTypes(): TypeInfo[]`, `callingConvention(): CallingConvention`, `isVariadicFunction(): boolean`
-* `enumMembers(): { name: string, value: bigint, comment: string }[]`
-* `memberCount(): number`, `members(): Member[]`
+* `functionReturnType(): TypeInfo`, `functionArgumentTypes(): TypeInfo[]`, `functionDetails(): FunctionDetails`, `callingConvention(): CallingConvention`, `isVariadicFunction(): boolean`
+* `enumMembers(): { name: string, value: bigint, comment: string }[]`, `enumDetails(): EnumDetails`
+* `memberCount(): number`, `members(): Member[]`, `udtDetails(): UdtDetails`
 * `memberByName(name: string): Member`, `memberByOffset(byteOffset: number): Member`
 * `addMember(name: string, type: TypeInfo, byteOffset?: number): void`
 * `apply(address: Address): void`

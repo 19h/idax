@@ -15,6 +15,10 @@ namespace ida::type {
 
 // Forward declaration so Member can reference TypeInfo.
 class TypeInfo;
+struct FunctionArgument;
+struct FunctionDetails;
+struct UdtDetails;
+struct EnumDetails;
 
 enum class CallingConvention {
     Unknown,
@@ -26,6 +30,31 @@ enum class CallingConvention {
     Swift,
     Golang,
     UserDefined,
+};
+
+enum class TypeKind {
+    Unknown,
+    Void,
+    Bool,
+    Character,
+    SignedInteger,
+    UnsignedInteger,
+    FloatingPoint,
+    Pointer,
+    Array,
+    Function,
+    Struct,
+    Union,
+    Enum,
+    Typedef,
+};
+
+enum class EnumRadix {
+    Unknown,
+    Binary,
+    Octal,
+    Decimal,
+    Hexadecimal,
 };
 
 struct EnumMember {
@@ -132,9 +161,17 @@ public:
     [[nodiscard]] bool is_union()          const;
     [[nodiscard]] bool is_enum()           const;
     [[nodiscard]] bool is_typedef()        const;
+    [[nodiscard]] bool is_bool()           const;
+    [[nodiscard]] bool is_char()           const;
+    [[nodiscard]] bool is_unsigned_char()  const;
+    [[nodiscard]] bool is_signed()         const;
+
+    [[nodiscard]] TypeKind kind() const;
+    [[nodiscard]] Result<std::string> name() const;
 
     [[nodiscard]] Result<std::size_t> size() const;
     [[nodiscard]] Result<std::string> to_string() const;
+    [[nodiscard]] Result<std::string> declaration(std::string_view declarator_name = {}) const;
 
     /// For pointer types, return the pointee type.
     [[nodiscard]] Result<TypeInfo> pointee_type() const;
@@ -151,9 +188,11 @@ public:
 
     [[nodiscard]] Result<TypeInfo> function_return_type() const;
     [[nodiscard]] Result<std::vector<TypeInfo>> function_argument_types() const;
+    [[nodiscard]] Result<FunctionDetails> function_details() const;
     [[nodiscard]] Result<CallingConvention> calling_convention() const;
     [[nodiscard]] Result<bool> is_variadic_function() const;
     [[nodiscard]] Result<std::vector<EnumMember>> enum_members() const;
+    [[nodiscard]] Result<EnumDetails> enum_details() const;
 
     /// Number of struct/union members (0 for non-UDT types).
     [[nodiscard]] Result<std::size_t> member_count() const;
@@ -162,6 +201,9 @@ public:
 
     /// Retrieve all members of a struct/union.
     [[nodiscard]] Result<std::vector<struct Member>> members() const;
+
+    /// Retrieve complete struct/union layout details.
+    [[nodiscard]] Result<UdtDetails> udt_details() const;
 
     /// Find a member by name.
     [[nodiscard]] Result<struct Member> member_by_name(std::string_view name) const;
@@ -196,7 +238,40 @@ struct Member {
     TypeInfo    type;
     std::size_t byte_offset{0};  ///< Offset from struct start, in bytes.
     std::size_t bit_size{0};     ///< Total size in bits.
+    std::size_t bit_offset{0};    ///< Offset from struct start, in bits.
+    std::size_t storage_byte_width{0}; ///< Bitfield backing storage width; 0 for non-bitfields.
+    bool is_baseclass{false};
+    bool is_vftable{false};
+    bool is_gap{false};
+    bool is_bitfield{false};
     std::string comment;
+};
+
+struct FunctionArgument {
+    std::string name;
+    TypeInfo type;
+};
+
+struct FunctionDetails {
+    TypeInfo return_type;
+    std::vector<FunctionArgument> arguments;
+    CallingConvention calling_convention{CallingConvention::Unknown};
+    bool variadic{false};
+};
+
+struct UdtDetails {
+    std::size_t total_size{0};
+    bool is_union{false};
+    bool is_cpp_object{false};
+    bool is_vftable{false};
+    std::vector<Member> members;
+};
+
+struct EnumDetails {
+    std::size_t byte_width{0};
+    bool signed_values{false};
+    EnumRadix radix{EnumRadix::Unknown};
+    std::vector<EnumMember> members;
 };
 
 /// Retrieve the type applied at an address.

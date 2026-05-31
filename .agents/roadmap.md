@@ -33,6 +33,7 @@ Current overall phase status:
 - Phase 20: ~75% (real-IDA CI hardening in progress: deterministic installer resolution + macOS `IDADIR` normalization landed; Node example argv contract fixed; Windows Node import-library fallback hardened; workflow now uses Windows-native shells/runtime path propagation for Rust/Node example execution to avoid Git-Bash linker collisions and missing-DLL runtime failures)
 - Phase 21: 100% (example loader port continuation: completed `sep_firmware_loader.cpp` as a full-functionality idax loader port of the Binary Ninja SEP firmware plugin, covering SEP firmware detection, module-table parsing, Mach-O/raw module mapping, shared-library slide handling, header/load-command annotations, firmware type definitions/application, pointer rewrite passes, entry registration, symbol import, and example build/docs wiring)
 - Phase 22: ~99% (ida-cdump parity closure in progress: wait-box UI, multiline text, typed-form C++ bindings/FormBuilder plus fixed-shape Node/Rust typed-form entrypoints, optional Qt clipboard helpers with Node/Rust wrappers and an IDA-compatible `QT_NAMESPACE=QT` build gate, IDB path, portable path helpers, Hex-Rays popup-population events, scoped Hex-Rays ownership, Local Types action-context type references, lvar/prototype metadata helpers, read-only ctree migration helpers, bulk local type declaration import, host-gated runtime harness and runner script including Hex-Rays scoped-session runtime evidence, compact parity probe example, Qt example build bridge, Node native build/runtime validation, and Rust high-level no-run validation are implemented; the updated remaining queue is interactive modal form and Qt clipboard evidence)
+- Phase 23: 100% (ida-trida port parity complete: plugin shell ported to idax actions/forms/wait-box/path/clipboard helpers, GitHub Actions build matrix added, rich `ida::type` layout/function/enum metadata API implemented in C++ with Node/Rust binding surfaces, trida generator migrated off direct `typeinf.hpp` use, docs/agent notes updated, and focused C++/Node/Rust/trida validation passed)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -93,3 +94,12 @@ Current overall phase status:
 - [x] P22.10 Add bulk local type declaration import over SDK `parse_decls` for `ida-cdump` metadata-apply migration, with Node/Rust wrappers.
 
 ---
+
+### Phase 23 TODO Action Items (ida-trida Port Parity)
+
+- [x] P23.1 Port `<dev-root_>/ida-trida` build/plugin shell to consume `idax::idax` instead of vendored ida-cmake and raw SDK UI/action/clipboard helpers.
+- [x] P23.2 Add ida-trida GitHub Actions build coverage with Linux, macOS x86_64, macOS arm64, and Windows plugin artifact jobs.
+- [x] P23.3 Add rich C++ `ida::type` metadata needed by trida (`TypeKind`, named declarations, function details, enum details, UDT layout/member bit offsets and flags) with API-surface and integration coverage.
+- [x] P23.4 Mirror the rich type metadata through Node and Rust binding surfaces, with structural/no-run tests that respect host initialization constraints.
+- [x] P23.5 Port trida's Frida generator from direct SDK `typeinf.hpp` layout walking to opaque idax type APIs.
+- [x] P23.6 Refresh docs/validation notes and run final focused idax + trida validation.

@@ -880,7 +880,8 @@ mod instruction_tests {
 mod types_tests {
     use crate::error::Result;
     use crate::types::{
-        self, CallingConvention, ParseDeclarationsOptions, ParseDeclarationsReport,
+        self, CallingConvention, EnumDetails, EnumRadix, FunctionArgument, FunctionDetails, Member,
+        ParseDeclarationsOptions, ParseDeclarationsReport, TypeInfo, TypeKind, UdtDetails,
     };
 
     #[test]
@@ -894,6 +895,72 @@ mod types_tests {
         assert_eq!(CallingConvention::Swift as i32, 6);
         assert_eq!(CallingConvention::Golang as i32, 7);
         assert_eq!(CallingConvention::UserDefined as i32, 8);
+    }
+
+    #[test]
+    fn test_rich_type_metadata_discriminants() {
+        assert_eq!(TypeKind::Unknown as i32, 0);
+        assert_eq!(TypeKind::Void as i32, 1);
+        assert_eq!(TypeKind::Bool as i32, 2);
+        assert_eq!(TypeKind::Character as i32, 3);
+        assert_eq!(TypeKind::SignedInteger as i32, 4);
+        assert_eq!(TypeKind::UnsignedInteger as i32, 5);
+        assert_eq!(TypeKind::FloatingPoint as i32, 6);
+        assert_eq!(TypeKind::Pointer as i32, 7);
+        assert_eq!(TypeKind::Array as i32, 8);
+        assert_eq!(TypeKind::Function as i32, 9);
+        assert_eq!(TypeKind::Struct as i32, 10);
+        assert_eq!(TypeKind::Union as i32, 11);
+        assert_eq!(TypeKind::Enum as i32, 12);
+        assert_eq!(TypeKind::Typedef as i32, 13);
+
+        assert_eq!(EnumRadix::Unknown as i32, 0);
+        assert_eq!(EnumRadix::Binary as i32, 1);
+        assert_eq!(EnumRadix::Octal as i32, 2);
+        assert_eq!(EnumRadix::Decimal as i32, 3);
+        assert_eq!(EnumRadix::Hexadecimal as i32, 4);
+    }
+
+    #[test]
+    fn test_rich_type_metadata_function_signatures() {
+        let _: fn(&TypeInfo) -> bool = TypeInfo::is_bool;
+        let _: fn(&TypeInfo) -> bool = TypeInfo::is_char;
+        let _: fn(&TypeInfo) -> bool = TypeInfo::is_unsigned_char;
+        let _: fn(&TypeInfo) -> bool = TypeInfo::is_signed;
+        let _: fn(&TypeInfo) -> Result<TypeKind> = TypeInfo::kind;
+        let _: fn(&TypeInfo) -> Result<String> = TypeInfo::name;
+        let _: fn(&TypeInfo, Option<&str>) -> Result<String> = TypeInfo::declaration;
+        let _: fn(&TypeInfo) -> Result<FunctionDetails> = TypeInfo::function_details;
+        let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
+        let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
+
+        let member = Member {
+            name: "field".to_string(),
+            r#type: TypeInfo::from_raw(std::ptr::null_mut()),
+            byte_offset: 4,
+            bit_size: 3,
+            bit_offset: 32,
+            storage_byte_width: 4,
+            is_baseclass: false,
+            is_vftable: false,
+            is_gap: false,
+            is_bitfield: true,
+            comment: String::new(),
+        };
+        assert_eq!(member.bit_offset, 32);
+        assert!(member.is_bitfield);
+
+        let argument = FunctionArgument {
+            name: "arg".to_string(),
+            r#type: TypeInfo::from_raw(std::ptr::null_mut()),
+        };
+        let details = FunctionDetails {
+            return_type: TypeInfo::from_raw(std::ptr::null_mut()),
+            arguments: vec![argument],
+            calling_convention: CallingConvention::Cdecl,
+            variadic: false,
+        };
+        assert_eq!(details.arguments.len(), 1);
     }
 
     #[test]

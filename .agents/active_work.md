@@ -130,5 +130,3 @@
   - 6.1.49. **Local evidence refreshed:** syntax checks, verifier self-test, host-runner self-test, local-runner self-test, integration-enabled default local validation, explicit default/Hex-Rays evidence-log verification, and the locally available Hex-Rays opt-in local validation all pass after the concrete task split.
   - 6.1.50. **Next order:** host-executed modal form evidence and Qt clipboard evidence once an interactive IDA Qt host and namespaced Qt package are available.
   - 6.1.51. **Status:** In progress.
-
----

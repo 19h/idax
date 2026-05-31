@@ -1347,6 +1347,13 @@ export namespace type {
         | 'unknown' | 'cdecl' | 'stdcall' | 'pascal' | 'fastcall'
         | 'thiscall' | 'swift' | 'golang' | 'userDefined';
 
+    type TypeKind =
+        | 'unknown' | 'void' | 'bool' | 'character' | 'signedInteger'
+        | 'unsignedInteger' | 'floatingPoint' | 'pointer' | 'array'
+        | 'function' | 'struct' | 'union' | 'enum' | 'typedef';
+
+    type EnumRadix = 'unknown' | 'binary' | 'octal' | 'decimal' | 'hexadecimal';
+
     interface EnumMember {
         name: string;
         value: bigint;
@@ -1357,8 +1364,41 @@ export namespace type {
         name: string;
         type: TypeInfo;
         byteOffset: number;
+        bitOffset: number;
         bitSize: number;
+        storageByteWidth: number;
+        isBaseclass: boolean;
+        isVftable: boolean;
+        isGap: boolean;
+        isBitfield: boolean;
         comment: string;
+    }
+
+    interface FunctionArgument {
+        name: string;
+        type: TypeInfo;
+    }
+
+    interface FunctionDetails {
+        returnType: TypeInfo;
+        arguments: FunctionArgument[];
+        callingConvention: CallingConvention;
+        variadic: boolean;
+    }
+
+    interface UdtDetails {
+        totalSize: number;
+        isUnion: boolean;
+        isCppObject: boolean;
+        isVftable: boolean;
+        members: Member[];
+    }
+
+    interface EnumDetails {
+        byteWidth: number;
+        signedValues: boolean;
+        radix: EnumRadix;
+        members: EnumMember[];
     }
 
     interface ParseDeclarationsOptions {
@@ -1391,12 +1431,21 @@ export namespace type {
         isUnion(): boolean;
         isEnum(): boolean;
         isTypedef(): boolean;
+        isBool(): boolean;
+        isChar(): boolean;
+        isUnsignedChar(): boolean;
+        isSigned(): boolean;
+        kind(): TypeKind;
+        name(): string;
 
         /** Size of the type in bytes. */
         size(): number;
 
         /** C-style string representation. */
         toString(): string;
+
+        /** C-style declaration with an optional declarator/member name. */
+        declaration(declaratorName?: string): string;
 
         // ── Pointer / Array ─────────────────────────────────────────────
         /** For pointer types: the pointed-to type. */
@@ -1424,9 +1473,15 @@ export namespace type {
         /** For function types: whether it is variadic. */
         isVariadicFunction(): boolean;
 
+        /** For function types: return type, named arguments, CC, and varargs flag. */
+        functionDetails(): FunctionDetails;
+
         // ── Enum introspection ──────────────────────────────────────────
         /** For enum types: all enum member entries. */
         enumMembers(): EnumMember[];
+
+        /** For enum types: width, signedness/radix metadata, and members. */
+        enumDetails(): EnumDetails;
 
         // ── Struct / Union members ──────────────────────────────────────
         /** Number of members (struct/union). */
@@ -1434,6 +1489,9 @@ export namespace type {
 
         /** All members (struct/union). */
         members(): Member[];
+
+        /** Complete struct/union layout metadata. */
+        udtDetails(): UdtDetails;
 
         /** Look up a member by name. */
         memberByName(name: string): Member;

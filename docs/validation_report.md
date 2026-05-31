@@ -75,6 +75,20 @@ tracked in `docs/compatibility_matrix.md`.
 
 ## Recent focused validation
 
+- 2026-05-31 ida-trida port and rich type metadata parity:
+  Added opaque rich `ida::type` metadata for TypeInfo kind/name/declaration,
+  function details, enum details, UDT details, and member bit-layout flags;
+  mirrored the surface through Node and Rust bindings; and ported
+  `<dev-root_>/ida-trida` to consume idax for plugin actions/forms/wait/path/
+  clipboard plus generator type walking. Validation passed:
+  `cmake --build build-test-fetch --target idax_api_surface_check idax_type_roundtrip_test -j2`,
+  `./build-test-fetch/tests/integration/idax_type_roundtrip_test build-test-fetch/_deps/ida_sdk-src/src/plugins/idapython/examples/debugger/appcall/test_programs/simple_appcall/simple_appcall_linux64`
+  (209/209 checks), `env IDASDK=<dev-root_>/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build`,
+  `env IDASDK=<dev-root_>/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  (183/183 checks), `env -u IDASDK cargo test -p idax types_tests --lib`,
+  `env -u IDASDK cargo test -p idax --lib --no-run`, and
+  `IDASDK=<userhome>/ida-sdk cmake -S . -B build-idax -DCMAKE_BUILD_TYPE=RelWithDebInfo -DFETCHCONTENT_SOURCE_DIR_IDAX=<dev-root_>/idax`
+  plus `cmake --build build-idax -j2` from `<dev-root_>/ida-trida`.
 - 2026-05-31 clipboard fallback availability:
   `cmake --build build-test-fetch --target idax_api_surface_check -j2`
   passed after adding external clipboard-command fallback and backend

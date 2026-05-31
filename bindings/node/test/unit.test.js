@@ -424,6 +424,26 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(error.category).toBe('Validation');
     });
 
+    it('should document rich TypeInfo layout/introspection methods', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        for (const signature of [
+            'isBool(): boolean',
+            'isChar(): boolean',
+            'isUnsignedChar(): boolean',
+            'isSigned(): boolean',
+            'kind(): TypeKind',
+            'name(): string',
+            'declaration(declaratorName?: string): string',
+            'functionDetails(): FunctionDetails',
+            'enumDetails(): EnumDetails',
+            'udtDetails(): UdtDetails',
+        ]) {
+            expect(dts).toContain(signature);
+        }
+    });
+
     it('should have storage functions', () => {
         if (!idax) return;
         for (const fn of ['open', 'openById']) {

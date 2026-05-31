@@ -646,8 +646,44 @@ typedef struct IdaxTypeMember {
     IdaxTypeHandle type;
     size_t         byte_offset;
     size_t         bit_size;
+    size_t         bit_offset;
+    size_t         storage_byte_width;
+    int            is_baseclass;
+    int            is_vftable;
+    int            is_gap;
+    int            is_bitfield;
     char*          comment;
 } IdaxTypeMember;
+
+typedef struct IdaxTypeFunctionArgument {
+    char*          name;
+    IdaxTypeHandle type;
+} IdaxTypeFunctionArgument;
+
+typedef struct IdaxTypeFunctionDetails {
+    IdaxTypeHandle            return_type;
+    IdaxTypeFunctionArgument* arguments;
+    size_t                    argument_count;
+    int                       calling_convention;
+    int                       variadic;
+} IdaxTypeFunctionDetails;
+
+typedef struct IdaxTypeEnumDetails {
+    size_t              byte_width;
+    int                 signed_values;
+    int                 radix;
+    IdaxTypeEnumMember* members;
+    size_t              member_count;
+} IdaxTypeEnumDetails;
+
+typedef struct IdaxTypeUdtDetails {
+    size_t          total_size;
+    int             is_union;
+    int             is_cpp_object;
+    int             is_vftable;
+    IdaxTypeMember* members;
+    size_t          member_count;
+} IdaxTypeUdtDetails;
 
 IdaxTypeHandle idax_type_void(void);
 IdaxTypeHandle idax_type_int8(void);
@@ -690,9 +726,16 @@ int idax_type_is_struct(IdaxTypeHandle ti);
 int idax_type_is_union(IdaxTypeHandle ti);
 int idax_type_is_enum(IdaxTypeHandle ti);
 int idax_type_is_typedef(IdaxTypeHandle ti);
+int idax_type_is_bool(IdaxTypeHandle ti);
+int idax_type_is_char(IdaxTypeHandle ti);
+int idax_type_is_unsigned_char(IdaxTypeHandle ti);
+int idax_type_is_signed(IdaxTypeHandle ti);
+int idax_type_kind(IdaxTypeHandle ti, int* out);
 
 int idax_type_size(IdaxTypeHandle ti, size_t* out);
 int idax_type_to_string(IdaxTypeHandle ti, char** out);
+int idax_type_name(IdaxTypeHandle ti, char** out);
+int idax_type_declaration(IdaxTypeHandle ti, const char* declarator_name, char** out);
 int idax_type_pointee_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
 int idax_type_array_element_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
 int idax_type_array_length(IdaxTypeHandle ti, size_t* out);
@@ -701,10 +744,12 @@ int idax_type_function_return_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
 int idax_type_function_argument_types(IdaxTypeHandle ti,
                                       IdaxTypeHandle** out,
                                       size_t* count);
+int idax_type_function_details(IdaxTypeHandle ti, IdaxTypeFunctionDetails** out);
 int idax_type_calling_convention(IdaxTypeHandle ti, int* out);
 int idax_type_is_variadic_function(IdaxTypeHandle ti, int* out);
 int idax_type_enum_members(IdaxTypeHandle ti, IdaxTypeEnumMember** out,
                            size_t* count);
+int idax_type_enum_details(IdaxTypeHandle ti, IdaxTypeEnumDetails** out);
 int idax_type_by_name(const char* name, IdaxTypeHandle* out);
 int idax_type_from_declaration(const char* c_decl, IdaxTypeHandle* out);
 
@@ -716,6 +761,7 @@ int idax_type_remove(uint64_t ea);
 
 int idax_type_member_count(IdaxTypeHandle ti, size_t* out);
 int idax_type_members(IdaxTypeHandle ti, IdaxTypeMember** out, size_t* count);
+int idax_type_udt_details(IdaxTypeHandle ti, IdaxTypeUdtDetails** out);
 int idax_type_member_by_name(IdaxTypeHandle ti, const char* name, IdaxTypeMember* out);
 int idax_type_member_by_offset(IdaxTypeHandle ti, size_t byte_offset, IdaxTypeMember* out);
 int idax_type_add_member(IdaxTypeHandle ti, const char* name,
@@ -739,6 +785,9 @@ void idax_type_handle_array_free(IdaxTypeHandle* handles, size_t count);
 void idax_type_enum_members_free(IdaxTypeEnumMember* members, size_t count);
 void idax_type_member_free(IdaxTypeMember* member);
 void idax_type_members_free(IdaxTypeMember* members, size_t count);
+void idax_type_function_details_free(IdaxTypeFunctionDetails* details);
+void idax_type_enum_details_free(IdaxTypeEnumDetails* details);
+void idax_type_udt_details_free(IdaxTypeUdtDetails* details);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Entry (ida::entry)

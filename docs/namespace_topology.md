@@ -20,7 +20,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::xref           Unified refs, typed code/data categories        [3 enums, 1 struct, ~10 free fns]
  |-- ida::comment        Regular/repeatable, anterior/posterior           [~15 free fns]
  |
- |-- ida::type           Type construction, structs/unions, libraries     [1 struct, 1 class, ~9 free fns]
+ |-- ida::type           Type construction, rich layout metadata, libraries [8 structs, 3 enums, 1 class, ~9 free fns]
  |-- ida::entry          Entry points: list, add, rename                 [1 struct, ~5 free fns]
  |-- ida::fixup          Fixup descriptors, traversal, custom handlers   [2 enums, 2 structs, 2 classes, ~11 free fns]
  |
@@ -83,7 +83,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::name` | Symbol naming | `DemangleForm` |
 | `ida::xref` | Cross-references | `Reference`, `CodeType`, `DataType` |
 | `ida::comment` | Comments | (free functions only) |
-| `ida::type` | Type system | `TypeInfo`, `Member` |
+| `ida::type` | Type system | `TypeInfo`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
 | `ida::entry` | Entry points | `EntryPoint` |
 | `ida::fixup` | Relocations | `Descriptor`, `CustomHandler`, `Type` |
 
