@@ -38,6 +38,15 @@ changes in a live chooser window and builds a labeled impact graph on stop.
 Persists a summary into a netnode for cross-session audit trails. Toggle with
 **Ctrl-Shift-T**.
 
+### `plugin/ida_names_port_plugin.cpp` + `plugin/ida_names_port_widget.cpp` — IDA-names Port
+
+Qt plugin port that keeps pseudocode window titles synchronized with the
+current function name. It uses `ida::ui::current_widget()` for active-view
+polling, `ida::decompiler::on_switch_pseudocode()` for function-switch
+notifications, and address-free `ida::name::demangled(symbol)` before crossing
+the explicit widget-host bridge for `QWidget::setWindowTitle`. The Shift-T
+action provides manual title editing.
+
 ### `plugin/storage_metadata_plugin.cpp` — Binary Fingerprint
 
 Computes a structural fingerprint (segment layout digest, function histogram by

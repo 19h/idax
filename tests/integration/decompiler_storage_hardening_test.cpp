@@ -630,6 +630,12 @@ void test_maturity_subscription_and_dirty(ida::Address fn_ea) {
 
     ida::decompiler::ScopedSubscription guard(*token);
 
+    auto switch_token = ida::decompiler::on_switch_pseudocode(
+        [](const ida::decompiler::PseudocodeEvent&) {});
+    CHECK_OK(switch_token);
+    ida::decompiler::ScopedSubscription switch_guard(
+        switch_token ? *switch_token : 0);
+
     auto decomp = ida::decompiler::decompile(fn_ea);
     CHECK_HAS_VALUE(decomp);
     if (decomp) {

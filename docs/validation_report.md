@@ -623,3 +623,18 @@ tracked in `docs/compatibility_matrix.md`.
   passes. Remaining closure evidence is unchanged: P22.H1 accepted modal form
   execution and P22.H2 clipboard execution in an IDA UI host with clipboard
   access.
+
+- 2026-07-13 Phase 24 IDA-names ergonomic parity:
+  Added `ida::ui::current_widget`, `ida::decompiler::on_switch_pseudocode`,
+  arbitrary-symbol `ida::name::demangled`, stable live-widget identity, and
+  matching Node/Rust surfaces. Migrated the IDA-names example to the exact
+  polling/switch APIs and an isolated Qt host-title bridge. Focused C++ build
+  and runtime validation passes 4/4 selected CTest targets; the Qt example
+  target links successfully. Node clean/incremental native build passes, its
+  structural suite passes 184/184, and its real-IDA fixture integration passes
+  65/65. Rust formatting and library tests pass 127/127. The complete C++
+  sweep builds and passes 24/25 targets; the one failure is the independent
+  menu-detach contract regression F370 (2 failed checks in
+  `loader_processor_scenario`). Rust real-IDA integration was attempted but
+  is not counted as pass evidence because the shared init/open/analysis
+  sequence stalled (F371).

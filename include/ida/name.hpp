@@ -37,6 +37,12 @@ Result<std::string> get(Address address);
 /// Get the demangled name at \p address.
 Result<std::string> demangled(Address address, DemangleForm form = DemangleForm::Short);
 
+/// Demangle an arbitrary mangled symbol without requiring a database address.
+///
+/// Returns NotFound when the input is not recognized as a mangled symbol.
+Result<std::string> demangled(std::string_view symbol,
+                              DemangleForm form = DemangleForm::Short);
+
 /// Resolve a name to an address.
 Result<Address> resolve(std::string_view name, Address context = BadAddress);
 

@@ -631,6 +631,23 @@ pub fn selection() -> Result<Range> {
     Ok(Range { start, end })
 }
 
+/// Snapshot the currently active IDA widget.
+///
+/// Returns `None` when no UI widget is active, including headless sessions.
+pub fn current_widget() -> Result<Option<WidgetRef>> {
+    let mut raw: *mut c_void = std::ptr::null_mut();
+    let mut id = 0;
+    let rc = unsafe { idax_sys::idax_ui_current_widget(&mut raw, &mut id) };
+    if rc != 0 {
+        return Err(error::consume_last_error("ui::current_widget failed"));
+    }
+    if raw.is_null() {
+        Ok(None)
+    } else {
+        Ok(Some(WidgetRef { raw, id }))
+    }
+}
+
 // ── Widget handle ───────────────────────────────────────────────────────
 
 /// Opaque handle to a docked widget panel.

@@ -42,7 +42,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Core naming: set/get/force/remove
 - Resolution: symbol-to-address and expression rendering
 - Properties: public/weak/auto/user name states
-- Demangling forms: short/long/full
+- Demangling forms: short/long/full for both address-owned names and arbitrary
+  in-memory mangled symbols
 
 ### 17.7 `ida::xref`
 - Unified xref object model
@@ -129,6 +130,8 @@ This section captures the intended public API semantics at a concrete level so i
   `clipboard_backend`) behind `IDAX_ENABLE_QT_CLIPBOARD`; enabling the Qt
   backend requires an IDA-compatible `QT_NAMESPACE=QT` Qt package
 - Wait-box progress/cancellation RAII helpers
+- Stable opaque widget identity and `current_widget()` polling; closed-widget
+  identities are retired on `ui_widget_closing`
 - Chooser abstractions
 - Notification/event wrappers with clear ownership
 
@@ -151,7 +154,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Local-variable user-settings snapshots (`LvarSnapshot`)
 - Ctree visitor abstractions, helper/type accessors, parent-chain snapshots, and position/address mappings
 - Cache invalidation controls (`mark_dirty`, `mark_dirty_with_callers`)
-- Hex-Rays event subscriptions including popup-population callbacks for dynamic decompiler menus
+- Hex-Rays event subscriptions including pseudocode-function-switch and
+  popup-population callbacks for dynamic decompiler menus
 - Microcode-filter lifecycle (`register_microcode_filter`, `unregister_microcode_filter`)
 - `MicrocodeContext` typed block/introspection read-back (`instruction`, `instruction_at_index`, `last_emitted_instruction`)
 

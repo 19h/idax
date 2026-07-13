@@ -277,6 +277,21 @@ NAN_METHOD(ClipboardBackend) {
     info.GetReturnValue().Set(FromString(std::string(ida::ui::clipboard_backend())));
 }
 
+NAN_METHOD(CurrentWidget) {
+    auto widget = ida::ui::current_widget();
+    if (!widget.valid()) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    auto obj = ObjectBuilder()
+        .set("id", v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), widget.id()))
+        .setStr("title", widget.title())
+        .setInt("type", static_cast<int>(ida::ui::widget_type(widget)))
+        .build();
+    info.GetReturnValue().Set(obj);
+}
+
 NAN_METHOD(AskText) {
     std::string prompt;
     if (!GetStringArg(info, 0, prompt))
@@ -434,6 +449,7 @@ void InitUi(v8::Local<v8::Object> target) {
     SetMethod(ns, "copyToClipboard", CopyToClipboard);
     SetMethod(ns, "readClipboard", ReadClipboard);
     SetMethod(ns, "clipboardBackend", ClipboardBackend);
+    SetMethod(ns, "currentWidget", CurrentWidget);
     SetMethod(ns, "askText", AskText);
     SetMethod(ns, "askFormSvalBitset", AskFormSvalBitset);
     SetMethod(ns, "askFormSvalPathBitset", AskFormSvalPathBitset);

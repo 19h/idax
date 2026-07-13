@@ -51,6 +51,17 @@ export interface IdaxError extends Error {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export namespace ui {
+    interface CurrentWidget {
+        /** Stable identity token for the active IDA widget. */
+        id: bigint;
+        title: string;
+        /** Numeric IDA widget type (`BWN_*`), or -1 when unknown. */
+        type: number;
+    }
+
+    /** Snapshot the currently active IDA widget, or null in a headless session. */
+    function currentWidget(): CurrentWidget | null;
+
     class WaitBox {
         constructor(message: string);
         update(message: string): void;
@@ -906,6 +917,8 @@ export namespace name {
 
     /** Get the demangled name at the address. */
     function demangled(address: Address, form?: DemangleForm): string;
+    /** Demangle an arbitrary mangled symbol without a database address. */
+    function demangled(symbol: string, form?: DemangleForm): string;
 
     /** Resolve a name string to its address. */
     function resolve(name: string, context?: Address): Address;
@@ -2230,6 +2243,9 @@ export namespace decompiler {
 
     /** Subscribe to pseudocode refresh events. */
     function onRefreshPseudocode(callback: (event: PseudocodeEvent) => void): Token;
+
+    /** Subscribe when an existing pseudocode view switches to another function. */
+    function onSwitchPseudocode(callback: (event: PseudocodeEvent) => void): Token;
 
     /** Subscribe to Hex-Rays popup-population events. */
     function onPopulatingPopup(callback: (event: PopulatingPopupEvent) => void): Token;

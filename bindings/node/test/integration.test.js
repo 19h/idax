@@ -266,9 +266,31 @@ describe('Names', () => {
             expect(typeof addr).toBe('bigint');
         }
     });
+
+    it('should demangle arbitrary symbols without an address', () => {
+        for (const form of ['short', 'long', 'full']) {
+            const demangled = idax.name.demangled('_Z3foov', form);
+            expect(typeof demangled).toBe('string');
+            expect(demangled.includes('foo')).toBe(true);
+        }
+        expect(() => idax.name.demangled('not_a_mangled_symbol')).toThrow();
+    });
 });
 
-// ── Comments ────────────────────────────────────────────────────────────
+// ── UI ────────────────────────────────────────────────────────────────────
+
+describe('UI', () => {
+    it('should expose the current widget without assuming a GUI host', () => {
+        const widget = idax.ui.currentWidget();
+        expect(widget === null || typeof widget.id === 'bigint').toBe(true);
+        if (widget !== null) {
+            expect(typeof widget.title).toBe('string');
+            expect(typeof widget.type).toBe('number');
+        }
+    });
+});
+
+// ── Comments ──────────────────────────────────────────────────────────────
 
 describe('Comments', () => {
     it('should set and get regular comment', () => {

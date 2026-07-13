@@ -2031,6 +2031,16 @@ int idax_name_demangled(uint64_t ea, int form, char** out) {
     RETURN_RESULT_STRING(ida::name::demangled(ea, static_cast<ida::name::DemangleForm>(form)));
 }
 
+int idax_name_demangle(const char* symbol, int form, char** out) {
+    if (symbol == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation("symbol pointer is null"));
+    }
+    RETURN_RESULT_STRING(ida::name::demangled(
+        std::string_view(symbol),
+        static_cast<ida::name::DemangleForm>(form)));
+}
+
 int idax_name_resolve(const char* name, uint64_t context, uint64_t* out) {
     RETURN_RESULT_VALUE(ida::name::resolve(name, context));
 }
@@ -5017,6 +5027,26 @@ int idax_decompiler_on_refresh_pseudocode(
     return 0;
 }
 
+int idax_decompiler_on_switch_pseudocode(
+    IdaxDecompilerPseudocodeCallback callback,
+    void* context,
+    IdaxDecompilerToken* token_out) {
+    clear_error();
+    if (callback == nullptr) {
+        return fail(ida::Error::validation("decompiler switch_pseudocode callback is null"));
+    }
+    auto r = ida::decompiler::on_switch_pseudocode([callback, context](
+        const ida::decompiler::PseudocodeEvent& event) {
+        IdaxDecompilerPseudocodeEvent raw{};
+        raw.function_address = event.function_address;
+        raw.cfunc_handle = event.cfunc_handle;
+        callback(context, &raw);
+    });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
 int idax_decompiler_on_curpos_changed(
     IdaxDecompilerCursorPositionCallback callback,
     void* context,
@@ -6783,6 +6813,24 @@ int idax_ui_selection(uint64_t* start_out, uint64_t* end_out) {
     if (!r) return fail(r.error());
     *start_out = r->start;
     *end_out = r->end;
+    return 0;
+}
+
+int idax_ui_current_widget(void** widget_out, uint64_t* widget_id_out) {
+    clear_error();
+    if (widget_out == nullptr || widget_id_out == nullptr) {
+        return fail(ida::Error::validation("widget output pointer is null"));
+    }
+    const auto widget = ida::ui::current_widget();
+    if (!widget.valid()) {
+        *widget_out = nullptr;
+        *widget_id_out = 0;
+        return 0;
+    }
+    auto host = ida::ui::widget_host(widget);
+    if (!host) return fail(host.error());
+    *widget_out = *host;
+    *widget_id_out = widget.id();
     return 0;
 }
 

@@ -110,7 +110,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`function`] | Functions | CRUD, chunks (`chunks`, `add_tail`, `remove_tail`), stack frames (`frame`, `frame_variable_by_name`, `define_stack_variable`), prototype application (`set_prototype`, `apply_decl`), register variables, callers/callees, `item_addresses`, `code_addresses` |
 | [`instruction`] | Instructions | `decode`, `create`, `text`, operand introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), operand formatting (`set_operand_hex`, `set_operand_offset`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
 | [`data`] | Byte-level I/O | Read (`read_byte` .. `read_qword`, `read_bytes`, `read_string`, `read_typed`), write, patch, originals, define (`define_byte` .. `define_struct`, `undefine`), `find_binary_pattern` |
-| [`name`] | Naming | `get`, `set`, `force_set`, `remove`, `demangled`, `resolve`, `all_user_defined`, properties (`is_public`, `is_weak`) |
+| [`name`] | Naming | `get`, `set`, `force_set`, `remove`, address-based `demangled`, arbitrary-symbol `demangle`, `resolve`, `all_user_defined`, properties (`is_public`, `is_weak`) |
 | [`xref`] | Cross-references | `refs_from`, `refs_to`, code/data ref variants, range variants, `add_code`, `add_data`, `remove_code`, `remove_data` |
 | [`comment`] | Comments | Regular/repeatable (`get`, `set`, `append`, `remove`), anterior/posterior lines (`add_anterior`, `set_anterior_lines`, `anterior_lines`, ...), `render` |
 | [`entry`] | Entry points | `count`, `by_index`, `by_ordinal`, `add`, `rename`, forwarders |
@@ -127,7 +127,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`decompiler`] | Hex-Rays decompiler | `available` plus owned `initialize` / `ScopedSession`, `decompile` / `decompile_range` returning `DecompiledFunction` (RAII), pseudocode (`pseudocode_lines`, `pseudocode_text`), stable local-variable indices and lookup, lvar settings snapshots/comment writeback, ctree traversal with helper/type/parent callback metadata (`ctree_items`, `find_ctree_item_at`), microcode (`microcode` returning `MicrocodeFunction`), ctree/microcode modification, event subscriptions including `on_populating_popup` |
+| [`decompiler`] | Hex-Rays decompiler | `available` plus owned `initialize` / `ScopedSession`, `decompile` / `decompile_range` returning `DecompiledFunction` (RAII), pseudocode (`pseudocode_lines`, `pseudocode_text`), stable local-variable indices and lookup, lvar settings snapshots/comment writeback, ctree traversal with helper/type/parent callback metadata (`ctree_items`, `find_ctree_item_at`), microcode (`microcode` returning `MicrocodeFunction`), ctree/microcode modification, event subscriptions including `on_switch_pseudocode` and `on_populating_popup` |
 | [`debugger`] | Debugger control | Process lifecycle (`start`, `attach`, `detach`, `suspend`, `resume`, `step_*`, `terminate`), breakpoints (`add_breakpoint`, `remove_breakpoint`, `enable_breakpoint`, `breakpoints`), memory (`read_memory`, `write_memory`), registers (`register_value`, `set_register_value`), threads, appcall (`call_function`), module/exception/event subscriptions, custom executor registration |
 | [`storage`] | Netnode storage | `Node` (RAII handle), typed value stores: altval (`set_altval` / `altval`), supval (`set_supval` / `supval`), hashval (`set_hashval` / `hashval`), blob (`set_blob` / `blob`), `create` / `open` / `remove` |
 | [`lumina`] | Lumina server | `pull`, `push` |
@@ -142,7 +142,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`loader`] | Loader modules | `InputFileHandle` (seek, read, filename), `LoadFlags` decode/encode, `file_to_database`, `memory_to_database`, `set_processor`, `abort_load` |
 | [`processor`] | Processor modules | `Processor` trait (5 required + 15 optional methods), `InstructionFeature` / `RegisterInfo` / `AssemblerInfo` types |
 | [`graph`] | Custom graphs | `Graph` (RAII handle), `GraphCallback` trait for interactive event handling, `flow_chart` for function CFG extraction |
-| [`ui`] | UI utilities | `message`, `warning`, `error`, `info` dialogs, `ask_*` input prompts, fixed ida-cdump typed-form entrypoints, `WaitBox`, `ChooserImpl` trait for custom list dialogs, widget management, timer scheduling, clipboard helpers, UI event subscriptions |
+| [`ui`] | UI utilities | `message`, `warning`, `error`, `info` dialogs, `ask_*` input prompts, fixed ida-cdump typed-form entrypoints, `WaitBox`, `ChooserImpl` trait for custom list dialogs, widget management including `current_widget`, timer scheduling, clipboard helpers, UI event subscriptions |
 | [`lines`] | Color tags | `strip_color_tags`, `has_color_tags` |
 | [`diagnostics`] | Logging | `log`, `log_error`, `performance_counter`, `reset_performance_counter`, `dump_performance_counters`, `is_verbose`, `set_verbose` |
 

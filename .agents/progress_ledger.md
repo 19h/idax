@@ -2180,3 +2180,23 @@
   - 16.158.1. Re-audited `.agents/active_work.md` against the active-only tracking policy in `agents.md`.
   - 16.158.2. Removed stale historical completion details from the Phase 20 bindings CI item while keeping the current rerun focus and status.
   - 16.158.3. Collapsed the Phase 22 ida-cdump section from a long completed-work ledger into the only remaining host-gated active items: modal typed-form evidence and clipboard evidence.
+
+- **16.159. Phase 20 Real-IDA CI Closure Evidence**
+  - 16.159.1. Reconciled the stale Phase 20 tracker against authoritative GitHub Actions state after fetching and fast-forwarding local `master` to `origin/master`.
+  - 16.159.2. Confirmed `Bindings CI`, `Validation Matrix`, and `Integrations CI` all completed successfully for `fe028da7163d77519262f95762edd4b8564806dc` on 2026-05-31; the same three workflows also passed the preceding rich-type-metadata feature commit.
+  - 16.159.3. Marked Phase 20 and P20.5 complete and removed the stale active-work entry. No code change was required because the corrected Windows fixture-IDB/runtime path and cross-platform link hardening were already present in the fetched branch.
+
+- **16.160. Phase 24 IDA-names Ergonomic Parity Start**
+  - 16.160.1. Promoted the three previously triaged migration gaps into an implementation phase: active-widget polling, `hxe_switch_pseudocode` subscription parity, and arbitrary-symbol demangling.
+  - 16.160.2. Scope includes C++ API/implementation, applicable Node/Rust binding parity, tests, IDA-names example migration, documentation, and full protocol synchronization.
+  - 16.160.3. Implemented C++ `ui::current_widget`, `decompiler::on_switch_pseudocode`, and `name::demangled(string_view, form)` with stable widget identity retirement, exact Hex-Rays payload routing, and strict input/error mapping.
+  - 16.160.4. Mirrored the new APIs through Node and Rust shim/high-level surfaces and added C++ API/runtime, Node structural/runtime, and Rust structural tests.
+  - 16.160.5. Migrated `ida_names_port_plugin` from cached-widget and screen/refresh approximations to direct polling/switch events, and added an isolated Qt title bridge plus `TYPE QT` build wiring.
+  - 16.160.6. Focused C++ targets pass; Node passes 184/184 unit and 65/65 real-IDA integration checks; Rust passes formatting and 127/127 library tests. The complete C++ sweep currently passes 24/25 targets with the independent menu-detach contract defect tracked as F370.
+  - 16.160.7. Rust real-IDA integration was attempted but stalled in shared lifecycle initialization; this is tracked separately as F371 and is not counted as pass evidence.
+
+- **16.161. Phase 24 IDA-names Ergonomic Parity Complete**
+  - 16.161.1. Closed P24.1-P24.6 across C++, Node, Rust, tests, the Qt example bridge, public documentation, API catalog, findings, knowledge base, decisions, and active-work pruning.
+  - 16.161.2. Final feature evidence: four focused CTest targets pass, `idax_ida_names_port_plugin` links, Node passes 184/184 unit and 65/65 real-IDA integration checks, Rust formatting and 127/127 library tests pass, and fixture state is restored after mutation tests.
+  - 16.161.3. The full C++ sweep was executed and isolated an unrelated pre-existing semantic failure in menu detach handling (F370); the failure is retained as a separate active item rather than conflated with Phase 24.
+  - 16.161.4. Rust real-IDA integration is explicitly not claimed because the current macOS harness stalls during shared lifecycle setup (F371); this remains an independent active validation item.

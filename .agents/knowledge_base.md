@@ -929,3 +929,41 @@ Bindings and custom build scripts should not assume Windows import libs always l
 
 ### 35.23. Node TypeInfo Structural Test Initialization Boundary [F365]
 Node unit tests that are intended to be pure structural binding checks should avoid constructing `TypeInfo` factory objects before an IDA runtime/database has been initialized. A direct `idax.type.int32()` call in the structural suite segfaulted before returning the wrapper object. Keep those tests focused on TypeScript/API-shape documentation or move runtime TypeInfo assertions into initialized integration tests; C++ integration remains the primary proof path for primitive factory/type layout semantics.
+
+### 35.24. Arbitrary-Symbol Demangling Form Mapping [F366]
+The SDK models short and long demangler output as inhibition masks. Map idax
+`DemangleForm::Short` to `MNG_SHORT_FORM`, `Long` to `MNG_LONG_FORM`, and
+`Full` to zero before calling `demangle_name(..., DQT_FULL)`. Reject empty or
+embedded-NUL inputs locally and return `NotFound` for negative/no-output SDK
+results.
+
+### 35.25. Exact Pseudocode Function-Switch Notification [F367]
+`hxe_switch_pseudocode` fires after an existing `vdui_t` has received its new
+`cfunc` and `mba`, but before text refresh. It should be exposed directly as a
+typed `PseudocodeEvent`; screen-address and generic refresh callbacks are not
+equivalent signals.
+
+### 35.26. Stable Opaque Widget Identity [F368]
+All wrappers around the same live `TWidget*` must share one opaque numeric ID.
+Intern pointer-to-ID mappings under a mutex and retire them on
+`ui_widget_closing` as well as wrapper-owned close paths. This prevents both
+identity churn during polling and stale identity reuse across widget lifetimes.
+
+### 35.27. Node SDK Header-Root Normalization [F369]
+Accept both SDK include-root (`<IDASDK>/include/pro.h`) and checkout-root
+(`<IDASDK>/src/include/pro.h`) layouts during Node CMake configuration. Header
+root probing is independent from the already-separate SDK/runtime library-root
+normalization described in F363.
+
+### 35.28. Menu Detach Requires Wrapper-Owned Attachment State [F370]
+IDA 9.3 can return true from `detach_action_from_menu` even when the requested
+action was never attached. If idax promises `NotFound` for missing attachment,
+SDK return values alone are insufficient; record successful wrapper attachment
+keys and consume them on detach.
+
+### 35.29. Rust macOS Integration Lifecycle Stall [F371]
+On the current macOS IDA 9.3 host, the Rust serial integration harness can
+remain inside its one-time init/open/analysis sequence while equivalent Node
+and C++ fixture tests finish. Until stage tracing isolates the exact call, use
+Rust compile/unit coverage as structural proof and do not report the stalled
+runtime harness as passing evidence.

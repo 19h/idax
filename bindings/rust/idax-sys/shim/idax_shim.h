@@ -505,6 +505,7 @@ int idax_name_set(uint64_t ea, const char* name);
 int idax_name_force_set(uint64_t ea, const char* name);
 int idax_name_remove(uint64_t ea);
 int idax_name_demangled(uint64_t ea, int form, char** out);
+int idax_name_demangle(const char* symbol, int form, char** out);
 int idax_name_resolve(const char* name, uint64_t context, uint64_t* out);
 
 typedef struct IdaxNameEntry {
@@ -1387,6 +1388,10 @@ int idax_decompiler_on_refresh_pseudocode(
     IdaxDecompilerPseudocodeCallback callback,
     void* context,
     IdaxDecompilerToken* token_out);
+int idax_decompiler_on_switch_pseudocode(
+    IdaxDecompilerPseudocodeCallback callback,
+    void* context,
+    IdaxDecompilerToken* token_out);
 int idax_decompiler_on_curpos_changed(
     IdaxDecompilerCursorPositionCallback callback,
     void* context,
@@ -1727,6 +1732,7 @@ int idax_ui_ask_long(const char* prompt, int64_t default_value, int64_t* out);
 int idax_ui_jump_to(uint64_t address);
 int idax_ui_screen_address(uint64_t* out);
 int idax_ui_selection(uint64_t* start_out, uint64_t* end_out);
+int idax_ui_current_widget(void** widget_out, uint64_t* widget_id_out);
 
 void idax_ui_refresh_all_views(void);
 int idax_ui_user_directory(char** out);

@@ -1,11 +1,11 @@
-#include <ida/plugin.hpp>
-#include <ida/decompiler.hpp>
-#include <ida/ui.hpp>
-#include <ida/function.hpp>
-#include <ida/name.hpp>
+#include <ida/idax.hpp>
+
+#include "ida_names_port_bridge.hpp"
+
 #include <string>
 
-// IDA-names automatically renames pseudocode windows with the current function name.
+// IDA-names automatically renames pseudocode windows with the current function
+// name.
 
 namespace {
 
@@ -16,11 +16,11 @@ std::string shorten_name(std::string function_name) {
         return function_name.substr(0, paren_idx);
     }
     return function_name;
-}
+} // namespace
 
 }
 
-class IdaNamesPlugin : public ida::plugin::Plugin {
+class IdaNamesPlugin final : public ida::plugin::Plugin {
 public:
     IdaNamesPlugin() = default;
 
@@ -33,32 +33,18 @@ public:
 
     bool init() override {
         auto token_res = ida::ui::on_current_widget_changed(
-            [this](ida::ui::Widget current, ida::ui::Widget /*prev*/) {
-                current_widget_ = current;
+            [this](ida::ui::Widget, ida::ui::Widget) {
                 rename_if_pseudocode();
             });
-            
-        if (token_res) {
+        if (token_res)
             widget_changed_token_ = *token_res;
-        }
 
-        auto ea_token_res = ida::ui::on_screen_ea_changed(
-            [this](ida::Address /*new_ea*/, ida::Address /*prev_ea*/) {
-                rename_if_pseudocode();
+        auto switch_res = ida::decompiler::on_switch_pseudocode(
+            [this](const ida::decompiler::PseudocodeEvent& event) {
+                rename_if_pseudocode(event.function_address);
             });
-            
-        if (ea_token_res) {
-            ea_changed_token_ = *ea_token_res;
-        }
-
-        auto refresh_res = ida::decompiler::on_refresh_pseudocode(
-            [this](const ida::decompiler::PseudocodeEvent& /*evt*/) {
-                rename_if_pseudocode();
-            });
-            
-        if (refresh_res) {
-            refresh_token_ = *refresh_res;
-        }
+        if (switch_res)
+            switch_token_ = *switch_res;
 
         ida::plugin::Action manual_rename_action{
             .id = "ida_names:rename",
@@ -66,14 +52,16 @@ public:
             .hotkey = "Shift-T",
             .tooltip = "IDA-names automatically renames pseudocode windows.",
             .handler = [this]() -> ida::Status {
-                manual_rename(); return ida::ok();
+                manual_rename();
+                return ida::ok();
             }
         };
 
         auto action_res = ida::plugin::register_action(manual_rename_action);
-        if (!action_res) {
+        if (!action_res)
             ida::ui::message("Failed to register Shift-T hotkey\n");
-        }
+
+        rename_if_pseudocode();
 
         return true;
     }
@@ -88,57 +76,74 @@ public:
 
     ~IdaNamesPlugin() override {
         if (widget_changed_token_) (void)ida::ui::unsubscribe(widget_changed_token_);
-        if (ea_changed_token_) (void)ida::ui::unsubscribe(ea_changed_token_);
-        if (refresh_token_) (void)ida::decompiler::unsubscribe(refresh_token_);
+        if (switch_token_) (void)ida::decompiler::unsubscribe(switch_token_);
         (void)ida::plugin::unregister_action("ida_names:rename");
     }
 
 private:
-    ida::ui::Widget current_widget_{};
     ida::ui::Token widget_changed_token_{0};
-    ida::ui::Token ea_changed_token_{0};
-    ida::decompiler::Token refresh_token_{0};
+    ida::decompiler::Token switch_token_{0};
     bool enabled_{true};
 
-    void rename_if_pseudocode() {
-        if (!enabled_) return;
-        if (!current_widget_.valid() || ida::ui::widget_type(current_widget_) != ida::ui::WidgetType::Pseudocode) {
+    void rename_if_pseudocode(ida::Address function_address = ida::BadAddress) {
+        if (!enabled_)
+            return;
+        auto current_widget = ida::ui::current_widget();
+        if (!current_widget.valid()
+            || ida::ui::widget_type(current_widget) != ida::ui::WidgetType::Pseudocode) {
             return;
         }
 
-        auto ea_res = ida::ui::screen_address();
-        if (!ea_res) return;
-
-        auto func = ida::function::at(*ea_res);
-        if (!func) return;
-        
-        ida::Address func_ea = func->start();
-
-        std::string name_to_use;
-        auto demangled_res = ida::name::demangled(func_ea, ida::name::DemangleForm::Short);
-        if (demangled_res) {
-            name_to_use = shorten_name(*demangled_res);
-        } else {
-            auto raw_name_res = ida::name::get(func_ea);
-            if (raw_name_res) {
-                name_to_use = *raw_name_res;
-            } else {
+        if (function_address == ida::BadAddress) {
+            auto screen_address = ida::ui::screen_address();
+            if (!screen_address)
                 return;
-            }
+            function_address = *screen_address;
         }
 
-        // Mock dropping down to Qt
+        auto func = ida::function::at(function_address);
+        if (!func)
+            return;
+
+        auto raw_name = ida::name::get(func->start());
+        if (!raw_name)
+            return;
+
+        std::string name_to_use = *raw_name;
+        auto demangled = ida::name::demangled(*raw_name,
+                                               ida::name::DemangleForm::Short);
+        if (demangled)
+            name_to_use = shorten_name(*demangled);
+
+        set_widget_title(current_widget, name_to_use);
     }
 
     void manual_rename() {
-        if (!current_widget_.valid()) return;
+        auto current_widget = ida::ui::current_widget();
+        if (!current_widget.valid())
+            return;
 
-        std::string old_title = current_widget_.title();
+        std::string old_title = current_widget.title();
         auto new_title_res = ida::ui::ask_string("New window title", old_title);
-        
-        if (new_title_res && !new_title_res->empty()) {
-            std::string new_title = *new_title_res;
-            // Mock dropping down to Qt
+        if (new_title_res && !new_title_res->empty())
+            set_widget_title(current_widget, *new_title_res);
+    }
+
+    static void set_widget_title(const ida::ui::Widget& widget,
+                                 std::string_view title) {
+        auto status = ida::ui::with_widget_host(
+            widget,
+            [title](void* host) -> ida::Status {
+                std::string error;
+                if (!set_ida_names_widget_title(host, title, &error)) {
+                    return std::unexpected(ida::Error::internal(
+                        error.empty() ? "Failed to update widget title" : error));
+                }
+                return ida::ok();
+            });
+        if (!status) {
+            ida::ui::message("[ida-names:idax] Failed to update widget title: "
+                             + status.error().message + "\n");
         }
     }
 };

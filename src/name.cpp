@@ -3,6 +3,7 @@
 
 #include "detail/sdk_bridge.hpp"
 #include <ida/name.hpp>
+#include <demangle.hpp>
 
 namespace ida::name {
 
@@ -73,6 +74,37 @@ Result<std::string> demangled(Address ea, DemangleForm form) {
         return std::unexpected(Error::not_found("No demangled name at address",
                                                 std::to_string(ea)));
     return ida::detail::to_string(qn);
+}
+
+Result<std::string> demangled(std::string_view symbol, DemangleForm form) {
+    if (symbol.empty())
+        return std::unexpected(Error::validation("Symbol cannot be empty"));
+    if (symbol.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Symbol contains an embedded NUL"));
+    }
+
+    uint32 disable_mask = 0;
+    switch (form) {
+        case DemangleForm::Short:
+            disable_mask = MNG_SHORT_FORM;
+            break;
+        case DemangleForm::Long:
+            disable_mask = MNG_LONG_FORM;
+            break;
+        case DemangleForm::Full:
+            break;
+    }
+
+    const qstring input = ida::detail::to_qstring(symbol);
+    qstring output;
+    if (::demangle_name(&output, input.c_str(), disable_mask, DQT_FULL) <= 0
+        || output.empty()) {
+        return std::unexpected(Error::not_found(
+            "Symbol could not be demangled",
+            std::string(symbol)));
+    }
+    return ida::detail::to_string(output);
 }
 
 Result<Address> resolve(std::string_view name, Address context) {

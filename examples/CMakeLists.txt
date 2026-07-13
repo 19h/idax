@@ -35,6 +35,8 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/drawida_port_widget.hpp
     plugin/drawida_port_widget.cpp
     plugin/ida_names_port_plugin.cpp
+    plugin/ida_names_port_bridge.hpp
+    plugin/ida_names_port_widget.cpp
     plugin/abyss_port_plugin.cpp
     plugin/driverbuddy_port_plugin.cpp
     plugin/codedump_parity_probe_plugin.cpp
@@ -125,7 +127,12 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
     )
 
     ida_add_plugin(idax_ida_names_port_plugin
-        SOURCES plugin/ida_names_port_plugin.cpp
+        TYPE QT
+        QT_COMPONENTS Core Widgets
+        SOURCES
+            plugin/ida_names_port_plugin.cpp
+            plugin/ida_names_port_widget.cpp
+            plugin/ida_names_port_bridge.hpp
         LIBRARIES idax::idax
     )
 

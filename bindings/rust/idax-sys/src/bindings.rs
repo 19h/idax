@@ -1441,6 +1441,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_name_demangle(
+        symbol: *const ::std::os::raw::c_char,
+        form: ::std::os::raw::c_int,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_name_resolve(
         name: *const ::std::os::raw::c_char,
         context: u64,
@@ -4146,6 +4153,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_decompiler_on_switch_pseudocode(
+        callback: IdaxDecompilerPseudocodeCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut IdaxDecompilerToken,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_decompiler_on_curpos_changed(
         callback: IdaxDecompilerCursorPositionCallback,
         context: *mut ::std::os::raw::c_void,
@@ -5195,6 +5209,12 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_ui_selection(start_out: *mut u64, end_out: *mut u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ui_current_widget(
+        widget_out: *mut *mut ::std::os::raw::c_void,
+        widget_id_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_ui_refresh_all_views();

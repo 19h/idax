@@ -310,12 +310,16 @@ void check_name_surface() {
     using NamePredicateFn = bool(*)(ida::Address);
     using IsValidIdentifierFn = ida::Result<bool>(*)(std::string_view);
     using SanitizeIdentifierFn = ida::Result<std::string>(*)(std::string_view);
+    using DemangledAddressFn = ida::Result<std::string>(*)(ida::Address, ida::name::DemangleForm);
+    using DemangledSymbolFn = ida::Result<std::string>(*)(std::string_view, ida::name::DemangleForm);
     using NameAllFn = ida::Result<std::vector<ida::name::Entry>>(*)(const ida::name::ListOptions&);
     using NameAllUserDefinedFn = ida::Result<std::vector<ida::name::Entry>>(*)(ida::Address, ida::Address);
 
     (void)static_cast<NamePredicateFn>(&ida::name::is_user_defined);
     (void)static_cast<IsValidIdentifierFn>(&ida::name::is_valid_identifier);
     (void)static_cast<SanitizeIdentifierFn>(&ida::name::sanitize_identifier);
+    (void)static_cast<DemangledAddressFn>(&ida::name::demangled);
+    (void)static_cast<DemangledSymbolFn>(&ida::name::demangled);
     (void)static_cast<NameAllFn>(&ida::name::all);
     (void)static_cast<NameAllUserDefinedFn>(&ida::name::all_user_defined);
 }
@@ -1124,6 +1128,7 @@ void check_ui_surface() {
     using CloseCustomViewerFn = ida::Status(*)(ida::ui::Widget&);
     using ShowWidgetFn = ida::Status(*)(ida::ui::Widget&, const ida::ui::ShowWidgetOptions&);
     using ActivateWidgetFn = ida::Status(*)(ida::ui::Widget&);
+    using CurrentWidgetFn = ida::ui::Widget(*)();
     using FindWidgetFn = ida::ui::Widget(*)(std::string_view);
     using CloseWidgetFn = ida::Status(*)(ida::ui::Widget&);
     using IsWidgetVisibleFn = bool(*)(const ida::ui::Widget&);
@@ -1185,6 +1190,7 @@ void check_ui_surface() {
     (void)static_cast<CloseCustomViewerFn>(&ida::ui::close_custom_viewer);
     (void)static_cast<ShowWidgetFn>(&ida::ui::show_widget);
     (void)static_cast<ActivateWidgetFn>(&ida::ui::activate_widget);
+    (void)static_cast<CurrentWidgetFn>(&ida::ui::current_widget);
     (void)static_cast<FindWidgetFn>(&ida::ui::find_widget);
     (void)static_cast<CloseWidgetFn>(&ida::ui::close_widget);
     (void)static_cast<IsWidgetVisibleFn>(&ida::ui::is_widget_visible);
@@ -1424,6 +1430,8 @@ void check_decompiler_surface() {
         ida::decompiler::StatementView::*)() const;
     using OnMaturityChangedFn = ida::Result<ida::decompiler::Token>(*)(
         std::function<void(const ida::decompiler::MaturityEvent&)>);
+    using OnPseudocodeEventFn = ida::Result<ida::decompiler::Token>(*)(
+        std::function<void(const ida::decompiler::PseudocodeEvent&)>);
     using DecompilerUnsubscribeFn = ida::Status(*)(ida::decompiler::Token);
     using MarkDirtyFn = ida::Status(*)(ida::Address, bool);
     using RegisterMicrocodeFilterFn = ida::Result<ida::decompiler::FilterToken>(*)(
@@ -1780,6 +1788,7 @@ void check_decompiler_surface() {
     (void)static_cast<StmtParentFn>(&ida::decompiler::StatementView::parent);
     (void)static_cast<StmtParentsFn>(&ida::decompiler::StatementView::parents);
     (void)static_cast<OnMaturityChangedFn>(&ida::decompiler::on_maturity_changed);
+    (void)static_cast<OnPseudocodeEventFn>(&ida::decompiler::on_switch_pseudocode);
     using OnPopulatingPopupFn = ida::Result<ida::decompiler::Token>(*)(
         std::function<void(const ida::decompiler::PopulatingPopupEvent&)>);
     (void)static_cast<OnPopulatingPopupFn>(&ida::decompiler::on_populating_popup);

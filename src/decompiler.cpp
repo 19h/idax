@@ -44,6 +44,7 @@ std::size_t g_scoped_session_count = 0;
 std::mutex g_subscription_mutex;
 std::unordered_map<Token, std::function<void(const MaturityEvent&)>> g_maturity_callbacks;
 std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_func_printed_callbacks;
+std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_switch_pseudocode_callbacks;
 std::unordered_map<Token, std::function<void(const PseudocodeEvent&)>> g_refresh_pseudocode_callbacks;
 std::unordered_map<Token, std::function<void(const CursorPositionEvent&)>> g_curpos_callbacks;
 std::unordered_map<Token, std::function<HintResult(const HintRequestEvent&)>> g_create_hint_callbacks;
@@ -55,6 +56,7 @@ bool g_hexrays_callback_installed = false;
 bool all_callbacks_empty_locked() {
     return g_maturity_callbacks.empty()
         && g_func_printed_callbacks.empty()
+        && g_switch_pseudocode_callbacks.empty()
         && g_refresh_pseudocode_callbacks.empty()
         && g_curpos_callbacks.empty()
         && g_create_hint_callbacks.empty()
@@ -84,6 +86,11 @@ bool erase_from_any_map_locked(Token token) {
     }
     if (auto it = g_func_printed_callbacks.find(token); it != g_func_printed_callbacks.end()) {
         g_func_printed_callbacks.erase(it);
+        return true;
+    }
+    if (auto it = g_switch_pseudocode_callbacks.find(token);
+        it != g_switch_pseudocode_callbacks.end()) {
+        g_switch_pseudocode_callbacks.erase(it);
         return true;
     }
     if (auto it = g_refresh_pseudocode_callbacks.find(token); it != g_refresh_pseudocode_callbacks.end()) {
@@ -2032,6 +2039,27 @@ ssize_t idaapi hexrays_event_bridge(void*, hexrays_event_t event, va_list va) {
         return 0;
     }
 
+    case hxe_switch_pseudocode: {
+        vdui_t* vu = va_arg(va, vdui_t*);
+
+        PseudocodeEvent evt;
+        if (vu != nullptr && vu->cfunc != nullptr) {
+            evt.function_address = static_cast<Address>(vu->cfunc->entry_ea);
+            evt.cfunc_handle = static_cast<void*>(&*vu->cfunc);
+        }
+
+        std::vector<std::function<void(const PseudocodeEvent&)>> callbacks;
+        {
+            std::lock_guard<std::mutex> lock(g_subscription_mutex);
+            callbacks.reserve(g_switch_pseudocode_callbacks.size());
+            for (const auto& [_, cb] : g_switch_pseudocode_callbacks)
+                callbacks.push_back(cb);
+        }
+        for (const auto& cb : callbacks)
+            cb(evt);
+        return 0;
+    }
+
     case hxe_curpos: {
         vdui_t* vu = va_arg(va, vdui_t*);
 
@@ -2228,6 +2256,24 @@ Result<Token> on_refresh_pseudocode(std::function<void(const PseudocodeEvent&)> 
 
     const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
     g_refresh_pseudocode_callbacks.emplace(token, std::move(callback));
+    return token;
+}
+
+Result<Token> on_switch_pseudocode(std::function<void(const PseudocodeEvent&)> callback) {
+    if (!callback)
+        return std::unexpected(Error::validation("switch_pseudocode callback cannot be empty"));
+
+    auto st = ensure_hexrays();
+    if (!st)
+        return std::unexpected(st.error());
+
+    std::lock_guard<std::mutex> lock(g_subscription_mutex);
+    st = ensure_callback_installed_locked();
+    if (!st)
+        return std::unexpected(st.error());
+
+    const Token token = g_next_token.fetch_add(1, std::memory_order_relaxed);
+    g_switch_pseudocode_callbacks.emplace(token, std::move(callback));
     return token;
 }
 

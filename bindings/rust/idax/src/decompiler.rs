@@ -1423,6 +1423,32 @@ where
     Ok(token)
 }
 
+/// Subscribe when an existing pseudocode view switches to another function.
+pub fn on_switch_pseudocode<F>(callback: F) -> Result<Token>
+where
+    F: FnMut(PseudocodeEvent) + Send + 'static,
+{
+    let raw = Box::into_raw(Box::new(PseudocodeContext {
+        callback: Box::new(callback),
+    }));
+    let mut token: Token = 0;
+    let ret = unsafe {
+        idax_sys::idax_decompiler_on_switch_pseudocode(
+            Some(pseudocode_trampoline),
+            raw as *mut c_void,
+            &mut token,
+        )
+    };
+    if ret != 0 {
+        unsafe { drop(Box::from_raw(raw)) };
+        return Err(error::consume_last_error(
+            "decompiler::on_switch_pseudocode failed",
+        ));
+    }
+    save_context(&SUB_CONTEXTS, token, raw);
+    Ok(token)
+}
+
 pub fn on_curpos_changed<F>(callback: F) -> Result<Token>
 where
     F: FnMut(CursorPositionEvent) + Send + 'static,

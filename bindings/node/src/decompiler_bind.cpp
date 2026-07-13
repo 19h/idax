@@ -1341,6 +1341,34 @@ NAN_METHOD(OnRefreshPseudocode) {
     info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, token));
 }
 
+// onSwitchPseudocode(callback) -> token (BigInt)
+// callback receives: { functionAddress: bigint }
+NAN_METHOD(OnSwitchPseudocode) {
+    if (info.Length() < 1 || !info[0]->IsFunction()) {
+        Nan::ThrowTypeError("Expected callback function");
+        return;
+    }
+
+    auto jsFn = info[0].As<v8::Function>();
+    auto* persistent = new Nan::Callback(jsFn);
+
+    IDAX_UNWRAP(auto token, ida::decompiler::on_switch_pseudocode(
+        [persistent](const ida::decompiler::PseudocodeEvent& event) {
+            Nan::HandleScope scope;
+            auto obj = ObjectBuilder()
+                .setAddr("functionAddress", event.function_address)
+                .build();
+            v8::Local<v8::Value> argv[] = { obj };
+            Nan::AsyncResource resource("idax:switchPseudocode");
+            persistent->Call(1, argv, &resource);
+        }));
+
+    StoreCallback(token, jsFn);
+
+    auto isolate = v8::Isolate::GetCurrent();
+    info.GetReturnValue().Set(v8::BigInt::NewFromUnsigned(isolate, token));
+}
+
 // onPopulatingPopup(callback) -> token (BigInt)
 // callback receives: { functionAddress: bigint, widgetHandle: External,
 //                      popupHandle: External, viewHandle: External }
@@ -1445,6 +1473,7 @@ void InitDecompiler(v8::Local<v8::Object> target) {
     SetMethod(ns, "onMaturityChanged",     OnMaturityChanged);
     SetMethod(ns, "onFuncPrinted",         OnFuncPrinted);
     SetMethod(ns, "onRefreshPseudocode",   OnRefreshPseudocode);
+    SetMethod(ns, "onSwitchPseudocode",    OnSwitchPseudocode);
     SetMethod(ns, "onPopulatingPopup",     OnPopulatingPopup);
     SetMethod(ns, "unsubscribe",           Unsubscribe);
 

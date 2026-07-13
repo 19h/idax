@@ -1014,3 +1014,12 @@
   - **19.23.1. Decision:** Add first-class opaque `ida::type` metadata structs and methods for type kind/name/declaration, function details, enum details, UDT details, and rich member layout flags instead of allowing plugin ports to include `typeinf.hpp` and inspect `tinfo_t`, `udt_type_data_t`, or related SDK structs.
   - **19.23.2. Rationale:** ida-trida needs bit offsets, bitfield backing width, baseclass/vftable/gap flags, named function arguments, enum width/radix, and UDT total-size/object metadata to generate faithful Frida helpers. Keeping this data in idax preserves the fully opaque public API rule while making real generator ports practical.
   - **19.23.3. Binding posture:** Node and Rust expose the same concepts structurally, but structural Node tests must not construct `TypeInfo` factory objects in an uninitialized Node-only process; runtime TypeInfo behavior remains covered by initialized C++/integration paths.
+
+- **19.24. Decision D-STABLE-OPAQUE-WIDGET-IDENTITY**: Intern wrapper IDs for live SDK widgets
+  - **19.24.1. Decision:** Assign one opaque idax ID per live `TWidget*`, reuse it across `create_widget`, event payloads, `find_widget`, and `current_widget`, and retire it on `ui_widget_closing` or wrapper-owned close.
+  - **19.24.2. Rationale:** Public `Widget::id()` is documented as stable identity. Generating an ID per wrapper instance violated that contract and made polling/event correlation unreliable.
+  - **19.24.3. Scope constraint:** The pointer remains implementation-private; bindings receive only the opaque ID and snapshot metadata.
+
+- **19.25. Decision D-IDA-NAMES-QT-TITLE-BRIDGE**: Keep widget-title mutation outside the generic SDK facade
+  - **19.25.1. Decision:** The IDA-names example changes window titles through `with_widget_host` and a Qt-only translation unit instead of adding `Widget::set_title()`.
+  - **19.25.2. Rationale:** The audited SDK exposes title reads but no generic `set_widget_title` operation. An explicit host bridge preserves public SDK opacity and keeps Qt dependencies confined to a `TYPE QT` example target.

@@ -79,15 +79,22 @@ NAN_METHOD(Get) {
     info.GetReturnValue().Set(FromString(name));
 }
 
-// demangled(address, form?) -> string
+// demangled(addressOrSymbol, form?) -> string
 // form: "short" | "long" | "full" (default "short")
 NAN_METHOD(Demangled) {
-    ida::Address addr;
-    if (!GetAddressArg(info, 0, addr)) return;
-
     auto formStr = GetOptionalString(info, 1, "short");
     auto form = ParseDemangleForm(formStr);
 
+    if (info.Length() > 0 && info[0]->IsString()) {
+        std::string symbol;
+        if (!GetStringArg(info, 0, symbol)) return;
+        IDAX_UNWRAP(auto name, ida::name::demangled(symbol, form));
+        info.GetReturnValue().Set(FromString(name));
+        return;
+    }
+
+    ida::Address addr;
+    if (!GetAddressArg(info, 0, addr)) return;
     IDAX_UNWRAP(auto name, ida::name::demangled(addr, form));
     info.GetReturnValue().Set(FromString(name));
 }

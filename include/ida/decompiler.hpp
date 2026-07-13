@@ -161,6 +161,12 @@ Result<Token> on_func_printed(std::function<void(const PseudocodeEvent&)> callba
 /// Subscribe to the refresh_pseudocode event (fired when pseudocode view refreshes).
 Result<Token> on_refresh_pseudocode(std::function<void(const PseudocodeEvent&)> callback);
 
+/// Subscribe to pseudocode-view function switches.
+///
+/// Fired on `hxe_switch_pseudocode` after the new cfunc/microcode pointers are
+/// available but before the pseudocode text has been refreshed.
+Result<Token> on_switch_pseudocode(std::function<void(const PseudocodeEvent&)> callback);
+
 /// Subscribe to the curpos event (fired when cursor moves in pseudocode view).
 Result<Token> on_curpos_changed(std::function<void(const CursorPositionEvent&)> callback);
 

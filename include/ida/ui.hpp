@@ -695,6 +695,12 @@ Status show_widget(Widget& widget,
 /// Bring an already-visible widget to the foreground.
 Status activate_widget(Widget& widget);
 
+/// Return the currently active IDA widget.
+///
+/// Returns an empty Widget when no UI widget is active (for example in a
+/// headless idalib session).
+Widget current_widget();
+
 /// Find an existing widget by its title.
 /// Returns an empty Widget (valid()==false) if not found.
 Widget find_widget(std::string_view title);

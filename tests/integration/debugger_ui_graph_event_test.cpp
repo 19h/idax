@@ -577,6 +577,12 @@ void test_debugger_appcall_and_executor_hooks() {
 void test_ui_subscriptions() {
     std::printf("[section] ui: event subscription lifecycle\n");
 
+    auto active0 = ida::ui::current_widget();
+    auto active1 = ida::ui::current_widget();
+    CHECK(active0.valid() == active1.valid(), "current_widget polling is stable");
+    if (active0.valid() && active1.valid())
+        CHECK(active0.id() == active1.id(), "current_widget preserves widget identity");
+
     auto tok0 = ida::ui::on_database_inited([](bool, std::string) {});
     CHECK(tok0.has_value(), "database_inited subscribe ok");
 

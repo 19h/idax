@@ -20,13 +20,6 @@
     - 1.2.3.1. Execute `full` rows with runtime installs when available.
   - 1.2.4. **Status:** Ongoing / license-gated.
 
-- **1.3. Real-IDA Bindings CI Stabilization (Phase 20)**
-  - 1.3.1. **Action:** Re-run `Bindings CI` after latest workflow/CMake fixes.
-  - 1.3.2. **Remaining focus:** rerun `Bindings CI` with corrected Windows runtime mitigations (rollback unsupported shim plugin-policy init path; retain isolated empty `IDAUSR`) plus trace toggles/direct exec and fixture-IDB input (`tests/fixtures/simple_appcall_linux64.i64`) instead of raw PE loader path.
-  - 1.3.3. **Status:** In progress.
-
----
-
 ### 2. JBC & Processor Module Parity
 
 - **2.1. Validation Continuation**
@@ -62,18 +55,6 @@
 
 ---
 
-### 5. IDA-names Port Ergonomic Gaps (Pending Triage)
-
-- **5.1. API Gaps Discovered During Porting**
-  - 5.1.1. `ida::ui` lacks a high-level `current_widget()` polling API. `ida_kernwin.get_current_widget()` has no idax equivalent; plugin authors must manually subscribe to `on_current_widget_changed` to track the active view.
-  - 5.1.2. `ida::decompiler` lacks an `on_switch_pseudocode` subscription (wrapping `hxe_switch_pseudocode`). The port worked around this using `on_screen_ea_changed` and `on_current_widget_changed`.
-  - 5.1.3. `ida::name::demangled` requires an `ida::Address` context. The SDK's bare string demangler `demangle_name(const char*)` is not exposed, forcing plugins to use the address-based lookup rather than demangling an arbitrary string in memory.
-  - 5.1.4. `ida::ui::Widget` lacks a `set_title()` method. (Note: The IDA SDK itself lacks `set_widget_title`; in idax this is bridged through `ida::ui::with_widget_host_as<QWidget>` when Qt-level control is needed.)
-  - 5.1.5. **Action:** Evaluate adding `current_widget()`, `on_switch_pseudocode`, and a string-only `demangled(string_view)` overload to close these ergonomic gaps.
-  - 5.1.6. **Status:** Pending triage.
-
----
-
 ### 6. ida-cdump Parity Closure (Phase 22)
 
 - **6.1. Host Evidence Queue**
@@ -82,3 +63,17 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Validation Regressions Discovered During Phase 24
+
+- **7.1. Menu Detach Contract**
+  - 7.1.1. **Impact:** `loader_processor_scenario` fails 2/200 checks because IDA 9.3 reports success detaching a never-attached action while idax promises `NotFound`.
+  - 7.1.2. **Mitigation:** Add wrapper-owned menu/toolbar attachment state and rerun the complete C++ suite as a separate semantic fix.
+  - 7.1.3. **Status:** Reproduced; next implementation item (F370).
+
+- **7.2. Rust macOS Runtime Harness Stall**
+  - 7.2.1. **Impact:** Real-IDA Rust runtime validation cannot currently be claimed; full and filtered integration runs stall during shared init/open/analysis setup.
+  - 7.2.2. **Mitigation:** Add stage-level harness tracing and compare the Rust dynamic-loader/init path against the passing Node lifecycle before changing core behavior.
+  - 7.2.3. **Status:** Reproduced on the current IDA 9.3 macOS host (F371); Rust format/compile/unit evidence passes.

@@ -92,6 +92,20 @@ pub fn demangled(address: Address, form: DemangleForm) -> Result<String> {
     }
 }
 
+/// Demangle an arbitrary mangled symbol without requiring a database address.
+pub fn demangle(symbol: &str, form: DemangleForm) -> Result<String> {
+    let symbol =
+        CString::new(symbol).map_err(|_| Error::validation("symbol contains an embedded NUL"))?;
+    unsafe {
+        let mut out: *mut std::ffi::c_char = std::ptr::null_mut();
+        let ret = idax_sys::idax_name_demangle(symbol.as_ptr(), form as i32, &mut out);
+        if ret != 0 {
+            return Err(error::consume_last_error("name::demangle failed"));
+        }
+        error::cstr_to_string_free(out, "name::demangle returned null")
+    }
+}
+
 /// Resolve a name to an address.
 pub fn resolve(name: &str, context: Address) -> Result<Address> {
     let c_name = CString::new(name).map_err(|_| Error::validation("invalid name"))?;

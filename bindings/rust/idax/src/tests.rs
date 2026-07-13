@@ -1072,6 +1072,12 @@ mod decompiler_tests {
     }
 
     #[test]
+    fn test_switch_pseudocode_signature() {
+        let _: fn(fn(PseudocodeEvent)) -> Result<Token> =
+            on_switch_pseudocode::<fn(PseudocodeEvent)>;
+    }
+
+    #[test]
     fn test_scoped_session_function_signatures() {
         let _: fn() -> Result<ScopedSession> = initialize;
         let _: fn(&ScopedSession) -> Result<bool> = ScopedSession::valid;
@@ -1181,6 +1187,17 @@ mod debugger_tests {
         assert!(!opts.manual);
         assert!(!opts.include_debug_event);
         assert!(opts.timeout_milliseconds.is_none());
+    }
+}
+
+#[cfg(test)]
+mod name_tests {
+    use crate::error::Result;
+    use crate::name::{self, DemangleForm};
+
+    #[test]
+    fn test_arbitrary_demangle_signature() {
+        let _: fn(&str, DemangleForm) -> Result<String> = name::demangle;
     }
 }
 
@@ -1369,6 +1386,11 @@ mod ui_tests {
         self, PathBitsetFormResult, RadioSvalPathBitsetFormResult, SvalBitsetFormResult,
         SvalPathBitsetFormResult, ThreeSvalsPathTwoBitsetsFormResult,
     };
+
+    #[test]
+    fn test_current_widget_signature() {
+        let _: fn() -> Result<Option<ui::WidgetRef>> = ui::current_widget;
+    }
 
     #[test]
     fn test_codedump_typed_form_result_shapes() {

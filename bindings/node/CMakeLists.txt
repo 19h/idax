@@ -76,9 +76,18 @@ endif()
 
 if(DEFINED ENV{IDASDK})
     set(IDASDK_DIR "$ENV{IDASDK}")
-    include_directories("${IDASDK_DIR}/include")
+    if(EXISTS "${IDASDK_DIR}/include/pro.h")
+        set(IDASDK_INCLUDE_ROOT "${IDASDK_DIR}")
+    elseif(EXISTS "${IDASDK_DIR}/src/include/pro.h")
+        set(IDASDK_INCLUDE_ROOT "${IDASDK_DIR}/src")
+    else()
+        message(FATAL_ERROR
+            "Could not find IDA SDK headers below IDASDK='${IDASDK_DIR}'. "
+            "Expected include/pro.h or src/include/pro.h.")
+    endif()
+    include_directories("${IDASDK_INCLUDE_ROOT}/include")
     add_compile_definitions(__EA64__)
-    message(STATUS "IDA SDK: ${IDASDK_DIR}")
+    message(STATUS "IDA SDK: ${IDASDK_DIR} (headers: ${IDASDK_INCLUDE_ROOT}/include)")
 
     get_filename_component(IDASDK_DIR_BASENAME "${IDASDK_DIR}" NAME)
     if(IDASDK_DIR_BASENAME STREQUAL "src" AND EXISTS "${IDASDK_DIR}/../lib")

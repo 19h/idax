@@ -208,6 +208,47 @@ namespace {
 
 // Monotonically increasing ID for widget identity tracking.
 std::atomic<std::uint64_t> g_next_widget_id{1};
+std::mutex g_widget_ids_mutex;
+std::unordered_map<TWidget*, std::uint64_t> g_widget_ids;
+
+void forget_widget_id(TWidget* widget) {
+    std::lock_guard<std::mutex> lock(g_widget_ids_mutex);
+    g_widget_ids.erase(widget);
+}
+
+class WidgetIdentityListener final : public event_listener_t {
+public:
+    ssize_t idaapi on_event(ssize_t code, va_list va) override {
+        if (code == ui_widget_closing)
+            forget_widget_id(va_arg(va, TWidget*));
+        return 0;
+    }
+};
+
+void ensure_widget_identity_listener() {
+    static WidgetIdentityListener listener;
+    static std::mutex hook_mutex;
+    static bool hooked = false;
+    std::lock_guard<std::mutex> lock(hook_mutex);
+    if (!hooked)
+        hooked = hook_event_listener(HT_UI, &listener, nullptr);
+}
+
+std::uint64_t widget_id_for(TWidget* widget, std::uint64_t preferred = 0) {
+    if (widget == nullptr)
+        return 0;
+
+    ensure_widget_identity_listener();
+    std::lock_guard<std::mutex> lock(g_widget_ids_mutex);
+    if (auto it = g_widget_ids.find(widget); it != g_widget_ids.end())
+        return it->second;
+
+    const std::uint64_t id = preferred != 0
+        ? preferred
+        : g_next_widget_id.fetch_add(1, std::memory_order_relaxed);
+    g_widget_ids.emplace(widget, id);
+    return id;
+}
 
 struct CustomViewerState {
     strvec_t lines;
@@ -254,9 +295,11 @@ Result<std::unique_ptr<CustomViewerState>> make_custom_viewer_state(
 
 struct WidgetAccess {
     static Widget make(TWidget* tw) {
+        if (tw == nullptr)
+            return Widget{};
         Widget w;
         w.impl_ = static_cast<void*>(tw);
-        w.id_   = g_next_widget_id.fetch_add(1, std::memory_order_relaxed);
+        w.id_   = widget_id_for(tw);
         return w;
     }
     static Widget wrap(TWidget* tw, std::uint64_t existing_id = 0) {
@@ -264,8 +307,7 @@ struct WidgetAccess {
             return Widget{};
         Widget w;
         w.impl_ = static_cast<void*>(tw);
-        w.id_   = existing_id != 0 ? existing_id
-                                    : g_next_widget_id.fetch_add(1, std::memory_order_relaxed);
+        w.id_   = widget_id_for(tw, existing_id);
         return w;
     }
     static TWidget* raw(const Widget& w) {
@@ -465,6 +507,7 @@ Status close_custom_viewer(Widget& viewer) {
 
     ::destroy_custom_viewer(tw);
     erase_custom_viewer_state(tw);
+    forget_widget_id(tw);
     viewer = Widget{};
     return ida::ok();
 }
@@ -487,6 +530,10 @@ Status activate_widget(Widget& widget) {
     return ida::ok();
 }
 
+Widget current_widget() {
+    return WidgetAccess::wrap(::get_current_widget());
+}
+
 Widget find_widget(std::string_view title) {
     std::string stitle(title);
     TWidget* tw = ::find_widget(stitle.c_str());
@@ -501,6 +548,7 @@ Status close_widget(Widget& widget) {
         return std::unexpected(Error::validation("Widget handle is invalid"));
     ::close_widget(tw, 0);
     erase_custom_viewer_state(tw);
+    forget_widget_id(tw);
     widget = Widget{}; // invalidate
     return ida::ok();
 }

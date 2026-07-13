@@ -82,7 +82,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |
 | **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototype export/apply |
 | **Instructions** | `ida::instruction` | Decode/create, operand access/read-write metadata, representation controls, xref conveniences |
-| **Names** | `ida::name` | Set/get/force/remove, demangling, resolution, properties |
+| **Names** | `ida::name` | Set/get/force/remove, address-based or arbitrary-symbol demangling, resolution, properties |
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
@@ -96,9 +96,9 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
-| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, user comments, popup events, address mapping |
+| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, user comments, pseudocode-switch/popup events, address mapping |
 | **Lines** | `ida::lines` | Tagged text/color helpers for pseudocode and listing output |
-| **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, widget/custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
+| **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, stable widget/current-widget and custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks, switch-table metadata |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
 

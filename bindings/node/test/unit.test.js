@@ -76,7 +76,7 @@ describe('UI Namespace Structure', () => {
     });
 
     const EXPECTED_FUNCTIONS = [
-        'copyToClipboard', 'readClipboard', 'clipboardBackend', 'askText',
+        'copyToClipboard', 'readClipboard', 'clipboardBackend', 'currentWidget', 'askText',
         'askFormSvalBitset', 'askFormSvalPathBitset', 'askFormPathBitset',
         'askFormRadioSvalPathBitset', 'askFormThreeSvalsPathTwoBitsets',
     ];
@@ -465,6 +465,7 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'onMaturityChanged',
             'onFuncPrinted',
             'onRefreshPseudocode',
+            'onSwitchPseudocode',
             'onPopulatingPopup',
         ]) {
             expect(typeof idax.decompiler[fn]).toBe('function');

@@ -15,7 +15,7 @@ use std::sync::{Arc, Once};
 use idax::address::BAD_ADDRESS;
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
-    instruction, lines, name, search, segment, storage, types, xref,
+    instruction, lines, name, search, segment, storage, types, ui, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -495,6 +495,26 @@ fn name_validation() {
     assert!(name::is_valid_identifier("hello_world").unwrap());
     let sanitized = name::sanitize_identifier("hello world!").unwrap();
     assert!(!sanitized.is_empty());
+}
+
+#[test]
+fn name_demangle_arbitrary_symbol() {
+    require_db!();
+    for form in [
+        name::DemangleForm::Short,
+        name::DemangleForm::Long,
+        name::DemangleForm::Full,
+    ] {
+        let demangled = name::demangle("_Z3foov", form).unwrap();
+        assert!(demangled.contains("foo"));
+    }
+    assert!(name::demangle("not_a_mangled_symbol", name::DemangleForm::Short).is_err());
+}
+
+#[test]
+fn ui_current_widget_headless_safe() {
+    require_db!();
+    let _ = ui::current_widget().unwrap();
 }
 
 // ===========================================================================
