@@ -379,10 +379,21 @@ DEFINE_ITEM_BINDING(DefineOword,  define_oword)
 DEFINE_ITEM_BINDING(DefineYword,  define_yword)
 DEFINE_ITEM_BINDING(DefineZword,  define_zword)
 DEFINE_ITEM_BINDING(DefineTbyte,  define_tbyte)
+DEFINE_ITEM_BINDING(DefinePackedReal, define_packed_real)
 DEFINE_ITEM_BINDING(DefineFloat,  define_float)
 DEFINE_ITEM_BINDING(DefineDouble, define_double)
 
 #undef DEFINE_ITEM_BINDING
+
+NAN_METHOD(TbyteElementSize) {
+    IDAX_UNWRAP(auto size, ida::data::tbyte_element_size());
+    info.GetReturnValue().Set(FromAddressSize(size));
+}
+
+NAN_METHOD(PackedRealElementSize) {
+    IDAX_UNWRAP(auto size, ida::data::packed_real_element_size());
+    info.GetReturnValue().Set(FromAddressSize(size));
+}
 
 // defineString(address, length, stringType?)
 NAN_METHOD(DefineString) {
@@ -510,7 +521,10 @@ void InitData(v8::Local<v8::Object> target) {
     SetMethod(ns, "defineOword",  DefineOword);
     SetMethod(ns, "defineYword",  DefineYword);
     SetMethod(ns, "defineZword",  DefineZword);
+    SetMethod(ns, "tbyteElementSize", TbyteElementSize);
     SetMethod(ns, "defineTbyte",  DefineTbyte);
+    SetMethod(ns, "packedRealElementSize", PackedRealElementSize);
+    SetMethod(ns, "definePackedReal", DefinePackedReal);
     SetMethod(ns, "defineFloat",  DefineFloat);
     SetMethod(ns, "defineDouble", DefineDouble);
     SetMethod(ns, "defineString", DefineString);

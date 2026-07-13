@@ -359,7 +359,10 @@ Status define_qword(Address ea, AddressSize count = 1);
 Status define_oword(Address ea, AddressSize count = 1);
 Status define_yword(Address ea, AddressSize count = 1);
 Status define_zword(Address ea, AddressSize count = 1);
+Result<AddressSize> tbyte_element_size();
 Status define_tbyte(Address ea, AddressSize count = 1);
+Result<AddressSize> packed_real_element_size();
+Status define_packed_real(Address ea, AddressSize count = 1);
 Status define_float(Address ea, AddressSize count = 1);
 Status define_double(Address ea, AddressSize count = 1);
 Status define_string(Address ea, AddressSize length);
@@ -369,9 +372,11 @@ Status undefine(Address ea, AddressSize count = 1);
 }  // namespace ida::data
 ```
 
-The ten fixed-width `define_*` functions use positive element counts and
-perform checked conversion to the SDK's total byte length. String/structure
-definition and undefinition use explicit byte lengths/counts.
+The fixed-width and processor-sized extended-real `define_*` functions use
+positive element counts and perform checked conversion to the SDK's total byte
+length. Tbyte and packed-real queries resolve the active processor width and
+representation-specific assembler availability. String/structure definition
+and undefinition use explicit byte lengths/counts.
 
 #### 21.5.6 `ida::name`
 

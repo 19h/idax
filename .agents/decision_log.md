@@ -1052,3 +1052,9 @@
   - **19.30.2. Validation rule:** Reject zero, multiplication overflow, and half-open address-range overflow as `Validation` before SDK dispatch. SDK rejection after valid conversion remains `SdkFailure`.
   - **19.30.3. Binding rule:** C++ and Node default to one element; Node accepts only exact non-negative integer `number`/`bigint` representations; Rust keeps an explicit `AddressSize` element count. All bindings inherit the same C++ conversion.
   - **19.30.4. Unit boundary:** `define_string`, `define_struct`, and `undefine` retain byte-length/count semantics. Packed-real and registered custom data remain outside the fixed-width contract until modeled with processor/type-registration context (F381).
+
+- **19.31. Decision D-PROCESSOR-AWARE-EXTENDED-REAL-DEFINITIONS**: Resolve tbyte and packed-real widths from the active processor
+  - **19.31.1. Decision:** `define_tbyte` and `define_packed_real` accept positive element counts, but obtain the byte width from active processor metadata rather than a compile-time constant.
+  - **19.31.2. Availability rule:** Reject a zero element count as `Validation` independent of processor support. For positive counts, require a nonzero processor `tbyte_size` and a non-null, non-empty active-assembler directive (`a_tbyte` or `a_packreal`); return `Unsupported` before SDK dispatch when the current environment cannot represent the requested item.
+  - **19.31.3. Discoverability rule:** Expose explicit tbyte and packed-real element-size queries with the same availability semantics; bindings inherit the C++ result instead of duplicating processor assumptions.
+  - **19.31.4. Scope boundary:** Custom type/format registration carries callback ownership and teardown semantics and therefore proceeds as independently committed Phase 31 work.

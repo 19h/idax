@@ -381,7 +381,7 @@ describe('Data Access', () => {
         expect(typeof q).toBe('bigint');
     });
 
-    it('should define fixed-width arrays in element units', () => {
+    it('should define element arrays with processor-sized extended reals', () => {
         const last = idax.segment.last();
         const start = (last.end + 0xffffn) & ~0xffffn;
         const end = start + 0x1000n;
@@ -391,8 +391,25 @@ describe('Data Access', () => {
             const definitions = [
                 ['Byte', 1n], ['Word', 2n], ['Dword', 4n], ['Qword', 8n],
                 ['Oword', 16n], ['Yword', 32n], ['Zword', 64n],
-                ['Tbyte', 10n], ['Float', 4n], ['Double', 8n],
+                ['Float', 4n], ['Double', 8n],
             ];
+
+            const addExtendedReal = (suffix, size) => {
+                try {
+                    const width = size();
+                    expect(typeof width).toBe('bigint');
+                    expect(width).toBeGreaterThan(0n);
+                    definitions.push([suffix, width]);
+                } catch (error) {
+                    expect(error.category).toBe('Unsupported');
+                    let defineError;
+                    try { idax.data[`define${suffix}`](start); } catch (e) { defineError = e; }
+                    expect(defineError).toBeDefined();
+                    expect(defineError.category).toBe('Unsupported');
+                }
+            };
+            addExtendedReal('Tbyte', idax.data.tbyteElementSize);
+            addExtendedReal('PackedReal', idax.data.packedRealElementSize);
             for (const [suffix, width] of definitions) {
                 const define = idax.data[`define${suffix}`];
                 define(start);
@@ -408,6 +425,13 @@ describe('Data Access', () => {
             try { idax.data.defineDword(start, 0); } catch (error) { zeroError = error; }
             expect(zeroError).toBeDefined();
             expect(zeroError.category).toBe('Validation');
+
+            for (const define of [idax.data.defineTbyte, idax.data.definePackedReal]) {
+                let extendedZeroError;
+                try { define(start, 0); } catch (error) { extendedZeroError = error; }
+                expect(extendedZeroError).toBeDefined();
+                expect(extendedZeroError.category).toBe('Validation');
+            }
 
             const overflowingCount = 0xffffffffffffffffn / 64n + 1n;
             let overflowError;

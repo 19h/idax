@@ -1216,8 +1216,17 @@ export namespace data {
     /** Define 512-bit zword item(s); count is a positive element count. */
     function defineZword(address: Address, count?: number | bigint): void;
 
-    /** Define 80-bit tbyte item(s); count is a positive element count. */
+    /** Return the active processor's tbyte element size in bytes. */
+    function tbyteElementSize(): bigint;
+
+    /** Define active-processor-sized tbyte item(s); count is a positive element count. */
     function defineTbyte(address: Address, count?: number | bigint): void;
+
+    /** Return the active processor's packed-real element size in bytes. */
+    function packedRealElementSize(): bigint;
+
+    /** Define active-processor-sized packed-real item(s); count is a positive element count. */
+    function definePackedReal(address: Address, count?: number | bigint): void;
 
     /** Define 32-bit floating-point item(s); count is a positive element count. */
     function defineFloat(address: Address, count?: number | bigint): void;

@@ -1055,12 +1055,12 @@ before reclamation; captured-object destructors may re-enter unsubscription.
 ### 35.39. Separate Fixed-Width and Processor/Registry-Defined Data Items [F381]
 The SDK fixed-width creation family includes yword (32 bytes / 256 bits) and
 zword (64 bytes / 512 bits). They use the same total-byte-length input as
-word/dword/qword/oword/tbyte/float/double and therefore belong under the same
-public element-count conversion. Packed-real element size is processor-defined;
-custom data additionally requires registered data-type and format identifiers.
-Do not assign either advanced family a fixed `count * width` rule without a
-separate type model. Keep string, structure, and undefine parameters explicitly
-byte-based.
+word/dword/qword/oword/float/double and therefore belong under the same public
+element-count conversion. F384 subsequently establishes that both tbyte and
+packed-real widths are processor-defined; custom data additionally requires
+registered data-type and format identifiers. Do not assign either advanced
+family a compile-time width. Keep string, structure, and undefine parameters
+explicitly byte-based.
 
 ### 35.40. Rust FFI Error Categories Include a Zero-Valued None Sentinel [F382]
 The C shim category values are not the same numeric discriminants as the public
@@ -1077,3 +1077,26 @@ the initial database-open wait has completed. An integration case that asserts
 `analysis::is_idle()` (or its binding equivalent) must call the corresponding
 wait API in that case rather than depending on earlier suite order. This
 preserves isolation when preceding tests add legitimate mutation coverage.
+
+### 35.42. Tbyte and Packed-Real Widths Belong to Processor Metadata [F384]
+Do not hard-code the ten-byte storage width implied by the name `tbyte`.
+IDA's `dt_tbyte` is explicitly variable-sized through the active processor's
+`tbyte_size`; multiple SDK processor modules use zero or non-ten-byte values.
+Resolve the current dtype width at the semantic boundary, reject a zero width
+as unsupported, and then apply the same checked element-count multiplication
+used by fixed-width definitions. Audit packed-real through the corresponding
+processor dtype metadata rather than assuming a universal layout.
+
+### 35.43. Extended-Real Size and Availability Are Separate Checks [F385]
+IDA stores both tbyte and packed-decimal-real items using the active
+processor's `tbyte_size`, but the active assembler advertises them separately
+through `a_tbyte` and `a_packreal`. A nonzero width does not establish that
+both representations can be emitted. Query the representation-specific
+directive as well as the shared width and map absence to `Unsupported`; only
+then apply checked element-count multiplication and SDK creation.
+
+### 35.44. Normalize Null and Empty Optional Assembler Directives [F386]
+Although `idp.hpp` documents null pointers for unavailable data directives,
+the SDK processor-module template uses an empty string for optional packed-real
+output. Representation availability therefore requires a non-null, non-empty
+`a_tbyte` or `a_packreal` value in addition to a nonzero processor width.

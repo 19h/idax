@@ -603,7 +603,7 @@ fn data_patch_and_revert() {
     assert_eq!(restored, original, "should be restored after revert");
 }
 
-fn data_fixed_width_definition_units() {
+fn data_element_definition_units() {
     require_db!();
 
     let last = segment::last().unwrap();
@@ -631,7 +631,7 @@ fn data_fixed_width_definition_units() {
     let _cleanup = SegmentCleanup(start);
 
     type DefineFunction = fn(Address, u64) -> Status;
-    let definitions: [(&str, u64, DefineFunction); 10] = [
+    let mut definitions: Vec<(&str, u64, DefineFunction)> = vec![
         ("byte", 1, data::define_byte),
         ("word", 2, data::define_word),
         ("dword", 4, data::define_dword),
@@ -639,10 +639,32 @@ fn data_fixed_width_definition_units() {
         ("oword", 16, data::define_oword),
         ("yword", 32, data::define_yword),
         ("zword", 64, data::define_zword),
-        ("tbyte", 10, data::define_tbyte),
         ("float", 4, data::define_float),
         ("double", 8, data::define_double),
     ];
+
+    match data::tbyte_element_size() {
+        Ok(width) => {
+            assert!(width > 0);
+            definitions.push(("tbyte", width, data::define_tbyte));
+        }
+        Err(error) => {
+            assert_eq!(error.category, ErrorCategory::Unsupported);
+            let define_error = data::define_tbyte(start, 1).unwrap_err();
+            assert_eq!(define_error.category, ErrorCategory::Unsupported);
+        }
+    }
+    match data::packed_real_element_size() {
+        Ok(width) => {
+            assert!(width > 0);
+            definitions.push(("packed_real", width, data::define_packed_real));
+        }
+        Err(error) => {
+            assert_eq!(error.category, ErrorCategory::Unsupported);
+            let define_error = data::define_packed_real(start, 1).unwrap_err();
+            assert_eq!(define_error.category, ErrorCategory::Unsupported);
+        }
+    }
 
     for (name, width, define) in definitions {
         define(start, 1).unwrap_or_else(|error| panic!("define_{name}(1): {error}"));
@@ -668,6 +690,13 @@ fn data_fixed_width_definition_units() {
         ErrorCategory::Validation,
         "zero-count error: {zero:?}"
     );
+    for define in [
+        data::define_tbyte as DefineFunction,
+        data::define_packed_real as DefineFunction,
+    ] {
+        let extended_zero = define(start, 0).unwrap_err();
+        assert_eq!(extended_zero.category, ErrorCategory::Validation);
+    }
 
     let overflowing_count = u64::MAX / 64 + 1;
     let overflow = data::define_zword(start, overflowing_count).unwrap_err();
@@ -1312,8 +1341,8 @@ static TEST_CASES: &[TestCase] = &[
     ("data_read_word_dword_qword", data_read_word_dword_qword),
     ("data_patch_and_revert", data_patch_and_revert),
     (
-        "data_fixed_width_definition_units",
-        data_fixed_width_definition_units,
+        "data_element_definition_units",
+        data_element_definition_units,
     ),
     ("search_next_code", search_next_code),
     ("search_next_data", search_next_data),

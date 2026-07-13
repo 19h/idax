@@ -1,7 +1,8 @@
 //! Byte-level read, write, patch, and define operations.
 //!
 //! Mirrors the C++ `ida::data` namespace.
-//! Fixed-width definition functions accept positive element counts. String and
+//! Integer and floating-point definition functions accept positive element
+//! counts. Extended-real widths are resolved from active processor metadata;
 //! structure definitions and `undefine` retain explicit byte units.
 
 use crate::address::{Address, AddressSize, BAD_ADDRESS};
@@ -414,10 +415,38 @@ pub fn define_zword(address: Address, count: AddressSize) -> Status {
     error::int_to_status(ret, "define_zword failed")
 }
 
-/// Define tbyte item(s) at address.
+/// Return the active processor's tbyte element size in bytes.
+pub fn tbyte_element_size() -> Result<AddressSize> {
+    let mut size = 0;
+    let ret = unsafe { idax_sys::idax_data_tbyte_element_size(&mut size) };
+    if ret != 0 {
+        Err(error::consume_last_error("tbyte_element_size failed"))
+    } else {
+        Ok(size)
+    }
+}
+
+/// Define active-processor-sized tbyte item(s) at address.
 pub fn define_tbyte(address: Address, count: AddressSize) -> Status {
     let ret = unsafe { idax_sys::idax_data_define_tbyte(address, count) };
     error::int_to_status(ret, "define_tbyte failed")
+}
+
+/// Return the active processor's packed-real element size in bytes.
+pub fn packed_real_element_size() -> Result<AddressSize> {
+    let mut size = 0;
+    let ret = unsafe { idax_sys::idax_data_packed_real_element_size(&mut size) };
+    if ret != 0 {
+        Err(error::consume_last_error("packed_real_element_size failed"))
+    } else {
+        Ok(size)
+    }
+}
+
+/// Define active-processor-sized packed-real item(s) at address.
+pub fn define_packed_real(address: Address, count: AddressSize) -> Status {
+    let ret = unsafe { idax_sys::idax_data_define_packed_real(address, count) };
+    error::int_to_status(ret, "define_packed_real failed")
 }
 
 /// Define float item(s) at address.

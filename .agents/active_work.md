@@ -76,10 +76,10 @@
 
 ---
 
-### 9. Advanced Data Definition Audit (Phase 30)
+### 9. Custom Data Type/Format Lifecycle (Phase 31)
 
-- **9.1. Processor/Registry-Aware Creation**
-  - 9.1.1. **Finding:** Packed-real item widths are processor-defined and custom-data creation depends on registered data-type/format identifiers, so neither belongs under Phase 29's universal fixed-width element-count contract (F381).
-  - 9.1.2. **Action:** Audit the authoritative SDK lifecycle and size-discovery contracts, then design opaque packed-real/custom-data creation APIs with exact C++/Node/Rust runtime evidence.
-  - 9.1.3. **Impact:** Medium; closes advanced data-rendering/plugin workflows without weakening fixed-width unit guarantees.
-  - 9.1.4. **Status:** Queued as the next isolated feature after Phase 29 publication.
+- **9.1. Opaque Registry and Callback Adapters**
+  - 9.1.1. **Finding:** Custom-data creation consumes registered 16-bit type/format IDs; types may be fixed or callback-sized, and formats carry print/scan/analyze callbacks with explicit unregister-before-plugin-unload requirements (F381).
+  - 9.1.2. **Action:** Design and implement owned opaque descriptor/callback registration, lookup/attachment, size inference, creation, and teardown across C++/Node/Rust.
+  - 9.1.3. **Impact:** Medium; closes advanced plugin-defined data rendering and parsing workflows.
+  - 9.1.4. **Status:** Queued as the next isolated feature after Phase 30.

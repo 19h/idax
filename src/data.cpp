@@ -18,16 +18,23 @@ namespace {
 
 constexpr std::size_t kMaxTypedDepth = 64;
 
+Status validate_definition_count(Address address, AddressSize count) {
+    if (count != 0)
+        return ida::ok();
+    return std::unexpected(Error::validation(
+        "Definition element count must be greater than zero",
+        "address=" + std::to_string(address) + ", count=0"));
+}
+
 Result<asize_t> checked_definition_length(Address address,
                                           AddressSize count,
                                           AddressSize element_width) {
+    auto valid_count = validate_definition_count(address, count);
+    if (!valid_count)
+        return std::unexpected(valid_count.error());
     const std::string context = "address=" + std::to_string(address)
         + ", count=" + std::to_string(count)
         + ", element_width=" + std::to_string(element_width);
-    if (count == 0) {
-        return std::unexpected(Error::validation(
-            "Definition element count must be greater than zero", context));
-    }
     if (count > std::numeric_limits<AddressSize>::max() / element_width) {
         return std::unexpected(Error::validation(
             "Definition byte length overflow", context));
@@ -59,6 +66,25 @@ Status define_fixed_width(Address address,
             std::string(sdk_operation) + " failed", std::to_string(address)));
     }
     return ida::ok();
+}
+
+Result<AddressSize> extended_real_element_size(bool packed_real) {
+    const processor_t* processor = ::get_ph();
+    const asm_t* assembler = ::get_ash();
+    const char* kind = packed_real ? "packed real" : "tbyte";
+    if (processor == nullptr || assembler == nullptr) {
+        return std::unexpected(Error::unsupported(
+            std::string(kind) + " metadata is unavailable"));
+    }
+
+    const char* directive = packed_real ? assembler->a_packreal
+                                        : assembler->a_tbyte;
+    if (directive == nullptr || directive[0] == '\0'
+        || processor->tbyte_size == 0) {
+        return std::unexpected(Error::unsupported(
+            std::string(kind) + " is unavailable for the active processor/assembler"));
+    }
+    return static_cast<AddressSize>(processor->tbyte_size);
 }
 
 bool fits_unsigned_width(std::size_t width, std::uint64_t value) {
@@ -761,9 +787,36 @@ Status define_zword(Address ea, AddressSize count) {
         [](ea_t address, asize_t length) { return ::create_zword(address, length); });
 }
 
+Result<AddressSize> tbyte_element_size() {
+    return extended_real_element_size(false);
+}
+
 Status define_tbyte(Address ea, AddressSize count) {
-    return define_fixed_width(ea, count, 10, "create_tbyte",
+    auto valid_count = validate_definition_count(ea, count);
+    if (!valid_count)
+        return valid_count;
+    auto width = tbyte_element_size();
+    if (!width)
+        return std::unexpected(width.error());
+    return define_fixed_width(ea, count, *width, "create_tbyte",
         [](ea_t address, asize_t length) { return ::create_tbyte(address, length); });
+}
+
+Result<AddressSize> packed_real_element_size() {
+    return extended_real_element_size(true);
+}
+
+Status define_packed_real(Address ea, AddressSize count) {
+    auto valid_count = validate_definition_count(ea, count);
+    if (!valid_count)
+        return valid_count;
+    auto width = packed_real_element_size();
+    if (!width)
+        return std::unexpected(width.error());
+    return define_fixed_width(ea, count, *width, "create_packed_real",
+        [](ea_t address, asize_t length) {
+            return ::create_packed_real(address, length);
+        });
 }
 
 Status define_float(Address ea, AddressSize count) {

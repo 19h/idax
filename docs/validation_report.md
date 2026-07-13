@@ -700,8 +700,9 @@ tracked in `docs/compatibility_matrix.md`.
   IDB was restored after every runtime suite.
 
 - 2026-07-14 Phase 29 fixed-width data-definition units:
-  Corrected all ten fixed-width definition families to interpret `count` as an
-  element count and perform checked conversion to the SDK's total byte length.
+  Corrected all ten then-audited data-definition families to interpret `count`
+  as an element count and perform checked conversion to the SDK's total byte
+  length. Phase 30 subsequently superseded the provisional 10-byte tbyte width.
   Added 256-bit yword and 512-bit zword surfaces across C++, Node, and Rust;
   retained byte units for string/structure definition and undefinition. Exact
   tests cover default one-element and three-element arrays plus zero,
@@ -712,3 +713,16 @@ tracked in `docs/compatibility_matrix.md`.
   real-IDA integration passes 69/69. Rust workspace unit tests pass 130/130 and
   complete real-IDA integration passes 86/86. Bindgen output matches the
   checked pre-generated bindings exactly; the mutable fixture is restored.
+
+- 2026-07-14 Phase 30 processor-aware extended-real definitions:
+  Replaced the provisional universal tbyte width with active-processor
+  `tbyte_size` resolution and independent `a_tbyte`/`a_packreal` assembler
+  availability checks. Added explicit tbyte/packed-real element-size queries
+  and checked positive-element definition APIs across C++, Node, and Rust.
+  Tests assert exact one- and three-element item sizes when a representation is
+  available and exact `Unsupported` behavior otherwise. Complete C++ build and
+  CTest pass 25/25 in 23.93 s. Node native build and structural tests pass
+  194/194, with real-IDA integration 69/69. Rust formatting passes, library
+  tests pass 130/130, and IDA Professional 9.4 integration passes 86/86 with no
+  skips. Generated bindgen output exactly matches checked bindings;
+  `git diff --check` passes and the mutable fixture is restored.

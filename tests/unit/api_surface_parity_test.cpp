@@ -140,6 +140,7 @@ void check_data_surface() {
     (void)static_cast<RevertPatchesFn>(&ida::data::revert_patches);
 
     using DefineFixedFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using ElementSizeFn = ida::Result<ida::AddressSize>(*)();
     using DefineStructFn = ida::Status(*)(ida::Address, ida::AddressSize, std::uint64_t);
     (void)static_cast<DefineFixedFn>(&ida::data::define_byte);
     (void)static_cast<DefineFixedFn>(&ida::data::define_word);
@@ -148,7 +149,10 @@ void check_data_surface() {
     (void)static_cast<DefineFixedFn>(&ida::data::define_oword);
     (void)static_cast<DefineFixedFn>(&ida::data::define_yword);
     (void)static_cast<DefineFixedFn>(&ida::data::define_zword);
+    (void)static_cast<ElementSizeFn>(&ida::data::tbyte_element_size);
     (void)static_cast<DefineFixedFn>(&ida::data::define_tbyte);
+    (void)static_cast<ElementSizeFn>(&ida::data::packed_real_element_size);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_packed_real);
     (void)static_cast<DefineFixedFn>(&ida::data::define_float);
     (void)static_cast<DefineFixedFn>(&ida::data::define_double);
     (void)static_cast<DefineStructFn>(&ida::data::define_struct);

@@ -160,8 +160,16 @@ Status define_oword(Address address, AddressSize count = 1);
 Status define_yword(Address address, AddressSize count = 1);
 /// Define 512-bit elements.
 Status define_zword(Address address, AddressSize count = 1);
-/// Define 80-bit floating-point elements.
+/// Return the active processor's tbyte element size.
+/// Returns Unsupported when the active processor/assembler has no tbyte form.
+Result<AddressSize> tbyte_element_size();
+/// Define processor-sized extended floating-point elements.
 Status define_tbyte(Address address, AddressSize count = 1);
+/// Return the active processor's packed-real element size.
+/// Returns Unsupported when the active processor/assembler has no packed-real form.
+Result<AddressSize> packed_real_element_size();
+/// Define processor-sized packed-decimal-real elements.
+Status define_packed_real(Address address, AddressSize count = 1);
 /// Define 32-bit floating-point elements.
 Status define_float(Address address, AddressSize count = 1);
 /// Define 64-bit floating-point elements.

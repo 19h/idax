@@ -886,8 +886,8 @@ mod data_tests {
     use crate::error::Status;
 
     #[test]
-    fn test_fixed_width_definition_function_signatures() {
-        let functions: [fn(Address, AddressSize) -> Status; 10] = [
+    fn test_element_definition_function_signatures() {
+        let functions: [fn(Address, AddressSize) -> Status; 11] = [
             define_byte,
             define_word,
             define_dword,
@@ -896,10 +896,15 @@ mod data_tests {
             define_yword,
             define_zword,
             define_tbyte,
+            define_packed_real,
             define_float,
             define_double,
         ];
-        assert_eq!(functions.len(), 10);
+        assert_eq!(functions.len(), 11);
+
+        let size_functions: [fn() -> crate::error::Result<AddressSize>; 2] =
+            [tbyte_element_size, packed_real_element_size];
+        assert_eq!(size_functions.len(), 2);
     }
 }
 

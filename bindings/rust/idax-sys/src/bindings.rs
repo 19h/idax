@@ -1393,7 +1393,16 @@ unsafe extern "C" {
     pub fn idax_data_define_zword(ea: u64, count: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_data_tbyte_element_size(out: *mut u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_data_define_tbyte(ea: u64, count: u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_packed_real_element_size(out: *mut u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_define_packed_real(ea: u64, count: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_data_define_float(ea: u64, count: u64) -> ::std::os::raw::c_int;

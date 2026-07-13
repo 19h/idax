@@ -1985,8 +1985,20 @@ int idax_data_define_zword(uint64_t ea, uint64_t count) {
     RETURN_STATUS(ida::data::define_zword(ea, count));
 }
 
+int idax_data_tbyte_element_size(uint64_t* out) {
+    RETURN_RESULT_VALUE(ida::data::tbyte_element_size());
+}
+
 int idax_data_define_tbyte(uint64_t ea, uint64_t count) {
     RETURN_STATUS(ida::data::define_tbyte(ea, count));
+}
+
+int idax_data_packed_real_element_size(uint64_t* out) {
+    RETURN_RESULT_VALUE(ida::data::packed_real_element_size());
+}
+
+int idax_data_define_packed_real(uint64_t ea, uint64_t count) {
+    RETURN_STATUS(ida::data::define_packed_real(ea, count));
 }
 
 int idax_data_define_float(uint64_t ea, uint64_t count) {

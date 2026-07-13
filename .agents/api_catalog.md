@@ -15,8 +15,11 @@ This section captures the intended public API semantics at a concrete level so i
 - Patch family: `patch_byte`, `patch_word`, `patch_dword`, `patch_qword`, `patch_bytes`, `revert_patch`
 - Fixed-width define family: `define_byte`, `define_word`, `define_dword`,
   `define_qword`, `define_oword`, `define_yword`, `define_zword`,
-  `define_tbyte`, `define_float`, `define_double`; `count` is a positive
-  element count with checked conversion to the SDK byte length
+  `define_float`, `define_double`; `count` is a positive element count with
+  checked conversion to the SDK byte length
+- Processor-sized extended-real family: `tbyte_element_size`, `define_tbyte`,
+  `packed_real_element_size`, `define_packed_real`; availability is specific
+  to the active assembler and both use the active processor's tbyte width
 - Variable-width define family: `define_string`, `define_struct`, `undefine`;
   lengths/counts remain byte-based
 - Search helpers: binary pattern and typed immediate searches

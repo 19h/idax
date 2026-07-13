@@ -3,7 +3,6 @@
 
 #include <ida/idax.hpp>
 
-#include <array>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -212,8 +211,8 @@ void test_define_undefine_unknown() {
     }
 }
 
-void test_fixed_width_definition_units() {
-    std::cout << "--- fixed-width definition element counts ---\n";
+void test_element_definition_units() {
+    std::cout << "--- data-definition element counts ---\n";
 
     auto last = ida::segment::last();
     CHECK_OK(last);
@@ -253,7 +252,6 @@ void test_fixed_width_definition_units() {
     check_default(16, [&] { return ida::data::define_oword(base); });
     check_default(32, [&] { return ida::data::define_yword(base); });
     check_default(64, [&] { return ida::data::define_zword(base); });
-    check_default(10, [&] { return ida::data::define_tbyte(base); });
     check_default(4,  [&] { return ida::data::define_float(base); });
     check_default(8,  [&] { return ida::data::define_double(base); });
 
@@ -262,7 +260,7 @@ void test_fixed_width_definition_units() {
         ida::AddressSize width;
         DefineFunction define;
     };
-    const std::array<Definition, 10> definitions{{
+    std::vector<Definition> definitions{
         {1, &ida::data::define_byte},
         {2, &ida::data::define_word},
         {4, &ida::data::define_dword},
@@ -270,10 +268,30 @@ void test_fixed_width_definition_units() {
         {16, &ida::data::define_oword},
         {32, &ida::data::define_yword},
         {64, &ida::data::define_zword},
-        {10, &ida::data::define_tbyte},
         {4, &ida::data::define_float},
         {8, &ida::data::define_double},
-    }};
+    };
+
+    const auto check_extended_real = [&](const auto& size,
+                                         DefineFunction define) {
+        if (size) {
+            check_default(*size, [&] { return define(base, 1); });
+            definitions.push_back({*size, define});
+            return;
+        }
+        CHECK(size.error().category == ida::ErrorCategory::Unsupported);
+        auto unavailable = define(base, 1);
+        CHECK(!unavailable.has_value());
+        if (!unavailable) {
+            CHECK(unavailable.error().category
+                  == ida::ErrorCategory::Unsupported);
+        }
+    };
+
+    check_extended_real(ida::data::tbyte_element_size(),
+                        &ida::data::define_tbyte);
+    check_extended_real(ida::data::packed_real_element_size(),
+                        &ida::data::define_packed_real);
 
     constexpr ida::AddressSize kElementCount = 3;
     for (const auto& definition : definitions) {
@@ -294,6 +312,16 @@ void test_fixed_width_definition_units() {
     CHECK(!zero.has_value());
     if (!zero)
         CHECK(zero.error().category == ida::ErrorCategory::Validation);
+
+    for (const auto define : {&ida::data::define_tbyte,
+                              &ida::data::define_packed_real}) {
+        auto extended_zero = define(base, 0);
+        CHECK(!extended_zero.has_value());
+        if (!extended_zero) {
+            CHECK(extended_zero.error().category
+                  == ida::ErrorCategory::Validation);
+        }
+    }
 
     const auto overflowing_count =
         std::numeric_limits<ida::AddressSize>::max() / 64 + 1;
@@ -370,7 +398,7 @@ int main(int argc, char* argv[]) {
     }
 
     test_define_undefine_unknown();
-    test_fixed_width_definition_units();
+    test_element_definition_units();
     test_error_paths();
 
     CHECK_OK(ida::database::close(false));

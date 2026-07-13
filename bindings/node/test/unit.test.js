@@ -338,7 +338,8 @@ describe('Data Namespace Structure', () => {
         'patchByte', 'patchWord', 'patchDword',
         'revertPatch', 'originalByte',
         'defineByte', 'defineWord', 'defineDword', 'defineQword',
-        'defineOword', 'defineYword', 'defineZword', 'defineTbyte',
+        'defineOword', 'defineYword', 'defineZword', 'tbyteElementSize',
+        'defineTbyte', 'packedRealElementSize', 'definePackedReal',
         'defineFloat', 'defineDouble',
         'undefine', 'findBinaryPattern',
     ];

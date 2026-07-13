@@ -40,7 +40,8 @@ Current overall phase status:
 - Phase 27: 100% (deterministic comment append complete: wrapper-level newline composition and exact C++/Node/Rust read-back validation)
 - Phase 28: 100% (typed IDB change-tracking event parity complete: high-value post-change notifications, binding convergence, event-wide callback-mutation isolation, and full validation)
 - Phase 29: complete (fixed-width data definitions use checked element counts through zword with exact cross-binding evidence)
-- Phase 30: pending (advanced packed-real/custom-data definition audit with processor/registry-aware units)
+- Phase 30: complete (processor-aware tbyte/packed-real definition semantics)
+- Phase 31: pending (opaque custom data type/format registration and creation lifecycle)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -169,9 +170,18 @@ Current overall phase status:
 
 ---
 
-### Phase 30 TODO Action Items (Advanced Data Definition Audit)
+### Phase 30 TODO Action Items (Processor-Aware Extended Reals)
 
-- [ ] P30.1 Audit packed-real and registered custom-data SDK contracts, identifiers, lifecycle, element-size discovery, and deletion semantics.
-- [ ] P30.2 Design opaque processor/registry-aware public types without assigning a false universal fixed width.
-- [ ] P30.3 Implement justified C++ APIs plus Node/Rust parity and exact real-IDA validation.
-- [ ] P30.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
+- [x] P30.1 Resolve tbyte and packed-real availability/element width from active processor and assembler metadata.
+- [x] P30.2 Correct `define_tbyte`, add `define_packed_real`, and expose explicit size queries without universal-width assumptions.
+- [x] P30.3 Add C++/Node/Rust parity with supported/unsupported and exact item-size validation.
+- [x] P30.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
+
+---
+
+### Phase 31 TODO Action Items (Custom Data Type/Format Lifecycle)
+
+- [ ] P31.1 Audit custom data type/format descriptors, callbacks, registry IDs, attachment state, item-size inference, creation, and teardown semantics.
+- [ ] P31.2 Design opaque definitions/snapshots and callback adapters with explicit lifetime rules.
+- [ ] P31.3 Implement C++ APIs plus Node/Rust parity and exact fixed/variable-size real-IDA validation.
+- [ ] P31.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
