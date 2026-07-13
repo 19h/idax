@@ -2235,3 +2235,9 @@
   - 16.167.2. Strengthened C++ coverage for append-created comments, exact function-start append read-back, and five-step data-comment accumulation; strengthened Node and Rust function-start integration assertions.
   - 16.167.3. Validation evidence: focused C++ comment targets pass 2/2; complete C++ CTest passes 25/25 in 28.42 s; Rust library tests pass 127/127, filtered comment append passes 1/1, and complete real-IDA integration passes 83/83; Node addon rebuild passes, unit tests pass 184/184, and real-IDA integration passes 66/66.
   - 16.167.4. Restored `tests/fixtures/simple_appcall_linux64.i64` after mutation tests and synchronized API/binding docs, findings/knowledge, decision 19.28, validation report, roadmap, ledger, and active work.
+
+- **16.168. Post-Push GitHub Actions License Audit**
+  - 16.168.1. Inspected failed Actions runs for commits `2fb8834`, `d5e744e`, and `84302f2`, plus current `edbc6f1` jobs, using authenticated `gh` run/job metadata and logs.
+  - 16.168.2. Every sampled Linux, macOS, and Windows job fails in `Install IDA Pro`; checkout and installer download succeed, but HCLI reports no matching license file for configured license ID `96-0000-0000-XX`. Build and test steps are skipped (F377).
+  - 16.168.3. Local evidence remains authoritative for source behavior: C++ 25/25, Rust real-IDA 83/83 plus unit 127/127, and Node real-IDA 66/66 plus unit 184/184.
+  - 16.168.4. No source/workflow patch is indicated by the logs. External license/account or GitHub Actions secret correction is required before rerunning the three workflows.

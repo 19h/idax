@@ -672,3 +672,13 @@ tracked in `docs/compatibility_matrix.md`.
   83/83; Rust library tests pass 127/127. The Node addon rebuilds, unit tests
   pass 184/184, and its real-IDA integration suite passes 66/66. The fixture
   IDB was restored after runtime mutation tests.
+
+- 2026-07-13 post-push GitHub Actions audit:
+  The three workflow families do not currently provide source validation.
+  Integrations CI, Bindings CI, and Validation Matrix fail across Linux,
+  macOS, and Windows in `Install IDA Pro` before setup/build/test execution.
+  HCLI downloads IDA 9.3 successfully but reports no license matching the
+  configured ID `96-0000-0000-XX` and cannot obtain the corresponding
+  `.hexlic` file. This is tracked as F377 and requires external HCLI/license or
+  GitHub Actions secret correction; no source/workflow build patch is supported
+  by the logs.

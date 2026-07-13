@@ -1010,3 +1010,12 @@ directly. Otherwise write `existing + "\n" + text`. This matches the SDK's
 documented newline model while avoiding `append_cmt`'s function-start storage
 asymmetry. Reject a composed size above `std::string::max_size()` before
 allocation. C++, Node, and Rust bindings inherit the same observable contract.
+
+### 35.35. CI License Provisioning Failure Boundary [F377]
+When every platform fails in `Install IDA Pro` after HCLI successfully downloads
+the requested installer, inspect license retrieval before changing source or
+workflow build logic. The diagnostic pair `No licenses found matching criteria`
+and `License file matching *<license-id>.hexlic not found` means the configured
+HCLI identity cannot supply that license. Repository setup, compilation, and
+tests have not run. Remediation is external: renew/correct the HCLI account,
+license assignment, or GitHub Actions secrets, then rerun the workflows.
