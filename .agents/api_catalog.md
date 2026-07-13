@@ -196,8 +196,9 @@ This section captures the intended public API semantics at a concrete level so i
 - Connection-state query helpers with explicit unsupported close semantics in this runtime
 
 ### 17.25 `ida::database` processor-context metadata extensions
-- `ProcessorId` enum + typed `processor()` helper
-- `ProcessorId` tracks full current SDK `PLFM_*` coverage (through `PLFM_MCORE`)
+- Verified `ProcessorId` enum + checked `processor()` helper
+- `processor_id_from_raw()` converts only the verified public `PLFM_*` range through `PLFM_NDS32`; legacy `Mcore = 77` remains source-only compatibility and is never normalized
+- `ProcessorProfile`/`processor_profile()` preserve authoritative raw IDs while exposing optional typed identity, name, address bitness, endianness, and optional ABI in one value
 - Architecture-shaping helpers: `address_bitness()`, `set_address_bitness(bits)`, `is_big_endian()`, `abi_name()`
 - Port-driven metadata closure for external ISA-semantics integrations (e.g., idapcode + Sleigh)
 

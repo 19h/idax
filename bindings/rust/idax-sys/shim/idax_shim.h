@@ -127,6 +127,19 @@ int idax_database_image_base(uint64_t* out);
 int idax_database_min_address(uint64_t* out);
 int idax_database_max_address(uint64_t* out);
 int idax_database_processor_id(int32_t* out);
+
+typedef struct IdaxDatabaseProcessorProfile {
+    int32_t raw_id;
+    int32_t known_id;
+    int     has_known_id;
+    char*   name;
+    int     address_bitness;
+    int     big_endian;
+    char*   abi_name;
+} IdaxDatabaseProcessorProfile;
+
+int idax_database_processor_profile(IdaxDatabaseProcessorProfile* out);
+void idax_database_processor_profile_free(IdaxDatabaseProcessorProfile* profile);
 int idax_database_processor_name(char** out);
 int idax_database_address_bitness(int* out);
 int idax_database_set_address_bitness(int bits);

@@ -222,9 +222,9 @@ function, rendering instruction headers plus lifted p-code ops. It also keeps
 linear-view/custom-viewer navigation synchronized in both directions, including
 cross-function follow when the linear cursor moves into a different function.
 It uses idax wrappers for current-function lookup, byte extraction, custom
-viewer hosting, and architecture context (`processor_id`, `processor_name`,
-`address_bitness`, `is_big_endian`, `abi_name`) and resolves Sleigh specs via
-`sleigh::FindSpecFile`.
+viewer hosting, and normalized architecture context (`ProcessorProfile` with
+raw and optional verified identity, bitness, endianness, and optional ABI),
+then resolves Sleigh specs via `sleigh::FindSpecFile`.
 
 Build requires `IDAX_BUILD_EXAMPLE_IDAPCODE_PORT=ON`. Runtime spec resolution
 uses Sleigh default search paths and can be overridden with

@@ -175,7 +175,8 @@ describe('Database Namespace Structure', () => {
         'init', 'open', 'save', 'close',
         'inputFilePath', 'idbPath', 'fileTypeName', 'inputMd5',
         'compilerInfo', 'importModules', 'imageBase',
-        'processorId', 'processorName', 'addressBitness', 'setAddressBitness',
+        'processorId', 'processorIdFromRaw', 'processor', 'processorProfile',
+        'processorName', 'addressBitness', 'setAddressBitness',
         'isBigEndian', 'abiName',
         'minAddress', 'maxAddress', 'addressBounds', 'addressSpan',
     ];
@@ -186,6 +187,15 @@ describe('Database Namespace Structure', () => {
             expect(typeof db[fn]).toBe('function');
         });
     }
+
+    it('should normalize only verified public processor IDs', () => {
+        if (!db) return;
+        expect(db.processorIdFromRaw(0)).toBe(0);
+        expect(db.processorIdFromRaw(76)).toBe(76);
+        expect(db.processorIdFromRaw(-1)).toBeNull();
+        expect(db.processorIdFromRaw(77)).toBeNull();
+        expect(db.processorIdFromRaw(0x8001)).toBeNull();
+    });
 });
 
 // ── Address Namespace Functions ──────────────────────────────────────────

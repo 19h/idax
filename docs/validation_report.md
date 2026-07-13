@@ -758,3 +758,21 @@ tracked in `docs/compatibility_matrix.md`.
   IDA 9.3 idalib rejects `process_ui_action`, so actual activation dispatch
   remains interactive-UI-host-gated (F393); registration, release, and callback
   reclamation are proven headlessly.
+
+- 2026-07-14 Phase 33 forward-compatible processor profile:
+  Corrected unsupported processor-ID provenance: installed SDK refs from v9.2
+  through the 9.4 placeholder end the public `PLFM_*` range at
+  `PLFM_NDS32 = 76`; no searched ref defines the formerly claimed
+  `PLFM_MCORE = 77`, while `idp.hpp` reserves values above `0x8000` for
+  third-party modules (F394). Added raw-ID-preserving `ProcessorProfile`,
+  optional verified typed identity, checked conversion, and optional ABI across
+  C++, Node, and Rust. Legacy `Mcore = 77` remains source-compatible but is
+  never produced by normalization. Both idapcode adaptations now consume the
+  profile; the external Sleigh language-selection policy remains explicit.
+  Complete C++ build and CTest pass 25/25 in 22.31 s, and the opt-in
+  Sleigh-backed idapcode plugin links. Node native build, strict declaration
+  compilation, and structural tests pass 222/222; IDA 9.4 integration passes
+  71/71. Rust formatting and the idapcode example check pass, library tests
+  pass 132/132 plus 0 sys tests, and process-main-thread IDA 9.4 integration
+  passes 89/89. The generated bindgen output is byte-identical to the checked
+  binding, `git diff --check` passes, and the mutable fixture is restored.

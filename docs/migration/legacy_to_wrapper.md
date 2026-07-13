@@ -31,6 +31,7 @@
 | `open_linput(path, false)` | `ida::loader::InputFile` (provided in callbacks) |
 | `file2base(li, off, ea1, ea2, p)` | `ida::loader::file_to_database(handle, off, ea, size, p)` |
 | `mem2base(ptr, ea1, ea2, fpos)` | `ida::loader::memory_to_database(ptr, ea, size)` |
+| `PH.id` plus processor-name/bitness/endian/ABI queries | `ida::database::processor_profile()` |
 | IDAPython `ida_kernwin.add_hotkey(key, fn)` / `del_hotkey(ctx)` | `ida::plugin::register_hotkey(key, fn)` returning move-only `ScopedHotkey` |
 | `process_ui_action(name)` | `ida::plugin::activate_action(action_id)` |
 | `detach_action_from_menu(path, name)` | `ida::plugin::detach_from_menu(path, action_id)` |

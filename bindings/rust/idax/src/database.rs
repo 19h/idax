@@ -89,7 +89,10 @@ fn snapshot_from_raw(raw: &idax_sys::IdaxDatabaseSnapshot) -> Snapshot {
 
 /// Processor module identifiers (SDK `PLFM_*` values).
 ///
-/// Values match the SDK constants exactly.
+/// Values through `Nds32` match the current public SDK constants exactly.
+/// `Mcore` is retained only for source compatibility with an earlier idax
+/// release; current SDK headers do not define `PLFM_MCORE`, and `from_raw`
+/// never produces it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(i32)]
 pub enum ProcessorId {
@@ -174,15 +177,32 @@ pub enum ProcessorId {
 }
 
 impl ProcessorId {
-    /// Try to convert a raw `i32` PLFM constant to a `ProcessorId`.
+    /// Convert a raw ID to a verified current public SDK identifier.
+    ///
+    /// Unknown, future, third-party, and legacy-only values return `None`.
     pub fn from_raw(raw: i32) -> Option<Self> {
-        if raw >= 0 && raw <= 77 {
-            // Safety: all values 0..=77 are valid enum variants.
+        if (0..=76).contains(&raw) {
+            // Safety: every integer in the verified public 0..=76 range has
+            // exactly one ProcessorId variant with the same discriminant.
             Some(unsafe { std::mem::transmute(raw) })
         } else {
             None
         }
     }
+}
+
+/// Normalized architecture metadata for the current database.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProcessorProfile {
+    /// Authoritative raw SDK processor ID, including unknown/third-party IDs.
+    pub raw_id: i32,
+    /// Verified public SDK identity when recognized.
+    pub known_id: Option<ProcessorId>,
+    pub name: String,
+    pub address_bitness: i32,
+    pub big_endian: bool,
+    /// Active ABI name when the database provides one.
+    pub abi_name: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -485,7 +505,63 @@ pub fn processor_id() -> Result<i32> {
 /// Active processor module ID as a typed enum.
 pub fn processor() -> Result<ProcessorId> {
     let id = processor_id()?;
-    ProcessorId::from_raw(id).ok_or_else(|| Error::sdk(format!("unknown processor id: {}", id)))
+    ProcessorId::from_raw(id)
+        .ok_or_else(|| Error::unsupported(format!("unrecognized processor id: {id}")))
+}
+
+/// Normalized processor identity and architecture metadata.
+///
+/// ABI absence is represented by `None` rather than an error.
+pub fn processor_profile() -> Result<ProcessorProfile> {
+    unsafe {
+        let mut raw = std::mem::MaybeUninit::<idax_sys::IdaxDatabaseProcessorProfile>::zeroed();
+        let ret = idax_sys::idax_database_processor_profile(raw.as_mut_ptr());
+        if ret != 0 {
+            return Err(error::consume_last_error("processor_profile failed"));
+        }
+        let mut raw = raw.assume_init();
+
+        if raw.name.is_null() {
+            idax_sys::idax_database_processor_profile_free(&mut raw);
+            return Err(Error::internal("processor profile name is null"));
+        }
+        let name = std::ffi::CStr::from_ptr(raw.name)
+            .to_string_lossy()
+            .into_owned();
+        let abi_name = if raw.abi_name.is_null() {
+            None
+        } else {
+            Some(
+                std::ffi::CStr::from_ptr(raw.abi_name)
+                    .to_string_lossy()
+                    .into_owned(),
+            )
+        };
+        let known_id = if raw.has_known_id != 0 {
+            match ProcessorId::from_raw(raw.known_id) {
+                Some(id) => Some(id),
+                None => {
+                    idax_sys::idax_database_processor_profile_free(&mut raw);
+                    return Err(Error::internal(
+                        "processor profile contains an invalid known ID",
+                    ));
+                }
+            }
+        } else {
+            None
+        };
+
+        let profile = ProcessorProfile {
+            raw_id: raw.raw_id,
+            known_id,
+            name,
+            address_bitness: raw.address_bitness,
+            big_endian: raw.big_endian != 0,
+            abi_name,
+        };
+        idax_sys::idax_database_processor_profile_free(&mut raw);
+        Ok(profile)
+    }
 }
 
 /// Active processor module short name (e.g. "metapc", "ARM", "mips").

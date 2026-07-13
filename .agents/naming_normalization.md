@@ -32,6 +32,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |
 | IDAPython `add_hotkey` / `del_hotkey` | `ida::plugin::register_hotkey` / `ScopedHotkey::release` |
 | `process_ui_action(name)` | `ida::plugin::activate_action(action_id)` |
+| `PH.id` + `inf_get_procname()` + `inf_is_be()` + ABI/bitness queries | `ida::database::processor_profile()` |
 | `processor_t::ana/emu/out` | `ida::processor::Processor` lifecycle methods |
 
 Normalization policy:

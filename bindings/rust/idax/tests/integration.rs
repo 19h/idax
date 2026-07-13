@@ -178,6 +178,26 @@ fn database_processor_typed() {
     let _ = proc; // just verify it's a valid ProcessorId variant
 }
 
+fn database_processor_profile() {
+    require_db!();
+    let profile = database::processor_profile().unwrap();
+    assert_eq!(profile.raw_id, database::processor_id().unwrap());
+    assert_eq!(
+        profile.known_id,
+        database::ProcessorId::from_raw(profile.raw_id)
+    );
+    assert_eq!(profile.name, database::processor_name().unwrap());
+    assert_eq!(
+        profile.address_bitness,
+        database::address_bitness().unwrap()
+    );
+    assert_eq!(profile.big_endian, database::is_big_endian().unwrap());
+    match database::abi_name() {
+        Ok(abi) => assert_eq!(profile.abi_name.as_deref(), Some(abi.as_str())),
+        Err(_) => assert!(profile.abi_name.is_none()),
+    }
+}
+
 fn database_compiler_info() {
     require_db!();
     let ci = database::compiler_info().unwrap();
@@ -1607,6 +1627,7 @@ static TEST_CASES: &[TestCase] = &[
     ("database_endianness", database_endianness),
     ("database_abi_name", database_abi_name),
     ("database_processor_typed", database_processor_typed),
+    ("database_processor_profile", database_processor_profile),
     ("database_compiler_info", database_compiler_info),
     ("database_import_modules", database_import_modules),
     ("database_snapshots", database_snapshots),

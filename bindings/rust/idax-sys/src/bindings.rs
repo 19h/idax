@@ -276,6 +276,55 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_database_processor_id(out: *mut i32) -> ::std::os::raw::c_int;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDatabaseProcessorProfile {
+    pub raw_id: i32,
+    pub known_id: i32,
+    pub has_known_id: ::std::os::raw::c_int,
+    pub name: *mut ::std::os::raw::c_char,
+    pub address_bitness: ::std::os::raw::c_int,
+    pub big_endian: ::std::os::raw::c_int,
+    pub abi_name: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDatabaseProcessorProfile"]
+        [::std::mem::size_of::<IdaxDatabaseProcessorProfile>() - 40usize];
+    ["Alignment of IdaxDatabaseProcessorProfile"]
+        [::std::mem::align_of::<IdaxDatabaseProcessorProfile>() - 8usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::raw_id"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, raw_id) - 0usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::known_id"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, known_id) - 4usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::has_known_id"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, has_known_id) - 8usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::name"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, name) - 16usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::address_bitness"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, address_bitness) - 24usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::big_endian"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, big_endian) - 28usize];
+    ["Offset of field: IdaxDatabaseProcessorProfile::abi_name"]
+        [::std::mem::offset_of!(IdaxDatabaseProcessorProfile, abi_name) - 32usize];
+};
+impl Default for IdaxDatabaseProcessorProfile {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_database_processor_profile(
+        out: *mut IdaxDatabaseProcessorProfile,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_database_processor_profile_free(profile: *mut IdaxDatabaseProcessorProfile);
+}
 unsafe extern "C" {
     pub fn idax_database_processor_name(
         out: *mut *mut ::std::os::raw::c_char,

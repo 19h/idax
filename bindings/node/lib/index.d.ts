@@ -185,6 +185,18 @@ export namespace database {
         children: Snapshot[];
     }
 
+    interface ProcessorProfile {
+        /** Authoritative raw SDK processor ID. */
+        rawId: number;
+        /** Verified current public SDK identity, or null when unknown. */
+        knownId: number | null;
+        name: string;
+        addressBitness: number;
+        bigEndian: boolean;
+        /** Active ABI name, or null when absent. */
+        abiName: string | null;
+    }
+
     type OpenMode = 'analyze' | 'skipAnalysis';
     type LoadIntent = 'autoDetect' | 'binary' | 'nonBinary';
 
@@ -268,8 +280,14 @@ export namespace database {
     /** Numeric processor ID. */
     function processorId(): number;
 
+    /** Convert a raw ID to a verified current public SDK identity. */
+    function processorIdFromRaw(rawId: number): number | null;
+
     /** Processor type enumeration value. */
     function processor(): number;
+
+    /** Normalized processor identity and architecture metadata. */
+    function processorProfile(): ProcessorProfile;
 
     /** Short processor name string (e.g. "metapc", "ARM"). */
     function processorName(): string;

@@ -115,7 +115,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 |--------|--------|-----------------|
 | [`error`] | Error handling | `Error` (category + code + message + context), `Result<T>`, `Status` |
 | [`address`] | Address primitives | `Address` (`u64`), `Range`, predicates (`is_code`, `is_data`, ...), navigation (`next_head`, `prev_head`), iterators (`HeadIterator`, `PredicateIterator`) |
-| [`database`] | Database lifecycle | `init`, `open`, `open_binary`, `save`, `close`, metadata queries (`input_file_path`, `input_md5`, `image_base`, `processor_name`, ...), import enumeration, snapshots |
+| [`database`] | Database lifecycle | `init`, `open`, `open_binary`, `save`, `close`, metadata queries, raw-plus-optional-typed `ProcessorProfile`, import enumeration, snapshots |
 | [`path`] | Portable paths | `basename`, `dirname`, `is_directory` helpers matching the C++ `ida::path` surface |
 
 ### Analysis objects

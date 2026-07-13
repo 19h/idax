@@ -224,7 +224,7 @@ Note:
   - 4.18.2.1. `database.cpp` pulls idalib-only symbols (`init_library`, `open_database`)
   - 4.18.2.2. Plugin link units referencing `processor_id()` would fail if in `database.cpp`
   - 4.18.2.3. Declared in `database.hpp`, implemented in `address.cpp` (no idalib deps)
-- 4.18.3. Typed processor-id surface should mirror the full current SDK enum set: `ProcessorId` now tracks `PLFM_*` coverage through `PLFM_MCORE` so `processor()` avoids subset-staleness for non-mainstream modules [F259]
+- 4.18.3. **Superseded by 35.52/F394:** The former claim that the current public set extended through `PLFM_MCORE = 77` came from an unverified user-supplied list. Current normalization ends at verified `PLFM_NDS32 = 76`, preserves all raw IDs, and represents unrecognized IDs without invalid enum casts.
 
 ---
 
@@ -765,7 +765,7 @@ Note:
 - 25.2. Added database metadata wrappers (`address_bitness`, `is_big_endian`, `abi_name`) plus typed `ProcessorId`/`processor()` to support deterministic architecture-to-Sleigh routing without raw SDK fallback in plugin code [F253]
 - 25.3. Sleigh spec lookup helper expects spec-root paths and appends `Ghidra/Processors/.../data/languages/<file>` internally; this affects runtime path configuration semantics (`IDAX_IDAPCODE_SPEC_ROOT`) [F254]
 - 25.4. Sleigh source integration is intentionally opt-in in examples due heavy configure-time fetch/patch behavior against Ghidra; default idax build path remains lightweight [F255]
-- 25.5. Residual parity gap: processor-profile granularity is still partial for exact language-profile selection (e.g., ARM profile/revision nuances), so mapping remains best-effort in the current wrapper model [F256]
+- 25.5. Processor identity/context normalization is closed by the raw-plus-optional-typed `ProcessorProfile`. Exact external Sleigh language-profile selection (for example ARM revision variants) remains port-local because the generic SDK processor metadata does not define Sleigh semantics; this is an external integration boundary rather than a native wrapper gap [F256, F394]
 - 25.6. Runtime startup diagnostics: `init_library` failures are reproducible when `IDADIR` is pointed at an SDK source tree (for example `<userhome>/dev/ida-sdk/src`) instead of a full IDA runtime root; this is an environment-root mismatch, not an API-surface failure [F258]
 - 25.7. On this host, `idax_smoke_test` passes with no env overrides because the binary carries `LC_RPATH` to `/Applications/IDA Professional 9.3.app/Contents/MacOS`; explicit `IDADIR`/`DYLD_LIBRARY_PATH` to that same runtime root also passes [F258]
 - 25.8. Runtime plugin-load policy paths are host-validated: `idax_idalib_dump_port` succeeds with both `--no-plugins` and allowlist mode (`--plugin "*.dylib"`) on the fixture binary, confirming `RuntimeOptions::plugin_policy` behavior is non-blocking in this profile [F260]
@@ -1156,3 +1156,14 @@ adapters in wrapper-owned storage, erase them only after successful SDK
 unregister, and reserve activation/exception runtime evidence for an
 interactive IDA UI host. Headless evidence remains valid for registration,
 unregistration, scoped move/release state, and callback-state reclamation.
+
+### 35.52. Processor Identity Must Preserve Unknown Raw IDs [F394]
+The verified public `PLFM_*` range in current `idp.hpp` ends at
+`PLFM_NDS32 = 76`; no searched SDK ref defines the previously claimed
+`PLFM_MCORE = 77`. The SDK also reserves IDs above `0x8000` for third-party
+processor modules. Keep the raw signed processor ID authoritative, normalize
+only verified public values to `ProcessorId`, and represent an unrecognized ID
+as an absent typed value rather than an invalid enum cast or metadata failure.
+Retain `ProcessorId::Mcore = 77` only as a documented source-compatibility
+artifact until a breaking API revision; never produce it from current SDK
+normalization.

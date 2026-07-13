@@ -672,6 +672,21 @@ void check_database_surface() {
     (void)ida::database::ProcessorId::Arm;
     (void)ida::database::ProcessorId::RiscV;
     (void)ida::database::ProcessorId::Mcore;
+    static_assert(ida::database::processor_id_from_raw(0)
+                  == ida::database::ProcessorId::IntelX86);
+    static_assert(ida::database::processor_id_from_raw(76)
+                  == ida::database::ProcessorId::Nds32);
+    static_assert(!ida::database::processor_id_from_raw(-1));
+    static_assert(!ida::database::processor_id_from_raw(77));
+    static_assert(!ida::database::processor_id_from_raw(0x8001));
+
+    ida::database::ProcessorProfile processor_profile;
+    (void)processor_profile.raw_id;
+    (void)processor_profile.known_id;
+    (void)processor_profile.name;
+    (void)processor_profile.address_bitness;
+    (void)processor_profile.big_endian;
+    (void)processor_profile.abi_name;
 
     ida::database::PluginLoadPolicy plugin_policy;
     (void)plugin_policy.disable_user_plugins;
@@ -714,6 +729,7 @@ void check_database_surface() {
     using CompilerInfoFn = ida::Result<ida::database::CompilerInfo>(*)();
     using ImportModulesFn = ida::Result<std::vector<ida::database::ImportModule>>(*)();
     using ProcessorEnumFn = ida::Result<ida::database::ProcessorId>(*)();
+    using ProcessorProfileFn = ida::Result<ida::database::ProcessorProfile>(*)();
     using IdbPathFn = ida::Result<std::string>(*)();
 
     (void)static_cast<InitBasicFn>(&ida::database::init);
@@ -731,12 +747,14 @@ void check_database_surface() {
     (void)static_cast<CompilerInfoFn>(&ida::database::compiler_info);
     (void)static_cast<ImportModulesFn>(&ida::database::import_modules);
     (void)static_cast<ProcessorEnumFn>(&ida::database::processor);
+    (void)static_cast<ProcessorProfileFn>(&ida::database::processor_profile);
     (void)static_cast<IdbPathFn>(&ida::database::idb_path);
 
     (void)&ida::database::input_file_path;
     (void)&ida::database::input_md5;
     (void)&ida::database::image_base;
     (void)&ida::database::processor_id;
+    (void)&ida::database::processor_id_from_raw;
     (void)&ida::database::processor_name;
     (void)&ida::database::address_bitness;
     (void)&ida::database::set_address_bitness;

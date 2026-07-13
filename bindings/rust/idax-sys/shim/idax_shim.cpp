@@ -719,6 +719,46 @@ int idax_database_processor_id(int32_t* out) {
     RETURN_RESULT_VALUE(ida::database::processor_id());
 }
 
+int idax_database_processor_profile(IdaxDatabaseProcessorProfile* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation("Output pointer is null"));
+    }
+    *out = {};
+
+    auto r = ida::database::processor_profile();
+    if (!r) return fail(r.error());
+
+    out->raw_id = r->raw_id;
+    if (r->known_id) {
+        out->known_id = static_cast<int32_t>(*r->known_id);
+        out->has_known_id = 1;
+    }
+    out->name = dup_string(r->name);
+    if (out->name == nullptr) {
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    out->address_bitness = r->address_bitness;
+    out->big_endian = r->big_endian ? 1 : 0;
+    if (r->abi_name) {
+        out->abi_name = dup_string(*r->abi_name);
+        if (out->abi_name == nullptr) {
+            idax_database_processor_profile_free(out);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    return 0;
+}
+
+void idax_database_processor_profile_free(IdaxDatabaseProcessorProfile* profile) {
+    if (profile == nullptr) {
+        return;
+    }
+    std::free(profile->name);
+    std::free(profile->abi_name);
+    *profile = {};
+}
+
 int idax_database_processor_name(char** out) {
     RETURN_RESULT_STRING(ida::database::processor_name());
 }

@@ -906,10 +906,11 @@
   - **19.3.2. Rationale:** Keeps the example immediately usable while documenting residual profile-granularity limits as non-blocking parity gaps.
   - **19.3.3. Trade-off:** Some processor-profile variants (e.g., fine ARM profile/revision nuances) remain heuristic without a richer normalized profile model.
 
-- **19.4. Decision D-PROCESSORID-FULL-PLFM-COVERAGE**: Expand `ida::database::ProcessorId` to mirror full current SDK `PLFM_*` range
+- **19.4. Decision D-PROCESSORID-FULL-PLFM-COVERAGE (SUPERSEDED BY 19.34/F394)**: Expand `ida::database::ProcessorId` to mirror the then-supplied `PLFM_*` range
   - **19.4.1. Decision:** Extend `ProcessorId` from a common-subset enum to full coverage through `PLFM_MCORE` (0..77).
   - **19.4.2. Rationale:** Typed `processor()` should not become stale for non-mainstream processor modules; full coverage preserves numeric round-trip fidelity while keeping plugin code SDK-opaque.
   - **19.4.3. Alternative considered:** Keep subset-only enum + rely on raw `processor_id()` for uncommon IDs — rejected (creates avoidable typed-surface gaps for real-world ports).
+  - **19.4.4. Supersession:** Current and installed SDK refs do not define the claimed terminal `PLFM_MCORE = 77`. Decision 19.34 replaces closed-enum round-tripping with raw identity plus optional verified typed identity.
 
 - **19.5. Decision D-IDAPCODE-VIEW-SYNC**: Implement bidirectional linear/custom-viewer synchronization in the idapcode port
   - **19.5.1. Decision:** Use existing ui event wrappers (`on_cursor_changed`, `on_screen_ea_changed`, `on_view_activated`, `on_view_deactivated`, `on_view_closed`) plus `custom_viewer_jump_to_line`/`jump_to` and a reentrancy guard.
@@ -1072,3 +1073,10 @@
   - **19.33.3. Callback model:** Catch all exceptions in action activation and availability callbacks. Treat callback failure as a non-refreshing activation or disabled action instead of allowing an exception across the host ABI.
   - **19.33.4. Binding/scope rule:** Mirror scoped ownership in bindings that already expose the plugin/action namespace. Do not create a Node-only plugin namespace solely for this additive convenience. Keep full named actions for menu/toolbar/popup/update behavior; scoped hotkeys are intentionally shortcut-only.
   - **19.33.5. Activation evidence:** Expose programmatic activation because it is part of the native action surface, but classify runtime dispatch and exception-barrier execution as interactive-UI-host-gated. Headless idalib remains authoritative for registration and deterministic wrapper reclamation only (F393).
+
+- **19.34. Decision D-FORWARD-COMPATIBLE-PROCESSOR-PROFILE**: Normalize processor metadata without closing the SDK ID space
+  - **19.34.1. Identity model:** Add `ProcessorProfile` with the authoritative raw signed ID plus `std::optional<ProcessorId>`. Normalize only verified current public SDK values `0..76`; unknown/future/third-party IDs remain valid profiles with no typed ID.
+  - **19.34.2. Metadata model:** Snapshot processor name, database address bitness, endianness, and optional ABI in one SDK-independent value. Absence of an ABI is ordinary metadata absence; failure of required fields remains an error.
+  - **19.34.3. Compatibility rule:** Retain `ProcessorId::Mcore = 77` as a documented legacy source-compatibility enumerator, but do not return it from raw-ID normalization because no searched current SDK ref defines `PLFM_MCORE`. A future breaking revision may remove it.
+  - **19.34.4. Binding/port rule:** Mirror the profile in Node and Rust, use optional typed identity rather than unchecked integer-to-enum conversion, and migrate both idapcode adaptations to the normalized profile while retaining function-specific bitness override for Sleigh selection.
+  - **19.34.5. Scope boundary:** External Sleigh remains the intentional p-code implementation. Phase 33 closes processor-context normalization; it does not introduce a native `ida::pcode` namespace that would conceal a third-party runtime.

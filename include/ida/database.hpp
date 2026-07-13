@@ -10,6 +10,7 @@
 #include <ida/error.hpp>
 #include <ida/address.hpp>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -30,10 +31,12 @@ enum class LoadIntent {
     NonBinary,
 };
 
-/// Processor module identifiers (SDK `PLFM_*` values).
+/// Verified public processor module identifiers (SDK `PLFM_*` values).
 ///
-/// Values match the SDK constants exactly and track the current public set
-/// through `PLFM_MCORE`.
+/// Values through `Nds32` match the current public SDK constants exactly.
+/// `Mcore` is retained only for source compatibility with an earlier idax
+/// release; current SDK headers do not define `PLFM_MCORE`, and normalization
+/// never produces that value.
 enum class ProcessorId : std::int32_t {
     IntelX86            = 0,  ///< `PLFM_386`
     Z80                 = 1,  ///< `PLFM_Z80`
@@ -112,7 +115,33 @@ enum class ProcessorId : std::int32_t {
     Rx                  = 74, ///< `PLFM_RX`
     Wasm                = 75, ///< `PLFM_WASM`
     Nds32               = 76, ///< `PLFM_NDS32`
-    Mcore               = 77, ///< `PLFM_MCORE`
+    Mcore               = 77, ///< Legacy compatibility value; not current `PLFM_*`.
+};
+
+/// Convert a raw SDK processor ID to a verified public identifier.
+///
+/// Unknown, future, third-party, and legacy-only values return `std::nullopt`.
+[[nodiscard]] constexpr std::optional<ProcessorId>
+processor_id_from_raw(std::int32_t raw_id) noexcept {
+    if (raw_id < static_cast<std::int32_t>(ProcessorId::IntelX86)
+        || raw_id > static_cast<std::int32_t>(ProcessorId::Nds32)) {
+        return std::nullopt;
+    }
+    return static_cast<ProcessorId>(raw_id);
+}
+
+/// Normalized architecture metadata for the current database.
+///
+/// `raw_id` remains authoritative so profiles for unknown, future, and
+/// third-party processor modules remain representable. `known_id` is present
+/// only for a verified public SDK `PLFM_*` value.
+struct ProcessorProfile {
+    std::int32_t raw_id{0};
+    std::optional<ProcessorId> known_id;
+    std::string name;
+    int address_bitness{0};
+    bool big_endian{false};
+    std::optional<std::string> abi_name;
 };
 
 /// Headless user-plugin loading policy applied at init time.
@@ -256,7 +285,10 @@ Result<AddressSize> address_span();
 /// Common IDs: 0 = x86/x64 (Intel), 12 = MIPS, 13 = ARM, 15 = PowerPC.
 Result<std::int32_t> processor_id();
 
-/// Active processor module ID as a typed enum.
+/// Active processor module ID as a verified typed enum.
+///
+/// Returns `Unsupported` for unknown, future, or third-party IDs. Use
+/// `processor_profile()` when the raw identity must remain representable.
 Result<ProcessorId> processor();
 
 /// Active processor module short name (e.g. "metapc", "ARM", "mips").
@@ -281,6 +313,11 @@ Result<bool> is_big_endian();
 
 /// Active ABI name when available (for example: "sysv", "n32", "xbox").
 Result<std::string> abi_name();
+
+/// Normalized processor identity and architecture metadata.
+///
+/// ABI absence is represented by an empty optional rather than an error.
+Result<ProcessorProfile> processor_profile();
 
 // ── Snapshot wrappers ────────────────────────────────────────────────────
 

@@ -328,6 +328,20 @@ NAN_METHOD(ProcessorIdFn) {
     info.GetReturnValue().Set(Nan::New(id));
 }
 
+NAN_METHOD(ProcessorIdFromRaw) {
+    if (info.Length() < 1 || !info[0]->IsInt32()) {
+        Nan::ThrowTypeError("Expected a signed 32-bit processor ID");
+        return;
+    }
+    const auto raw = Nan::To<std::int32_t>(info[0]).FromJust();
+    const auto known = ida::database::processor_id_from_raw(raw);
+    if (!known) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+    info.GetReturnValue().Set(Nan::New(static_cast<std::int32_t>(*known)));
+}
+
 NAN_METHOD(Processor) {
     IDAX_UNWRAP(auto proc, ida::database::processor());
     info.GetReturnValue().Set(Nan::New(static_cast<int32_t>(proc)));
@@ -361,6 +375,26 @@ NAN_METHOD(IsBigEndian) {
 NAN_METHOD(AbiName) {
     IDAX_UNWRAP(auto name, ida::database::abi_name());
     info.GetReturnValue().Set(FromString(name));
+}
+
+NAN_METHOD(ProcessorProfile) {
+    IDAX_UNWRAP(auto profile, ida::database::processor_profile());
+    auto object = ObjectBuilder()
+        .setInt("rawId", profile.raw_id)
+        .setStr("name", profile.name)
+        .setInt("addressBitness", profile.address_bitness)
+        .setBool("bigEndian", profile.big_endian);
+    if (profile.known_id) {
+        object.setInt("knownId", static_cast<std::int32_t>(*profile.known_id));
+    } else {
+        object.setNull("knownId");
+    }
+    if (profile.abi_name) {
+        object.setStr("abiName", *profile.abi_name);
+    } else {
+        object.setNull("abiName");
+    }
+    info.GetReturnValue().Set(object.build());
 }
 
 // ── Snapshots ───────────────────────────────────────────────────────────
@@ -435,7 +469,9 @@ void InitDatabase(v8::Local<v8::Object> target) {
     SetMethod(ns, "addressBounds",    AddressBounds);
     SetMethod(ns, "addressSpan",      AddressSpan);
     SetMethod(ns, "processorId",      ProcessorIdFn);
+    SetMethod(ns, "processorIdFromRaw", ProcessorIdFromRaw);
     SetMethod(ns, "processor",        Processor);
+    SetMethod(ns, "processorProfile", ProcessorProfile);
     SetMethod(ns, "processorName",    ProcessorName);
     SetMethod(ns, "addressBitness",   AddressBitness);
     SetMethod(ns, "setAddressBitness", SetAddressBitness);

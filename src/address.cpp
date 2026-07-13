@@ -297,7 +297,13 @@ Result<ProcessorId> processor() {
     auto id = processor_id();
     if (!id)
         return std::unexpected(id.error());
-    return static_cast<ProcessorId>(*id);
+    auto known = processor_id_from_raw(*id);
+    if (!known) {
+        return std::unexpected(Error::unsupported(
+            "Processor ID is not a verified public SDK value",
+            std::to_string(*id)));
+    }
+    return *known;
 }
 
 Result<std::string> processor_name() {
@@ -352,6 +358,40 @@ Result<std::string> abi_name() {
         return std::unexpected(Error::not_found("No ABI name available"));
     }
     return ida::detail::to_string(abi);
+}
+
+Result<ProcessorProfile> processor_profile() {
+    ProcessorProfile profile;
+
+    auto id = processor_id();
+    if (!id)
+        return std::unexpected(id.error());
+    profile.raw_id = *id;
+    profile.known_id = processor_id_from_raw(*id);
+
+    auto name = processor_name();
+    if (!name)
+        return std::unexpected(name.error());
+    profile.name = std::move(*name);
+
+    auto bitness = address_bitness();
+    if (!bitness)
+        return std::unexpected(bitness.error());
+    profile.address_bitness = *bitness;
+
+    auto endian = is_big_endian();
+    if (!endian)
+        return std::unexpected(endian.error());
+    profile.big_endian = *endian;
+
+    auto abi = abi_name();
+    if (abi) {
+        profile.abi_name = std::move(*abi);
+    } else if (abi.error().category != ErrorCategory::NotFound) {
+        return std::unexpected(abi.error());
+    }
+
+    return profile;
 }
 
 } // namespace ida::database

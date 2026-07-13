@@ -101,6 +101,7 @@ fn choose_target_function(options: &Options) -> Result<function::Function> {
 
 struct ProcessorContext {
     processor_id: i32,
+    known_processor: Option<database::ProcessorId>,
     processor_name: String,
     bitness: i32,
     big_endian: bool,
@@ -108,23 +109,20 @@ struct ProcessorContext {
 }
 
 fn build_processor_context(function: &function::Function) -> Result<ProcessorContext> {
-    let processor_id = database::processor_id()?;
-    let processor_name = database::processor_name()?;
-    let big_endian = database::is_big_endian()?;
+    let profile = database::processor_profile()?;
 
     let mut bitness = function.bitness();
     if bitness != 16 && bitness != 32 && bitness != 64 {
-        bitness = database::address_bitness()?;
+        bitness = profile.address_bitness;
     }
 
-    let abi_name = database::abi_name()?;
-
     Ok(ProcessorContext {
-        processor_id,
-        processor_name,
+        processor_id: profile.raw_id,
+        known_processor: profile.known_id,
+        processor_name: profile.name,
         bitness,
-        big_endian,
-        abi_name,
+        big_endian: profile.big_endian,
+        abi_name: profile.abi_name.unwrap_or_default(),
     })
 }
 
@@ -134,15 +132,15 @@ struct SpecChoice {
 }
 
 fn choose_spec(context: &ProcessorContext) -> Result<SpecChoice> {
-    let _processor = context.processor_id;
     let abi_lower = context.abi_name.to_lowercase();
+    let Some(processor) = context.known_processor else {
+        return Err(Error::unsupported(format!(
+            "No Sleigh mapping for unrecognized processor ID: id={} name={}",
+            context.processor_id, context.processor_name
+        )));
+    };
 
-    // Processor IDs match idax::database::ProcessorId enum
-    // (15 = IntelX86, 73 = Arm, etc - simplified mapping)
-    // Actually we just map by string name since ID mapping might vary
-    let pname = context.processor_name.to_lowercase();
-
-    if pname.starts_with("metapc") || pname.starts_with("80x86") || pname.starts_with("x86") {
+    if processor == database::ProcessorId::IntelX86 {
         return Ok(SpecChoice {
             sla_file: if context.bitness == 64 {
                 "x86-64.sla".into()
@@ -151,7 +149,7 @@ fn choose_spec(context: &ProcessorContext) -> Result<SpecChoice> {
             },
             pspec_file: None,
         });
-    } else if pname.starts_with("arm") {
+    } else if processor == database::ProcessorId::Arm {
         if context.bitness == 64 {
             return Ok(SpecChoice {
                 sla_file: if context.big_endian {
@@ -170,7 +168,7 @@ fn choose_spec(context: &ProcessorContext) -> Result<SpecChoice> {
             },
             pspec_file: None,
         });
-    } else if pname.starts_with("mips") {
+    } else if processor == database::ProcessorId::Mips {
         if context.bitness == 64 || abi_lower.contains("n32") {
             return Ok(SpecChoice {
                 sla_file: if context.big_endian {
@@ -189,7 +187,7 @@ fn choose_spec(context: &ProcessorContext) -> Result<SpecChoice> {
             },
             pspec_file: None,
         });
-    } else if pname.starts_with("ppc") {
+    } else if processor == database::ProcessorId::PowerPc {
         if context.bitness == 64 {
             if abi_lower.contains("xbox") {
                 return Ok(SpecChoice {

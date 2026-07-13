@@ -135,6 +135,24 @@ static void test_database() {
         CHECK(abi.error().category == ida::ErrorCategory::NotFound);
     }
 
+    auto processor_profile = ida::database::processor_profile();
+    CHECK_OK(processor_profile);
+    if (processor_profile && processor_id && processor_name && bitness && big_endian) {
+        CHECK(processor_profile->raw_id == *processor_id);
+        CHECK(processor_profile->known_id
+              == ida::database::processor_id_from_raw(*processor_id));
+        CHECK(processor_profile->name == *processor_name);
+        CHECK(processor_profile->address_bitness == *bitness);
+        CHECK(processor_profile->big_endian == *big_endian);
+        if (abi) {
+            CHECK(processor_profile->abi_name.has_value());
+            if (processor_profile->abi_name)
+                CHECK(*processor_profile->abi_name == *abi);
+        } else {
+            CHECK(!processor_profile->abi_name.has_value());
+        }
+    }
+
     auto compiler = ida::database::compiler_info();
     CHECK_OK(compiler);
     if (compiler) {

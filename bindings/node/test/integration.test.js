@@ -115,6 +115,16 @@ describe('Database Metadata', () => {
             // Acceptable — ABI info not available for all binaries
         }
     });
+
+    it('should return a normalized processor profile', () => {
+        const profile = idax.database.processorProfile();
+        expect(profile.rawId).toBe(idax.database.processorId());
+        expect(profile.knownId).toBe(idax.database.processorIdFromRaw(profile.rawId));
+        expect(profile.name).toBe(idax.database.processorName());
+        expect(profile.addressBitness).toBe(idax.database.addressBitness());
+        expect(profile.bigEndian).toBe(idax.database.isBigEndian());
+        expect(profile.abiName === null || typeof profile.abiName === 'string').toBe(true);
+    });
 });
 
 // ── Segments ────────────────────────────────────────────────────────────

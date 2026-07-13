@@ -41,6 +41,7 @@ std::string error_text(const ida::Error& error) {
 
 struct ProcessorContext {
     std::int32_t processor_id{0};
+    std::optional<ida::database::ProcessorId> known_processor;
     std::string processor_name;
     int bitness{0};
     bool big_endian{false};
@@ -99,44 +100,34 @@ std::vector<std::filesystem::path> spec_search_paths() {
 }
 
 ida::Result<ProcessorContext> build_processor_context(const ida::function::Function& function) {
-    auto processor_id = ida::database::processor_id();
-    if (!processor_id)
-        return std::unexpected(processor_id.error());
-
-    auto processor_name = ida::database::processor_name();
-    if (!processor_name)
-        return std::unexpected(processor_name.error());
-
-    auto big_endian = ida::database::is_big_endian();
-    if (!big_endian)
-        return std::unexpected(big_endian.error());
+    auto profile = ida::database::processor_profile();
+    if (!profile)
+        return std::unexpected(profile.error());
 
     int bitness = function.bitness();
     if (bitness != 16 && bitness != 32 && bitness != 64) {
-        auto database_bitness = ida::database::address_bitness();
-        if (!database_bitness)
-            return std::unexpected(database_bitness.error());
-        bitness = *database_bitness;
-    }
-
-    std::string abi;
-    if (auto abi_name = ida::database::abi_name(); abi_name) {
-        abi = *abi_name;
+        bitness = profile->address_bitness;
     }
 
     ProcessorContext context;
-    context.processor_id = *processor_id;
-    context.processor_name = *processor_name;
+    context.processor_id = profile->raw_id;
+    context.known_processor = profile->known_id;
+    context.processor_name = std::move(profile->name);
     context.bitness = bitness;
-    context.big_endian = *big_endian;
-    context.abi_name = std::move(abi);
+    context.big_endian = profile->big_endian;
+    context.abi_name = profile->abi_name.value_or("");
     return context;
 }
 
 ida::Result<SpecChoice> choose_spec(const ProcessorContext& context) {
     using ida::database::ProcessorId;
 
-    const auto processor = static_cast<ProcessorId>(context.processor_id);
+    if (!context.known_processor) {
+        return std::unexpected(ida::Error::unsupported(
+            "No Sleigh mapping for unrecognized processor ID",
+            format("id=%d name=%s", context.processor_id, context.processor_name.c_str())));
+    }
+    const auto processor = *context.known_processor;
     const std::string abi_lower = to_lower(context.abi_name);
 
     switch (processor) {

@@ -10,7 +10,7 @@ Public headers:
 | `include/ida/diagnostics.hpp` | Logging levels, counters, diagnostic message helpers |
 | `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, owned custom type/format lifecycle and creation, string extraction, binary pattern search |
-| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (input path, IDB path, file type/compiler/imports/processor+ABI/endian), snapshots, file/memory transfer |
+| `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (input path, IDB path, file type/compiler/imports, raw/verified processor identity, normalized processor profile), snapshots, file/memory transfer |
 | `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers, prototype export/application |

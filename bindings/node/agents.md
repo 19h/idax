@@ -63,7 +63,9 @@ Whenever you see these aliases in the documentation, assume the following inputs
 * `addressBounds(): { start: Address, end: Address }`
 * `addressSpan(): AddressSize`
 * `processorId(): number`
+* `processorIdFromRaw(rawId: number): number | null`
 * `processor(): number`
+* `processorProfile(): { rawId: number, knownId: number | null, name: string, addressBitness: number, bigEndian: boolean, abiName: string | null }`
 * `processorName(): string`
 * `addressBitness(): number` - 16, 32, or 64.
 * `setAddressBitness(bits: number): void` - set database bitness (16/32/64).

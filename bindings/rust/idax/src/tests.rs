@@ -1450,18 +1450,18 @@ mod database_tests {
         assert_eq!(ProcessorId::from_raw(12), Some(ProcessorId::Mips));
         assert_eq!(ProcessorId::from_raw(72), Some(ProcessorId::RiscV));
         assert_eq!(ProcessorId::from_raw(-1), None);
+        assert_eq!(ProcessorId::from_raw(77), None);
         assert_eq!(ProcessorId::from_raw(78), None);
+        assert_eq!(ProcessorId::from_raw(0x8001), None);
         assert_eq!(ProcessorId::from_raw(i32::MAX), None);
     }
 
     #[test]
     fn test_processor_id_boundary() {
-        // Test all valid values don't return None
-        for i in 0..=77 {
-            let _result = ProcessorId::from_raw(i);
-            // Some values may not have a mapping (gaps in the enum)
-            // This is OK - from_raw just checks the range
+        for i in 0..=76 {
+            assert!(ProcessorId::from_raw(i).is_some());
         }
+        assert!(ProcessorId::from_raw(77).is_none());
     }
 }
 
