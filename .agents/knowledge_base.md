@@ -976,3 +976,29 @@ Successful or failed action unregistration clears all counts for that action
 ID, preventing stale state when an ID is later reused. This accounting defines
 deterministic semantics for wrapper-managed attachments while leaving popup
 attachment behavior on the SDK's explicit permanent-widget contract.
+
+### 35.31. Rust Real-IDA Tests Must Run on Process Main [F373]
+Idalib requires all calls to occur on the same thread that initialized the
+library. Rust's standard test harness runs test bodies on worker threads even
+when invoked with `--test-threads=1`; the process main thread remains a result
+coordinator. On macOS IDA 9.3, IDAPython initialization can synchronously
+dispatch a warning to IDA's main-thread executor, so worker-thread init blocks
+while libtest's main thread waits for that worker. Configure the real-IDA
+integration target with `harness = false` and run initialization, every test
+case, and shutdown sequentially from its explicit `main` function. Keep normal
+libtest behavior for pure Rust unit tests.
+
+### 35.32. Comment Append Needs Wrapper-Level Composition [F374]
+On IDA 9.3, `append_cmt` may return success at a function start while the
+subsequent `get_cmt` result contains only the pre-existing text. Function-start
+comments can involve function-record storage distinct from ordinary per-item
+comment storage. If idax promises observable append semantics, read the current
+comment, compose `existing + "\n" + appended`, and write the result through
+`set_cmt`; use the appended text directly when no prior comment exists.
+
+### 35.33. Microcode Filters Do Not Replay for Cached Decompilation [F375]
+Installing a microcode filter does not imply that a later `decompile` call will
+regenerate microcode for an already cached function. A callback-validation test
+must call `decompiler::mark_dirty(function_address, false)` after registration
+and before decompilation. This invalidates the cached cfunc and makes filter
+match/apply observations independent of test order.

@@ -648,3 +648,16 @@ tracked in `docs/compatibility_matrix.md`.
   sweep passes 25/25 targets in 32.64 s. Rust formatting plus the plugin unit
   subset pass 2/2; the Node addon relinks and its structural suite passes
   184/184. The fixture IDB was restored after runtime execution.
+
+- 2026-07-13 Phase 26 Rust real-IDA main-thread harness:
+  Live process sampling localized F371 to standard libtest topology: process
+  main was parked awaiting its worker while worker-side IDAPython initialization
+  synchronously waited on IDA's main-thread executor. The `integration` target
+  now uses `harness = false` with an explicit registry of 83 sequential cases,
+  substring/exact filtering, skips/platform ignores, panic capture, and one
+  same-thread database close. The formerly stalled arbitrary-demangle case
+  passes 1/1 with real IDA. The complete suite executes to termination with
+  82/83 passing after cache-invalidating the microcode-filter test; its sole
+  remaining failure is the independent observable comment-append defect F374,
+  promoted to a separate semantic-hardening item. Compile-only, `--list`, and
+  no-`IDADIR` filtered-skip modes also pass.

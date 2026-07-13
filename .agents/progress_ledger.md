@@ -2210,3 +2210,18 @@
   - 16.163.2. Expanded `loader_processor_scenario` with real action registration, menu attach/detach, second-detach rejection, reattach, unregister cleanup, and post-unregister rejection coverage.
   - 16.163.3. Validation evidence: focused `loader_processor_scenario` passes; clean relink plus complete CTest passes 25/25 targets in 32.64 s; Rust formatting and plugin unit subset pass 2/2; Node relink and unit suite pass 184/184.
   - 16.163.4. Restored the mutable fixture IDB after runtime tests and removed the resolved menu-detach item from active work.
+
+- **16.164. Phase 26 Rust Real-IDA Main-Thread Harness Start**
+  - 16.164.1. Reproduced the filtered Rust integration stall and sampled the live process during `name_demangle_arbitrary_symbol`.
+  - 16.164.2. The libtest main thread was parked awaiting a worker result while that worker entered `database::init`, loaded IDAPython, emitted a synchronous UI warning, and waited in IDA's main-thread execution semaphore.
+  - 16.164.3. The root cause is the standard Rust test harness topology: even `--test-threads=1` executes the test body on a worker, violating idalib's same-initializing-thread requirement for all library calls (F373).
+  - 16.164.4. Started an isolated repair that gives only the real-IDA integration target a custom sequential process-main-thread runner, preserving the ordinary harness for unit tests.
+  - 16.164.5. The repaired filtered real-IDA run passes 1/1 and exits cleanly; the complete runner executes all 83 cases instead of stalling and reports 81 passes plus two observable semantic assertions.
+  - 16.164.6. Isolated the two assertions: microcode filter context passes alone and requires cache invalidation for order independence (F375); comment append reproduces an existing SDK function-start storage asymmetry (F374) and is promoted to a separate semantic hardening item.
+
+- **16.165. Phase 26 Rust Real-IDA Main-Thread Harness Complete**
+  - 16.165.1. Configured only the `integration` target with `harness = false`, converted all 83 cases to an explicit registry, and kept ordinary libtest behavior for pure Rust unit targets.
+  - 16.165.2. The runner supports substring/exact filters, skip patterns, Linux platform ignores, `--list`, no-`IDADIR` ignored reporting, panic isolation, failure exit status, and one same-main-thread database close.
+  - 16.165.3. Added `mark_dirty` before the microcode-filter callback assertion, making it independent of earlier decompiler-cache population.
+  - 16.165.4. Validation evidence: formatting and integration no-run pass; listing enumerates all 83 cases; no-`IDADIR` filtered execution reports 1 ignored/82 filtered; the formerly stalled real-IDA filter passes 1/1; complete real-IDA execution terminates with 82/83 passing and the independent F374 comment defect as its sole failure.
+  - 16.165.5. Updated Rust binding instructions, validation report, findings/knowledge, decision 19.27, roadmap, and active-work state. F371 is resolved; F374 remains active for an isolated semantic repair.

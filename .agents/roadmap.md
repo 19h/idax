@@ -125,3 +125,12 @@ Current overall phase status:
 - [x] P25.2 Preserve deterministic `NotFound` behavior for missing or already-consumed wrapper-managed attachments.
 - [x] P25.3 Add real registration/attach/detach lifecycle coverage and rerun the complete C++ suite.
 - [x] P25.4 Synchronize API docs, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.
+
+---
+
+### Phase 26 TODO Action Items (Rust Real-IDA Main-Thread Harness)
+
+- [x] P26.1 Replace the Rust real-IDA integration target's standard libtest harness with a sequential process-main-thread runner.
+- [x] P26.2 Preserve filtered-test selection, skip behavior without `IDADIR`, panic reporting, and deterministic one-session cleanup.
+- [x] P26.3 Validate filtered and complete real-IDA Rust integration runs on the current macOS IDA 9.3 host. (Formerly stalled filter passes 1/1; complete execution terminates at 82/83 with independent comment-append defect F374 promoted to Phase 27.)
+- [x] P26.4 Synchronize binding documentation, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.

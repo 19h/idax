@@ -3,12 +3,15 @@
 //! These tests require a real IDA installation (IDADIR set) and the test fixture
 //! binary at `tests/fixtures/simple_appcall_linux64` relative to the repo root.
 //!
-//! Run with: cargo test --test integration -- --test-threads=1
+//! Run with: cargo test --test integration
 //!
-//! The idalib runtime is single-threaded, so ALL tests in this file share a
-//! single database session initialized via `std::sync::Once`.  Tests must NOT
-//! call `database::close()` — that happens in the static destructor.
+//! The idalib runtime requires all calls on the thread that initialized it.
+//! This target therefore uses a custom sequential harness (`harness = false`)
+//! whose explicit `main` performs initialization, every test call, and cleanup
+//! on process main. Tests must NOT call `database::close()` individually.
 
+use std::io::Write;
+use std::panic::{self, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Once};
 
@@ -23,7 +26,7 @@ use idax::{
 // ---------------------------------------------------------------------------
 
 static INIT: Once = Once::new();
-static mut INIT_OK: bool = false;
+static INIT_OK: AtomicBool = AtomicBool::new(false);
 
 /// Path to the test fixture, resolved relative to the workspace root.
 fn fixture_path() -> String {
@@ -54,7 +57,7 @@ fn ensure_init() {
         let path = fixture_path();
         database::open(&path, true).expect("database::open failed");
         analysis::wait().expect("analysis::wait failed");
-        unsafe { INIT_OK = true };
+        INIT_OK.store(true, Ordering::Release);
     });
 }
 
@@ -62,7 +65,7 @@ fn ensure_init() {
 /// Tests should call this at the top and return early if false.
 fn db_ready() -> bool {
     ensure_init();
-    unsafe { INIT_OK }
+    INIT_OK.load(Ordering::Acquire)
 }
 
 /// Convenience macro: skip the test if the database is not ready.
@@ -79,7 +82,6 @@ macro_rules! require_db {
 // Database metadata
 // ===========================================================================
 
-#[test]
 fn database_input_file_path() {
     require_db!();
     let path = database::input_file_path().unwrap();
@@ -90,21 +92,18 @@ fn database_input_file_path() {
     );
 }
 
-#[test]
 fn database_idb_path() {
     require_db!();
     let path = database::idb_path().unwrap();
     assert!(!path.is_empty(), "idb_path should not be empty");
 }
 
-#[test]
 fn database_file_type_name() {
     require_db!();
     let name = database::file_type_name().unwrap();
     assert!(!name.is_empty(), "file_type_name should not be empty");
 }
 
-#[test]
 fn database_input_md5() {
     require_db!();
     let md5 = database::input_md5().unwrap();
@@ -115,7 +114,6 @@ fn database_input_md5() {
     );
 }
 
-#[test]
 fn database_address_bitness() {
     require_db!();
     let bits = database::address_bitness().unwrap();
@@ -125,7 +123,6 @@ fn database_address_bitness() {
     );
 }
 
-#[test]
 fn database_set_address_bitness_idempotent() {
     require_db!();
     let bits = database::address_bitness().unwrap();
@@ -133,14 +130,12 @@ fn database_set_address_bitness_idempotent() {
     assert_eq!(database::address_bitness().unwrap(), bits);
 }
 
-#[test]
 fn database_processor_name() {
     require_db!();
     let pname = database::processor_name().unwrap();
     assert!(!pname.is_empty(), "processor_name should not be empty");
 }
 
-#[test]
 fn database_address_bounds() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -151,14 +146,12 @@ fn database_address_bounds() {
     assert_eq!(bounds.end, max);
 }
 
-#[test]
 fn database_image_base() {
     require_db!();
     let base = database::image_base().unwrap();
     assert_ne!(base, BAD_ADDRESS, "image_base should not be BAD_ADDRESS");
 }
 
-#[test]
 fn database_endianness() {
     require_db!();
     // ELF x86-64 is little-endian
@@ -166,7 +159,6 @@ fn database_endianness() {
     assert!(!big, "x86-64 fixture should be little-endian");
 }
 
-#[test]
 fn database_abi_name() {
     require_db!();
     // abi_name() may return an error for some binaries — just verify it doesn't crash
@@ -176,7 +168,6 @@ fn database_abi_name() {
     }
 }
 
-#[test]
 fn database_processor_typed() {
     require_db!();
     let proc = database::processor().unwrap();
@@ -186,14 +177,12 @@ fn database_processor_typed() {
     let _ = proc; // just verify it's a valid ProcessorId variant
 }
 
-#[test]
 fn database_compiler_info() {
     require_db!();
     let ci = database::compiler_info().unwrap();
     let _ = ci; // struct existence is the check
 }
 
-#[test]
 fn database_import_modules() {
     require_db!();
     let mods = database::import_modules().unwrap();
@@ -201,7 +190,6 @@ fn database_import_modules() {
     let _ = mods;
 }
 
-#[test]
 fn database_snapshots() {
     require_db!();
     let snaps = database::snapshots().unwrap();
@@ -212,14 +200,12 @@ fn database_snapshots() {
 // Segments
 // ===========================================================================
 
-#[test]
 fn segment_count_nonzero() {
     require_db!();
     let n = segment::count().unwrap();
     assert!(n > 0, "should have at least one segment");
 }
 
-#[test]
 fn segment_all_iterator() {
     require_db!();
     let segs: Vec<_> = segment::all().collect();
@@ -228,7 +214,6 @@ fn segment_all_iterator() {
     assert_eq!(segs.len(), n, "all() count should match count()");
 }
 
-#[test]
 fn segment_by_index() {
     require_db!();
     let seg = segment::by_index(0).unwrap();
@@ -236,7 +221,6 @@ fn segment_by_index() {
     assert!(!seg.name().is_empty(), "first segment should have a name");
 }
 
-#[test]
 fn segment_at_address() {
     require_db!();
     let first = segment::first().unwrap();
@@ -245,7 +229,6 @@ fn segment_at_address() {
     assert_eq!(first.end(), same.end());
 }
 
-#[test]
 fn segment_first_last() {
     require_db!();
     let first = segment::first().unwrap();
@@ -253,7 +236,6 @@ fn segment_first_last() {
     assert!(first.start() <= last.start(), "first <= last");
 }
 
-#[test]
 fn segment_next_prev() {
     require_db!();
     let n = segment::count().unwrap();
@@ -266,7 +248,6 @@ fn segment_next_prev() {
     }
 }
 
-#[test]
 fn segment_properties() {
     require_db!();
     let seg = segment::first().unwrap();
@@ -281,14 +262,12 @@ fn segment_properties() {
 // Functions
 // ===========================================================================
 
-#[test]
 fn function_count_nonzero() {
     require_db!();
     let n = function::count().unwrap();
     assert!(n > 0, "should have at least one function");
 }
 
-#[test]
 fn function_all_iterator() {
     require_db!();
     let funcs: Vec<_> = function::all().collect();
@@ -297,7 +276,6 @@ fn function_all_iterator() {
     assert_eq!(funcs.len(), n, "all() count should match count()");
 }
 
-#[test]
 fn function_by_index_and_at() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -307,7 +285,6 @@ fn function_by_index_and_at() {
     assert_eq!(f.start(), same.start());
 }
 
-#[test]
 fn function_properties() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -321,7 +298,6 @@ fn function_properties() {
     let _ = f.frame_args_size();
 }
 
-#[test]
 fn function_callers_callees() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -329,7 +305,6 @@ fn function_callers_callees() {
     let _ = function::callees(f.start()).unwrap();
 }
 
-#[test]
 fn function_chunks() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -343,7 +318,6 @@ fn function_chunks() {
     }
 }
 
-#[test]
 fn function_code_addresses() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -359,7 +333,6 @@ fn function_code_addresses() {
     }
 }
 
-#[test]
 fn function_frame() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -371,7 +344,6 @@ fn function_frame() {
 // Instructions
 // ===========================================================================
 
-#[test]
 fn instruction_decode_first() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -381,7 +353,6 @@ fn instruction_decode_first() {
     assert!(!insn.mnemonic().is_empty());
 }
 
-#[test]
 fn instruction_text() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -389,7 +360,6 @@ fn instruction_text() {
     assert!(!text.is_empty());
 }
 
-#[test]
 fn instruction_operands() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -402,7 +372,6 @@ fn instruction_operands() {
     }
 }
 
-#[test]
 fn instruction_classification() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -421,7 +390,6 @@ fn instruction_classification() {
     }
 }
 
-#[test]
 fn instruction_code_refs() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -429,7 +397,6 @@ fn instruction_code_refs() {
     let _ = instruction::data_refs_from(f.start()).unwrap();
 }
 
-#[test]
 fn instruction_next_prev() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -445,7 +412,6 @@ fn instruction_next_prev() {
 // Names
 // ===========================================================================
 
-#[test]
 fn name_get_first_function() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -453,7 +419,6 @@ fn name_get_first_function() {
     assert!(!n.is_empty(), "first function should have a name");
 }
 
-#[test]
 fn name_set_and_remove() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -470,7 +435,6 @@ fn name_set_and_remove() {
     assert_eq!(restored, original);
 }
 
-#[test]
 fn name_resolve() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -479,7 +443,6 @@ fn name_resolve() {
     assert_eq!(resolved, f.start(), "resolve should find the function");
 }
 
-#[test]
 fn name_predicates() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -489,7 +452,6 @@ fn name_predicates() {
     let _ = name::is_auto_generated(f.start());
 }
 
-#[test]
 fn name_validation() {
     require_db!();
     assert!(name::is_valid_identifier("hello_world").unwrap());
@@ -497,7 +459,6 @@ fn name_validation() {
     assert!(!sanitized.is_empty());
 }
 
-#[test]
 fn name_demangle_arbitrary_symbol() {
     require_db!();
     for form in [
@@ -511,7 +472,6 @@ fn name_demangle_arbitrary_symbol() {
     assert!(name::demangle("not_a_mangled_symbol", name::DemangleForm::Short).is_err());
 }
 
-#[test]
 fn ui_current_widget_headless_safe() {
     require_db!();
     let _ = ui::current_widget().unwrap();
@@ -521,7 +481,6 @@ fn ui_current_widget_headless_safe() {
 // Comments
 // ===========================================================================
 
-#[test]
 fn comment_set_get_remove() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -540,7 +499,6 @@ fn comment_set_get_remove() {
     comment::remove(addr, true).unwrap();
 }
 
-#[test]
 fn comment_append() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -557,7 +515,6 @@ fn comment_append() {
     comment::remove(addr, false).unwrap();
 }
 
-#[test]
 fn comment_anterior_posterior() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -577,7 +534,6 @@ fn comment_anterior_posterior() {
 // Cross-References
 // ===========================================================================
 
-#[test]
 fn xref_refs_to_from() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -589,7 +545,6 @@ fn xref_refs_to_from() {
     let _ = refs_to;
 }
 
-#[test]
 fn xref_code_data_refs() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -603,7 +558,6 @@ fn xref_code_data_refs() {
 // Data
 // ===========================================================================
 
-#[test]
 fn data_read_byte() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -612,7 +566,6 @@ fn data_read_byte() {
     assert_eq!(byte, 0x7f, "first byte of ELF should be 0x7f");
 }
 
-#[test]
 fn data_read_bytes() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -621,7 +574,6 @@ fn data_read_bytes() {
     assert_eq!(&bytes, &[0x7f, b'E', b'L', b'F'], "should read ELF magic");
 }
 
-#[test]
 fn data_read_word_dword_qword() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -633,7 +585,6 @@ fn data_read_word_dword_qword() {
     assert_eq!(q & 0xff, 0x7f);
 }
 
-#[test]
 fn data_patch_and_revert() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -659,7 +610,6 @@ fn data_patch_and_revert() {
 // Search
 // ===========================================================================
 
-#[test]
 fn search_next_code() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -667,7 +617,6 @@ fn search_next_code() {
     assert_ne!(code_addr, BAD_ADDRESS);
 }
 
-#[test]
 fn search_next_data() {
     require_db!();
     let bounds = database::address_bounds().unwrap();
@@ -679,22 +628,12 @@ fn search_next_data() {
 // Analysis
 // ===========================================================================
 
-#[test]
-#[cfg_attr(
-    target_os = "linux",
-    ignore = "segfaults under headless idalib on Linux CI"
-)]
 fn analysis_is_idle() {
     require_db!();
     // After wait(), analysis should be idle
     assert!(analysis::is_idle(), "should be idle after wait()");
 }
 
-#[test]
-#[cfg_attr(
-    target_os = "linux",
-    ignore = "segfaults under headless idalib on Linux CI"
-)]
 fn analysis_enable_disable() {
     require_db!();
     let was_enabled = analysis::is_enabled();
@@ -707,7 +646,6 @@ fn analysis_enable_disable() {
 // Entry points
 // ===========================================================================
 
-#[test]
 fn entry_count_and_enumerate() {
     require_db!();
     let n = entry::count().unwrap();
@@ -722,7 +660,6 @@ fn entry_count_and_enumerate() {
 // Type system
 // ===========================================================================
 
-#[test]
 fn types_primitive_constructors() {
     require_db!();
     let i32t = types::TypeInfo::int32();
@@ -737,7 +674,6 @@ fn types_primitive_constructors() {
     assert!(vt.is_void());
 }
 
-#[test]
 fn types_pointer_and_array() {
     require_db!();
     let i32t = types::TypeInfo::int32();
@@ -753,7 +689,6 @@ fn types_pointer_and_array() {
     assert!(elem.is_integer());
 }
 
-#[test]
 fn types_struct_creation() {
     require_db!();
     let s = types::TypeInfo::create_struct();
@@ -766,7 +701,6 @@ fn types_struct_creation() {
     assert_eq!(members.len(), 2);
 }
 
-#[test]
 fn types_from_declaration() {
     require_db!();
     let ti = types::TypeInfo::from_declaration("int (*)(const char *, ...)").unwrap();
@@ -776,7 +710,6 @@ fn types_from_declaration() {
     );
 }
 
-#[test]
 fn types_parse_declarations() {
     require_db!();
     let report = types::parse_declarations(
@@ -791,7 +724,6 @@ fn types_parse_declarations() {
     assert_eq!(report.error_count, 0);
 }
 
-#[test]
 fn types_retrieve_at_function() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -799,7 +731,6 @@ fn types_retrieve_at_function() {
     let _ = types::retrieve(f.start());
 }
 
-#[test]
 fn types_local_type_count() {
     require_db!();
     let n = types::local_type_count().unwrap();
@@ -810,7 +741,6 @@ fn types_local_type_count() {
 // Lines (color tags — runtime SDK calls)
 // ===========================================================================
 
-#[test]
 fn lines_tag_operations() {
     require_db!();
     let tagged = lines::colstr("hello", lines::Color::Default);
@@ -820,7 +750,6 @@ fn lines_tag_operations() {
     assert_eq!(len, 5, "visible length should be 5");
 }
 
-#[test]
 fn lines_addr_tag_roundtrip() {
     require_db!();
     let tag = lines::make_addr_tag(42);
@@ -833,14 +762,12 @@ fn lines_addr_tag_roundtrip() {
 // Decompiler
 // ===========================================================================
 
-#[test]
 fn decompiler_available() {
     require_db!();
     // Just check we can query without crashing
     let _ = decompiler::available();
 }
 
-#[test]
 fn decompiler_decompile() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -860,7 +787,6 @@ fn decompiler_decompile() {
     assert!(!decl.is_empty(), "declaration should not be empty");
 }
 
-#[test]
 fn decompiler_variables() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -875,7 +801,6 @@ fn decompiler_variables() {
     let _ = df.variable_count();
 }
 
-#[test]
 fn decompiler_microcode() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -888,7 +813,6 @@ fn decompiler_microcode() {
     let _ = df.microcode();
 }
 
-#[test]
 fn decompiler_microcode_filter_context_introspection() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -926,6 +850,9 @@ fn decompiler_microcode_filter_context_introspection() {
     )
     .unwrap();
 
+    // Earlier cases decompile the same function. Invalidate that cached cfunc
+    // so Hex-Rays regenerates microcode through the newly installed filter.
+    decompiler::mark_dirty(f.start(), false).unwrap();
     let decompile_result = decompiler::decompile(f.start());
     let _ = decompiler::unregister_microcode_filter(token);
 
@@ -941,7 +868,6 @@ fn decompiler_microcode_filter_context_introspection() {
     );
 }
 
-#[test]
 fn decompiler_item_type_names() {
     require_db!();
     // Pure function that maps ItemType -> string
@@ -958,7 +884,6 @@ fn decompiler_item_type_names() {
 // Storage (netnode)
 // ===========================================================================
 
-#[test]
 fn storage_node_lifecycle() {
     require_db!();
     let node = storage::Node::open("idax_rust_integration_test", true).unwrap();
@@ -997,7 +922,6 @@ fn storage_node_lifecycle() {
 // Fixups
 // ===========================================================================
 
-#[test]
 fn fixup_enumerate() {
     require_db!();
     // ELF binaries typically have fixups/relocations
@@ -1015,7 +939,6 @@ fn fixup_enumerate() {
 // Events
 // ===========================================================================
 
-#[test]
 fn event_subscribe_unsubscribe() {
     require_db!();
     let token = event::on_renamed(|_addr, _old, _new| {
@@ -1025,7 +948,6 @@ fn event_subscribe_unsubscribe() {
     event::unsubscribe(token).unwrap();
 }
 
-#[test]
 fn event_scoped_subscription() {
     require_db!();
     {
@@ -1039,7 +961,6 @@ fn event_scoped_subscription() {
 // Graph
 // ===========================================================================
 
-#[test]
 fn graph_flowchart() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -1054,7 +975,6 @@ fn graph_flowchart() {
     }
 }
 
-#[test]
 fn graph_manual_construction() {
     require_db!();
     let mut g = graph::Graph::new();
@@ -1082,7 +1002,6 @@ fn graph_manual_construction() {
     assert_eq!(g.total_node_count(), 0);
 }
 
-#[test]
 fn graph_groups() {
     require_db!();
     let mut g = graph::Graph::new();
@@ -1110,7 +1029,6 @@ fn graph_groups() {
 // Cross-domain stress tests
 // ===========================================================================
 
-#[test]
 fn cross_domain_bad_address_handling() {
     require_db!();
     // BAD_ADDRESS should fail gracefully across domains
@@ -1121,7 +1039,6 @@ fn cross_domain_bad_address_handling() {
     assert!(name::get(BAD_ADDRESS).is_err());
 }
 
-#[test]
 fn cross_domain_name_comment_roundtrip() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -1143,7 +1060,6 @@ fn cross_domain_name_comment_roundtrip() {
     comment::remove(addr, false).unwrap();
 }
 
-#[test]
 fn cross_domain_segment_function_consistency() {
     require_db!();
     // Every function's start address should belong to some segment
@@ -1158,7 +1074,6 @@ fn cross_domain_segment_function_consistency() {
     }
 }
 
-#[test]
 fn cross_domain_data_instruction_consistency() {
     require_db!();
     // Decoding an instruction should produce bytes that match data::read_bytes
@@ -1170,4 +1085,269 @@ fn cross_domain_data_instruction_consistency() {
         insn.size(),
         "byte count should match instruction size"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Process-main-thread test runner
+// ---------------------------------------------------------------------------
+
+type TestCase = (&'static str, fn());
+
+static TEST_CASES: &[TestCase] = &[
+    ("database_input_file_path", database_input_file_path),
+    ("database_idb_path", database_idb_path),
+    ("database_file_type_name", database_file_type_name),
+    ("database_input_md5", database_input_md5),
+    ("database_address_bitness", database_address_bitness),
+    (
+        "database_set_address_bitness_idempotent",
+        database_set_address_bitness_idempotent,
+    ),
+    ("database_processor_name", database_processor_name),
+    ("database_address_bounds", database_address_bounds),
+    ("database_image_base", database_image_base),
+    ("database_endianness", database_endianness),
+    ("database_abi_name", database_abi_name),
+    ("database_processor_typed", database_processor_typed),
+    ("database_compiler_info", database_compiler_info),
+    ("database_import_modules", database_import_modules),
+    ("database_snapshots", database_snapshots),
+    ("segment_count_nonzero", segment_count_nonzero),
+    ("segment_all_iterator", segment_all_iterator),
+    ("segment_by_index", segment_by_index),
+    ("segment_at_address", segment_at_address),
+    ("segment_first_last", segment_first_last),
+    ("segment_next_prev", segment_next_prev),
+    ("segment_properties", segment_properties),
+    ("function_count_nonzero", function_count_nonzero),
+    ("function_all_iterator", function_all_iterator),
+    ("function_by_index_and_at", function_by_index_and_at),
+    ("function_properties", function_properties),
+    ("function_callers_callees", function_callers_callees),
+    ("function_chunks", function_chunks),
+    ("function_code_addresses", function_code_addresses),
+    ("function_frame", function_frame),
+    ("instruction_decode_first", instruction_decode_first),
+    ("instruction_text", instruction_text),
+    ("instruction_operands", instruction_operands),
+    ("instruction_classification", instruction_classification),
+    ("instruction_code_refs", instruction_code_refs),
+    ("instruction_next_prev", instruction_next_prev),
+    ("name_get_first_function", name_get_first_function),
+    ("name_set_and_remove", name_set_and_remove),
+    ("name_resolve", name_resolve),
+    ("name_predicates", name_predicates),
+    ("name_validation", name_validation),
+    (
+        "name_demangle_arbitrary_symbol",
+        name_demangle_arbitrary_symbol,
+    ),
+    (
+        "ui_current_widget_headless_safe",
+        ui_current_widget_headless_safe,
+    ),
+    ("comment_set_get_remove", comment_set_get_remove),
+    ("comment_append", comment_append),
+    ("comment_anterior_posterior", comment_anterior_posterior),
+    ("xref_refs_to_from", xref_refs_to_from),
+    ("xref_code_data_refs", xref_code_data_refs),
+    ("data_read_byte", data_read_byte),
+    ("data_read_bytes", data_read_bytes),
+    ("data_read_word_dword_qword", data_read_word_dword_qword),
+    ("data_patch_and_revert", data_patch_and_revert),
+    ("search_next_code", search_next_code),
+    ("search_next_data", search_next_data),
+    ("analysis_is_idle", analysis_is_idle),
+    ("analysis_enable_disable", analysis_enable_disable),
+    ("entry_count_and_enumerate", entry_count_and_enumerate),
+    ("types_primitive_constructors", types_primitive_constructors),
+    ("types_pointer_and_array", types_pointer_and_array),
+    ("types_struct_creation", types_struct_creation),
+    ("types_from_declaration", types_from_declaration),
+    ("types_parse_declarations", types_parse_declarations),
+    ("types_retrieve_at_function", types_retrieve_at_function),
+    ("types_local_type_count", types_local_type_count),
+    ("lines_tag_operations", lines_tag_operations),
+    ("lines_addr_tag_roundtrip", lines_addr_tag_roundtrip),
+    ("decompiler_available", decompiler_available),
+    ("decompiler_decompile", decompiler_decompile),
+    ("decompiler_variables", decompiler_variables),
+    ("decompiler_microcode", decompiler_microcode),
+    (
+        "decompiler_microcode_filter_context_introspection",
+        decompiler_microcode_filter_context_introspection,
+    ),
+    ("decompiler_item_type_names", decompiler_item_type_names),
+    ("storage_node_lifecycle", storage_node_lifecycle),
+    ("fixup_enumerate", fixup_enumerate),
+    ("event_subscribe_unsubscribe", event_subscribe_unsubscribe),
+    ("event_scoped_subscription", event_scoped_subscription),
+    ("graph_flowchart", graph_flowchart),
+    ("graph_manual_construction", graph_manual_construction),
+    ("graph_groups", graph_groups),
+    (
+        "cross_domain_bad_address_handling",
+        cross_domain_bad_address_handling,
+    ),
+    (
+        "cross_domain_name_comment_roundtrip",
+        cross_domain_name_comment_roundtrip,
+    ),
+    (
+        "cross_domain_segment_function_consistency",
+        cross_domain_segment_function_consistency,
+    ),
+    (
+        "cross_domain_data_instruction_consistency",
+        cross_domain_data_instruction_consistency,
+    ),
+];
+
+#[derive(Default)]
+struct RunnerOptions {
+    filters: Vec<String>,
+    skips: Vec<String>,
+    exact: bool,
+    ignored_only: bool,
+    include_ignored: bool,
+    list: bool,
+}
+
+fn parse_runner_options() -> RunnerOptions {
+    let mut options = RunnerOptions::default();
+    let mut args = std::env::args().skip(1);
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--exact" => options.exact = true,
+            "--ignored" => options.ignored_only = true,
+            "--include-ignored" => options.include_ignored = true,
+            "--list" => options.list = true,
+            "--skip" => {
+                if let Some(pattern) = args.next() {
+                    options.skips.push(pattern);
+                }
+            }
+            "--test-threads" | "--format" | "--color" => {
+                let _ = args.next();
+            }
+            "--nocapture" | "--show-output" | "--quiet" => {}
+            _ if arg.starts_with("--skip=") => {
+                options.skips.push(arg[7..].to_owned());
+            }
+            _ if arg.starts_with('-') => {}
+            _ => options.filters.push(arg),
+        }
+    }
+
+    options
+}
+
+fn is_selected(name: &str, options: &RunnerOptions) -> bool {
+    let included = options.filters.is_empty()
+        || options.filters.iter().any(|filter| {
+            if options.exact {
+                name == filter
+            } else {
+                name.contains(filter)
+            }
+        });
+    let ignored_filter = !options.ignored_only || ignored_reason(name).is_some();
+    included && ignored_filter && !options.skips.iter().any(|skip| name.contains(skip))
+}
+
+fn ignored_reason(name: &str) -> Option<&'static str> {
+    #[cfg(target_os = "linux")]
+    if matches!(name, "analysis_is_idle" | "analysis_enable_disable") {
+        return Some("segfaults under headless idalib on Linux CI");
+    }
+    let _ = name;
+    None
+}
+
+fn panic_message(payload: &(dyn std::any::Any + Send)) -> &str {
+    payload
+        .downcast_ref::<&str>()
+        .copied()
+        .or_else(|| payload.downcast_ref::<String>().map(String::as_str))
+        .unwrap_or("non-string panic payload")
+}
+
+fn close_session() -> Result<(), String> {
+    if INIT_OK.swap(false, Ordering::AcqRel) {
+        database::close(false).map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
+fn main() {
+    let options = parse_runner_options();
+    let selected: Vec<TestCase> = TEST_CASES
+        .iter()
+        .copied()
+        .filter(|(name, _)| is_selected(name, &options))
+        .collect();
+    let filtered_out = TEST_CASES.len() - selected.len();
+
+    if options.list {
+        for (name, _) in &selected {
+            println!("{name}: test");
+        }
+        return;
+    }
+
+    println!("running {} tests", selected.len());
+
+    if std::env::var_os("IDADIR").is_none() {
+        for (name, _) in &selected {
+            println!("test {name} ... ignored, IDADIR not set");
+        }
+        println!();
+        println!(
+            "test result: ok. 0 passed; 0 failed; {} ignored; {filtered_out} filtered out",
+            selected.len()
+        );
+        return;
+    }
+
+    let mut passed = 0usize;
+    let mut failed = 0usize;
+    let mut ignored = 0usize;
+
+    for (name, test) in selected {
+        if let Some(reason) = ignored_reason(name) {
+            if !options.include_ignored && !options.ignored_only {
+                ignored += 1;
+                println!("test {name} ... ignored, {reason}");
+                continue;
+            }
+        }
+        print!("test {name} ... ");
+        let _ = std::io::stdout().flush();
+        match panic::catch_unwind(AssertUnwindSafe(test)) {
+            Ok(()) => {
+                passed += 1;
+                println!("ok");
+            }
+            Err(payload) => {
+                failed += 1;
+                println!("FAILED: {}", panic_message(payload.as_ref()));
+            }
+        }
+    }
+
+    if let Err(error) = close_session() {
+        failed += 1;
+        eprintln!("IDA session cleanup failed: {error}");
+    }
+
+    println!();
+    println!(
+        "test result: {}. {passed} passed; {failed} failed; {ignored} ignored; {filtered_out} filtered out",
+        if failed == 0 { "ok" } else { "FAILED" }
+    );
+
+    if failed != 0 {
+        std::process::exit(101);
+    }
 }

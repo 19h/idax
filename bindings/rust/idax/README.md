@@ -52,6 +52,22 @@ patchelf --add-rpath /opt/idapro ./target/release/my-tool                       
 cp ./target/release/my-tool /Applications/IDA\ Professional\ 9.3.app/Contents/MacOS/
 ```
 
+## Real-IDA integration tests
+
+The `integration` target uses a custom sequential runner because idalib requires
+initialization and every subsequent SDK call on the same thread. Run the full
+suite or a substring-filtered case through Cargo:
+
+```bash
+IDADIR=/path/to/ida cargo test -p idax --test integration
+IDADIR=/path/to/ida cargo test -p idax --test integration name_demangle_arbitrary_symbol
+cargo test -p idax --test integration -- --list
+```
+
+`--test-threads=1` is accepted for command compatibility but is unnecessary:
+all registered real-IDA cases already execute sequentially on process main.
+Without `IDADIR`, selected cases are reported as ignored.
+
 ## Quick start
 
 ```rust

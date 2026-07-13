@@ -19,3 +19,8 @@ targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "x86_64-apple-d
 idax-sys = { workspace = true }
 thiserror = { workspace = true }
 bitflags = { workspace = true }
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"
+harness = false

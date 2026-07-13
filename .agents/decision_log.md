@@ -1028,3 +1028,9 @@
   - **19.26.1. Decision:** Track successful idax menu and toolbar attachments as counted `(target, action_id)` pairs; detach only tracked pairs, consume one count per successful wrapper request, and clear residual counts on action unregistration.
   - **19.26.2. Rationale:** IDA 9.3 can return success when detaching a menu action that was never attached, so the SDK boolean cannot implement idax's `NotFound` contract by itself.
   - **19.26.3. Scope constraint:** Deterministic state applies to attachments created through idax. Attachments created exclusively through raw SDK calls are outside this opaque wrapper contract; popup helpers retain their SDK permanent-widget behavior.
+
+- **19.27. Decision D-RUST-REAL-IDA-MAIN-THREAD-HARNESS**: Use a custom sequential runner for the real-IDA integration target
+  - **19.27.1. Decision:** Set only `idax/tests/integration.rs` to `harness = false` and register its cases in an explicit `main` that initializes, executes, and closes the shared IDA session on process main.
+  - **19.27.2. Rationale:** Idalib requires calls on the initializing thread, whereas Rust libtest executes test functions on workers even at `--test-threads=1`. Live sampling confirmed a deadlock between worker-side IDAPython warning dispatch and libtest's parked main thread.
+  - **19.27.3. Compatibility:** The runner retains substring filtering, exact matches, skip patterns, platform ignores, `--list`, graceful no-`IDADIR` skips, per-case panic capture, a nonzero exit on failures, and summary output. Pure Rust unit targets retain the standard test harness.
+  - **19.27.4. Rejected alternatives:** Serial libtest execution, initializing on main and operating on workers, suppressing selected plugins, or moving IDA work to a dedicated non-main thread do not satisfy the documented same-thread lifecycle constraint or remove synchronous main-thread dispatch risk.

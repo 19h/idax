@@ -66,9 +66,9 @@
 
 ---
 
-### 7. Rust Runtime Validation Regression Discovered During Phase 24
+### 7. Rust Runtime Validation Follow-Up
 
-- **7.2. Rust macOS Runtime Harness Stall**
-  - 7.2.1. **Impact:** Real-IDA Rust runtime validation cannot currently be claimed; full and filtered integration runs stall during shared init/open/analysis setup.
-  - 7.2.2. **Mitigation:** Add stage-level harness tracing and compare the Rust dynamic-loader/init path against the passing Node lifecycle before changing core behavior.
-  - 7.2.3. **Status:** Reproduced on the current IDA 9.3 macOS host (F371); Rust format/compile/unit evidence passes.
+- **7.3. Observable Comment Append Semantics**
+  - 7.3.1. **Impact:** `ida::comment::append` can return success at an IDA 9.3 function start while read-back omits the appended text (F374); all language bindings inherit this ambiguity.
+  - 7.3.2. **Mitigation:** Compose the final newline-delimited comment in idax and write it through the deterministic set path, then strengthen C++ and Rust runtime assertions.
+  - 7.3.3. **Status:** Reproduced by the repaired Rust full integration runner; queued as an isolated follow-up after the harness commit.
