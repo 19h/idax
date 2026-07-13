@@ -456,6 +456,136 @@ describe('Data Access', () => {
             idax.segment.remove(start);
         }
     });
+
+    it('should manage custom data type and format lifecycles', () => {
+        const last = idax.segment.last();
+        const start = (last.end + 0xffffn) & ~0xffffn;
+        const end = start + 0x1000n;
+        let typeId;
+        let formatId;
+        let typeAttached = false;
+        let standardAttached = false;
+        let segmentCreated = false;
+        let creationCalls = 0;
+        let sizeCalls = 0;
+        let renderCalls = 0;
+        let scanCalls = 0;
+        let analyzeCalls = 0;
+
+        try {
+            idax.segment.create(start, end, '__idax_node_custom_data', 'DATA', 'data');
+            segmentCreated = true;
+
+            typeId = idax.data.registerCustomDataType({
+                name: '__idax_node_var4',
+                assemblerKeyword: 'node_var4',
+                valueSize: 2n,
+                allowDuplicates: false,
+                mayCreateAt(address, byteLength) {
+                    creationCalls += 1;
+                    return address >= start && byteLength === 4n;
+                },
+                calculateSize(address, maximumSize) {
+                    sizeCalls += 1;
+                    expect(address >= start).toBe(true);
+                    return maximumSize >= 4n ? 4n : 0n;
+                },
+            });
+            expect(typeof typeId).toBe('number');
+
+            formatId = idax.data.registerCustomDataFormat({
+                name: '__idax_node_hex4',
+                valueSize: 4n,
+                textWidth: 11,
+                render(value, context) {
+                    renderCalls += 1;
+                    expect(Buffer.isBuffer(value)).toBe(true);
+                    expect(typeof context.address).toBe('bigint');
+                    return `node:${value.toString('hex')}`;
+                },
+                scan(text, context) {
+                    scanCalls += 1;
+                    expect(typeof context.operandIndex).toBe('number');
+                    return Buffer.from(text.replace(/^node:/, ''), 'hex');
+                },
+                analyze(context) {
+                    analyzeCalls += 1;
+                    expect(typeof context.address).toBe('bigint');
+                },
+            });
+            expect(typeof formatId).toBe('number');
+
+            expect(idax.data.findCustomDataType('__idax_node_var4')).toBe(typeId);
+            expect(idax.data.findCustomDataFormat('__idax_node_hex4')).toBe(formatId);
+            const typeInfo = idax.data.customDataType(typeId);
+            expect(typeInfo.id).toBe(typeId);
+            expect(typeInfo.valueSize).toBe(2n);
+            expect(typeInfo.allowDuplicates).toBe(false);
+            expect(typeInfo.hasCreationFilter).toBe(true);
+            expect(typeInfo.variableSize).toBe(true);
+            const formatInfo = idax.data.customDataFormat(formatId);
+            expect(formatInfo.id).toBe(formatId);
+            expect(formatInfo.valueSize).toBe(4n);
+            expect(formatInfo.canRender).toBe(true);
+            expect(formatInfo.canScan).toBe(true);
+            expect(formatInfo.canAnalyze).toBe(true);
+            expect(idax.data.customDataTypes(2n, 2n).some(type => type.id === typeId)).toBe(true);
+
+            idax.data.attachCustomDataFormat(typeId, formatId);
+            typeAttached = true;
+            expect(idax.data.isCustomDataFormatAttached(typeId, formatId)).toBe(true);
+            expect(idax.data.customDataFormats(typeId).some(format => format.id === formatId)).toBe(true);
+            idax.data.attachCustomDataFormatToStandardTypes(formatId);
+            standardAttached = true;
+            expect(idax.data.isCustomDataFormatAttachedToStandardTypes(formatId)).toBe(true);
+            expect(idax.data.standardCustomDataFormats().some(format => format.id === formatId)).toBe(true);
+
+            const context = { address: start, operandIndex: 1, typeId };
+            expect(idax.data.renderCustomData(
+                formatId, Buffer.from([1, 2, 3, 4]), context,
+            )).toBe('node:01020304');
+            const scanned = idax.data.scanCustomData(formatId, 'node:05060708', context);
+            expect(Buffer.isBuffer(scanned)).toBe(true);
+            expect(scanned.toString('hex')).toBe('05060708');
+            idax.data.analyzeCustomData(formatId, context);
+            expect(renderCalls).toBeGreaterThan(0);
+            expect(scanCalls).toBeGreaterThan(0);
+            expect(analyzeCalls).toBeGreaterThan(0);
+
+            expect(idax.data.customDataItemSize(typeId, start, 16n)).toBe(4n);
+            idax.data.defineCustom(start, 4n, typeId, formatId);
+            const explicit = idax.data.customDataAt(start);
+            expect(explicit.typeId).toBe(typeId);
+            expect(explicit.formatId).toBe(formatId);
+            expect(explicit.byteLength).toBe(4n);
+            idax.data.undefine(start, 4);
+
+            idax.data.defineCustomInferred(start + 0x10n, typeId, formatId, 16n);
+            const inferred = idax.data.customDataAt(start + 0x10n);
+            expect(inferred.typeId).toBe(typeId);
+            expect(inferred.formatId).toBe(formatId);
+            expect(inferred.byteLength).toBe(4n);
+            expect(creationCalls).toBeGreaterThan(0);
+            expect(sizeCalls).toBeGreaterThan(0);
+            idax.data.undefine(start + 0x10n, 4);
+        } finally {
+            if (standardAttached) {
+                try { idax.data.detachCustomDataFormatFromStandardTypes(formatId); } catch (_) { /* cleanup */ }
+            }
+            if (typeAttached) {
+                try { idax.data.detachCustomDataFormat(typeId, formatId); } catch (_) { /* cleanup */ }
+            }
+            if (formatId !== undefined) {
+                try { idax.data.unregisterCustomDataFormat(formatId); } catch (_) { /* cleanup */ }
+            }
+            if (typeId !== undefined) {
+                try { idax.data.unregisterCustomDataType(typeId); } catch (_) { /* cleanup */ }
+            }
+            if (segmentCreated) {
+                try { idax.segment.remove(start); } catch (_) { /* cleanup */ }
+            }
+        }
+    });
 });
 
 // ── Address Navigation ──────────────────────────────────────────────────

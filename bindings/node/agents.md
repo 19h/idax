@@ -357,11 +357,20 @@ back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
 * `originalByte(address: Address): number`, `originalWord`, `originalDword`, `originalQword`
 
 ### Defines
-* `defineByte(address: Address, count?: number): void`, `defineWord`, `defineDword`, `defineQword`, `defineOword`, `defineTbyte`, `defineFloat`, `defineDouble`
+* `defineByte(address: Address, count?: number | bigint): void`, `defineWord`, `defineDword`, `defineQword`, `defineOword`, `defineYword`, `defineZword`, `defineFloat`, `defineDouble`
+* `tbyteElementSize(): bigint`, `defineTbyte(...)`, `packedRealElementSize(): bigint`, `definePackedReal(...)`
 * `defineString(address: Address, length: number, stringType?: number): void`
 * `defineStruct(address: Address, length: number, structureId: bigint | number): void`
 * `undefine(address: Address, count?: number): void`
 * `findBinaryPattern(start: Address, end: Address, pattern: string, forward?: boolean, skipStart?: boolean, caseSensitive?: boolean, radix?: number, strLitsEncoding?: number): Address`
+
+### Custom data lifecycle
+* `registerCustomDataType(definition): number`, `unregisterCustomDataType(typeId): void`, `customDataType`, `findCustomDataType`, `customDataTypes`
+* `registerCustomDataFormat(definition): number`, `unregisterCustomDataFormat(formatId): void`, `customDataFormat`, `findCustomDataFormat`
+* `attachCustomDataFormat`, `detachCustomDataFormat`, `isCustomDataFormatAttached`, `customDataFormats`
+* `attachCustomDataFormatToStandardTypes`, `detachCustomDataFormatFromStandardTypes`, `isCustomDataFormatAttachedToStandardTypes`, `standardCustomDataFormats`
+* `customDataItemSize`, `defineCustom`, `defineCustomInferred`, `customDataAt`
+* `renderCustomData`, `scanCustomData`, `analyzeCustomData`; definition callbacks remain retained until explicit unregister
 
 ---
 

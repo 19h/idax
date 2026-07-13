@@ -714,6 +714,263 @@ fn data_element_definition_units() {
     );
 }
 
+fn data_custom_data_lifecycle() {
+    require_db!();
+
+    let last = segment::last().unwrap();
+    let start = last
+        .end()
+        .checked_add(0xffff)
+        .expect("temporary segment address overflow")
+        & !0xffff;
+    let end = start.checked_add(0x1000).unwrap();
+    segment::create(
+        start,
+        end,
+        "__idax_rust_custom_data",
+        "DATA",
+        segment::Type::Data,
+    )
+    .unwrap();
+
+    struct Cleanup {
+        segment_start: Address,
+        fixed_type: Option<data::CustomDataTypeId>,
+        variable_type: Option<data::CustomDataTypeId>,
+        format: Option<data::CustomDataFormatId>,
+    }
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            if let Some(id) = self.fixed_type.take() {
+                let _ = data::unregister_custom_data_type(id);
+            }
+            if let Some(id) = self.variable_type.take() {
+                let _ = data::unregister_custom_data_type(id);
+            }
+            if let Some(id) = self.format.take() {
+                let _ = data::unregister_custom_data_format(id);
+            }
+            let _ = segment::remove(self.segment_start);
+        }
+    }
+    let mut cleanup = Cleanup {
+        segment_start: start,
+        fixed_type: None,
+        variable_type: None,
+        format: None,
+    };
+
+    let creation_calls = Arc::new(AtomicUsize::new(0));
+    let creation_calls_callback = Arc::clone(&creation_calls);
+    let fixed_definition = data::CustomDataTypeDefinition {
+        name: "idax_rust_p31_fixed_u16".into(),
+        menu_name: "idax Rust P31 fixed u16".into(),
+        assembler_keyword: "rust_p31_u16".into(),
+        value_size: 2,
+        allow_duplicates: false,
+        may_create_at: Some(Arc::new(move |address, byte_length| {
+            creation_calls_callback.fetch_add(1, Ordering::SeqCst);
+            address == start && byte_length == 2
+        })),
+        ..Default::default()
+    };
+    let fixed_type = data::register_custom_data_type(&fixed_definition).unwrap();
+    cleanup.fixed_type = Some(fixed_type);
+    assert_eq!(
+        data::register_custom_data_type(&fixed_definition)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Conflict
+    );
+
+    let render_calls = Arc::new(AtomicUsize::new(0));
+    let scan_calls = Arc::new(AtomicUsize::new(0));
+    let analyze_calls = Arc::new(AtomicUsize::new(0));
+    let analyzed_address = Arc::new(AtomicU64::new(BAD_ADDRESS));
+    let render_calls_callback = Arc::clone(&render_calls);
+    let scan_calls_callback = Arc::clone(&scan_calls);
+    let analyze_calls_callback = Arc::clone(&analyze_calls);
+    let analyzed_address_callback = Arc::clone(&analyzed_address);
+    let format_definition = data::CustomDataFormatDefinition {
+        name: "idax_rust_p31_u16_format".into(),
+        menu_name: "idax Rust P31 u16 format".into(),
+        value_size: 0,
+        text_width: 12,
+        render: Some(Arc::new(move |value, context| {
+            render_calls_callback.fetch_add(1, Ordering::SeqCst);
+            if value.len() != 2 {
+                return Err(idax::Error::validation("expected two bytes"));
+            }
+            let number = u16::from_le_bytes([value[0], value[1]]);
+            Ok(format!("u16:{number}@{}", context.address))
+        })),
+        scan: Some(Arc::new(move |text, _context| {
+            scan_calls_callback.fetch_add(1, Ordering::SeqCst);
+            if text == "4660" {
+                Ok(vec![0x34, 0x12])
+            } else {
+                Err(idax::Error::validation("expected decimal 4660"))
+            }
+        })),
+        analyze: Some(Arc::new(move |context| {
+            analyze_calls_callback.fetch_add(1, Ordering::SeqCst);
+            analyzed_address_callback.store(context.address, Ordering::SeqCst);
+        })),
+        ..Default::default()
+    };
+    let format = data::register_custom_data_format(&format_definition).unwrap();
+    cleanup.format = Some(format);
+
+    assert_eq!(
+        data::find_custom_data_type(&fixed_definition.name).unwrap(),
+        fixed_type
+    );
+    assert_eq!(
+        data::find_custom_data_format(&format_definition.name).unwrap(),
+        format
+    );
+    let type_info = data::custom_data_type(fixed_type).unwrap();
+    assert_eq!(type_info.name, fixed_definition.name);
+    assert_eq!(type_info.value_size, 2);
+    assert!(!type_info.allow_duplicates);
+    assert!(type_info.visible_in_menu);
+    assert!(type_info.has_creation_filter);
+    assert!(!type_info.variable_size);
+    let format_info = data::custom_data_format(format).unwrap();
+    assert_eq!(format_info.name, format_definition.name);
+    assert_eq!(format_info.value_size, 0);
+    assert_eq!(format_info.text_width, 12);
+    assert!(format_info.visible_in_menu);
+    assert!(format_info.can_render && format_info.can_scan && format_info.can_analyze);
+    assert!(
+        data::custom_data_types(2, 2)
+            .unwrap()
+            .iter()
+            .any(|info| info.id == fixed_type)
+    );
+    assert_eq!(
+        data::custom_data_types(3, 2).unwrap_err().category,
+        ErrorCategory::Validation
+    );
+
+    data::attach_custom_data_format(fixed_type, format).unwrap();
+    assert_eq!(
+        data::attach_custom_data_format(fixed_type, format)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Conflict
+    );
+    assert!(data::is_custom_data_format_attached(fixed_type, format).unwrap());
+    assert_eq!(data::custom_data_formats(fixed_type).unwrap().len(), 1);
+    data::attach_custom_data_format_to_standard_types(format).unwrap();
+    assert!(data::is_custom_data_format_attached_to_standard_types(format).unwrap());
+    assert!(
+        data::standard_custom_data_formats()
+            .unwrap()
+            .iter()
+            .any(|info| info.id == format)
+    );
+    data::detach_custom_data_format_from_standard_types(format).unwrap();
+
+    let context = data::CustomDataFormatContext {
+        address: start,
+        operand_index: -1,
+        type_id: fixed_type,
+    };
+    assert_eq!(
+        data::render_custom_data(format, &[0x34, 0x12], context).unwrap(),
+        format!("u16:4660@{start}")
+    );
+    assert_eq!(render_calls.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        data::scan_custom_data(format, "4660", context).unwrap(),
+        vec![0x34, 0x12]
+    );
+    assert_eq!(scan_calls.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        data::scan_custom_data(format, "invalid", context)
+            .unwrap_err()
+            .category,
+        ErrorCategory::SdkFailure
+    );
+    data::analyze_custom_data(format, context).unwrap();
+    assert_eq!(analyze_calls.load(Ordering::SeqCst), 1);
+    assert_eq!(analyzed_address.load(Ordering::SeqCst), start);
+
+    data::define_custom(start, 2, fixed_type, format).unwrap();
+    assert!(creation_calls.load(Ordering::SeqCst) >= 1);
+    let item = data::custom_data_at(start).unwrap();
+    assert_eq!(item.type_id, fixed_type);
+    assert_eq!(item.format_id, format);
+    assert_eq!(item.byte_length, 2);
+    data::undefine(start, 2).unwrap();
+    assert_eq!(
+        data::custom_data_at(start).unwrap_err().category,
+        ErrorCategory::NotFound
+    );
+    assert_eq!(
+        data::custom_data_item_size(fixed_type, start, 2).unwrap(),
+        2
+    );
+    assert_eq!(
+        data::custom_data_item_size(fixed_type, start, 1)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    data::define_custom_inferred(start, fixed_type, format, 2).unwrap();
+    data::undefine(start, 2).unwrap();
+
+    let size_calls = Arc::new(AtomicUsize::new(0));
+    let size_calls_callback = Arc::clone(&size_calls);
+    let variable_definition = data::CustomDataTypeDefinition {
+        name: "idax_rust_p31_pascal".into(),
+        value_size: 1,
+        calculate_size: Some(Arc::new(move |address, maximum_size| {
+            size_calls_callback.fetch_add(1, Ordering::SeqCst);
+            data::read_byte(address)
+                .ok()
+                .map(|length| u64::from(length) + 1)
+                .filter(|size| *size <= maximum_size)
+                .unwrap_or(0)
+        })),
+        ..Default::default()
+    };
+    let variable_type = data::register_custom_data_type(&variable_definition).unwrap();
+    cleanup.variable_type = Some(variable_type);
+    data::attach_custom_data_format(variable_type, format).unwrap();
+    data::write_bytes(start, &[3, b'a', b'b', b'c']).unwrap();
+    assert_eq!(
+        data::custom_data_item_size(variable_type, start, 4).unwrap(),
+        4
+    );
+    assert_eq!(
+        data::custom_data_item_size(variable_type, start, 3)
+            .unwrap_err()
+            .category,
+        ErrorCategory::SdkFailure
+    );
+    let calls_before_creation = size_calls.load(Ordering::SeqCst);
+    data::define_custom_inferred(start, variable_type, format, 4).unwrap();
+    assert!(size_calls.load(Ordering::SeqCst) > calls_before_creation);
+    assert_eq!(data::custom_data_at(start).unwrap().byte_length, 4);
+    data::undefine(start, 4).unwrap();
+
+    data::unregister_custom_data_type(fixed_type).unwrap();
+    cleanup.fixed_type = None;
+    assert_eq!(
+        data::find_custom_data_type(&fixed_definition.name)
+            .unwrap_err()
+            .category,
+        ErrorCategory::NotFound
+    );
+    assert_eq!(data::custom_data_format(format).unwrap().id, format);
+    data::unregister_custom_data_type(variable_type).unwrap();
+    cleanup.variable_type = None;
+    data::unregister_custom_data_format(format).unwrap();
+    cleanup.format = None;
+}
+
 // ===========================================================================
 // Search
 // ===========================================================================
@@ -1344,6 +1601,7 @@ static TEST_CASES: &[TestCase] = &[
         "data_element_definition_units",
         data_element_definition_units,
     ),
+    ("data_custom_data_lifecycle", data_custom_data_lifecycle),
     ("search_next_code", search_next_code),
     ("search_next_data", search_next_data),
     ("analysis_is_idle", analysis_is_idle),

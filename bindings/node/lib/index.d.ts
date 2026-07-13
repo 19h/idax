@@ -1240,6 +1240,151 @@ export namespace data {
     /** Define a structure using an explicit byte length. */
     function defineStruct(address: Address, length: number, structureId: bigint | number): void;
 
+    // ── Custom data type / format lifecycle ────────────────────────────
+
+    /** Opaque ID in the kernel-supported range 1..65534. */
+    type CustomDataTypeId = number;
+
+    /** Opaque ID in the kernel-supported range 1..65534. */
+    type CustomDataFormatId = number;
+
+    interface CustomDataFormatContext {
+        address?: Address;
+        operandIndex?: number;
+        /** Zero denotes a standard or unavailable type identity. */
+        typeId?: CustomDataTypeId | 0;
+    }
+
+    interface CustomDataTypeDefinition {
+        name: string;
+        menuName?: string;
+        hotkey?: string;
+        assemblerKeyword?: string;
+        /** Exact fixed width, or minimum width when calculateSize is present. */
+        valueSize: number | bigint;
+        allowDuplicates?: boolean;
+        mayCreateAt?: (address: Address, byteLength: AddressSize) => boolean;
+        calculateSize?: (address: Address, maximumSize: AddressSize) => AddressSize;
+    }
+
+    interface CustomDataTypeInfo {
+        id: CustomDataTypeId;
+        name: string;
+        menuName: string;
+        hotkey: string;
+        assemblerKeyword: string;
+        valueSize: AddressSize;
+        allowDuplicates: boolean;
+        visibleInMenu: boolean;
+        hasCreationFilter: boolean;
+        variableSize: boolean;
+    }
+
+    interface CustomDataFormatDefinition {
+        name: string;
+        menuName?: string;
+        hotkey?: string;
+        /** Zero accepts any value width. */
+        valueSize?: number | bigint;
+        textWidth?: number;
+        render?: (value: Buffer, context: CustomDataFormatContext) => string;
+        scan?: (text: string, context: CustomDataFormatContext) => Buffer | Uint8Array;
+        analyze?: (context: CustomDataFormatContext) => void;
+    }
+
+    interface CustomDataFormatInfo {
+        id: CustomDataFormatId;
+        name: string;
+        menuName: string;
+        hotkey: string;
+        valueSize: AddressSize;
+        textWidth: number;
+        visibleInMenu: boolean;
+        canRender: boolean;
+        canScan: boolean;
+        canAnalyze: boolean;
+    }
+
+    interface CustomDataItemInfo {
+        typeId: CustomDataTypeId;
+        formatId: CustomDataFormatId;
+        byteLength: AddressSize;
+    }
+
+    /** Register an owned type definition; explicitly unregister before addon unload. */
+    function registerCustomDataType(definition: CustomDataTypeDefinition): CustomDataTypeId;
+
+    /** Unregister an idax-owned type and release retained callbacks. */
+    function unregisterCustomDataType(typeId: CustomDataTypeId): void;
+
+    function customDataType(typeId: CustomDataTypeId): CustomDataTypeInfo;
+    function findCustomDataType(name: string): CustomDataTypeId;
+    function customDataTypes(
+        minimumSize?: number | bigint,
+        maximumSize?: number | bigint,
+    ): CustomDataTypeInfo[];
+
+    /** Register an owned format definition; explicitly unregister before addon unload. */
+    function registerCustomDataFormat(definition: CustomDataFormatDefinition): CustomDataFormatId;
+
+    /** Unregister an idax-owned format and release retained callbacks. */
+    function unregisterCustomDataFormat(formatId: CustomDataFormatId): void;
+
+    function customDataFormat(formatId: CustomDataFormatId): CustomDataFormatInfo;
+    function findCustomDataFormat(name: string): CustomDataFormatId;
+    function customDataFormats(typeId: CustomDataTypeId): CustomDataFormatInfo[];
+    function standardCustomDataFormats(): CustomDataFormatInfo[];
+
+    function attachCustomDataFormat(
+        typeId: CustomDataTypeId,
+        formatId: CustomDataFormatId,
+    ): void;
+    function detachCustomDataFormat(
+        typeId: CustomDataTypeId,
+        formatId: CustomDataFormatId,
+    ): void;
+    function isCustomDataFormatAttached(
+        typeId: CustomDataTypeId,
+        formatId: CustomDataFormatId,
+    ): boolean;
+    function attachCustomDataFormatToStandardTypes(formatId: CustomDataFormatId): void;
+    function detachCustomDataFormatFromStandardTypes(formatId: CustomDataFormatId): void;
+    function isCustomDataFormatAttachedToStandardTypes(formatId: CustomDataFormatId): boolean;
+
+    function customDataItemSize(
+        typeId: CustomDataTypeId,
+        address: Address,
+        maximumSize: number | bigint,
+    ): AddressSize;
+    function defineCustom(
+        address: Address,
+        byteLength: number | bigint,
+        typeId: CustomDataTypeId,
+        formatId: CustomDataFormatId,
+    ): void;
+    function defineCustomInferred(
+        address: Address,
+        typeId: CustomDataTypeId,
+        formatId: CustomDataFormatId,
+        maximumSize: number | bigint,
+    ): void;
+    function customDataAt(address: Address): CustomDataItemInfo;
+
+    function renderCustomData(
+        formatId: CustomDataFormatId,
+        value: Buffer | Uint8Array,
+        context?: CustomDataFormatContext,
+    ): string;
+    function scanCustomData(
+        formatId: CustomDataFormatId,
+        text: string,
+        context?: CustomDataFormatContext,
+    ): Buffer;
+    function analyzeCustomData(
+        formatId: CustomDataFormatId,
+        context?: CustomDataFormatContext,
+    ): void;
+
     /** Undefine a byte count beginning at the address; count defaults to 1 byte. */
     function undefine(address: Address, count?: number): void;
 

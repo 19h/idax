@@ -341,6 +341,18 @@ describe('Data Namespace Structure', () => {
         'defineOword', 'defineYword', 'defineZword', 'tbyteElementSize',
         'defineTbyte', 'packedRealElementSize', 'definePackedReal',
         'defineFloat', 'defineDouble',
+        'registerCustomDataType', 'unregisterCustomDataType',
+        'customDataType', 'findCustomDataType', 'customDataTypes',
+        'registerCustomDataFormat', 'unregisterCustomDataFormat',
+        'customDataFormat', 'findCustomDataFormat', 'customDataFormats',
+        'standardCustomDataFormats', 'attachCustomDataFormat',
+        'detachCustomDataFormat', 'isCustomDataFormatAttached',
+        'attachCustomDataFormatToStandardTypes',
+        'detachCustomDataFormatFromStandardTypes',
+        'isCustomDataFormatAttachedToStandardTypes',
+        'customDataItemSize', 'defineCustom', 'defineCustomInferred',
+        'customDataAt', 'renderCustomData', 'scanCustomData',
+        'analyzeCustomData',
         'undefine', 'findBinaryPattern',
     ];
 

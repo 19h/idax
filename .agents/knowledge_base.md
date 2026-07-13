@@ -1100,3 +1100,39 @@ Although `idp.hpp` documents null pointers for unavailable data directives,
 the SDK processor-module template uses an empty string for optional packed-real
 output. Representation availability therefore requires a non-null, non-empty
 `a_tbyte` or `a_packreal` value in addition to a nonzero processor width.
+
+### 35.45. Custom Data Descriptors Are Borrowed Registrations [F387]
+The kernel retains raw pointers from `data_type_t` and `data_format_t`, including
+names, callback user data, and callback entrypoints. Keep owned descriptor and
+callback state at stable addresses until explicit unregister, catch exceptions
+inside every C ABI trampoline, and return copied public snapshots. IDB-close
+auto-unregister is not a plugin-unload lifetime guarantee.
+
+### 35.46. Custom Type and Format Size Semantics Differ [F388]
+A fixed custom type uses `value_size` as its exact value width. A variable type
+uses it as the minimum width and requires `calc_item_size(address, maximum)` to
+return an exact positive width no larger than the supplied maximum. A format
+with zero `value_size` accepts any width; a nonzero value constrains the format.
+Print/scan callbacks must also tolerate SDK probe invocations where their output
+buffer is null.
+
+### 35.47. Custom Data IDs and Attachments Need Typed Boundaries [F389]
+Custom type and format IDs are positive kernel integers but custom item metadata
+packs each into 16 bits. Type ID zero has the separate meaning “all standard
+types” for format attachment, while format ID zero is unused. Expose nonzero
+opaque custom IDs, reject out-of-range registration results, and provide a
+separate standard-type attachment operation. Unregister detaches relationships
+but each registered descriptor still requires its own teardown.
+
+### 35.48. Exclude the Packed Missing-ID Sentinel [F390]
+`custom_data_type_ids_t` uses signed 16-bit fields and the value `-1` for an
+absent format. Consequently `0xFFFF` cannot be a usable opaque custom ID even
+though it fits in the packed 16-bit field. Registration and user-supplied ID
+validation must accept only the closed interval `1..0xFFFE`.
+
+### 35.49. Variable-Size Creation Can Revalidate Size [F391]
+Inferring a custom item size and then calling `create_custdata` does not imply a
+single callback invocation. The kernel can call `calc_item_size` again during
+creation. Treat custom type callbacks as deterministic and reentrant, retain
+their state through the complete SDK call, and validate callback participation
+plus final item size rather than an exact cross-version invocation count.

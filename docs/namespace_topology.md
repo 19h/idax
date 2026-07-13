@@ -8,7 +8,7 @@ This document shows the complete public API surface organized by namespace, with
 ida::                                     (root: type aliases, error model, options)
  |
  |-- ida::address        Predicates, traversal, range iteration          [1 struct, 1 enum, 2 classes, ~12 free fns]
- |-- ida::data           Read/write/patch/define bytes, patterns         [~30 free fns, 2 templates]
+ |-- ida::data           Read/write/patch/define/custom data, patterns  [1 enum, 9 structs, ~55 free fns, 2 templates]
  |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~25 free fns]
  |-- ida::path           Portable path splitting and directory checks    [~3 free fns]
  |
@@ -69,7 +69,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
 | `ida::address` | Navigation and predicates | `Range`, `ItemRange`, `Predicate` |
-| `ida::data` | Byte-level access | (free functions only) |
+| `ida::data` | Byte-level and registered custom-data access | `TypedValue`, `CustomDataTypeId`, `CustomDataFormatId`, owned definitions, copied metadata/item snapshots |
 | `ida::database` | Database lifecycle | `ProcessorId`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |

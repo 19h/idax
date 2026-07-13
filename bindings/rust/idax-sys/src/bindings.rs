@@ -1421,6 +1421,456 @@ unsafe extern "C" {
         structure_id: u64,
     ) -> ::std::os::raw::c_int;
 }
+pub type IdaxCustomDataMayCreateCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        user_data: *mut ::std::os::raw::c_void,
+        address: u64,
+        byte_length: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxCustomDataSizeCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        user_data: *mut ::std::os::raw::c_void,
+        address: u64,
+        maximum_size: u64,
+    ) -> u64,
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxCustomDataCallbackBuffer {
+    pub data: *mut u8,
+    pub length: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataCallbackBuffer"]
+        [::std::mem::size_of::<IdaxCustomDataCallbackBuffer>() - 16usize];
+    ["Alignment of IdaxCustomDataCallbackBuffer"]
+        [::std::mem::align_of::<IdaxCustomDataCallbackBuffer>() - 8usize];
+    ["Offset of field: IdaxCustomDataCallbackBuffer::data"]
+        [::std::mem::offset_of!(IdaxCustomDataCallbackBuffer, data) - 0usize];
+    ["Offset of field: IdaxCustomDataCallbackBuffer::length"]
+        [::std::mem::offset_of!(IdaxCustomDataCallbackBuffer, length) - 8usize];
+};
+impl Default for IdaxCustomDataCallbackBuffer {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub type IdaxCustomDataReleaseBufferCallback = ::std::option::Option<
+    unsafe extern "C" fn(user_data: *mut ::std::os::raw::c_void, data: *mut u8, length: usize),
+>;
+pub type IdaxCustomDataRenderCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        user_data: *mut ::std::os::raw::c_void,
+        value: *const u8,
+        value_length: usize,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        type_id: u16,
+        output: *mut IdaxCustomDataCallbackBuffer,
+        error: *mut IdaxCustomDataCallbackBuffer,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxCustomDataScanCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        user_data: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        output: *mut IdaxCustomDataCallbackBuffer,
+        error: *mut IdaxCustomDataCallbackBuffer,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxCustomDataAnalyzeCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        user_data: *mut ::std::os::raw::c_void,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+    ),
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxCustomDataTypeDefinition {
+    pub name: *const ::std::os::raw::c_char,
+    pub menu_name: *const ::std::os::raw::c_char,
+    pub hotkey: *const ::std::os::raw::c_char,
+    pub assembler_keyword: *const ::std::os::raw::c_char,
+    pub value_size: u64,
+    pub allow_duplicates: ::std::os::raw::c_int,
+    pub user_data: *mut ::std::os::raw::c_void,
+    pub may_create_at: IdaxCustomDataMayCreateCallback,
+    pub calculate_size: IdaxCustomDataSizeCallback,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataTypeDefinition"]
+        [::std::mem::size_of::<IdaxCustomDataTypeDefinition>() - 72usize];
+    ["Alignment of IdaxCustomDataTypeDefinition"]
+        [::std::mem::align_of::<IdaxCustomDataTypeDefinition>() - 8usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::name"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, name) - 0usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::menu_name"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, menu_name) - 8usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::hotkey"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, hotkey) - 16usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::assembler_keyword"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, assembler_keyword) - 24usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::value_size"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, value_size) - 32usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::allow_duplicates"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, allow_duplicates) - 40usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::user_data"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, user_data) - 48usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::may_create_at"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, may_create_at) - 56usize];
+    ["Offset of field: IdaxCustomDataTypeDefinition::calculate_size"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeDefinition, calculate_size) - 64usize];
+};
+impl Default for IdaxCustomDataTypeDefinition {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxCustomDataFormatDefinition {
+    pub name: *const ::std::os::raw::c_char,
+    pub menu_name: *const ::std::os::raw::c_char,
+    pub hotkey: *const ::std::os::raw::c_char,
+    pub value_size: u64,
+    pub text_width: i32,
+    pub user_data: *mut ::std::os::raw::c_void,
+    pub render: IdaxCustomDataRenderCallback,
+    pub scan: IdaxCustomDataScanCallback,
+    pub analyze: IdaxCustomDataAnalyzeCallback,
+    pub release_buffer: IdaxCustomDataReleaseBufferCallback,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataFormatDefinition"]
+        [::std::mem::size_of::<IdaxCustomDataFormatDefinition>() - 80usize];
+    ["Alignment of IdaxCustomDataFormatDefinition"]
+        [::std::mem::align_of::<IdaxCustomDataFormatDefinition>() - 8usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::name"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, name) - 0usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::menu_name"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, menu_name) - 8usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::hotkey"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, hotkey) - 16usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::value_size"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, value_size) - 24usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::text_width"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, text_width) - 32usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::user_data"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, user_data) - 40usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::render"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, render) - 48usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::scan"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, scan) - 56usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::analyze"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, analyze) - 64usize];
+    ["Offset of field: IdaxCustomDataFormatDefinition::release_buffer"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatDefinition, release_buffer) - 72usize];
+};
+impl Default for IdaxCustomDataFormatDefinition {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxCustomDataTypeInfo {
+    pub id: u16,
+    pub name: *mut ::std::os::raw::c_char,
+    pub menu_name: *mut ::std::os::raw::c_char,
+    pub hotkey: *mut ::std::os::raw::c_char,
+    pub assembler_keyword: *mut ::std::os::raw::c_char,
+    pub value_size: u64,
+    pub allow_duplicates: ::std::os::raw::c_int,
+    pub visible_in_menu: ::std::os::raw::c_int,
+    pub has_creation_filter: ::std::os::raw::c_int,
+    pub variable_size: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataTypeInfo"][::std::mem::size_of::<IdaxCustomDataTypeInfo>() - 64usize];
+    ["Alignment of IdaxCustomDataTypeInfo"]
+        [::std::mem::align_of::<IdaxCustomDataTypeInfo>() - 8usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::id"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, id) - 0usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::name"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, name) - 8usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::menu_name"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, menu_name) - 16usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::hotkey"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, hotkey) - 24usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::assembler_keyword"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, assembler_keyword) - 32usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::value_size"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, value_size) - 40usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::allow_duplicates"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, allow_duplicates) - 48usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::visible_in_menu"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, visible_in_menu) - 52usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::has_creation_filter"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, has_creation_filter) - 56usize];
+    ["Offset of field: IdaxCustomDataTypeInfo::variable_size"]
+        [::std::mem::offset_of!(IdaxCustomDataTypeInfo, variable_size) - 60usize];
+};
+impl Default for IdaxCustomDataTypeInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxCustomDataFormatInfo {
+    pub id: u16,
+    pub name: *mut ::std::os::raw::c_char,
+    pub menu_name: *mut ::std::os::raw::c_char,
+    pub hotkey: *mut ::std::os::raw::c_char,
+    pub value_size: u64,
+    pub text_width: i32,
+    pub visible_in_menu: ::std::os::raw::c_int,
+    pub can_render: ::std::os::raw::c_int,
+    pub can_scan: ::std::os::raw::c_int,
+    pub can_analyze: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataFormatInfo"]
+        [::std::mem::size_of::<IdaxCustomDataFormatInfo>() - 64usize];
+    ["Alignment of IdaxCustomDataFormatInfo"]
+        [::std::mem::align_of::<IdaxCustomDataFormatInfo>() - 8usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::id"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, id) - 0usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::name"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, name) - 8usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::menu_name"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, menu_name) - 16usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::hotkey"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, hotkey) - 24usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::value_size"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, value_size) - 32usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::text_width"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, text_width) - 40usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::visible_in_menu"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, visible_in_menu) - 44usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::can_render"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, can_render) - 48usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::can_scan"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, can_scan) - 52usize];
+    ["Offset of field: IdaxCustomDataFormatInfo::can_analyze"]
+        [::std::mem::offset_of!(IdaxCustomDataFormatInfo, can_analyze) - 56usize];
+};
+impl Default for IdaxCustomDataFormatInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxCustomDataItemInfo {
+    pub type_id: u16,
+    pub format_id: u16,
+    pub byte_length: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCustomDataItemInfo"][::std::mem::size_of::<IdaxCustomDataItemInfo>() - 16usize];
+    ["Alignment of IdaxCustomDataItemInfo"]
+        [::std::mem::align_of::<IdaxCustomDataItemInfo>() - 8usize];
+    ["Offset of field: IdaxCustomDataItemInfo::type_id"]
+        [::std::mem::offset_of!(IdaxCustomDataItemInfo, type_id) - 0usize];
+    ["Offset of field: IdaxCustomDataItemInfo::format_id"]
+        [::std::mem::offset_of!(IdaxCustomDataItemInfo, format_id) - 2usize];
+    ["Offset of field: IdaxCustomDataItemInfo::byte_length"]
+        [::std::mem::offset_of!(IdaxCustomDataItemInfo, byte_length) - 8usize];
+};
+unsafe extern "C" {
+    pub fn idax_data_register_custom_type(
+        definition: *const IdaxCustomDataTypeDefinition,
+        out_id: *mut u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_unregister_custom_type(type_id: u16) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_type(
+        type_id: u16,
+        out: *mut IdaxCustomDataTypeInfo,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_find_custom_type(
+        name: *const ::std::os::raw::c_char,
+        out_id: *mut u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_types(
+        minimum_size: u64,
+        maximum_size: u64,
+        out: *mut *mut IdaxCustomDataTypeInfo,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_type_info_free(info: *mut IdaxCustomDataTypeInfo);
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_type_infos_free(infos: *mut IdaxCustomDataTypeInfo, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_data_register_custom_format(
+        definition: *const IdaxCustomDataFormatDefinition,
+        out_id: *mut u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_unregister_custom_format(format_id: u16) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_format(
+        format_id: u16,
+        out: *mut IdaxCustomDataFormatInfo,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_find_custom_format(
+        name: *const ::std::os::raw::c_char,
+        out_id: *mut u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_formats(
+        type_id: u16,
+        out: *mut *mut IdaxCustomDataFormatInfo,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_standard_custom_formats(
+        out: *mut *mut IdaxCustomDataFormatInfo,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_format_info_free(info: *mut IdaxCustomDataFormatInfo);
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_format_infos_free(infos: *mut IdaxCustomDataFormatInfo, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_data_attach_custom_format(type_id: u16, format_id: u16) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_detach_custom_format(type_id: u16, format_id: u16) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_is_custom_format_attached(
+        type_id: u16,
+        format_id: u16,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_attach_custom_format_to_standard_types(
+        format_id: u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_detach_custom_format_from_standard_types(
+        format_id: u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_is_custom_format_attached_to_standard_types(
+        format_id: u16,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_item_size(
+        type_id: u16,
+        address: u64,
+        maximum_size: u64,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_define_custom(
+        address: u64,
+        byte_length: u64,
+        type_id: u16,
+        format_id: u16,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_define_custom_inferred(
+        address: u64,
+        type_id: u16,
+        format_id: u16,
+        maximum_size: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_custom_at(
+        address: u64,
+        out: *mut IdaxCustomDataItemInfo,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_render_custom(
+        format_id: u16,
+        value: *const u8,
+        value_length: usize,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        type_id: u16,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_scan_custom(
+        format_id: u16,
+        text: *const ::std::os::raw::c_char,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        out: *mut *mut u8,
+        out_length: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_analyze_custom(
+        format_id: u16,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        type_id: u16,
+    ) -> ::std::os::raw::c_int;
+}
 unsafe extern "C" {
     pub fn idax_data_undefine(ea: u64, count: u64) -> ::std::os::raw::c_int;
 }

@@ -10,8 +10,8 @@ Raw `extern "C"` FFI bindings to the [idax](https://github.com/19h/idax) C++ IDA
 
 ## What this crate provides
 
-- **622 FFI function declarations** covering 27 IDA SDK domains (database, segments, functions, instructions, types, decompiler, debugger, and more)
-- **115 C struct/enum/callback typedefs** for data transfer across the FFI boundary
+- **727 FFI function declarations** covering 27 IDA SDK domains (database, segments, functions, instructions, types, decompiler, debugger, and more)
+- **129 C struct/enum/callback typedefs** for data transfer across the FFI boundary
 - A **C shim layer** (`shim/idax_shim.h` + `shim/idax_shim.cpp`) that bridges `extern "C"` to the idax C++ API
 - Automatic **bindgen** code generation at build time — the output lands in `$OUT_DIR/bindings.rs`
 
@@ -71,7 +71,7 @@ The C shim follows consistent conventions documented in `shim/idax_shim.h`:
 | Segment | `idax_segment_*` | 20 |
 | Function | `idax_function_*` | 37 |
 | Instruction | `idax_instruction_*` | 39 |
-| Data | `idax_data_*` | 32 |
+| Data | `idax_data_*` | 70 |
 | Name | `idax_name_*` | 16 |
 | Cross-references | `idax_xref_*` | 16 |
 | Comment | `idax_comment_*` | 18 |

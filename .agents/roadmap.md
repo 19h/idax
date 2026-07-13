@@ -41,7 +41,7 @@ Current overall phase status:
 - Phase 28: 100% (typed IDB change-tracking event parity complete: high-value post-change notifications, binding convergence, event-wide callback-mutation isolation, and full validation)
 - Phase 29: complete (fixed-width data definitions use checked element counts through zword with exact cross-binding evidence)
 - Phase 30: complete (processor-aware tbyte/packed-real definition semantics)
-- Phase 31: pending (opaque custom data type/format registration and creation lifecycle)
+- Phase 31: complete (opaque custom data type/format registration and creation lifecycle)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -181,7 +181,7 @@ Current overall phase status:
 
 ### Phase 31 TODO Action Items (Custom Data Type/Format Lifecycle)
 
-- [ ] P31.1 Audit custom data type/format descriptors, callbacks, registry IDs, attachment state, item-size inference, creation, and teardown semantics.
-- [ ] P31.2 Design opaque definitions/snapshots and callback adapters with explicit lifetime rules.
-- [ ] P31.3 Implement C++ APIs plus Node/Rust parity and exact fixed/variable-size real-IDA validation.
-- [ ] P31.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
+- [x] P31.1 Audit custom data type/format descriptors, callbacks, registry IDs, attachment state, item-size inference, creation, and teardown semantics.
+- [x] P31.2 Design opaque definitions/snapshots and callback adapters with explicit lifetime rules.
+- [x] P31.3 Implement C++ APIs plus Node/Rust parity and exact fixed/variable-size real-IDA validation.
+- [x] P31.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.

@@ -156,6 +156,78 @@ void check_data_surface() {
     (void)static_cast<DefineFixedFn>(&ida::data::define_float);
     (void)static_cast<DefineFixedFn>(&ida::data::define_double);
     (void)static_cast<DefineStructFn>(&ida::data::define_struct);
+
+    using TypeId = ida::data::CustomDataTypeId;
+    using FormatId = ida::data::CustomDataFormatId;
+    static_assert(sizeof(TypeId) == sizeof(std::uint16_t));
+    static_assert(sizeof(FormatId) == sizeof(std::uint16_t));
+    static_assert(std::is_copy_constructible_v<ida::data::CustomDataTypeInfo>);
+    static_assert(std::is_copy_constructible_v<ida::data::CustomDataFormatInfo>);
+
+    using RegisterTypeFn = ida::Result<TypeId>(*)(
+        const ida::data::CustomDataTypeDefinition&);
+    using UnregisterTypeFn = ida::Status(*)(TypeId);
+    using TypeInfoFn = ida::Result<ida::data::CustomDataTypeInfo>(*)(TypeId);
+    using FindTypeFn = ida::Result<TypeId>(*)(std::string_view);
+    using TypesFn = ida::Result<std::vector<ida::data::CustomDataTypeInfo>>(*)(
+        ida::AddressSize, ida::AddressSize);
+    using RegisterFormatFn = ida::Result<FormatId>(*)(
+        const ida::data::CustomDataFormatDefinition&);
+    using UnregisterFormatFn = ida::Status(*)(FormatId);
+    using FormatInfoFn = ida::Result<ida::data::CustomDataFormatInfo>(*)(FormatId);
+    using FindFormatFn = ida::Result<FormatId>(*)(std::string_view);
+    using FormatsFn =
+        ida::Result<std::vector<ida::data::CustomDataFormatInfo>>(*)(TypeId);
+    using StandardFormatsFn =
+        ida::Result<std::vector<ida::data::CustomDataFormatInfo>>(*)();
+    using AttachmentFn = ida::Status(*)(TypeId, FormatId);
+    using AttachmentQueryFn = ida::Result<bool>(*)(TypeId, FormatId);
+    using StandardAttachmentFn = ida::Status(*)(FormatId);
+    using StandardAttachmentQueryFn = ida::Result<bool>(*)(FormatId);
+    using CustomSizeFn = ida::Result<ida::AddressSize>(*)(
+        TypeId, ida::Address, ida::AddressSize);
+    using DefineCustomFn = ida::Status(*)(
+        ida::Address, ida::AddressSize, TypeId, FormatId);
+    using DefineCustomInferredFn = ida::Status(*)(
+        ida::Address, TypeId, FormatId, ida::AddressSize);
+    using CustomAtFn = ida::Result<ida::data::CustomDataItemInfo>(*)(ida::Address);
+    using RenderCustomFn = ida::Result<std::string>(*)(
+        FormatId, std::span<const std::uint8_t>,
+        const ida::data::CustomDataFormatContext&);
+    using ScanCustomFn = ida::Result<std::vector<std::uint8_t>>(*)(
+        FormatId, std::string_view,
+        const ida::data::CustomDataFormatContext&);
+    using AnalyzeCustomFn = ida::Status(*)(
+        FormatId, const ida::data::CustomDataFormatContext&);
+    (void)static_cast<RegisterTypeFn>(&ida::data::register_custom_data_type);
+    (void)static_cast<UnregisterTypeFn>(&ida::data::unregister_custom_data_type);
+    (void)static_cast<TypeInfoFn>(&ida::data::custom_data_type);
+    (void)static_cast<FindTypeFn>(&ida::data::find_custom_data_type);
+    (void)static_cast<TypesFn>(&ida::data::custom_data_types);
+    (void)static_cast<RegisterFormatFn>(&ida::data::register_custom_data_format);
+    (void)static_cast<UnregisterFormatFn>(&ida::data::unregister_custom_data_format);
+    (void)static_cast<FormatInfoFn>(&ida::data::custom_data_format);
+    (void)static_cast<FindFormatFn>(&ida::data::find_custom_data_format);
+    (void)static_cast<FormatsFn>(&ida::data::custom_data_formats);
+    (void)static_cast<StandardFormatsFn>(&ida::data::standard_custom_data_formats);
+    (void)static_cast<AttachmentFn>(&ida::data::attach_custom_data_format);
+    (void)static_cast<AttachmentFn>(&ida::data::detach_custom_data_format);
+    (void)static_cast<AttachmentQueryFn>(
+        &ida::data::is_custom_data_format_attached);
+    (void)static_cast<StandardAttachmentFn>(
+        &ida::data::attach_custom_data_format_to_standard_types);
+    (void)static_cast<StandardAttachmentFn>(
+        &ida::data::detach_custom_data_format_from_standard_types);
+    (void)static_cast<StandardAttachmentQueryFn>(
+        &ida::data::is_custom_data_format_attached_to_standard_types);
+    (void)static_cast<CustomSizeFn>(&ida::data::custom_data_item_size);
+    (void)static_cast<DefineCustomFn>(&ida::data::define_custom);
+    (void)static_cast<DefineCustomInferredFn>(
+        &ida::data::define_custom_inferred);
+    (void)static_cast<CustomAtFn>(&ida::data::custom_data_at);
+    (void)static_cast<RenderCustomFn>(&ida::data::render_custom_data);
+    (void)static_cast<ScanCustomFn>(&ida::data::scan_custom_data);
+    (void)static_cast<AnalyzeCustomFn>(&ida::data::analyze_custom_data);
 }
 
 // ─── ida::segment ───────────────────────────────────────────────────────

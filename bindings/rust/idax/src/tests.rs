@@ -883,7 +883,7 @@ mod segment_tests {
 mod data_tests {
     use crate::address::{Address, AddressSize};
     use crate::data::*;
-    use crate::error::Status;
+    use crate::error::{Result, Status};
 
     #[test]
     fn test_element_definition_function_signatures() {
@@ -905,6 +905,54 @@ mod data_tests {
         let size_functions: [fn() -> crate::error::Result<AddressSize>; 2] =
             [tbyte_element_size, packed_real_element_size];
         assert_eq!(size_functions.len(), 2);
+    }
+
+    #[test]
+    fn test_custom_data_lifecycle_types_and_signatures() {
+        let context = CustomDataFormatContext::default();
+        assert_eq!(context.type_id, CustomDataTypeId(0));
+        assert_eq!(context.operand_index, -1);
+        let type_definition = CustomDataTypeDefinition::default();
+        assert!(type_definition.allow_duplicates);
+        assert!(type_definition.may_create_at.is_none());
+        assert!(type_definition.calculate_size.is_none());
+        let format_definition = CustomDataFormatDefinition::default();
+        assert_eq!(format_definition.value_size, 0);
+        assert!(format_definition.render.is_none());
+
+        let _: fn(&CustomDataTypeDefinition) -> Result<CustomDataTypeId> =
+            register_custom_data_type;
+        let _: fn(CustomDataTypeId) -> Status = unregister_custom_data_type;
+        let _: fn(CustomDataTypeId) -> Result<CustomDataTypeInfo> = custom_data_type;
+        let _: fn(&str) -> Result<CustomDataTypeId> = find_custom_data_type;
+        let _: fn(AddressSize, AddressSize) -> Result<Vec<CustomDataTypeInfo>> = custom_data_types;
+        let _: fn(&CustomDataFormatDefinition) -> Result<CustomDataFormatId> =
+            register_custom_data_format;
+        let _: fn(CustomDataFormatId) -> Status = unregister_custom_data_format;
+        let _: fn(CustomDataFormatId) -> Result<CustomDataFormatInfo> = custom_data_format;
+        let _: fn(&str) -> Result<CustomDataFormatId> = find_custom_data_format;
+        let _: fn(CustomDataTypeId) -> Result<Vec<CustomDataFormatInfo>> = custom_data_formats;
+        let _: fn() -> Result<Vec<CustomDataFormatInfo>> = standard_custom_data_formats;
+        let _: fn(CustomDataTypeId, CustomDataFormatId) -> Status = attach_custom_data_format;
+        let _: fn(CustomDataTypeId, CustomDataFormatId) -> Status = detach_custom_data_format;
+        let _: fn(CustomDataTypeId, CustomDataFormatId) -> Result<bool> =
+            is_custom_data_format_attached;
+        let _: fn(CustomDataFormatId) -> Status = attach_custom_data_format_to_standard_types;
+        let _: fn(CustomDataFormatId) -> Status = detach_custom_data_format_from_standard_types;
+        let _: fn(CustomDataFormatId) -> Result<bool> =
+            is_custom_data_format_attached_to_standard_types;
+        let _: fn(CustomDataTypeId, Address, AddressSize) -> Result<AddressSize> =
+            custom_data_item_size;
+        let _: fn(Address, AddressSize, CustomDataTypeId, CustomDataFormatId) -> Status =
+            define_custom;
+        let _: fn(Address, CustomDataTypeId, CustomDataFormatId, AddressSize) -> Status =
+            define_custom_inferred;
+        let _: fn(Address) -> Result<CustomDataItemInfo> = custom_data_at;
+        let _: fn(CustomDataFormatId, &[u8], CustomDataFormatContext) -> Result<String> =
+            render_custom_data;
+        let _: fn(CustomDataFormatId, &str, CustomDataFormatContext) -> Result<Vec<u8>> =
+            scan_custom_data;
+        let _: fn(CustomDataFormatId, CustomDataFormatContext) -> Status = analyze_custom_data;
     }
 }
 

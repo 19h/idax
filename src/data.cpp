@@ -11,12 +11,16 @@
 #include <algorithm>
 #include <bit>
 #include <limits>
+#include <map>
+#include <memory>
 
 namespace ida::data {
 
 namespace {
 
 constexpr std::size_t kMaxTypedDepth = 64;
+constexpr int kMaximumCustomDataId =
+    static_cast<int>(std::numeric_limits<std::uint16_t>::max()) - 1;
 
 Status validate_definition_count(Address address, AddressSize count) {
     if (count != 0)
@@ -85,6 +89,276 @@ Result<AddressSize> extended_real_element_size(bool packed_real) {
             std::string(kind) + " is unavailable for the active processor/assembler"));
     }
     return static_cast<AddressSize>(processor->tbyte_size);
+}
+
+struct RegisteredCustomDataType {
+    int id{-1};
+    CustomDataTypeDefinition definition;
+    data_type_t sdk{};
+};
+
+struct RegisteredCustomDataFormat {
+    int id{-1};
+    CustomDataFormatDefinition definition;
+    data_format_t sdk{};
+};
+
+std::map<int, std::shared_ptr<RegisteredCustomDataType>>
+    g_custom_data_types;
+std::map<int, std::shared_ptr<RegisteredCustomDataFormat>>
+    g_custom_data_formats;
+
+std::shared_ptr<RegisteredCustomDataType> retain_custom_data_type(
+        RegisteredCustomDataType* registration) {
+    if (registration == nullptr || registration->id <= 0)
+        return {};
+    auto found = g_custom_data_types.find(registration->id);
+    if (found == g_custom_data_types.end()
+        || found->second.get() != registration) {
+        return {};
+    }
+    return found->second;
+}
+
+std::shared_ptr<RegisteredCustomDataFormat> retain_custom_data_format(
+        RegisteredCustomDataFormat* registration) {
+    if (registration == nullptr || registration->id <= 0)
+        return {};
+    auto found = g_custom_data_formats.find(registration->id);
+    if (found == g_custom_data_formats.end()
+        || found->second.get() != registration) {
+        return {};
+    }
+    return found->second;
+}
+
+bool idaapi custom_data_may_create_at(void* user_data,
+                                      ea_t address,
+                                      size_t byte_length) noexcept {
+    auto registration = retain_custom_data_type(
+        static_cast<RegisteredCustomDataType*>(user_data));
+    if (!registration || !registration->definition.may_create_at)
+        return false;
+    try {
+        return registration->definition.may_create_at(
+            static_cast<Address>(address),
+            static_cast<AddressSize>(byte_length));
+    } catch (...) {
+        return false;
+    }
+}
+
+asize_t idaapi custom_data_calculate_size(void* user_data,
+                                          ea_t address,
+                                          asize_t maximum_size) noexcept {
+    auto registration = retain_custom_data_type(
+        static_cast<RegisteredCustomDataType*>(user_data));
+    if (!registration || !registration->definition.calculate_size)
+        return 0;
+    try {
+        const AddressSize size = registration->definition.calculate_size(
+            static_cast<Address>(address),
+            static_cast<AddressSize>(maximum_size));
+        if (size == 0 || size > static_cast<AddressSize>(maximum_size)
+            || size > std::numeric_limits<asize_t>::max()) {
+            return 0;
+        }
+        return static_cast<asize_t>(size);
+    } catch (...) {
+        return 0;
+    }
+}
+
+bool idaapi custom_data_render(void* user_data,
+                               qstring* output,
+                               const void* value,
+                               asize_t size,
+                               ea_t address,
+                               int operand_index,
+                               int type_id) noexcept {
+    auto registration = retain_custom_data_format(
+        static_cast<RegisteredCustomDataFormat*>(user_data));
+    if (!registration || !registration->definition.render || value == nullptr)
+        return false;
+    try {
+        CustomDataFormatContext context;
+        context.address = static_cast<Address>(address);
+        context.operand_index = operand_index;
+        if (type_id >= 0
+            && type_id <= kMaximumCustomDataId) {
+            context.type_id.value = static_cast<std::uint16_t>(type_id);
+        }
+        auto rendered = registration->definition.render(
+            std::span<const std::uint8_t>(
+                static_cast<const std::uint8_t*>(value),
+                static_cast<std::size_t>(size)),
+            context);
+        if (!rendered)
+            return false;
+        if (output != nullptr)
+            *output = qstring(rendered->data(), rendered->size());
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool idaapi custom_data_scan(void* user_data,
+                             bytevec_t* value,
+                             const char* input,
+                             ea_t address,
+                             int operand_index,
+                             qstring* error_text) noexcept {
+    auto registration = retain_custom_data_format(
+        static_cast<RegisteredCustomDataFormat*>(user_data));
+    if (!registration || !registration->definition.scan || input == nullptr)
+        return false;
+    try {
+        CustomDataFormatContext context;
+        context.address = static_cast<Address>(address);
+        context.operand_index = operand_index;
+        auto scanned = registration->definition.scan(input, context);
+        if (!scanned) {
+            if (error_text != nullptr) {
+                *error_text = qstring(scanned.error().message.data(),
+                                      scanned.error().message.size());
+            }
+            return false;
+        }
+        if (value != nullptr) {
+            value->qclear();
+            if (!scanned->empty())
+                value->append(scanned->data(), scanned->size());
+        }
+        return true;
+    } catch (...) {
+        if (error_text != nullptr)
+            *error_text = "Custom data scan callback threw an exception";
+        return false;
+    }
+}
+
+void idaapi custom_data_analyze(void* user_data,
+                                ea_t address,
+                                int operand_index) noexcept {
+    auto registration = retain_custom_data_format(
+        static_cast<RegisteredCustomDataFormat*>(user_data));
+    if (!registration || !registration->definition.analyze)
+        return;
+    try {
+        CustomDataFormatContext context;
+        context.address = static_cast<Address>(address);
+        context.operand_index = operand_index;
+        registration->definition.analyze(context);
+    } catch (...) {
+        // Exceptions must not cross the IDA SDK callback ABI.
+    }
+}
+
+bool has_embedded_null(const std::string& value) {
+    return value.find('\0') != std::string::npos;
+}
+
+const char* optional_string(const std::string& value) {
+    return value.empty() ? nullptr : value.c_str();
+}
+
+std::string copy_sdk_string(const char* value) {
+    return value == nullptr ? std::string{} : std::string(value);
+}
+
+Result<int> checked_custom_type_id(CustomDataTypeId type_id) {
+    if (type_id.value == 0 || type_id.value > kMaximumCustomDataId) {
+        return std::unexpected(Error::validation(
+            "Custom data type id must be in 1..65534"));
+    }
+    const int sdk_id = static_cast<int>(type_id.value);
+    if (::get_custom_data_type(sdk_id) == nullptr) {
+        return std::unexpected(Error::not_found(
+            "Custom data type is not registered", std::to_string(sdk_id)));
+    }
+    return sdk_id;
+}
+
+Result<int> checked_custom_format_id(CustomDataFormatId format_id) {
+    if (format_id.value == 0 || format_id.value > kMaximumCustomDataId) {
+        return std::unexpected(Error::validation(
+            "Custom data format id must be in 1..65534"));
+    }
+    const int sdk_id = static_cast<int>(format_id.value);
+    if (::get_custom_data_format(sdk_id) == nullptr) {
+        return std::unexpected(Error::not_found(
+            "Custom data format is not registered", std::to_string(sdk_id)));
+    }
+    return sdk_id;
+}
+
+CustomDataTypeInfo make_custom_type_info(int id,
+                                         const data_type_t& sdk) {
+    CustomDataTypeInfo info;
+    info.id.value = static_cast<std::uint16_t>(id);
+    info.name = copy_sdk_string(sdk.name);
+    info.menu_name = copy_sdk_string(sdk.menu_name);
+    info.hotkey = copy_sdk_string(sdk.hotkey);
+    info.assembler_keyword = copy_sdk_string(sdk.asm_keyword);
+    info.value_size = static_cast<AddressSize>(sdk.value_size);
+    info.allow_duplicates = (sdk.props & DTP_NODUP) == 0;
+    info.visible_in_menu = sdk.is_present_in_menus();
+    info.has_creation_filter = sdk.may_create_at != nullptr;
+    info.variable_size = sdk.calc_item_size != nullptr;
+    return info;
+}
+
+CustomDataFormatInfo make_custom_format_info(int id,
+                                             const data_format_t& sdk) {
+    CustomDataFormatInfo info;
+    info.id.value = static_cast<std::uint16_t>(id);
+    info.name = copy_sdk_string(sdk.name);
+    info.menu_name = copy_sdk_string(sdk.menu_name);
+    info.hotkey = copy_sdk_string(sdk.hotkey);
+    info.value_size = static_cast<AddressSize>(sdk.value_size);
+    info.text_width = sdk.text_width;
+    info.visible_in_menu = sdk.is_present_in_menus();
+    info.can_render = sdk.print != nullptr;
+    info.can_scan = sdk.scan != nullptr;
+    info.can_analyze = sdk.analyze != nullptr;
+    return info;
+}
+
+Result<std::vector<CustomDataFormatInfo>> custom_data_formats_for_sdk_id(
+        int type_id) {
+    intvec_t ids;
+    const int count = ::get_custom_data_formats(&ids, type_id);
+    if (count < 0) {
+        return std::unexpected(Error::sdk(
+            "get_custom_data_formats failed", std::to_string(type_id)));
+    }
+    std::vector<CustomDataFormatInfo> formats;
+    formats.reserve(ids.size());
+    for (int id : ids) {
+        if (id <= 0 || id > kMaximumCustomDataId)
+            continue;
+        const data_format_t* sdk = ::get_custom_data_format(id);
+        if (sdk != nullptr)
+            formats.push_back(make_custom_format_info(id, *sdk));
+    }
+    return formats;
+}
+
+Status validate_custom_data_range(Address address, AddressSize byte_length) {
+    if (byte_length == 0) {
+        return std::unexpected(Error::validation(
+            "Custom data byte length must be greater than zero"));
+    }
+    if (byte_length > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Custom data byte length exceeds SDK size range"));
+    }
+    if (address == BadAddress || byte_length > BadAddress - address) {
+        return std::unexpected(Error::validation(
+            "Custom data address range overflow"));
+    }
+    return ida::ok();
 }
 
 bool fits_unsigned_width(std::size_t width, std::uint64_t value) {
@@ -844,6 +1118,504 @@ Status define_struct(Address ea, AddressSize length, std::uint64_t structure_id)
         return std::unexpected(Error::sdk("create_struct failed",
                                           std::to_string(ea)));
     }
+    return ida::ok();
+}
+
+Result<CustomDataTypeId> register_custom_data_type(
+        const CustomDataTypeDefinition& definition) {
+    if (definition.name.empty()) {
+        return std::unexpected(Error::validation(
+            "Custom data type name cannot be empty"));
+    }
+    if (has_embedded_null(definition.name)
+        || has_embedded_null(definition.menu_name)
+        || has_embedded_null(definition.hotkey)
+        || has_embedded_null(definition.assembler_keyword)) {
+        return std::unexpected(Error::validation(
+            "Custom data type strings cannot contain null bytes"));
+    }
+    if (definition.value_size == 0
+        || definition.value_size > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Custom data type value size is outside the SDK range"));
+    }
+
+    auto registration = std::make_shared<RegisteredCustomDataType>();
+    registration->definition = definition;
+    registration->sdk.cbsize = sizeof(data_type_t);
+    registration->sdk.ud = registration.get();
+    registration->sdk.props = definition.allow_duplicates ? 0 : DTP_NODUP;
+    registration->sdk.name = registration->definition.name.c_str();
+    registration->sdk.menu_name = optional_string(
+        registration->definition.menu_name);
+    registration->sdk.hotkey = optional_string(
+        registration->definition.hotkey);
+    registration->sdk.asm_keyword = optional_string(
+        registration->definition.assembler_keyword);
+    registration->sdk.value_size = static_cast<asize_t>(definition.value_size);
+    registration->sdk.may_create_at = definition.may_create_at
+        ? &custom_data_may_create_at : nullptr;
+    registration->sdk.calc_item_size = definition.calculate_size
+        ? &custom_data_calculate_size : nullptr;
+
+    const int id = ::register_custom_data_type(&registration->sdk);
+    if (id <= 0) {
+        return std::unexpected(Error::conflict(
+            "Custom data type registration failed", definition.name));
+    }
+    if (id > kMaximumCustomDataId) {
+        ::unregister_custom_data_type(id);
+        return std::unexpected(Error::unsupported(
+            "Custom data type id exceeds the packed item range",
+            std::to_string(id)));
+    }
+    registration->id = id;
+    g_custom_data_types[id] = std::move(registration);
+    return CustomDataTypeId{static_cast<std::uint16_t>(id)};
+}
+
+Status unregister_custom_data_type(CustomDataTypeId type_id) {
+    if (type_id.value == 0 || type_id.value > kMaximumCustomDataId) {
+        return std::unexpected(Error::validation(
+            "Custom data type id must be in 1..65534"));
+    }
+    const int id = static_cast<int>(type_id.value);
+    auto found = g_custom_data_types.find(id);
+    if (found == g_custom_data_types.end()) {
+        return std::unexpected(Error::not_found(
+            "Custom data type is not owned by idax", std::to_string(id)));
+    }
+    const bool removed = ::unregister_custom_data_type(id);
+    g_custom_data_types.erase(found);
+    if (!removed) {
+        return std::unexpected(Error::not_found(
+            "Custom data type is no longer registered", std::to_string(id)));
+    }
+    return ida::ok();
+}
+
+Result<CustomDataTypeInfo> custom_data_type(CustomDataTypeId type_id) {
+    auto id = checked_custom_type_id(type_id);
+    if (!id)
+        return std::unexpected(id.error());
+    return make_custom_type_info(*id, *::get_custom_data_type(*id));
+}
+
+Result<CustomDataTypeId> find_custom_data_type(std::string_view name) {
+    if (name.empty()) {
+        return std::unexpected(Error::validation(
+            "Custom data type name cannot be empty"));
+    }
+    if (name.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Custom data type name cannot contain null bytes"));
+    }
+    const std::string owned_name(name);
+    const int id = ::find_custom_data_type(owned_name.c_str());
+    if (id <= 0) {
+        return std::unexpected(Error::not_found(
+            "Custom data type not found", owned_name));
+    }
+    if (id > kMaximumCustomDataId) {
+        return std::unexpected(Error::unsupported(
+            "Custom data type id exceeds the packed item range",
+            std::to_string(id)));
+    }
+    return CustomDataTypeId{static_cast<std::uint16_t>(id)};
+}
+
+Result<std::vector<CustomDataTypeInfo>> custom_data_types(
+        AddressSize minimum_size,
+        AddressSize maximum_size) {
+    if (minimum_size > maximum_size
+        || maximum_size > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Invalid custom data type size range"));
+    }
+    intvec_t ids;
+    const int count = ::get_custom_data_types(
+        &ids, static_cast<asize_t>(minimum_size),
+        static_cast<asize_t>(maximum_size));
+    if (count < 0) {
+        return std::unexpected(Error::sdk(
+            "get_custom_data_types failed"));
+    }
+    std::vector<CustomDataTypeInfo> types;
+    types.reserve(ids.size());
+    for (int id : ids) {
+        if (id <= 0 || id > kMaximumCustomDataId)
+            continue;
+        const data_type_t* sdk = ::get_custom_data_type(id);
+        if (sdk != nullptr)
+            types.push_back(make_custom_type_info(id, *sdk));
+    }
+    return types;
+}
+
+Result<CustomDataFormatId> register_custom_data_format(
+        const CustomDataFormatDefinition& definition) {
+    if (definition.name.empty()) {
+        return std::unexpected(Error::validation(
+            "Custom data format name cannot be empty"));
+    }
+    if (has_embedded_null(definition.name)
+        || has_embedded_null(definition.menu_name)
+        || has_embedded_null(definition.hotkey)) {
+        return std::unexpected(Error::validation(
+            "Custom data format strings cannot contain null bytes"));
+    }
+    if (definition.value_size > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Custom data format value size exceeds the SDK range"));
+    }
+    if (definition.text_width < 0) {
+        return std::unexpected(Error::validation(
+            "Custom data format text width cannot be negative"));
+    }
+
+    auto registration = std::make_shared<RegisteredCustomDataFormat>();
+    registration->definition = definition;
+    registration->sdk.cbsize = sizeof(data_format_t);
+    registration->sdk.ud = registration.get();
+    registration->sdk.props = 0;
+    registration->sdk.name = registration->definition.name.c_str();
+    registration->sdk.menu_name = optional_string(
+        registration->definition.menu_name);
+    registration->sdk.hotkey = optional_string(
+        registration->definition.hotkey);
+    registration->sdk.value_size = static_cast<asize_t>(definition.value_size);
+    registration->sdk.text_width = definition.text_width;
+    registration->sdk.print = definition.render ? &custom_data_render : nullptr;
+    registration->sdk.scan = definition.scan ? &custom_data_scan : nullptr;
+    registration->sdk.analyze = definition.analyze
+        ? &custom_data_analyze : nullptr;
+
+    const int id = ::register_custom_data_format(&registration->sdk);
+    if (id <= 0) {
+        return std::unexpected(Error::conflict(
+            "Custom data format registration failed", definition.name));
+    }
+    if (id > kMaximumCustomDataId) {
+        ::unregister_custom_data_format(id);
+        return std::unexpected(Error::unsupported(
+            "Custom data format id exceeds the packed item range",
+            std::to_string(id)));
+    }
+    registration->id = id;
+    g_custom_data_formats[id] = std::move(registration);
+    return CustomDataFormatId{static_cast<std::uint16_t>(id)};
+}
+
+Status unregister_custom_data_format(CustomDataFormatId format_id) {
+    if (format_id.value == 0 || format_id.value > kMaximumCustomDataId) {
+        return std::unexpected(Error::validation(
+            "Custom data format id must be in 1..65534"));
+    }
+    const int id = static_cast<int>(format_id.value);
+    auto found = g_custom_data_formats.find(id);
+    if (found == g_custom_data_formats.end()) {
+        return std::unexpected(Error::not_found(
+            "Custom data format is not owned by idax", std::to_string(id)));
+    }
+    const bool removed = ::unregister_custom_data_format(id);
+    g_custom_data_formats.erase(found);
+    if (!removed) {
+        return std::unexpected(Error::not_found(
+            "Custom data format is no longer registered", std::to_string(id)));
+    }
+    return ida::ok();
+}
+
+Result<CustomDataFormatInfo> custom_data_format(CustomDataFormatId format_id) {
+    auto id = checked_custom_format_id(format_id);
+    if (!id)
+        return std::unexpected(id.error());
+    return make_custom_format_info(*id, *::get_custom_data_format(*id));
+}
+
+Result<CustomDataFormatId> find_custom_data_format(std::string_view name) {
+    if (name.empty()) {
+        return std::unexpected(Error::validation(
+            "Custom data format name cannot be empty"));
+    }
+    if (name.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Custom data format name cannot contain null bytes"));
+    }
+    const std::string owned_name(name);
+    const int id = ::find_custom_data_format(owned_name.c_str());
+    if (id <= 0) {
+        return std::unexpected(Error::not_found(
+            "Custom data format not found", owned_name));
+    }
+    if (id > kMaximumCustomDataId) {
+        return std::unexpected(Error::unsupported(
+            "Custom data format id exceeds the packed item range",
+            std::to_string(id)));
+    }
+    return CustomDataFormatId{static_cast<std::uint16_t>(id)};
+}
+
+Result<std::vector<CustomDataFormatInfo>> custom_data_formats(
+        CustomDataTypeId type_id) {
+    auto id = checked_custom_type_id(type_id);
+    if (!id)
+        return std::unexpected(id.error());
+    return custom_data_formats_for_sdk_id(*id);
+}
+
+Result<std::vector<CustomDataFormatInfo>> standard_custom_data_formats() {
+    return custom_data_formats_for_sdk_id(0);
+}
+
+Status attach_custom_data_format(CustomDataTypeId type_id,
+                                 CustomDataFormatId format_id) {
+    auto type = checked_custom_type_id(type_id);
+    if (!type)
+        return std::unexpected(type.error());
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    if (::is_attached_custom_data_format(*type, *format)) {
+        return std::unexpected(Error::conflict(
+            "Custom data format is already attached"));
+    }
+    if (!::attach_custom_data_format(*type, *format)) {
+        return std::unexpected(Error::sdk(
+            "attach_custom_data_format failed"));
+    }
+    return ida::ok();
+}
+
+Status detach_custom_data_format(CustomDataTypeId type_id,
+                                 CustomDataFormatId format_id) {
+    auto type = checked_custom_type_id(type_id);
+    if (!type)
+        return std::unexpected(type.error());
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    if (!::is_attached_custom_data_format(*type, *format)) {
+        return std::unexpected(Error::not_found(
+            "Custom data format is not attached"));
+    }
+    if (!::detach_custom_data_format(*type, *format)) {
+        return std::unexpected(Error::sdk(
+            "detach_custom_data_format failed"));
+    }
+    return ida::ok();
+}
+
+Result<bool> is_custom_data_format_attached(CustomDataTypeId type_id,
+                                            CustomDataFormatId format_id) {
+    auto type = checked_custom_type_id(type_id);
+    if (!type)
+        return std::unexpected(type.error());
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    return ::is_attached_custom_data_format(*type, *format);
+}
+
+Status attach_custom_data_format_to_standard_types(
+        CustomDataFormatId format_id) {
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    if (::is_attached_custom_data_format(0, *format)) {
+        return std::unexpected(Error::conflict(
+            "Custom data format is already attached to standard types"));
+    }
+    if (!::attach_custom_data_format(0, *format)) {
+        return std::unexpected(Error::sdk(
+            "attach_custom_data_format for standard types failed"));
+    }
+    return ida::ok();
+}
+
+Status detach_custom_data_format_from_standard_types(
+        CustomDataFormatId format_id) {
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    if (!::is_attached_custom_data_format(0, *format)) {
+        return std::unexpected(Error::not_found(
+            "Custom data format is not attached to standard types"));
+    }
+    if (!::detach_custom_data_format(0, *format)) {
+        return std::unexpected(Error::sdk(
+            "detach_custom_data_format for standard types failed"));
+    }
+    return ida::ok();
+}
+
+Result<bool> is_custom_data_format_attached_to_standard_types(
+        CustomDataFormatId format_id) {
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    return ::is_attached_custom_data_format(0, *format);
+}
+
+Result<AddressSize> custom_data_item_size(CustomDataTypeId type_id,
+                                          Address address,
+                                          AddressSize maximum_size) {
+    auto id = checked_custom_type_id(type_id);
+    if (!id)
+        return std::unexpected(id.error());
+    if (maximum_size == 0
+        || maximum_size > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Custom data maximum size is outside the SDK range"));
+    }
+    const data_type_t* sdk = ::get_custom_data_type(*id);
+    if (sdk->calc_item_size == nullptr) {
+        const AddressSize size = static_cast<AddressSize>(sdk->value_size);
+        if (size == 0 || size > maximum_size) {
+            return std::unexpected(Error::validation(
+                "Fixed custom data type does not fit the maximum size"));
+        }
+        return size;
+    }
+    const asize_t calculated = sdk->calc_item_size(
+        sdk->ud, static_cast<ea_t>(address),
+        static_cast<asize_t>(maximum_size));
+    if (calculated == 0 || calculated > maximum_size) {
+        return std::unexpected(Error::sdk(
+            "Custom data size callback rejected the item",
+            std::to_string(address)));
+    }
+    return static_cast<AddressSize>(calculated);
+}
+
+Status define_custom(Address address,
+                     AddressSize byte_length,
+                     CustomDataTypeId type_id,
+                     CustomDataFormatId format_id) {
+    auto valid_range = validate_custom_data_range(address, byte_length);
+    if (!valid_range)
+        return valid_range;
+    auto type = checked_custom_type_id(type_id);
+    if (!type)
+        return std::unexpected(type.error());
+    auto format = checked_custom_format_id(format_id);
+    if (!format)
+        return std::unexpected(format.error());
+    if (!::is_attached_custom_data_format(*type, *format)) {
+        return std::unexpected(Error::conflict(
+            "Custom data format is not attached to the type"));
+    }
+    if (!::create_custdata(static_cast<ea_t>(address),
+                           static_cast<asize_t>(byte_length),
+                           *type, *format)) {
+        return std::unexpected(Error::sdk(
+            "create_custdata failed", std::to_string(address)));
+    }
+    return ida::ok();
+}
+
+Status define_custom_inferred(Address address,
+                              CustomDataTypeId type_id,
+                              CustomDataFormatId format_id,
+                              AddressSize maximum_size) {
+    auto size = custom_data_item_size(type_id, address, maximum_size);
+    if (!size)
+        return std::unexpected(size.error());
+    return define_custom(address, *size, type_id, format_id);
+}
+
+Result<CustomDataItemInfo> custom_data_at(Address address) {
+    custom_data_type_ids_t ids{};
+    if (::get_custom_data_type_ids(&ids, static_cast<ea_t>(address)) <= 0) {
+        return std::unexpected(Error::not_found(
+            "No custom data item at address", std::to_string(address)));
+    }
+    const auto type = static_cast<std::uint16_t>(ids.dtid);
+    const auto format = static_cast<std::uint16_t>(ids.fids[0]);
+    if (type == 0 || type == std::numeric_limits<std::uint16_t>::max()
+        || format == 0
+        || format == std::numeric_limits<std::uint16_t>::max()) {
+        return std::unexpected(Error::not_found(
+            "Custom data item has no complete type/format identity",
+            std::to_string(address)));
+    }
+    CustomDataItemInfo info;
+    info.type_id.value = type;
+    info.format_id.value = format;
+    info.byte_length = static_cast<AddressSize>(
+        ::get_item_size(static_cast<ea_t>(address)));
+    return info;
+}
+
+Result<std::string> render_custom_data(
+        CustomDataFormatId format_id,
+        std::span<const std::uint8_t> value,
+        const CustomDataFormatContext& context) {
+    auto id = checked_custom_format_id(format_id);
+    if (!id)
+        return std::unexpected(id.error());
+    if (value.empty()) {
+        return std::unexpected(Error::validation(
+            "Custom data render value cannot be empty"));
+    }
+    const data_format_t* sdk = ::get_custom_data_format(*id);
+    if (sdk->print == nullptr) {
+        return std::unexpected(Error::unsupported(
+            "Custom data format has no render callback"));
+    }
+    qstring output;
+    if (!sdk->print(sdk->ud, &output, value.data(),
+                    static_cast<asize_t>(value.size()),
+                    static_cast<ea_t>(context.address),
+                    context.operand_index,
+                    static_cast<int>(context.type_id.value))) {
+        return std::unexpected(Error::sdk(
+            "Custom data render callback rejected the value"));
+    }
+    return detail::to_string(output);
+}
+
+Result<std::vector<std::uint8_t>> scan_custom_data(
+        CustomDataFormatId format_id,
+        std::string_view text,
+        const CustomDataFormatContext& context) {
+    auto id = checked_custom_format_id(format_id);
+    if (!id)
+        return std::unexpected(id.error());
+    if (text.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Custom data scan text cannot contain null bytes"));
+    }
+    const data_format_t* sdk = ::get_custom_data_format(*id);
+    if (sdk->scan == nullptr) {
+        return std::unexpected(Error::unsupported(
+            "Custom data format has no scan callback"));
+    }
+    const std::string owned_text(text);
+    bytevec_t value;
+    qstring error_text;
+    if (!sdk->scan(sdk->ud, &value, owned_text.c_str(),
+                   static_cast<ea_t>(context.address),
+                   context.operand_index, &error_text)) {
+        return std::unexpected(Error::sdk(
+            "Custom data scan callback rejected the text",
+            detail::to_string(error_text)));
+    }
+    return std::vector<std::uint8_t>(value.begin(), value.end());
+}
+
+Status analyze_custom_data(CustomDataFormatId format_id,
+                           const CustomDataFormatContext& context) {
+    auto id = checked_custom_format_id(format_id);
+    if (!id)
+        return std::unexpected(id.error());
+    const data_format_t* sdk = ::get_custom_data_format(*id);
+    if (sdk->analyze == nullptr) {
+        return std::unexpected(Error::unsupported(
+            "Custom data format has no analyze callback"));
+    }
+    sdk->analyze(sdk->ud, static_cast<ea_t>(context.address),
+                 context.operand_index);
     return ida::ok();
 }
 

@@ -726,3 +726,17 @@ tracked in `docs/compatibility_matrix.md`.
   tests pass 130/130, and IDA Professional 9.4 integration passes 86/86 with no
   skips. Generated bindgen output exactly matches checked bindings;
   `git diff --check` passes and the mutable fixture is restored.
+
+- 2026-07-14 Phase 31 custom data type/format lifecycle:
+  Added owned opaque registrations with distinct IDs restricted to
+  `1..0xFFFE`, copied metadata snapshots, custom/standard format attachment,
+  fixed and callback-derived sizing, explicit/inferred item creation, stored
+  identity, callback invocation, exception/panic barriers, and deterministic
+  explicit teardown across C++, Node, and Rust. The dedicated C++ real-IDA
+  lifecycle path passes 234 checks, including variable-size kernel
+  revalidation. Complete C++ build and CTest pass 25/25 in 21.41 s. Node native
+  build and strict TypeScript declaration validation pass, structural tests
+  pass 218/218, and IDA 9.4 integration passes 70/70. Rust formatting passes,
+  library tests pass 131/131, and the process-main-thread IDA 9.4 integration
+  suite passes 87/87. All generated bindgen outputs are byte-identical to the
+  checked binding; `git diff --check` passes and the mutable fixture is clean.

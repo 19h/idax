@@ -38,6 +38,20 @@ int g_fail = 0;
         }                                                                 \
     } while (false)
 
+#define CHECK_ERR(expr, category_value)                                  \
+    do {                                                                  \
+        auto _r = (expr);                                                 \
+        if (!_r.has_value()                                               \
+            && _r.error().category == (category_value)) {                 \
+            ++g_pass;                                                     \
+        } else {                                                          \
+            ++g_fail;                                                     \
+            std::cerr << "FAIL: " #expr " => expected error category "  \
+                      << static_cast<int>(category_value) << " ("         \
+                      << __FILE__ << ":" << __LINE__ << ")\n";          \
+        }                                                                 \
+    } while (false)
+
 void test_patch_and_original(ida::Address ea) {
     std::cout << "--- patch/original semantics ---\n";
 
@@ -341,6 +355,288 @@ void test_element_definition_units() {
     CHECK_OK(ida::segment::remove(base));
 }
 
+void test_custom_data_lifecycle() {
+    std::cout << "--- custom data type/format lifecycle ---\n";
+
+    auto last = ida::segment::last();
+    CHECK_OK(last);
+    if (!last)
+        return;
+    constexpr ida::Address kAlignment = 0x10000;
+    constexpr ida::AddressSize kSegmentSize = 0x1000;
+    if (last->end() > ida::BadAddress - (2 * kAlignment)) {
+        CHECK(false);
+        return;
+    }
+    const ida::Address base = (last->end() + kAlignment - 1)
+        & ~(kAlignment - 1);
+    auto created = ida::segment::create(base, base + kSegmentSize,
+                                        "__idax_custom_data", "DATA",
+                                        ida::segment::Type::Data);
+    CHECK_OK(created);
+    if (!created)
+        return;
+
+    struct Cleanup {
+        ida::Address segment_start;
+        ida::data::CustomDataTypeId fixed_type;
+        ida::data::CustomDataTypeId variable_type;
+        ida::data::CustomDataFormatId format;
+        ~Cleanup() {
+            if (fixed_type.value != 0)
+                (void)ida::data::unregister_custom_data_type(fixed_type);
+            if (variable_type.value != 0)
+                (void)ida::data::unregister_custom_data_type(variable_type);
+            if (format.value != 0)
+                (void)ida::data::unregister_custom_data_format(format);
+            (void)ida::segment::remove(segment_start);
+        }
+    } cleanup{base};
+
+    int creation_filter_calls = 0;
+    int size_callback_calls = 0;
+    int render_calls = 0;
+    int scan_calls = 0;
+    int analyze_calls = 0;
+
+    ida::data::CustomDataTypeDefinition fixed_definition;
+    fixed_definition.name = "idax_p31_fixed_u16";
+    fixed_definition.menu_name = "idax P31 fixed u16";
+    fixed_definition.assembler_keyword = "p31_u16";
+    fixed_definition.value_size = 2;
+    fixed_definition.allow_duplicates = false;
+    fixed_definition.may_create_at =
+        [&](ida::Address address, ida::AddressSize byte_length) {
+            ++creation_filter_calls;
+            return address == base && byte_length == 2;
+        };
+    auto fixed_type = ida::data::register_custom_data_type(fixed_definition);
+    CHECK_OK(fixed_type);
+    if (!fixed_type)
+        return;
+    cleanup.fixed_type = *fixed_type;
+
+    CHECK_ERR(ida::data::register_custom_data_type(fixed_definition),
+              ida::ErrorCategory::Conflict);
+
+    ida::data::CustomDataFormatDefinition format_definition;
+    format_definition.name = "idax_p31_u16_format";
+    format_definition.menu_name = "idax P31 u16 format";
+    format_definition.value_size = 0;
+    format_definition.text_width = 12;
+    format_definition.render =
+        [&](std::span<const std::uint8_t> value,
+            const ida::data::CustomDataFormatContext& context)
+            -> ida::Result<std::string> {
+            ++render_calls;
+            if (value.size() != 2)
+                return std::unexpected(ida::Error::validation("expected two bytes"));
+            return std::string("u16:") + std::to_string(
+                static_cast<unsigned>(value[0])
+                | (static_cast<unsigned>(value[1]) << 8))
+                + "@" + std::to_string(context.address);
+        };
+    format_definition.scan =
+        [&](std::string_view text,
+            const ida::data::CustomDataFormatContext&)
+            -> ida::Result<std::vector<std::uint8_t>> {
+            ++scan_calls;
+            if (text != "4660") {
+                return std::unexpected(ida::Error::validation(
+                    "expected decimal 4660"));
+            }
+            return std::vector<std::uint8_t>{0x34, 0x12};
+        };
+    format_definition.analyze =
+        [&](const ida::data::CustomDataFormatContext& context) {
+            CHECK(context.address == base);
+            ++analyze_calls;
+        };
+    auto format = ida::data::register_custom_data_format(format_definition);
+    CHECK_OK(format);
+    if (!format)
+        return;
+    cleanup.format = *format;
+
+    auto found_type = ida::data::find_custom_data_type(fixed_definition.name);
+    CHECK_OK(found_type);
+    if (found_type)
+        CHECK(*found_type == *fixed_type);
+    auto found_format = ida::data::find_custom_data_format(format_definition.name);
+    CHECK_OK(found_format);
+    if (found_format)
+        CHECK(*found_format == *format);
+
+    auto type_info = ida::data::custom_data_type(*fixed_type);
+    CHECK_OK(type_info);
+    if (type_info) {
+        CHECK(type_info->name == fixed_definition.name);
+        CHECK(type_info->value_size == 2);
+        CHECK(!type_info->allow_duplicates);
+        CHECK(type_info->visible_in_menu);
+        CHECK(type_info->has_creation_filter);
+        CHECK(!type_info->variable_size);
+    }
+    auto format_info = ida::data::custom_data_format(*format);
+    CHECK_OK(format_info);
+    if (format_info) {
+        CHECK(format_info->name == format_definition.name);
+        CHECK(format_info->value_size == 0);
+        CHECK(format_info->text_width == 12);
+        CHECK(format_info->visible_in_menu);
+        CHECK(format_info->can_render);
+        CHECK(format_info->can_scan);
+        CHECK(format_info->can_analyze);
+    }
+
+    auto types = ida::data::custom_data_types(2, 2);
+    CHECK_OK(types);
+    if (types) {
+        CHECK(std::any_of(types->begin(), types->end(), [&](const auto& info) {
+            return info.id == *fixed_type;
+        }));
+    }
+    CHECK_ERR(ida::data::custom_data_types(3, 2),
+              ida::ErrorCategory::Validation);
+
+    CHECK_OK(ida::data::attach_custom_data_format(*fixed_type, *format));
+    CHECK_ERR(ida::data::attach_custom_data_format(*fixed_type, *format),
+              ida::ErrorCategory::Conflict);
+    auto attached = ida::data::is_custom_data_format_attached(
+        *fixed_type, *format);
+    CHECK_OK(attached);
+    if (attached)
+        CHECK(*attached);
+    auto formats = ida::data::custom_data_formats(*fixed_type);
+    CHECK_OK(formats);
+    if (formats) {
+        CHECK(formats->size() == 1);
+        if (!formats->empty())
+            CHECK(formats->front().id == *format);
+    }
+
+    CHECK_OK(ida::data::attach_custom_data_format_to_standard_types(*format));
+    auto standard_attached =
+        ida::data::is_custom_data_format_attached_to_standard_types(*format);
+    CHECK_OK(standard_attached);
+    if (standard_attached)
+        CHECK(*standard_attached);
+    auto standard_formats = ida::data::standard_custom_data_formats();
+    CHECK_OK(standard_formats);
+    if (standard_formats) {
+        CHECK(std::any_of(standard_formats->begin(), standard_formats->end(),
+                          [&](const auto& info) {
+            return info.id == *format;
+        }));
+    }
+    CHECK_OK(ida::data::detach_custom_data_format_from_standard_types(*format));
+    CHECK_ERR(ida::data::detach_custom_data_format_from_standard_types(*format),
+              ida::ErrorCategory::NotFound);
+
+    ida::data::CustomDataFormatContext context;
+    context.address = base;
+    context.operand_index = -1;
+    context.type_id = *fixed_type;
+    const std::vector<std::uint8_t> value{0x34, 0x12};
+    auto rendered = ida::data::render_custom_data(*format, value, context);
+    CHECK_OK(rendered);
+    if (rendered)
+        CHECK(*rendered == "u16:4660@" + std::to_string(base));
+    CHECK(render_calls == 1);
+    auto scanned = ida::data::scan_custom_data(*format, "4660", context);
+    CHECK_OK(scanned);
+    if (scanned)
+        CHECK(*scanned == value);
+    CHECK(scan_calls == 1);
+    CHECK_ERR(ida::data::scan_custom_data(*format, "invalid", context),
+              ida::ErrorCategory::SdkFailure);
+    CHECK(scan_calls == 2);
+    CHECK_OK(ida::data::analyze_custom_data(*format, context));
+    CHECK(analyze_calls == 1);
+
+    CHECK_OK(ida::data::define_custom(base, 2, *fixed_type, *format));
+    CHECK(creation_filter_calls == 1);
+    auto fixed_item = ida::data::custom_data_at(base);
+    CHECK_OK(fixed_item);
+    if (fixed_item) {
+        CHECK(fixed_item->type_id == *fixed_type);
+        CHECK(fixed_item->format_id == *format);
+        CHECK(fixed_item->byte_length == 2);
+    }
+    CHECK_OK(ida::data::undefine(base, 2));
+    CHECK_ERR(ida::data::custom_data_at(base), ida::ErrorCategory::NotFound);
+
+    auto fixed_size = ida::data::custom_data_item_size(*fixed_type, base, 2);
+    CHECK_OK(fixed_size);
+    if (fixed_size)
+        CHECK(*fixed_size == 2);
+    CHECK_ERR(ida::data::custom_data_item_size(*fixed_type, base, 1),
+              ida::ErrorCategory::Validation);
+    CHECK_OK(ida::data::define_custom_inferred(
+        base, *fixed_type, *format, 2));
+    CHECK_OK(ida::data::undefine(base, 2));
+
+    ida::data::CustomDataTypeDefinition variable_definition;
+    variable_definition.name = "idax_p31_pascal_data";
+    variable_definition.value_size = 1;
+    variable_definition.calculate_size =
+        [&](ida::Address address, ida::AddressSize maximum_size) {
+            ++size_callback_calls;
+            auto length = ida::data::read_byte(address);
+            if (!length)
+                return ida::AddressSize{0};
+            const ida::AddressSize size = static_cast<ida::AddressSize>(*length) + 1;
+            return size <= maximum_size ? size : ida::AddressSize{0};
+        };
+    auto variable_type =
+        ida::data::register_custom_data_type(variable_definition);
+    CHECK_OK(variable_type);
+    if (!variable_type)
+        return;
+    cleanup.variable_type = *variable_type;
+    CHECK_OK(ida::data::attach_custom_data_format(*variable_type, *format));
+
+    const std::vector<std::uint8_t> pascal{3, 'a', 'b', 'c'};
+    CHECK_OK(ida::data::write_bytes(base, pascal));
+    auto variable_size = ida::data::custom_data_item_size(
+        *variable_type, base, 4);
+    CHECK_OK(variable_size);
+    if (variable_size)
+        CHECK(*variable_size == 4);
+    CHECK(size_callback_calls == 1);
+    CHECK_ERR(ida::data::custom_data_item_size(*variable_type, base, 3),
+              ida::ErrorCategory::SdkFailure);
+    CHECK(size_callback_calls == 2);
+    const int calls_before_creation = size_callback_calls;
+    CHECK_OK(ida::data::define_custom_inferred(
+        base, *variable_type, *format, 4));
+    CHECK(size_callback_calls > calls_before_creation);
+    auto variable_item = ida::data::custom_data_at(base);
+    CHECK_OK(variable_item);
+    if (variable_item)
+        CHECK(variable_item->byte_length == 4);
+    CHECK_OK(ida::data::undefine(base, 4));
+
+    CHECK_OK(ida::data::detach_custom_data_format(*fixed_type, *format));
+    CHECK_ERR(ida::data::detach_custom_data_format(*fixed_type, *format),
+              ida::ErrorCategory::NotFound);
+    CHECK_OK(ida::data::attach_custom_data_format(*fixed_type, *format));
+
+    CHECK_OK(ida::data::unregister_custom_data_type(*fixed_type));
+    cleanup.fixed_type = {};
+    CHECK_ERR(ida::data::find_custom_data_type(fixed_definition.name),
+              ida::ErrorCategory::NotFound);
+    auto format_survives = ida::data::custom_data_format(*format);
+    CHECK_OK(format_survives);
+
+    CHECK_OK(ida::data::unregister_custom_data_type(*variable_type));
+    cleanup.variable_type = {};
+    CHECK_OK(ida::data::unregister_custom_data_format(*format));
+    cleanup.format = {};
+    CHECK_ERR(ida::data::find_custom_data_format(format_definition.name),
+              ida::ErrorCategory::NotFound);
+}
+
 void test_error_paths() {
     std::cout << "--- mutation safety error paths ---\n";
 
@@ -399,6 +695,7 @@ int main(int argc, char* argv[]) {
 
     test_define_undefine_unknown();
     test_element_definition_units();
+    test_custom_data_lifecycle();
     test_error_paths();
 
     CHECK_OK(ida::database::close(false));

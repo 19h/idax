@@ -1824,6 +1824,88 @@ int parse_typed_value(const IdaxDataTypedValue* in, ida::data::TypedValue* out) 
     return 0;
 }
 
+void free_custom_type_info_fields(IdaxCustomDataTypeInfo* info) {
+    if (info == nullptr)
+        return;
+    std::free(info->name);
+    std::free(info->menu_name);
+    std::free(info->hotkey);
+    std::free(info->assembler_keyword);
+    info->name = nullptr;
+    info->menu_name = nullptr;
+    info->hotkey = nullptr;
+    info->assembler_keyword = nullptr;
+}
+
+bool fill_custom_type_info(IdaxCustomDataTypeInfo* out,
+                           const ida::data::CustomDataTypeInfo& info) {
+    std::memset(out, 0, sizeof(*out));
+    out->id = info.id.value;
+    out->name = dup_string(info.name);
+    out->menu_name = dup_string(info.menu_name);
+    out->hotkey = dup_string(info.hotkey);
+    out->assembler_keyword = dup_string(info.assembler_keyword);
+    if (out->name == nullptr || out->menu_name == nullptr
+        || out->hotkey == nullptr || out->assembler_keyword == nullptr) {
+        free_custom_type_info_fields(out);
+        return false;
+    }
+    out->value_size = info.value_size;
+    out->allow_duplicates = info.allow_duplicates ? 1 : 0;
+    out->visible_in_menu = info.visible_in_menu ? 1 : 0;
+    out->has_creation_filter = info.has_creation_filter ? 1 : 0;
+    out->variable_size = info.variable_size ? 1 : 0;
+    return true;
+}
+
+void free_custom_format_info_fields(IdaxCustomDataFormatInfo* info) {
+    if (info == nullptr)
+        return;
+    std::free(info->name);
+    std::free(info->menu_name);
+    std::free(info->hotkey);
+    info->name = nullptr;
+    info->menu_name = nullptr;
+    info->hotkey = nullptr;
+}
+
+bool fill_custom_format_info(IdaxCustomDataFormatInfo* out,
+                             const ida::data::CustomDataFormatInfo& info) {
+    std::memset(out, 0, sizeof(*out));
+    out->id = info.id.value;
+    out->name = dup_string(info.name);
+    out->menu_name = dup_string(info.menu_name);
+    out->hotkey = dup_string(info.hotkey);
+    if (out->name == nullptr || out->menu_name == nullptr
+        || out->hotkey == nullptr) {
+        free_custom_format_info_fields(out);
+        return false;
+    }
+    out->value_size = info.value_size;
+    out->text_width = info.text_width;
+    out->visible_in_menu = info.visible_in_menu ? 1 : 0;
+    out->can_render = info.can_render ? 1 : 0;
+    out->can_scan = info.can_scan ? 1 : 0;
+    out->can_analyze = info.can_analyze ? 1 : 0;
+    return true;
+}
+
+std::string consume_callback_buffer(
+        IdaxCustomDataCallbackBuffer* buffer,
+        void* user_data,
+        IdaxCustomDataReleaseBufferCallback release) {
+    std::string result;
+    if (buffer->data != nullptr && buffer->length != 0) {
+        result.assign(reinterpret_cast<const char*>(buffer->data),
+                      buffer->length);
+    }
+    if (buffer->data != nullptr)
+        release(user_data, buffer->data, buffer->length);
+    buffer->data = nullptr;
+    buffer->length = 0;
+    return result;
+}
+
 } // anonymous namespace
 
 int idax_data_read_byte(uint64_t ea, uint8_t* out) {
@@ -2015,6 +2097,457 @@ int idax_data_define_string(uint64_t ea, uint64_t length, int32_t string_type) {
 
 int idax_data_define_struct(uint64_t ea, uint64_t length, uint64_t structure_id) {
     RETURN_STATUS(ida::data::define_struct(ea, length, structure_id));
+}
+
+int idax_data_register_custom_type(
+        const IdaxCustomDataTypeDefinition* definition,
+        uint16_t* out_id) {
+    clear_error();
+    if (definition == nullptr || out_id == nullptr || definition->name == nullptr)
+        return fail(ida::Error::validation("Custom data type pointer is null"));
+    ida::data::CustomDataTypeDefinition parsed;
+    parsed.name = definition->name;
+    parsed.menu_name = definition->menu_name == nullptr ? "" : definition->menu_name;
+    parsed.hotkey = definition->hotkey == nullptr ? "" : definition->hotkey;
+    parsed.assembler_keyword = definition->assembler_keyword == nullptr
+        ? "" : definition->assembler_keyword;
+    parsed.value_size = definition->value_size;
+    parsed.allow_duplicates = definition->allow_duplicates != 0;
+    if (definition->may_create_at != nullptr) {
+        const auto callback = definition->may_create_at;
+        void* const user_data = definition->user_data;
+        parsed.may_create_at = [callback, user_data](
+                ida::Address address, ida::AddressSize byte_length) {
+            return callback(user_data, address, byte_length) != 0;
+        };
+    }
+    if (definition->calculate_size != nullptr) {
+        const auto callback = definition->calculate_size;
+        void* const user_data = definition->user_data;
+        parsed.calculate_size = [callback, user_data](
+                ida::Address address, ida::AddressSize maximum_size) {
+            return static_cast<ida::AddressSize>(
+                callback(user_data, address, maximum_size));
+        };
+    }
+    auto result = ida::data::register_custom_data_type(parsed);
+    if (!result)
+        return fail(result.error());
+    *out_id = result->value;
+    return 0;
+}
+
+int idax_data_unregister_custom_type(uint16_t type_id) {
+    RETURN_STATUS(ida::data::unregister_custom_data_type({type_id}));
+}
+
+int idax_data_custom_type(uint16_t type_id, IdaxCustomDataTypeInfo* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Custom data type output is null"));
+    auto result = ida::data::custom_data_type({type_id});
+    if (!result)
+        return fail(result.error());
+    if (!fill_custom_type_info(out, *result))
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int idax_data_find_custom_type(const char* name, uint16_t* out_id) {
+    clear_error();
+    if (name == nullptr || out_id == nullptr)
+        return fail(ida::Error::validation("Custom data type lookup pointer is null"));
+    auto result = ida::data::find_custom_data_type(name);
+    if (!result)
+        return fail(result.error());
+    *out_id = result->value;
+    return 0;
+}
+
+int idax_data_custom_types(uint64_t minimum_size,
+                           uint64_t maximum_size,
+                           IdaxCustomDataTypeInfo** out,
+                           size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Custom data type list output is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::data::custom_data_types(minimum_size, maximum_size);
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+    auto* infos = static_cast<IdaxCustomDataTypeInfo*>(
+        std::calloc(result->size(), sizeof(IdaxCustomDataTypeInfo)));
+    if (infos == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t i = 0; i < result->size(); ++i) {
+        if (!fill_custom_type_info(&infos[i], (*result)[i])) {
+            for (size_t j = 0; j < i; ++j)
+                free_custom_type_info_fields(&infos[j]);
+            std::free(infos);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    *out = infos;
+    *count = result->size();
+    return 0;
+}
+
+void idax_data_custom_type_info_free(IdaxCustomDataTypeInfo* info) {
+    free_custom_type_info_fields(info);
+}
+
+void idax_data_custom_type_infos_free(IdaxCustomDataTypeInfo* infos,
+                                      size_t count) {
+    if (infos == nullptr)
+        return;
+    for (size_t i = 0; i < count; ++i)
+        free_custom_type_info_fields(&infos[i]);
+    std::free(infos);
+}
+
+int idax_data_register_custom_format(
+        const IdaxCustomDataFormatDefinition* definition,
+        uint16_t* out_id) {
+    clear_error();
+    if (definition == nullptr || out_id == nullptr || definition->name == nullptr)
+        return fail(ida::Error::validation("Custom data format pointer is null"));
+    if ((definition->render != nullptr || definition->scan != nullptr)
+        && definition->release_buffer == nullptr) {
+        return fail(ida::Error::validation(
+            "Custom data format buffer release callback is required"));
+    }
+    ida::data::CustomDataFormatDefinition parsed;
+    parsed.name = definition->name;
+    parsed.menu_name = definition->menu_name == nullptr ? "" : definition->menu_name;
+    parsed.hotkey = definition->hotkey == nullptr ? "" : definition->hotkey;
+    parsed.value_size = definition->value_size;
+    parsed.text_width = definition->text_width;
+    if (definition->render != nullptr) {
+        const auto callback = definition->render;
+        const auto release = definition->release_buffer;
+        void* const user_data = definition->user_data;
+        parsed.render = [callback, release, user_data](
+                std::span<const std::uint8_t> value,
+                const ida::data::CustomDataFormatContext& context)
+                -> ida::Result<std::string> {
+            IdaxCustomDataCallbackBuffer output{};
+            IdaxCustomDataCallbackBuffer error{};
+            const int ok = callback(
+                user_data, value.data(), value.size(), context.address,
+                context.operand_index, context.type_id.value, &output, &error);
+            const bool invalid_output = output.data == nullptr && output.length != 0;
+            const bool invalid_error = error.data == nullptr && error.length != 0;
+            std::string output_text = consume_callback_buffer(
+                &output, user_data, release);
+            std::string error_text = consume_callback_buffer(
+                &error, user_data, release);
+            if (invalid_output || invalid_error) {
+                return std::unexpected(ida::Error::internal(
+                    "Custom data render callback returned an invalid buffer"));
+            }
+            if (ok == 0) {
+                return std::unexpected(ida::Error::validation(
+                    error_text.empty() ? "Custom data render rejected the value"
+                                       : error_text));
+            }
+            return output_text;
+        };
+    }
+    if (definition->scan != nullptr) {
+        const auto callback = definition->scan;
+        const auto release = definition->release_buffer;
+        void* const user_data = definition->user_data;
+        parsed.scan = [callback, release, user_data](
+                std::string_view text,
+                const ida::data::CustomDataFormatContext& context)
+                -> ida::Result<std::vector<std::uint8_t>> {
+            const std::string owned_text(text);
+            IdaxCustomDataCallbackBuffer output{};
+            IdaxCustomDataCallbackBuffer error{};
+            const int ok = callback(user_data, owned_text.c_str(),
+                                    context.address, context.operand_index,
+                                    &output, &error);
+            const bool invalid_output = output.data == nullptr && output.length != 0;
+            const bool invalid_error = error.data == nullptr && error.length != 0;
+            std::string output_bytes = consume_callback_buffer(
+                &output, user_data, release);
+            std::string error_text = consume_callback_buffer(
+                &error, user_data, release);
+            if (invalid_output || invalid_error) {
+                return std::unexpected(ida::Error::internal(
+                    "Custom data scan callback returned an invalid buffer"));
+            }
+            if (ok == 0) {
+                return std::unexpected(ida::Error::validation(
+                    error_text.empty() ? "Custom data scan rejected the text"
+                                       : error_text));
+            }
+            return std::vector<std::uint8_t>(output_bytes.begin(),
+                                             output_bytes.end());
+        };
+    }
+    if (definition->analyze != nullptr) {
+        const auto callback = definition->analyze;
+        void* const user_data = definition->user_data;
+        parsed.analyze = [callback, user_data](
+                const ida::data::CustomDataFormatContext& context) {
+            callback(user_data, context.address, context.operand_index);
+        };
+    }
+    auto result = ida::data::register_custom_data_format(parsed);
+    if (!result)
+        return fail(result.error());
+    *out_id = result->value;
+    return 0;
+}
+
+int idax_data_unregister_custom_format(uint16_t format_id) {
+    RETURN_STATUS(ida::data::unregister_custom_data_format({format_id}));
+}
+
+int idax_data_custom_format(uint16_t format_id,
+                            IdaxCustomDataFormatInfo* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Custom data format output is null"));
+    auto result = ida::data::custom_data_format({format_id});
+    if (!result)
+        return fail(result.error());
+    if (!fill_custom_format_info(out, *result))
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int idax_data_find_custom_format(const char* name, uint16_t* out_id) {
+    clear_error();
+    if (name == nullptr || out_id == nullptr)
+        return fail(ida::Error::validation("Custom data format lookup pointer is null"));
+    auto result = ida::data::find_custom_data_format(name);
+    if (!result)
+        return fail(result.error());
+    *out_id = result->value;
+    return 0;
+}
+
+namespace {
+
+int copy_custom_format_infos(
+        ida::Result<std::vector<ida::data::CustomDataFormatInfo>> result,
+        IdaxCustomDataFormatInfo** out,
+        size_t* count) {
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+    auto* infos = static_cast<IdaxCustomDataFormatInfo*>(
+        std::calloc(result->size(), sizeof(IdaxCustomDataFormatInfo)));
+    if (infos == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t i = 0; i < result->size(); ++i) {
+        if (!fill_custom_format_info(&infos[i], (*result)[i])) {
+            for (size_t j = 0; j < i; ++j)
+                free_custom_format_info_fields(&infos[j]);
+            std::free(infos);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    *out = infos;
+    *count = result->size();
+    return 0;
+}
+
+} // anonymous namespace
+
+int idax_data_custom_formats(uint16_t type_id,
+                             IdaxCustomDataFormatInfo** out,
+                             size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Custom data format list output is null"));
+    *out = nullptr;
+    *count = 0;
+    return copy_custom_format_infos(
+        ida::data::custom_data_formats({type_id}), out, count);
+}
+
+int idax_data_standard_custom_formats(IdaxCustomDataFormatInfo** out,
+                                      size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Custom data format list output is null"));
+    *out = nullptr;
+    *count = 0;
+    return copy_custom_format_infos(
+        ida::data::standard_custom_data_formats(), out, count);
+}
+
+void idax_data_custom_format_info_free(IdaxCustomDataFormatInfo* info) {
+    free_custom_format_info_fields(info);
+}
+
+void idax_data_custom_format_infos_free(IdaxCustomDataFormatInfo* infos,
+                                        size_t count) {
+    if (infos == nullptr)
+        return;
+    for (size_t i = 0; i < count; ++i)
+        free_custom_format_info_fields(&infos[i]);
+    std::free(infos);
+}
+
+int idax_data_attach_custom_format(uint16_t type_id, uint16_t format_id) {
+    RETURN_STATUS(ida::data::attach_custom_data_format(
+        {type_id}, {format_id}));
+}
+
+int idax_data_detach_custom_format(uint16_t type_id, uint16_t format_id) {
+    RETURN_STATUS(ida::data::detach_custom_data_format(
+        {type_id}, {format_id}));
+}
+
+int idax_data_is_custom_format_attached(uint16_t type_id,
+                                        uint16_t format_id,
+                                        int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Attachment output is null"));
+    auto result = ida::data::is_custom_data_format_attached(
+        {type_id}, {format_id});
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_data_attach_custom_format_to_standard_types(uint16_t format_id) {
+    RETURN_STATUS(ida::data::attach_custom_data_format_to_standard_types(
+        {format_id}));
+}
+
+int idax_data_detach_custom_format_from_standard_types(uint16_t format_id) {
+    RETURN_STATUS(ida::data::detach_custom_data_format_from_standard_types(
+        {format_id}));
+}
+
+int idax_data_is_custom_format_attached_to_standard_types(
+        uint16_t format_id,
+        int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Attachment output is null"));
+    auto result = ida::data::is_custom_data_format_attached_to_standard_types(
+        {format_id});
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_data_custom_item_size(uint16_t type_id,
+                               uint64_t address,
+                               uint64_t maximum_size,
+                               uint64_t* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Custom item size output is null"));
+    auto result = ida::data::custom_data_item_size(
+        {type_id}, address, maximum_size);
+    if (!result)
+        return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_data_define_custom(uint64_t address,
+                            uint64_t byte_length,
+                            uint16_t type_id,
+                            uint16_t format_id) {
+    RETURN_STATUS(ida::data::define_custom(
+        address, byte_length, {type_id}, {format_id}));
+}
+
+int idax_data_define_custom_inferred(uint64_t address,
+                                     uint16_t type_id,
+                                     uint16_t format_id,
+                                     uint64_t maximum_size) {
+    RETURN_STATUS(ida::data::define_custom_inferred(
+        address, {type_id}, {format_id}, maximum_size));
+}
+
+int idax_data_custom_at(uint64_t address, IdaxCustomDataItemInfo* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Custom item output is null"));
+    auto result = ida::data::custom_data_at(address);
+    if (!result)
+        return fail(result.error());
+    out->type_id = result->type_id.value;
+    out->format_id = result->format_id.value;
+    out->byte_length = result->byte_length;
+    return 0;
+}
+
+int idax_data_render_custom(uint16_t format_id,
+                            const uint8_t* value,
+                            size_t value_length,
+                            uint64_t address,
+                            int operand_index,
+                            uint16_t type_id,
+                            char** out) {
+    clear_error();
+    if (out == nullptr || (value == nullptr && value_length != 0))
+        return fail(ida::Error::validation("Custom render pointer is null"));
+    ida::data::CustomDataFormatContext context;
+    context.address = address;
+    context.operand_index = operand_index;
+    context.type_id.value = type_id;
+    auto result = ida::data::render_custom_data(
+        {format_id}, std::span<const uint8_t>(value, value_length), context);
+    if (!result)
+        return fail(result.error());
+    *out = dup_string(*result);
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int idax_data_scan_custom(uint16_t format_id,
+                          const char* text,
+                          uint64_t address,
+                          int operand_index,
+                          uint8_t** out,
+                          size_t* out_length) {
+    clear_error();
+    if (text == nullptr || out == nullptr || out_length == nullptr)
+        return fail(ida::Error::validation("Custom scan pointer is null"));
+    ida::data::CustomDataFormatContext context;
+    context.address = address;
+    context.operand_index = operand_index;
+    auto result = ida::data::scan_custom_data({format_id}, text, context);
+    if (!result)
+        return fail(result.error());
+    *out_length = result->size();
+    *out = nullptr;
+    if (result->empty())
+        return 0;
+    *out = static_cast<uint8_t*>(std::malloc(result->size()));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    std::memcpy(*out, result->data(), result->size());
+    return 0;
+}
+
+int idax_data_analyze_custom(uint16_t format_id,
+                             uint64_t address,
+                             int operand_index,
+                             uint16_t type_id) {
+    ida::data::CustomDataFormatContext context;
+    context.address = address;
+    context.operand_index = operand_index;
+    context.type_id.value = type_id;
+    RETURN_STATUS(ida::data::analyze_custom_data({format_id}, context));
 }
 
 int idax_data_undefine(uint64_t ea, uint64_t count) {

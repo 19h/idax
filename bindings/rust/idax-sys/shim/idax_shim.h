@@ -495,6 +495,139 @@ int idax_data_define_float(uint64_t ea, uint64_t count);
 int idax_data_define_double(uint64_t ea, uint64_t count);
 int idax_data_define_string(uint64_t ea, uint64_t length, int32_t string_type);
 int idax_data_define_struct(uint64_t ea, uint64_t length, uint64_t structure_id);
+
+typedef int (*IdaxCustomDataMayCreateCallback)(void* user_data,
+                                                uint64_t address,
+                                                uint64_t byte_length);
+typedef uint64_t (*IdaxCustomDataSizeCallback)(void* user_data,
+                                               uint64_t address,
+                                               uint64_t maximum_size);
+
+typedef struct IdaxCustomDataCallbackBuffer {
+    uint8_t* data;
+    size_t   length;
+} IdaxCustomDataCallbackBuffer;
+
+typedef void (*IdaxCustomDataReleaseBufferCallback)(
+    void* user_data, uint8_t* data, size_t length);
+typedef int (*IdaxCustomDataRenderCallback)(
+    void* user_data, const uint8_t* value, size_t value_length,
+    uint64_t address, int operand_index, uint16_t type_id,
+    IdaxCustomDataCallbackBuffer* output,
+    IdaxCustomDataCallbackBuffer* error);
+typedef int (*IdaxCustomDataScanCallback)(
+    void* user_data, const char* text, uint64_t address, int operand_index,
+    IdaxCustomDataCallbackBuffer* output,
+    IdaxCustomDataCallbackBuffer* error);
+typedef void (*IdaxCustomDataAnalyzeCallback)(
+    void* user_data, uint64_t address, int operand_index);
+
+typedef struct IdaxCustomDataTypeDefinition {
+    const char* name;
+    const char* menu_name;
+    const char* hotkey;
+    const char* assembler_keyword;
+    uint64_t value_size;
+    int allow_duplicates;
+    void* user_data;
+    IdaxCustomDataMayCreateCallback may_create_at;
+    IdaxCustomDataSizeCallback calculate_size;
+} IdaxCustomDataTypeDefinition;
+
+typedef struct IdaxCustomDataFormatDefinition {
+    const char* name;
+    const char* menu_name;
+    const char* hotkey;
+    uint64_t value_size;
+    int32_t text_width;
+    void* user_data;
+    IdaxCustomDataRenderCallback render;
+    IdaxCustomDataScanCallback scan;
+    IdaxCustomDataAnalyzeCallback analyze;
+    IdaxCustomDataReleaseBufferCallback release_buffer;
+} IdaxCustomDataFormatDefinition;
+
+typedef struct IdaxCustomDataTypeInfo {
+    uint16_t id;
+    char* name;
+    char* menu_name;
+    char* hotkey;
+    char* assembler_keyword;
+    uint64_t value_size;
+    int allow_duplicates;
+    int visible_in_menu;
+    int has_creation_filter;
+    int variable_size;
+} IdaxCustomDataTypeInfo;
+
+typedef struct IdaxCustomDataFormatInfo {
+    uint16_t id;
+    char* name;
+    char* menu_name;
+    char* hotkey;
+    uint64_t value_size;
+    int32_t text_width;
+    int visible_in_menu;
+    int can_render;
+    int can_scan;
+    int can_analyze;
+} IdaxCustomDataFormatInfo;
+
+typedef struct IdaxCustomDataItemInfo {
+    uint16_t type_id;
+    uint16_t format_id;
+    uint64_t byte_length;
+} IdaxCustomDataItemInfo;
+
+int idax_data_register_custom_type(const IdaxCustomDataTypeDefinition* definition,
+                                   uint16_t* out_id);
+int idax_data_unregister_custom_type(uint16_t type_id);
+int idax_data_custom_type(uint16_t type_id, IdaxCustomDataTypeInfo* out);
+int idax_data_find_custom_type(const char* name, uint16_t* out_id);
+int idax_data_custom_types(uint64_t minimum_size, uint64_t maximum_size,
+                           IdaxCustomDataTypeInfo** out, size_t* count);
+void idax_data_custom_type_info_free(IdaxCustomDataTypeInfo* info);
+void idax_data_custom_type_infos_free(IdaxCustomDataTypeInfo* infos,
+                                      size_t count);
+
+int idax_data_register_custom_format(
+    const IdaxCustomDataFormatDefinition* definition, uint16_t* out_id);
+int idax_data_unregister_custom_format(uint16_t format_id);
+int idax_data_custom_format(uint16_t format_id, IdaxCustomDataFormatInfo* out);
+int idax_data_find_custom_format(const char* name, uint16_t* out_id);
+int idax_data_custom_formats(uint16_t type_id,
+                             IdaxCustomDataFormatInfo** out, size_t* count);
+int idax_data_standard_custom_formats(IdaxCustomDataFormatInfo** out,
+                                      size_t* count);
+void idax_data_custom_format_info_free(IdaxCustomDataFormatInfo* info);
+void idax_data_custom_format_infos_free(IdaxCustomDataFormatInfo* infos,
+                                        size_t count);
+
+int idax_data_attach_custom_format(uint16_t type_id, uint16_t format_id);
+int idax_data_detach_custom_format(uint16_t type_id, uint16_t format_id);
+int idax_data_is_custom_format_attached(uint16_t type_id, uint16_t format_id,
+                                        int* out);
+int idax_data_attach_custom_format_to_standard_types(uint16_t format_id);
+int idax_data_detach_custom_format_from_standard_types(uint16_t format_id);
+int idax_data_is_custom_format_attached_to_standard_types(uint16_t format_id,
+                                                          int* out);
+
+int idax_data_custom_item_size(uint16_t type_id, uint64_t address,
+                               uint64_t maximum_size, uint64_t* out);
+int idax_data_define_custom(uint64_t address, uint64_t byte_length,
+                            uint16_t type_id, uint16_t format_id);
+int idax_data_define_custom_inferred(uint64_t address, uint16_t type_id,
+                                     uint16_t format_id,
+                                     uint64_t maximum_size);
+int idax_data_custom_at(uint64_t address, IdaxCustomDataItemInfo* out);
+int idax_data_render_custom(uint16_t format_id, const uint8_t* value,
+                            size_t value_length, uint64_t address,
+                            int operand_index, uint16_t type_id, char** out);
+int idax_data_scan_custom(uint16_t format_id, const char* text,
+                          uint64_t address, int operand_index,
+                          uint8_t** out, size_t* out_length);
+int idax_data_analyze_custom(uint16_t format_id, uint64_t address,
+                             int operand_index, uint16_t type_id);
 int idax_data_undefine(uint64_t ea, uint64_t count);
 
 int idax_data_find_binary_pattern(uint64_t start, uint64_t end,

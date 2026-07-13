@@ -22,6 +22,13 @@ This section captures the intended public API semantics at a concrete level so i
   to the active assembler and both use the active processor's tbyte width
 - Variable-width define family: `define_string`, `define_struct`, `undefine`;
   lengths/counts remain byte-based
+- Custom data lifecycle: `CustomDataTypeId`, `CustomDataFormatId`, owned
+  type/format definitions, copied metadata snapshots, register/unregister/find/list,
+  custom/standard attachment queries, fixed or callback-derived item sizing,
+  explicit/inferred creation, and stored item identity
+- Custom format invocation: `render_custom_data`, `scan_custom_data`, and
+  `analyze_custom_data` with opaque `CustomDataFormatContext`; callback state is
+  retained until explicit unregister and exceptions do not cross the SDK ABI
 - Search helpers: binary pattern and typed immediate searches
 
 ### 17.3 `ida::segment`
