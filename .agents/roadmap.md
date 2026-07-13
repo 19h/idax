@@ -134,3 +134,12 @@ Current overall phase status:
 - [x] P26.2 Preserve filtered-test selection, skip behavior without `IDADIR`, panic reporting, and deterministic one-session cleanup.
 - [x] P26.3 Validate filtered and complete real-IDA Rust integration runs on the current macOS IDA 9.3 host. (Formerly stalled filter passes 1/1; complete execution terminates at 82/83 with independent comment-append defect F374 promoted to Phase 27.)
 - [x] P26.4 Synchronize binding documentation, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.
+
+---
+
+### Phase 27 TODO Action Items (Deterministic Comment Append)
+
+- [x] P27.1 Implement observable newline-delimited append semantics through wrapper-level read/compose/write behavior.
+- [x] P27.2 Strengthen C++, Node, and Rust real-IDA assertions at function-start comment storage.
+- [x] P27.3 Validate focused and complete C++, Node real-IDA, Rust filtered, and complete Rust real-IDA suites.
+- [x] P27.4 Synchronize API documentation, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.

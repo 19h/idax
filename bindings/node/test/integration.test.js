@@ -314,6 +314,17 @@ describe('Comments', () => {
 
         idax.comment.remove(addr, true);
     });
+
+    it('should append a new line at a function start', () => {
+        const funcs = idax.function.all();
+        const addr = funcs[0].start;
+
+        idax.comment.set(addr, 'first', false);
+        idax.comment.append(addr, ' second', false);
+        expect(idax.comment.get(addr, false)).toBe('first\n second');
+
+        idax.comment.remove(addr, false);
+    });
 });
 
 // ── Cross-References ────────────────────────────────────────────────────

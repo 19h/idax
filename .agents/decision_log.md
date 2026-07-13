@@ -1034,3 +1034,9 @@
   - **19.27.2. Rationale:** Idalib requires calls on the initializing thread, whereas Rust libtest executes test functions on workers even at `--test-threads=1`. Live sampling confirmed a deadlock between worker-side IDAPython warning dispatch and libtest's parked main thread.
   - **19.27.3. Compatibility:** The runner retains substring filtering, exact matches, skip patterns, platform ignores, `--list`, graceful no-`IDADIR` skips, per-case panic capture, a nonzero exit on failures, and summary output. Pure Rust unit targets retain the standard test harness.
   - **19.27.4. Rejected alternatives:** Serial libtest execution, initializing on main and operating on workers, suppressing selected plugins, or moving IDA work to a dedicated non-main thread do not satisfy the documented same-thread lifecycle constraint or remove synchronous main-thread dispatch risk.
+
+- **19.28. Decision D-DETERMINISTIC-COMMENT-APPEND**: Compose appended comments inside idax
+  - **19.28.1. Decision:** Define append as `text` when no non-empty comment exists and `existing + "\n" + text` otherwise, then commit the result through the existing `set` path.
+  - **19.28.2. Rationale:** IDA 9.3's `append_cmt` can return success at a function start without making the new text observable through `get_cmt`. Wrapper-level composition preserves the intuitive append contract across function-record and ordinary item storage.
+  - **19.28.3. Boundary:** The operation is a single-thread-oriented read/modify/write sequence consistent with idalib and IDA SDK threading constraints. Mutations performed outside idax between those calls are outside the wrapper contract.
+  - **19.28.4. Error behavior:** The wrapper preserves `set_cmt` failure mapping and adds pre-allocation validation for impossible composed sizes.

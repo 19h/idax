@@ -237,12 +237,16 @@ void test_comment_behaviors() {
     CHECK_OK(ida::comment::clear_anterior(ea));
     CHECK_OK(ida::comment::clear_posterior(ea));
 
+    CHECK_OK(ida::comment::append(ea, "idax created by append"));
+    CHECK_VAL(ida::comment::get(ea, false), *_r == "idax created by append");
+    CHECK_OK(ida::comment::remove(ea, false));
+
     CHECK_OK(ida::comment::set(ea, "idax regular"));
     CHECK_OK(ida::comment::append(ea, " +append"));
     auto regular = ida::comment::get(ea, false);
     CHECK_OK(regular);
     if (regular) {
-        CHECK(regular->find("idax regular") != std::string::npos);
+        CHECK(*regular == "idax regular\n +append");
     }
 
     CHECK_OK(ida::comment::set(ea, "idax repeatable", true));

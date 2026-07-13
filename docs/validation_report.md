@@ -661,3 +661,14 @@ tracked in `docs/compatibility_matrix.md`.
   remaining failure is the independent observable comment-append defect F374,
   promoted to a separate semantic-hardening item. Compile-only, `--list`, and
   no-`IDADIR` filtered-skip modes also pass.
+
+- 2026-07-13 Phase 27 deterministic comment append:
+  Replaced direct `append_cmt` dispatch with a bounded wrapper-level
+  read/compose/write contract: append creates the comment without a leading
+  newline when absent and writes `existing + "\n" + text` otherwise. Exact
+  function-start and repeated data-item assertions now pass. Focused C++
+  comment targets pass 2/2; complete CTest passes 25/25 in 28.42 s. The Rust
+  filtered regression passes 1/1 and the complete real-IDA suite now passes
+  83/83; Rust library tests pass 127/127. The Node addon rebuilds, unit tests
+  pass 184/184, and its real-IDA integration suite passes 66/66. The fixture
+  IDB was restored after runtime mutation tests.

@@ -1053,7 +1053,7 @@ export namespace comment {
     /** Set the comment at the address. */
     function set(address: Address, text: string, repeatable?: boolean): void;
 
-    /** Append text to the existing comment at the address. */
+    /** Append text as a new line, creating the comment when none exists. */
     function append(address: Address, text: string, repeatable?: boolean): void;
 
     /** Remove the comment at the address. */

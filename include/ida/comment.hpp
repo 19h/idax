@@ -16,6 +16,8 @@ namespace ida::comment {
 
 Result<std::string> get(Address address, bool repeatable = false);
 Status set(Address address, std::string_view text, bool repeatable = false);
+/// Append text as a new line, creating the comment when none exists.
+/// Read-back is deterministic for ordinary and function-start comments.
 Status append(Address address, std::string_view text, bool repeatable = false);
 Status remove(Address address, bool repeatable = false);
 

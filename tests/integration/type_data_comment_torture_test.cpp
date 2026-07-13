@@ -444,9 +444,8 @@ void test_comment_render_flag_variants() {
 void test_comment_append_accumulation() {
     SECTION("comment: append chaining");
 
-    // Use a data address rather than a function start — function-start comments
-    // may be stored in the func_t record rather than the per-address comment
-    // store, which can cause append_cmt / get_cmt asymmetry.
+    // Use a data address to exercise repeated composition independently of
+    // the dedicated function-start assertion in name_comment_xref_search.
     auto addr = find_data_address();
     if (addr == ida::BadAddress) { SKIP("no data address for comment test"); return; }
 
@@ -463,11 +462,7 @@ void test_comment_append_accumulation() {
     auto result = ida::comment::get(addr, false);
     CHECK(result.has_value());
     if (result.has_value()) {
-        // The base text should be present
-        CHECK_CONTAINS(*result, "base");
-        // Note: append_cmt may use newlines or may be a no-op if the comment
-        // store at this address doesn't support accumulation. We verify the
-        // base comment survived rather than asserting growth.
+        CHECK(*result == "base\npart0\npart1\npart2\npart3\npart4");
     }
 
     ida::comment::remove(addr, false);

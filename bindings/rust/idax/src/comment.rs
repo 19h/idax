@@ -61,7 +61,7 @@ pub fn set(address: Address, text: &str, repeatable: bool) -> Status {
     error::int_to_status(ret, "comment::set failed")
 }
 
-/// Append text to existing comment at address.
+/// Append text as a new line, creating the comment when none exists.
 pub fn append(address: Address, text: &str, repeatable: bool) -> Status {
     let c_text = CString::new(text).map_err(|_| Error::validation("invalid text"))?;
     let ret = unsafe { idax_sys::idax_comment_append(address, c_text.as_ptr(), repeatable as i32) };

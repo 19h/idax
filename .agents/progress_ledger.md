@@ -2225,3 +2225,13 @@
   - 16.165.3. Added `mark_dirty` before the microcode-filter callback assertion, making it independent of earlier decompiler-cache population.
   - 16.165.4. Validation evidence: formatting and integration no-run pass; listing enumerates all 83 cases; no-`IDADIR` filtered execution reports 1 ignored/82 filtered; the formerly stalled real-IDA filter passes 1/1; complete real-IDA execution terminates with 82/83 passing and the independent F374 comment defect as its sole failure.
   - 16.165.5. Updated Rust binding instructions, validation report, findings/knowledge, decision 19.27, roadmap, and active-work state. F371 is resolved; F374 remains active for an isolated semantic repair.
+
+- **16.166. Phase 27 Deterministic Comment Append Start**
+  - 16.166.1. Promoted F374 into an isolated cross-language semantic repair after the Phase 26 harness commit was pushed.
+  - 16.166.2. Scope is wrapper-level newline composition, stronger function-start read-back assertions, focused C++ validation, and complete Rust real-IDA recovery.
+
+- **16.167. Phase 27 Deterministic Comment Append Complete**
+  - 16.167.1. Replaced direct `append_cmt` dispatch with bounded read/compose/write semantics: no leading newline for creation and exactly one inserted newline for an existing non-empty comment.
+  - 16.167.2. Strengthened C++ coverage for append-created comments, exact function-start append read-back, and five-step data-comment accumulation; strengthened Node and Rust function-start integration assertions.
+  - 16.167.3. Validation evidence: focused C++ comment targets pass 2/2; complete C++ CTest passes 25/25 in 28.42 s; Rust library tests pass 127/127, filtered comment append passes 1/1, and complete real-IDA integration passes 83/83; Node addon rebuild passes, unit tests pass 184/184, and real-IDA integration passes 66/66.
+  - 16.167.4. Restored `tests/fixtures/simple_appcall_linux64.i64` after mutation tests and synchronized API/binding docs, findings/knowledge, decision 19.28, validation report, roadmap, ledger, and active work.

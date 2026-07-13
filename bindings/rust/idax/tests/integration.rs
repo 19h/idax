@@ -507,11 +507,7 @@ fn comment_append() {
     comment::set(addr, "first", false).unwrap();
     comment::append(addr, " second", false).unwrap();
     let got = comment::get(addr, false).unwrap();
-    assert!(got.contains("first"), "should contain first part: {got}");
-    assert!(
-        got.contains("second"),
-        "should contain appended part: {got}"
-    );
+    assert_eq!(got, "first\n second");
     comment::remove(addr, false).unwrap();
 }
 

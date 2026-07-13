@@ -54,10 +54,21 @@ Status set(Address ea, std::string_view text, bool repeatable) {
 }
 
 Status append(Address ea, std::string_view text, bool repeatable) {
-    qstring qcmt = ida::detail::to_qstring(text);
-    if (!::append_cmt(ea, qcmt.c_str(), repeatable))
-        return std::unexpected(Error::sdk("append_cmt failed", std::to_string(ea)));
-    return ida::ok();
+    qstring existing;
+    const ssize_t existing_length = ::get_cmt(&existing, ea, repeatable);
+    if (existing_length <= 0)
+        return set(ea, text, repeatable);
+
+    std::string combined = ida::detail::to_string(existing);
+    if (combined.size() == combined.max_size()
+        || text.size() > combined.max_size() - combined.size() - 1) {
+        return std::unexpected(Error::validation("Appended comment is too large",
+                                                 std::to_string(ea)));
+    }
+    combined.reserve(combined.size() + 1 + text.size());
+    combined.push_back('\n');
+    combined.append(text);
+    return set(ea, combined, repeatable);
 }
 
 Status remove(Address ea, bool repeatable) {

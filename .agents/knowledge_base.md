@@ -1002,3 +1002,11 @@ regenerate microcode for an already cached function. A callback-validation test
 must call `decompiler::mark_dirty(function_address, false)` after registration
 and before decompilation. This invalidates the cached cfunc and makes filter
 match/apply observations independent of test order.
+
+### 35.34. Deterministic Comment Append Contract [F376]
+Implement `comment::append(address, text, repeatable)` as a wrapper-level
+read/compose/write operation. If no non-empty comment exists, write `text`
+directly. Otherwise write `existing + "\n" + text`. This matches the SDK's
+documented newline model while avoiding `append_cmt`'s function-start storage
+asymmetry. Reject a composed size above `std::string::max_size()` before
+allocation. C++, Node, and Rust bindings inherit the same observable contract.
