@@ -124,12 +124,27 @@ pub type Status = std::result::Result<(), Error>;
 /// Read the last error from the idax-sys thread-local error state.
 ///
 /// Returns `None` if no error is pending.
+pub(crate) fn decode_ffi_error_category(category: i32) -> Option<ErrorCategory> {
+    match category {
+        value if value == idax_sys::IDAX_ERROR_NONE as i32 => None,
+        value if value == idax_sys::IDAX_ERROR_VALIDATION as i32 => Some(ErrorCategory::Validation),
+        value if value == idax_sys::IDAX_ERROR_NOT_FOUND as i32 => Some(ErrorCategory::NotFound),
+        value if value == idax_sys::IDAX_ERROR_CONFLICT as i32 => Some(ErrorCategory::Conflict),
+        value if value == idax_sys::IDAX_ERROR_UNSUPPORTED as i32 => {
+            Some(ErrorCategory::Unsupported)
+        }
+        value if value == idax_sys::IDAX_ERROR_SDK_FAILURE as i32 => {
+            Some(ErrorCategory::SdkFailure)
+        }
+        value if value == idax_sys::IDAX_ERROR_INTERNAL as i32 => Some(ErrorCategory::Internal),
+        _ => Some(ErrorCategory::Internal),
+    }
+}
+
 pub fn last_error() -> Option<Error> {
     unsafe {
         let cat = idax_sys::idax_last_error_category();
-        if cat < 0 {
-            return None;
-        }
+        let category = decode_ffi_error_category(cat)?;
         let code = idax_sys::idax_last_error_code();
         let msg_ptr = idax_sys::idax_last_error_message();
 
@@ -139,16 +154,6 @@ pub fn last_error() -> Option<Error> {
             std::ffi::CStr::from_ptr(msg_ptr)
                 .to_string_lossy()
                 .into_owned()
-        };
-
-        let category = match cat {
-            0 => ErrorCategory::Validation,
-            1 => ErrorCategory::NotFound,
-            2 => ErrorCategory::Conflict,
-            3 => ErrorCategory::Unsupported,
-            4 => ErrorCategory::SdkFailure,
-            5 => ErrorCategory::Internal,
-            _ => ErrorCategory::Internal,
         };
 
         Some(Error {

@@ -13,7 +13,12 @@ This section captures the intended public API semantics at a concrete level so i
 - Write family: `write_byte`, `write_word`, `write_dword`, `write_qword`, `write_bytes`
 - Typed value facade: `read_typed`, `write_typed`, `TypedValue`, `TypedValueKind`
 - Patch family: `patch_byte`, `patch_word`, `patch_dword`, `patch_qword`, `patch_bytes`, `revert_patch`
-- Define family: `define_byte`, `define_word`, `define_dword`, `define_qword`, `define_string`, `define_struct`, `undefine`
+- Fixed-width define family: `define_byte`, `define_word`, `define_dword`,
+  `define_qword`, `define_oword`, `define_yword`, `define_zword`,
+  `define_tbyte`, `define_float`, `define_double`; `count` is a positive
+  element count with checked conversion to the SDK byte length
+- Variable-width define family: `define_string`, `define_struct`, `undefine`;
+  lengths/counts remain byte-based
 - Search helpers: binary pattern and typed immediate searches
 
 ### 17.3 `ida::segment`

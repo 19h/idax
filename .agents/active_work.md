@@ -76,10 +76,10 @@
 
 ---
 
-### 9. Multi-Byte Data Definition Unit Semantics (Phase 29)
+### 9. Advanced Data Definition Audit (Phase 30)
 
-- **9.1. Element Count to Byte-Length Conversion**
-  - 9.1.1. **Finding:** Multi-byte `define_*` APIs advertise element counts but pass them unchanged to SDK helpers that require byte lengths (F378).
-  - 9.1.2. **Action:** Add checked `count * element_width` conversion for word/dword/qword/oword/tbyte/float/double definitions and preserve byte/string/struct semantics.
-  - 9.1.3. **Evidence:** Replace survivability-only assertions with exact success, item-size, multi-element, overflow, and binding runtime checks.
-  - 9.1.4. **Status:** Next isolated implementation item after Phase 28 completion.
+- **9.1. Processor/Registry-Aware Creation**
+  - 9.1.1. **Finding:** Packed-real item widths are processor-defined and custom-data creation depends on registered data-type/format identifiers, so neither belongs under Phase 29's universal fixed-width element-count contract (F381).
+  - 9.1.2. **Action:** Audit the authoritative SDK lifecycle and size-discovery contracts, then design opaque packed-real/custom-data creation APIs with exact C++/Node/Rust runtime evidence.
+  - 9.1.3. **Impact:** Medium; closes advanced data-rendering/plugin workflows without weakening fixed-width unit guarantees.
+  - 9.1.4. **Status:** Queued as the next isolated feature after Phase 29 publication.

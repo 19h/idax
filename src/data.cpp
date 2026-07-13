@@ -18,6 +18,49 @@ namespace {
 
 constexpr std::size_t kMaxTypedDepth = 64;
 
+Result<asize_t> checked_definition_length(Address address,
+                                          AddressSize count,
+                                          AddressSize element_width) {
+    const std::string context = "address=" + std::to_string(address)
+        + ", count=" + std::to_string(count)
+        + ", element_width=" + std::to_string(element_width);
+    if (count == 0) {
+        return std::unexpected(Error::validation(
+            "Definition element count must be greater than zero", context));
+    }
+    if (count > std::numeric_limits<AddressSize>::max() / element_width) {
+        return std::unexpected(Error::validation(
+            "Definition byte length overflow", context));
+    }
+
+    const AddressSize byte_length = count * element_width;
+    if (byte_length > std::numeric_limits<asize_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Definition length exceeds SDK size range", context));
+    }
+    if (byte_length > BadAddress - address) {
+        return std::unexpected(Error::validation(
+            "Definition address range overflow", context));
+    }
+    return static_cast<asize_t>(byte_length);
+}
+
+template <typename Create>
+Status define_fixed_width(Address address,
+                          AddressSize count,
+                          AddressSize element_width,
+                          const char* sdk_operation,
+                          Create create) {
+    auto byte_length = checked_definition_length(address, count, element_width);
+    if (!byte_length)
+        return std::unexpected(byte_length.error());
+    if (!create(address, *byte_length)) {
+        return std::unexpected(Error::sdk(
+            std::string(sdk_operation) + " failed", std::to_string(address)));
+    }
+    return ida::ok();
+}
+
 bool fits_unsigned_width(std::size_t width, std::uint64_t value) {
     switch (width) {
         case 1:
@@ -684,51 +727,53 @@ Result<std::uint64_t> original_qword(Address ea) {
 // ── Define / undefine ───────────────────────────────────────────────────
 
 Status define_byte(Address ea, AddressSize count) {
-    if (!create_byte(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_byte failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 1, "create_byte",
+        [](ea_t address, asize_t length) { return ::create_byte(address, length); });
 }
 
 Status define_word(Address ea, AddressSize count) {
-    if (!create_word(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_word failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 2, "create_word",
+        [](ea_t address, asize_t length) { return ::create_word(address, length); });
 }
 
 Status define_dword(Address ea, AddressSize count) {
-    if (!create_dword(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_dword failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 4, "create_dword",
+        [](ea_t address, asize_t length) { return ::create_dword(address, length); });
 }
 
 Status define_qword(Address ea, AddressSize count) {
-    if (!create_qword(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_qword failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 8, "create_qword",
+        [](ea_t address, asize_t length) { return ::create_qword(address, length); });
 }
 
 Status define_oword(Address ea, AddressSize count) {
-    if (!create_oword(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_oword failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 16, "create_oword",
+        [](ea_t address, asize_t length) { return ::create_oword(address, length); });
+}
+
+Status define_yword(Address ea, AddressSize count) {
+    return define_fixed_width(ea, count, 32, "create_yword",
+        [](ea_t address, asize_t length) { return ::create_yword(address, length); });
+}
+
+Status define_zword(Address ea, AddressSize count) {
+    return define_fixed_width(ea, count, 64, "create_zword",
+        [](ea_t address, asize_t length) { return ::create_zword(address, length); });
 }
 
 Status define_tbyte(Address ea, AddressSize count) {
-    if (!create_tbyte(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_tbyte failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 10, "create_tbyte",
+        [](ea_t address, asize_t length) { return ::create_tbyte(address, length); });
 }
 
 Status define_float(Address ea, AddressSize count) {
-    if (!create_float(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_float failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 4, "create_float",
+        [](ea_t address, asize_t length) { return ::create_float(address, length); });
 }
 
 Status define_double(Address ea, AddressSize count) {
-    if (!create_double(ea, static_cast<asize_t>(count)))
-        return std::unexpected(Error::sdk("create_double failed", std::to_string(ea)));
-    return ida::ok();
+    return define_fixed_width(ea, count, 8, "create_double",
+        [](ea_t address, asize_t length) { return ::create_double(address, length); });
 }
 
 Status define_string(Address ea, AddressSize length, std::int32_t string_type) {

@@ -1195,37 +1195,43 @@ export namespace data {
 
     // ── Define / undefine items ─────────────────────────────────────────
 
-    /** Define byte(s) at the address. */
-    function defineByte(address: Address, count?: number): void;
+    /** Define byte item(s); count is a positive element count and defaults to 1. */
+    function defineByte(address: Address, count?: number | bigint): void;
 
-    /** Define word(s) at the address. */
-    function defineWord(address: Address, count?: number): void;
+    /** Define 16-bit word item(s); count is a positive element count. */
+    function defineWord(address: Address, count?: number | bigint): void;
 
-    /** Define dword(s) at the address. */
-    function defineDword(address: Address, count?: number): void;
+    /** Define 32-bit dword item(s); count is a positive element count. */
+    function defineDword(address: Address, count?: number | bigint): void;
 
-    /** Define qword(s) at the address. */
-    function defineQword(address: Address, count?: number): void;
+    /** Define 64-bit qword item(s); count is a positive element count. */
+    function defineQword(address: Address, count?: number | bigint): void;
 
-    /** Define oword(s) (128-bit) at the address. */
-    function defineOword(address: Address, count?: number): void;
+    /** Define 128-bit oword item(s); count is a positive element count. */
+    function defineOword(address: Address, count?: number | bigint): void;
 
-    /** Define tbyte(s) (80-bit) at the address. */
-    function defineTbyte(address: Address, count?: number): void;
+    /** Define 256-bit yword item(s); count is a positive element count. */
+    function defineYword(address: Address, count?: number | bigint): void;
 
-    /** Define float(s) (32-bit) at the address. */
-    function defineFloat(address: Address, count?: number): void;
+    /** Define 512-bit zword item(s); count is a positive element count. */
+    function defineZword(address: Address, count?: number | bigint): void;
 
-    /** Define double(s) (64-bit) at the address. */
-    function defineDouble(address: Address, count?: number): void;
+    /** Define 80-bit tbyte item(s); count is a positive element count. */
+    function defineTbyte(address: Address, count?: number | bigint): void;
 
-    /** Define a string at the address. */
+    /** Define 32-bit floating-point item(s); count is a positive element count. */
+    function defineFloat(address: Address, count?: number | bigint): void;
+
+    /** Define 64-bit floating-point item(s); count is a positive element count. */
+    function defineDouble(address: Address, count?: number | bigint): void;
+
+    /** Define a string using an explicit byte length. */
     function defineString(address: Address, length: number, stringType?: number): void;
 
-    /** Define a structure at the address. */
+    /** Define a structure using an explicit byte length. */
     function defineStruct(address: Address, length: number, structureId: bigint | number): void;
 
-    /** Undefine (mark as unknown) the item(s) at the address. */
+    /** Undefine a byte count beginning at the address; count defaults to 1 byte. */
     function undefine(address: Address, count?: number): void;
 
     // ── Binary pattern search ───────────────────────────────────────────

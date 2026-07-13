@@ -3,8 +3,10 @@
 
 #include <ida/idax.hpp>
 
+#include <array>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -210,6 +212,107 @@ void test_define_undefine_unknown() {
     }
 }
 
+void test_fixed_width_definition_units() {
+    std::cout << "--- fixed-width definition element counts ---\n";
+
+    auto last = ida::segment::last();
+    CHECK_OK(last);
+    if (!last)
+        return;
+    constexpr ida::Address kAlignment = 0x10000;
+    constexpr ida::AddressSize kSegmentSize = 0x1000;
+    if (last->end() > ida::BadAddress - (2 * kAlignment)) {
+        CHECK(false);
+        return;
+    }
+    const ida::Address base = (last->end() + kAlignment - 1)
+        & ~(kAlignment - 1);
+    auto created = ida::segment::create(base, base + kSegmentSize,
+                                        "__idax_data_units", "DATA",
+                                        ida::segment::Type::Data);
+    CHECK_OK(created);
+    if (!created)
+        return;
+
+    const auto check_default = [&](ida::AddressSize width, auto define) {
+        auto status = define();
+        CHECK_OK(status);
+        if (!status)
+            return;
+        auto size = ida::address::item_size(base);
+        CHECK_OK(size);
+        if (size)
+            CHECK(*size == width);
+        CHECK_OK(ida::data::undefine(base, width));
+    };
+
+    check_default(1,  [&] { return ida::data::define_byte(base); });
+    check_default(2,  [&] { return ida::data::define_word(base); });
+    check_default(4,  [&] { return ida::data::define_dword(base); });
+    check_default(8,  [&] { return ida::data::define_qword(base); });
+    check_default(16, [&] { return ida::data::define_oword(base); });
+    check_default(32, [&] { return ida::data::define_yword(base); });
+    check_default(64, [&] { return ida::data::define_zword(base); });
+    check_default(10, [&] { return ida::data::define_tbyte(base); });
+    check_default(4,  [&] { return ida::data::define_float(base); });
+    check_default(8,  [&] { return ida::data::define_double(base); });
+
+    using DefineFunction = ida::Status (*)(ida::Address, ida::AddressSize);
+    struct Definition {
+        ida::AddressSize width;
+        DefineFunction define;
+    };
+    const std::array<Definition, 10> definitions{{
+        {1, &ida::data::define_byte},
+        {2, &ida::data::define_word},
+        {4, &ida::data::define_dword},
+        {8, &ida::data::define_qword},
+        {16, &ida::data::define_oword},
+        {32, &ida::data::define_yword},
+        {64, &ida::data::define_zword},
+        {10, &ida::data::define_tbyte},
+        {4, &ida::data::define_float},
+        {8, &ida::data::define_double},
+    }};
+
+    constexpr ida::AddressSize kElementCount = 3;
+    for (const auto& definition : definitions) {
+        auto status = definition.define(base, kElementCount);
+        CHECK_OK(status);
+        if (!status)
+            continue;
+        const ida::AddressSize expected = definition.width * kElementCount;
+        auto size = ida::address::item_size(base);
+        CHECK_OK(size);
+        if (size)
+            CHECK(*size == expected);
+        // `undefine` remains byte-count based.
+        CHECK_OK(ida::data::undefine(base, expected));
+    }
+
+    auto zero = ida::data::define_dword(base, 0);
+    CHECK(!zero.has_value());
+    if (!zero)
+        CHECK(zero.error().category == ida::ErrorCategory::Validation);
+
+    const auto overflowing_count =
+        std::numeric_limits<ida::AddressSize>::max() / 64 + 1;
+    auto multiplication_overflow =
+        ida::data::define_zword(base, overflowing_count);
+    CHECK(!multiplication_overflow.has_value());
+    if (!multiplication_overflow) {
+        CHECK(multiplication_overflow.error().category
+              == ida::ErrorCategory::Validation);
+    }
+
+    auto range_overflow = ida::data::define_word(ida::BadAddress - 1, 1);
+    CHECK(!range_overflow.has_value());
+    if (!range_overflow)
+        CHECK(range_overflow.error().category == ida::ErrorCategory::Validation);
+
+    CHECK_OK(ida::segment::remove(base));
+}
+
 void test_error_paths() {
     std::cout << "--- mutation safety error paths ---\n";
 
@@ -267,6 +370,7 @@ int main(int argc, char* argv[]) {
     }
 
     test_define_undefine_unknown();
+    test_fixed_width_definition_units();
     test_error_paths();
 
     CHECK_OK(ida::database::close(false));

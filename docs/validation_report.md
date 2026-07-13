@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-02-15 (base report; API-surface namespace count updated 2026-05-28 after Phase 22 checks)
+Date: 2026-02-15 (base report; current local full-sweep evidence updated 2026-07-14 after Phase 29)
 
 ## Test suite summary
 
@@ -33,7 +33,7 @@ Date: 2026-02-15 (base report; API-surface namespace count updated 2026-05-28 af
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
-**Total: 16/16 CTest targets pass**
+**Current total: 25/25 CTest targets pass**
 
 ## Scenario coverage highlights
 
@@ -698,3 +698,17 @@ tracked in `docs/compatibility_matrix.md`.
   that one runtime assertion remains an explicit host-limited skip (F379),
   while ABI/API coverage and the other eight event families pass. The fixture
   IDB was restored after every runtime suite.
+
+- 2026-07-14 Phase 29 fixed-width data-definition units:
+  Corrected all ten fixed-width definition families to interpret `count` as an
+  element count and perform checked conversion to the SDK's total byte length.
+  Added 256-bit yword and 512-bit zword surfaces across C++, Node, and Rust;
+  retained byte units for string/structure definition and undefinition. Exact
+  tests cover default one-element and three-element arrays plus zero,
+  multiplication-overflow, and address-range-overflow rejection. The audit also
+  corrected Rust's shim error-category offset (F382) and made Node/Rust analysis
+  idle tests establish their stated wait precondition (F383). Complete C++
+  build and CTest pass 25/25 in 21.35 s. Node build/unit pass 191/191 and
+  real-IDA integration passes 69/69. Rust workspace unit tests pass 130/130 and
+  complete real-IDA integration passes 86/86. Bindgen output matches the
+  checked pre-generated bindings exactly; the mutable fixture is restored.

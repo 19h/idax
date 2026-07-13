@@ -380,6 +380,58 @@ describe('Data Access', () => {
         const q = idax.data.readQword(segs[0].start);
         expect(typeof q).toBe('bigint');
     });
+
+    it('should define fixed-width arrays in element units', () => {
+        const last = idax.segment.last();
+        const start = (last.end + 0xffffn) & ~0xffffn;
+        const end = start + 0x1000n;
+        idax.segment.create(start, end, '__idax_node_data_units', 'DATA', 'data');
+
+        try {
+            const definitions = [
+                ['Byte', 1n], ['Word', 2n], ['Dword', 4n], ['Qword', 8n],
+                ['Oword', 16n], ['Yword', 32n], ['Zword', 64n],
+                ['Tbyte', 10n], ['Float', 4n], ['Double', 8n],
+            ];
+            for (const [suffix, width] of definitions) {
+                const define = idax.data[`define${suffix}`];
+                define(start);
+                expect(idax.address.itemSize(start)).toBe(width);
+                idax.data.undefine(start, Number(width));
+
+                define(start, 3);
+                expect(idax.address.itemSize(start)).toBe(width * 3n);
+                idax.data.undefine(start, Number(width * 3n));
+            }
+
+            let zeroError;
+            try { idax.data.defineDword(start, 0); } catch (error) { zeroError = error; }
+            expect(zeroError).toBeDefined();
+            expect(zeroError.category).toBe('Validation');
+
+            const overflowingCount = 0xffffffffffffffffn / 64n + 1n;
+            let overflowError;
+            try {
+                idax.data.defineZword(start, overflowingCount);
+            } catch (error) {
+                overflowError = error;
+            }
+            expect(overflowError).toBeDefined();
+            expect(overflowError.category).toBe('Validation');
+
+            let rangeOverflowError;
+            try {
+                idax.data.defineWord(idax.BadAddress - 1n, 1);
+            } catch (error) {
+                rangeOverflowError = error;
+            }
+            expect(rangeOverflowError).toBeDefined();
+            expect(rangeOverflowError.category).toBe('Validation');
+            expect(() => idax.data.defineDword(start, 1.5)).toThrow();
+        } finally {
+            idax.segment.remove(start);
+        }
+    });
 });
 
 // ── Address Navigation ──────────────────────────────────────────────────
@@ -422,6 +474,7 @@ describe('Search', () => {
 
 describe('Analysis', () => {
     it('should report idle after wait', () => {
+        idax.analysis.wait();
         expect(idax.analysis.isIdle()).toBe(true);
     });
 

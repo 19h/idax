@@ -139,15 +139,18 @@ void check_data_surface() {
     (void)static_cast<RevertPatchFn>(&ida::data::revert_patch);
     (void)static_cast<RevertPatchesFn>(&ida::data::revert_patches);
 
-    using DefineOwordFn = ida::Status(*)(ida::Address, ida::AddressSize);
-    using DefineTbyteFn = ida::Status(*)(ida::Address, ida::AddressSize);
-    using DefineFloatFn = ida::Status(*)(ida::Address, ida::AddressSize);
-    using DefineDoubleFn = ida::Status(*)(ida::Address, ida::AddressSize);
+    using DefineFixedFn = ida::Status(*)(ida::Address, ida::AddressSize);
     using DefineStructFn = ida::Status(*)(ida::Address, ida::AddressSize, std::uint64_t);
-    (void)static_cast<DefineOwordFn>(&ida::data::define_oword);
-    (void)static_cast<DefineTbyteFn>(&ida::data::define_tbyte);
-    (void)static_cast<DefineFloatFn>(&ida::data::define_float);
-    (void)static_cast<DefineDoubleFn>(&ida::data::define_double);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_byte);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_word);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_dword);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_qword);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_oword);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_yword);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_zword);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_tbyte);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_float);
+    (void)static_cast<DefineFixedFn>(&ida::data::define_double);
     (void)static_cast<DefineStructFn>(&ida::data::define_struct);
 }
 

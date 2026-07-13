@@ -1387,6 +1387,12 @@ unsafe extern "C" {
     pub fn idax_data_define_oword(ea: u64, count: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_data_define_yword(ea: u64, count: u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_define_zword(ea: u64, count: u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_data_define_tbyte(ea: u64, count: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {

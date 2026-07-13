@@ -19,6 +19,39 @@ mod error_tests {
     }
 
     #[test]
+    fn test_ffi_error_category_decode() {
+        assert_eq!(decode_ffi_error_category(0), None);
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_VALIDATION as i32),
+            Some(ErrorCategory::Validation)
+        );
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_NOT_FOUND as i32),
+            Some(ErrorCategory::NotFound)
+        );
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_CONFLICT as i32),
+            Some(ErrorCategory::Conflict)
+        );
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_UNSUPPORTED as i32),
+            Some(ErrorCategory::Unsupported)
+        );
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_SDK_FAILURE as i32),
+            Some(ErrorCategory::SdkFailure)
+        );
+        assert_eq!(
+            decode_ffi_error_category(idax_sys::IDAX_ERROR_INTERNAL as i32),
+            Some(ErrorCategory::Internal)
+        );
+        assert_eq!(
+            decode_ffi_error_category(i32::MAX),
+            Some(ErrorCategory::Internal)
+        );
+    }
+
+    #[test]
     fn test_error_category_equality() {
         assert_eq!(ErrorCategory::Validation, ErrorCategory::Validation);
         assert_ne!(ErrorCategory::Validation, ErrorCategory::NotFound);
@@ -843,6 +876,30 @@ mod segment_tests {
         assert!(p.read);
         assert!(!p.write);
         assert!(p.execute);
+    }
+}
+
+#[cfg(test)]
+mod data_tests {
+    use crate::address::{Address, AddressSize};
+    use crate::data::*;
+    use crate::error::Status;
+
+    #[test]
+    fn test_fixed_width_definition_function_signatures() {
+        let functions: [fn(Address, AddressSize) -> Status; 10] = [
+            define_byte,
+            define_word,
+            define_dword,
+            define_qword,
+            define_oword,
+            define_yword,
+            define_zword,
+            define_tbyte,
+            define_float,
+            define_double,
+        ];
+        assert_eq!(functions.len(), 10);
     }
 }
 

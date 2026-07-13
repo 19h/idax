@@ -1051,3 +1051,29 @@ of interior-mutable storage before invoking destructors so destructor-side
 re-entry cannot conflict with an outstanding mutable borrow. Likewise, remove
 the context from its registry in a bounded lock scope and release the mutex
 before reclamation; captured-object destructors may re-enter unsubscription.
+
+### 35.39. Separate Fixed-Width and Processor/Registry-Defined Data Items [F381]
+The SDK fixed-width creation family includes yword (32 bytes / 256 bits) and
+zword (64 bytes / 512 bits). They use the same total-byte-length input as
+word/dword/qword/oword/tbyte/float/double and therefore belong under the same
+public element-count conversion. Packed-real element size is processor-defined;
+custom data additionally requires registered data-type and format identifiers.
+Do not assign either advanced family a fixed `count * width` rule without a
+separate type model. Keep string, structure, and undefine parameters explicitly
+byte-based.
+
+### 35.40. Rust FFI Error Categories Include a Zero-Valued None Sentinel [F382]
+The C shim category values are not the same numeric discriminants as the public
+Rust `ErrorCategory`: the shim reserves zero for `IDAX_ERROR_NONE` and numbers
+the six real categories from one through six. Decode the generated
+`IDAX_ERROR_*` constants rather than relying on enum ordinals. A zero category
+means that no error is pending; an unrecognized nonzero category is an internal
+ABI error. Runtime tests that assert only `is_err()` cannot detect this drift,
+so boundary tests must also assert the structured category.
+
+### 35.41. Integration Idle Assertions Must Establish the Wait Precondition [F383]
+Creating or removing a temporary IDA segment can enqueue auto-analysis after
+the initial database-open wait has completed. An integration case that asserts
+`analysis::is_idle()` (or its binding equivalent) must call the corresponding
+wait API in that case rather than depending on earlier suite order. This
+preserves isolation when preceding tests add legitimate mutation coverage.

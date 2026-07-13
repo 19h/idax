@@ -39,7 +39,8 @@ Current overall phase status:
 - Phase 26: 100% (Rust real-IDA main-thread harness complete: all idalib lifecycle and test operations execute sequentially on process main; filtered and complete runtime execution restored)
 - Phase 27: 100% (deterministic comment append complete: wrapper-level newline composition and exact C++/Node/Rust read-back validation)
 - Phase 28: 100% (typed IDB change-tracking event parity complete: high-value post-change notifications, binding convergence, event-wide callback-mutation isolation, and full validation)
-- Phase 29: pending (multi-byte data definition unit correction: checked element-count to SDK byte-length conversion and exact cross-binding evidence)
+- Phase 29: complete (fixed-width data definitions use checked element counts through zword with exact cross-binding evidence)
+- Phase 30: pending (advanced packed-real/custom-data definition audit with processor/registry-aware units)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -162,6 +163,15 @@ Current overall phase status:
 
 ### Phase 29 TODO Action Items (Multi-Byte Data Definition Units)
 
-- [ ] P29.1 Convert element counts to checked byte lengths for word/dword/qword/oword/tbyte/float/double definitions.
-- [ ] P29.2 Add exact C++ tests for one element, multiple elements, zero/overflow rejection, and resulting item size.
-- [ ] P29.3 Add applicable Node/Rust runtime assertions and synchronize docs/protocol records.
+- [x] P29.1 Convert element counts to checked byte lengths for byte/word/dword/qword/oword/yword/zword/tbyte/float/double definitions and add the missing fixed-width yword/zword surfaces.
+- [x] P29.2 Add exact C++ tests for one element, multiple elements, zero/overflow rejection, and resulting item size.
+- [x] P29.3 Add applicable Node/Rust runtime assertions and synchronize docs/protocol records.
+
+---
+
+### Phase 30 TODO Action Items (Advanced Data Definition Audit)
+
+- [ ] P30.1 Audit packed-real and registered custom-data SDK contracts, identifiers, lifecycle, element-size discovery, and deletion semantics.
+- [ ] P30.2 Design opaque processor/registry-aware public types without assigning a false universal fixed width.
+- [ ] P30.3 Implement justified C++ APIs plus Node/Rust parity and exact real-IDA validation.
+- [ ] P30.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.

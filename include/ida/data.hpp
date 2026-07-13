@@ -147,16 +147,30 @@ Result<std::uint64_t> original_qword(Address address);
 
 // ── Define / undefine items ─────────────────────────────────────────────
 
+/// Define one or more fixed-width data elements.
+/// `count` is an element count, not a byte length, and must be greater than 0.
+/// The wrapper performs checked conversion to the SDK's total-byte-length API.
 Status define_byte(Address address, AddressSize count = 1);
 Status define_word(Address address, AddressSize count = 1);
 Status define_dword(Address address, AddressSize count = 1);
 Status define_qword(Address address, AddressSize count = 1);
+/// Define 128-bit elements.
 Status define_oword(Address address, AddressSize count = 1);
+/// Define 256-bit elements.
+Status define_yword(Address address, AddressSize count = 1);
+/// Define 512-bit elements.
+Status define_zword(Address address, AddressSize count = 1);
+/// Define 80-bit floating-point elements.
 Status define_tbyte(Address address, AddressSize count = 1);
+/// Define 32-bit floating-point elements.
 Status define_float(Address address, AddressSize count = 1);
+/// Define 64-bit floating-point elements.
 Status define_double(Address address, AddressSize count = 1);
+/// Define a string using an explicit byte length.
 Status define_string(Address address, AddressSize length, std::int32_t string_type = 0);
+/// Define a structure using an explicit byte length.
 Status define_struct(Address address, AddressSize length, std::uint64_t structure_id);
+/// Undefine a byte count beginning at `address`.
 Status undefine(Address address, AddressSize count = 1);
 
 // ── Binary pattern search ────────────────────────────────────────────────

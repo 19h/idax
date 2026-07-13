@@ -76,7 +76,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
 | **Addresses** | `ida::address` | Predicates, item traversal, range iteration, predicate search |
-| **Byte access** | `ida::data` | Read/write/patch/define bytes, typed values, string extraction, binary pattern search |
+| **Byte access** | `ida::data` | Read/write/patch bytes, typed values, checked fixed-width element-array definitions through 512 bits, string extraction, binary pattern search |
 | **Database** | `ida::database` | Open/save/close, metadata, snapshots, file/memory transfer |
 | **Paths** | `ida::path` | Portable basename/dirname/directory helpers for plugin workflows |
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |

@@ -356,12 +356,22 @@ Status define_byte(Address ea, AddressSize count = 1);
 Status define_word(Address ea, AddressSize count = 1);
 Status define_dword(Address ea, AddressSize count = 1);
 Status define_qword(Address ea, AddressSize count = 1);
+Status define_oword(Address ea, AddressSize count = 1);
+Status define_yword(Address ea, AddressSize count = 1);
+Status define_zword(Address ea, AddressSize count = 1);
+Status define_tbyte(Address ea, AddressSize count = 1);
+Status define_float(Address ea, AddressSize count = 1);
+Status define_double(Address ea, AddressSize count = 1);
 Status define_string(Address ea, AddressSize length);
-Status define_struct(Address ea, AddressSize length, uint32_t struct_id);
+Status define_struct(Address ea, AddressSize length, uint64_t struct_id);
 Status undefine(Address ea, AddressSize count = 1);
 
 }  // namespace ida::data
 ```
+
+The ten fixed-width `define_*` functions use positive element counts and
+perform checked conversion to the SDK's total byte length. String/structure
+definition and undefinition use explicit byte lengths/counts.
 
 #### 21.5.6 `ida::name`
 

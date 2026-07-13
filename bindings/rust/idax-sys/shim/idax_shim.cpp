@@ -1977,6 +1977,14 @@ int idax_data_define_oword(uint64_t ea, uint64_t count) {
     RETURN_STATUS(ida::data::define_oword(ea, count));
 }
 
+int idax_data_define_yword(uint64_t ea, uint64_t count) {
+    RETURN_STATUS(ida::data::define_yword(ea, count));
+}
+
+int idax_data_define_zword(uint64_t ea, uint64_t count) {
+    RETURN_STATUS(ida::data::define_zword(ea, count));
+}
+
 int idax_data_define_tbyte(uint64_t ea, uint64_t count) {
     RETURN_STATUS(ida::data::define_tbyte(ea, count));
 }

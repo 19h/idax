@@ -1,6 +1,8 @@
 //! Byte-level read, write, patch, and define operations.
 //!
 //! Mirrors the C++ `ida::data` namespace.
+//! Fixed-width definition functions accept positive element counts. String and
+//! structure definitions and `undefine` retain explicit byte units.
 
 use crate::address::{Address, AddressSize, BAD_ADDRESS};
 use crate::error::{self, Error, Result, Status};
@@ -400,6 +402,18 @@ pub fn define_oword(address: Address, count: AddressSize) -> Status {
     error::int_to_status(ret, "define_oword failed")
 }
 
+/// Define 256-bit yword item(s) at address.
+pub fn define_yword(address: Address, count: AddressSize) -> Status {
+    let ret = unsafe { idax_sys::idax_data_define_yword(address, count) };
+    error::int_to_status(ret, "define_yword failed")
+}
+
+/// Define 512-bit zword item(s) at address.
+pub fn define_zword(address: Address, count: AddressSize) -> Status {
+    let ret = unsafe { idax_sys::idax_data_define_zword(address, count) };
+    error::int_to_status(ret, "define_zword failed")
+}
+
 /// Define tbyte item(s) at address.
 pub fn define_tbyte(address: Address, count: AddressSize) -> Status {
     let ret = unsafe { idax_sys::idax_data_define_tbyte(address, count) };
@@ -418,19 +432,19 @@ pub fn define_double(address: Address, count: AddressSize) -> Status {
     error::int_to_status(ret, "define_double failed")
 }
 
-/// Define a string literal at address.
+/// Define a string literal using an explicit byte length.
 pub fn define_string(address: Address, length: AddressSize, string_type: i32) -> Status {
     let ret = unsafe { idax_sys::idax_data_define_string(address, length, string_type) };
     error::int_to_status(ret, "define_string failed")
 }
 
-/// Define a structure item at address.
+/// Define a structure item using an explicit byte length.
 pub fn define_struct(address: Address, length: AddressSize, structure_id: u64) -> Status {
     let ret = unsafe { idax_sys::idax_data_define_struct(address, length, structure_id) };
     error::int_to_status(ret, "define_struct failed")
 }
 
-/// Undefine items at address.
+/// Undefine a byte count beginning at address.
 pub fn undefine(address: Address, count: AddressSize) -> Status {
     let ret = unsafe { idax_sys::idax_data_undefine(address, count) };
     error::int_to_status(ret, "undefine failed")

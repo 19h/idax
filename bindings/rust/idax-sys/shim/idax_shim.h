@@ -485,6 +485,8 @@ int idax_data_define_word(uint64_t ea, uint64_t count);
 int idax_data_define_dword(uint64_t ea, uint64_t count);
 int idax_data_define_qword(uint64_t ea, uint64_t count);
 int idax_data_define_oword(uint64_t ea, uint64_t count);
+int idax_data_define_yword(uint64_t ea, uint64_t count);
+int idax_data_define_zword(uint64_t ea, uint64_t count);
 int idax_data_define_tbyte(uint64_t ea, uint64_t count);
 int idax_data_define_float(uint64_t ea, uint64_t count);
 int idax_data_define_double(uint64_t ea, uint64_t count);

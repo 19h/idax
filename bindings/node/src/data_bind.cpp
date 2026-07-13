@@ -4,6 +4,8 @@
 #include "helpers.hpp"
 #include <ida/data.hpp>
 
+#include <cmath>
+
 namespace idax_node {
 
 // ── Read family ────────────────────────────────────────────────────────
@@ -325,26 +327,60 @@ NAN_METHOD(OriginalQword) {
 
 // ── Define / undefine items ────────────────────────────────────────────
 
-// Helper macro for define_* functions that take (address, count?)
-// defaultBytes is the natural byte size for one item of this type.
-#define DEFINE_ITEM_BINDING(Name, cppFunc, defaultBytes)                    \
+/// Read an optional element count without losing uint64 precision.
+/// Zero is forwarded so the shared C++ contract returns a Validation error.
+static bool GetElementCountArg(Nan::NAN_METHOD_ARGS_TYPE info, int idx,
+                               ida::AddressSize& out) {
+    if (idx >= info.Length() || info[idx]->IsUndefined()) {
+        out = 1;
+        return true;
+    }
+    if (info[idx]->IsBigInt()) {
+        bool lossless = false;
+        out = info[idx].As<v8::BigInt>()->Uint64Value(&lossless);
+        if (!lossless) {
+            Nan::ThrowRangeError("Element count is outside uint64 range");
+            return false;
+        }
+        return true;
+    }
+    if (info[idx]->IsNumber()) {
+        const double value = Nan::To<double>(info[idx]).FromJust();
+        constexpr double kMaxSafeInteger = 9007199254740991.0; // 2^53 - 1
+        if (!std::isfinite(value) || value < 0.0 || std::trunc(value) != value
+              || value > kMaxSafeInteger) {
+            Nan::ThrowRangeError(
+                "Element count must be an exact non-negative integer");
+            return false;
+        }
+        out = static_cast<ida::AddressSize>(value);
+        return true;
+    }
+    Nan::ThrowTypeError("Element count must be a number or BigInt");
+    return false;
+}
+
+// Helper macro for fixed-width define_* functions taking (address, count?).
+#define DEFINE_ITEM_BINDING(Name, cppFunc)                                  \
     NAN_METHOD(Name) {                                                      \
         ida::Address addr;                                                  \
         if (!GetAddressArg(info, 0, addr)) return;                         \
-        auto count = static_cast<ida::AddressSize>(                        \
-            GetOptionalInt64(info, 1, defaultBytes));                      \
+        ida::AddressSize count = 1;                                         \
+        if (!GetElementCountArg(info, 1, count)) return;                   \
         IDAX_CHECK_STATUS(ida::data::cppFunc(addr, count));                \
         info.GetReturnValue().SetUndefined();                              \
     }
 
-DEFINE_ITEM_BINDING(DefineByte,   define_byte,   1)
-DEFINE_ITEM_BINDING(DefineWord,   define_word,   2)
-DEFINE_ITEM_BINDING(DefineDword,  define_dword,  4)
-DEFINE_ITEM_BINDING(DefineQword,  define_qword,  8)
-DEFINE_ITEM_BINDING(DefineOword,  define_oword,  16)
-DEFINE_ITEM_BINDING(DefineTbyte,  define_tbyte,  10)
-DEFINE_ITEM_BINDING(DefineFloat,  define_float,  4)
-DEFINE_ITEM_BINDING(DefineDouble, define_double, 8)
+DEFINE_ITEM_BINDING(DefineByte,   define_byte)
+DEFINE_ITEM_BINDING(DefineWord,   define_word)
+DEFINE_ITEM_BINDING(DefineDword,  define_dword)
+DEFINE_ITEM_BINDING(DefineQword,  define_qword)
+DEFINE_ITEM_BINDING(DefineOword,  define_oword)
+DEFINE_ITEM_BINDING(DefineYword,  define_yword)
+DEFINE_ITEM_BINDING(DefineZword,  define_zword)
+DEFINE_ITEM_BINDING(DefineTbyte,  define_tbyte)
+DEFINE_ITEM_BINDING(DefineFloat,  define_float)
+DEFINE_ITEM_BINDING(DefineDouble, define_double)
 
 #undef DEFINE_ITEM_BINDING
 
@@ -472,6 +508,8 @@ void InitData(v8::Local<v8::Object> target) {
     SetMethod(ns, "defineDword",  DefineDword);
     SetMethod(ns, "defineQword",  DefineQword);
     SetMethod(ns, "defineOword",  DefineOword);
+    SetMethod(ns, "defineYword",  DefineYword);
+    SetMethod(ns, "defineZword",  DefineZword);
     SetMethod(ns, "defineTbyte",  DefineTbyte);
     SetMethod(ns, "defineFloat",  DefineFloat);
     SetMethod(ns, "defineDouble", DefineDouble);

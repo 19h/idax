@@ -15,7 +15,8 @@ use std::panic::{self, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, Once};
 
-use idax::address::BAD_ADDRESS;
+use idax::address::{Address, BAD_ADDRESS};
+use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
     instruction, lines, name, search, segment, storage, types, ui, xref,
@@ -602,6 +603,88 @@ fn data_patch_and_revert() {
     assert_eq!(restored, original, "should be restored after revert");
 }
 
+fn data_fixed_width_definition_units() {
+    require_db!();
+
+    let last = segment::last().unwrap();
+    let start = last
+        .end()
+        .checked_add(0xffff)
+        .expect("temporary segment address overflow")
+        & !0xffff;
+    let end = start.checked_add(0x1000).unwrap();
+    segment::create(
+        start,
+        end,
+        "__idax_rust_data_units",
+        "DATA",
+        segment::Type::Data,
+    )
+    .unwrap();
+
+    struct SegmentCleanup(Address);
+    impl Drop for SegmentCleanup {
+        fn drop(&mut self) {
+            let _ = segment::remove(self.0);
+        }
+    }
+    let _cleanup = SegmentCleanup(start);
+
+    type DefineFunction = fn(Address, u64) -> Status;
+    let definitions: [(&str, u64, DefineFunction); 10] = [
+        ("byte", 1, data::define_byte),
+        ("word", 2, data::define_word),
+        ("dword", 4, data::define_dword),
+        ("qword", 8, data::define_qword),
+        ("oword", 16, data::define_oword),
+        ("yword", 32, data::define_yword),
+        ("zword", 64, data::define_zword),
+        ("tbyte", 10, data::define_tbyte),
+        ("float", 4, data::define_float),
+        ("double", 8, data::define_double),
+    ];
+
+    for (name, width, define) in definitions {
+        define(start, 1).unwrap_or_else(|error| panic!("define_{name}(1): {error}"));
+        assert_eq!(
+            idax::address::item_size(start).unwrap(),
+            width,
+            "define_{name}(1) byte size"
+        );
+        data::undefine(start, width).unwrap();
+
+        define(start, 3).unwrap_or_else(|error| panic!("define_{name}(3): {error}"));
+        assert_eq!(
+            idax::address::item_size(start).unwrap(),
+            width * 3,
+            "define_{name}(3) byte size"
+        );
+        data::undefine(start, width * 3).unwrap();
+    }
+
+    let zero = data::define_dword(start, 0).unwrap_err();
+    assert_eq!(
+        zero.category,
+        ErrorCategory::Validation,
+        "zero-count error: {zero:?}"
+    );
+
+    let overflowing_count = u64::MAX / 64 + 1;
+    let overflow = data::define_zword(start, overflowing_count).unwrap_err();
+    assert_eq!(
+        overflow.category,
+        ErrorCategory::Validation,
+        "multiplication-overflow error: {overflow:?}"
+    );
+
+    let range_overflow = data::define_word(BAD_ADDRESS - 1, 1).unwrap_err();
+    assert_eq!(
+        range_overflow.category,
+        ErrorCategory::Validation,
+        "address-range-overflow error: {range_overflow:?}"
+    );
+}
+
 // ===========================================================================
 // Search
 // ===========================================================================
@@ -626,7 +709,7 @@ fn search_next_data() {
 
 fn analysis_is_idle() {
     require_db!();
-    // After wait(), analysis should be idle
+    analysis::wait().unwrap();
     assert!(analysis::is_idle(), "should be idle after wait()");
 }
 
@@ -1228,6 +1311,10 @@ static TEST_CASES: &[TestCase] = &[
     ("data_read_bytes", data_read_bytes),
     ("data_read_word_dword_qword", data_read_word_dword_qword),
     ("data_patch_and_revert", data_patch_and_revert),
+    (
+        "data_fixed_width_definition_units",
+        data_fixed_width_definition_units,
+    ),
     ("search_next_code", search_next_code),
     ("search_next_data", search_next_data),
     ("analysis_is_idle", analysis_is_idle),
