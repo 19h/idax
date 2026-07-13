@@ -1706,7 +1706,52 @@ export namespace event {
     type EventKind =
         | 'segmentAdded' | 'segmentDeleted'
         | 'functionAdded' | 'functionDeleted'
-        | 'renamed' | 'bytePatched' | 'commentChanged';
+        | 'renamed' | 'bytePatched' | 'commentChanged'
+        | 'segmentMoved' | 'functionUpdated' | 'itemTypeChanged'
+        | 'operandTypeChanged' | 'codeCreated' | 'dataCreated'
+        | 'itemsDestroyed' | 'extraCommentChanged' | 'localTypesChanged';
+
+    type ExtraCommentPlacement = 'unknown' | 'anterior' | 'posterior';
+    type LocalTypeChangeKind =
+        | 'none' | 'added' | 'deleted' | 'edited' | 'aliased'
+        | 'compilerChanged' | 'libraryLoaded' | 'libraryUnloaded'
+        | 'ordinalsCompacted';
+
+    interface SegmentMovedEvent {
+        kind: 'segmentMoved';
+        from: Address;
+        to: Address;
+        size: bigint;
+        addressMappingChanged: boolean;
+    }
+
+    interface ItemCreatedEvent {
+        kind: 'codeCreated' | 'dataCreated';
+        address: Address;
+        size: bigint;
+    }
+
+    interface ItemsDestroyedEvent {
+        kind: 'itemsDestroyed';
+        start: Address;
+        end: Address;
+        willDisableRange: boolean;
+    }
+
+    interface ExtraCommentChangedEvent {
+        kind: 'extraCommentChanged';
+        address: Address;
+        placement: ExtraCommentPlacement;
+        lineIndex: number;
+        text: string;
+    }
+
+    interface LocalTypesChangedEvent {
+        kind: 'localTypesChanged';
+        change: LocalTypeChangeKind;
+        ordinal: number;
+        name: string;
+    }
 
     interface Event {
         kind: EventKind;
@@ -1716,6 +1761,16 @@ export namespace event {
         oldName: string;
         oldValue: number;
         repeatable: boolean;
+        size: bigint;
+        operandIndex: number;
+        lineIndex: number;
+        text: string;
+        willDisableRange: boolean;
+        addressMappingChanged: boolean;
+        extraCommentPlacement: ExtraCommentPlacement;
+        localTypeChange: LocalTypeChangeKind;
+        typeOrdinal: number;
+        typeName: string;
     }
 
     /** Subscribe to segment creation events. Returns a token for unsubscribing. */
@@ -1738,6 +1793,33 @@ export namespace event {
 
     /** Subscribe to comment change events. */
     function onCommentChanged(callback: (event: Pick<Event, 'kind' | 'address' | 'repeatable'>) => void): Token;
+
+    /** Subscribe to completed segment moves. */
+    function onSegmentMoved(callback: (event: SegmentMovedEvent) => void): Token;
+
+    /** Subscribe to function metadata updates. */
+    function onFunctionUpdated(callback: (event: Pick<Event, 'kind' | 'address'>) => void): Token;
+
+    /** Subscribe to applied item-type changes. */
+    function onItemTypeChanged(callback: (event: Pick<Event, 'kind' | 'address'>) => void): Token;
+
+    /** Subscribe to operand representation/type changes. */
+    function onOperandTypeChanged(callback: (event: Pick<Event, 'kind' | 'address' | 'operandIndex'>) => void): Token;
+
+    /** Subscribe to instruction creation. */
+    function onCodeCreated(callback: (event: ItemCreatedEvent & { kind: 'codeCreated' }) => void): Token;
+
+    /** Subscribe to data-item creation. */
+    function onDataCreated(callback: (event: ItemCreatedEvent & { kind: 'dataCreated' }) => void): Token;
+
+    /** Subscribe to item destruction in a half-open address range. */
+    function onItemsDestroyed(callback: (event: ItemsDestroyedEvent) => void): Token;
+
+    /** Subscribe to anterior/posterior comment-line changes. */
+    function onExtraCommentChanged(callback: (event: ExtraCommentChangedEvent) => void): Token;
+
+    /** Subscribe to local type-library changes. */
+    function onLocalTypesChanged(callback: (event: LocalTypesChangedEvent) => void): Token;
 
     /** Subscribe to all supported IDB events. */
     function onEvent(callback: (event: Event) => void): Token;

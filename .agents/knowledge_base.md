@@ -1019,3 +1019,35 @@ and `License file matching *<license-id>.hexlic not found` means the configured
 HCLI identity cannot supply that license. Repository setup, compilation, and
 tests have not run. Remediation is external: renew/correct the HCLI account,
 license assignment, or GitHub Actions secrets, then rerun the workflows.
+
+### 35.36. Data Definition Counts Require Width-to-Byte Conversion [F378]
+The SDK `create_word`/`create_dword`/`create_qword`/`create_oword`, floating-
+point, and ten-byte helpers accept a total size in bytes, not an element count.
+If the wrapper exposes `count`, validate multiplication overflow and dispatch
+`count * element_width` bytes. A default count of one must create exactly one
+item of the selected type. Tests must assert success, resulting item size, and
+multi-element total size; a survivability-only assertion cannot establish the
+public unit contract.
+
+### 35.37. `destroyed_items` Delivery Is Host-Path Dependent [F379]
+The IDA 9.3 SDK declares `idb_event::destroyed_items(ea1, ea2,
+will_disable_range)`, but the current macOS idalib host does not emit it for
+successful `del_items` calls against either temporary or fixture items. Expose
+the documented notification and validate its ABI/surface statically. Runtime
+tests may assert exact payloads when delivered, but must distinguish absence of
+host delivery from dispatcher failure by simultaneously proving other events
+through the same listener.
+
+### 35.38. Event Dispatch Must Isolate Callback-Side Mutation [F380]
+Never iterate an owning callback registry directly across user callback
+invocation. Capture an event-entry token ceiling, re-check each eligible token,
+and retain the selected subscription object through invocation. The ceiling
+must cover typed and generic phases of the same event; otherwise a route added
+by a typed callback can join the generic phase. Removed subscriptions are
+skipped. If the final unsubscribe occurs during SDK listener dispatch, defer
+unhook until dispatch exit. Across a raw-context FFI, also defer context
+destruction while any trampoline frame is active. Move a pending drop queue out
+of interior-mutable storage before invoking destructors so destructor-side
+re-entry cannot conflict with an outstanding mutable borrow. Likewise, remove
+the context from its registry in a bounded lock scope and release the mutex
+before reclamation; captured-object destructors may re-enter unsubscription.

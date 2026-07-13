@@ -15,6 +15,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -373,7 +374,281 @@ static void test_double_unsubscribe_safety() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 8) Debugger multi-subscribe
+// 8) High-value IDB mutation payloads
+// ═══════════════════════════════════════════════════════════════════════════
+
+static void test_change_tracking_payloads(ida::Address function_ea) {
+    std::printf("[section] event: typed IDB change-tracking payloads\n");
+
+    auto last = ida::segment::last();
+    if (!last || last->end() > std::numeric_limits<ida::Address>::max() - 0x40000) {
+        SKIP("change tracking: no safe address for temporary segment");
+        return;
+    }
+
+    const ida::Address initial = (last->end() + 0xFFFFu) & ~ida::Address{0xFFFFu};
+    const ida::Address moved = initial + 0x20000u;
+    constexpr ida::AddressSize segment_size = 0x100u;
+
+    int segment_moved_count = 0;
+    int function_updated_count = 0;
+    int item_type_count = 0;
+    int operand_type_count = 0;
+    int code_created_count = 0;
+    int data_created_count = 0;
+    int items_destroyed_count = 0;
+    int extra_comment_count = 0;
+    int local_types_count = 0;
+    int generic_count = 0;
+
+    ida::event::SegmentMovedEvent segment_payload;
+    ida::event::ItemCreatedEvent code_payload;
+    ida::event::ItemCreatedEvent data_payload;
+    ida::event::ItemsDestroyedEvent destroyed_payload;
+    ida::event::ExtraCommentChangedEvent extra_payload;
+    ida::event::LocalTypesChangedEvent local_types_payload;
+    ida::Address function_payload = ida::BadAddress;
+    ida::Address item_type_payload = ida::BadAddress;
+    ida::Address operand_type_address = ida::BadAddress;
+    int operand_type_index = -1;
+
+    std::vector<ida::event::Token> tokens;
+    const auto keep = [&](const ida::Result<ida::event::Token>& token, const char* label) {
+        CHECK(token.has_value(), label);
+        if (token) tokens.push_back(*token);
+    };
+
+    keep(ida::event::on_segment_moved([&](const auto& event) {
+        ++segment_moved_count;
+        segment_payload = event;
+    }), "change tracking: segment-moved subscription");
+    keep(ida::event::on_function_updated([&](ida::Address entry) {
+        ++function_updated_count;
+        function_payload = entry;
+    }), "change tracking: function-updated subscription");
+    keep(ida::event::on_item_type_changed([&](ida::Address address) {
+        ++item_type_count;
+        item_type_payload = address;
+    }), "change tracking: item-type subscription");
+    keep(ida::event::on_operand_type_changed([&](ida::Address address, int index) {
+        ++operand_type_count;
+        operand_type_address = address;
+        operand_type_index = index;
+    }), "change tracking: operand-type subscription");
+    keep(ida::event::on_code_created([&](const auto& event) {
+        ++code_created_count;
+        code_payload = event;
+    }), "change tracking: code-created subscription");
+    keep(ida::event::on_data_created([&](const auto& event) {
+        ++data_created_count;
+        data_payload = event;
+    }), "change tracking: data-created subscription");
+    keep(ida::event::on_items_destroyed([&](const auto& event) {
+        ++items_destroyed_count;
+        destroyed_payload = event;
+    }), "change tracking: items-destroyed subscription");
+    keep(ida::event::on_extra_comment_changed([&](const auto& event) {
+        ++extra_comment_count;
+        extra_payload = event;
+    }), "change tracking: extra-comment subscription");
+    keep(ida::event::on_local_types_changed([&](const auto& event) {
+        ++local_types_count;
+        local_types_payload = event;
+    }), "change tracking: local-types subscription");
+    keep(ida::event::on_event([&](const ida::event::Event& event) {
+        if (event.kind >= ida::event::EventKind::SegmentMoved)
+            ++generic_count;
+    }), "change tracking: generic subscription");
+
+    auto created = ida::segment::create(initial, initial + segment_size,
+                                        "__idax_event_stress", "CODE",
+                                        ida::segment::Type::Code);
+    CHECK(created.has_value(), "change tracking: temporary segment created");
+    if (!created) {
+        for (auto token : tokens) (void)ida::event::unsubscribe(token);
+        return;
+    }
+
+    auto moved_status = ida::segment::move(initial, moved);
+    CHECK(moved_status.has_value(), "change tracking: temporary segment moved");
+    CHECK(segment_moved_count >= 1, "change tracking: segment-moved event fired");
+    CHECK(segment_payload.from == initial && segment_payload.to == moved,
+          "change tracking: segment-moved addresses exact");
+    CHECK(segment_payload.size == segment_size,
+          "change tracking: segment-moved size exact");
+
+    const std::uint8_t code_byte = 0xC3u; // x86 RET in the fixture processor.
+    CHECK(ida::data::write_byte(moved, code_byte).has_value(),
+          "change tracking: code byte written");
+    auto instruction = ida::instruction::create(moved);
+    CHECK(instruction.has_value(), "change tracking: instruction created");
+    CHECK(code_created_count >= 1, "change tracking: code-created event fired");
+    CHECK(code_payload.address == moved && code_payload.size >= 1,
+          "change tracking: code-created payload exact");
+
+    const ida::Address data_ea = moved + 0x10u;
+    CHECK(ida::data::define_byte(data_ea, 4).has_value(),
+          "change tracking: data item created");
+    CHECK(data_created_count >= 1, "change tracking: data-created event fired");
+    CHECK(data_payload.address == data_ea && data_payload.size == 4,
+          "change tracking: data-created payload exact");
+
+    auto integer_type = ida::type::TypeInfo::uint32();
+    CHECK(integer_type.apply(data_ea).has_value(),
+          "change tracking: item type applied");
+    CHECK(item_type_count >= 1, "change tracking: item-type event fired");
+    CHECK(item_type_payload == data_ea,
+          "change tracking: item-type address exact");
+
+    CHECK(ida::data::undefine(data_ea, 4).has_value(),
+          "change tracking: data item destroyed");
+
+    CHECK(ida::comment::add_anterior(moved, "idax event extra line").has_value(),
+          "change tracking: anterior comment added");
+    CHECK(extra_comment_count >= 1,
+          "change tracking: extra-comment event fired");
+    CHECK(extra_payload.address == moved
+              && extra_payload.placement == ida::event::ExtraCommentPlacement::Anterior
+              && extra_payload.line_index == 0
+              && extra_payload.text == "idax event extra line",
+          "change tracking: extra-comment payload normalized");
+
+    CHECK(ida::function::update(function_ea).has_value(),
+          "change tracking: function update requested");
+    CHECK(function_updated_count >= 1,
+          "change tracking: function-updated event fired");
+    CHECK(function_payload == function_ea,
+          "change tracking: function-updated entry exact");
+
+    bool operand_mutated = false;
+    auto code_addresses = ida::function::code_addresses(function_ea);
+    CHECK(code_addresses.has_value(),
+          "change tracking: function code addresses available");
+    for (ida::Address address : code_addresses.value_or(std::vector<ida::Address>{})) {
+        auto decoded = ida::instruction::decode(address);
+        if (!decoded || decoded->operand_count() == 0)
+            continue;
+        auto operand = decoded->operand(0);
+        if (!operand || operand->type() == ida::instruction::OperandType::None)
+            continue;
+        if (ida::instruction::set_operand_hex(address, 0)) {
+            operand_mutated = true;
+            CHECK(operand_type_count >= 1,
+                  "change tracking: operand-type event fired");
+            CHECK(operand_type_address == address && operand_type_index == 0,
+                  "change tracking: operand-type payload exact");
+            break;
+        }
+    }
+    if (!operand_mutated)
+        SKIP("change tracking: fixture has no mutable operand");
+
+    const std::string type_name = "__idax_event_stress_type";
+    auto local_struct = ida::type::TypeInfo::create_struct();
+    CHECK(local_struct.save_as(type_name).has_value(),
+          "change tracking: local type saved");
+    CHECK(local_types_count >= 1,
+          "change tracking: local-types event fired");
+    CHECK(local_types_payload.change == ida::event::LocalTypeChangeKind::Added
+              && local_types_payload.name == type_name,
+          "change tracking: local-types payload normalized");
+
+    auto fixture_instruction = ida::instruction::decode(function_ea);
+    CHECK(fixture_instruction.has_value(),
+          "change tracking: fixture instruction decoded for destruction");
+    if (fixture_instruction) {
+        CHECK(ida::data::undefine(function_ea, fixture_instruction->size()).has_value(),
+              "change tracking: fixture code item destroyed");
+        if (items_destroyed_count == 0) {
+            SKIP("change tracking: IDA 9.3 idalib did not emit destroyed_items");
+        } else {
+            CHECK(destroyed_payload.start == function_ea
+                      && destroyed_payload.end >= function_ea + fixture_instruction->size(),
+                  "change tracking: destroyed range covers code item");
+        }
+    }
+    CHECK(generic_count >= 8,
+          "change tracking: generic route observed new event families");
+
+    for (auto token : tokens)
+        CHECK(ida::event::unsubscribe(token).has_value(),
+              "change tracking: subscription removed");
+    CHECK(ida::segment::remove(moved).has_value(),
+          "change tracking: temporary segment removed");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 9) Callback-side subscription mutation
+// ═══════════════════════════════════════════════════════════════════════════
+
+static void test_callback_side_subscription_mutation(ida::Address ea) {
+    std::printf("[section] event: callback-side subscription mutation\n");
+
+    int self_count = 0;
+    ida::event::Token self_token = 0;
+    auto self = ida::event::on_comment_changed([&](ida::Address, bool) {
+        ++self_count;
+        CHECK(ida::event::unsubscribe(self_token).has_value(),
+              "callback mutation: self-unsubscribe succeeded");
+    });
+    CHECK(self.has_value(), "callback mutation: self subscription created");
+    if (self) self_token = *self;
+
+    CHECK(ida::comment::set(ea, "idax self unsubscribe 1").has_value(),
+          "callback mutation: first comment set");
+    CHECK(ida::comment::set(ea, "idax self unsubscribe 2").has_value(),
+          "callback mutation: second comment set");
+    CHECK(self_count == 1,
+          "callback mutation: self-unsubscribed callback fired once");
+
+    int first_count = 0;
+    int late_count = 0;
+    int late_generic_count = 0;
+    ida::event::Token late_token = 0;
+    ida::event::Token late_generic_token = 0;
+    auto first = ida::event::on_comment_changed([&](ida::Address, bool) {
+        ++first_count;
+        if (late_token == 0) {
+            auto late = ida::event::on_comment_changed([&](ida::Address, bool) {
+                ++late_count;
+            });
+            CHECK(late.has_value(),
+                  "callback mutation: callback-side subscription succeeded");
+            if (late) late_token = *late;
+
+            auto late_generic = ida::event::on_event(
+                [&](const ida::event::Event& event) {
+                    if (event.kind == ida::event::EventKind::CommentChanged)
+                        ++late_generic_count;
+                });
+            CHECK(late_generic.has_value(),
+                  "callback mutation: generic subscription succeeded");
+            if (late_generic) late_generic_token = *late_generic;
+        }
+    });
+    CHECK(first.has_value(), "callback mutation: primary subscription created");
+
+    CHECK(ida::comment::set(ea, "idax subscribe during dispatch 1").has_value(),
+          "callback mutation: first dispatch triggered");
+    CHECK(first_count == 1 && late_count == 0 && late_generic_count == 0,
+          "callback mutation: new typed/generic routes excluded from active event");
+    CHECK(ida::comment::set(ea, "idax subscribe during dispatch 2").has_value(),
+          "callback mutation: second dispatch triggered");
+    CHECK(first_count == 2 && late_count == 1 && late_generic_count == 1,
+          "callback mutation: new typed/generic routes joined next event");
+
+    if (first) CHECK(ida::event::unsubscribe(*first).has_value(),
+                     "callback mutation: primary unsubscribe");
+    if (late_token != 0) CHECK(ida::event::unsubscribe(late_token).has_value(),
+                               "callback mutation: late unsubscribe");
+    if (late_generic_token != 0)
+        CHECK(ida::event::unsubscribe(late_generic_token).has_value(),
+              "callback mutation: late generic unsubscribe");
+    (void)ida::comment::remove(ea, false);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 10) Debugger multi-subscribe
 // ═══════════════════════════════════════════════════════════════════════════
 
 static void test_debugger_multi_subscribe() {
@@ -457,6 +732,8 @@ int main(int argc, char** argv) {
     test_multi_event_fanout(test_ea);
     test_filtered_routing_specificity(test_ea);
     test_generic_typed_coexistence(test_ea);
+    test_change_tracking_payloads(test_ea);
+    test_callback_side_subscription_mutation(test_ea);
 
     // ── Tests that are address-independent ──────────────────────────────
     test_rapid_subscribe_unsubscribe();

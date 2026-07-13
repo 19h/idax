@@ -744,6 +744,58 @@ describe('Storage', () => {
     });
 });
 
+// ── IDB change-tracking events ─────────────────────────────────────────
+
+describe('IDB Change-Tracking Events', () => {
+    it('should route function updates and permit callback self-unsubscribe', () => {
+        const func = idax.function.byIndex(0);
+        let typedCount = 0;
+        let genericCount = 0;
+        let typedToken;
+
+        const genericToken = idax.event.onEvent((event) => {
+            if (event.kind === 'functionUpdated' && event.address === func.start) {
+                genericCount += 1;
+                expect(typeof event.size).toBe('bigint');
+                expect(event.operandIndex).toBe(-1);
+            }
+        });
+        typedToken = idax.event.onFunctionUpdated((event) => {
+            typedCount += 1;
+            expect(event.kind).toBe('functionUpdated');
+            expect(event.address).toBe(func.start);
+            idax.event.unsubscribe(typedToken);
+        });
+
+        idax.function.update(func.start);
+        idax.function.update(func.start);
+
+        expect(typedCount).toBe(1);
+        expect(genericCount).toBeGreaterThanOrEqual(2);
+        idax.event.unsubscribe(genericToken);
+    });
+
+    it('should normalize anterior comment payloads', () => {
+        const func = idax.function.byIndex(0);
+        idax.comment.clearAnterior(func.start);
+        let captured = null;
+        const token = idax.event.onExtraCommentChanged((event) => {
+            captured = event;
+        });
+
+        idax.comment.addAnterior(func.start, 'idax node event line');
+        idax.event.unsubscribe(token);
+
+        expect(captured).toBeTruthy();
+        expect(captured.kind).toBe('extraCommentChanged');
+        expect(captured.address).toBe(func.start);
+        expect(captured.placement).toBe('anterior');
+        expect(captured.lineIndex).toBe(0);
+        expect(captured.text).toBe('idax node event line');
+        idax.comment.clearAnterior(func.start);
+    });
+});
+
 // ── Cleanup ─────────────────────────────────────────────────────────────
 
 describe('Cleanup', () => {

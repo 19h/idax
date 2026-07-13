@@ -682,3 +682,19 @@ tracked in `docs/compatibility_matrix.md`.
   `.hexlic` file. This is tracked as F377 and requires external HCLI/license or
   GitHub Actions secret correction; no source/workflow build patch is supported
   by the logs.
+
+- 2026-07-13 Phase 28 typed IDB change-tracking events:
+  Added nine opaque post-change event families in C++ and converged Node/Rust
+  payloads and typed subscriptions. Event-entry token ceilings, shared route
+  ownership, route-liveness checks, deferred final listener unhook, and Rust
+  callback-depth context reclamation establish callback-side mutation safety;
+  Node exposes 64-bit item/segment sizes as `bigint`. Focused `event_stress`
+  passes 103 checks with one F379 host skip; complete C++ build and CTest pass
+  25/25 in 21.08 s. The change-tracker example links. Node build and
+  structural tests pass 184/184, and real-IDA fixture integration passes 68/68.
+  Rust formatting and library tests pass 128/128; the complete main-thread
+  real-IDA suite passes 85/85. The current macOS IDA 9.3 idalib host did not
+  emit documented `destroyed_items` for two successful destruction paths, so
+  that one runtime assertion remains an explicit host-limited skip (F379),
+  while ABI/API coverage and the other eight event families pass. The fixture
+  IDB was restored after every runtime suite.

@@ -17,6 +17,32 @@ Related hooks you will often pair with it:
 `on_function_added` fires for both manual function creation and auto-analysis
 discoveries that create a function entry.
 
+## Change-tracking event families
+
+The event domain also supplies post-change snapshots for database mirrors,
+incremental indexes, and metadata synchronization:
+
+| Mutation | Subscription | Callback payload |
+|---|---|---|
+| Segment relocation | `on_segment_moved` | `SegmentMovedEvent` |
+| Function metadata update | `on_function_updated` | function entry address |
+| Item type update | `on_item_type_changed` | item address |
+| Operand representation update | `on_operand_type_changed` | item address + operand index |
+| Instruction/data creation | `on_code_created`, `on_data_created` | `ItemCreatedEvent` |
+| Item destruction | `on_items_destroyed` | `ItemsDestroyedEvent` |
+| Anterior/posterior comment update | `on_extra_comment_changed` | `ExtraCommentChangedEvent` |
+| Local type library update | `on_local_types_changed` | `LocalTypesChangedEvent` |
+
+The structured payloads contain no SDK pointers or encoded flags. A C++
+callback receives a callback-scoped `const&`; copying the structure retains the
+snapshot. Node and Rust callbacks receive value-model equivalents.
+
+Subscription mutation has event-wide isolation. Unsubscribing the active
+callback is supported. A subscription created by a typed or generic callback
+does not receive a later routing phase of that same IDB event; it becomes
+eligible for the next event. The final listener teardown is deferred until the
+active SDK dispatch returns.
+
 ## Complete plugin example (RAII subscription lifetime)
 
 ```cpp

@@ -4,6 +4,7 @@
 
 use crate::address::{Address, BAD_ADDRESS};
 use crate::error::{self, Result, Status};
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::ffi::{CStr, c_void};
 use std::sync::{Mutex, OnceLock};
@@ -22,6 +23,73 @@ pub enum EventKind {
     Renamed = 4,
     BytePatched = 5,
     CommentChanged = 6,
+    SegmentMoved = 7,
+    FunctionUpdated = 8,
+    ItemTypeChanged = 9,
+    OperandTypeChanged = 10,
+    CodeCreated = 11,
+    DataCreated = 12,
+    ItemsDestroyed = 13,
+    ExtraCommentChanged = 14,
+    LocalTypesChanged = 15,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum ExtraCommentPlacement {
+    Unknown = 0,
+    Anterior = 1,
+    Posterior = 2,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum LocalTypeChangeKind {
+    None = 0,
+    Added = 1,
+    Deleted = 2,
+    Edited = 3,
+    Aliased = 4,
+    CompilerChanged = 5,
+    LibraryLoaded = 6,
+    LibraryUnloaded = 7,
+    OrdinalsCompacted = 8,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SegmentMovedEvent {
+    pub from: Address,
+    pub to: Address,
+    pub size: u64,
+    pub address_mapping_changed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ItemCreatedEvent {
+    pub address: Address,
+    pub size: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ItemsDestroyedEvent {
+    pub start: Address,
+    pub end: Address,
+    pub will_disable_range: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExtraCommentChangedEvent {
+    pub address: Address,
+    pub placement: ExtraCommentPlacement,
+    pub line_index: i32,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LocalTypesChangedEvent {
+    pub change: LocalTypeChangeKind,
+    pub ordinal: u32,
+    pub name: String,
 }
 
 /// Generic IDB event payload.
@@ -34,6 +102,16 @@ pub struct Event {
     pub old_name: String,
     pub old_value: u32,
     pub repeatable: bool,
+    pub size: u64,
+    pub operand_index: i32,
+    pub line_index: i32,
+    pub text: String,
+    pub will_disable_range: bool,
+    pub address_mapping_changed: bool,
+    pub extra_comment_placement: ExtraCommentPlacement,
+    pub local_type_change: LocalTypeChangeKind,
+    pub type_ordinal: u32,
+    pub type_name: String,
 }
 
 fn parse_event_kind(kind: i32) -> EventKind {
@@ -45,7 +123,38 @@ fn parse_event_kind(kind: i32) -> EventKind {
         4 => EventKind::Renamed,
         5 => EventKind::BytePatched,
         6 => EventKind::CommentChanged,
+        7 => EventKind::SegmentMoved,
+        8 => EventKind::FunctionUpdated,
+        9 => EventKind::ItemTypeChanged,
+        10 => EventKind::OperandTypeChanged,
+        11 => EventKind::CodeCreated,
+        12 => EventKind::DataCreated,
+        13 => EventKind::ItemsDestroyed,
+        14 => EventKind::ExtraCommentChanged,
+        15 => EventKind::LocalTypesChanged,
         _ => EventKind::SegmentAdded,
+    }
+}
+
+fn parse_extra_comment_placement(value: i32) -> ExtraCommentPlacement {
+    match value {
+        1 => ExtraCommentPlacement::Anterior,
+        2 => ExtraCommentPlacement::Posterior,
+        _ => ExtraCommentPlacement::Unknown,
+    }
+}
+
+fn parse_local_type_change(value: i32) -> LocalTypeChangeKind {
+    match value {
+        1 => LocalTypeChangeKind::Added,
+        2 => LocalTypeChangeKind::Deleted,
+        3 => LocalTypeChangeKind::Edited,
+        4 => LocalTypeChangeKind::Aliased,
+        5 => LocalTypeChangeKind::CompilerChanged,
+        6 => LocalTypeChangeKind::LibraryLoaded,
+        7 => LocalTypeChangeKind::LibraryUnloaded,
+        8 => LocalTypeChangeKind::OrdinalsCompacted,
+        _ => LocalTypeChangeKind::None,
     }
 }
 
@@ -68,6 +177,16 @@ fn from_ffi_event(ev: &idax_sys::IdaxEvent) -> Event {
         old_name: cstr_opt(ev.old_name),
         old_value: ev.old_value,
         repeatable: ev.repeatable != 0,
+        size: ev.size,
+        operand_index: ev.operand_index,
+        line_index: ev.line_index,
+        text: cstr_opt(ev.text),
+        will_disable_range: ev.will_disable_range != 0,
+        address_mapping_changed: ev.address_mapping_changed != 0,
+        extra_comment_placement: parse_extra_comment_placement(ev.extra_comment_placement),
+        local_type_change: parse_local_type_change(ev.local_type_change),
+        type_ordinal: ev.type_ordinal,
+        type_name: cstr_opt(ev.type_name),
     }
 }
 
@@ -113,6 +232,47 @@ struct ErasedContext {
     drop_fn: unsafe fn(*mut c_void),
 }
 
+thread_local! {
+    static CALLBACK_DEPTH: Cell<usize> = const { Cell::new(0) };
+    static DEFERRED_CONTEXT_DROPS: RefCell<Vec<ErasedContext>> = const { RefCell::new(Vec::new()) };
+}
+
+struct CallbackScope;
+
+impl CallbackScope {
+    fn enter() -> Self {
+        CALLBACK_DEPTH.with(|depth| depth.set(depth.get() + 1));
+        Self
+    }
+}
+
+impl Drop for CallbackScope {
+    fn drop(&mut self) {
+        let should_drain = CALLBACK_DEPTH.with(|depth| {
+            let current = depth.get();
+            debug_assert!(current > 0);
+            depth.set(current - 1);
+            current == 1
+        });
+        if should_drain {
+            let pending =
+                DEFERRED_CONTEXT_DROPS.with(|deferred| std::mem::take(&mut *deferred.borrow_mut()));
+            for context in pending {
+                unsafe { (context.drop_fn)(context.ptr as *mut c_void) };
+            }
+        }
+    }
+}
+
+fn release_context(context: ErasedContext) {
+    let in_callback = CALLBACK_DEPTH.with(|depth| depth.get() != 0);
+    if in_callback {
+        DEFERRED_CONTEXT_DROPS.with(|deferred| deferred.borrow_mut().push(context));
+    } else {
+        unsafe { (context.drop_fn)(context.ptr as *mut c_void) };
+    }
+}
+
 unsafe fn drop_as<T>(ptr: *mut c_void) {
     unsafe { drop(Box::from_raw(ptr as *mut T)) };
 }
@@ -134,6 +294,7 @@ fn save_context<T>(token: Token, raw: *mut T) {
 }
 
 unsafe extern "C" fn segment_added_trampoline(context: *mut c_void, start: u64) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -142,6 +303,7 @@ unsafe extern "C" fn segment_added_trampoline(context: *mut c_void, start: u64) 
 }
 
 unsafe extern "C" fn segment_deleted_trampoline(context: *mut c_void, start: u64, end: u64) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -150,6 +312,7 @@ unsafe extern "C" fn segment_deleted_trampoline(context: *mut c_void, start: u64
 }
 
 unsafe extern "C" fn function_added_trampoline(context: *mut c_void, entry: u64) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -158,6 +321,7 @@ unsafe extern "C" fn function_added_trampoline(context: *mut c_void, entry: u64)
 }
 
 unsafe extern "C" fn function_deleted_trampoline(context: *mut c_void, entry: u64) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -171,6 +335,7 @@ unsafe extern "C" fn renamed_trampoline(
     new_name: *const std::ffi::c_char,
     old_name: *const std::ffi::c_char,
 ) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -179,6 +344,7 @@ unsafe extern "C" fn renamed_trampoline(
 }
 
 unsafe extern "C" fn byte_patched_trampoline(context: *mut c_void, address: u64, old_value: u32) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -191,6 +357,7 @@ unsafe extern "C" fn comment_changed_trampoline(
     address: u64,
     repeatable: i32,
 ) {
+    let _scope = CallbackScope::enter();
     if context.is_null() {
         return;
     }
@@ -199,6 +366,7 @@ unsafe extern "C" fn comment_changed_trampoline(
 }
 
 unsafe extern "C" fn event_trampoline(context: *mut c_void, event: *const idax_sys::IdaxEvent) {
+    let _scope = CallbackScope::enter();
     if context.is_null() || event.is_null() {
         return;
     }
@@ -210,6 +378,7 @@ unsafe extern "C" fn event_filter_trampoline(
     context: *mut c_void,
     event: *const idax_sys::IdaxEvent,
 ) -> i32 {
+    let _scope = CallbackScope::enter();
     if context.is_null() || event.is_null() {
         return 0;
     }
@@ -222,6 +391,7 @@ unsafe extern "C" fn filtered_event_trampoline(
     context: *mut c_void,
     event: *const idax_sys::IdaxEvent,
 ) {
+    let _scope = CallbackScope::enter();
     if context.is_null() || event.is_null() {
         return;
     }
@@ -409,6 +579,165 @@ where
     Ok(token)
 }
 
+type EventRegisterFn =
+    unsafe extern "C" fn(idax_sys::IdaxEventExCallback, *mut c_void, *mut u64) -> std::ffi::c_int;
+
+fn register_event_route<F>(
+    register: EventRegisterFn,
+    callback: F,
+    label: &'static str,
+) -> Result<Token>
+where
+    F: FnMut(Event) + Send + 'static,
+{
+    let raw = Box::into_raw(Box::new(EventContext {
+        callback: Box::new(callback),
+    }));
+    let mut token = 0;
+    let ret = unsafe { register(Some(event_trampoline), raw as *mut c_void, &mut token) };
+    if ret != 0 {
+        unsafe { drop(Box::from_raw(raw)) };
+        return Err(error::consume_last_error(label));
+    }
+    save_context(token, raw);
+    Ok(token)
+}
+
+pub fn on_segment_moved<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(SegmentMovedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_segment_moved,
+        move |event| {
+            callback(SegmentMovedEvent {
+                from: event.address,
+                to: event.secondary_address,
+                size: event.size,
+                address_mapping_changed: event.address_mapping_changed,
+            });
+        },
+        "event::on_segment_moved failed",
+    )
+}
+
+pub fn on_function_updated<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(Address) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_function_updated,
+        move |event| callback(event.address),
+        "event::on_function_updated failed",
+    )
+}
+
+pub fn on_item_type_changed<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(Address) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_item_type_changed,
+        move |event| callback(event.address),
+        "event::on_item_type_changed failed",
+    )
+}
+
+pub fn on_operand_type_changed<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(Address, i32) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_operand_type_changed,
+        move |event| callback(event.address, event.operand_index),
+        "event::on_operand_type_changed failed",
+    )
+}
+
+pub fn on_code_created<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(ItemCreatedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_code_created,
+        move |event| {
+            callback(ItemCreatedEvent {
+                address: event.address,
+                size: event.size,
+            });
+        },
+        "event::on_code_created failed",
+    )
+}
+
+pub fn on_data_created<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(ItemCreatedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_data_created,
+        move |event| {
+            callback(ItemCreatedEvent {
+                address: event.address,
+                size: event.size,
+            });
+        },
+        "event::on_data_created failed",
+    )
+}
+
+pub fn on_items_destroyed<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(ItemsDestroyedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_items_destroyed,
+        move |event| {
+            callback(ItemsDestroyedEvent {
+                start: event.address,
+                end: event.secondary_address,
+                will_disable_range: event.will_disable_range,
+            });
+        },
+        "event::on_items_destroyed failed",
+    )
+}
+
+pub fn on_extra_comment_changed<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(ExtraCommentChangedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_extra_comment_changed,
+        move |event| {
+            callback(ExtraCommentChangedEvent {
+                address: event.address,
+                placement: event.extra_comment_placement,
+                line_index: event.line_index,
+                text: event.text,
+            });
+        },
+        "event::on_extra_comment_changed failed",
+    )
+}
+
+pub fn on_local_types_changed<F>(mut callback: F) -> Result<Token>
+where
+    F: FnMut(LocalTypesChangedEvent) + Send + 'static,
+{
+    register_event_route(
+        idax_sys::idax_event_on_local_types_changed,
+        move |event| {
+            callback(LocalTypesChangedEvent {
+                change: event.local_type_change,
+                ordinal: event.type_ordinal,
+                name: event.type_name,
+            });
+        },
+        "event::on_local_types_changed failed",
+    )
+}
+
 pub fn on_event<F>(callback: F) -> Result<Token>
 where
     F: FnMut(Event) + Send + 'static,
@@ -459,13 +788,15 @@ pub fn unsubscribe(token: Token) -> Status {
     let ret = unsafe { idax_sys::idax_event_unsubscribe(token) };
     let status = error::int_to_status(ret, "event::unsubscribe failed");
     if status.is_ok() {
-        if let Some(ctx) = SUB_CONTEXTS
-            .get_or_init(|| Mutex::new(HashMap::new()))
-            .lock()
-            .expect("event context mutex poisoned")
-            .remove(&token)
-        {
-            unsafe { (ctx.drop_fn)(ctx.ptr as *mut c_void) };
+        let context = {
+            SUB_CONTEXTS
+                .get_or_init(|| Mutex::new(HashMap::new()))
+                .lock()
+                .expect("event context mutex poisoned")
+                .remove(&token)
+        };
+        if let Some(ctx) = context {
+            release_context(ctx);
         }
     }
     status
@@ -505,6 +836,16 @@ impl Default for Event {
             old_name: String::new(),
             old_value: 0,
             repeatable: false,
+            size: 0,
+            operand_index: -1,
+            line_index: -1,
+            text: String::new(),
+            will_disable_range: false,
+            address_mapping_changed: false,
+            extra_comment_placement: ExtraCommentPlacement::Unknown,
+            local_type_change: LocalTypeChangeKind::None,
+            type_ordinal: 0,
+            type_name: String::new(),
         }
     }
 }

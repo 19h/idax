@@ -388,7 +388,13 @@ describe('Search/Analysis/Entry/Fixup/Event Structure', () => {
 
     it('should have event functions', () => {
         if (!idax) return;
-        for (const fn of ['onSegmentAdded', 'onFunctionAdded', 'onRenamed', 'onBytePatched', 'unsubscribe']) {
+        for (const fn of [
+            'onSegmentAdded', 'onSegmentDeleted', 'onFunctionAdded', 'onFunctionDeleted',
+            'onRenamed', 'onBytePatched', 'onCommentChanged', 'onSegmentMoved',
+            'onFunctionUpdated', 'onItemTypeChanged', 'onOperandTypeChanged',
+            'onCodeCreated', 'onDataCreated', 'onItemsDestroyed',
+            'onExtraCommentChanged', 'onLocalTypesChanged', 'onEvent', 'unsubscribe',
+        ]) {
             expect(typeof idax.event[fn]).toBe('function');
         }
     });

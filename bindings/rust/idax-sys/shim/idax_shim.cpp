@@ -3513,6 +3513,16 @@ void fill_event(IdaxEvent* out, const ida::event::Event& in) {
     out->old_name = in.old_name.c_str();
     out->old_value = in.old_value;
     out->repeatable = in.repeatable ? 1 : 0;
+    out->size = static_cast<uint64_t>(in.size);
+    out->operand_index = in.operand_index;
+    out->line_index = in.line_index;
+    out->text = in.text.c_str();
+    out->will_disable_range = in.will_disable_range ? 1 : 0;
+    out->address_mapping_changed = in.address_mapping_changed ? 1 : 0;
+    out->extra_comment_placement = static_cast<int>(in.extra_comment_placement);
+    out->local_type_change = static_cast<int>(in.local_type_change);
+    out->type_ordinal = in.type_ordinal;
+    out->type_name = in.type_name.c_str();
 }
 
 } // anonymous namespace
@@ -3629,6 +3639,188 @@ int idax_event_on_comment_changed(IdaxEventCommentChangedCallback callback,
     auto r = ida::event::on_comment_changed(
         [callback, context](ida::Address ea, bool repeatable) {
             callback(context, ea, repeatable ? 1 : 0);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_segment_moved(IdaxEventExCallback callback,
+                                void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_segment_moved(
+        [callback, context](const ida::event::SegmentMovedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::SegmentMoved;
+            event.address = payload.from;
+            event.secondary_address = payload.to;
+            event.size = payload.size;
+            event.address_mapping_changed = payload.address_mapping_changed;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_function_updated(IdaxEventExCallback callback,
+                                   void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_function_updated([callback, context](ida::Address address) {
+        ida::event::Event event;
+        event.kind = ida::event::EventKind::FunctionUpdated;
+        event.address = address;
+        IdaxEvent out{};
+        fill_event(&out, event);
+        callback(context, &out);
+    });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_item_type_changed(IdaxEventExCallback callback,
+                                    void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_item_type_changed([callback, context](ida::Address address) {
+        ida::event::Event event;
+        event.kind = ida::event::EventKind::ItemTypeChanged;
+        event.address = address;
+        IdaxEvent out{};
+        fill_event(&out, event);
+        callback(context, &out);
+    });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_operand_type_changed(IdaxEventExCallback callback,
+                                       void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_operand_type_changed(
+        [callback, context](ida::Address address, int operand_index) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::OperandTypeChanged;
+            event.address = address;
+            event.operand_index = operand_index;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_code_created(IdaxEventExCallback callback,
+                               void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_code_created(
+        [callback, context](const ida::event::ItemCreatedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::CodeCreated;
+            event.address = payload.address;
+            event.size = payload.size;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_data_created(IdaxEventExCallback callback,
+                               void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_data_created(
+        [callback, context](const ida::event::ItemCreatedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::DataCreated;
+            event.address = payload.address;
+            event.size = payload.size;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_items_destroyed(IdaxEventExCallback callback,
+                                  void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_items_destroyed(
+        [callback, context](const ida::event::ItemsDestroyedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::ItemsDestroyed;
+            event.address = payload.start;
+            event.secondary_address = payload.end;
+            event.will_disable_range = payload.will_disable_range;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_extra_comment_changed(IdaxEventExCallback callback,
+                                        void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_extra_comment_changed(
+        [callback, context](const ida::event::ExtraCommentChangedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::ExtraCommentChanged;
+            event.address = payload.address;
+            event.extra_comment_placement = payload.placement;
+            event.line_index = payload.line_index;
+            event.text = payload.text;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
+        });
+    if (!r) return fail(r.error());
+    *token_out = *r;
+    return 0;
+}
+
+int idax_event_on_local_types_changed(IdaxEventExCallback callback,
+                                      void* context, uint64_t* token_out) {
+    clear_error();
+    if (callback == nullptr || token_out == nullptr)
+        return fail(ida::Error::validation("callback/token_out pointer is null"));
+    auto r = ida::event::on_local_types_changed(
+        [callback, context](const ida::event::LocalTypesChangedEvent& payload) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::LocalTypesChanged;
+            event.local_type_change = payload.change;
+            event.type_ordinal = payload.ordinal;
+            event.type_name = payload.name;
+            IdaxEvent out{};
+            fill_event(&out, event);
+            callback(context, &out);
         });
     if (!r) return fail(r.error());
     *token_out = *r;

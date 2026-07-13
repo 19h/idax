@@ -1324,13 +1324,76 @@ void check_graph_surface() {
 // ─── ida::event ─────────────────────────────────────────────────────────
 
 void check_event_surface() {
+    static_assert(static_cast<int>(ida::event::EventKind::SegmentAdded) == 0);
+    static_assert(static_cast<int>(ida::event::EventKind::CommentChanged) == 6);
+    static_assert(static_cast<int>(ida::event::EventKind::SegmentMoved) == 7);
+    static_assert(static_cast<int>(ida::event::EventKind::LocalTypesChanged) == 15);
+    static_assert(static_cast<int>(ida::event::ExtraCommentPlacement::Posterior) == 2);
+    static_assert(static_cast<int>(ida::event::LocalTypeChangeKind::OrdinalsCompacted) == 8);
     (void)ida::event::EventKind::SegmentAdded;
     (void)ida::event::EventKind::FunctionAdded;
     (void)ida::event::EventKind::Renamed;
     (void)ida::event::EventKind::BytePatched;
+    (void)ida::event::EventKind::SegmentMoved;
+    (void)ida::event::EventKind::FunctionUpdated;
+    (void)ida::event::EventKind::ItemTypeChanged;
+    (void)ida::event::EventKind::OperandTypeChanged;
+    (void)ida::event::EventKind::CodeCreated;
+    (void)ida::event::EventKind::DataCreated;
+    (void)ida::event::EventKind::ItemsDestroyed;
+    (void)ida::event::EventKind::ExtraCommentChanged;
+    (void)ida::event::EventKind::LocalTypesChanged;
+    (void)ida::event::ExtraCommentPlacement::Unknown;
+    (void)ida::event::ExtraCommentPlacement::Anterior;
+    (void)ida::event::ExtraCommentPlacement::Posterior;
+    (void)ida::event::LocalTypeChangeKind::Added;
+    (void)ida::event::LocalTypeChangeKind::OrdinalsCompacted;
 
     ida::event::Event ev;
-    (void)ev.kind; (void)ev.address; (void)ev.new_name;
+    (void)ev.kind; (void)ev.address; (void)ev.new_name; (void)ev.size;
+    (void)ev.operand_index; (void)ev.line_index; (void)ev.text;
+    (void)ev.will_disable_range; (void)ev.address_mapping_changed;
+    (void)ev.extra_comment_placement; (void)ev.local_type_change;
+    (void)ev.type_ordinal; (void)ev.type_name;
+
+    ida::event::SegmentMovedEvent segment_moved;
+    (void)segment_moved.from; (void)segment_moved.to; (void)segment_moved.size;
+    (void)segment_moved.address_mapping_changed;
+    ida::event::ItemCreatedEvent item_created;
+    (void)item_created.address; (void)item_created.size;
+    ida::event::ItemsDestroyedEvent items_destroyed;
+    (void)items_destroyed.start; (void)items_destroyed.end;
+    (void)items_destroyed.will_disable_range;
+    ida::event::ExtraCommentChangedEvent extra_comment;
+    (void)extra_comment.address; (void)extra_comment.placement;
+    (void)extra_comment.line_index; (void)extra_comment.text;
+    ida::event::LocalTypesChangedEvent local_types;
+    (void)local_types.change; (void)local_types.ordinal; (void)local_types.name;
+
+    using AddressEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(ida::Address)>);
+    using AddressIndexEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(ida::Address, int)>);
+    using SegmentMovedEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(const ida::event::SegmentMovedEvent&)>);
+    using ItemCreatedEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(const ida::event::ItemCreatedEvent&)>);
+    using ItemsDestroyedEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(const ida::event::ItemsDestroyedEvent&)>);
+    using ExtraCommentEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(const ida::event::ExtraCommentChangedEvent&)>);
+    using LocalTypesEventFn = ida::Result<ida::event::Token>(*)(
+        std::function<void(const ida::event::LocalTypesChangedEvent&)>);
+
+    (void)static_cast<SegmentMovedEventFn>(&ida::event::on_segment_moved);
+    (void)static_cast<AddressEventFn>(&ida::event::on_function_updated);
+    (void)static_cast<AddressEventFn>(&ida::event::on_item_type_changed);
+    (void)static_cast<AddressIndexEventFn>(&ida::event::on_operand_type_changed);
+    (void)static_cast<ItemCreatedEventFn>(&ida::event::on_code_created);
+    (void)static_cast<ItemCreatedEventFn>(&ida::event::on_data_created);
+    (void)static_cast<ItemsDestroyedEventFn>(&ida::event::on_items_destroyed);
+    (void)static_cast<ExtraCommentEventFn>(&ida::event::on_extra_comment_changed);
+    (void)static_cast<LocalTypesEventFn>(&ida::event::on_local_types_changed);
 
     static_assert(std::is_move_constructible_v<ida::event::ScopedSubscription>);
     static_assert(!std::is_copy_constructible_v<ida::event::ScopedSubscription>);

@@ -12,8 +12,8 @@
 
 use std::io::Write;
 use std::panic::{self, AssertUnwindSafe};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Once};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, Once};
 
 use idax::address::BAD_ADDRESS;
 use idax::{
@@ -953,6 +953,83 @@ fn event_scoped_subscription() {
     }
 }
 
+fn event_function_update_self_unsubscribe() {
+    require_db!();
+    let function = function::by_index(0).unwrap();
+    let address = function.start();
+
+    let token_slot = Arc::new(AtomicU64::new(0));
+    let typed_count = Arc::new(AtomicUsize::new(0));
+    let typed_address = Arc::new(AtomicU64::new(BAD_ADDRESS));
+    let unsubscribe_ok = Arc::new(AtomicBool::new(false));
+
+    let callback_token = Arc::clone(&token_slot);
+    let callback_count = Arc::clone(&typed_count);
+    let callback_address = Arc::clone(&typed_address);
+    let callback_unsubscribe = Arc::clone(&unsubscribe_ok);
+    let token = event::on_function_updated(move |entry| {
+        callback_count.fetch_add(1, Ordering::Relaxed);
+        callback_address.store(entry, Ordering::Relaxed);
+        let token = callback_token.load(Ordering::Relaxed);
+        if token != 0 && event::unsubscribe(token).is_ok() {
+            callback_unsubscribe.store(true, Ordering::Relaxed);
+        }
+    })
+    .unwrap();
+    token_slot.store(token, Ordering::Relaxed);
+
+    let generic_count = Arc::new(AtomicUsize::new(0));
+    let generic_shape_ok = Arc::new(AtomicBool::new(false));
+    let callback_generic_count = Arc::clone(&generic_count);
+    let callback_generic_shape = Arc::clone(&generic_shape_ok);
+    let generic_token = event::on_event(move |payload| {
+        if payload.kind == event::EventKind::FunctionUpdated && payload.address == address {
+            callback_generic_count.fetch_add(1, Ordering::Relaxed);
+            if payload.operand_index == -1 && payload.line_index == -1 {
+                callback_generic_shape.store(true, Ordering::Relaxed);
+            }
+        }
+    })
+    .unwrap();
+
+    function::update(address).unwrap();
+    function::update(address).unwrap();
+
+    assert_eq!(typed_count.load(Ordering::Relaxed), 1);
+    assert_eq!(typed_address.load(Ordering::Relaxed), address);
+    assert!(unsubscribe_ok.load(Ordering::Relaxed));
+    assert!(generic_count.load(Ordering::Relaxed) >= 2);
+    assert!(generic_shape_ok.load(Ordering::Relaxed));
+    event::unsubscribe(generic_token).unwrap();
+}
+
+fn event_extra_comment_payload() {
+    require_db!();
+    let address = function::by_index(0).unwrap().start();
+    comment::clear_anterior(address).unwrap();
+
+    let captured = Arc::new(Mutex::new(None));
+    let callback_capture = Arc::clone(&captured);
+    let token = event::on_extra_comment_changed(move |payload| {
+        *callback_capture.lock().unwrap() = Some(payload);
+    })
+    .unwrap();
+
+    comment::add_anterior(address, "idax rust event line").unwrap();
+    event::unsubscribe(token).unwrap();
+
+    let payload = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("event not delivered");
+    assert_eq!(payload.address, address);
+    assert_eq!(payload.placement, event::ExtraCommentPlacement::Anterior);
+    assert_eq!(payload.line_index, 0);
+    assert_eq!(payload.text, "idax rust event line");
+    comment::clear_anterior(address).unwrap();
+}
+
 // ===========================================================================
 // Graph
 // ===========================================================================
@@ -1178,6 +1255,11 @@ static TEST_CASES: &[TestCase] = &[
     ("fixup_enumerate", fixup_enumerate),
     ("event_subscribe_unsubscribe", event_subscribe_unsubscribe),
     ("event_scoped_subscription", event_scoped_subscription),
+    (
+        "event_function_update_self_unsubscribe",
+        event_function_update_self_unsubscribe,
+    ),
+    ("event_extra_comment_payload", event_extra_comment_payload),
     ("graph_flowchart", graph_flowchart),
     ("graph_manual_construction", graph_manual_construction),
     ("graph_groups", graph_groups),

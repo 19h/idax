@@ -9,6 +9,7 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -20,13 +21,83 @@ using Token = std::uint64_t;
 
 /// Event kind used by generic event routing callbacks.
 enum class EventKind {
-    SegmentAdded,
-    SegmentDeleted,
-    FunctionAdded,
-    FunctionDeleted,
-    Renamed,
-    BytePatched,
-    CommentChanged,
+    SegmentAdded = 0,
+    SegmentDeleted = 1,
+    FunctionAdded = 2,
+    FunctionDeleted = 3,
+    Renamed = 4,
+    BytePatched = 5,
+    CommentChanged = 6,
+    SegmentMoved = 7,
+    FunctionUpdated = 8,
+    ItemTypeChanged = 9,
+    OperandTypeChanged = 10,
+    CodeCreated = 11,
+    DataCreated = 12,
+    ItemsDestroyed = 13,
+    ExtraCommentChanged = 14,
+    LocalTypesChanged = 15,
+};
+
+/// Logical placement of an anterior/posterior extra comment line.
+enum class ExtraCommentPlacement {
+    Unknown = 0,
+    Anterior = 1,
+    Posterior = 2,
+};
+
+/// Normalized local-type library mutation kind.
+enum class LocalTypeChangeKind {
+    None = 0,
+    Added = 1,
+    Deleted = 2,
+    Edited = 3,
+    Aliased = 4,
+    CompilerChanged = 5,
+    LibraryLoaded = 6,
+    LibraryUnloaded = 7,
+    OrdinalsCompacted = 8,
+};
+
+/// Snapshot delivered after a segment has moved.
+/// Payload references are callback-scoped; copy the value to retain it.
+struct SegmentMovedEvent {
+    Address from{BadAddress};
+    Address to{BadAddress};
+    std::size_t size{0};
+    bool address_mapping_changed{false};
+};
+
+/// Snapshot delivered after an instruction or data item has been created.
+/// Payload references are callback-scoped; copy the value to retain it.
+struct ItemCreatedEvent {
+    Address address{BadAddress};
+    std::size_t size{0};
+};
+
+/// Snapshot delivered after instructions/data have been destroyed.
+/// Payload references are callback-scoped; copy the value to retain it.
+struct ItemsDestroyedEvent {
+    Address start{BadAddress};
+    Address end{BadAddress};
+    bool will_disable_range{false};
+};
+
+/// Snapshot delivered after an anterior/posterior comment line changes.
+/// Payload references are callback-scoped; copy the value to retain it.
+struct ExtraCommentChangedEvent {
+    Address address{BadAddress};
+    ExtraCommentPlacement placement{ExtraCommentPlacement::Unknown};
+    int line_index{-1};
+    std::string text;
+};
+
+/// Snapshot delivered after the local type library changes.
+/// Payload references are callback-scoped; copy the value to retain it.
+struct LocalTypesChangedEvent {
+    LocalTypeChangeKind change{LocalTypeChangeKind::None};
+    std::uint32_t ordinal{0};
+    std::string name;
 };
 
 /// Generic IDB event payload for filtering/routing helpers.
@@ -40,6 +111,17 @@ struct Event {
 
     std::uint32_t old_value{0};
     bool repeatable{false};
+
+    std::size_t size{0};
+    int operand_index{-1};
+    int line_index{-1};
+    std::string text;
+    bool will_disable_range{false};
+    bool address_mapping_changed{false};
+    ExtraCommentPlacement extra_comment_placement{ExtraCommentPlacement::Unknown};
+    LocalTypeChangeKind local_type_change{LocalTypeChangeKind::None};
+    std::uint32_t type_ordinal{0};
+    std::string type_name;
 };
 
 /// Unsubscribe a previously registered callback.
@@ -70,6 +152,40 @@ Result<Token> on_byte_patched(std::function<void(Address ea, std::uint32_t old_v
 
 /// Called after a comment is changed.  Receives the address and whether it is repeatable.
 Result<Token> on_comment_changed(std::function<void(Address ea, bool repeatable)> callback);
+
+/// Called after a segment is moved. The payload owns all required metadata.
+Result<Token> on_segment_moved(
+    std::function<void(const SegmentMovedEvent&)> callback);
+
+/// Called after the kernel updates a function. Receives its entry address.
+Result<Token> on_function_updated(std::function<void(Address entry)> callback);
+
+/// Called after an item's type information changes. Query `ida::type` for the new type.
+Result<Token> on_item_type_changed(std::function<void(Address ea)> callback);
+
+/// Called after an operand representation/type changes.
+Result<Token> on_operand_type_changed(
+    std::function<void(Address ea, int operand_index)> callback);
+
+/// Called after an instruction is created.
+Result<Token> on_code_created(
+    std::function<void(const ItemCreatedEvent&)> callback);
+
+/// Called after a data item is created.
+Result<Token> on_data_created(
+    std::function<void(const ItemCreatedEvent&)> callback);
+
+/// Called after instructions/data are destroyed in `[start, end)`.
+Result<Token> on_items_destroyed(
+    std::function<void(const ItemsDestroyedEvent&)> callback);
+
+/// Called after an anterior/posterior comment line changes.
+Result<Token> on_extra_comment_changed(
+    std::function<void(const ExtraCommentChangedEvent&)> callback);
+
+/// Called after the local type library changes.
+Result<Token> on_local_types_changed(
+    std::function<void(const LocalTypesChangedEvent&)> callback);
 
 // ── Generic filtering/routing helpers ───────────────────────────────────
 

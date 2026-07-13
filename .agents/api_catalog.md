@@ -143,9 +143,14 @@ This section captures the intended public API semantics at a concrete level so i
 - Layout and event helpers
 
 ### 17.21 `ida::event`
-- Typed subscription API
+- Typed subscription API for segment/function lifecycle, renames, patches,
+  regular/extra comments, segment moves, function/type/operand updates,
+  code/data creation, item destruction, and local-type changes
+- Opaque owned payload snapshots (`SegmentMovedEvent`, `ItemCreatedEvent`,
+  `ItemsDestroyedEvent`, `ExtraCommentChangedEvent`, `LocalTypesChangedEvent`)
 - RAII scoped subscription helpers
 - Event filtering and routing helpers
+- Callback-side subscribe/unsubscribe isolation with deferred listener/context teardown
 
 ### 17.22 `ida::decompiler`
 - Availability and decompile entrypoints

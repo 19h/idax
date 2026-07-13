@@ -36,6 +36,10 @@ Current overall phase status:
 - Phase 23: 100% (ida-trida port parity complete: plugin shell ported to idax actions/forms/wait-box/path/clipboard helpers, GitHub Actions build matrix added, rich `ida::type` layout/function/enum metadata API implemented in C++ with Node/Rust binding surfaces, trida generator migrated off direct `typeinf.hpp` use, docs/agent notes updated, and focused C++/Node/Rust/trida validation passed)
 - Phase 24: 100% (IDA-names ergonomic parity complete: stable active-widget polling, exact Hex-Rays pseudocode-switch events, arbitrary-symbol demangling, Node/Rust parity, and Qt-host title migration)
 - Phase 25: 100% (action-attachment state hardening complete: deterministic menu/toolbar detach contracts, lifecycle cleanup, and 25/25 CTest recovery)
+- Phase 26: 100% (Rust real-IDA main-thread harness complete: all idalib lifecycle and test operations execute sequentially on process main; filtered and complete runtime execution restored)
+- Phase 27: 100% (deterministic comment append complete: wrapper-level newline composition and exact C++/Node/Rust read-back validation)
+- Phase 28: 100% (typed IDB change-tracking event parity complete: high-value post-change notifications, binding convergence, event-wide callback-mutation isolation, and full validation)
+- Phase 29: pending (multi-byte data definition unit correction: checked element-count to SDK byte-length conversion and exact cross-binding evidence)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -143,3 +147,21 @@ Current overall phase status:
 - [x] P27.2 Strengthen C++, Node, and Rust real-IDA assertions at function-start comment storage.
 - [x] P27.3 Validate focused and complete C++, Node real-IDA, Rust filtered, and complete Rust real-IDA suites.
 - [x] P27.4 Synchronize API documentation, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.
+
+---
+
+### Phase 28 TODO Action Items (Typed IDB Change-Tracking Events)
+
+- [x] P28.1 Add opaque typed C++ events for segment movement, function/type/operand updates, code/data creation, item destruction, extra comments, and local-type changes.
+- [x] P28.2 Make event delivery stable when callbacks subscribe or unsubscribe during dispatch, including self-unsubscription and last-listener teardown.
+- [x] P28.3 Mirror the new event kinds and payloads through Node and Rust without exposing SDK pointers, flags, or type encodings.
+- [x] P28.4 Add compile-time, structural, and real-IDA mutation coverage for exact payload routing and callback-mutation behavior.
+- [x] P28.5 Synchronize coverage/API/docs/findings/knowledge/decision/ledger/active-work records and run focused plus complete validation.
+
+---
+
+### Phase 29 TODO Action Items (Multi-Byte Data Definition Units)
+
+- [ ] P29.1 Convert element counts to checked byte lengths for word/dword/qword/oword/tbyte/float/double definitions.
+- [ ] P29.2 Add exact C++ tests for one element, multiple elements, zero/overflow rejection, and resulting item size.
+- [ ] P29.3 Add applicable Node/Rust runtime assertions and synchronize docs/protocol records.

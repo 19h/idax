@@ -234,10 +234,10 @@ if (auto avail = ida::decompiler::available(); avail && *avail) {
 ### Event subscriptions with RAII
 
 ```cpp
-// Subscribe to rename events -- automatically unsubscribes when guard goes out of scope
-auto token = ida::event::on_renamed(
-    [](ida::Address addr, std::string new_name, std::string old_name) {
-        ida::ui::message("renamed: " + old_name + " -> " + new_name + "\n");
+// Subscribe to owned mutation snapshots; callback-side unsubscribe is supported.
+auto token = ida::event::on_segment_moved(
+    [](const ida::event::SegmentMovedEvent& event) {
+        ida::ui::message("segment moved to " + std::to_string(event.to) + "\n");
     });
 
 ida::event::ScopedSubscription guard(*token);  // RAII: unsubscribes in destructor

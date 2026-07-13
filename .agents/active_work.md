@@ -73,3 +73,13 @@
   - 7.1.2. **Evidence:** HCLI downloads IDA 9.3, then reports `No licenses found matching criteria` and cannot find the configured `*96-0000-0000-XX.hexlic` file (F377).
   - 7.1.3. **Mitigation:** Renew or correct the HCLI account/license assignment and corresponding GitHub Actions secrets, then rerun all three workflows on `edbc6f1` or its successor.
   - 7.1.4. **Status:** Blocked on external license/secret provisioning; no repository code fix indicated.
+
+---
+
+### 9. Multi-Byte Data Definition Unit Semantics (Phase 29)
+
+- **9.1. Element Count to Byte-Length Conversion**
+  - 9.1.1. **Finding:** Multi-byte `define_*` APIs advertise element counts but pass them unchanged to SDK helpers that require byte lengths (F378).
+  - 9.1.2. **Action:** Add checked `count * element_width` conversion for word/dword/qword/oword/tbyte/float/double definitions and preserve byte/string/struct semantics.
+  - 9.1.3. **Evidence:** Replace survivability-only assertions with exact success, item-size, multi-element, overflow, and binding runtime checks.
+  - 9.1.4. **Status:** Next isolated implementation item after Phase 28 completion.

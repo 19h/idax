@@ -27,8 +27,42 @@ static const char* EventKindToString(ida::event::EventKind kind) {
         case ida::event::EventKind::Renamed:         return "renamed";
         case ida::event::EventKind::BytePatched:     return "bytePatched";
         case ida::event::EventKind::CommentChanged:  return "commentChanged";
+        case ida::event::EventKind::SegmentMoved:    return "segmentMoved";
+        case ida::event::EventKind::FunctionUpdated: return "functionUpdated";
+        case ida::event::EventKind::ItemTypeChanged: return "itemTypeChanged";
+        case ida::event::EventKind::OperandTypeChanged: return "operandTypeChanged";
+        case ida::event::EventKind::CodeCreated:      return "codeCreated";
+        case ida::event::EventKind::DataCreated:      return "dataCreated";
+        case ida::event::EventKind::ItemsDestroyed:   return "itemsDestroyed";
+        case ida::event::EventKind::ExtraCommentChanged: return "extraCommentChanged";
+        case ida::event::EventKind::LocalTypesChanged: return "localTypesChanged";
     }
     return "unknown";
+}
+
+static const char* ExtraCommentPlacementToString(
+    ida::event::ExtraCommentPlacement placement) {
+    switch (placement) {
+        case ida::event::ExtraCommentPlacement::Unknown:   return "unknown";
+        case ida::event::ExtraCommentPlacement::Anterior:  return "anterior";
+        case ida::event::ExtraCommentPlacement::Posterior: return "posterior";
+    }
+    return "unknown";
+}
+
+static const char* LocalTypeChangeToString(ida::event::LocalTypeChangeKind change) {
+    switch (change) {
+        case ida::event::LocalTypeChangeKind::None:              return "none";
+        case ida::event::LocalTypeChangeKind::Added:             return "added";
+        case ida::event::LocalTypeChangeKind::Deleted:           return "deleted";
+        case ida::event::LocalTypeChangeKind::Edited:            return "edited";
+        case ida::event::LocalTypeChangeKind::Aliased:           return "aliased";
+        case ida::event::LocalTypeChangeKind::CompilerChanged:   return "compilerChanged";
+        case ida::event::LocalTypeChangeKind::LibraryLoaded:     return "libraryLoaded";
+        case ida::event::LocalTypeChangeKind::LibraryUnloaded:   return "libraryUnloaded";
+        case ida::event::LocalTypeChangeKind::OrdinalsCompacted: return "ordinalsCompacted";
+    }
+    return "none";
 }
 
 /// Convert an ida::event::Event to a JS object.
@@ -41,6 +75,17 @@ static v8::Local<v8::Object> EventToObject(const ida::event::Event& ev) {
         .setStr("oldName", ev.old_name)
         .setUint("oldValue", ev.old_value)
         .setBool("repeatable", ev.repeatable)
+        .setAddressSize("size", static_cast<ida::AddressSize>(ev.size))
+        .setInt("operandIndex", ev.operand_index)
+        .setInt("lineIndex", ev.line_index)
+        .setStr("text", ev.text)
+        .setBool("willDisableRange", ev.will_disable_range)
+        .setBool("addressMappingChanged", ev.address_mapping_changed)
+        .setStr("extraCommentPlacement",
+                ExtraCommentPlacementToString(ev.extra_comment_placement))
+        .setStr("localTypeChange", LocalTypeChangeToString(ev.local_type_change))
+        .setUint("typeOrdinal", ev.type_ordinal)
+        .setStr("typeName", ev.type_name)
         .build();
 }
 
@@ -58,6 +103,19 @@ static bool GetFunctionArg(Nan::NAN_METHOD_ARGS_TYPE info, int idx,
 /// Return a token as a JS BigInt.
 static v8::Local<v8::Value> TokenToJS(ida::event::Token token) {
     return v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), token);
+}
+
+static void CallEvent(const std::shared_ptr<Nan::Callback>& callback,
+                      const ida::event::Event& event) {
+    Nan::HandleScope scope;
+    v8::Local<v8::Value> argv[] = { EventToObject(event) };
+    Nan::Call(*callback, Nan::GetCurrentContext()->Global(), 1, argv);
+}
+
+static void CallObject(const std::shared_ptr<Nan::Callback>& callback,
+                       v8::Local<v8::Object> object) {
+    v8::Local<v8::Value> argv[] = { object };
+    Nan::Call(*callback, Nan::GetCurrentContext()->Global(), 1, argv);
 }
 
 /// Extract a token from a JS argument (number or BigInt).
@@ -228,6 +286,160 @@ NAN_METHOD(OnCommentChanged) {
     info.GetReturnValue().Set(TokenToJS(token));
 }
 
+/// onSegmentMoved(callback) -> token
+NAN_METHOD(OnSegmentMoved) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_segment_moved(
+        [cb](const ida::event::SegmentMovedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "segmentMoved")
+                .setAddr("from", payload.from)
+                .setAddr("to", payload.to)
+                .setAddressSize("size", static_cast<ida::AddressSize>(payload.size))
+                .setBool("addressMappingChanged", payload.address_mapping_changed)
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onFunctionUpdated(callback) -> token
+NAN_METHOD(OnFunctionUpdated) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_function_updated(
+        [cb](ida::Address address) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::FunctionUpdated;
+            event.address = address;
+            CallEvent(cb, event);
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onItemTypeChanged(callback) -> token
+NAN_METHOD(OnItemTypeChanged) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_item_type_changed(
+        [cb](ida::Address address) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::ItemTypeChanged;
+            event.address = address;
+            CallEvent(cb, event);
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onOperandTypeChanged(callback) -> token
+NAN_METHOD(OnOperandTypeChanged) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_operand_type_changed(
+        [cb](ida::Address address, int operand_index) {
+            ida::event::Event event;
+            event.kind = ida::event::EventKind::OperandTypeChanged;
+            event.address = address;
+            event.operand_index = operand_index;
+            CallEvent(cb, event);
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onCodeCreated(callback) -> token
+NAN_METHOD(OnCodeCreated) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_code_created(
+        [cb](const ida::event::ItemCreatedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "codeCreated")
+                .setAddr("address", payload.address)
+                .setAddressSize("size", static_cast<ida::AddressSize>(payload.size))
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onDataCreated(callback) -> token
+NAN_METHOD(OnDataCreated) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_data_created(
+        [cb](const ida::event::ItemCreatedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "dataCreated")
+                .setAddr("address", payload.address)
+                .setAddressSize("size", static_cast<ida::AddressSize>(payload.size))
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onItemsDestroyed(callback) -> token
+NAN_METHOD(OnItemsDestroyed) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_items_destroyed(
+        [cb](const ida::event::ItemsDestroyedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "itemsDestroyed")
+                .setAddr("start", payload.start)
+                .setAddr("end", payload.end)
+                .setBool("willDisableRange", payload.will_disable_range)
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onExtraCommentChanged(callback) -> token
+NAN_METHOD(OnExtraCommentChanged) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_extra_comment_changed(
+        [cb](const ida::event::ExtraCommentChangedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "extraCommentChanged")
+                .setAddr("address", payload.address)
+                .setStr("placement", ExtraCommentPlacementToString(payload.placement))
+                .setInt("lineIndex", payload.line_index)
+                .setStr("text", payload.text)
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
+/// onLocalTypesChanged(callback) -> token
+NAN_METHOD(OnLocalTypesChanged) {
+    std::shared_ptr<Nan::Callback> cb;
+    if (!GetFunctionArg(info, 0, cb)) return;
+
+    IDAX_UNWRAP(auto token, ida::event::on_local_types_changed(
+        [cb](const ida::event::LocalTypesChangedEvent& payload) {
+            Nan::HandleScope scope;
+            CallObject(cb, ObjectBuilder()
+                .setStr("kind", "localTypesChanged")
+                .setStr("change", LocalTypeChangeToString(payload.change))
+                .setUint("ordinal", payload.ordinal)
+                .setStr("name", payload.name)
+                .build());
+        }));
+    info.GetReturnValue().Set(TokenToJS(token));
+}
+
 /// onEvent(callback) -> token
 /// Subscribes to ALL supported IDB events through a single callback.
 NAN_METHOD(OnEvent) {
@@ -266,6 +478,15 @@ void InitEvent(v8::Local<v8::Object> target) {
     SetMethod(ns, "onRenamed",         OnRenamed);
     SetMethod(ns, "onBytePatched",     OnBytePatched);
     SetMethod(ns, "onCommentChanged",  OnCommentChanged);
+    SetMethod(ns, "onSegmentMoved",    OnSegmentMoved);
+    SetMethod(ns, "onFunctionUpdated", OnFunctionUpdated);
+    SetMethod(ns, "onItemTypeChanged", OnItemTypeChanged);
+    SetMethod(ns, "onOperandTypeChanged", OnOperandTypeChanged);
+    SetMethod(ns, "onCodeCreated",     OnCodeCreated);
+    SetMethod(ns, "onDataCreated",     OnDataCreated);
+    SetMethod(ns, "onItemsDestroyed",  OnItemsDestroyed);
+    SetMethod(ns, "onExtraCommentChanged", OnExtraCommentChanged);
+    SetMethod(ns, "onLocalTypesChanged", OnLocalTypesChanged);
     SetMethod(ns, "onEvent",           OnEvent);
     SetMethod(ns, "unsubscribe",       Unsubscribe);
 }

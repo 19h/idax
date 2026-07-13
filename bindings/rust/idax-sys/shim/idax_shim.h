@@ -864,6 +864,16 @@ typedef struct IdaxEvent {
     const char* old_name;
     uint32_t old_value;
     int      repeatable;
+    uint64_t size;
+    int      operand_index;
+    int      line_index;
+    const char* text;
+    int      will_disable_range;
+    int      address_mapping_changed;
+    int      extra_comment_placement;
+    int      local_type_change;
+    uint32_t type_ordinal;
+    const char* type_name;
 } IdaxEvent;
 
 /**
@@ -904,6 +914,24 @@ int idax_event_on_byte_patched(IdaxEventBytePatchedCallback callback,
                                void* context, uint64_t* token_out);
 int idax_event_on_comment_changed(IdaxEventCommentChangedCallback callback,
                                   void* context, uint64_t* token_out);
+int idax_event_on_segment_moved(IdaxEventExCallback callback,
+                                void* context, uint64_t* token_out);
+int idax_event_on_function_updated(IdaxEventExCallback callback,
+                                   void* context, uint64_t* token_out);
+int idax_event_on_item_type_changed(IdaxEventExCallback callback,
+                                    void* context, uint64_t* token_out);
+int idax_event_on_operand_type_changed(IdaxEventExCallback callback,
+                                       void* context, uint64_t* token_out);
+int idax_event_on_code_created(IdaxEventExCallback callback,
+                               void* context, uint64_t* token_out);
+int idax_event_on_data_created(IdaxEventExCallback callback,
+                               void* context, uint64_t* token_out);
+int idax_event_on_items_destroyed(IdaxEventExCallback callback,
+                                  void* context, uint64_t* token_out);
+int idax_event_on_extra_comment_changed(IdaxEventExCallback callback,
+                                        void* context, uint64_t* token_out);
+int idax_event_on_local_types_changed(IdaxEventExCallback callback,
+                                      void* context, uint64_t* token_out);
 int idax_event_on_event(IdaxEventExCallback callback,
                         void* context, uint64_t* token_out);
 int idax_event_on_event_filtered(IdaxEventFilterCallback filter,

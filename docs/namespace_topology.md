@@ -28,7 +28,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::analysis       Auto-analysis control, scheduling               [~7 free fns]
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |
- |-- ida::event          Typed IDB subscriptions, generic routing        [1 enum, 1 struct, 1 class, ~10 free fns]
+ |-- ida::event          Typed IDB change snapshots, generic routing     [3 enums, 6 structs, 1 class, ~19 free fns]
  |-- ida::plugin         Plugin base, actions, menu/toolbar              [3 structs, 1 class, ~4 free fns]
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
@@ -112,7 +112,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::lines` | Tagged text/color utilities | `Color`, `kColorOn`, `kColorOff`, `kColorEsc`, `kColorInv`, `kColorAddr`, `kColorAddrSize` |
 | `ida::ui` | User interface and current-widget polling | `Widget`, `Chooser`, `WaitBox`, `Progress`, `FormBuilder`, typed form bindings, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |
-| `ida::event` | IDB event routing | `Event`, `EventKind`, `ScopedSubscription` |
+| `ida::event` | Mutation-safe IDB event routing | `Event`, `EventKind`, `SegmentMovedEvent`, `ItemCreatedEvent`, `ItemsDestroyedEvent`, `ExtraCommentChangedEvent`, `LocalTypesChangedEvent`, `ScopedSubscription` |
 | `ida::storage` | Persistent key-value | `Node` |
 
 ## Header Dependency Map

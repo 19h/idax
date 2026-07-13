@@ -319,6 +319,79 @@ void start_tracking() {
                   addr);
     }), g_state.idb_subs);
 
+    sub(ida::event::on_segment_moved(
+        [](const ida::event::SegmentMovedEvent& event) {
+        g_log.add("IDB", "segment_move",
+                  fmt("%#llx -> %#llx (%zu bytes)",
+                      (unsigned long long)event.from,
+                      (unsigned long long)event.to, event.size),
+                  event.to);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_function_updated([](ida::Address entry) {
+        g_log.add("IDB", "func_update",
+                  fmt("Function metadata updated at %#llx",
+                      (unsigned long long)entry), entry);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_item_type_changed([](ida::Address addr) {
+        g_log.add("IDB", "type_change",
+                  fmt("Applied type changed at %#llx",
+                      (unsigned long long)addr), addr);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_operand_type_changed(
+        [](ida::Address addr, int operand_index) {
+        g_log.add("IDB", "operand_type",
+                  fmt("Operand %d representation changed at %#llx",
+                      operand_index, (unsigned long long)addr), addr);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_code_created(
+        [](const ida::event::ItemCreatedEvent& event) {
+        g_log.add("IDB", "code_create",
+                  fmt("Instruction created at %#llx (%zu bytes)",
+                      (unsigned long long)event.address, event.size),
+                  event.address);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_data_created(
+        [](const ida::event::ItemCreatedEvent& event) {
+        g_log.add("IDB", "data_create",
+                  fmt("Data created at %#llx (%zu bytes)",
+                      (unsigned long long)event.address, event.size),
+                  event.address);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_items_destroyed(
+        [](const ida::event::ItemsDestroyedEvent& event) {
+        g_log.add("IDB", "items_destroyed",
+                  fmt("Items removed in [%#llx, %#llx)",
+                      (unsigned long long)event.start,
+                      (unsigned long long)event.end),
+                  event.start);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_extra_comment_changed(
+        [](const ida::event::ExtraCommentChangedEvent& event) {
+        const char* placement = event.placement
+            == ida::event::ExtraCommentPlacement::Anterior ? "anterior"
+            : event.placement == ida::event::ExtraCommentPlacement::Posterior
+                ? "posterior" : "unknown";
+        g_log.add("IDB", "extra_comment",
+                  fmt("%s line %d changed at %#llx", placement,
+                      event.line_index, (unsigned long long)event.address),
+                  event.address);
+    }), g_state.idb_subs);
+
+    sub(ida::event::on_local_types_changed(
+        [](const ida::event::LocalTypesChangedEvent& event) {
+        g_log.add("IDB", "local_type",
+                  fmt("Local type '%s' changed (kind=%d, ordinal=%u)",
+                      event.name.c_str(), static_cast<int>(event.change),
+                      event.ordinal));
+    }), g_state.idb_subs);
+
     // Generic event routing: log all events for completeness, using the
     // normalized Event struct that decodes the raw va_list payload once.
     sub(ida::event::on_event([](const ida::event::Event& ev) {

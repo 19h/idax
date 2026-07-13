@@ -1203,6 +1203,8 @@ mod name_tests {
 
 #[cfg(test)]
 mod event_tests {
+    use crate::address::Address;
+    use crate::error::Result;
     use crate::event::*;
 
     #[test]
@@ -1214,6 +1216,17 @@ mod event_tests {
         assert_eq!(EventKind::Renamed as i32, 4);
         assert_eq!(EventKind::BytePatched as i32, 5);
         assert_eq!(EventKind::CommentChanged as i32, 6);
+        assert_eq!(EventKind::SegmentMoved as i32, 7);
+        assert_eq!(EventKind::FunctionUpdated as i32, 8);
+        assert_eq!(EventKind::ItemTypeChanged as i32, 9);
+        assert_eq!(EventKind::OperandTypeChanged as i32, 10);
+        assert_eq!(EventKind::CodeCreated as i32, 11);
+        assert_eq!(EventKind::DataCreated as i32, 12);
+        assert_eq!(EventKind::ItemsDestroyed as i32, 13);
+        assert_eq!(EventKind::ExtraCommentChanged as i32, 14);
+        assert_eq!(EventKind::LocalTypesChanged as i32, 15);
+        assert_eq!(ExtraCommentPlacement::Anterior as i32, 1);
+        assert_eq!(LocalTypeChangeKind::OrdinalsCompacted as i32, 8);
     }
 
     #[test]
@@ -1222,6 +1235,27 @@ mod event_tests {
         assert_eq!(e.kind, EventKind::SegmentAdded);
         assert!(e.new_name.is_empty());
         assert!(e.old_name.is_empty());
+        assert_eq!(e.operand_index, -1);
+        assert_eq!(e.line_index, -1);
+        assert_eq!(e.extra_comment_placement, ExtraCommentPlacement::Unknown);
+        assert_eq!(e.local_type_change, LocalTypeChangeKind::None);
+    }
+
+    #[test]
+    fn test_change_tracking_event_function_signatures() {
+        let _: fn(fn(SegmentMovedEvent)) -> Result<Token> =
+            on_segment_moved::<fn(SegmentMovedEvent)>;
+        let _: fn(fn(Address)) -> Result<Token> = on_function_updated::<fn(Address)>;
+        let _: fn(fn(Address)) -> Result<Token> = on_item_type_changed::<fn(Address)>;
+        let _: fn(fn(Address, i32)) -> Result<Token> = on_operand_type_changed::<fn(Address, i32)>;
+        let _: fn(fn(ItemCreatedEvent)) -> Result<Token> = on_code_created::<fn(ItemCreatedEvent)>;
+        let _: fn(fn(ItemCreatedEvent)) -> Result<Token> = on_data_created::<fn(ItemCreatedEvent)>;
+        let _: fn(fn(ItemsDestroyedEvent)) -> Result<Token> =
+            on_items_destroyed::<fn(ItemsDestroyedEvent)>;
+        let _: fn(fn(ExtraCommentChangedEvent)) -> Result<Token> =
+            on_extra_comment_changed::<fn(ExtraCommentChangedEvent)>;
+        let _: fn(fn(LocalTypesChangedEvent)) -> Result<Token> =
+            on_local_types_changed::<fn(LocalTypesChangedEvent)>;
     }
 
     #[test]

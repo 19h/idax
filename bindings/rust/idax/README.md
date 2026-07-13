@@ -148,7 +148,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`storage`] | Netnode storage | `Node` (RAII handle), typed value stores: altval (`set_altval` / `altval`), supval (`set_supval` / `supval`), hashval (`set_hashval` / `hashval`), blob (`set_blob` / `blob`), `create` / `open` / `remove` |
 | [`lumina`] | Lumina server | `pull`, `push` |
 | [`analysis`] | Auto-analysis | `is_enabled`, `set_enabled`, `is_idle`, `wait`, `schedule`, `schedule_range`, `schedule_function`, `cancel`, `revert_decisions` |
-| [`event`] | IDB event subscriptions | Typed callbacks for segment/function/rename/patch/comment events, filtered subscriptions, `ScopedSubscription` (RAII unsubscribe on drop) |
+| [`event`] | IDB event subscriptions | Typed callbacks for lifecycle, segment moves, function/type/operand changes, code/data creation/destruction, regular/extra comments, and local types; generic filtering; callback-safe self-unsubscribe; `ScopedSubscription` |
 
 ### Extension points
 

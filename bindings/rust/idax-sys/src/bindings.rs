@@ -2624,10 +2624,20 @@ pub struct IdaxEvent {
     pub old_name: *const ::std::os::raw::c_char,
     pub old_value: u32,
     pub repeatable: ::std::os::raw::c_int,
+    pub size: u64,
+    pub operand_index: ::std::os::raw::c_int,
+    pub line_index: ::std::os::raw::c_int,
+    pub text: *const ::std::os::raw::c_char,
+    pub will_disable_range: ::std::os::raw::c_int,
+    pub address_mapping_changed: ::std::os::raw::c_int,
+    pub extra_comment_placement: ::std::os::raw::c_int,
+    pub local_type_change: ::std::os::raw::c_int,
+    pub type_ordinal: u32,
+    pub type_name: *const ::std::os::raw::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxEvent"][::std::mem::size_of::<IdaxEvent>() - 48usize];
+    ["Size of IdaxEvent"][::std::mem::size_of::<IdaxEvent>() - 104usize];
     ["Alignment of IdaxEvent"][::std::mem::align_of::<IdaxEvent>() - 8usize];
     ["Offset of field: IdaxEvent::kind"][::std::mem::offset_of!(IdaxEvent, kind) - 0usize];
     ["Offset of field: IdaxEvent::address"][::std::mem::offset_of!(IdaxEvent, address) - 8usize];
@@ -2639,6 +2649,24 @@ const _: () = {
         [::std::mem::offset_of!(IdaxEvent, old_value) - 40usize];
     ["Offset of field: IdaxEvent::repeatable"]
         [::std::mem::offset_of!(IdaxEvent, repeatable) - 44usize];
+    ["Offset of field: IdaxEvent::size"][::std::mem::offset_of!(IdaxEvent, size) - 48usize];
+    ["Offset of field: IdaxEvent::operand_index"]
+        [::std::mem::offset_of!(IdaxEvent, operand_index) - 56usize];
+    ["Offset of field: IdaxEvent::line_index"]
+        [::std::mem::offset_of!(IdaxEvent, line_index) - 60usize];
+    ["Offset of field: IdaxEvent::text"][::std::mem::offset_of!(IdaxEvent, text) - 64usize];
+    ["Offset of field: IdaxEvent::will_disable_range"]
+        [::std::mem::offset_of!(IdaxEvent, will_disable_range) - 72usize];
+    ["Offset of field: IdaxEvent::address_mapping_changed"]
+        [::std::mem::offset_of!(IdaxEvent, address_mapping_changed) - 76usize];
+    ["Offset of field: IdaxEvent::extra_comment_placement"]
+        [::std::mem::offset_of!(IdaxEvent, extra_comment_placement) - 80usize];
+    ["Offset of field: IdaxEvent::local_type_change"]
+        [::std::mem::offset_of!(IdaxEvent, local_type_change) - 84usize];
+    ["Offset of field: IdaxEvent::type_ordinal"]
+        [::std::mem::offset_of!(IdaxEvent, type_ordinal) - 88usize];
+    ["Offset of field: IdaxEvent::type_name"]
+        [::std::mem::offset_of!(IdaxEvent, type_name) - 96usize];
 };
 impl Default for IdaxEvent {
     fn default() -> Self {
@@ -2747,6 +2775,69 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_event_on_comment_changed(
         callback: IdaxEventCommentChangedCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_segment_moved(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_function_updated(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_item_type_changed(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_operand_type_changed(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_code_created(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_data_created(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_items_destroyed(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_extra_comment_changed(
+        callback: IdaxEventExCallback,
+        context: *mut ::std::os::raw::c_void,
+        token_out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_event_on_local_types_changed(
+        callback: IdaxEventExCallback,
         context: *mut ::std::os::raw::c_void,
         token_out: *mut u64,
     ) -> ::std::os::raw::c_int;
