@@ -35,6 +35,7 @@ Current overall phase status:
 - Phase 22: ~99% (ida-cdump parity closure in progress: wait-box UI, multiline text, typed-form C++ bindings/FormBuilder plus fixed-shape Node/Rust typed-form entrypoints, optional Qt clipboard helpers with Node/Rust wrappers and an IDA-compatible `QT_NAMESPACE=QT` build gate, IDB path, portable path helpers, Hex-Rays popup-population events, scoped Hex-Rays ownership, Local Types action-context type references, lvar/prototype metadata helpers, read-only ctree migration helpers, bulk local type declaration import, host-gated runtime harness and runner script including Hex-Rays scoped-session runtime evidence, compact parity probe example, Qt example build bridge, Node native build/runtime validation, and Rust high-level no-run validation are implemented; the updated remaining queue is interactive modal form and Qt clipboard evidence)
 - Phase 23: 100% (ida-trida port parity complete: plugin shell ported to idax actions/forms/wait-box/path/clipboard helpers, GitHub Actions build matrix added, rich `ida::type` layout/function/enum metadata API implemented in C++ with Node/Rust binding surfaces, trida generator migrated off direct `typeinf.hpp` use, docs/agent notes updated, and focused C++/Node/Rust/trida validation passed)
 - Phase 24: 100% (IDA-names ergonomic parity complete: stable active-widget polling, exact Hex-Rays pseudocode-switch events, arbitrary-symbol demangling, Node/Rust parity, and Qt-host title migration)
+- Phase 25: 100% (action-attachment state hardening complete: deterministic menu/toolbar detach contracts, lifecycle cleanup, and 25/25 CTest recovery)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -115,3 +116,12 @@ Current overall phase status:
 - [x] P24.4 Mirror applicable APIs through Node and Rust bindings with structural/runtime tests.
 - [x] P24.5 Update the IDA-names example port to consume the new APIs and remove event-tracking workarounds.
 - [x] P24.6 Synchronize coverage/docs/agent records and run focused plus full validation. (Focused C++ 4/4, Node 184/184 + 65/65, Rust 127/127; full C++ sweep exposed independent F370, tracked for the next semantic fix.)
+
+---
+
+### Phase 25 TODO Action Items (Action Attachment State Hardening)
+
+- [x] P25.1 Track successful idax menu/toolbar attachments independently of ambiguous SDK detach return values.
+- [x] P25.2 Preserve deterministic `NotFound` behavior for missing or already-consumed wrapper-managed attachments.
+- [x] P25.3 Add real registration/attach/detach lifecycle coverage and rerun the complete C++ suite.
+- [x] P25.4 Synchronize API docs, findings/knowledge, decisions, validation evidence, ledger, roadmap, and active-work state.

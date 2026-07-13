@@ -610,6 +610,50 @@ void test_plugin_detach_helpers() {
     CHECK(!dp.has_value(), "detach_from_popup reports missing widget/attachment");
     CHECK(dp.error().category == ida::ErrorCategory::NotFound,
           "detach_from_popup missing -> NotFound");
+
+    constexpr std::string_view action_id = "idax:test:detach_lifecycle";
+    ida::plugin::Action action{
+        .id = std::string(action_id),
+        .label = "idax detach lifecycle probe",
+        .handler = [] { return ida::ok(); },
+    };
+
+    auto registered = ida::plugin::register_action(action);
+    CHECK(registered.has_value(), "detach lifecycle action registers");
+    if (!registered)
+        return;
+
+    auto attached = ida::plugin::attach_to_menu("Edit/Plugins/", action_id);
+    CHECK(attached.has_value(), "detach lifecycle action attaches to menu");
+    bool attached_for_unregister = false;
+    if (attached) {
+        auto detached = ida::plugin::detach_from_menu("Edit/Plugins/", action_id);
+        CHECK(detached.has_value(), "tracked menu attachment detaches");
+
+        auto detached_again = ida::plugin::detach_from_menu("Edit/Plugins/", action_id);
+        CHECK(!detached_again.has_value(), "second menu detach reports missing attachment");
+        if (!detached_again) {
+            CHECK(detached_again.error().category == ida::ErrorCategory::NotFound,
+                  "second menu detach -> NotFound");
+        }
+
+        auto reattached = ida::plugin::attach_to_menu("Edit/Plugins/", action_id);
+        CHECK(reattached.has_value(), "detach lifecycle action reattaches");
+        attached_for_unregister = reattached.has_value();
+    }
+
+    auto unregistered = ida::plugin::unregister_action(action_id);
+    CHECK(unregistered.has_value(), "detach lifecycle action unregisters");
+    if (attached_for_unregister) {
+        auto detached_after_unregister =
+            ida::plugin::detach_from_menu("Edit/Plugins/", action_id);
+        CHECK(!detached_after_unregister.has_value(),
+              "unregister clears tracked menu attachments");
+        if (!detached_after_unregister) {
+            CHECK(detached_after_unregister.error().category == ida::ErrorCategory::NotFound,
+                  "detach after unregister -> NotFound");
+        }
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -967,3 +967,12 @@ remain inside its one-time init/open/analysis sequence while equivalent Node
 and C++ fixture tests finish. Until stage tracing isolates the exact call, use
 Rust compile/unit coverage as structural proof and do not report the stalled
 runtime harness as passing evidence.
+
+### 35.30. Wrapper-Managed Action Attachment Accounting [F372]
+Maintain synchronized counts keyed by exact `(menu_or_toolbar, action_id)` for
+successful idax attachment calls. A detach consumes one tracked count before
+SDK dispatch and returns `NotFound` without dispatch when no count exists.
+Successful or failed action unregistration clears all counts for that action
+ID, preventing stale state when an ID is later reused. This accounting defines
+deterministic semantics for wrapper-managed attachments while leaving popup
+attachment behavior on the SDK's explicit permanent-widget contract.

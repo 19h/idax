@@ -2200,3 +2200,13 @@
   - 16.161.2. Final feature evidence: four focused CTest targets pass, `idax_ida_names_port_plugin` links, Node passes 184/184 unit and 65/65 real-IDA integration checks, Rust formatting and 127/127 library tests pass, and fixture state is restored after mutation tests.
   - 16.161.3. The full C++ sweep was executed and isolated an unrelated pre-existing semantic failure in menu detach handling (F370); the failure is retained as a separate active item rather than conflated with Phase 24.
   - 16.161.4. Rust real-IDA integration is explicitly not claimed because the current macOS harness stalls during shared lifecycle setup (F371); this remains an independent active validation item.
+
+- **16.162. Phase 25 Action Attachment State Hardening Start**
+  - 16.162.1. Promoted F370 from a full-sweep observation into a separate semantic repair phase after Phase 24 was committed and pushed independently.
+  - 16.162.2. Scope is limited to deterministic wrapper-managed menu/toolbar attachment accounting, lifecycle tests, full C++ validation recovery, and required documentation/protocol synchronization.
+
+- **16.163. Phase 25 Action Attachment State Hardening Complete**
+  - 16.163.1. Added synchronized counted state for successful idax menu/toolbar attachments, deterministic pre-dispatch `NotFound` for untracked pairs, per-detach count consumption, and action-unregister cleanup.
+  - 16.163.2. Expanded `loader_processor_scenario` with real action registration, menu attach/detach, second-detach rejection, reattach, unregister cleanup, and post-unregister rejection coverage.
+  - 16.163.3. Validation evidence: focused `loader_processor_scenario` passes; clean relink plus complete CTest passes 25/25 targets in 32.64 s; Rust formatting and plugin unit subset pass 2/2; Node relink and unit suite pass 184/184.
+  - 16.163.4. Restored the mutable fixture IDB after runtime tests and removed the resolved menu-detach item from active work.

@@ -99,6 +99,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Plugin base classes and lifecycle abstraction
 - Multi-instance support
 - Action/menu/toolbar/popup helper APIs
+- Counted wrapper-managed menu/toolbar attachment state with deterministic
+  missing/already-detached `NotFound` results
 - Registration helpers with type-safe callback signatures
 - Action-context Local Types `TypeRef` snapshots
 

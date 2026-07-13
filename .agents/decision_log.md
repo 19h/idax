@@ -1023,3 +1023,8 @@
 - **19.25. Decision D-IDA-NAMES-QT-TITLE-BRIDGE**: Keep widget-title mutation outside the generic SDK facade
   - **19.25.1. Decision:** The IDA-names example changes window titles through `with_widget_host` and a Qt-only translation unit instead of adding `Widget::set_title()`.
   - **19.25.2. Rationale:** The audited SDK exposes title reads but no generic `set_widget_title` operation. An explicit host bridge preserves public SDK opacity and keeps Qt dependencies confined to a `TYPE QT` example target.
+
+- **19.26. Decision D-WRAPPER-MANAGED-ACTION-ATTACHMENTS**: Define deterministic detach state within idax
+  - **19.26.1. Decision:** Track successful idax menu and toolbar attachments as counted `(target, action_id)` pairs; detach only tracked pairs, consume one count per successful wrapper request, and clear residual counts on action unregistration.
+  - **19.26.2. Rationale:** IDA 9.3 can return success when detaching a menu action that was never attached, so the SDK boolean cannot implement idax's `NotFound` contract by itself.
+  - **19.26.3. Scope constraint:** Deterministic state applies to attachments created through idax. Attachments created exclusively through raw SDK calls are outside this opaque wrapper contract; popup helpers retain their SDK permanent-widget behavior.

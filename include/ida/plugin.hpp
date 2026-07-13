@@ -205,10 +205,16 @@ Status attach_to_toolbar(std::string_view toolbar, std::string_view action_id);
 /// Attach an action to a popup/context menu of a widget.
 Status attach_to_popup(std::string_view widget_title, std::string_view action_id);
 
-/// Detach an action from a menu path.
+/// Detach an action from a menu path previously attached through idax.
+///
+/// Returns NotFound when the target/action pair is not tracked or has already
+/// been detached.
 Status detach_from_menu(std::string_view menu_path, std::string_view action_id);
 
-/// Detach an action from a toolbar.
+/// Detach an action from a toolbar previously attached through idax.
+///
+/// Returns NotFound when the target/action pair is not tracked or has already
+/// been detached.
 Status detach_from_toolbar(std::string_view toolbar, std::string_view action_id);
 
 /// Detach an action from a widget popup/context menu.

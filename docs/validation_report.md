@@ -638,3 +638,13 @@ tracked in `docs/compatibility_matrix.md`.
   `loader_processor_scenario`). Rust real-IDA integration was attempted but
   is not counted as pass evidence because the shared init/open/analysis
   sequence stalled (F371).
+
+- 2026-07-13 Phase 25 action-attachment state hardening:
+  Replaced reliance on IDA 9.3's ambiguous menu-detach boolean with counted
+  wrapper-managed menu/toolbar attachment state and unregister cleanup.
+  `loader_processor_scenario` now exercises registration, attach, detach,
+  second-detach `NotFound`, reattach, unregister cleanup, and post-unregister
+  `NotFound`. Focused validation passes, and a clean relink plus complete CTest
+  sweep passes 25/25 targets in 32.64 s. Rust formatting plus the plugin unit
+  subset pass 2/2; the Node addon relinks and its structural suite passes
+  184/184. The fixture IDB was restored after runtime execution.

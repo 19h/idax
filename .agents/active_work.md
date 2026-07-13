@@ -66,12 +66,7 @@
 
 ---
 
-### 7. Validation Regressions Discovered During Phase 24
-
-- **7.1. Menu Detach Contract**
-  - 7.1.1. **Impact:** `loader_processor_scenario` fails 2/200 checks because IDA 9.3 reports success detaching a never-attached action while idax promises `NotFound`.
-  - 7.1.2. **Mitigation:** Add wrapper-owned menu/toolbar attachment state and rerun the complete C++ suite as a separate semantic fix.
-  - 7.1.3. **Status:** Reproduced; next implementation item (F370).
+### 7. Rust Runtime Validation Regression Discovered During Phase 24
 
 - **7.2. Rust macOS Runtime Harness Stall**
   - 7.2.1. **Impact:** Real-IDA Rust runtime validation cannot currently be claimed; full and filtered integration runs stall during shared init/open/analysis setup.

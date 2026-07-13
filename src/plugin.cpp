@@ -9,6 +9,9 @@
 #include <kernwin.hpp>
 #include <hexrays.hpp>
 
+#include <map>
+#include <mutex>
+
 extern plugin_t PLUGIN;
 
 namespace ida::plugin {
@@ -57,6 +60,47 @@ std::optional<TypeRef> snapshot_type_ref(const action_ctx_base_t* ctx) {
     out.name = type_ref_name(*ctx->type_ref);
     ida::type::TypeInfoAccess::get(out.type)->ti = ctx->type_ref->tif;
     return out;
+}
+
+using AttachmentKey = std::pair<std::string, std::string>;
+using AttachmentCounts = std::map<AttachmentKey, std::size_t>;
+
+std::mutex g_attachment_mutex;
+AttachmentCounts g_menu_attachments;
+AttachmentCounts g_toolbar_attachments;
+
+void record_attachment(AttachmentCounts& counts,
+                       std::string_view target,
+                       std::string_view action_id) {
+    std::lock_guard<std::mutex> lock(g_attachment_mutex);
+    ++counts[{std::string(target), std::string(action_id)}];
+}
+
+bool consume_attachment(AttachmentCounts& counts,
+                        std::string_view target,
+                        std::string_view action_id) {
+    std::lock_guard<std::mutex> lock(g_attachment_mutex);
+    const AttachmentKey key{std::string(target), std::string(action_id)};
+    auto it = counts.find(key);
+    if (it == counts.end())
+        return false;
+    if (--it->second == 0)
+        counts.erase(it);
+    return true;
+}
+
+void forget_action_attachments(std::string_view action_id) {
+    std::lock_guard<std::mutex> lock(g_attachment_mutex);
+    const auto erase_action = [action_id](AttachmentCounts& counts) {
+        for (auto it = counts.begin(); it != counts.end();) {
+            if (it->first.second == action_id)
+                it = counts.erase(it);
+            else
+                ++it;
+        }
+    };
+    erase_action(g_menu_attachments);
+    erase_action(g_toolbar_attachments);
 }
 
 struct ActionAdapter : public action_handler_t {
@@ -152,8 +196,11 @@ Status register_action(const Action& action) {
 
 Status unregister_action(std::string_view action_id) {
     std::string id(action_id);
-    if (!::unregister_action(id.c_str()))
+    if (!::unregister_action(id.c_str())) {
+        forget_action_attachments(action_id);
         return std::unexpected(Error::not_found("Action not found", id));
+    }
+    forget_action_attachments(action_id);
     return ida::ok();
 }
 
@@ -161,6 +208,7 @@ Status attach_to_menu(std::string_view menu_path, std::string_view action_id) {
     std::string mp(menu_path), aid(action_id);
     if (!::attach_action_to_menu(mp.c_str(), aid.c_str(), SETMENU_APP))
         return std::unexpected(Error::sdk("attach_action_to_menu failed", std::string(action_id)));
+    record_attachment(g_menu_attachments, menu_path, action_id);
     return ida::ok();
 }
 
@@ -168,6 +216,7 @@ Status attach_to_toolbar(std::string_view toolbar, std::string_view action_id) {
     std::string tb(toolbar), aid(action_id);
     if (!::attach_action_to_toolbar(tb.c_str(), aid.c_str()))
         return std::unexpected(Error::sdk("attach_action_to_toolbar failed", std::string(action_id)));
+    record_attachment(g_toolbar_attachments, toolbar, action_id);
     return ida::ok();
 }
 
@@ -182,6 +231,11 @@ Status attach_to_popup(std::string_view widget_title, std::string_view action_id
 }
 
 Status detach_from_menu(std::string_view menu_path, std::string_view action_id) {
+    if (!consume_attachment(g_menu_attachments, menu_path, action_id)) {
+        return std::unexpected(Error::not_found("Action is not attached to menu",
+                                                std::string(action_id)));
+    }
+
     std::string mp(menu_path), aid(action_id);
     if (!::detach_action_from_menu(mp.c_str(), aid.c_str()))
         return std::unexpected(Error::not_found("Action is not attached to menu",
@@ -190,6 +244,11 @@ Status detach_from_menu(std::string_view menu_path, std::string_view action_id) 
 }
 
 Status detach_from_toolbar(std::string_view toolbar, std::string_view action_id) {
+    if (!consume_attachment(g_toolbar_attachments, toolbar, action_id)) {
+        return std::unexpected(Error::not_found("Action is not attached to toolbar",
+                                                std::string(action_id)));
+    }
+
     std::string tb(toolbar), aid(action_id);
     if (!::detach_action_from_toolbar(tb.c_str(), aid.c_str()))
         return std::unexpected(Error::not_found("Action is not attached to toolbar",
