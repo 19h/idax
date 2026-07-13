@@ -24,7 +24,7 @@ Public headers:
 | `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
-| `include/ida/plugin.hpp` | Plugin base class, action registration, counted wrapper-managed menu/toolbar attachment with deterministic detach errors, popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |
+| `include/ida/plugin.hpp` | Plugin base class, wrapper-owned action registration/activation, move-only `ScopedHotkey`, counted wrapper-managed menu/toolbar attachment with deterministic detach errors, popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |
 | `include/ida/loader.hpp` | Loader base class, InputFile abstraction, registration macro |
 | `include/ida/processor.hpp` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | `include/ida/debugger.hpp` | Process lifecycle, backend discovery/selection, breakpoints, memory, registers, appcall/executor APIs, typed event subscriptions |

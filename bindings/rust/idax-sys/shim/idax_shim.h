@@ -1126,6 +1126,7 @@ int idax_plugin_register_action_ex(const char* id, const char* label,
                                    IdaxActionEnabledCheckEx enabled_check_ex,
                                    void* enabled_context);
 int idax_plugin_unregister_action(const char* action_id);
+int idax_plugin_activate_action(const char* action_id);
 int idax_plugin_attach_to_menu(const char* menu_path, const char* action_id);
 int idax_plugin_attach_to_toolbar(const char* toolbar, const char* action_id);
 int idax_plugin_attach_to_popup(const char* widget_title, const char* action_id);

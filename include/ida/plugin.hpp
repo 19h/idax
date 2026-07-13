@@ -42,6 +42,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace ida::plugin {
 
@@ -191,10 +192,64 @@ struct Action {
 };
 
 /// Register a UI action with IDA.
+///
+/// Callback storage is wrapper-owned and reclaimed by unregister_action().
+/// Callers of this named-action API must explicitly unregister during teardown;
+/// use ScopedHotkey for automatic shortcut-only ownership.
 Status register_action(const Action& action);
 
 /// Unregister a UI action.
 Status unregister_action(std::string_view action_id);
+
+/// Activate a registered action by its internal identifier.
+Status activate_action(std::string_view action_id);
+
+/// Shortcut-only callback used by register_hotkey().
+using HotkeyCallback = std::function<Status()>;
+
+/// Move-only registration for a shortcut-only action.
+///
+/// The internally generated action is unregistered on destruction. Use a full
+/// Action when the command also needs a stable public identifier, menu/toolbar
+/// attachment, a tooltip/icon, or context-sensitive availability.
+class ScopedHotkey {
+public:
+    ScopedHotkey() = default;
+    ~ScopedHotkey();
+
+    ScopedHotkey(const ScopedHotkey&) = delete;
+    ScopedHotkey& operator=(const ScopedHotkey&) = delete;
+    ScopedHotkey(ScopedHotkey&& other) noexcept;
+    ScopedHotkey& operator=(ScopedHotkey&& other) noexcept;
+
+    /// Whether this object currently owns a registered action.
+    [[nodiscard]] bool active() const noexcept { return !action_id_.empty(); }
+
+    /// The normalized shortcut supplied at registration.
+    [[nodiscard]] std::string_view hotkey() const noexcept { return hotkey_; }
+
+    /// Invoke the shortcut action programmatically.
+    Status activate() const;
+
+    /// Unregister before destruction. Returns NotFound when already inactive.
+    Status release();
+
+private:
+    friend Result<ScopedHotkey> register_hotkey(std::string_view,
+                                                HotkeyCallback);
+
+    ScopedHotkey(std::string action_id, std::string hotkey)
+        : action_id_(std::move(action_id)), hotkey_(std::move(hotkey)) {}
+
+    std::string action_id_;
+    std::string hotkey_;
+};
+
+/// Register a shortcut-only action in one call.
+///
+/// The returned move-only object owns the complete registration lifecycle.
+Result<ScopedHotkey> register_hotkey(std::string_view hotkey,
+                                     HotkeyCallback callback);
 
 /// Attach an action to a menu path (e.g. "Edit/Plugins/").
 Status attach_to_menu(std::string_view menu_path, std::string_view action_id);

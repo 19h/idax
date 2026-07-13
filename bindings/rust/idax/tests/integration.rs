@@ -19,7 +19,7 @@ use idax::address::{Address, BAD_ADDRESS};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
-    instruction, lines, name, search, segment, storage, types, ui, xref,
+    instruction, lines, name, plugin, search, segment, storage, types, ui, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -195,6 +195,62 @@ fn database_snapshots() {
     require_db!();
     let snaps = database::snapshots().unwrap();
     let _ = snaps; // may be empty for a fresh analysis
+}
+
+fn plugin_scoped_hotkey_lifecycle() {
+    require_db!();
+
+    struct DropProbe(Arc<AtomicBool>);
+    impl Drop for DropProbe {
+        fn drop(&mut self) {
+            self.0.store(true, Ordering::Release);
+        }
+    }
+
+    let callback_dropped = Arc::new(AtomicBool::new(false));
+    let callback_dropped_from_handler = Arc::clone(&callback_dropped);
+    let hits = Arc::new(AtomicUsize::new(0));
+    let hits_from_handler = Arc::clone(&hits);
+    let probe = DropProbe(callback_dropped_from_handler);
+
+    let mut hotkey = plugin::register_hotkey("Ctrl-Shift-F12", move || {
+        let _ = &probe;
+        hits_from_handler.fetch_add(1, Ordering::AcqRel);
+    })
+    .expect("scoped hotkey registration");
+    assert!(hotkey.is_active());
+    assert_eq!(hotkey.hotkey(), "Ctrl-Shift-F12");
+    assert!(!callback_dropped.load(Ordering::Acquire));
+
+    // IDA's headless host may reject process_ui_action (F393). If it accepts
+    // dispatch, the callback must execute exactly once.
+    if hotkey.activate().is_ok() {
+        assert_eq!(hits.load(Ordering::Acquire), 1);
+    }
+
+    hotkey.release().expect("scoped hotkey release");
+    assert!(!hotkey.is_active());
+    assert!(callback_dropped.load(Ordering::Acquire));
+    assert_eq!(
+        hotkey.release().unwrap_err().category,
+        ErrorCategory::NotFound
+    );
+    assert_eq!(
+        hotkey.activate().unwrap_err().category,
+        ErrorCategory::NotFound
+    );
+
+    let drop_reclaimed = Arc::new(AtomicBool::new(false));
+    {
+        let drop_probe = DropProbe(Arc::clone(&drop_reclaimed));
+        let drop_hotkey = plugin::register_hotkey("Ctrl-Alt-Shift-F12", move || {
+            let _ = &drop_probe;
+        })
+        .expect("drop-owned hotkey registration");
+        assert!(drop_hotkey.is_active());
+        assert!(!drop_reclaimed.load(Ordering::Acquire));
+    }
+    assert!(drop_reclaimed.load(Ordering::Acquire));
 }
 
 // ===========================================================================
@@ -1554,6 +1610,10 @@ static TEST_CASES: &[TestCase] = &[
     ("database_compiler_info", database_compiler_info),
     ("database_import_modules", database_import_modules),
     ("database_snapshots", database_snapshots),
+    (
+        "plugin_scoped_hotkey_lifecycle",
+        plugin_scoped_hotkey_lifecycle,
+    ),
     ("segment_count_nonzero", segment_count_nonzero),
     ("segment_all_iterator", segment_all_iterator),
     ("segment_by_index", segment_by_index),

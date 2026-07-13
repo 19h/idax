@@ -9,6 +9,8 @@
 #include <ida/idax.hpp>
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -656,6 +658,155 @@ void test_plugin_detach_helpers() {
     }
 }
 
+void test_plugin_action_and_hotkey_lifecycle() {
+    std::printf("[section] plugin: owned actions and scoped hotkeys\n");
+
+    constexpr std::string_view action_id = "idax:test:owned_action";
+    int action_hits = 0;
+    auto retained = std::make_shared<int>(17);
+    std::weak_ptr<int> retained_observer = retained;
+
+    ida::plugin::Action action{
+        .id = std::string(action_id),
+        .label = "idax owned-action probe",
+        .handler = [&, retained] {
+            ++action_hits;
+            return ida::ok();
+        },
+    };
+
+    auto registered = ida::plugin::register_action(action);
+    CHECK(registered.has_value(), "owned action registers");
+    if (registered) {
+        action.handler = {};
+        retained.reset();
+        CHECK(!retained_observer.expired(),
+              "registered adapter retains callback state");
+
+        auto activated = ida::plugin::activate_action(action_id);
+        if (activated) {
+            CHECK(action_hits == 1, "registered action callback invoked once");
+        } else {
+            SKIP("headless host does not dispatch process_ui_action");
+        }
+
+        auto unregistered = ida::plugin::unregister_action(action_id);
+        CHECK(unregistered.has_value(), "owned action unregisters");
+        CHECK(retained_observer.expired(),
+              "owned adapter releases callback state on unregister");
+    }
+
+    constexpr std::string_view throwing_id = "idax:test:throwing_action";
+    bool throwing_callback_entered = false;
+    ida::plugin::Action throwing_action{
+        .id = std::string(throwing_id),
+        .label = "idax exception-barrier probe",
+        .handler = [&]() -> ida::Status {
+            throwing_callback_entered = true;
+            throw std::runtime_error("action callback probe");
+        },
+    };
+    auto throwing_registered = ida::plugin::register_action(throwing_action);
+    CHECK(throwing_registered.has_value(), "throwing action registers");
+    if (throwing_registered) {
+        bool escaped = false;
+        try {
+            (void)ida::plugin::activate_action(throwing_id);
+        } catch (...) {
+            escaped = true;
+        }
+        CHECK(!escaped, "action exception does not cross host ABI boundary");
+        if (throwing_callback_entered) {
+            CHECK(true, "throwing callback was contained by adapter boundary");
+        } else {
+            SKIP("headless host does not dispatch exception-barrier action");
+        }
+        CHECK(ida::plugin::unregister_action(throwing_id).has_value(),
+              "throwing action unregisters");
+    }
+
+    auto empty_hotkey = ida::plugin::register_hotkey("", [] { return ida::ok(); });
+    CHECK(!empty_hotkey.has_value(), "empty hotkey is rejected");
+    if (!empty_hotkey) {
+        CHECK(empty_hotkey.error().category == ida::ErrorCategory::Validation,
+              "empty hotkey -> Validation");
+    }
+
+    auto empty_callback = ida::plugin::register_hotkey("Ctrl-Shift-F12", {});
+    CHECK(!empty_callback.has_value(), "empty hotkey callback is rejected");
+    if (!empty_callback) {
+        CHECK(empty_callback.error().category == ida::ErrorCategory::Validation,
+              "empty hotkey callback -> Validation");
+    }
+
+    int hotkey_hits = 0;
+    auto hotkey_state = std::make_shared<int>(23);
+    std::weak_ptr<int> hotkey_state_observer = hotkey_state;
+    auto hotkey_result = ida::plugin::register_hotkey(
+        "Ctrl-Shift-F12",
+        [&, hotkey_state] {
+            ++hotkey_hits;
+            return ida::ok();
+        });
+    CHECK(hotkey_result.has_value(), "scoped hotkey registers");
+    if (!hotkey_result)
+        return;
+
+    hotkey_state.reset();
+    ida::plugin::ScopedHotkey hotkey = std::move(*hotkey_result);
+    CHECK(hotkey.active(), "scoped hotkey is active after registration");
+    CHECK(hotkey.hotkey() == "Ctrl-Shift-F12", "scoped hotkey preserves shortcut");
+    CHECK(!hotkey_result->active(), "moved-from scoped hotkey is inactive");
+    CHECK(!hotkey_state_observer.expired(), "scoped hotkey retains callback state");
+
+    auto hotkey_activated = hotkey.activate();
+    if (hotkey_activated) {
+        CHECK(hotkey_hits == 1, "scoped hotkey callback invoked once");
+    } else {
+        SKIP("headless host does not dispatch scoped hotkey action");
+    }
+
+    ida::plugin::ScopedHotkey moved_hotkey;
+    moved_hotkey = std::move(hotkey);
+    CHECK(!hotkey.active(), "move assignment deactivates source hotkey");
+    CHECK(moved_hotkey.active(), "move assignment transfers hotkey ownership");
+
+    auto released = moved_hotkey.release();
+    CHECK(released.has_value(), "scoped hotkey releases explicitly");
+    CHECK(!moved_hotkey.active(), "released scoped hotkey is inactive");
+    CHECK(hotkey_state_observer.expired(),
+          "hotkey callback state releases with registration");
+
+    auto released_again = moved_hotkey.release();
+    CHECK(!released_again.has_value(), "second hotkey release reports inactive");
+    if (!released_again) {
+        CHECK(released_again.error().category == ida::ErrorCategory::NotFound,
+              "second hotkey release -> NotFound");
+    }
+    auto activate_released = moved_hotkey.activate();
+    CHECK(!activate_released.has_value(), "released hotkey cannot activate");
+    if (!activate_released) {
+        CHECK(activate_released.error().category == ida::ErrorCategory::NotFound,
+              "released hotkey activation -> NotFound");
+    }
+
+    auto destructor_state = std::make_shared<int>(31);
+    std::weak_ptr<int> destructor_state_observer = destructor_state;
+    {
+        auto destructor_hotkey = ida::plugin::register_hotkey(
+            "Ctrl-Alt-Shift-F12",
+            [destructor_state] { return ida::ok(); });
+        CHECK(destructor_hotkey.has_value(), "destructor-owned hotkey registers");
+        destructor_state.reset();
+        if (destructor_hotkey) {
+            CHECK(!destructor_state_observer.expired(),
+                  "destructor-owned hotkey retains callback state");
+        }
+    }
+    CHECK(destructor_state_observer.expired(),
+          "scoped hotkey destructor releases callback state");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Processor: all optional callback defaults
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1058,6 +1209,7 @@ int main(int argc, char** argv) {
     test_processor_analyze_details();
     test_plugin_action_types();
     test_plugin_detach_helpers();
+    test_plugin_action_and_hotkey_lifecycle();
     test_processor_optional_callback_defaults();
     test_switch_description_edge_cases();
     test_feature_flag_composition();

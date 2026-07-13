@@ -185,3 +185,12 @@ Current overall phase status:
 - [x] P31.2 Design opaque definitions/snapshots and callback adapters with explicit lifetime rules.
 - [x] P31.3 Implement C++ APIs plus Node/Rust parity and exact fixed/variable-size real-IDA validation.
 - [x] P31.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
+
+---
+
+### Phase 32 TODO Action Items (Scoped Hotkey and Action Ownership)
+
+- [x] P32.1 Audit the native action-handler ownership contract and the IDAPython `add_hotkey`/`del_hotkey` convenience lifecycle.
+- [x] P32.2 Add a one-call opaque C++ scoped-hotkey API, deterministic handler ownership, and callback exception barriers.
+- [x] P32.3 Add applicable Rust parity, migrate the DriverBuddy port, and validate exact registration/move/release behavior against real IDA.
+- [x] P32.4 Synchronize API/coverage/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.

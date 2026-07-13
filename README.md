@@ -92,7 +92,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
 | **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
-| **Plugins** | `ida::plugin` | Plugin base class, action registration, menu/toolbar/popup attach+detach, context callbacks with optional Local Types refs |
+| **Plugins** | `ida::plugin` | Plugin base class, owned action registration/activation, scoped one-call hotkeys, menu/toolbar/popup attach+detach, context callbacks with optional Local Types refs |
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |

@@ -1024,6 +1024,9 @@ public:
         if (!action_registered_) {
             return;
         }
+        if (decode_hotkey_.active()) {
+            (void)decode_hotkey_.release();
+        }
         unregister_decode_action();
         action_registered_ = false;
     }
@@ -1059,7 +1062,6 @@ private:
         plugin::Action action;
         action.id = std::string(kDecodeActionId);
         action.label = "DriverBuddy: Decode IOCTL at cursor";
-        action.hotkey = "Ctrl-Alt-I";
         action.tooltip = "Decode immediate DeviceIoControl value under the cursor";
         action.handler = [this]() { return decode_ioctl_under_cursor(); };
         action.enabled = []() { return true; };
@@ -1075,6 +1077,16 @@ private:
             return std::unexpected(attach_status.error());
         }
 
+        auto hotkey = plugin::register_hotkey(
+            "Ctrl-Alt-I",
+            [this]() { return decode_ioctl_under_cursor(); });
+        if (!hotkey) {
+            (void)plugin::detach_from_menu(kPluginMenuPath, kDecodeActionId);
+            (void)plugin::unregister_action(kDecodeActionId);
+            return std::unexpected(hotkey.error());
+        }
+        decode_hotkey_ = std::move(*hotkey);
+
         return ida::ok();
     }
 
@@ -1084,6 +1096,7 @@ private:
     }
 
     bool action_registered_{false};
+    plugin::ScopedHotkey decode_hotkey_;
 };
 
 } // namespace

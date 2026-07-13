@@ -1136,3 +1136,23 @@ single callback invocation. The kernel can call `calc_item_size` again during
 creation. Treat custom type callbacks as deterministic and reentrant, retain
 their state through the complete SDK call, and validate callback participation
 plus final item size rather than an exact cross-version invocation count.
+
+### 35.50. Registered Actions Need Owned Handlers and Exception Barriers [F392]
+The native action API retains the supplied `action_handler_t*` beyond
+`register_action`. A heap handler is destroyed by the kernel on unregister only
+when the action descriptor includes `ADF_OWN_HANDLER`; the PLUGMOD literal does
+not set that bit by itself. Wrapper callbacks must also catch all exceptions in
+`activate` and `update` because those methods are invoked through the host ABI.
+Model one-call hotkeys as scoped registrations over the action system rather
+than as a separate SDK primitive: IDAPython's `add_hotkey`/`del_hotkey` are
+convenience adapters, while the C++ SDK exposes registered actions.
+
+### 35.51. Headless Action Hosts Have Weaker Lifecycle Observability [F393]
+Successful action registration in idalib does not imply that
+`process_ui_action` can dispatch the action: IDA 9.3 headless execution returns
+false without entering the handler. The same host did not immediately destroy
+an `ADF_OWN_HANDLER` adapter after successful unregister. Keep named action
+adapters in wrapper-owned storage, erase them only after successful SDK
+unregister, and reserve activation/exception runtime evidence for an
+interactive IDA UI host. Headless evidence remains valid for registration,
+unregistration, scoped move/release state, and callback-state reclamation.

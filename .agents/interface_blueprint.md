@@ -760,6 +760,21 @@ struct Action {
 
 Status register_action(const Action &action);
 Status unregister_action(std::string_view action_id);
+Status activate_action(std::string_view action_id);
+
+class ScopedHotkey {
+ public:
+  ScopedHotkey(ScopedHotkey &&) noexcept;
+  ScopedHotkey &operator=(ScopedHotkey &&) noexcept;
+  ~ScopedHotkey();
+  bool active() const noexcept;
+  std::string_view hotkey() const noexcept;
+  Status activate() const;
+  Status release();
+};
+
+Result<ScopedHotkey> register_hotkey(std::string_view hotkey,
+                                     std::function<Status()> callback);
 Status attach_action_to_menu(std::string_view menu_path,
                              std::string_view action_id);
 Status attach_action_to_toolbar(std::string_view toolbar,

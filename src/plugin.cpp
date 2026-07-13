@@ -9,7 +9,9 @@
 #include <kernwin.hpp>
 #include <hexrays.hpp>
 
+#include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
 
 extern plugin_t PLUGIN;
@@ -68,6 +70,30 @@ using AttachmentCounts = std::map<AttachmentKey, std::size_t>;
 std::mutex g_attachment_mutex;
 AttachmentCounts g_menu_attachments;
 AttachmentCounts g_toolbar_attachments;
+std::atomic<std::uint64_t> g_hotkey_sequence{1};
+
+struct ActionAdapter;
+using ActionAdapters = std::map<std::string, std::shared_ptr<ActionAdapter>>;
+
+std::mutex& action_adapter_mutex() {
+    static auto* mutex = new std::mutex();
+    return *mutex;
+}
+
+ActionAdapters& action_adapters() {
+    // Deliberately process-lifetime storage: an action that a client fails to
+    // unregister must not be left with a dangling SDK handler during module
+    // teardown. Successful explicit unregister still reclaims immediately.
+    static auto* adapters = new ActionAdapters();
+    return *adapters;
+}
+
+std::string next_hotkey_action_id() {
+    const auto module_identity = reinterpret_cast<std::uintptr_t>(&g_hotkey_sequence);
+    const auto sequence = g_hotkey_sequence.fetch_add(1, std::memory_order_relaxed);
+    return "idax:hotkey:" + std::to_string(module_identity) + ":" +
+           std::to_string(sequence);
+}
 
 void record_attachment(AttachmentCounts& counts,
                        std::string_view target,
@@ -103,7 +129,8 @@ void forget_action_attachments(std::string_view action_id) {
     erase_action(g_toolbar_attachments);
 }
 
-struct ActionAdapter : public action_handler_t {
+struct ActionAdapter : public action_handler_t,
+                       public std::enable_shared_from_this<ActionAdapter> {
     std::function<Status()> handler;
     std::function<Status(const ActionContext&)> handler_with_context;
     std::function<bool()>   enabled;
@@ -144,25 +171,35 @@ struct ActionAdapter : public action_handler_t {
     }
 
     int idaapi activate(action_activation_ctx_t *ctx) override {
-        if (handler_with_context) {
-            auto context = to_action_context(ctx);
-            (void)handler_with_context(context);
-        } else if (handler) {
-            (void)handler();
+        const auto keep_alive = weak_from_this().lock();
+        try {
+            if (handler_with_context) {
+                auto context = to_action_context(ctx);
+                return handler_with_context(context).has_value() ? 1 : 0;
+            }
+            if (handler)
+                return handler().has_value() ? 1 : 0;
+        } catch (...) {
+            return 0;
         }
-        return 1; // refresh
+        return 0;
     }
 
     action_state_t idaapi update(action_update_ctx_t *ctx) override {
-        if (enabled_with_context) {
-            auto context = to_action_context(ctx);
-            if (!enabled_with_context(context))
+        const auto keep_alive = weak_from_this().lock();
+        try {
+            if (enabled_with_context) {
+                auto context = to_action_context(ctx);
+                if (!enabled_with_context(context))
+                    return AST_DISABLE;
+                return AST_ENABLE;
+            }
+            if (enabled && !enabled())
                 return AST_DISABLE;
             return AST_ENABLE;
-        }
-        if (enabled && !enabled())
+        } catch (...) {
             return AST_DISABLE;
-        return AST_ENABLE;
+        }
     }
 };
 
@@ -171,7 +208,12 @@ struct ActionAdapter : public action_handler_t {
 // ── Public action API ───────────────────────────────────────────────────
 
 Status register_action(const Action& action) {
-    auto* adapter = new ActionAdapter();
+    if (action.id.empty())
+        return std::unexpected(Error::validation("Action identifier cannot be empty"));
+    if (action.label.empty())
+        return std::unexpected(Error::validation("Action label cannot be empty"));
+
+    auto adapter = std::make_shared<ActionAdapter>();
     adapter->handler = action.handler;
     adapter->handler_with_context = action.handler_with_context;
     adapter->enabled = action.enabled;
@@ -180,14 +222,31 @@ Status register_action(const Action& action) {
     action_desc_t desc = ACTION_DESC_LITERAL_PLUGMOD(
         action.id.c_str(),
         action.label.c_str(),
-        adapter,
+        adapter.get(),
         nullptr, // plugmod owner (nullptr = global)
         action.hotkey.empty() ? nullptr : action.hotkey.c_str(),
         action.tooltip.empty() ? nullptr : action.tooltip.c_str(),
         action.icon);
 
+    {
+        std::lock_guard<std::mutex> lock(action_adapter_mutex());
+        const auto insertion = action_adapters().emplace(action.id, adapter);
+        if (!insertion.second) {
+            return std::unexpected(Error::validation("Action is already registered",
+                                                     action.id));
+        }
+    }
+
     if (!register_action(desc)) {
-        delete adapter;
+        std::shared_ptr<ActionAdapter> reclaimed;
+        {
+            std::lock_guard<std::mutex> lock(action_adapter_mutex());
+            auto it = action_adapters().find(action.id);
+            if (it != action_adapters().end() && it->second == adapter) {
+                reclaimed = std::move(it->second);
+                action_adapters().erase(it);
+            }
+        }
         return std::unexpected(Error::sdk("register_action failed",
                                           action.id));
     }
@@ -201,7 +260,87 @@ Status unregister_action(std::string_view action_id) {
         return std::unexpected(Error::not_found("Action not found", id));
     }
     forget_action_attachments(action_id);
+    std::shared_ptr<ActionAdapter> reclaimed;
+    {
+        std::lock_guard<std::mutex> lock(action_adapter_mutex());
+        auto it = action_adapters().find(id);
+        if (it != action_adapters().end()) {
+            reclaimed = std::move(it->second);
+            action_adapters().erase(it);
+        }
+    }
     return ida::ok();
+}
+
+Status activate_action(std::string_view action_id) {
+    if (action_id.empty())
+        return std::unexpected(Error::validation("Action identifier cannot be empty"));
+
+    const std::string id(action_id);
+    if (!::process_ui_action(id.c_str()))
+        return std::unexpected(Error::sdk("process_ui_action failed", id));
+    return ida::ok();
+}
+
+ScopedHotkey::~ScopedHotkey() {
+    if (active())
+        (void)release();
+}
+
+ScopedHotkey::ScopedHotkey(ScopedHotkey&& other) noexcept
+    : action_id_(std::move(other.action_id_)),
+      hotkey_(std::move(other.hotkey_)) {
+    other.action_id_.clear();
+    other.hotkey_.clear();
+}
+
+ScopedHotkey& ScopedHotkey::operator=(ScopedHotkey&& other) noexcept {
+    if (this == &other)
+        return *this;
+    if (active())
+        (void)release();
+    action_id_ = std::move(other.action_id_);
+    hotkey_ = std::move(other.hotkey_);
+    other.action_id_.clear();
+    other.hotkey_.clear();
+    return *this;
+}
+
+Status ScopedHotkey::activate() const {
+    if (!active())
+        return std::unexpected(Error::not_found("Hotkey registration is inactive"));
+    return activate_action(action_id_);
+}
+
+Status ScopedHotkey::release() {
+    if (!active())
+        return std::unexpected(Error::not_found("Hotkey registration is inactive"));
+
+    auto status = unregister_action(action_id_);
+    if (!status)
+        return status;
+    action_id_.clear();
+    hotkey_.clear();
+    return ida::ok();
+}
+
+Result<ScopedHotkey> register_hotkey(std::string_view hotkey,
+                                     HotkeyCallback callback) {
+    if (hotkey.empty())
+        return std::unexpected(Error::validation("Hotkey cannot be empty"));
+    if (!callback)
+        return std::unexpected(Error::validation("Hotkey callback cannot be empty"));
+
+    Action action;
+    action.id = next_hotkey_action_id();
+    action.label = "idax shortcut";
+    action.hotkey = std::string(hotkey);
+    action.handler = std::move(callback);
+
+    auto status = register_action(action);
+    if (!status)
+        return std::unexpected(status.error());
+    return ScopedHotkey(std::move(action.id), std::move(action.hotkey));
 }
 
 Status attach_to_menu(std::string_view menu_path, std::string_view action_id) {

@@ -3440,6 +3440,11 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_plugin_activate_action(
+        action_id: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_plugin_attach_to_menu(
         menu_path: *const ::std::os::raw::c_char,
         action_id: *const ::std::os::raw::c_char,

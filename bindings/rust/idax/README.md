@@ -154,7 +154,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`plugin`] | Plugin lifecycle | Action registration (`register_action` / `register_action_ex`), menu/toolbar/popup attachment, `ActionContext` for context-aware handlers including optional Local Types `TypeRef` payloads |
+| [`plugin`] | Plugin lifecycle | Wrapper-owned action registration/activation, drop-based `ScopedHotkey`, menu/toolbar/popup attachment, panic-contained callbacks, and `ActionContext` with optional Local Types `TypeRef` payloads |
 | [`loader`] | Loader modules | `InputFileHandle` (seek, read, filename), `LoadFlags` decode/encode, `file_to_database`, `memory_to_database`, `set_processor`, `abort_load` |
 | [`processor`] | Processor modules | `Processor` trait (5 required + 15 optional methods), `InstructionFeature` / `RegisterInfo` / `AssemblerInfo` types |
 | [`graph`] | Custom graphs | `Graph` (RAII handle), `GraphCallback` trait for interactive event handling, `flow_chart` for function CFG extraction |

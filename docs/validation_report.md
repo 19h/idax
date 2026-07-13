@@ -740,3 +740,21 @@ tracked in `docs/compatibility_matrix.md`.
   library tests pass 131/131, and the process-main-thread IDA 9.4 integration
   suite passes 87/87. All generated bindgen outputs are byte-identical to the
   checked binding; `git diff --check` passes and the mutable fixture is clean.
+
+- 2026-07-14 Phase 32 scoped hotkey and action ownership:
+  Added wrapper-owned registered-action adapters, move-only C++/Rust
+  `ScopedHotkey` lifecycles, programmatic action activation, generated opaque
+  shortcut action IDs, and C++ exception/Rust panic barriers. Successful
+  unregister now reclaims callback state deterministically without depending
+  on host-timed `ADF_OWN_HANDLER` destruction; active callbacks retain their
+  adapter through self-unregister. DriverBuddy now models its menu action and
+  shortcut-only callback separately, and its plugin target links. Complete C++
+  build and CTest pass 25/25 in 20.89 s; the focused action target reports
+  237 passes and three explicit headless activation skips. Node build, strict
+  declaration compilation, and 218/218 structural tests pass, with IDA 9.4
+  integration passing 70/70. Rust formatting passes, workspace library tests
+  pass 132/132 plus 0 sys tests, and IDA 9.4 integration passes 88/88. The
+  newest generated bindgen output is byte-identical to the checked binding.
+  IDA 9.3 idalib rejects `process_ui_action`, so actual activation dispatch
+  remains interactive-UI-host-gated (F393); registration, release, and callback
+  reclamation are proven headlessly.

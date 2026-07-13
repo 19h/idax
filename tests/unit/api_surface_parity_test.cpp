@@ -866,6 +866,20 @@ void check_plugin_surface() {
     (void)action.enabled;
     (void)action.enabled_with_context;
 
+    static_assert(!std::is_copy_constructible_v<ida::plugin::ScopedHotkey>);
+    static_assert(!std::is_copy_assignable_v<ida::plugin::ScopedHotkey>);
+    static_assert(std::is_nothrow_move_constructible_v<ida::plugin::ScopedHotkey>);
+    static_assert(std::is_nothrow_move_assignable_v<ida::plugin::ScopedHotkey>);
+
+    ida::plugin::ScopedHotkey hotkey;
+    (void)hotkey.active();
+    (void)hotkey.hotkey();
+    using ActivateActionFn = ida::Status(*)(std::string_view);
+    using RegisterHotkeyFn = ida::Result<ida::plugin::ScopedHotkey>(*)(
+        std::string_view, ida::plugin::HotkeyCallback);
+    (void)static_cast<ActivateActionFn>(&ida::plugin::activate_action);
+    (void)static_cast<RegisterHotkeyFn>(&ida::plugin::register_hotkey);
+
     using AttachPopupFn = ida::Status(*)(std::string_view, std::string_view);
     using DetachMenuFn = ida::Status(*)(std::string_view, std::string_view);
     using DetachToolbarFn = ida::Status(*)(std::string_view, std::string_view);

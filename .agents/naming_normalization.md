@@ -30,6 +30,8 @@ This mapping is non-exhaustive but representative of expected direction.
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |
 | `loader_t::load_file` | `ida::loader::Loader::load(file, format)` |
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |
+| IDAPython `add_hotkey` / `del_hotkey` | `ida::plugin::register_hotkey` / `ScopedHotkey::release` |
+| `process_ui_action(name)` | `ida::plugin::activate_action(action_id)` |
 | `processor_t::ana/emu/out` | `ida::processor::Processor` lifecycle methods |
 
 Normalization policy:

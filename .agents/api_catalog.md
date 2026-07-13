@@ -118,6 +118,10 @@ This section captures the intended public API semantics at a concrete level so i
   missing/already-detached `NotFound` results
 - Registration helpers with type-safe callback signatures
 - Action-context Local Types `TypeRef` snapshots
+- Wrapper-owned action adapters with deterministic unregister reclamation and
+  activation/update exception barriers
+- Programmatic action activation and move-only `ScopedHotkey` one-call
+  shortcut registration with explicit/drop teardown
 
 ### 17.16 `ida::loader`
 - Loader base class with accept/load/save lifecycle

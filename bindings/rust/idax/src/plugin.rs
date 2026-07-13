@@ -7,6 +7,8 @@ use crate::error::{self, Error, Result, Status};
 use crate::types::TypeInfo;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString, c_char, c_void};
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 /// Plugin metadata.
@@ -51,6 +53,54 @@ pub struct Action {
     pub hotkey: String,
     pub tooltip: String,
     pub icon: i32,
+}
+
+static HOTKEY_SEQUENCE: AtomicU64 = AtomicU64::new(1);
+
+/// Move-only shortcut registration that unregisters on drop.
+#[derive(Debug)]
+pub struct ScopedHotkey {
+    action_id: String,
+    hotkey: String,
+}
+
+impl ScopedHotkey {
+    /// Whether this object currently owns a registered shortcut action.
+    pub fn is_active(&self) -> bool {
+        !self.action_id.is_empty()
+    }
+
+    /// The shortcut supplied at registration.
+    pub fn hotkey(&self) -> &str {
+        &self.hotkey
+    }
+
+    /// Invoke the shortcut action programmatically.
+    pub fn activate(&self) -> Status {
+        if !self.is_active() {
+            return Err(Error::not_found("hotkey registration is inactive"));
+        }
+        activate_action(&self.action_id)
+    }
+
+    /// Unregister before drop. Returns `NotFound` when already inactive.
+    pub fn release(&mut self) -> Status {
+        if !self.is_active() {
+            return Err(Error::not_found("hotkey registration is inactive"));
+        }
+        unregister_action(&self.action_id)?;
+        self.action_id.clear();
+        self.hotkey.clear();
+        Ok(())
+    }
+}
+
+impl Drop for ScopedHotkey {
+    fn drop(&mut self) {
+        if self.is_active() {
+            let _ = self.release();
+        }
+    }
 }
 
 /// Opaque host pointer for a widget.
@@ -191,7 +241,7 @@ unsafe extern "C" fn action_handler_ex_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ActionHandlerContext) };
     let action_ctx = unsafe { from_ffi_action_context(&*action_context) };
-    (ctx.callback)(action_ctx);
+    let _ = catch_unwind(AssertUnwindSafe(|| (ctx.callback)(action_ctx)));
 }
 
 unsafe extern "C" fn action_enabled_ex_trampoline(
@@ -203,7 +253,10 @@ unsafe extern "C" fn action_enabled_ex_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ActionEnabledContext) };
     let action_ctx = unsafe { from_ffi_action_context(&*action_context) };
-    if (ctx.callback)(&action_ctx) { 1 } else { 0 }
+    match catch_unwind(AssertUnwindSafe(|| (ctx.callback)(&action_ctx))) {
+        Ok(true) => 1,
+        Ok(false) | Err(_) => 0,
+    }
 }
 
 /// Register a UI action.
@@ -340,6 +393,43 @@ pub fn unregister_action(action_id: &str) -> Status {
     status
 }
 
+/// Activate a registered action by its internal identifier.
+pub fn activate_action(action_id: &str) -> Status {
+    let c = CString::new(action_id).map_err(|_| Error::validation("invalid id"))?;
+    let ret = unsafe { idax_sys::idax_plugin_activate_action(c.as_ptr()) };
+    error::int_to_status(ret, "plugin::activate_action failed")
+}
+
+/// Register a shortcut-only callback and return its scoped owner.
+pub fn register_hotkey<H>(hotkey: &str, mut handler: H) -> Result<ScopedHotkey>
+where
+    H: FnMut() + Send + 'static,
+{
+    if hotkey.is_empty() {
+        return Err(Error::validation("hotkey cannot be empty"));
+    }
+
+    let module_identity = &HOTKEY_SEQUENCE as *const AtomicU64 as usize;
+    let sequence = HOTKEY_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    let action_id = format!("idax:hotkey:{module_identity}:{sequence}");
+    let action = Action {
+        id: action_id.clone(),
+        label: "idax shortcut".to_string(),
+        hotkey: hotkey.to_string(),
+        tooltip: String::new(),
+        icon: -1,
+    };
+    register_action_with_context(
+        &action,
+        move |_| handler(),
+        None::<fn(&ActionContext) -> bool>,
+    )?;
+    Ok(ScopedHotkey {
+        action_id,
+        hotkey: hotkey.to_string(),
+    })
+}
+
 /// Attach an action to a menu path.
 pub fn attach_to_menu(menu_path: &str, action_id: &str) -> Status {
     let c_menu = CString::new(menu_path).map_err(|_| Error::validation("invalid menu path"))?;
@@ -459,6 +549,8 @@ impl Default for ActionContext {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
+    use std::sync::atomic::AtomicBool;
 
     #[test]
     fn action_context_type_ref_is_exposed_in_ffi_shape() {
@@ -512,5 +604,37 @@ mod tests {
         assert_eq!(safe.widget_title, "Local Types");
         assert_eq!(safe.current_address, 0x401000);
         assert!(safe.type_ref.is_none());
+    }
+
+    #[test]
+    fn action_callback_panics_are_contained_at_ffi_boundary() {
+        let handler_entered = Arc::new(AtomicBool::new(false));
+        let handler_entered_from_callback = Arc::clone(&handler_entered);
+        let raw_handler = Box::into_raw(Box::new(ActionHandlerContext {
+            callback: Box::new(move |_| {
+                handler_entered_from_callback.store(true, Ordering::Release);
+                panic!("handler panic probe");
+            }),
+        }));
+        let ffi = idax_sys::IdaxPluginActionContext::default();
+        let outer = catch_unwind(AssertUnwindSafe(|| unsafe {
+            action_handler_ex_trampoline(raw_handler.cast(), &ffi);
+        }));
+        assert!(outer.is_ok());
+        assert!(handler_entered.load(Ordering::Acquire));
+        unsafe { drop(Box::from_raw(raw_handler)) };
+
+        let enabled_entered = Arc::new(AtomicBool::new(false));
+        let enabled_entered_from_callback = Arc::clone(&enabled_entered);
+        let raw_enabled = Box::into_raw(Box::new(ActionEnabledContext {
+            callback: Box::new(move |_| {
+                enabled_entered_from_callback.store(true, Ordering::Release);
+                panic!("enabled panic probe");
+            }),
+        }));
+        let state = unsafe { action_enabled_ex_trampoline(raw_enabled.cast(), &ffi) };
+        assert_eq!(state, 0);
+        assert!(enabled_entered.load(Ordering::Acquire));
+        unsafe { drop(Box::from_raw(raw_enabled)) };
     }
 }

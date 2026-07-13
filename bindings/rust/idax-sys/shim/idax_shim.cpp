@@ -4571,6 +4571,10 @@ int idax_plugin_unregister_action(const char* action_id) {
     RETURN_STATUS(ida::plugin::unregister_action(action_id));
 }
 
+int idax_plugin_activate_action(const char* action_id) {
+    RETURN_STATUS(ida::plugin::activate_action(action_id));
+}
+
 int idax_plugin_attach_to_menu(const char* menu_path, const char* action_id) {
     RETURN_STATUS(ida::plugin::attach_to_menu(menu_path, action_id));
 }

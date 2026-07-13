@@ -29,7 +29,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |
  |-- ida::event          Typed IDB change snapshots, generic routing     [3 enums, 6 structs, 1 class, ~19 free fns]
- |-- ida::plugin         Plugin base, actions, menu/toolbar              [3 structs, 1 class, ~4 free fns]
+ |-- ida::plugin         Plugin base, actions, scoped hotkeys, attachments [5 structs, 2 classes, ~14 free fns]
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
@@ -99,7 +99,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
-| `ida::plugin` | Plugin development | `Plugin`, `Action`, `ActionContext`, `Info` |
+| `ida::plugin` | Plugin development | `Plugin`, `Action`, `ActionContext`, `ScopedHotkey`, `Info` |
 | `ida::loader` | Loader development | `Loader`, `InputFile`, `AcceptResult` |
 | `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `AnalyzeDetails`, `OutputContext` |
 
