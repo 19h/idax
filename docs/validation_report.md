@@ -1024,3 +1024,37 @@ tracked in `docs/compatibility_matrix.md`.
   `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
   and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
   `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.
+
+- 2026-07-14 Phase 45 Symless database-resolved indirect calls:
+  Added an adaptation-internal database-derived scalar distinct from plain
+  integers in C++ and Rust. Global reads, address-of-global values, derived
+  loads, moves, extensions, and integer add/sub preserve provenance; only the
+  copied `IndirectCall` right operand with that provenance may select an exact
+  callee entry. Ordinary traversal reuses the existing depth, active-context,
+  completed-context, graph-cache, argument-injection, and return-consensus
+  controls. Allocator discovery additionally follows one exact data-slot
+  reference hop and validates every candidate with the same target provenance
+  and configured argument classifier. Full C++ build and CTest pass 26/26 in
+  24.54 s; the Symless plugin links. Node native build, authoritative strict
+  example declarations, structural tests, and ABI-matched live integration
+  pass 238/238 and 82/82. Rust formatting/all-target checks,
+  library/sys/Symless tests, and process-main-thread IDA Professional 9.4
+  integration pass 139/139, 0 sys, 15/15, and 99/99. Generated bindings remain
+  byte-identical at SHA-256
+  `3a143a13309725ed66c5ebce1dd5199fafcc30ea8a0d92b33404c9fef66d7a13`.
+  The fresh arm64 fixture (source SHA-256
+  `ce0d76fde61fbdcd07c889fc5f3f730f5b4e915bef334c60cf0e9271a7f12be1`;
+  executable SHA-256
+  `a29cda2ef8470f1f254e1bf7b943b908f644632e5b852c1176859ca93359368d`)
+  reports one database-resolved ordinary call, one database-resolved `_malloc`
+  wrapper, one 32 B allocation root, zero ordinary unresolved calls, zero
+  allocator unclassified calls, and exact `+4/4 B`, `+8/8 B`, and `+24/1 B`
+  fields. Ordinary first apply adds three members/references/operand paths and
+  types two arguments; reopen reuses all of them with zero additions. Allocator
+  first apply adds three members plus six references/operand paths; reopen
+  reuses all of them with zero additions. The reopened IDB SHA-256 is
+  `0ef1c5bc5853daaef8f919205c80001263fbb8484819109db67bbffbb14caddc`.
+  Tracked executable and adjacent IDB remain respectively SHA-256
+  `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
+  and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.

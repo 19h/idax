@@ -49,6 +49,18 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises explicit call analysis, depth limiting, argument propagation, terminal-return consensus, and idempotent prototype application
 
+### `symless_indirect_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/symless_indirect_host.c`
+- **Used by**: Symless database-resolved ordinary and allocator indirect-call report/apply validation
+- **Key characteristics**:
+  - Exports one ordinary root/callee pair, one allocation root/wrapper pair, and encoded volatile global function-pointer slots
+  - Forces the root to load the callee address from mapped database memory before an indirect call
+  - Recovers deterministic fields at `+4 B`/4 B, `+8 B`/8 B, and `+24 B`/1 B
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises database-derived provenance, exact callee-entry validation, indirect argument propagation, indirect allocator-wrapper discovery, and idempotent apply/reopen
+
 ### `symless_vtable_host.c` -> temporary host-native executable
 
 - **Format**: Host-native executable built on demand

@@ -123,3 +123,14 @@
 - **12.3. Boundary**
   - 12.3.1. **Scope:** Apply one source-ordered stroff path per unique recovered `(instruction, processor register)` group; retain additional same-instruction fields as Phase 43 member references; preserve incompatible existing operand representations and report every candidate/add/reuse/skip. Keep indirect dynamic calls, RTTI-adjusted vtable chains, and microcode-widget selection separate.
   - 12.3.2. **Status:** Complete (P44.3-P44.4; F430-F433; KB 35.86-35.89). The exact 38-file staged review passed without findings; implementation commit `6e523eb40ea0d2b3168b5a81d8584f06bd96b9a7` is pushed and no Phase 44 blocker remains.
+
+---
+
+### 13. Symless Database-Resolved Indirect Calls (Phase 45)
+
+- **13.1. Capability Audit**
+  - 13.1.1. **Action:** Compare upstream `m_icall` offset-register provenance, static memory reads, exact callee validation, argument propagation, and allocator use with current owned graph/data/function surfaces.
+  - 13.1.2. **Status:** Complete (P45.1; F434; KB 35.90; decision 19.48). No public wrapper/binding gap exists.
+- **13.2. Bounded Port**
+  - 13.2.1. **Scope:** Preserve database-derived scalar provenance through upstream-equivalent operations; follow only exact function-entry indirect targets and reuse existing depth/cycle/return controls in ordinary and allocator paths. Exclude plain integers, runtime-only values, structure-dependent virtual dispatch, RTTI chains, and widget selection.
+  - 13.2.2. **Status:** Complete (P45.2-P45.3; F434-F437; KB 35.90-35.93). C++/Rust provenance propagation, ordinary and allocator exact-target flow, pure/live persistence evidence, documentation, and complete validation pass. P45.4 is active for staged review and push; no blocker.

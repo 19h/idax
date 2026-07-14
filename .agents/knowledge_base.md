@@ -1605,3 +1605,35 @@ transfer or wrapper result is invalid.
 - Analysis boundary: pointer add/sub size-zero observations yield candidates without creating fields; grouping selects one source-ordered field per `(instruction, processor register)`.
 - Persistence boundary: report is non-mutating, first apply adds every eligible path, and a distinct process reuses every path with zero additions while retaining fields and member references.
 - Phase 44 evidence: C++ 26/26; Node 238/238 structural and 82/82 live; Rust 139/139 library, 14/14 Symless, and 99/99 live; final fresh fixture 3 candidates -> 3 additions -> 3 reuses.
+
+### 35.90. Preserve Database-Derived Provenance for Bounded Indirect Calls [F434]
+
+- Treat a database-derived scalar as a distinct abstract kind from a plain integer even when their bit patterns are equal. Only the former may resolve an indirect-call offset.
+- Sources matching upstream `mem_t`: move from global memory reads the destination width at the global address; address-of an exact global carries that address; load through a database-derived address reads the destination width. Preserve the kind through move, zero/sign extension, and add/sub with an integer.
+- For `IndirectCall`, evaluate the right/offset operand, ignore the selector, require database-derived provenance, normalize to the recorded byte width, and require the target loader/function lookup to return an exact entry. Do not trust an analyzed call-info callee to bypass provenance.
+- Reuse existing call-argument injection, depth/context-cycle guards, graph cache, terminal-return consensus, and allocator-root logic after target resolution.
+- Complexity: state lookup/update remains `O(log V)` in C++ and expected `O(1)` in Rust for `V` tracked variables; each database-derived load performs one bounded 1/2/4/8 B read; context traversal remains bounded by the existing depth and visited-context sets.
+- Assumption A45.1: loaded database bytes contain the statically resolved pointer after loader/fixup processing. Falsify with an unresolved relocation or a value not equal to a function entry; dependent result: indirect target acceptance.
+- Assumption A45.2: relevant scalar widths are 1, 2, 4, or 8 B as in upstream `get_nb_bytes`; other widths use one-byte fallback only for source parity. Falsify with an architecture producing a wider indirect offset; dependent result: target recovery, not direct-call behavior.
+- Falsification probes: plain-immediate target rejection, address-of-global acceptance, global-slot load acceptance, second-level load, add/sub preservation, unloaded address, non-entry interior address, absent call arguments, depth/cycle reuse, exact callee field recovery, allocator-root propagation, and fresh-process apply idempotence.
+
+### 35.91. Reach Fixed Allocator Slots Through One Exact Reference Hop [F435]
+
+- Direct allocator discovery begins with references to the configured seed. A global fixed-pointer slot is represented as `slot -> allocator` data evidence plus `code -> slot` read evidence, not necessarily as a call xref to the allocator.
+- For each target-referencing data item, enumerate only its code references, resolve the containing function, cache one owned analyzed graph, collect copied `IndirectCall` addresses including nested instructions, and run the same database-provenance classifier at each site.
+- Count a database-resolved allocator call only after its evaluated target equals the configured seed and its size/wrapper arguments classify. Do not treat a code read, final decompiler call annotation, or call-info target as sufficient.
+- For `R_t` target references, `R_s` code users per referenced slot, `G` copied graph instructions, and `C` candidate indirect calls, reachability costs `O(R_t + sum(R_s) + G + C * G)` time in the current bounded classifier and `O(G + C)` cached/candidate storage per distinct containing function.
+- Assumption A45.3: IDA emits an exact data reference from a statically initialized slot to the configured target and a code reference from the load to that slot. Falsify by removing either reference and verifying the site remains unclassified; dependent result: allocator-site reachability only, not ordinary analysis of an explicitly selected root.
+
+### 35.92. Phase 45 Live Persistence Boundary [F436]
+
+- The arm64 fixture stores relocation-derived `target - 0x135` values and reconstructs them using database load plus integer add. This prevents a plain immediate from satisfying provenance while retaining a deterministic exact target.
+- Ordinary report evidence is one database-resolved indirect call, two processed functions, zero unresolved calls, and exact fields at `+4/4 B`, `+8/8 B`, and `+24/1 B`. Apply/reopen transitions are `3 added -> 3 reused` for members, references, and operand paths, with `2 changed -> 2 already typed` arguments.
+- Allocator report evidence is one database-resolved indirect wrapper, one 32 B fixed root, zero unclassified calls, and the same three fields. Apply/reopen transitions are `3 -> 3` members and `6 -> 6` references/operand paths.
+- Falsification probes are an ordinary indirect counter other than one, any missing field, a nonzero ordinary unresolved count, allocator wrapper/root counts other than one, any unclassified allocator call, reopen additions, or reuse below the first-apply addition count.
+
+### 35.93. Phase 45 Cross-Language Regression Boundary [F437]
+
+- No public wrapper/binding delta is required; generated C ABI identity is therefore a negative control, not an omitted validation layer.
+- Required final evidence is C++ 26/26, Node 238 structural plus 82 live, Rust 139 library plus 15 Symless plus 99 live, strict declarations/all-target formatting checks, unchanged tracked fixtures, and byte-identical generated bindings.
+- A changed binding hash, decreased test count, ignored live test, fixture mutation, or any failure in an unchanged language surface falsifies the bounded no-public-API conclusion.

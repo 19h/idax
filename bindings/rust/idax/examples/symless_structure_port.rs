@@ -119,6 +119,7 @@ struct AllocatorDiscovery {
     non_call_references: usize,
     unresolved_callers: usize,
     unclassified_calls: usize,
+    database_resolved_indirect_calls: usize,
     duplicate_heirs: usize,
 }
 
@@ -172,6 +173,7 @@ fn parse_allocator_spec(value: &str) -> Result<AllocatorSpec> {
 enum AbstractValue {
     StructurePointer(i64),
     Integer { value: i64, byte_width: i32 },
+    DatabaseValue { value: i64, byte_width: i32 },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -260,6 +262,7 @@ struct Reconstruction {
     max_depth: usize,
     functions_processed: usize,
     calls_followed: usize,
+    database_resolved_indirect_calls: usize,
     depth_skips: usize,
     cycle_skips: usize,
     repeated_contexts: usize,
@@ -281,6 +284,7 @@ struct AllocationReconstruction {
     conflict_discards: usize,
     functions_processed: usize,
     calls_followed: usize,
+    database_resolved_indirect_calls: usize,
     depth_skips: usize,
     cycle_skips: usize,
     repeated_contexts: usize,
@@ -628,6 +632,57 @@ fn immediate_value(operand: &MicrocodeOperand) -> Option<AbstractValue> {
     }
 }
 
+fn scalar_parts(value: AbstractValue) -> Option<(i64, i32)> {
+    match value {
+        AbstractValue::Integer { value, byte_width }
+        | AbstractValue::DatabaseValue { value, byte_width } => Some((value, byte_width)),
+        AbstractValue::StructurePointer(_) => None,
+    }
+}
+
+fn unsigned_scalar(value: AbstractValue) -> Option<u64> {
+    let (value, byte_width) = scalar_parts(value)?;
+    let bits = byte_width.clamp(1, 8) as u32 * 8;
+    let raw = value as u64;
+    Some(if bits == 64 {
+        raw
+    } else {
+        raw & ((1u64 << bits) - 1)
+    })
+}
+
+fn read_database_value(address: Address, byte_width: i32) -> Result<Option<AbstractValue>> {
+    if !address::is_loaded(address) {
+        return Ok(None);
+    }
+    let raw = match byte_width {
+        8 => data::read_qword(address)?,
+        4 => u64::from(data::read_dword(address)?),
+        2 => u64::from(data::read_word(address)?),
+        _ => u64::from(data::read_byte(address)?),
+    };
+    Ok(Some(AbstractValue::DatabaseValue {
+        value: signed_to_width(raw as i128, byte_width),
+        byte_width,
+    }))
+}
+
+fn address_of_global_value(operand: &MicrocodeOperand, byte_width: i32) -> Option<AbstractValue> {
+    if operand.kind != MicrocodeOperandKind::AddressReference {
+        return None;
+    }
+    let referenced = operand.referenced_operand.as_deref()?;
+    if referenced.kind != MicrocodeOperandKind::GlobalAddress
+        || referenced.global_address == BAD_ADDRESS
+    {
+        return None;
+    }
+    Some(AbstractValue::DatabaseValue {
+        value: signed_to_width(referenced.global_address as i128, byte_width),
+        byte_width,
+    })
+}
+
 fn record_access(
     raw_accesses: &mut Vec<RawAccess>,
     pointer: Option<AbstractValue>,
@@ -841,6 +896,7 @@ fn call_information(instruction: &MicrocodeInstruction) -> Option<&MicrocodeOper
 enum DiscoveryValue {
     CallerArgument(usize),
     Integer(i64),
+    DatabaseValue { value: i64, byte_width: i32 },
     CallOrigin(Address),
 }
 
@@ -876,6 +932,37 @@ fn discovery_immediate(operand: &MicrocodeOperand) -> Option<DiscoveryValue> {
     }
 }
 
+fn discovery_database_value(address: Address, byte_width: i32) -> Option<DiscoveryValue> {
+    match read_database_value(address, byte_width).ok().flatten()? {
+        AbstractValue::DatabaseValue { value, byte_width } => {
+            Some(DiscoveryValue::DatabaseValue { value, byte_width })
+        }
+        _ => None,
+    }
+}
+
+fn discovery_address_of_global(
+    operand: &MicrocodeOperand,
+    byte_width: i32,
+) -> Option<DiscoveryValue> {
+    match address_of_global_value(operand, byte_width)? {
+        AbstractValue::DatabaseValue { value, byte_width } => {
+            Some(DiscoveryValue::DatabaseValue { value, byte_width })
+        }
+        _ => None,
+    }
+}
+
+fn discovery_unsigned_value(value: DiscoveryValue) -> Option<u64> {
+    match value {
+        DiscoveryValue::DatabaseValue { value, byte_width } => {
+            unsigned_scalar(AbstractValue::DatabaseValue { value, byte_width })
+        }
+        DiscoveryValue::Integer(value) => Some(value as u64),
+        DiscoveryValue::CallerArgument(_) | DiscoveryValue::CallOrigin(_) => None,
+    }
+}
+
 fn valid_allocator_size(value: i64) -> Option<u64> {
     (value > 0 && value < 0x4000).then_some(value as u64)
 }
@@ -894,7 +981,7 @@ fn classify_call_arguments(
                 count_index: None,
                 size_index: *index,
             }),
-            DiscoveryValue::CallOrigin(_) => None,
+            DiscoveryValue::DatabaseValue { .. } | DiscoveryValue::CallOrigin(_) => None,
         },
         AllocatorKind::Calloc => {
             let count = arguments.get(allocator.count_index?)?.as_ref()?;
@@ -927,6 +1014,9 @@ fn discovery_operand_value(
     if let Some(nested) = operand.nested_instruction.as_deref() {
         return process_discovery_instruction(state, nested, call_address, allocator, evaluation);
     }
+    if let Some(address) = discovery_address_of_global(operand, operand.byte_width) {
+        return Some(address);
+    }
     variable_for_operand(operand)
         .and_then(|variable| state.get(&variable).copied())
         .or_else(|| discovery_immediate(operand))
@@ -940,13 +1030,38 @@ fn process_discovery_instruction(
     evaluation: &mut DiscoveryEvaluation,
 ) -> Option<DiscoveryValue> {
     let result = match instruction.opcode {
-        MicrocodeOpcode::Move => discovery_operand_value(
-            state,
-            &instruction.left,
-            call_address,
-            allocator,
-            evaluation,
-        ),
+        MicrocodeOpcode::Move => {
+            let value = if instruction.left.kind == MicrocodeOperandKind::GlobalAddress {
+                discovery_database_value(
+                    instruction.left.global_address,
+                    instruction.destination.byte_width,
+                )
+            } else if let Some(address) =
+                discovery_address_of_global(&instruction.left, instruction.destination.byte_width)
+            {
+                Some(address)
+            } else {
+                discovery_operand_value(
+                    state,
+                    &instruction.left,
+                    call_address,
+                    allocator,
+                    evaluation,
+                )
+            };
+            match value {
+                Some(DiscoveryValue::Integer(value)) => Some(DiscoveryValue::Integer(
+                    signed_to_width(value as i128, instruction.destination.byte_width),
+                )),
+                Some(DiscoveryValue::DatabaseValue { value, .. }) => {
+                    Some(DiscoveryValue::DatabaseValue {
+                        value: signed_to_width(value as i128, instruction.destination.byte_width),
+                        byte_width: instruction.destination.byte_width,
+                    })
+                }
+                other => other,
+            }
+        }
         MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
             match discovery_operand_value(
                 state,
@@ -958,6 +1073,20 @@ fn process_discovery_instruction(
                 Some(DiscoveryValue::Integer(value)) => Some(DiscoveryValue::Integer(
                     signed_to_width(value as i128, instruction.destination.byte_width),
                 )),
+                Some(value @ DiscoveryValue::DatabaseValue { .. }) => {
+                    let raw = if instruction.opcode == MicrocodeOpcode::ZeroExtend {
+                        discovery_unsigned_value(value).unwrap_or_default() as i128
+                    } else {
+                        match value {
+                            DiscoveryValue::DatabaseValue { value, .. } => value as i128,
+                            _ => unreachable!(),
+                        }
+                    };
+                    Some(DiscoveryValue::DatabaseValue {
+                        value: signed_to_width(raw, instruction.destination.byte_width),
+                        byte_width: instruction.destination.byte_width,
+                    })
+                }
                 other => other,
             }
         }
@@ -988,14 +1117,61 @@ fn process_discovery_instruction(
                         instruction.destination.byte_width,
                     )))
                 }
+                (
+                    Some(DiscoveryValue::DatabaseValue {
+                        value: left,
+                        byte_width,
+                    }),
+                    Some(DiscoveryValue::Integer(right)),
+                ) => {
+                    let result = if instruction.opcode == MicrocodeOpcode::Subtract {
+                        left as i128 - right as i128
+                    } else {
+                        left as i128 + right as i128
+                    };
+                    Some(DiscoveryValue::DatabaseValue {
+                        value: signed_to_width(result, byte_width),
+                        byte_width,
+                    })
+                }
                 _ => None,
             }
         }
-        MicrocodeOpcode::Call => {
+        MicrocodeOpcode::LoadMemory => {
+            match discovery_operand_value(
+                state,
+                &instruction.right,
+                call_address,
+                allocator,
+                evaluation,
+            ) {
+                Some(value @ DiscoveryValue::DatabaseValue { .. }) => discovery_database_value(
+                    discovery_unsigned_value(value).unwrap_or(BAD_ADDRESS),
+                    instruction.destination.byte_width,
+                ),
+                _ => None,
+            }
+        }
+        MicrocodeOpcode::Call | MicrocodeOpcode::IndirectCall => {
             let call_info = call_information(instruction);
-            let target = call_info
-                .and_then(|info| (info.call_target != BAD_ADDRESS).then_some(info.call_target))
-                .or_else(|| address_from_operand(&instruction.left));
+            let target = if instruction.opcode == MicrocodeOpcode::IndirectCall {
+                match discovery_operand_value(
+                    state,
+                    &instruction.right,
+                    call_address,
+                    allocator,
+                    evaluation,
+                ) {
+                    Some(value @ DiscoveryValue::DatabaseValue { .. }) => {
+                        discovery_unsigned_value(value)
+                    }
+                    _ => None,
+                }
+            } else {
+                call_info
+                    .and_then(|info| (info.call_target != BAD_ADDRESS).then_some(info.call_target))
+                    .or_else(|| address_from_operand(&instruction.left))
+            };
             if instruction.address == call_address && target == Some(allocator.address) {
                 evaluation.matching_calls += 1;
                 let arguments = call_info
@@ -1150,6 +1326,66 @@ fn analyzed_graph(address: Address) -> Result<MicrocodeFunction> {
     )
 }
 
+fn collect_indirect_call_addresses(
+    instruction: &MicrocodeInstruction,
+    addresses: &mut BTreeSet<Address>,
+) {
+    if instruction.opcode == MicrocodeOpcode::IndirectCall && instruction.address != BAD_ADDRESS {
+        addresses.insert(instruction.address);
+    }
+    for operand in [
+        &instruction.left,
+        &instruction.right,
+        &instruction.destination,
+    ] {
+        if let Some(nested) = operand.nested_instruction.as_deref() {
+            collect_indirect_call_addresses(nested, addresses);
+        }
+    }
+}
+
+fn add_indirect_allocator_sites(
+    evidence_address: Address,
+    discovery: &mut AllocatorDiscovery,
+    graph_cache: &mut HashMap<Address, MicrocodeFunction>,
+    candidate_sites: &mut BTreeSet<(Address, Address)>,
+    indirect_sites: &mut BTreeSet<(Address, Address)>,
+) {
+    let caller = match function::at(evidence_address) {
+        Ok(function) => function.start(),
+        Err(_) => {
+            discovery.unresolved_callers += 1;
+            return;
+        }
+    };
+    let graph = if let Some(graph) = graph_cache.get(&caller) {
+        graph.clone()
+    } else {
+        match analyzed_graph(caller) {
+            Ok(graph) if graph.entry_address == caller => {
+                graph_cache.insert(caller, graph.clone());
+                graph
+            }
+            Ok(_) | Err(_) => {
+                discovery.unresolved_callers += 1;
+                return;
+            }
+        }
+    };
+    let mut indirect_calls = BTreeSet::new();
+    for instruction in graph
+        .blocks
+        .iter()
+        .flat_map(|block| block.instructions.iter())
+    {
+        collect_indirect_call_addresses(instruction, &mut indirect_calls);
+    }
+    for call in indirect_calls {
+        candidate_sites.insert((caller, call));
+        indirect_sites.insert((caller, call));
+    }
+}
+
 fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscovery> {
     let mut discovery = AllocatorDiscovery {
         seeds: seeds.clone(),
@@ -1163,19 +1399,48 @@ fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscove
             discovery.duplicate_heirs += 1;
             continue;
         }
+        let mut candidate_sites = BTreeSet::<(Address, Address)>::new();
+        let mut indirect_sites = BTreeSet::<(Address, Address)>::new();
         for reference in xref::refs_to(allocator.address)? {
             discovery.references_examined += 1;
-            if !reference.is_code || !xref::is_call(reference.ref_type) {
-                discovery.non_call_references += 1;
+            if reference.is_code && xref::is_call(reference.ref_type) {
+                match function::at(reference.from) {
+                    Ok(function) => {
+                        candidate_sites.insert((function.start(), reference.from));
+                    }
+                    Err(_) => discovery.unresolved_callers += 1,
+                }
                 continue;
             }
-            let caller = match function::at(reference.from) {
-                Ok(function) => function.start(),
-                Err(_) => {
-                    discovery.unresolved_callers += 1;
+
+            discovery.non_call_references += 1;
+            if reference.is_code {
+                add_indirect_allocator_sites(
+                    reference.from,
+                    &mut discovery,
+                    &mut graph_cache,
+                    &mut candidate_sites,
+                    &mut indirect_sites,
+                );
+                continue;
+            }
+            for slot_reference in xref::refs_to(reference.from)? {
+                discovery.references_examined += 1;
+                if !slot_reference.is_code {
+                    discovery.non_call_references += 1;
                     continue;
                 }
-            };
+                add_indirect_allocator_sites(
+                    slot_reference.from,
+                    &mut discovery,
+                    &mut graph_cache,
+                    &mut candidate_sites,
+                    &mut indirect_sites,
+                );
+            }
+        }
+
+        for (caller, call_address) in candidate_sites {
             let graph = if let Some(graph) = graph_cache.get(&caller) {
                 graph.clone()
             } else {
@@ -1190,11 +1455,17 @@ fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscove
                     }
                 }
             };
-            match classify_allocator_site(&graph, reference.from, &allocator)? {
+            let classification = classify_allocator_site(&graph, call_address, &allocator)?;
+            if classification != SiteClassification::Unknown
+                && indirect_sites.contains(&(caller, call_address))
+            {
+                discovery.database_resolved_indirect_calls += 1;
+            }
+            match classification {
                 SiteClassification::Static(allocation_size) => {
                     let root = AllocationRoot {
                         function_address: caller,
-                        call_address: reference.from,
+                        call_address,
                         allocation_size,
                         allocator: allocator.clone(),
                     };
@@ -1218,7 +1489,7 @@ fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscove
                     };
                     let wrapper = AllocatorWrapper {
                         function_address: caller,
-                        source_call_address: reference.from,
+                        source_call_address: call_address,
                         allocator: heir.clone(),
                     };
                     if !discovery.wrappers.iter().any(|existing| {
@@ -1262,6 +1533,7 @@ struct InterproceduralAnalyzer<F> {
     instructions_processed: usize,
     unsupported_instructions: usize,
     calls_followed: usize,
+    database_resolved_indirect_calls: usize,
     depth_skips: usize,
     cycle_skips: usize,
     repeated_contexts: usize,
@@ -1291,6 +1563,7 @@ where
             instructions_processed: 0,
             unsupported_instructions: 0,
             calls_followed: 0,
+            database_resolved_indirect_calls: 0,
             depth_skips: 0,
             cycle_skips: 0,
             repeated_contexts: 0,
@@ -1314,7 +1587,7 @@ where
             .iter()
             .filter_map(|(index, value)| match value {
                 AbstractValue::StructurePointer(shift) => Some((*index, *shift)),
-                AbstractValue::Integer { .. } => None,
+                AbstractValue::Integer { .. } | AbstractValue::DatabaseValue { .. } => None,
             })
             .collect::<Vec<_>>();
         values.sort_unstable();
@@ -1367,6 +1640,9 @@ where
         if let Some(nested) = operand.nested_instruction.as_deref() {
             return self.process_instruction(state, nested, depth);
         }
+        if let Some(address) = address_of_global_value(operand, operand.byte_width) {
+            return Ok(Some(address));
+        }
         Ok(state.value(operand).or_else(|| immediate_value(operand)))
     }
 
@@ -1376,10 +1652,6 @@ where
         instruction: &MicrocodeInstruction,
         depth: usize,
     ) -> Result<Option<AbstractValue>> {
-        if instruction.opcode != MicrocodeOpcode::Call {
-            self.unresolved_calls += 1;
-            return Ok(None);
-        }
         if self.allocation_call == Some(instruction.address) {
             return Ok(Some(AbstractValue::StructurePointer(0)));
         }
@@ -1402,9 +1674,17 @@ where
             self.depth_skips += 1;
             return Ok(None);
         }
-        let target = (call_info.call_target != BAD_ADDRESS)
-            .then_some(call_info.call_target)
-            .or_else(|| address_from_operand(&instruction.left));
+        let database_resolved_indirect = instruction.opcode == MicrocodeOpcode::IndirectCall;
+        let target = if database_resolved_indirect {
+            match self.operand_value(state, &instruction.right, depth)? {
+                Some(value @ AbstractValue::DatabaseValue { .. }) => unsigned_scalar(value),
+                _ => None,
+            }
+        } else {
+            (call_info.call_target != BAD_ADDRESS)
+                .then_some(call_info.call_target)
+                .or_else(|| address_from_operand(&instruction.left))
+        };
         let Some(target) = target else {
             self.unresolved_calls += 1;
             return Ok(None);
@@ -1433,6 +1713,9 @@ where
             }
         };
         self.calls_followed += 1;
+        if database_resolved_indirect {
+            self.database_resolved_indirect_calls += 1;
+        }
         match self.analyze_graph(&callee, &injected_arguments, depth + 1) {
             Ok(result) => Ok(result),
             Err(_) => {
@@ -1450,21 +1733,58 @@ where
     ) -> Result<Option<AbstractValue>> {
         let result = match instruction.opcode {
             MicrocodeOpcode::Move => {
-                let value = self.operand_value(state, &instruction.left, depth)?;
+                let value = if instruction.left.kind == MicrocodeOperandKind::GlobalAddress {
+                    read_database_value(
+                        instruction.left.global_address,
+                        instruction.destination.byte_width,
+                    )?
+                } else if let Some(address) =
+                    address_of_global_value(&instruction.left, instruction.destination.byte_width)
+                {
+                    Some(address)
+                } else {
+                    self.operand_value(state, &instruction.left, depth)?
+                };
                 match value {
                     Some(AbstractValue::Integer { value, .. }) => Some(AbstractValue::Integer {
                         value: signed_to_width(value as i128, instruction.destination.byte_width),
                         byte_width: instruction.destination.byte_width,
                     }),
+                    Some(AbstractValue::DatabaseValue { value, .. }) => {
+                        Some(AbstractValue::DatabaseValue {
+                            value: signed_to_width(
+                                value as i128,
+                                instruction.destination.byte_width,
+                            ),
+                            byte_width: instruction.destination.byte_width,
+                        })
+                    }
                     other => other,
                 }
             }
             MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
                 match self.operand_value(state, &instruction.left, depth)? {
-                    Some(AbstractValue::Integer { value, .. }) => Some(AbstractValue::Integer {
-                        value,
-                        byte_width: instruction.destination.byte_width,
-                    }),
+                    Some(value @ AbstractValue::Integer { .. })
+                    | Some(value @ AbstractValue::DatabaseValue { .. }) => {
+                        let database_derived = matches!(value, AbstractValue::DatabaseValue { .. });
+                        let raw = if instruction.opcode == MicrocodeOpcode::ZeroExtend {
+                            unsigned_scalar(value).unwrap_or_default() as i128
+                        } else {
+                            scalar_parts(value).map_or(0, |(value, _)| value as i128)
+                        };
+                        let value = signed_to_width(raw, instruction.destination.byte_width);
+                        Some(if database_derived {
+                            AbstractValue::DatabaseValue {
+                                value,
+                                byte_width: instruction.destination.byte_width,
+                            }
+                        } else {
+                            AbstractValue::Integer {
+                                value,
+                                byte_width: instruction.destination.byte_width,
+                            }
+                        })
+                    }
                     _ => None,
                 }
             }
@@ -1495,6 +1815,38 @@ where
                         self.next_observation_order += 1;
                         shifted
                     }
+                    (
+                        Some(left @ AbstractValue::Integer { .. }),
+                        Some(AbstractValue::Integer {
+                            value: right,
+                            byte_width: _,
+                        }),
+                    )
+                    | (
+                        Some(left @ AbstractValue::DatabaseValue { .. }),
+                        Some(AbstractValue::Integer {
+                            value: right,
+                            byte_width: _,
+                        }),
+                    ) => {
+                        let (left_value, left_width) = scalar_parts(left).unwrap_or_default();
+                        let computed = if instruction.opcode == MicrocodeOpcode::Subtract {
+                            left_value as i128 - right as i128
+                        } else {
+                            left_value as i128 + right as i128
+                        };
+                        let value = signed_to_width(computed, left_width);
+                        Some(match left {
+                            AbstractValue::DatabaseValue { .. } => AbstractValue::DatabaseValue {
+                                value,
+                                byte_width: left_width,
+                            },
+                            _ => AbstractValue::Integer {
+                                value,
+                                byte_width: left_width,
+                            },
+                        })
+                    }
                     _ => None,
                 }
             }
@@ -1510,7 +1862,13 @@ where
                     self.next_observation_order,
                 );
                 self.next_observation_order += 1;
-                None
+                match pointer {
+                    Some(value @ AbstractValue::DatabaseValue { .. }) => read_database_value(
+                        unsigned_scalar(value).unwrap_or(BAD_ADDRESS),
+                        instruction.destination.byte_width,
+                    )?,
+                    _ => None,
+                }
             }
             MicrocodeOpcode::StoreMemory => {
                 let _ = self.operand_value(state, &instruction.left, depth)?;
@@ -1765,6 +2123,7 @@ where
         max_depth,
         functions_processed: analyzer.functions_processed,
         calls_followed: analyzer.calls_followed,
+        database_resolved_indirect_calls: analyzer.database_resolved_indirect_calls,
         depth_skips: analyzer.depth_skips,
         cycle_skips: analyzer.cycle_skips,
         repeated_contexts: analyzer.repeated_contexts,
@@ -1827,6 +2186,7 @@ where
         conflict_discards,
         functions_processed: analyzer.functions_processed,
         calls_followed: analyzer.calls_followed,
+        database_resolved_indirect_calls: analyzer.database_resolved_indirect_calls,
         depth_skips: analyzer.depth_skips,
         cycle_skips: analyzer.cycle_skips,
         repeated_contexts: analyzer.repeated_contexts,
@@ -3143,6 +3503,10 @@ fn print_report(
         reconstruction.functions_processed
     );
     println!("calls_followed: {}", reconstruction.calls_followed);
+    println!(
+        "database_resolved_indirect_calls: {}",
+        reconstruction.database_resolved_indirect_calls
+    );
     println!("depth_skips: {}", reconstruction.depth_skips);
     println!("cycle_skips: {}", reconstruction.cycle_skips);
     println!("repeated_contexts: {}", reconstruction.repeated_contexts);
@@ -3291,6 +3655,10 @@ fn print_allocator_report(
     println!("non_call_references: {}", discovery.non_call_references);
     println!("unresolved_callers: {}", discovery.unresolved_callers);
     println!("unclassified_calls: {}", discovery.unclassified_calls);
+    println!(
+        "database_resolved_indirect_calls: {}",
+        discovery.database_resolved_indirect_calls
+    );
     println!("duplicate_heirs: {}", discovery.duplicate_heirs);
     println!(
         "member_reference_candidates: {}",
@@ -3333,9 +3701,10 @@ fn print_allocator_report(
             reconstruction.out_of_bounds_fields
         );
         println!(
-            "    evidence functions={} calls={} blocks={} instructions={} unsupported={} negative={} conflicts={} depth_skips={} cycle_skips={} repeated={} unresolved={} return_conflicts={}",
+            "    evidence functions={} calls={} indirect={} blocks={} instructions={} unsupported={} negative={} conflicts={} depth_skips={} cycle_skips={} repeated={} unresolved={} return_conflicts={}",
             reconstruction.functions_processed,
             reconstruction.calls_followed,
+            reconstruction.database_resolved_indirect_calls,
             reconstruction.blocks_processed,
             reconstruction.instructions_processed,
             reconstruction.unsupported_instructions,
@@ -4036,6 +4405,30 @@ mod tests {
         call
     }
 
+    fn address_of_global_operand(target: Address) -> MicrocodeOperand {
+        let mut global = operand(MicrocodeOperandKind::GlobalAddress, 8);
+        global.global_address = target;
+        let mut reference = operand(MicrocodeOperandKind::AddressReference, 8);
+        reference.referenced_operand = Some(Box::new(global));
+        reference
+    }
+
+    fn indirect_call(
+        target_hint: Address,
+        call_address: Address,
+        target_register: i32,
+        arguments: Vec<MicrocodeOperand>,
+    ) -> MicrocodeInstruction {
+        let mut call = instruction(MicrocodeOpcode::IndirectCall);
+        call.address = call_address;
+        call.right = operand(MicrocodeOperandKind::Register, 8);
+        call.right.register_id = target_register;
+        call.destination = operand(MicrocodeOperandKind::CallArguments, 8);
+        call.destination.call_target = target_hint;
+        call.destination.call_arguments = arguments;
+        call
+    }
+
     fn branching_return_graph(
         address: Address,
         left: MicrocodeInstruction,
@@ -4166,6 +4559,78 @@ mod tests {
         assert_eq!(bounded.functions_processed, 1);
         assert_eq!(bounded.depth_skips, 1);
         assert!(bounded.fields.is_empty());
+    }
+
+    #[test]
+    fn follows_only_database_derived_indirect_targets() {
+        let mut callee_add = instruction(MicrocodeOpcode::Add);
+        callee_add.left = register_operand(5);
+        callee_add.right = immediate_operand(12);
+        callee_add.destination = register_operand(6);
+        let mut callee_load = instruction(MicrocodeOpcode::LoadMemory);
+        callee_load.address = 0x2110;
+        callee_load.right = register_operand(6);
+        callee_load.destination = operand(MicrocodeOperandKind::Register, 4);
+        callee_load.destination.register_id = 7;
+        let callee = one_block_graph(
+            0x2100,
+            vec![function_argument("callee_arg", 5)],
+            None,
+            vec![callee_add, callee_load],
+        );
+
+        let mut database_target = instruction(MicrocodeOpcode::Move);
+        database_target.left = address_of_global_operand(callee.entry_address);
+        database_target.destination = register_operand(2);
+        let accepted_root = one_block_graph(
+            0x1100,
+            vec![function_argument("root_arg", 1)],
+            None,
+            vec![
+                database_target,
+                indirect_call(BAD_ADDRESS, 0x1110, 2, vec![register_operand(1)]),
+            ],
+        );
+        let accepted = reconstruct_with_loader(&accepted_root, 0, 4, |address| {
+            if address == callee.entry_address {
+                Ok(callee.clone())
+            } else {
+                Err(Error::not_found("unknown indirect test callee"))
+            }
+        })
+        .unwrap();
+        assert_eq!(accepted.calls_followed, 1);
+        assert_eq!(accepted.database_resolved_indirect_calls, 1);
+        assert_eq!(accepted.unresolved_calls, 0);
+        assert!(
+            accepted
+                .fields
+                .iter()
+                .any(|field| field.offset == 12 && field.byte_width == 4)
+        );
+
+        let mut immediate_target = instruction(MicrocodeOpcode::Move);
+        immediate_target.left = immediate_operand(callee.entry_address);
+        immediate_target.destination = register_operand(2);
+        let rejected_root = one_block_graph(
+            0x1200,
+            vec![function_argument("root_arg", 1)],
+            None,
+            vec![
+                immediate_target,
+                indirect_call(callee.entry_address, 0x1210, 2, vec![register_operand(1)]),
+            ],
+        );
+        let rejected = reconstruct_with_loader(&rejected_root, 0, 4, |_| {
+            Err(Error::internal(
+                "plain immediate and call-info hint must not invoke the loader",
+            ))
+        })
+        .unwrap();
+        assert_eq!(rejected.calls_followed, 0);
+        assert_eq!(rejected.database_resolved_indirect_calls, 0);
+        assert_eq!(rejected.unresolved_calls, 1);
+        assert!(rejected.fields.is_empty());
     }
 
     #[test]
@@ -4385,6 +4850,40 @@ mod tests {
         );
         assert_eq!(
             classify_allocator_site(&invalid_graph, 0x8110, &malloc).unwrap(),
+            SiteClassification::Unknown
+        );
+
+        let mut database_target = instruction(MicrocodeOpcode::Move);
+        database_target.left = address_of_global_operand(malloc.address);
+        database_target.destination = register_operand(2);
+        let indirect_graph = one_block_graph(
+            0x8150,
+            Vec::new(),
+            None,
+            vec![
+                database_target,
+                indirect_call(BAD_ADDRESS, 0x8160, 2, vec![immediate_operand(48)]),
+            ],
+        );
+        assert_eq!(
+            classify_allocator_site(&indirect_graph, 0x8160, &malloc).unwrap(),
+            SiteClassification::Static(48)
+        );
+
+        let mut immediate_target = instruction(MicrocodeOpcode::Move);
+        immediate_target.left = immediate_operand(malloc.address);
+        immediate_target.destination = register_operand(2);
+        let rejected_indirect = one_block_graph(
+            0x8170,
+            Vec::new(),
+            None,
+            vec![
+                immediate_target,
+                indirect_call(malloc.address, 0x8180, 2, vec![immediate_operand(48)]),
+            ],
+        );
+        assert_eq!(
+            classify_allocator_site(&rejected_indirect, 0x8180, &malloc).unwrap(),
             SiteClassification::Unknown
         );
 

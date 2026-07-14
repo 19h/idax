@@ -237,9 +237,12 @@ apply actions for one selected function argument, declarative allocator roots,
 and verified constructor/vtable roots. It preserves register/stack
 propagation, nested instruction evaluation, pointer add/sub, load/store width
 recovery, topological predecessor-state preference, and the upstream
-minimum-width overlap rule. It also follows resolved direct calls with an
-explicit maximum depth, active-cycle rejection, completed-context reuse, ABI
-argument injection, and conservative terminal-return consensus. Apply creates
+minimum-width overlap rule. It also follows resolved direct calls and exact
+database-derived indirect targets with an explicit maximum depth, active-cycle
+rejection, completed-context reuse, ABI argument injection, and conservative
+terminal-return consensus. Plain immediates, call-info hints without database
+provenance, runtime-only targets, and non-entry addresses remain unresolved.
+Apply creates
 or reuses a named UDT, changes eligible ordinary arguments/returns, and applies
 exact shifted-parent/delta metadata to proven nonzero propagated argument
 sites. Existing mismatched complex pointers remain unchanged; shifted returns
@@ -261,9 +264,11 @@ Allocator mode accepts one specification per line: `malloc:<locator>:<size-index
 `realloc:<locator>:<size-index>`, or
 `calloc:<locator>:<count-index>:<size-index>`. A locator is an exact
 name/address or `module!import-prefix`. The bounded classifier verifies exact
-direct calls, recognizes constants in `1..0x3fff`, confirms forwarding wrappers
-only through terminal return of the originating call token, recursively visits
-unique heirs, and reconstructs each fixed-size root as a distinct UDT. Apply
+direct calls plus database-derived fixed-pointer calls reached through one
+exact data-slot reference hop, recognizes constants in `1..0x3fff`, confirms
+forwarding wrappers only through terminal return of the originating call token,
+recursively visits unique heirs, and reconstructs each fixed-size root as a
+distinct UDT. Apply
 keeps allocator/wrapper returns generic `void*` and types/names existing
 size/count parameters as `size_t`; it does not synthesize parameters or assign
 one allocation-specific type to a reusable allocator return.
@@ -278,9 +283,9 @@ applies the table type, and replaces only existing eligible generic `this`
 arguments. It does not synthesize missing ABI parameters or rank inheritance by
 table size/xref counts.
 
-This is not a full Symless parity claim: indirect dynamic calls,
-RTTI-adjusted vtable-load chains, and microcode-widget operand selection remain
-outside this port. The upstream MIT notice is retained in
+This is not a full Symless parity claim: runtime-only or object-dependent
+indirect dispatch, RTTI-adjusted vtable-load chains, and microcode-widget
+operand selection remain outside this port. The upstream MIT notice is retained in
 `plugin/symless_port_LICENSE.txt`.
 
 The Rust adaptation (`symless_structure_port`) is report-only by default and

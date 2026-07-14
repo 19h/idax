@@ -5,14 +5,16 @@
 /// seeds. It preserves
 /// Symless's register/stack propagation, recursive micro-instruction evaluation,
 /// pointer shifts, load/store recovery, predecessor-state preference,
-/// minimum-width field conflict rule, and resolved direct-call argument/return
-/// flow, static allocation roots, and return-confirmed allocator wrappers.
+/// minimum-width field conflict rule, resolved direct-call argument/return
+/// flow, database-resolved indirect calls, static allocation roots, and
+/// return-confirmed allocator wrappers.
 /// Constructor/vtable roots are accepted only after an exact argument-zero
 /// store; table-size/xref inheritance guesses are deliberately not applied.
 /// Propagated arguments preserve exact shifted-parent metadata; shifted
-/// returns remain excluded as in the upstream generation path. Indirect
-/// dynamic calls, RTTI-adjusted vtable-load chains, and microcode-widget
-/// workflows remain outside the stated boundary. Exact compatible recovered
+/// returns remain excluded as in the upstream generation path. Runtime-only
+/// indirect calls, object-dependent virtual dispatch, RTTI-adjusted vtable-load
+/// chains, and microcode-widget workflows remain outside the stated boundary.
+/// Exact compatible recovered
 /// fields receive persistent member-TID informational references and the first
 /// source-ordered field per machine operand receives an exact two-component
 /// struct-offset path, without exposing SDK identifiers. Upstream
@@ -65,6 +67,7 @@ std::string format(const char* pattern, Args&&... args) {
 enum class ValueKind {
     StructurePointer,
     Integer,
+    DatabaseValue,
 };
 
 struct AbstractValue {
@@ -146,6 +149,7 @@ struct Reconstruction {
     std::size_t max_depth{0};
     std::size_t functions_processed{0};
     std::size_t calls_followed{0};
+    std::size_t database_resolved_indirect_calls{0};
     std::size_t depth_skips{0};
     std::size_t cycle_skips{0};
     std::size_t repeated_contexts{0};
@@ -198,6 +202,7 @@ struct AllocatorDiscovery {
     std::size_t non_call_references{0};
     std::size_t unresolved_callers{0};
     std::size_t unclassified_calls{0};
+    std::size_t database_resolved_indirect_calls{0};
     std::size_t duplicate_heirs{0};
 };
 
@@ -212,6 +217,7 @@ struct AllocationReconstruction {
     std::size_t conflict_discards{0};
     std::size_t functions_processed{0};
     std::size_t calls_followed{0};
+    std::size_t database_resolved_indirect_calls{0};
     std::size_t depth_skips{0};
     std::size_t cycle_skips{0};
     std::size_t repeated_contexts{0};
@@ -439,6 +445,75 @@ immediate_value(const ida::decompiler::MicrocodeOperand& operand) {
     default:
         return std::nullopt;
     }
+}
+
+bool is_scalar_value(const AbstractValue& value) {
+    return value.kind == ValueKind::Integer
+        || value.kind == ValueKind::DatabaseValue;
+}
+
+std::uint64_t unsigned_value(const AbstractValue& value) {
+    const unsigned bits = static_cast<unsigned>(
+        std::clamp(value.byte_width, 1, 8)) * 8;
+    const std::uint64_t raw = static_cast<std::uint64_t>(value.value);
+    if (bits == 64)
+        return raw;
+    return raw & ((std::uint64_t{1} << bits) - 1);
+}
+
+ida::Result<std::optional<AbstractValue>>
+read_database_value(ida::Address address, int byte_width) {
+    if (!ida::address::is_loaded(address))
+        return std::optional<AbstractValue>{};
+
+    std::uint64_t raw = 0;
+    switch (byte_width) {
+    case 8: {
+        auto value = ida::data::read_qword(address);
+        if (!value) return std::unexpected(value.error());
+        raw = *value;
+        break;
+    }
+    case 4: {
+        auto value = ida::data::read_dword(address);
+        if (!value) return std::unexpected(value.error());
+        raw = *value;
+        break;
+    }
+    case 2: {
+        auto value = ida::data::read_word(address);
+        if (!value) return std::unexpected(value.error());
+        raw = *value;
+        break;
+    }
+    default: {
+        auto value = ida::data::read_byte(address);
+        if (!value) return std::unexpected(value.error());
+        raw = *value;
+        break;
+    }
+    }
+    return std::optional<AbstractValue>(AbstractValue{
+        ValueKind::DatabaseValue,
+        signed_to_width(raw, byte_width),
+        byte_width});
+}
+
+std::optional<AbstractValue> address_of_global_value(
+    const ida::decompiler::MicrocodeOperand& operand,
+    int byte_width) {
+    using Kind = ida::decompiler::MicrocodeOperandKind;
+    if (operand.kind != Kind::AddressReference
+        || !operand.referenced_operand
+        || operand.referenced_operand->kind != Kind::GlobalAddress
+        || operand.referenced_operand->global_address == ida::BadAddress) {
+        return std::nullopt;
+    }
+    return AbstractValue{
+        ValueKind::DatabaseValue,
+        signed_to_width(operand.referenced_operand->global_address,
+                        byte_width),
+        byte_width};
 }
 
 void record_access(std::vector<RawAccess>& accesses,
@@ -677,12 +752,14 @@ const ida::decompiler::MicrocodeOperand* call_information(
 enum class DiscoveryValueKind {
     CallerArgument,
     Integer,
+    DatabaseValue,
     CallOrigin,
 };
 
 struct DiscoveryValue {
     DiscoveryValueKind kind{DiscoveryValueKind::Integer};
     std::int64_t value{0};
+    int byte_width{8};
 
     bool operator==(const DiscoveryValue&) const = default;
 };
@@ -714,7 +791,37 @@ std::optional<DiscoveryValue> discovery_immediate(
     auto value = immediate_value(operand);
     if (!value || value->kind != ValueKind::Integer)
         return std::nullopt;
-    return DiscoveryValue{DiscoveryValueKind::Integer, value->value};
+    return DiscoveryValue{
+        DiscoveryValueKind::Integer, value->value, value->byte_width};
+}
+
+std::optional<DiscoveryValue> discovery_database_value(
+    ida::Address address,
+    int byte_width) {
+    auto loaded = read_database_value(address, byte_width);
+    if (!loaded || !*loaded)
+        return std::nullopt;
+    return DiscoveryValue{
+        DiscoveryValueKind::DatabaseValue,
+        (**loaded).value,
+        (**loaded).byte_width};
+}
+
+std::optional<DiscoveryValue> discovery_address_of_global(
+    const ida::decompiler::MicrocodeOperand& operand,
+    int byte_width) {
+    auto address = address_of_global_value(operand, byte_width);
+    if (!address)
+        return std::nullopt;
+    return DiscoveryValue{
+        DiscoveryValueKind::DatabaseValue,
+        address->value,
+        address->byte_width};
+}
+
+std::uint64_t discovery_unsigned_value(const DiscoveryValue& value) {
+    return unsigned_value(AbstractValue{
+        ValueKind::Integer, value.value, value.byte_width});
 }
 
 std::optional<std::uint64_t> valid_allocator_size(std::int64_t value) {
@@ -795,6 +902,10 @@ std::optional<DiscoveryValue> discovery_operand_value(
             state, *operand.nested_instruction, call_address,
             allocator, evaluation);
     }
+    if (auto address = discovery_address_of_global(
+            operand, operand.byte_width)) {
+        return *address;
+    }
     if (auto variable = variable_for_operand(operand)) {
         if (auto found = state.find(*variable); found != state.end())
             return found->second;
@@ -812,17 +923,42 @@ std::optional<DiscoveryValue> process_discovery_instruction(
     std::optional<DiscoveryValue> result;
     switch (instruction.opcode) {
     case Opcode::Move:
-        result = discovery_operand_value(
-            state, instruction.left, call_address, allocator, evaluation);
+        if (instruction.left.kind
+            == ida::decompiler::MicrocodeOperandKind::GlobalAddress) {
+            result = discovery_database_value(
+                instruction.left.global_address,
+                instruction.destination.byte_width);
+        } else if (auto address = discovery_address_of_global(
+                       instruction.left,
+                       instruction.destination.byte_width)) {
+            result = *address;
+        } else {
+            result = discovery_operand_value(
+                state, instruction.left, call_address, allocator, evaluation);
+        }
+        if (result
+            && (result->kind == DiscoveryValueKind::Integer
+                || result->kind == DiscoveryValueKind::DatabaseValue)) {
+            result->value = signed_to_width(
+                static_cast<std::uint64_t>(result->value),
+                instruction.destination.byte_width);
+            result->byte_width = instruction.destination.byte_width;
+        }
         break;
     case Opcode::ZeroExtend:
     case Opcode::SignedExtend:
         result = discovery_operand_value(
             state, instruction.left, call_address, allocator, evaluation);
-        if (result && result->kind == DiscoveryValueKind::Integer) {
+        if (result
+            && (result->kind == DiscoveryValueKind::Integer
+                || result->kind == DiscoveryValueKind::DatabaseValue)) {
+            const std::uint64_t raw = instruction.opcode == Opcode::ZeroExtend
+                ? discovery_unsigned_value(*result)
+                : static_cast<std::uint64_t>(result->value);
             result->value = signed_to_width(
-                static_cast<std::uint64_t>(result->value),
+                raw,
                 instruction.destination.byte_width);
+            result->byte_width = instruction.destination.byte_width;
         }
         break;
     case Opcode::Add:
@@ -832,26 +968,54 @@ std::optional<DiscoveryValue> process_discovery_instruction(
         auto right = discovery_operand_value(
             state, instruction.right, call_address, allocator, evaluation);
         if (left && right
-            && left->kind == DiscoveryValueKind::Integer
+            && (left->kind == DiscoveryValueKind::Integer
+                || left->kind == DiscoveryValueKind::DatabaseValue)
             && right->kind == DiscoveryValueKind::Integer) {
-            const std::uint64_t left_bits = static_cast<std::uint64_t>(left->value);
-            const std::uint64_t right_bits = static_cast<std::uint64_t>(right->value);
+            const std::uint64_t left_bits
+                = static_cast<std::uint64_t>(left->value);
+            const std::uint64_t right_bits
+                = static_cast<std::uint64_t>(right->value);
             const std::uint64_t computed = instruction.opcode == Opcode::Subtract
                 ? left_bits - right_bits
                 : left_bits + right_bits;
+            const int result_width
+                = left->kind == DiscoveryValueKind::DatabaseValue
+                ? left->byte_width
+                : instruction.destination.byte_width;
             result = DiscoveryValue{
-                DiscoveryValueKind::Integer,
-                signed_to_width(computed, instruction.destination.byte_width)};
+                left->kind,
+                signed_to_width(computed, result_width),
+                result_width};
         }
         break;
     }
-    case Opcode::Call: {
+    case Opcode::LoadMemory: {
+        auto pointer = discovery_operand_value(
+            state, instruction.right, call_address, allocator, evaluation);
+        if (pointer
+            && pointer->kind == DiscoveryValueKind::DatabaseValue) {
+            result = discovery_database_value(
+                discovery_unsigned_value(*pointer),
+                instruction.destination.byte_width);
+        }
+        break;
+    }
+    case Opcode::Call:
+    case Opcode::IndirectCall: {
         const auto* info = call_information(instruction);
         std::optional<ida::Address> target;
-        if (info != nullptr && info->call_target != ida::BadAddress)
+        if (instruction.opcode == Opcode::IndirectCall) {
+            auto offset = discovery_operand_value(
+                state, instruction.right, call_address, allocator, evaluation);
+            if (offset
+                && offset->kind == DiscoveryValueKind::DatabaseValue) {
+                target = discovery_unsigned_value(*offset);
+            }
+        } else if (info != nullptr && info->call_target != ida::BadAddress) {
             target = info->call_target;
-        else
+        } else {
             target = address_from_operand(instruction.left);
+        }
         if (instruction.address == call_address
             && target == allocator.address) {
             ++evaluation.matching_calls;
@@ -1137,6 +1301,24 @@ ida::Result<std::vector<ResolvedAllocator>> resolve_allocator_specs(
     return resolved;
 }
 
+void collect_indirect_call_addresses(
+    const ida::decompiler::MicrocodeInstruction& instruction,
+    std::set<ida::Address>& addresses) {
+    using Opcode = ida::decompiler::MicrocodeOpcode;
+    if (instruction.opcode == Opcode::IndirectCall
+        && instruction.address != ida::BadAddress) {
+        addresses.insert(instruction.address);
+    }
+    for (const auto* operand : {&instruction.left,
+                                &instruction.right,
+                                &instruction.destination}) {
+        if (operand->nested_instruction) {
+            collect_indirect_call_addresses(
+                *operand->nested_instruction, addresses);
+        }
+    }
+}
+
 ida::Result<AllocatorDiscovery> discover_allocators(
     std::vector<ResolvedAllocator> seeds) {
     AllocatorDiscovery discovery;
@@ -1154,16 +1336,15 @@ ida::Result<AllocatorDiscovery> discover_allocators(
         auto references = ida::xref::refs_to(allocator.address);
         if (!references)
             return std::unexpected(references.error());
-        for (const auto& reference : *references) {
-            ++discovery.references_examined;
-            if (!reference.is_code || !ida::xref::is_call(reference.type)) {
-                ++discovery.non_call_references;
-                continue;
-            }
-            auto caller_function = ida::function::at(reference.from);
+
+        std::set<std::pair<ida::Address, ida::Address>> candidate_sites;
+        std::set<std::pair<ida::Address, ida::Address>> indirect_sites;
+        auto add_indirect_sites = [&](ida::Address evidence_address)
+            -> ida::Status {
+            auto caller_function = ida::function::at(evidence_address);
             if (!caller_function) {
                 ++discovery.unresolved_callers;
-                continue;
+                return ida::ok();
             }
             const ida::Address caller = caller_function->start();
             ida::decompiler::MicrocodeFunction graph;
@@ -1174,17 +1355,80 @@ ida::Result<AllocatorDiscovery> discover_allocators(
                 auto generated = analyzed_graph(caller);
                 if (!generated || generated->entry_address != caller) {
                     ++discovery.unresolved_callers;
-                    continue;
+                    return ida::ok();
                 }
                 graph = *generated;
                 graph_cache.emplace(caller, graph);
             }
+            std::set<ida::Address> indirect_calls;
+            for (const auto& block : graph.blocks) {
+                for (const auto& instruction : block.instructions) {
+                    collect_indirect_call_addresses(
+                        instruction, indirect_calls);
+                }
+            }
+            for (ida::Address call : indirect_calls) {
+                candidate_sites.emplace(caller, call);
+                indirect_sites.emplace(caller, call);
+            }
+            return ida::ok();
+        };
+
+        for (const auto& reference : *references) {
+            ++discovery.references_examined;
+            if (reference.is_code && ida::xref::is_call(reference.type)) {
+                auto caller_function = ida::function::at(reference.from);
+                if (!caller_function) {
+                    ++discovery.unresolved_callers;
+                } else {
+                    candidate_sites.emplace(
+                        caller_function->start(), reference.from);
+                }
+                continue;
+            }
+
+            ++discovery.non_call_references;
+            if (reference.is_code) {
+                auto status = add_indirect_sites(reference.from);
+                if (!status)
+                    return std::unexpected(status.error());
+                continue;
+            }
+            auto slot_references = ida::xref::refs_to(reference.from);
+            if (!slot_references)
+                return std::unexpected(slot_references.error());
+            for (const auto& slot_reference : *slot_references) {
+                ++discovery.references_examined;
+                if (!slot_reference.is_code) {
+                    ++discovery.non_call_references;
+                    continue;
+                }
+                auto status = add_indirect_sites(slot_reference.from);
+                if (!status)
+                    return std::unexpected(status.error());
+            }
+        }
+
+        for (const auto& [caller, call_address] : candidate_sites) {
+            auto found = graph_cache.find(caller);
+            if (found == graph_cache.end()) {
+                auto generated = analyzed_graph(caller);
+                if (!generated || generated->entry_address != caller) {
+                    ++discovery.unresolved_callers;
+                    continue;
+                }
+                found = graph_cache.emplace(caller, *generated).first;
+            }
             auto classification = classify_allocator_site(
-                graph, reference.from, allocator);
+                found->second, call_address, allocator);
             if (!classification)
                 return std::unexpected(classification.error());
+            if (classification->kind != SiteClassificationKind::Unknown
+                && indirect_sites.contains({caller, call_address})) {
+                ++discovery.database_resolved_indirect_calls;
+            }
             if (classification->kind == SiteClassificationKind::Static) {
-                AllocationRoot root{caller, reference.from,
+                AllocationRoot root{caller, call_address,
                                     classification->allocation_size, allocator};
                 const bool exists = std::any_of(
                     discovery.roots.begin(), discovery.roots.end(),
@@ -1209,7 +1453,7 @@ ida::Result<AllocatorDiscovery> discover_allocators(
                     });
                 if (!exists) {
                     discovery.wrappers.push_back(
-                        {caller, reference.from, heir});
+                        {caller, call_address, heir});
                 }
                 if (visited.contains(heir)
                     || std::find(queue.begin(), queue.end(), heir) != queue.end()) {
@@ -1294,6 +1538,10 @@ struct InterproceduralAnalyzer {
         std::size_t depth) {
         if (operand.nested_instruction)
             return process_instruction(state, *operand.nested_instruction, depth);
+        if (auto address = address_of_global_value(
+                operand, operand.byte_width)) {
+            return std::optional<AbstractValue>(*address);
+        }
         auto value = state_value(state, operand);
         return value ? value : immediate_value(operand);
     }
@@ -1303,10 +1551,6 @@ struct InterproceduralAnalyzer {
         const ida::decompiler::MicrocodeInstruction& instruction,
         std::size_t depth) {
         using Opcode = ida::decompiler::MicrocodeOpcode;
-        if (instruction.opcode != Opcode::Call) {
-            ++unresolved_calls;
-            return std::optional<AbstractValue>{};
-        }
         if (allocation_call == instruction.address) {
             return std::optional<AbstractValue>(AbstractValue{
                 ValueKind::StructurePointer, 0, 0});
@@ -1336,10 +1580,20 @@ struct InterproceduralAnalyzer {
         }
 
         std::optional<ida::Address> target;
-        if (call_info->call_target != ida::BadAddress)
+        bool database_resolved_indirect = false;
+        if (instruction.opcode == Opcode::IndirectCall) {
+            auto offset = operand_value(state, instruction.right, depth);
+            if (!offset)
+                return std::unexpected(offset.error());
+            if (*offset && (*offset)->kind == ValueKind::DatabaseValue) {
+                target = unsigned_value(**offset);
+                database_resolved_indirect = true;
+            }
+        } else if (call_info->call_target != ida::BadAddress) {
             target = call_info->call_target;
-        else
+        } else {
             target = address_from_operand(instruction.left);
+        }
         if (!target) {
             ++unresolved_calls;
             return std::optional<AbstractValue>{};
@@ -1368,6 +1622,8 @@ struct InterproceduralAnalyzer {
             graph_cache.emplace(*target, callee);
         }
         ++calls_followed;
+        if (database_resolved_indirect)
+            ++database_resolved_indirect_calls;
         auto result = analyze_graph(callee, injected, depth + 1);
         if (!result) {
             ++unresolved_calls;
@@ -1384,11 +1640,25 @@ struct InterproceduralAnalyzer {
         std::optional<AbstractValue> result;
         switch (instruction.opcode) {
         case Opcode::Move: {
-            auto value = operand_value(state, instruction.left, depth);
-            if (!value)
-                return std::unexpected(value.error());
-            result = *value;
-            if (result && result->kind == ValueKind::Integer) {
+            if (instruction.left.kind
+                == ida::decompiler::MicrocodeOperandKind::GlobalAddress) {
+                auto loaded = read_database_value(
+                    instruction.left.global_address,
+                    instruction.destination.byte_width);
+                if (!loaded)
+                    return std::unexpected(loaded.error());
+                result = *loaded;
+            } else if (auto address = address_of_global_value(
+                           instruction.left,
+                           instruction.destination.byte_width)) {
+                result = *address;
+            } else {
+                auto value = operand_value(state, instruction.left, depth);
+                if (!value)
+                    return std::unexpected(value.error());
+                result = *value;
+            }
+            if (result && is_scalar_value(*result)) {
                 result->value = signed_to_width(
                     static_cast<std::uint64_t>(result->value),
                     instruction.destination.byte_width);
@@ -1401,9 +1671,14 @@ struct InterproceduralAnalyzer {
             auto source = operand_value(state, instruction.left, depth);
             if (!source)
                 return std::unexpected(source.error());
-            if (*source && (*source)->kind == ValueKind::Integer) {
-                (*source)->byte_width = instruction.destination.byte_width;
+            if (*source && is_scalar_value(**source)) {
                 result = **source;
+                const std::uint64_t raw = instruction.opcode == Opcode::ZeroExtend
+                    ? unsigned_value(*result)
+                    : static_cast<std::uint64_t>(result->value);
+                result->value = signed_to_width(
+                    raw, instruction.destination.byte_width);
+                result->byte_width = instruction.destination.byte_width;
             }
             break;
         }
@@ -1430,6 +1705,20 @@ struct InterproceduralAnalyzer {
                 record_operand_observation(
                     operand_observations, result, instruction.left,
                     instruction.address, next_observation_order++);
+            } else if (*left && *right
+                       && is_scalar_value(**left)
+                       && (*right)->kind == ValueKind::Integer) {
+                const std::uint64_t left_bits
+                    = static_cast<std::uint64_t>((*left)->value);
+                const std::uint64_t right_bits
+                    = static_cast<std::uint64_t>((*right)->value);
+                const std::uint64_t computed = instruction.opcode == Opcode::Subtract
+                    ? left_bits - right_bits
+                    : left_bits + right_bits;
+                result = AbstractValue{
+                    (*left)->kind,
+                    signed_to_width(computed, (*left)->byte_width),
+                    (*left)->byte_width};
             }
             break;
         }
@@ -1442,6 +1731,15 @@ struct InterproceduralAnalyzer {
                           instruction.destination.byte_width,
                           instruction.address, false,
                           next_observation_order++);
+            if (*pointer
+                && (*pointer)->kind == ValueKind::DatabaseValue) {
+                auto loaded = read_database_value(
+                    unsigned_value(**pointer),
+                    instruction.destination.byte_width);
+                if (!loaded)
+                    return std::unexpected(loaded.error());
+                result = *loaded;
+            }
             break;
         }
         case Opcode::StoreMemory: {
@@ -1606,6 +1904,7 @@ struct InterproceduralAnalyzer {
     std::size_t instructions_processed{0};
     std::size_t unsupported_instructions{0};
     std::size_t calls_followed{0};
+    std::size_t database_resolved_indirect_calls{0};
     std::size_t depth_skips{0};
     std::size_t cycle_skips{0};
     std::size_t repeated_contexts{0};
@@ -1727,6 +2026,8 @@ ida::Result<Reconstruction> reconstruct(
     output.instructions_processed = analyzer.instructions_processed;
     output.unsupported_instructions = analyzer.unsupported_instructions;
     output.calls_followed = analyzer.calls_followed;
+    output.database_resolved_indirect_calls
+        = analyzer.database_resolved_indirect_calls;
     output.depth_skips = analyzer.depth_skips;
     output.cycle_skips = analyzer.cycle_skips;
     output.repeated_contexts = analyzer.repeated_contexts;
@@ -1765,6 +2066,8 @@ ida::Result<AllocationReconstruction> reconstruct_allocation(
     output.instructions_processed = analyzer.instructions_processed;
     output.unsupported_instructions = analyzer.unsupported_instructions;
     output.calls_followed = analyzer.calls_followed;
+    output.database_resolved_indirect_calls
+        = analyzer.database_resolved_indirect_calls;
     output.depth_skips = analyzer.depth_skips;
     output.cycle_skips = analyzer.cycle_skips;
     output.repeated_contexts = analyzer.repeated_contexts;
@@ -3294,6 +3597,7 @@ std::string report_text(const Reconstruction& reconstruction,
         "Function: 0x%llx\nArgument: %zu (%s)\n"
         "Proposed structure: %s\nMaximum call depth: %zu\n"
         "Functions: %zu\nCalls followed: %zu\n"
+        "Database-resolved indirect calls: %zu\n"
         "Depth skips: %zu\nCycle skips: %zu\n"
         "Repeated contexts: %zu\nUnresolved calls: %zu\n"
         "Return conflicts: %zu\nBlocks: %zu\nInstructions: %zu\n"
@@ -3309,6 +3613,7 @@ std::string report_text(const Reconstruction& reconstruction,
         reconstruction.max_depth,
         reconstruction.functions_processed,
         reconstruction.calls_followed,
+        reconstruction.database_resolved_indirect_calls,
         reconstruction.depth_skips,
         reconstruction.cycle_skips,
         reconstruction.repeated_contexts,
@@ -3419,6 +3724,7 @@ std::string allocator_report_text(
         "Seeds: %zu\nWrappers: %zu\nAllocation roots: %zu\n"
         "References examined: %zu\nNon-call references: %zu\n"
         "Unresolved callers: %zu\nUnclassified calls: %zu\n"
+        "Database-resolved indirect calls: %zu\n"
         "Duplicate heirs: %zu\n",
         std::string(structure_prefix).c_str(),
         analysis.max_depth,
@@ -3429,6 +3735,7 @@ std::string allocator_report_text(
         discovery.non_call_references,
         discovery.unresolved_callers,
         discovery.unclassified_calls,
+        discovery.database_resolved_indirect_calls,
         discovery.duplicate_heirs);
     std::size_t reference_candidates = 0;
     std::size_t operand_offset_candidates = 0;
@@ -3454,7 +3761,7 @@ std::string allocator_report_text(
         report += format(
             "  allocation root function=0x%llx call=0x%llx size=%llu B "
             "kind=%s fields=%zu out_of_bounds=%zu\n"
-            "    functions=%zu calls=%zu blocks=%zu instructions=%zu "
+            "    functions=%zu calls=%zu indirect=%zu blocks=%zu instructions=%zu "
             "unsupported=%zu unresolved=%zu\n",
             static_cast<unsigned long long>(
                 reconstruction.root.function_address),
@@ -3466,6 +3773,7 @@ std::string allocator_report_text(
             reconstruction.out_of_bounds_fields,
             reconstruction.functions_processed,
             reconstruction.calls_followed,
+            reconstruction.database_resolved_indirect_calls,
             reconstruction.blocks_processed,
             reconstruction.instructions_processed,
             reconstruction.unsupported_instructions,
