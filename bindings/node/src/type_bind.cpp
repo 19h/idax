@@ -9,10 +9,49 @@
 #include "helpers.hpp"
 #include <ida/type.hpp>
 
+#include <cmath>
+#include <limits>
 #include <memory>
 
 namespace idax_node {
 namespace {
+
+bool GetSizeArgument(Nan::NAN_METHOD_ARGS_TYPE info,
+                     int index,
+                     std::size_t& out) {
+    if (index >= info.Length()) {
+        Nan::ThrowTypeError("Missing nonnegative integer argument");
+        return false;
+    }
+    std::uint64_t value = 0;
+    if (info[index]->IsBigInt()) {
+        bool lossless = false;
+        value = info[index].As<v8::BigInt>()->Uint64Value(&lossless);
+        if (!lossless) {
+            Nan::ThrowRangeError("Integer argument is outside uint64 range");
+            return false;
+        }
+    } else if (info[index]->IsNumber()) {
+        const double number = Nan::To<double>(info[index]).FromJust();
+        if (!std::isfinite(number) || number < 0
+            || std::trunc(number) != number
+            || number > 9007199254740991.0) {
+            Nan::ThrowRangeError(
+                "Numeric argument must be a nonnegative safe integer");
+            return false;
+        }
+        value = static_cast<std::uint64_t>(number);
+    } else {
+        Nan::ThrowTypeError("Expected a nonnegative integer argument");
+        return false;
+    }
+    if (value > std::numeric_limits<std::size_t>::max()) {
+        Nan::ThrowRangeError("Integer argument is outside size_t range");
+        return false;
+    }
+    out = static_cast<std::size_t>(value);
+    return true;
+}
 
 // ── CallingConvention string conversion ─────────────────────────────────
 
@@ -148,6 +187,8 @@ private:
     static NAN_METHOD(SetUdtSemantics);
     static NAN_METHOD(MemberByName);
     static NAN_METHOD(MemberByOffset);
+    static NAN_METHOD(MemberReferences);
+    static NAN_METHOD(EnsureMemberReference);
     static NAN_METHOD(AddMember);
 
     static NAN_METHOD(Apply);
@@ -346,6 +387,8 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "setUdtSemantics", SetUdtSemantics);
     Nan::SetPrototypeMethod(tpl, "memberByName",    MemberByName);
     Nan::SetPrototypeMethod(tpl, "memberByOffset",  MemberByOffset);
+    Nan::SetPrototypeMethod(tpl, "memberReferences", MemberReferences);
+    Nan::SetPrototypeMethod(tpl, "ensureMemberReference", EnsureMemberReference);
     Nan::SetPrototypeMethod(tpl, "addMember",       AddMember);
 
     Nan::SetPrototypeMethod(tpl, "apply",  Apply);
@@ -728,6 +771,29 @@ NAN_METHOD(TypeInfoWrapper::MemberByOffset) {
 
     IDAX_UNWRAP(auto member, self->type_info_.member_by_offset(offset));
     info.GetReturnValue().Set(MemberToObject(member));
+}
+
+NAN_METHOD(TypeInfoWrapper::MemberReferences) {
+    SELF();
+    std::size_t byte_offset = 0;
+    if (!GetSizeArgument(info, 0, byte_offset)) return;
+
+    IDAX_UNWRAP(auto references,
+                self->type_info_.member_references(byte_offset));
+    info.GetReturnValue().Set(AddressVectorToArray(references));
+}
+
+NAN_METHOD(TypeInfoWrapper::EnsureMemberReference) {
+    SELF();
+    std::size_t byte_offset = 0;
+    if (!GetSizeArgument(info, 0, byte_offset)) return;
+    ida::Address source_address;
+    if (!GetAddressArg(info, 1, source_address)) return;
+
+    IDAX_UNWRAP(auto created,
+                self->type_info_.ensure_member_reference(
+                    byte_offset, source_address));
+    info.GetReturnValue().Set(Nan::New(created));
 }
 
 NAN_METHOD(TypeInfoWrapper::AddMember) {

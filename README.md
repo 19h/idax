@@ -294,6 +294,13 @@ if (forward && forward->is_forward_declaration()
     auto replaced = complete.replace_forward_declaration("packet_forward");
 }
 
+// Keep UDT-member identities opaque while adding persistent informational
+// references from exact instruction item heads.
+if (packet) {
+    auto added = packet->ensure_member_reference(0, instruction_address);
+    auto sources = packet->member_references(0);
+}
+
 // Parse from C declaration
 auto parsed = ida::type::TypeInfo::from_declaration("int (*callback)(void*, size_t)");
 ```

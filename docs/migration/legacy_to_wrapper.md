@@ -190,6 +190,27 @@ auto by_name = st.member_by_name("field_a");
 auto by_off  = st.member_by_offset(4);  // field_b
 ```
 
+### Persistent references to exact UDT members
+
+```cpp
+// Legacy:
+// auto member_tid = named_tif.get_udm_tid(member_index);
+// add_dref(instruction_ea, member_tid, dr_I | XREF_USER);
+
+// idax: the member identity never crosses the opaque TypeInfo boundary.
+auto named = ida::type::TypeInfo::by_name("my_struct");
+auto added = named->ensure_member_reference(4, instruction_ea);
+auto sources = named->member_references(4);
+```
+
+The byte offset must identify exactly one member of a complete saved local UDT,
+and the source must be a mapped item head. `ensure_member_reference` returns
+`true` only when it creates a persistent user informational reference and
+`false` for an exact existing reference. Missing/ambiguous members, ephemeral
+or external-library types, invalid sources, and incompatible existing
+source/member references fail before mutation. Public APIs return only source
+addresses; the SDK member TID remains internal.
+
 ### Applying types to addresses
 
 ```cpp

@@ -566,6 +566,10 @@ void check_type_surface() {
         ida::type::TypeInfo::*)() const;
     using ReplaceForwardDeclarationFn = ida::Result<ida::type::TypeInfo>(
         ida::type::TypeInfo::*)(std::string_view) const;
+    using MemberReferencesFn = ida::Result<std::vector<ida::Address>>(
+        ida::type::TypeInfo::*)(std::size_t) const;
+    using EnsureMemberReferenceFn = ida::Result<bool>(
+        ida::type::TypeInfo::*)(std::size_t, ida::Address) const;
     using PointeeTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using PointerDetailsFn = ida::Result<ida::type::PointerDetails>(ida::type::TypeInfo::*)() const;
     using WithShiftedParentFn = ida::Result<ida::type::TypeInfo>(
@@ -617,6 +621,10 @@ void check_type_surface() {
         &ida::type::TypeInfo::forward_declaration_kind);
     (void)static_cast<ReplaceForwardDeclarationFn>(
         &ida::type::TypeInfo::replace_forward_declaration);
+    (void)static_cast<MemberReferencesFn>(
+        &ida::type::TypeInfo::member_references);
+    (void)static_cast<EnsureMemberReferenceFn>(
+        &ida::type::TypeInfo::ensure_member_reference);
     (void)static_cast<PointeeTypeFn>(&ida::type::TypeInfo::pointee_type);
     (void)static_cast<PointerDetailsFn>(&ida::type::TypeInfo::pointer_details);
     (void)static_cast<WithShiftedParentFn>(&ida::type::TypeInfo::with_shifted_parent);

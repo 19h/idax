@@ -1513,3 +1513,49 @@ apply should show one forward replacement, member additions, and zero redundant
 prototype changes; fresh-process reopen should show zero replacement/addition,
 all members reused, and the prototype still already typed. A changed ordinal or
 delete-plus-recreate implementation falsifies this behavior.
+
+### 35.81. Resolve Persistent Member References Inside the Type Boundary [F425]
+An exact UDT member cross-reference target is an SDK member identity, not a
+linear program address. Keep it opaque: accept a complete saved local UDT plus
+an exact byte offset, resolve exactly one member index, obtain its stable TID
+internally, and expose only referencing item-head addresses on readback. Ensure
+one `dr_I | XREF_USER` data reference so reanalysis retains it; return whether
+the operation created a reference and treat an exact existing persistent
+reference as idempotent success.
+
+Reject an absent/forward/non-UDT value, sub-TIL or unsaved UDT, byte-to-bit
+overflow, no exact member, multiple exact-offset members, an unmapped/non-head
+source, and an existing incompatible reference for the same source/member pair
+before mutation. This prevents a member `tid_t` from leaking through the public
+`Address` vocabulary and prevents silent replacement of a semantically
+different xref.
+
+For `M` UDT members and `R` references at the queried source or target, exact
+resolution plus read/ensure costs `O(M + R)` time and `O(R)` returned storage
+(`O(1)` auxiliary storage for ensure). A Symless reconstruction with `S` unique
+field-access sites adds at most `S` persistent xrefs. Falsification probes are
+an ephemeral UDT, a complete local UDT with one exact member, a union with
+multiple offset-zero members, a byte offset above `UINT64_MAX / 8`, a tail-byte
+source, repeated ensure, reanalysis, and fresh-process reopen.
+
+### 35.82. Member-TID Informational References Survive Database Reopen [F426]
+IDA Professional 9.4 retains `dr_I | XREF_USER` references whose destinations
+are stable local UDT member identities. In the measured Symless fixture, three
+exact access item heads at `0x100000424`, `0x100000430`, and `0x10000043c`
+target members at `+4 B`, `+8 B`, and `+24 B`. First apply added all three;
+fresh-process reopen enumerated and reused all three with zero additions or
+skips.
+
+Keep report mode read-only by exposing only the number of recovered access-site
+candidates. During explicit apply, resolve each exact compatible member inside
+`TypeInfo`, ensure the persistent reference, and classify added/reused/skipped
+counts. An apply-reopen sequence other than `3 added, 0 reused` followed by
+`0 added, 3 reused` on this fixture falsifies persistence or idempotence.
+
+### 35.83. Compare Node Address Arrays Without JSON Serialization [F427]
+The local Node test harness implements `toEqual` with `JSON.stringify`, and
+ECMAScript `BigInt` is not JSON-serializable. Because Node `Address` values are
+`BigInt`, do not use that matcher for nonempty `Address[]` values. Assert the
+length and compare each element with strict equality. A serialization exception
+in this context is a harness failure, not evidence that the native address
+transfer or wrapper result is invalid.

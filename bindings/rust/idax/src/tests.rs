@@ -1108,6 +1108,10 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
         let _: fn(&TypeInfo, bool, bool) -> crate::error::Status = TypeInfo::set_udt_semantics;
         let _: fn(&TypeInfo, &str) -> Result<TypeInfo> = TypeInfo::replace_forward_declaration;
+        let _: fn(&TypeInfo, usize) -> Result<Vec<crate::address::Address>> =
+            TypeInfo::member_references;
+        let _: fn(&TypeInfo, usize, crate::address::Address) -> Result<bool> =
+            TypeInfo::ensure_member_reference;
 
         let member = Member {
             name: "field".to_string(),

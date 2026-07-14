@@ -799,6 +799,57 @@ Member make_member(const udm_t& m) {
     return result;
 }
 
+Result<tid_t> exact_local_member_tid(const tinfo_t& ti,
+                                     std::size_t byte_offset) {
+    if (!ti.is_udt() || ti.is_forward_decl())
+        return std::unexpected(Error::validation(
+            "Member references require a complete struct or union"));
+    if (ti.is_from_subtil() || ti.get_ordinal() == 0)
+        return std::unexpected(Error::conflict(
+            "Member references require a saved local UDT"));
+    if (byte_offset > std::numeric_limits<std::uint64_t>::max() / 8)
+        return std::unexpected(Error::validation(
+            "Member byte offset is too large"));
+
+    udt_type_data_t udt;
+    if (!ti.get_udt_details(&udt))
+        return std::unexpected(Error::sdk("Failed to get UDT details"));
+
+    const std::uint64_t bit_offset =
+        static_cast<std::uint64_t>(byte_offset) * 8;
+    std::optional<std::size_t> member_index;
+    for (std::size_t index = 0; index < udt.size(); ++index) {
+        if (udt[index].offset != bit_offset)
+            continue;
+        if (member_index)
+            return std::unexpected(Error::conflict(
+                "Member byte offset is ambiguous",
+                std::to_string(byte_offset)));
+        member_index = index;
+    }
+    if (!member_index)
+        return std::unexpected(Error::not_found(
+            "No exact UDT member at byte offset",
+            std::to_string(byte_offset)));
+
+    const tid_t member_tid = ti.get_udm_tid(*member_index);
+    if (member_tid == BADADDR)
+        return std::unexpected(Error::conflict(
+            "UDT member has no stable database identity",
+            std::to_string(byte_offset)));
+    return member_tid;
+}
+
+bool is_persistent_member_reference(const xrefblk_t& reference,
+                                    ea_t source,
+                                    tid_t member_tid) {
+    return reference.from == source
+        && reference.to == member_tid
+        && !reference.iscode
+        && reference.type == dr_I
+        && reference.user != 0;
+}
+
 } // anonymous namespace
 
 Result<std::vector<Member>> TypeInfo::members() const {
@@ -899,6 +950,82 @@ Result<Member> TypeInfo::member_by_offset(std::size_t byte_offset) const {
         return std::unexpected(Error::not_found("No member at offset",
                                                 std::to_string(byte_offset)));
     return make_member(udm);
+}
+
+Result<std::vector<Address>>
+TypeInfo::member_references(std::size_t byte_offset) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    auto member_tid = exact_local_member_tid(impl_->ti, byte_offset);
+    if (!member_tid)
+        return std::unexpected(member_tid.error());
+
+    std::vector<Address> sources;
+    xrefblk_t reference;
+    for (bool found = reference.first_to(*member_tid, XREF_ALL);
+         found; found = reference.next_to()) {
+        if (is_persistent_member_reference(
+                reference, reference.from, *member_tid)) {
+            sources.push_back(static_cast<Address>(reference.from));
+        }
+    }
+    std::sort(sources.begin(), sources.end());
+    sources.erase(std::unique(sources.begin(), sources.end()), sources.end());
+    return sources;
+}
+
+Result<bool>
+TypeInfo::ensure_member_reference(std::size_t byte_offset,
+                                  Address source_address) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (source_address == BadAddress
+        || !::is_mapped(source_address)
+        || !is_head(get_flags(source_address))) {
+        return std::unexpected(Error::validation(
+            "Member reference source must be a mapped item head",
+            std::to_string(source_address)));
+    }
+
+    auto member_tid = exact_local_member_tid(impl_->ti, byte_offset);
+    if (!member_tid)
+        return std::unexpected(member_tid.error());
+
+    xrefblk_t reference;
+    for (bool found = reference.first_from(source_address, XREF_ALL);
+         found; found = reference.next_from()) {
+        if (reference.to != *member_tid)
+            continue;
+        if (is_persistent_member_reference(
+                reference, source_address, *member_tid)) {
+            return false;
+        }
+        return std::unexpected(Error::conflict(
+            "Source already has an incompatible reference to this UDT member",
+            std::to_string(source_address) + " -> member@"
+                + std::to_string(byte_offset)));
+    }
+
+    const auto reference_type =
+        static_cast<dref_t>(static_cast<int>(dr_I) | XREF_USER);
+    if (!::add_dref(source_address, *member_tid, reference_type))
+        return std::unexpected(Error::sdk(
+            "Failed to add persistent UDT member reference",
+            std::to_string(source_address) + " -> member@"
+                + std::to_string(byte_offset)));
+
+    xrefblk_t verification;
+    for (bool found = verification.first_from(source_address, XREF_ALL);
+         found; found = verification.next_from()) {
+        if (is_persistent_member_reference(
+                verification, source_address, *member_tid)) {
+            return true;
+        }
+    }
+    return std::unexpected(Error::sdk(
+        "Persistent UDT member reference was not observable after creation",
+        std::to_string(source_address) + " -> member@"
+            + std::to_string(byte_offset)));
 }
 
 Status TypeInfo::add_member(std::string_view name, const TypeInfo& member_type,

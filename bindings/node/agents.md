@@ -414,6 +414,8 @@ TypeInfo factory/runtime operations require an initialized IDA runtime/database;
 * `enumMembers(): { name: string, value: bigint, comment: string }[]`, `enumDetails(): EnumDetails`
 * `memberCount(): number`, `members(): Member[]`, `udtDetails(): UdtDetails`, `setUdtSemantics(isCppObject: boolean, isVftable: boolean): void`
 * `memberByName(name: string): Member`, `memberByOffset(byteOffset: number): Member`
+* `memberReferences(byteOffset: number): Address[]` — source item heads of persistent user informational references to the unique exact saved-local UDT member
+* `ensureMemberReference(byteOffset: number, sourceAddress: Address): boolean` — ensure that reference without exposing the member TID; returns `true` only when newly added
 * `addMember(name: string, type: TypeInfo, byteOffset?: number): void`
 * `apply(address: Address): void`
 * `saveAs(name: string): void`

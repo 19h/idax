@@ -895,6 +895,36 @@ describe('Type System', () => {
         expect(replacedUnion.memberCount()).toBe(2);
     });
 
+    it('should ensure opaque persistent UDT member references idempotently', () => {
+        const sourceAddress = idax.function.byIndex(0).start;
+        const ephemeral = idax.type.createStruct();
+        ephemeral.addMember('field', idax.type.uint32(), 4);
+        expect(() => ephemeral.memberReferences(4)).toThrow();
+
+        const structure = idax.type.createStruct();
+        structure.addMember('first', idax.type.uint32(), 4);
+        structure.addMember('second', idax.type.uint64(), 8);
+        structure.saveAs('idax_node_member_reference_struct');
+        const saved = idax.type.byName('idax_node_member_reference_struct');
+        expect(saved.memberReferences(4)).toEqual([]);
+        expect(saved.ensureMemberReference(4, sourceAddress)).toBe(true);
+        const references = saved.memberReferences(4);
+        expect(references.length).toBe(1);
+        expect(references[0]).toBe(sourceAddress);
+        expect(saved.ensureMemberReference(4, sourceAddress)).toBe(false);
+        expect(() => saved.memberReferences(7)).toThrow();
+        expect(() => saved.ensureMemberReference(4, idax.BAD_ADDRESS)).toThrow();
+        expect(() => saved.memberReferences(-1)).toThrow();
+        expect(() => saved.memberReferences(1.5)).toThrow();
+
+        const ambiguous = idax.type.createUnion();
+        ambiguous.addMember('wide', idax.type.uint64(), 0);
+        ambiguous.addMember('narrow', idax.type.uint32(), 0);
+        ambiguous.saveAs('idax_node_member_reference_ambiguous');
+        expect(() => idax.type.byName('idax_node_member_reference_ambiguous')
+            .memberReferences(0)).toThrow();
+    });
+
     it('should create array type', () => {
         const elem = idax.type.uint8();
         const arr = idax.type.arrayOf(elem, 100);

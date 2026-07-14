@@ -11,8 +11,10 @@
 /// store; table-size/xref inheritance guesses are deliberately not applied.
 /// Propagated arguments preserve exact shifted-parent metadata; shifted
 /// returns remain excluded as in the upstream generation path. Indirect
-/// dynamic calls, member xrefs, and microcode-widget workflows remain outside
-/// the stated boundary. Upstream
+/// dynamic calls, multi-element stroff paths, RTTI-adjusted vtable-load chains,
+/// and microcode-widget workflows remain outside the stated boundary. Exact
+/// compatible recovered fields receive persistent member-TID informational
+/// references without exposing SDK identifiers. Upstream
 /// copyright/license: symless_port_LICENSE.txt.
 
 #include <ida/idax.hpp>
@@ -26,6 +28,7 @@
 #include <deque>
 #include <limits>
 #include <map>
+#include <numeric>
 #include <optional>
 #include <set>
 #include <string>
@@ -233,6 +236,10 @@ struct ApplySummary {
     std::size_t members_added{0};
     std::size_t members_reused{0};
     std::size_t members_skipped{0};
+    std::size_t member_reference_candidates{0};
+    std::size_t member_references_added{0};
+    std::size_t member_references_reused{0};
+    std::size_t member_references_skipped{0};
     bool argument_changed{false};
     bool argument_already_typed{false};
     std::size_t arguments_changed{0};
@@ -255,6 +262,10 @@ struct AllocatorApplySummary {
     std::size_t members_added{0};
     std::size_t members_reused{0};
     std::size_t members_skipped{0};
+    std::size_t member_reference_candidates{0};
+    std::size_t member_references_added{0};
+    std::size_t member_references_reused{0};
+    std::size_t member_references_skipped{0};
     std::size_t prototypes_changed{0};
     std::size_t prototypes_already_typed{0};
     std::size_t prototypes_ineligible{0};
@@ -312,6 +323,10 @@ struct VtableApplySummary {
     std::size_t class_members_added{0};
     std::size_t class_members_reused{0};
     std::size_t members_skipped{0};
+    std::size_t member_reference_candidates{0};
+    std::size_t member_references_added{0};
+    std::size_t member_references_reused{0};
+    std::size_t member_references_skipped{0};
     std::size_t prototypes_changed{0};
     std::size_t prototypes_already_typed{0};
     std::size_t prototypes_ineligible{0};
@@ -2185,6 +2200,74 @@ ida::Result<ida::type::TypeInfo> ensure_structure(
     return structure;
 }
 
+std::size_t member_reference_candidate_count(
+    const std::vector<RecoveredField>& fields) {
+    return std::accumulate(
+        fields.begin(), fields.end(), std::size_t{0},
+        [](std::size_t count, const RecoveredField& field) {
+            return count + field.sites.size();
+        });
+}
+
+ida::Status ensure_recovered_member_references(
+    const ida::type::TypeInfo& structure,
+    const std::vector<RecoveredField>& fields,
+    std::size_t& candidates,
+    std::size_t& added,
+    std::size_t& reused,
+    std::size_t& skipped) {
+    auto members = structure.members();
+    if (!members)
+        return std::unexpected(members.error());
+
+    for (const auto& field : fields) {
+        candidates += field.sites.size();
+        if (field.offset < 0 || field.byte_width <= 0
+            || static_cast<std::uint64_t>(field.offset)
+                > std::numeric_limits<std::size_t>::max()) {
+            skipped += field.sites.size();
+            continue;
+        }
+        const auto offset = static_cast<std::size_t>(field.offset);
+        const auto expected_type = member_type(field.byte_width);
+        if (!expected_type)
+            return std::unexpected(expected_type.error());
+        auto expected_text = expected_type->to_string();
+        if (!expected_text)
+            return std::unexpected(expected_text.error());
+
+        std::vector<const ida::type::Member*> exact_members;
+        for (const auto& member : *members) {
+            if (member.bit_offset % 8 == 0
+                && member.bit_offset / 8 == offset) {
+                exact_members.push_back(&member);
+            }
+        }
+        if (exact_members.size() != 1) {
+            skipped += field.sites.size();
+            continue;
+        }
+        auto actual_text = exact_members.front()->type.to_string();
+        if (!actual_text)
+            return std::unexpected(actual_text.error());
+        if (*actual_text != *expected_text) {
+            skipped += field.sites.size();
+            continue;
+        }
+
+        for (ida::Address site : field.sites) {
+            auto created = structure.ensure_member_reference(offset, site);
+            if (!created)
+                return std::unexpected(created.error());
+            if (*created)
+                ++added;
+            else
+                ++reused;
+        }
+    }
+    return ida::ok();
+}
+
 ida::Result<ArgumentEligibility> argument_eligibility(
     const ida::type::TypeInfo& argument_type,
     std::string_view structure_name,
@@ -2276,6 +2359,14 @@ ida::Result<ApplySummary> apply_reconstruction(
                                       summary);
     if (!structure)
         return std::unexpected(structure.error());
+    auto member_references = ensure_recovered_member_references(
+        *structure, reconstruction.fields,
+        summary.member_reference_candidates,
+        summary.member_references_added,
+        summary.member_references_reused,
+        summary.member_references_skipped);
+    if (!member_references)
+        return std::unexpected(member_references.error());
     const auto pointer = ida::type::TypeInfo::pointer_to(*structure);
 
     for (const auto& site : reconstruction.propagation_sites) {
@@ -2497,6 +2588,14 @@ ida::Result<AllocatorApplySummary> apply_allocator_discovery(
         summary.members_added += structure_summary.members_added;
         summary.members_reused += structure_summary.members_reused;
         summary.members_skipped += structure_summary.members_skipped;
+        auto member_references = ensure_recovered_member_references(
+            *structure, reconstruction.fields,
+            summary.member_reference_candidates,
+            summary.member_references_added,
+            summary.member_references_reused,
+            summary.member_references_skipped);
+        if (!member_references)
+            return std::unexpected(member_references.error());
     }
     std::set<ResolvedAllocator> allocators(
         discovery.seeds.begin(), discovery.seeds.end());
@@ -2855,6 +2954,14 @@ ida::Result<VtableApplySummary> apply_vtable_discovery(
         auto class_type = ida::type::TypeInfo::by_name(class_name);
         if (!class_type)
             return std::unexpected(class_type.error());
+        auto member_references = ensure_recovered_member_references(
+            *class_type, candidate.fields,
+            summary.member_reference_candidates,
+            summary.member_references_added,
+            summary.member_references_reused,
+            summary.member_references_skipped);
+        if (!member_references)
+            return std::unexpected(member_references.error());
         const auto class_pointer = ida::type::TypeInfo::pointer_to(*class_type);
         std::set<ida::Address> prototypes(candidate.constructors.begin(),
                                           candidate.constructors.end());
@@ -2897,7 +3004,8 @@ std::string report_text(const Reconstruction& reconstruction,
         "Return conflicts: %zu\nBlocks: %zu\nInstructions: %zu\n"
         "Recovered fields: %zu\nUnsupported instructions: %zu\n"
         "Negative accesses: %zu\nConflict discards: %zu\n"
-        "Propagation sites: %zu\nReturn sites: %zu\n",
+        "Propagation sites: %zu\nReturn sites: %zu\n"
+        "Member-reference candidates: %zu\n",
         static_cast<unsigned long long>(reconstruction.function_address),
         reconstruction.argument_index,
         reconstruction.argument_name.c_str(),
@@ -2917,7 +3025,8 @@ std::string report_text(const Reconstruction& reconstruction,
         reconstruction.negative_accesses,
         reconstruction.conflict_discards,
         reconstruction.propagation_sites.size(),
-        reconstruction.return_sites.size());
+        reconstruction.return_sites.size(),
+        member_reference_candidate_count(reconstruction.fields));
     for (const auto& site : reconstruction.propagation_sites) {
         report += format("  argument 0x%llx[%zu] name=%s shift=%+lld\n",
                          static_cast<unsigned long long>(site.function_address),
@@ -2940,6 +3049,10 @@ std::string report_text(const Reconstruction& reconstruction,
             "Structure created: %s\nStructure forward replaced: %s\n"
             "Members added: %zu\n"
             "Members reused: %zu\nMembers skipped: %zu\n"
+            "Member-reference candidates: %zu\n"
+            "Member references added: %zu\n"
+            "Member references reused: %zu\n"
+            "Member references skipped: %zu\n"
             "Argument changed: %s\nArgument already typed: %s\n"
             "Arguments changed: %zu\nArguments already typed: %zu\n"
             "Arguments shifted/changed: %zu\n"
@@ -2954,6 +3067,10 @@ std::string report_text(const Reconstruction& reconstruction,
             applied->members_added,
             applied->members_reused,
             applied->members_skipped,
+            applied->member_reference_candidates,
+            applied->member_references_added,
+            applied->member_references_reused,
+            applied->member_references_skipped,
             applied->argument_changed ? "yes" : "no",
             applied->argument_already_typed ? "yes" : "no",
             applied->arguments_changed,
@@ -3008,6 +3125,13 @@ std::string allocator_report_text(
         discovery.unresolved_callers,
         discovery.unclassified_calls,
         discovery.duplicate_heirs);
+    std::size_t reference_candidates = 0;
+    for (const auto& reconstruction : analysis.reconstructions) {
+        reference_candidates += member_reference_candidate_count(
+            reconstruction.fields);
+    }
+    report += format("Member-reference candidates: %zu\n",
+                     reference_candidates);
     for (const auto& wrapper : discovery.wrappers) {
         report += format(
             "  wrapper function=0x%llx source_call=0x%llx kind=%s size_index=%zu\n",
@@ -3048,6 +3172,9 @@ std::string allocator_report_text(
             "Structures created: %zu\nStructures forward replaced: %zu\n"
             "Structures ineligible: %zu\n"
             "Members added: %zu\nMembers reused: %zu\nMembers skipped: %zu\n"
+            "Member-reference candidates: %zu\n"
+            "Member references added: %zu\nMember references reused: %zu\n"
+            "Member references skipped: %zu\n"
             "Prototypes changed: %zu\nPrototypes already typed: %zu\n"
             "Prototypes ineligible: %zu\n",
             applied->structures_created,
@@ -3056,6 +3183,10 @@ std::string allocator_report_text(
             applied->members_added,
             applied->members_reused,
             applied->members_skipped,
+            applied->member_reference_candidates,
+            applied->member_references_added,
+            applied->member_references_reused,
+            applied->member_references_skipped,
             applied->prototypes_changed,
             applied->prototypes_already_typed,
             applied->prototypes_ineligible);
@@ -3090,6 +3221,11 @@ std::string vtable_report_text(
         discovery.graph_failures,
         discovery.ambiguous_constructors.size(),
         discovery.secondary_stores.size());
+    std::size_t reference_candidates = 0;
+    for (const auto& candidate : discovery.classes)
+        reference_candidates += member_reference_candidate_count(candidate.fields);
+    report += format("Member-reference candidates: %zu\n",
+                     reference_candidates);
     for (const auto& candidate : discovery.classes) {
         report += format(
             "  class vtable=0x%llx methods=%zu constructors=%zu fields=%zu "
@@ -3138,7 +3274,9 @@ std::string vtable_report_text(
             "Class types forward replaced: %zu\n"
             "Method members added: %zu\nMethod members reused: %zu\n"
             "Class members added: %zu\nClass members reused: %zu\n"
-            "Members skipped: %zu\nPrototypes changed: %zu\n"
+            "Members skipped: %zu\nMember-reference candidates: %zu\n"
+            "Member references added: %zu\nMember references reused: %zu\n"
+            "Member references skipped: %zu\nPrototypes changed: %zu\n"
             "Prototypes already typed: %zu\nPrototypes ineligible: %zu\n"
             "Vtables applied: %zu\n",
             applied->vtable_types_created,
@@ -3152,6 +3290,10 @@ std::string vtable_report_text(
             applied->class_members_added,
             applied->class_members_reused,
             applied->members_skipped,
+            applied->member_reference_candidates,
+            applied->member_references_added,
+            applied->member_references_reused,
+            applied->member_references_skipped,
             applied->prototypes_changed,
             applied->prototypes_already_typed,
             applied->prototypes_ineligible,

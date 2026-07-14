@@ -10,8 +10,10 @@
 
 #include <ida/idax.hpp>
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -4066,6 +4068,51 @@ int idax_type_member_by_offset(IdaxTypeHandle ti, size_t byte_offset, IdaxTypeMe
     out->type = nullptr;
     out->comment = nullptr;
     return fill_type_member(out, *r);
+}
+
+int idax_type_member_references(IdaxTypeHandle ti,
+                                size_t byte_offset,
+                                uint64_t** out,
+                                size_t* count) {
+    clear_error();
+    if (ti == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Type handle and output pointers must be non-null"));
+    *out = nullptr;
+    *count = 0;
+
+    auto r = static_cast<ida::type::TypeInfo*>(ti)->member_references(
+        byte_offset);
+    if (!r) return fail(r.error());
+    if (r->empty()) return 0;
+    if (r->size() > std::numeric_limits<size_t>::max() / sizeof(uint64_t))
+        return fail(ida::Error::internal(
+            "Member reference address array is too large"));
+
+    auto* addresses = static_cast<uint64_t*>(
+        std::malloc(r->size() * sizeof(uint64_t)));
+    if (addresses == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    std::copy(r->begin(), r->end(), addresses);
+    *out = addresses;
+    *count = r->size();
+    return 0;
+}
+
+int idax_type_ensure_member_reference(IdaxTypeHandle ti,
+                                      size_t byte_offset,
+                                      uint64_t source_address,
+                                      int* created) {
+    clear_error();
+    if (ti == nullptr || created == nullptr)
+        return fail(ida::Error::validation(
+            "Type handle and created output must be non-null"));
+    *created = 0;
+    auto r = static_cast<ida::type::TypeInfo*>(ti)->ensure_member_reference(
+        byte_offset, source_address);
+    if (!r) return fail(r.error());
+    *created = *r ? 1 : 0;
+    return 0;
 }
 
 int idax_type_add_member(IdaxTypeHandle ti, const char* name,

@@ -497,6 +497,71 @@ void test_forward_declaration_replacement() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: opaque persistent UDT member references
+// ---------------------------------------------------------------------------
+void test_member_references() {
+    std::cout << "--- persistent UDT member references ---\n";
+
+    auto first_function = ida::function::by_index(0);
+    CHECK_OK(first_function);
+    if (!first_function)
+        return;
+    const auto source = first_function->start();
+
+    auto ephemeral = ida::type::TypeInfo::create_struct();
+    CHECK_OK(ephemeral.add_member("field", ida::type::TypeInfo::uint32(), 4));
+    CHECK_ERR(ephemeral.member_references(4), ida::ErrorCategory::Conflict);
+
+    auto structure = ida::type::TypeInfo::create_struct();
+    CHECK_OK(structure.add_member("first", ida::type::TypeInfo::uint32(), 4));
+    CHECK_OK(structure.add_member("second", ida::type::TypeInfo::uint64(), 8));
+    CHECK_OK(structure.save_as("idax_member_reference_struct"));
+    auto saved = ida::type::TypeInfo::by_name("idax_member_reference_struct");
+    CHECK_OK(saved);
+    if (!saved)
+        return;
+
+    auto before = saved->member_references(4);
+    CHECK_OK(before);
+    if (before)
+        CHECK(before->empty());
+
+    auto created = saved->ensure_member_reference(4, source);
+    CHECK_OK(created);
+    if (created)
+        CHECK(*created);
+    auto after = saved->member_references(4);
+    CHECK_OK(after);
+    if (after) {
+        CHECK(after->size() == 1);
+        CHECK(after->front() == source);
+    }
+
+    auto repeated = saved->ensure_member_reference(4, source);
+    CHECK_OK(repeated);
+    if (repeated)
+        CHECK(!*repeated);
+    CHECK_ERR(saved->member_references(7), ida::ErrorCategory::NotFound);
+    CHECK_ERR(saved->ensure_member_reference(4, ida::BadAddress),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(saved->member_references(
+                  std::numeric_limits<std::size_t>::max()),
+              ida::ErrorCategory::Validation);
+
+    auto ambiguous = ida::type::TypeInfo::create_union();
+    CHECK_OK(ambiguous.add_member("wide", ida::type::TypeInfo::uint64(), 0));
+    CHECK_OK(ambiguous.add_member("narrow", ida::type::TypeInfo::uint32(), 0));
+    CHECK_OK(ambiguous.save_as("idax_member_reference_ambiguous"));
+    auto saved_ambiguous = ida::type::TypeInfo::by_name(
+        "idax_member_reference_ambiguous");
+    CHECK_OK(saved_ambiguous);
+    if (saved_ambiguous) {
+        CHECK_ERR(saved_ambiguous->member_references(0),
+                  ida::ErrorCategory::Conflict);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Test: function type + calling convention workflows
 // ---------------------------------------------------------------------------
 void test_function_type_workflows() {
@@ -1256,6 +1321,7 @@ int main(int argc, char* argv[]) {
     test_from_declaration();
     test_parse_declarations();
     test_forward_declaration_replacement();
+    test_member_references();
     test_function_type_workflows();
     test_enum_workflows();
     test_rich_type_layout_metadata();

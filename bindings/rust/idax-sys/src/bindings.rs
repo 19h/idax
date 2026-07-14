@@ -3102,6 +3102,22 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_type_member_references(
+        ti: IdaxTypeHandle,
+        byte_offset: usize,
+        out: *mut *mut u64,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_ensure_member_reference(
+        ti: IdaxTypeHandle,
+        byte_offset: usize,
+        source_address: u64,
+        created: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_type_add_member(
         ti: IdaxTypeHandle,
         name: *const ::std::os::raw::c_char,

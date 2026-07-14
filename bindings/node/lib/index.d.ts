@@ -1773,6 +1773,12 @@ export namespace type {
         /** Look up a member by byte offset. */
         memberByOffset(byteOffset: number): Member;
 
+        /** Source item heads with persistent informational references to the exact member. */
+        memberReferences(byteOffset: number): Address[];
+
+        /** Ensure a persistent informational reference to the exact member; true if added. */
+        ensureMemberReference(byteOffset: number, sourceAddress: Address): boolean;
+
         /** Add a member to a struct or union being built. */
         addMember(name: string, type: TypeInfo, byteOffset?: number): void;
 

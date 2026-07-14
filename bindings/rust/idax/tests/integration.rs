@@ -1554,6 +1554,70 @@ fn types_forward_declaration_replacement() {
     assert_eq!(replaced_union.member_count().unwrap(), 2);
 }
 
+fn types_member_references() {
+    require_db!();
+    let source_address = function::by_index(0).unwrap().start();
+
+    let ephemeral = types::TypeInfo::create_struct();
+    ephemeral
+        .add_member("field", &types::TypeInfo::uint32(), 4)
+        .unwrap();
+    assert_eq!(
+        ephemeral.member_references(4).unwrap_err().category,
+        ErrorCategory::Conflict
+    );
+
+    let structure = types::TypeInfo::create_struct();
+    structure
+        .add_member("first", &types::TypeInfo::uint32(), 4)
+        .unwrap();
+    structure
+        .add_member("second", &types::TypeInfo::uint64(), 8)
+        .unwrap();
+    structure
+        .save_as("idax_rust_member_reference_struct")
+        .unwrap();
+    let saved = types::TypeInfo::by_name("idax_rust_member_reference_struct").unwrap();
+    assert!(saved.member_references(4).unwrap().is_empty());
+    assert!(saved.ensure_member_reference(4, source_address).unwrap());
+    assert_eq!(saved.member_references(4).unwrap(), vec![source_address]);
+    assert!(!saved.ensure_member_reference(4, source_address).unwrap());
+    assert_eq!(
+        saved.member_references(7).unwrap_err().category,
+        ErrorCategory::NotFound
+    );
+    assert_eq!(
+        saved
+            .ensure_member_reference(4, BAD_ADDRESS)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        saved.member_references(usize::MAX).unwrap_err().category,
+        ErrorCategory::Validation
+    );
+
+    let ambiguous = types::TypeInfo::create_union();
+    ambiguous
+        .add_member("wide", &types::TypeInfo::uint64(), 0)
+        .unwrap();
+    ambiguous
+        .add_member("narrow", &types::TypeInfo::uint32(), 0)
+        .unwrap();
+    ambiguous
+        .save_as("idax_rust_member_reference_ambiguous")
+        .unwrap();
+    assert_eq!(
+        types::TypeInfo::by_name("idax_rust_member_reference_ambiguous")
+            .unwrap()
+            .member_references(0)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Conflict
+    );
+}
+
 fn types_struct_creation() {
     require_db!();
     let s = types::TypeInfo::create_struct();
@@ -2330,6 +2394,7 @@ static TEST_CASES: &[TestCase] = &[
         "types_forward_declaration_replacement",
         types_forward_declaration_replacement,
     ),
+    ("types_member_references", types_member_references),
     ("types_struct_creation", types_struct_creation),
     ("types_udt_semantics", types_udt_semantics),
     ("types_from_declaration", types_from_declaration),

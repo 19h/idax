@@ -965,3 +965,30 @@ tracked in `docs/compatibility_matrix.md`.
   `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
   and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
   `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.
+
+- 2026-07-14 Phase 43 Symless member-TID informational references:
+  Added opaque exact-member `member_references(byte_offset)` and
+  `ensure_member_reference(byte_offset, source_address)` across C++, Node,
+  generated C ABI, and safe Rust. The implementation requires a complete saved
+  local UDT, one exact member offset, stable internal member identity, and a
+  mapped source item head; it ensures verified `dr_I | XREF_USER` persistence
+  without exposing a TID. Both Symless adaptations now count candidates in
+  report mode and classify added/reused/skipped references during explicit
+  apply for ordinary, allocator, and class/vtable structures. Full C++ build
+  and CTest pass 26/26 in 22.95 s. Node native build, strict example
+  declarations, structural tests, and IDA 9.4 integration pass 234/234 and
+  81/81. Rust formatting/all-target checks, library/sys/port tests, and
+  process-main-thread IDA 9.4 integration pass 138/138, 0 sys, 13/13, and
+  98/98. Generated bindings are byte-identical at SHA-256
+  `5613b4d1672f5c2a51b3b6705f0ad34d67faf15ed37eae600773280c23683212`.
+  The DWARF fixture source SHA-256 is
+  `031535bef12bf6b7559501ad30e719a2a013c14f78299ae7fe5953665d8220dd`;
+  the temporary arm64 executable is
+  `db57dccb7c56f0487edf1ff3c7d477e84b6b1bc45e12ad3ccf6fd98376ab79f0`.
+  Report mode found three exact fields/sites and three candidates without an
+  IDB; first apply added three persistent member references; a fresh process
+  reopening the saved `.i64` added zero and reused all three. The tracked
+  executable and adjacent IDB remain respectively SHA-256
+  `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
+  and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.

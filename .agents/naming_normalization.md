@@ -38,6 +38,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | copy `udt_type_data_t`, edit `TAUDT_CPPOBJ`/`TAUDT_VFTABLE`, `create_udt(...)` | `TypeInfo::set_udt_semantics(is_cpp_object, is_vftable)` |
 | `get_ptr_details`, set `TAPTR_SHIFTED`/`parent`/`delta`, `create_ptr(...)` | `TypeInfo::pointer_details()` / `with_shifted_parent(parent, byte_delta)` |
 | `is_forward_decl`/`get_forward_type`; copied `set_numbered_type(..., NTF_REPLACE | NTF_COPY)` | `TypeInfo::is_forward_declaration()` / `forward_declaration_kind()` / `replace_forward_declaration(name)` |
+| `get_udm_tid(index)` + `add_dref(source, member_tid, dr_I | XREF_USER)` | `TypeInfo::member_references(byte_offset)` / `ensure_member_reference(byte_offset, source_address)` |
 | `gen_microcode(...)` + `mba_t::build_graph()` + native block/operand traversal | `ida::decompiler::generate_microcode(address, options)` returning an owned `MicrocodeFunction` |
 | pre-decompile direct callees + `mba_t::analyze_calls(ACFL_GUESS)` | `MicrocodeGenerationOptions::analyze_calls` (Node: `analyzeCalls`) |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |

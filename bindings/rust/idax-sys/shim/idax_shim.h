@@ -988,6 +988,14 @@ int idax_type_set_udt_semantics(IdaxTypeHandle ti,
                                 int is_vftable);
 int idax_type_member_by_name(IdaxTypeHandle ti, const char* name, IdaxTypeMember* out);
 int idax_type_member_by_offset(IdaxTypeHandle ti, size_t byte_offset, IdaxTypeMember* out);
+int idax_type_member_references(IdaxTypeHandle ti,
+                                size_t byte_offset,
+                                uint64_t** out,
+                                size_t* count);
+int idax_type_ensure_member_reference(IdaxTypeHandle ti,
+                                      size_t byte_offset,
+                                      uint64_t source_address,
+                                      int* created);
 int idax_type_add_member(IdaxTypeHandle ti, const char* name,
                          IdaxTypeHandle member_type, size_t byte_offset);
 

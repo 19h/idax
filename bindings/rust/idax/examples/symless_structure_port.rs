@@ -304,6 +304,10 @@ struct ApplySummary {
     members_added: usize,
     members_reused: usize,
     members_skipped: usize,
+    member_reference_candidates: usize,
+    member_references_added: usize,
+    member_references_reused: usize,
+    member_references_skipped: usize,
     argument_changed: bool,
     argument_already_typed: bool,
     arguments_changed: usize,
@@ -327,6 +331,10 @@ struct AllocatorApplySummary {
     members_added: usize,
     members_reused: usize,
     members_skipped: usize,
+    member_reference_candidates: usize,
+    member_references_added: usize,
+    member_references_reused: usize,
+    member_references_skipped: usize,
     prototypes_changed: usize,
     prototypes_already_typed: usize,
     prototypes_ineligible: usize,
@@ -382,6 +390,10 @@ struct VtableApplySummary {
     class_members_added: usize,
     class_members_reused: usize,
     members_skipped: usize,
+    member_reference_candidates: usize,
+    member_references_added: usize,
+    member_references_reused: usize,
+    member_references_skipped: usize,
     prototypes_changed: usize,
     prototypes_already_typed: usize,
     prototypes_ineligible: usize,
@@ -2187,6 +2199,49 @@ fn ensure_structure(
     }
 }
 
+fn member_reference_candidate_count(fields: &[RecoveredField]) -> usize {
+    fields.iter().map(|field| field.sites.len()).sum()
+}
+
+fn ensure_recovered_member_references(
+    structure: &TypeInfo,
+    fields: &[RecoveredField],
+    candidates: &mut usize,
+    added: &mut usize,
+    reused: &mut usize,
+    skipped: &mut usize,
+) -> Result<()> {
+    let members = structure.members()?;
+    for field in fields {
+        *candidates += field.sites.len();
+        let Ok(offset) = usize::try_from(field.offset) else {
+            *skipped += field.sites.len();
+            continue;
+        };
+        if field.byte_width <= 0 {
+            *skipped += field.sites.len();
+            continue;
+        }
+        let expected_text = member_type(field.byte_width)?.to_string()?;
+        let exact_members = members
+            .iter()
+            .filter(|member| member.bit_offset % 8 == 0 && member.bit_offset / 8 == offset)
+            .collect::<Vec<_>>();
+        if exact_members.len() != 1 || exact_members[0].r#type.to_string()? != expected_text {
+            *skipped += field.sites.len();
+            continue;
+        }
+        for site in &field.sites {
+            if structure.ensure_member_reference(offset, *site)? {
+                *added += 1;
+            } else {
+                *reused += 1;
+            }
+        }
+    }
+    Ok(())
+}
+
 fn argument_eligibility(
     argument_type: &TypeInfo,
     structure_name: &str,
@@ -2266,6 +2321,14 @@ fn apply_reconstruction(
     }
     let mut summary = ApplySummary::default();
     let structure = ensure_structure(structure_name, &reconstruction.fields, &mut summary)?;
+    ensure_recovered_member_references(
+        &structure,
+        &reconstruction.fields,
+        &mut summary.member_reference_candidates,
+        &mut summary.member_references_added,
+        &mut summary.member_references_reused,
+        &mut summary.member_references_skipped,
+    )?;
     let pointer = TypeInfo::pointer_to(&structure);
 
     for site in &reconstruction.propagation_sites {
@@ -2423,7 +2486,7 @@ fn apply_allocator_discovery(
             continue;
         }
         let mut structure_summary = ApplySummary::default();
-        ensure_structure(
+        let structure = ensure_structure(
             &allocation_structure_name(structure_prefix, reconstruction.root.call_address),
             &reconstruction.fields,
             &mut structure_summary,
@@ -2434,6 +2497,14 @@ fn apply_allocator_discovery(
         summary.members_added += structure_summary.members_added;
         summary.members_reused += structure_summary.members_reused;
         summary.members_skipped += structure_summary.members_skipped;
+        ensure_recovered_member_references(
+            &structure,
+            &reconstruction.fields,
+            &mut summary.member_reference_candidates,
+            &mut summary.member_references_added,
+            &mut summary.member_references_reused,
+            &mut summary.member_references_skipped,
+        )?;
     }
 
     let mut allocators = discovery.seeds.clone();
@@ -2725,7 +2796,16 @@ fn apply_vtable_discovery(discovery: &VtableDiscovery, prefix: &str) -> Result<V
         if !populate_class_type(candidate, &class_name, &vtable_type, &mut summary)? {
             continue;
         }
-        let class_pointer = TypeInfo::pointer_to(&TypeInfo::by_name(&class_name)?);
+        let class_type = TypeInfo::by_name(&class_name)?;
+        ensure_recovered_member_references(
+            &class_type,
+            &candidate.fields,
+            &mut summary.member_reference_candidates,
+            &mut summary.member_references_added,
+            &mut summary.member_references_reused,
+            &mut summary.member_references_skipped,
+        )?;
+        let class_pointer = TypeInfo::pointer_to(&class_type);
         let mut prototypes = candidate
             .constructors
             .iter()
@@ -2794,6 +2874,10 @@ fn print_report(
         "propagation_sites: {}",
         reconstruction.propagation_sites.len()
     );
+    println!(
+        "member_reference_candidates: {}",
+        member_reference_candidate_count(&reconstruction.fields)
+    );
     for site in &reconstruction.propagation_sites {
         println!(
             "  argument 0x{:x}[{}] name={} shift={:+#x}",
@@ -2828,6 +2912,22 @@ fn print_report(
         println!("members_added: {}", summary.members_added);
         println!("members_reused: {}", summary.members_reused);
         println!("members_skipped: {}", summary.members_skipped);
+        println!(
+            "member_reference_candidates: {}",
+            summary.member_reference_candidates
+        );
+        println!(
+            "member_references_added: {}",
+            summary.member_references_added
+        );
+        println!(
+            "member_references_reused: {}",
+            summary.member_references_reused
+        );
+        println!(
+            "member_references_skipped: {}",
+            summary.member_references_skipped
+        );
         println!("argument_changed: {}", summary.argument_changed);
         println!("argument_already_typed: {}", summary.argument_already_typed);
         println!("arguments_changed: {}", summary.arguments_changed);
@@ -2882,6 +2982,13 @@ fn print_allocator_report(
     println!("unresolved_callers: {}", discovery.unresolved_callers);
     println!("unclassified_calls: {}", discovery.unclassified_calls);
     println!("duplicate_heirs: {}", discovery.duplicate_heirs);
+    println!(
+        "member_reference_candidates: {}",
+        reconstructions
+            .iter()
+            .map(|reconstruction| member_reference_candidate_count(&reconstruction.fields))
+            .sum::<usize>()
+    );
     for wrapper in &discovery.wrappers {
         println!(
             "  wrapper function=0x{:x} source_call=0x{:x} kind={} count_index={} size_index={}",
@@ -2938,6 +3045,22 @@ fn print_allocator_report(
         println!("members_added: {}", summary.members_added);
         println!("members_reused: {}", summary.members_reused);
         println!("members_skipped: {}", summary.members_skipped);
+        println!(
+            "member_reference_candidates: {}",
+            summary.member_reference_candidates
+        );
+        println!(
+            "member_references_added: {}",
+            summary.member_references_added
+        );
+        println!(
+            "member_references_reused: {}",
+            summary.member_references_reused
+        );
+        println!(
+            "member_references_skipped: {}",
+            summary.member_references_skipped
+        );
         println!("prototypes_changed: {}", summary.prototypes_changed);
         println!(
             "prototypes_already_typed: {}",
@@ -2978,6 +3101,14 @@ fn print_vtable_report(
         discovery.ambiguous_constructors.len()
     );
     println!("secondary_stores: {}", discovery.secondary_stores.len());
+    println!(
+        "member_reference_candidates: {}",
+        discovery
+            .classes
+            .iter()
+            .map(|candidate| member_reference_candidate_count(&candidate.fields))
+            .sum::<usize>()
+    );
     for candidate in &discovery.classes {
         println!(
             "  class vtable=0x{:x} methods={} constructors={} fields={} class_type={} vtable_type={}",
@@ -3034,6 +3165,22 @@ fn print_vtable_report(
         println!("class_members_added: {}", summary.class_members_added);
         println!("class_members_reused: {}", summary.class_members_reused);
         println!("members_skipped: {}", summary.members_skipped);
+        println!(
+            "member_reference_candidates: {}",
+            summary.member_reference_candidates
+        );
+        println!(
+            "member_references_added: {}",
+            summary.member_references_added
+        );
+        println!(
+            "member_references_reused: {}",
+            summary.member_references_reused
+        );
+        println!(
+            "member_references_skipped: {}",
+            summary.member_references_skipped
+        );
         println!("prototypes_changed: {}", summary.prototypes_changed);
         println!(
             "prototypes_already_typed: {}",
@@ -3345,6 +3492,27 @@ mod tests {
         assert_eq!(fields.len(), 1);
         assert_eq!(fields[0].offset, 4);
         assert_eq!(fields[0].byte_width, 2);
+    }
+
+    #[test]
+    fn counts_member_reference_candidates_across_recovered_fields() {
+        let fields = vec![
+            RecoveredField {
+                offset: 0,
+                byte_width: 4,
+                reads: 1,
+                writes: 0,
+                sites: vec![0x1000, 0x1004],
+            },
+            RecoveredField {
+                offset: 8,
+                byte_width: 8,
+                reads: 0,
+                writes: 1,
+                sites: vec![0x1010],
+            },
+        ];
+        assert_eq!(member_reference_candidate_count(&fields), 3);
     }
 
     #[test]

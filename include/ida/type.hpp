@@ -255,6 +255,17 @@ public:
     /// Find a member by byte offset.
     [[nodiscard]] Result<struct Member> member_by_offset(std::size_t byte_offset) const;
 
+    /// Source item heads with persistent informational references to the unique
+    /// exact member at `byte_offset`. Member identities remain opaque.
+    [[nodiscard]] Result<std::vector<Address>>
+    member_references(std::size_t byte_offset) const;
+
+    /// Ensure a persistent informational reference from `source_address` to
+    /// the unique exact member at `byte_offset`. Returns true when newly added.
+    [[nodiscard]] Result<bool>
+    ensure_member_reference(std::size_t byte_offset,
+                            Address source_address) const;
+
     /// Add a member to this struct/union type. Offset in bytes.
     Status add_member(std::string_view name, const TypeInfo& member_type,
                       std::size_t byte_offset = 0);

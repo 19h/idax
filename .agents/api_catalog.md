@@ -224,4 +224,9 @@ This section captures the intended public API semantics at a concrete level so i
 - Architecture-shaping helpers: `address_bitness()`, `set_address_bitness(bits)`, `is_big_endian()`, `abi_name()`
 - Port-driven metadata closure for external ISA-semantics integrations (e.g., idapcode + Sleigh)
 
+### 17.26 Opaque UDT Member References
+- `TypeInfo::member_references(byte_offset)` enumerates only source addresses of persistent user informational references to one exact saved local UDT member.
+- `TypeInfo::ensure_member_reference(byte_offset, source_address)` creates `dr_I | XREF_USER` without exposing the member TID and returns whether a new reference was added.
+- Exact offset uniqueness, stable local identity, item-head source validation, incompatible-reference rejection, and C++/Node/Rust parity.
+
 ---

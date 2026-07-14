@@ -98,3 +98,14 @@
 - **10.3. Boundary**
   - 10.3.1. **Scope:** Scan loaded code/data item heads for pointer-width tables; require exact function entries or mapped external members, no references to non-first slots, at least one non-import method, and an analyzed pointer-width store of the table into argument zero at offset zero. Treat multiple offset-zero tables for one function as ambiguous, report secondary-offset stores, and never infer inheritance from size/xref counts alone.
   - 10.3.2. **Status:** Complete (P40.3-P40.4; F417-F419; KB 35.73-35.75). Full C++/Node/Rust validation and real report/apply/reopen evidence pass; no Phase 40 blocker remains. Phase 41 closes shifted propagated-argument typing; indirect dynamic calls, forward replacement, member-TID xrefs, multi-stroff paths, and widget picking remain separate.
+
+---
+
+### 11. Symless Member-TID Informational Cross-References (Phase 43)
+
+- **11.1. Capability Audit**
+  - 11.1.1. **Action:** Compare upstream member-TID acquisition/xref emission with local IDA type-member identity and xref contracts, then determine the minimum opaque cross-binding surface.
+  - 11.1.2. **Status:** Complete (P43.1; F425; KB 35.81; decision 19.46).
+- **11.2. Boundary**
+  - 11.2.1. **Scope:** Cover only informational references from recovered access instructions to exact generated UDT members, with explicit report/apply separation, deterministic validation, and reopen idempotence. Keep multi-element stroff paths, indirect dynamic calls, RTTI-adjusted vtable chains, and widget selection separate.
+  - 11.2.2. **Status:** P43.2-P43.3 complete; P43.4 in progress. C++ parity/type tests pass 2/2, Node structural tests pass 234/234, Rust library tests pass 138/138, and the Rust Symless pure suite passes 13/13. IDA Professional 9.4 report/apply/fresh-process reopen proves three candidates, three added on first apply, and all three reused with zero additions after reopen (F426; KB 35.82). No blocker identified.

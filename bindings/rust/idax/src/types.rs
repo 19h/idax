@@ -900,6 +900,70 @@ impl TypeInfo {
         Ok(member)
     }
 
+    /// Source item heads with persistent informational references to the
+    /// unique exact member at `byte_offset`. The member identity stays opaque.
+    pub fn member_references(&self, byte_offset: usize) -> Result<Vec<Address>> {
+        let mut addresses: *mut u64 = std::ptr::null_mut();
+        let mut count = 0usize;
+        let ret = unsafe {
+            idax_sys::idax_type_member_references(
+                self.handle,
+                byte_offset,
+                &mut addresses,
+                &mut count,
+            )
+        };
+        if ret != 0 {
+            return Err(error::consume_last_error("member_references failed"));
+        }
+        if count == 0 {
+            if !addresses.is_null() {
+                unsafe { idax_sys::idax_free_addresses(addresses) };
+                return Err(Error::internal(
+                    "member_references returned storage with zero count",
+                ));
+            }
+            return Ok(Vec::new());
+        }
+        if addresses.is_null() {
+            return Err(Error::internal(
+                "member_references returned null with nonzero count",
+            ));
+        }
+        if count > isize::MAX as usize / std::mem::size_of::<u64>() {
+            unsafe { idax_sys::idax_free_addresses(addresses) };
+            return Err(Error::internal(
+                "member_references returned an unrepresentable address count",
+            ));
+        }
+        let result = unsafe { std::slice::from_raw_parts(addresses, count).to_vec() };
+        unsafe { idax_sys::idax_free_addresses(addresses) };
+        Ok(result)
+    }
+
+    /// Ensure a persistent informational reference from `source_address` to
+    /// the unique exact member. Returns `true` only when newly added.
+    pub fn ensure_member_reference(
+        &self,
+        byte_offset: usize,
+        source_address: Address,
+    ) -> Result<bool> {
+        let mut created = 0i32;
+        let ret = unsafe {
+            idax_sys::idax_type_ensure_member_reference(
+                self.handle,
+                byte_offset,
+                source_address,
+                &mut created,
+            )
+        };
+        if ret != 0 {
+            Err(error::consume_last_error("ensure_member_reference failed"))
+        } else {
+            Ok(created != 0)
+        }
+    }
+
     pub fn add_member(&self, name: &str, member_type: &TypeInfo, byte_offset: usize) -> Status {
         let c = CString::new(name).map_err(|_| Error::validation("invalid member name"))?;
         let ret = unsafe {
