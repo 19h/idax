@@ -444,7 +444,7 @@ tests/
     fixtures/           # Test binaries and pre-analysed databases
 
 examples/
-    plugin/             # Plugin examples (quickstart + ports including abyss/idapcode/intelligent-inliner/magic-strings)
+    plugin/             # Plugin examples (quickstart + ports including abyss/idapcode/Diaphora/Symless)
     loader/             # Custom ELF loader example
     procmod/            # Custom processor module example
     full/               # Real-world full ports (e.g. JBC)

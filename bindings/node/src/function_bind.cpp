@@ -387,6 +387,17 @@ NAN_METHOD(ApplyDecl) {
     info.GetReturnValue().Set(Nan::True());
 }
 
+// declaration(funcAddr, nameOverride?) -> string
+NAN_METHOD(Declaration) {
+    ida::Address funcAddr;
+    if (!GetAddressArg(info, 0, funcAddr)) return;
+
+    const std::string nameOverride = GetOptionalString(info, 1);
+    IDAX_UNWRAP(auto declaration,
+                ida::function::declaration(funcAddr, nameOverride));
+    info.GetReturnValue().Set(FromString(declaration));
+}
+
 // addRegisterVariable(funcAddr, rangeStart, rangeEnd, registerName, userName, comment?)
 NAN_METHOD(AddRegisterVariable) {
     ida::Address funcAddr, rangeStart, rangeEnd;
@@ -555,6 +566,7 @@ void InitFunction(v8::Local<v8::Object> target) {
     SetMethod(ns, "defineStackVariable",   DefineStackVariable);
     SetMethod(ns, "setPrototype",          SetPrototype);
     SetMethod(ns, "applyDecl",             ApplyDecl);
+    SetMethod(ns, "declaration",           Declaration);
 
     // Register variables
     SetMethod(ns, "addRegisterVariable",    AddRegisterVariable);

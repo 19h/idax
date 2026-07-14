@@ -425,6 +425,16 @@ fn function_frame() {
     let _ = function::frame(f.start());
 }
 
+fn function_declaration_readback() {
+    require_db!();
+    let first = function::by_index(0).expect("first function");
+    function::apply_decl(first.start(), "int idax_rust_decl_probe(void);")
+        .expect("apply declaration");
+    let declaration = function::declaration(first.start(), Some("idax_rust_decl_readback"))
+        .expect("print declaration");
+    assert!(declaration.contains("idax_rust_decl_readback"));
+}
+
 // ===========================================================================
 // Instructions
 // ===========================================================================
@@ -455,6 +465,39 @@ fn instruction_operands() {
         let _ = op.index();
         let _ = op.byte_width();
     }
+}
+
+fn instruction_operand_encoding_offsets() {
+    require_db!();
+    let mut saw_present = false;
+    let mut saw_absent = false;
+    for function in function::all() {
+        for address in function::code_addresses(function.start()).unwrap() {
+            let decoded = instruction::decode(address).unwrap();
+            for operand in decoded.operands() {
+                match operand.encoded_value_byte_offset() {
+                    Some(offset) => {
+                        saw_present = true;
+                        assert!(offset > 0);
+                        assert!((offset as u64) < decoded.size());
+                    }
+                    None => saw_absent = true,
+                }
+                if let Some(offset) = operand.secondary_encoded_value_byte_offset() {
+                    assert!(offset > 0);
+                    assert!((offset as u64) < decoded.size());
+                }
+            }
+            if saw_present && saw_absent {
+                break;
+            }
+        }
+        if saw_present && saw_absent {
+            break;
+        }
+    }
+    assert!(saw_present);
+    assert!(saw_absent);
 }
 
 fn instruction_operand_access_modes() {
@@ -2452,9 +2495,17 @@ static TEST_CASES: &[TestCase] = &[
     ("function_chunks", function_chunks),
     ("function_code_addresses", function_code_addresses),
     ("function_frame", function_frame),
+    (
+        "function_declaration_readback",
+        function_declaration_readback,
+    ),
     ("instruction_decode_first", instruction_decode_first),
     ("instruction_text", instruction_text),
     ("instruction_operands", instruction_operands),
+    (
+        "instruction_operand_encoding_offsets",
+        instruction_operand_encoding_offsets,
+    ),
     (
         "instruction_operand_access_modes",
         instruction_operand_access_modes,

@@ -220,6 +220,17 @@ describe('Functions', () => {
         expect(Array.isArray(addrs)).toBe(true);
         expect(addrs.length).toBeGreaterThan(0);
     });
+
+    it('should print an applied function declaration with a name override', () => {
+        const func = idax.function.byIndex(0);
+        expect(idax.function.applyDecl(func.start, 'int idax_node_decl_probe(void);')).toBe(true);
+        const declaration = idax.function.declaration(
+            func.start,
+            'idax_node_decl_readback',
+        );
+        expect(typeof declaration).toBe('string');
+        expect(declaration.includes('idax_node_decl_readback')).toBe(true);
+    });
 });
 
 // ── Instructions ────────────────────────────────────────────────────────
@@ -232,6 +243,37 @@ describe('Instructions', () => {
         expect(typeof insn.mnemonic).toBe('string');
         expect(insn.mnemonic.length).toBeGreaterThan(0);
         expect(typeof insn.size).toBe('bigint');
+    });
+
+    it('should preserve operand encoded-value byte offsets', () => {
+        let sawPresent = false;
+        let sawAbsent = false;
+        for (const func of idax.function.all()) {
+            for (const address of idax.function.codeAddresses(func.start)) {
+                const decoded = idax.instruction.decode(address);
+                for (const operand of decoded.operands) {
+                    const primary = operand.encodedValueByteOffset;
+                    const secondary = operand.secondaryEncodedValueByteOffset;
+                    expect(primary === null || typeof primary === 'number').toBe(true);
+                    expect(secondary === null || typeof secondary === 'number').toBe(true);
+                    if (primary === null) {
+                        sawAbsent = true;
+                    } else {
+                        sawPresent = true;
+                        expect(primary).toBeGreaterThan(0);
+                        expect(BigInt(primary) < decoded.size).toBe(true);
+                    }
+                    if (secondary !== null) {
+                        expect(secondary).toBeGreaterThan(0);
+                        expect(BigInt(secondary) < decoded.size).toBe(true);
+                    }
+                }
+                if (sawPresent && sawAbsent) break;
+            }
+            if (sawPresent && sawAbsent) break;
+        }
+        expect(sawPresent).toBe(true);
+        expect(sawAbsent).toBe(true);
     });
 
     it('should preserve operand access modes', () => {

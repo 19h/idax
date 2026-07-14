@@ -104,6 +104,43 @@ void test_decode_error_paths() {
         CHECK(bad.error().category == ida::ErrorCategory::SdkFailure);
 }
 
+void test_operand_encoding_offsets() {
+    std::cout << "--- operand encoded-value byte offsets ---\n";
+
+    bool saw_present = false;
+    bool saw_absent = false;
+    for (const auto& fn : ida::function::all()) {
+        auto addresses = ida::function::code_addresses(fn.start());
+        CHECK_OK(addresses);
+        if (!addresses)
+            continue;
+        for (ida::Address address : *addresses) {
+            auto decoded = ida::instruction::decode(address);
+            CHECK_OK(decoded);
+            if (!decoded)
+                continue;
+            for (const auto& operand : decoded->operands()) {
+                const auto primary = operand.encoded_value_byte_offset();
+                const auto secondary = operand.secondary_encoded_value_byte_offset();
+                if (primary) {
+                    saw_present = true;
+                    CHECK(*primary < decoded->size());
+                } else {
+                    saw_absent = true;
+                }
+                if (secondary)
+                    CHECK(*secondary < decoded->size());
+            }
+            if (saw_present && saw_absent)
+                break;
+        }
+        if (saw_present && saw_absent)
+            break;
+    }
+    CHECK(saw_present);
+    CHECK(saw_absent);
+}
+
 void test_navigation() {
     std::cout << "--- instruction navigation ---\n";
 
@@ -167,6 +204,7 @@ int main(int argc, char* argv[]) {
     CHECK_OK(ida::analysis::wait());
 
     test_decode_basics();
+    test_operand_encoding_offsets();
     test_decode_error_paths();
     test_navigation();
 

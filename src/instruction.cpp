@@ -282,6 +282,10 @@ struct InstructionAccess {
             operand.value_ = static_cast<std::uint64_t>(op.value);
             operand.addr_  = static_cast<Address>(op.addr);
             operand.byte_width_ = operand_byte_width(op);
+            operand.encoded_value_offset_ = static_cast<std::uint8_t>(
+                static_cast<unsigned char>(op.offb));
+            operand.secondary_encoded_value_offset_ = static_cast<std::uint8_t>(
+                static_cast<unsigned char>(op.offo));
             operand.read_ = has_cf_use(feature, i);
             operand.written_ = has_cf_chg(feature, i);
 

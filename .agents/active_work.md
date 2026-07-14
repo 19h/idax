@@ -123,3 +123,21 @@
 - **12.3. Boundary**
   - 12.3.1. **Scope:** Apply one source-ordered stroff path per unique recovered `(instruction, processor register)` group; retain additional same-instruction fields as Phase 43 member references; preserve incompatible existing operand representations and report every candidate/add/reuse/skip. Keep indirect dynamic calls, RTTI-adjusted vtable chains, and microcode-widget selection separate.
   - 12.3.2. **Status:** Complete (P44.3-P44.4; F430-F433; KB 35.86-35.89). The exact 38-file staged review passed without findings; implementation commit `6e523eb40ea0d2b3168b5a81d8584f06bd96b9a7` is pushed and no Phase 44 blocker remains.
+
+---
+
+### 14. Diaphora 3.4.0 Port and Gap Audit (Phase 48)
+
+- **14.1. Source Audit**
+  - 14.1.1. **Action:** Pin Diaphora release 3.4.0, inventory plugin/export/diff behavior, and map each IDA-facing operation to existing opaque IDAX surfaces before selecting a bounded first implementation slice.
+  - 14.1.2. **Status:** Complete (P48.1; F446-F448; KB 35.102-35.104; decision 19.52). Pinned tag 3.4.0 at commit `84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`; selected exact function fingerprint export/compare/conservative metadata import as the first bounded surface.
+- **14.2. Selection Boundary**
+  - 14.2.1. **Evidence:** GitHub API snapshot on 2026-07-14 reports 4,331 stars, 412 forks, IDA 9.4 support, and recent upstream activity. Capa has more repository stars but its IDA plugin is a front end to a substantially larger external rule engine; Diaphora more directly exercises wrapper-native database analysis and persistence surfaces.
+  - 14.2.2. **Constraint:** Do not approximate SQLite diff heuristics, pseudocode/microcode similarity, or UI behavior until source audit establishes their exact data and lifecycle contracts.
+- **14.3. Encoded-Operand Metadata Closure**
+  - 14.3.1. **Action:** Copy primary/secondary operand encoded-value byte positions across C++, Node, generated C ABI, and safe Rust, using absence-aware public values and live instruction bounds evidence.
+  - 14.3.2. **Status:** Complete (P48.2; F447, F449; KB 35.103, 35.105); no blocker.
+  - 14.3.3. **Additional closure:** Mirror existing C++ function declaration readback through Node, the C shim, and safe Rust so conservative import can preserve preexisting target prototypes (F449; KB 35.105).
+- **14.4. Adaptation and validation**
+  - 14.4.1. **Status:** P48.3 complete; C++ plugin/Rust headless artifacts, pure tests, and first live report/apply/reopen evidence pass (F450; KB 35.106).
+  - 14.4.2. **Active:** P48.4 implementation, documentation synchronization, complete C++/Node/Rust validation, generated-binding identity, and tracked-fixture integrity pass (F451; KB 35.107). Exact staged review, commit, and push remain.

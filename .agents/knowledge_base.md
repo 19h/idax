@@ -1695,3 +1695,46 @@ Upstream has one indirect-call resolution rule: the `m_icall` right operand must
 - `IdaxMicrocodeInstruction` has the same ordered `modifies_destination` field in the C header, normalized bindgen output, and safe transfer. Two independent clean outputs and the checked file have SHA-256 `865f53507d8dd44ef7b2033eccb901f3bf26bf21e0653c8528c493e3692c7b3f`.
 - The tracked fixture executable remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
 - Falsification probes are any reduced test count, generated-binding byte delta, ABI field-order mismatch, tracked fixture mutation, candidate count other than 18, root injection count other than one, first-apply count other than four, or reopen addition/reuse other than zero/four.
+
+### 35.102. Diaphora Exact-Fingerprint Adaptation Boundary [F446]
+
+The first Diaphora 3.4.0 adaptation is a versioned, deterministic function manifest: function entry/RVA, canonical CFG counts and edges, instruction/mnemonic sequence, full item-byte MD5, relocation-light instruction-prefix MD5, name, declaration, and repeatable comment. Comparison may accept only a unique exact candidate, ordered by same-RVA plus both hashes, both hashes, full hash, then relocation-light hash with instruction-count agreement. Mutation is explicit and limited to matched function name, nontrivial declaration, and nonempty repeatable comment; report/export remain non-mutating.
+
+- Assumption A48.1: identical code under relocation preserves the audited prefix selected from encoded operand positions. Falsify with two relocated builds whose nonrelocation opcode bytes differ or whose relocation bytes remain in the prefix; dependent result: relocation-light matching only.
+- Assumption A48.2: exact full-function item-byte MD5 plus instruction count identifies one source function within the compared manifests. Falsify with duplicate implementations; dependent result: full-hash matching only, and the unique-candidate rule must reject the collision.
+- Complexity: feature extraction is `O(F + I + B + E)` time and `O(F + I + E)` manifest/working space for functions `F`, decoded instructions `I`, hashed bytes `B`, and CFG edges `E`; indexed comparison is expected `O(F)` time/space, with collision buckets explicitly retained.
+
+### 35.103. Operand Encoded-Value Positions Are Optional Byte Units [F447]
+
+Copy SDK `op_t::offb` and `op_t::offo` as optional byte offsets from instruction start. SDK zero maps to absence; nonzero values map to `std::size_t`, JavaScript `number | null`, C ABI signed integers with `-1` as absence, and Rust `Option<usize>`. Consumers must require `offset < instruction.size()` before using the position. These are encoding positions, not operand widths, database addresses, or struct-member offsets.
+
+- Stress probes: an immediate/near operand must expose a present in-bounds primary offset; a register-only operand must expose absence; decoded C++/Node/Rust values must agree; malformed or future processor positions outside the instruction must be rejected by the fingerprint consumer.
+
+### 35.104. Canonical Metrics Must Be Distinguished from Native Diaphora SQLite Metrics [F448]
+
+The IDAX manifest counts each directed basic-block successor edge once and computes cyclomatic complexity as `E - N + 2P`, with `P = 1` for one function flow graph. Segment-relative offset is `function_entry - segment_start`. Native Diaphora 3.4.0 SQLite rows double-count successor/predecessor edges and derive `segment_rva` from the final visited instruction; direct database interchange therefore remains outside this manifest version.
+
+- Falsification probes: a single-block function has `N=1`, `E=0`, complexity `1`; a two-block linear function has `N=2`, `E=1`, complexity `1`; no manifest record may report a segment offset based on its last instruction.
+
+### 35.105. Function Declaration Readback Is Required for Conservative Import [F449]
+
+The C++ wrapper's printable applied declaration is the authoritative read-side precondition for prototype import. Mirror it through Node as `function.declaration(address, optionalNameOverride)`, through the C shim as an owned UTF-8 string, and through safe Rust as `function::declaration(address, optional_name_override)`. A target with any successfully printed nonempty declaration is preserved; apply is eligible only when readback reports absence. Function-name heuristics are not an equivalent prototype-presence test.
+
+- Assumption A48.3: a successful nonempty `function::declaration` result denotes target prototype state that must be preserved even if IDA synthesized part of it. Falsify only with an SDK contract that distinguishes auto-generated from user-applied declarations through an opaque flag; dependent result: conservative prototype eligibility only.
+- Stress probes: compare C++/Node/Rust output for one applied declaration; verify absence propagates as `NotFound`; verify comparison/export paths do not mutate the target; verify apply skips a nonempty target declaration.
+
+### 35.106. Diaphora Exact Manifest Live Invariants [F450]
+
+- An unchanged analyzed database must produce byte-identical `IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg` output across distinct processes. The reference fixture produces 22 records and manifest SHA-256 `4263b3eafdb75fcb009e3c565f341a72cf6abe222c34554d9908fc65caa0d08a` before metadata mutation.
+- Self-comparison must classify all 22 records in the strongest same-RVA/both-hash tier, with zero ambiguity and zero unmatched records.
+- Explicit apply of one non-auto source name and one nonempty repeatable comment to absent/auto target state must change exactly one of each, save, and report zero failures. Fresh reopen must change zero and preserve the values exactly.
+- Duplicate implementations are ambiguous unless a stronger unique tier separates them. Matching is computed globally per tier against unmatched baseline and current buckets, never greedily by record order.
+- Falsification probes are nondeterministic bytes, a non-22 self-match count, any ambiguous/unmatched self record, report-mode mutation, first-apply counts other than one name/one comment, reopen mutation, or lost metadata.
+
+### 35.107. Phase 48 Complete Validation Envelope [F451]
+
+- C++ must build the plugin and pass 27/27 CTest targets; Node must pass strict example declaration checking, 239/239 structural checks, and 84/84 IDA 9.4 checks; Rust must pass formatting/all-target checks, 139/139 library tests, 0 sys tests, 7/7 Diaphora tests, 20/20 Symless regressions, and 101/101 live IDA 9.4 checks.
+- Generated C ABI bindings must be byte-identical to an independent clean bindgen output at SHA-256 `8d2dd609c7abcf64f14744bd725355e8e2ffb0a6af6fa39abe96d31f4b424d1b`.
+- Both manifest readers reject odd-length/non-hex text and invalid decoded UTF-8. The C++ reader additionally validates overlong sequences, surrogate encodings, truncation, and code points above U+10FFFF before metadata can reach IDA.
+- The tracked fixture remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
+- Falsification probes are any reduced test count, generated-binding byte delta, malformed-input acceptance/panic, ABI field-order mismatch, declaration readback failure, out-of-bounds present encoded position, or tracked fixture mutation.

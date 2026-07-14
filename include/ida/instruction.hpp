@@ -6,7 +6,9 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -91,6 +93,19 @@ public:
     [[nodiscard]] Address       target_address() const noexcept { return addr_; }
     [[nodiscard]] std::int64_t  displacement()   const noexcept { return static_cast<std::int64_t>(value_); }
     [[nodiscard]] int           byte_width()     const noexcept { return byte_width_; }
+    /// Byte offset from the instruction start to the operand's primary encoded value.
+    /// Absent when the processor module reports no independently encoded value.
+    [[nodiscard]] std::optional<std::size_t> encoded_value_byte_offset() const noexcept {
+        if (encoded_value_offset_ == 0)
+            return std::nullopt;
+        return encoded_value_offset_;
+    }
+    /// Byte offset to a secondary encoded value, used by processors with split operands.
+    [[nodiscard]] std::optional<std::size_t> secondary_encoded_value_byte_offset() const noexcept {
+        if (secondary_encoded_value_offset_ == 0)
+            return std::nullopt;
+        return secondary_encoded_value_offset_;
+    }
     [[nodiscard]] std::string   register_name()  const { return register_name_; }
     /// True when the processor module marks this operand as used/read.
     [[nodiscard]] bool          is_read()        const noexcept { return read_; }
@@ -113,6 +128,8 @@ private:
     std::uint64_t  value_{};
     Address        addr_{};
     int            byte_width_{};
+    std::uint8_t   encoded_value_offset_{};
+    std::uint8_t   secondary_encoded_value_offset_{};
     std::string    register_name_;
     bool           read_{};
     bool           written_{};

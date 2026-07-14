@@ -11,7 +11,9 @@ This mapping is non-exhaustive but representative of expected direction.
 | `add_func(ea1, ea2)` | `ida::function::create(start, end)` |
 | `del_func(ea)` | `ida::function::remove(address)` |
 | `get_func_name(qstring*, ea)` | `function.name()` / `ida::function::name_at(address)` |
+| print applied `tinfo_t` function prototype with optional declarator | `ida::function::declaration(address, name_override)` |
 | `decode_insn(insn*, ea)` | `ida::instruction::decode(address)` |
+| `op_t::offb` / `op_t::offo` | `Operand::encoded_value_byte_offset()` / `secondary_encoded_value_byte_offset()` |
 | `insn.get_canon_feature()` + `CF_USEn` / `CF_CHGn` | `Operand::is_read()` / `Operand::is_written()` (Node `isRead` / `isWritten`; Rust `is_read` / `is_written`) |
 | `create_insn(ea)` | `ida::instruction::create(address)` |
 | `op_enum(ea, n, tid, serial)` / `get_enum_id(...)` | `ida::instruction::set_operand_enum(address, index, enum_name, serial)` / `operand_enum(address, index)` |

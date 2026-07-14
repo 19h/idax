@@ -263,7 +263,7 @@ describe('Function Namespace Structure', () => {
         'setStart', 'setEnd', 'update', 'reanalyze',
         'comment', 'setComment',
         'callers', 'callees', 'chunks', 'tailChunks',
-        'setPrototype', 'applyDecl',
+        'setPrototype', 'applyDecl', 'declaration',
         'frame', 'all',
         'itemAddresses', 'codeAddresses',
     ];

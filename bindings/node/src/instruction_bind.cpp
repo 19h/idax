@@ -67,7 +67,7 @@ ida::instruction::OperandFormat ParseOperandFormat(const std::string& s) {
 /// Convert an Operand to a JS object.
 v8::Local<v8::Object> OperandToObject(const ida::instruction::Operand& op) {
     auto isolate = v8::Isolate::GetCurrent();
-    return ObjectBuilder()
+    auto object = ObjectBuilder()
         .setInt("index", op.index())
         .setStr("type", OperandTypeToString(op.type()))
         .setBool("isRegister", op.is_register())
@@ -78,7 +78,16 @@ v8::Local<v8::Object> OperandToObject(const ida::instruction::Operand& op) {
         .setAddr("targetAddress", op.target_address())
         .set("displacement", v8::BigInt::New(isolate, op.displacement()))
         .setInt("byteWidth", op.byte_width())
-        .setStr("registerName", op.register_name())
+        .setStr("registerName", op.register_name());
+    if (auto offset = op.encoded_value_byte_offset())
+        object.setSize("encodedValueByteOffset", *offset);
+    else
+        object.setNull("encodedValueByteOffset");
+    if (auto offset = op.secondary_encoded_value_byte_offset())
+        object.setSize("secondaryEncodedValueByteOffset", *offset);
+    else
+        object.setNull("secondaryEncodedValueByteOffset");
+    return object
         .setStr("registerCategory", RegisterCategoryToString(op.register_category()))
         .setBool("isRead", op.is_read())
         .setBool("isWritten", op.is_written())

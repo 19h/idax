@@ -168,7 +168,7 @@ static const char* InstructionRegisterCategoryToString(ida::instruction::Registe
 
 static v8::Local<v8::Object> InstructionOperandToJS(const ida::instruction::Operand& operand) {
     auto isolate = v8::Isolate::GetCurrent();
-    return ObjectBuilder()
+    auto object = ObjectBuilder()
         .setInt("index", operand.index())
         .setStr("type", InstructionOperandTypeToString(operand.type()))
         .setBool("isRegister", operand.is_register())
@@ -179,7 +179,16 @@ static v8::Local<v8::Object> InstructionOperandToJS(const ida::instruction::Oper
         .setAddr("targetAddress", operand.target_address())
         .set("displacement", v8::BigInt::New(isolate, operand.displacement()))
         .setInt("byteWidth", operand.byte_width())
-        .setStr("registerName", operand.register_name())
+        .setStr("registerName", operand.register_name());
+    if (auto offset = operand.encoded_value_byte_offset())
+        object.setSize("encodedValueByteOffset", *offset);
+    else
+        object.setNull("encodedValueByteOffset");
+    if (auto offset = operand.secondary_encoded_value_byte_offset())
+        object.setSize("secondaryEncodedValueByteOffset", *offset);
+    else
+        object.setNull("secondaryEncodedValueByteOffset");
+    return object
         .setStr("registerCategory", InstructionRegisterCategoryToString(operand.register_category()))
         .setBool("isRead", operand.is_read())
         .setBool("isWritten", operand.is_written())

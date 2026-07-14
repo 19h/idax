@@ -896,6 +896,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_function_declaration(
+        function_ea: u64,
+        name_override: *const ::std::os::raw::c_char,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_function_add_register_variable(
         function_ea: u64,
         range_start: u64,
@@ -968,6 +975,10 @@ pub struct IdaxOperand {
     pub value: u64,
     pub target_address: u64,
     pub byte_width: ::std::os::raw::c_int,
+    #[doc = "< -1 when op_t::offb is absent"]
+    pub encoded_value_byte_offset: i32,
+    #[doc = "< -1 when op_t::offo is absent"]
+    pub secondary_encoded_value_byte_offset: i32,
     #[doc = "< malloc'd"]
     pub register_name: *mut ::std::os::raw::c_char,
     #[doc = "< ida::instruction::RegisterCategory as int"]
@@ -979,7 +990,7 @@ pub struct IdaxOperand {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxOperand"][::std::mem::size_of::<IdaxOperand>() - 64usize];
+    ["Size of IdaxOperand"][::std::mem::size_of::<IdaxOperand>() - 72usize];
     ["Alignment of IdaxOperand"][::std::mem::align_of::<IdaxOperand>() - 8usize];
     ["Offset of field: IdaxOperand::index"][::std::mem::offset_of!(IdaxOperand, index) - 0usize];
     ["Offset of field: IdaxOperand::type_"][::std::mem::offset_of!(IdaxOperand, type_) - 4usize];
@@ -990,14 +1001,18 @@ const _: () = {
         [::std::mem::offset_of!(IdaxOperand, target_address) - 24usize];
     ["Offset of field: IdaxOperand::byte_width"]
         [::std::mem::offset_of!(IdaxOperand, byte_width) - 32usize];
+    ["Offset of field: IdaxOperand::encoded_value_byte_offset"]
+        [::std::mem::offset_of!(IdaxOperand, encoded_value_byte_offset) - 36usize];
+    ["Offset of field: IdaxOperand::secondary_encoded_value_byte_offset"]
+        [::std::mem::offset_of!(IdaxOperand, secondary_encoded_value_byte_offset) - 40usize];
     ["Offset of field: IdaxOperand::register_name"]
-        [::std::mem::offset_of!(IdaxOperand, register_name) - 40usize];
+        [::std::mem::offset_of!(IdaxOperand, register_name) - 48usize];
     ["Offset of field: IdaxOperand::register_category"]
-        [::std::mem::offset_of!(IdaxOperand, register_category) - 48usize];
+        [::std::mem::offset_of!(IdaxOperand, register_category) - 56usize];
     ["Offset of field: IdaxOperand::is_read"]
-        [::std::mem::offset_of!(IdaxOperand, is_read) - 52usize];
+        [::std::mem::offset_of!(IdaxOperand, is_read) - 60usize];
     ["Offset of field: IdaxOperand::is_written"]
-        [::std::mem::offset_of!(IdaxOperand, is_written) - 56usize];
+        [::std::mem::offset_of!(IdaxOperand, is_written) - 64usize];
 };
 impl Default for IdaxOperand {
     fn default() -> Self {

@@ -73,8 +73,8 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::database` | Database lifecycle and normalized target metadata | `ProcessorId`, `ProcessorProfile`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
-| `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
-| `ida::instruction` | Instruction decoding, processor-reported operand access modes, opaque named enum representations, and copied root/member-name struct-offset paths | `Instruction`, `Operand`, `OperandType`, `OperandFormat`, `RegisterCategory`, `OperandEnum`, `StructOffsetPath` |
+| `ida::function` | Function analysis, printable prototype readback, and conservative prototype application | `Function`, `StackFrame`, `Chunk` |
+| `ida::instruction` | Instruction decoding, processor-reported access modes and encoded-value byte positions, opaque named enum representations, and copied root/member-name struct-offset paths | `Instruction`, `Operand`, `OperandType`, `OperandFormat`, `RegisterCategory`, `OperandEnum`, `StructOffsetPath` |
 
 ### Metadata Domains (read/write)
 

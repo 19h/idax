@@ -682,6 +682,9 @@ export namespace function_ {
     /** Parse and apply a C declaration as the function prototype. */
     function applyDecl(funcAddr: Address, cDecl: string): boolean;
 
+    /** Print the applied function declaration, optionally replacing its declarator name. */
+    function declaration(funcAddr: Address, nameOverride?: string): string;
+
     // ── Register variables ──────────────────────────────────────────────
 
     /** Define a register variable mapping for a range. */
@@ -752,6 +755,8 @@ export namespace instruction {
         targetAddress: Address;
         displacement: bigint;
         byteWidth: number;
+        encodedValueByteOffset: number | null;
+        secondaryEncodedValueByteOffset: number | null;
         registerName: string;
         registerCategory: RegisterCategory;
         isRead: boolean;

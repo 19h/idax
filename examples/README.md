@@ -229,6 +229,32 @@ cargo run -p idax --example auto_enum_port -- <idb> --show 20
 cargo run -p idax --example auto_enum_port -- <idb> --apply
 ```
 
+### `plugin/diaphora_exact_port_plugin.cpp` — Diaphora Exact Port
+
+Bounded adaptation of Diaphora 3.4.0's exact per-function fingerprint layer.
+It exports a deterministic `IDAX_DIAPHORA_EXACT` manifest containing function
+and segment RVAs, canonical CFG metrics, mnemonic sequences, full-byte MD5,
+Diaphora-style relocation-light MD5, non-auto names, printable declarations,
+and repeatable comments. Comparison accepts only globally unique candidates in
+four ordered tiers. Export and compare are non-mutating; the separate apply
+action transfers only absent/auto function metadata and preserves existing
+target declarations and comments.
+
+The manifest intentionally is not a Diaphora SQLite database. SQLite schema
+interchange, the full heuristic/fuzzy engine, pseudocode and microcode hashes,
+instruction metadata, type definitions, callgraph matching, compilation units,
+and chooser UI remain separate audited surfaces. The upstream copyright,
+adaptation notice, and complete AGPL text are retained in
+`plugin/diaphora_port_LICENSE.txt`.
+
+The Rust adaptation provides byte-compatible headless export/compare/apply:
+
+```bash
+cargo run -p idax --example diaphora_exact_port -- <input> --export baseline.idax-diaphora.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare baseline.idax-diaphora.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare baseline.idax-diaphora.tsv --apply
+```
+
 ### `plugin/symless_structure_port_plugin.cpp` — Symless Structure Reconstruction Port
 
 Bounded port of `<userhome>/Downloads/plo/symless-main` to the opaque owned

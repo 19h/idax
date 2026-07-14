@@ -324,6 +324,9 @@ int idax_function_define_stack_variable(uint64_t function_ea,
                                         void* type);
 int idax_function_set_prototype(uint64_t function_ea, void* type);
 int idax_function_apply_decl(uint64_t function_ea, const char* c_decl);
+int idax_function_declaration(uint64_t function_ea,
+                              const char* name_override,
+                              char** out);
 int idax_function_add_register_variable(uint64_t function_ea,
                                         uint64_t range_start,
                                         uint64_t range_end,
@@ -363,6 +366,8 @@ typedef struct IdaxOperand {
     uint64_t value;
     uint64_t target_address;
     int      byte_width;
+    int32_t  encoded_value_byte_offset; /**< -1 when op_t::offb is absent */
+    int32_t  secondary_encoded_value_byte_offset; /**< -1 when op_t::offo is absent */
     char*    register_name;  /**< malloc'd */
     int      register_category; /**< ida::instruction::RegisterCategory as int */
     int      is_read;        /**< processor canonical feature marks operand used */

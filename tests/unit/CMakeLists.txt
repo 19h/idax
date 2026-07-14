@@ -40,3 +40,8 @@ add_test(NAME diagnostics_torture COMMAND idax_diagnostics_torture_test)
 add_executable(idax_core_options_torture_test core_options_torture_test.cpp)
 target_link_libraries(idax_core_options_torture_test PRIVATE idax::idax)
 add_test(NAME core_options_torture COMMAND idax_core_options_torture_test)
+
+# Diaphora exact manifest/MD5/matching parity test (offline).
+add_executable(idax_diaphora_exact_core_test diaphora_exact_core_test.cpp)
+target_link_libraries(idax_diaphora_exact_core_test PRIVATE idax::idax)
+add_test(NAME diaphora_exact_core COMMAND idax_diaphora_exact_core_test)

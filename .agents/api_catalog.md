@@ -240,4 +240,14 @@ This section captures the intended public API semantics at a concrete level so i
 - Node `modifiesDestination` and Rust `modifies_destination` preserve the same boolean through the owned graph and recursive nested-instruction transfer.
 - Store-address operands remain readable sources, while true result destinations can be identified for exact after-instruction state injection.
 
+### 17.29 Operand Encoded-Value Byte Positions
+- `Operand::encoded_value_byte_offset()` copies the processor module's primary encoded-value position as `std::optional<std::size_t>`.
+- `Operand::secondary_encoded_value_byte_offset()` copies the optional secondary/outer position used by split operand encodings.
+- Node maps absence to `null`; the generated C ABI uses `-1`; safe Rust uses `Option<usize>`. Every consumer validates a present position against `Instruction::size()` before byte slicing.
+
+### 17.30 Cross-Binding Function Declaration Readback
+- Existing C++ `function::declaration(address, name_override)` prints an applied function prototype with an optional declarator-name replacement.
+- Node `function.declaration(address, nameOverride?)`, generated C `idax_function_declaration`, and Rust `function::declaration(address, Option<&str>)` return owned UTF-8 copies with the same error semantics.
+- Conservative import treats successful nonempty target readback as metadata to preserve.
+
 ---

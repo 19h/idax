@@ -362,6 +362,8 @@ void check_instruction_surface() {
     ida::instruction::Operand operand;
     (void)operand.is_read();
     (void)operand.is_written();
+    (void)operand.encoded_value_byte_offset();
+    (void)operand.secondary_encoded_value_byte_offset();
 
     using InstructionSetOperandFormatFn = ida::Status(*)(ida::Address,
                                                          int,

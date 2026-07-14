@@ -1186,7 +1186,7 @@ mod types_tests {
 #[cfg(test)]
 mod function_tests {
     use crate::address::Address;
-    use crate::error::Status;
+    use crate::error::{Result, Status};
     use crate::function;
     use crate::types::TypeInfo;
 
@@ -1194,6 +1194,7 @@ mod function_tests {
     fn test_prototype_apply_function_signatures() {
         let _: fn(Address, &TypeInfo) -> Status = function::set_prototype;
         let _: fn(Address, &str) -> Status = function::apply_decl;
+        let _: fn(Address, Option<&str>) -> Result<String> = function::declaration;
     }
 }
 

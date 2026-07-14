@@ -346,3 +346,12 @@ Current overall phase status:
 - [x] P47.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
+
+### Phase 48 TODO Action Items (Diaphora 3.4.0 Port and Gap Audit)
+
+- [x] P48.1 Audit the fixed Diaphora 3.4.0 plugin/export/diff workflows against current opaque C++/Node/Rust surfaces and select the first independently testable parity boundary.
+- [x] P48.2 Close every concrete wrapper or binding gap required by the selected boundary with primary SDK provenance and preservation/error evidence.
+- [x] P48.3 Implement bounded C++ and Rust Diaphora adaptations with deterministic report/apply semantics and explicit external-dependency boundaries.
+- [ ] P48.4 Add pure and real-IDA evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+
+---

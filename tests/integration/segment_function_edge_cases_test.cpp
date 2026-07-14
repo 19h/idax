@@ -187,6 +187,10 @@ void test_function_edge_cases() {
         CHECK_OK(ida::function::set_prototype(fn0->start(), *prototype));
     }
     CHECK_OK(ida::function::apply_decl(fn0->start(), "int idax_decl_probe(void);"));
+    auto printed_decl = ida::function::declaration(fn0->start(), "idax_decl_probe_readback");
+    CHECK_OK(printed_decl);
+    if (printed_decl)
+        CHECK(printed_decl->find("idax_decl_probe_readback") != std::string::npos);
 
     auto outlined_before = ida::function::is_outlined(fn0->start());
     CHECK_OK(outlined_before);

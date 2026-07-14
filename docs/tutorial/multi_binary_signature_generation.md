@@ -81,6 +81,14 @@ Why normalization matters:
 - It keeps semantic shape (`mnemonic + operand kinds`) stable.
 - It increases cross-build and cross-compiler survivability.
 
+For byte-level relocation-light fingerprints, decoded operands also expose
+`encoded_value_byte_offset()` and
+`secondary_encoded_value_byte_offset()`. Both are optional byte positions from
+the instruction start. Validate every present value with
+`offset < instruction.size()` before slicing instruction bytes; these values
+are encoding positions, not operand widths or database addresses. The
+Diaphora exact examples demonstrate a versioned implementation.
+
 ## 3) Corpus scoring layer (you provide)
 
 At corpus scale, track per-window prevalence:

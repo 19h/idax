@@ -1338,6 +1338,13 @@ int idax_function_apply_decl(uint64_t function_ea, const char* c_decl) {
     return 0;
 }
 
+int idax_function_declaration(uint64_t function_ea,
+                              const char* name_override,
+                              char** out) {
+    RETURN_RESULT_STRING(ida::function::declaration(
+        function_ea, name_override == nullptr ? "" : name_override));
+}
+
 int idax_function_add_register_variable(uint64_t function_ea,
                                         uint64_t range_start,
                                         uint64_t range_end,
@@ -1477,6 +1484,11 @@ void fill_instruction(IdaxInstruction* out, const ida::instruction::Instruction&
             out->operands[i].value          = ops[i].value();
             out->operands[i].target_address = ops[i].target_address();
             out->operands[i].byte_width     = ops[i].byte_width();
+            out->operands[i].encoded_value_byte_offset = ops[i].encoded_value_byte_offset()
+                ? static_cast<int32_t>(*ops[i].encoded_value_byte_offset()) : -1;
+            out->operands[i].secondary_encoded_value_byte_offset =
+                ops[i].secondary_encoded_value_byte_offset()
+                    ? static_cast<int32_t>(*ops[i].secondary_encoded_value_byte_offset()) : -1;
             out->operands[i].register_name  = dup_string(ops[i].register_name());
             out->operands[i].register_category = static_cast<int>(ops[i].register_category());
             out->operands[i].is_read        = ops[i].is_read() ? 1 : 0;

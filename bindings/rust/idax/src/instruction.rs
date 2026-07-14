@@ -104,6 +104,8 @@ pub struct Operand {
     value: u64,
     addr: Address,
     byte_width: i32,
+    encoded_value_byte_offset: Option<usize>,
+    secondary_encoded_value_byte_offset: Option<usize>,
     reg_name: String,
     reg_class: RegisterCategory,
     read: bool,
@@ -143,6 +145,14 @@ impl Operand {
     }
     pub fn byte_width(&self) -> i32 {
         self.byte_width
+    }
+    /// Byte offset from instruction start to the primary encoded operand value.
+    pub fn encoded_value_byte_offset(&self) -> Option<usize> {
+        self.encoded_value_byte_offset
+    }
+    /// Byte offset to a secondary encoded value for split operand encodings.
+    pub fn secondary_encoded_value_byte_offset(&self) -> Option<usize> {
+        self.secondary_encoded_value_byte_offset
     }
     pub fn register_name(&self) -> &str {
         &self.reg_name
@@ -244,6 +254,11 @@ pub(crate) unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Re
                 value: op.value,
                 addr: op.target_address,
                 byte_width: op.byte_width,
+                encoded_value_byte_offset: usize::try_from(op.encoded_value_byte_offset).ok(),
+                secondary_encoded_value_byte_offset: usize::try_from(
+                    op.secondary_encoded_value_byte_offset,
+                )
+                .ok(),
                 reg_name: unsafe {
                     error::cstr_to_string(op.register_name, "reg name").unwrap_or_default()
                 },

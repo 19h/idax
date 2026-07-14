@@ -577,6 +577,22 @@ pub fn apply_decl(function_address: Address, c_decl: &str) -> Status {
     error::int_to_status(ret, "function::apply_decl failed")
 }
 
+/// Print the function's applied prototype/declaration.
+///
+/// When `name_override` is `None`, the current function name is used.
+pub fn declaration(function_address: Address, name_override: Option<&str>) -> Result<String> {
+    let name = CString::new(name_override.unwrap_or_default())
+        .map_err(|_| Error::validation("invalid declaration name override"))?;
+    unsafe {
+        let mut out: *mut std::ffi::c_char = std::ptr::null_mut();
+        let ret = idax_sys::idax_function_declaration(function_address, name.as_ptr(), &mut out);
+        if ret != 0 {
+            return Err(error::consume_last_error("function::declaration failed"));
+        }
+        error::cstr_to_string_free(out, "function::declaration null")
+    }
+}
+
 /// Add a register variable alias for a range in the function.
 pub fn add_register_variable(
     function_address: Address,
