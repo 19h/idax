@@ -57,6 +57,8 @@ Current overall phase status:
 - Phase 44: complete (opaque exact operand root/member paths, processor-register evidence, and Symless report/apply/reopen integration)
 - Phase 45: complete (Symless database-resolved indirect-call propagation, fixed-pointer allocator discovery, and report/apply/reopen evidence)
 - Phase 46: complete (Symless RTTI-adjusted vtable-load reachability and statically seeded virtual-method propagation)
+- Phase 47: complete (Symless deterministic microcode operand-root selection and exact before/after root injection)
+- Phase 48: complete (Diaphora 3.4.0 deterministic exact-fingerprint manifest, conservative metadata import, and encoded-operand/declaration binding closure)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -352,6 +354,6 @@ Current overall phase status:
 - [x] P48.1 Audit the fixed Diaphora 3.4.0 plugin/export/diff workflows against current opaque C++/Node/Rust surfaces and select the first independently testable parity boundary.
 - [x] P48.2 Close every concrete wrapper or binding gap required by the selected boundary with primary SDK provenance and preservation/error evidence.
 - [x] P48.3 Implement bounded C++ and Rust Diaphora adaptations with deterministic report/apply semantics and explicit external-dependency boundaries.
-- [ ] P48.4 Add pure and real-IDA evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P48.4 Add pure and real-IDA evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---

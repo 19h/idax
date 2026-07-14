@@ -140,4 +140,4 @@
   - 14.3.3. **Additional closure:** Mirror existing C++ function declaration readback through Node, the C shim, and safe Rust so conservative import can preserve preexisting target prototypes (F449; KB 35.105).
 - **14.4. Adaptation and validation**
   - 14.4.1. **Status:** P48.3 complete; C++ plugin/Rust headless artifacts, pure tests, and first live report/apply/reopen evidence pass (F450; KB 35.106).
-  - 14.4.2. **Active:** P48.4 implementation, documentation synchronization, complete C++/Node/Rust validation, generated-binding identity, and tracked-fixture integrity pass (F451; KB 35.107). Exact staged review, commit, and push remain.
+  - 14.4.2. **Status:** Complete and retired. P48.4 implementation, documentation, full C++/Node/Rust validation, generated-binding identity, tracked-fixture integrity, and the exact 38-file staged review pass. Implementation commit `444ca5354e899a3734edb8a84c67ea7eb43d2fd5` is pushed to `origin/master`; no Phase 48 blocker remains.
