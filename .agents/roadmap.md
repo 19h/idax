@@ -53,7 +53,7 @@ Current overall phase status:
 - Phase 40: complete (exact argument-zero constructor/vtable roots, metadata-preserving UDT semantic flags, conservative semantic UDT materialization, and report/apply/reopen evidence)
 - Phase 41: complete (opaque shifted-pointer metadata and evidence-bounded shifted argument application)
 - Phase 42: complete (opaque local-type declaration classification and failure-atomic ordinal-preserving forward replacement)
-- Phase 43: in progress (Symless member-TID informational cross-references)
+- Phase 43: complete (opaque exact-member persistent informational references plus Symless report/apply/reopen integration)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -304,6 +304,6 @@ Current overall phase status:
 - [x] P43.1 Audit upstream member-TID xref generation and local IDA xref/type-member identity contracts against current opaque C++/Node/Rust surfaces.
 - [x] P43.2 Add the minimum opaque member-identity/informational-xref capability across C++, Node, and Rust with exact validation and readback evidence.
 - [x] P43.3 Integrate member-TID xrefs into both Symless adaptations while preserving report/apply separation and idempotence.
-- [~] P43.4 Add real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P43.4 Add real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
