@@ -56,7 +56,7 @@ Current overall phase status:
 - Phase 43: complete (opaque exact-member persistent informational references plus Symless report/apply/reopen integration)
 - Phase 44: complete (opaque exact operand root/member paths, processor-register evidence, and Symless report/apply/reopen integration)
 - Phase 45: complete (Symless database-resolved indirect-call propagation, fixed-pointer allocator discovery, and report/apply/reopen evidence)
-- Phase 46: in progress (Symless RTTI-adjusted vtable-load reachability and statically seeded virtual-method propagation)
+- Phase 46: complete (Symless RTTI-adjusted vtable-load reachability and statically seeded virtual-method propagation)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -334,6 +334,6 @@ Current overall phase status:
 - [x] P46.1 Audit upstream vtable load-reference discovery and virtual-method root propagation against the current owned xref/data/microcode surfaces and both Symless adaptations.
 - [x] P46.2 Add bounded direct/RTTI-label/data-alias constructor reachability with exact table-value store confirmation and deterministic accounting.
 - [x] P46.3 Seed every accepted non-import vtable method at argument zero, merge its depth-bounded recovered fields into the class layout, and preserve existing conflict/application rules.
-- [ ] P46.4 Add pure and real-IDA RTTI report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P46.4 Add pure and real-IDA RTTI report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
