@@ -249,7 +249,13 @@ definition; complete definitions and incompatible declarations are preserved.
 For each exact type-compatible recovered field, apply also ensures persistent
 user informational references from every unique access instruction to the
 member's internal IDA identity. Report mode counts candidates without mutation;
-apply reports candidate, added, reused, and skipped reference counts.
+apply reports candidate, added, reused, and skipped reference counts. Register
+evidence from direct memory locations and pointer add/sub observations is mapped
+to processor registers, grouped by `(instruction, register)`, and matched to a
+phrase/displacement or register-preceded immediate machine operand. The first
+source-ordered field in each group receives an exact opaque `[root, member]`
+struct-offset path; additional fields remain represented by their member
+references. Repeated apply verifies and reuses the copied root/member-name path.
 
 Allocator mode accepts one specification per line: `malloc:<locator>:<size-index>`,
 `realloc:<locator>:<size-index>`, or
@@ -273,8 +279,8 @@ arguments. It does not synthesize missing ABI parameters or rank inheritance by
 table size/xref counts.
 
 This is not a full Symless parity claim: indirect dynamic calls,
-RTTI-adjusted vtable-load chains, multi-element stroff paths, and
-microcode-widget operand selection remain outside this port. The upstream MIT notice is retained in
+RTTI-adjusted vtable-load chains, and microcode-widget operand selection remain
+outside this port. The upstream MIT notice is retained in
 `plugin/symless_port_LICENSE.txt`.
 
 The Rust adaptation (`symless_structure_port`) is report-only by default and

@@ -1037,6 +1037,27 @@ mod instruction_tests {
             set_operand_enum;
         let _: fn(crate::address::Address, i32) -> crate::error::Result<OperandEnum> = operand_enum;
     }
+
+    #[test]
+    fn test_opaque_struct_offset_signatures() {
+        let path = StructOffsetPath {
+            structure_name: "root".to_string(),
+            member_names: vec!["member".to_string()],
+            delta: -4,
+        };
+        assert_eq!(path.structure_name, "root");
+        assert_eq!(path.member_names, vec!["member"]);
+        assert_eq!(path.delta, -4);
+        let _: fn(
+            crate::address::Address,
+            i32,
+            &str,
+            usize,
+            crate::address::AddressDelta,
+        ) -> crate::error::Result<bool> = ensure_operand_struct_member_offset;
+        let _: fn(crate::address::Address, i32) -> crate::error::Result<StructOffsetPath> =
+            operand_struct_offset_path;
+    }
 }
 
 #[cfg(test)]

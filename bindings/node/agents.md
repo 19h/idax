@@ -247,7 +247,7 @@ back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
 * `OperandFormat`: `'default'|'hex'|'decimal'|'octal'|'binary'|'character'|'float'|'offset'|'stackVariable'`
 * `Instruction`: `{ address, size, opcode, mnemonic, operandCount, operands: Operand[] }`
 * `Operand`: `{ index, type, isRegister, isImmediate, isMemory, registerId, value, targetAddress, displacement, byteWidth, registerName, registerCategory }`
-* `StructOffsetPath`: `{ structureIds: bigint[], delta: bigint }`
+* `StructOffsetPath`: `{ structureName: string, memberNames: string[], delta: bigint }`
 
 ### API
 * `decode(address: Address): Instruction`
@@ -256,7 +256,8 @@ back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
 * `setOperandHex(a, n?)`, `setOperandDecimal(a, n?)`, `setOperandOctal(a, n?)`, `setOperandBinary(a, n?)`, `setOperandCharacter(a, n?)`, `setOperandFloat(a, n?)`
 * `setOperandFormat(address: Address, n: number, format: OperandFormat, base?: Address): void`
 * `setOperandOffset(address: Address, n?: number, base?: Address): void`
-* `setOperandStructOffset(address: Address, n: number, structNameOrId: string | bigint | number, delta?: bigint | number): void`
+* `setOperandStructOffset(address: Address, n: number, structureName: string, delta?: bigint | number): void`
+* `ensureOperandStructMemberOffset(address: Address, n: number, structureName: string, memberByteOffset: number | bigint, delta?: bigint | number): boolean`
 * `setOperandBasedStructOffset(address: Address, n: number, operandValue: Address, base: Address): void`
 * `operandStructOffsetPath(address: Address, n?: number): StructOffsetPath`
 * `operandStructOffsetPathNames(address: Address, n?: number): string[]`

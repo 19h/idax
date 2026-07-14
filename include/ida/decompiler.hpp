@@ -286,6 +286,8 @@ enum class MicrocodeOperandKind : int {
 struct MicrocodeOperand {
     MicrocodeOperandKind kind{MicrocodeOperandKind::Empty};
     int register_id{0};
+    /// Processor-module register corresponding to a register microoperand, or -1.
+    int processor_register_id{-1};
     int local_variable_index{0};
     std::int64_t local_variable_offset{0};
     int second_register_id{0};

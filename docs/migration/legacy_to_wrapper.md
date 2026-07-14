@@ -13,6 +13,9 @@
 | `get_func_name(&buf, ea)` | `func.name()` |
 | `decode_insn(&insn, ea)` | `ida::instruction::decode(ea)` |
 | `create_insn(ea)` | `ida::instruction::create(ea)` |
+| `op_stroff(insn, n, path, path_len, delta)` for one exact UDT member | `ida::instruction::ensure_operand_struct_member_offset(ea, n, structure_name, member_byte_offset, delta)` |
+| `get_stroff_path(...)` / public `tid_t` path inspection | `ida::instruction::operand_struct_offset_path(ea, n)` returning copied root/member names and delta |
+| `mreg2reg(mop.r, mop.size)` while copying a graph | `MicrocodeOperand::processor_register_id` (`-1` when unavailable) |
 | `get_byte(ea)` | `ida::data::read_byte(ea)` |
 | `put_byte(ea, v)` | `ida::data::write_byte(ea, v)` |
 | `patch_byte(ea, v)` | `ida::data::patch_byte(ea, v)` |

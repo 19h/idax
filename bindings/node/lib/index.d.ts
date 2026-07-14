@@ -768,7 +768,8 @@ export namespace instruction {
     }
 
     interface StructOffsetPath {
-        structureIds: bigint[];
+        structureName: string;
+        memberNames: string[];
         delta: AddressDelta;
     }
 
@@ -822,8 +823,11 @@ export namespace instruction {
 
     // ── Struct offset operations ────────────────────────────────────────
 
-    /** Set operand n to a structure offset by name or ID. */
-    function setOperandStructOffset(address: Address, n: number, structNameOrId: string | bigint | number, delta?: bigint | number): void;
+    /** Set operand n to a root structure offset by name. */
+    function setOperandStructOffset(address: Address, n: number, structureName: string, delta?: bigint | number): void;
+
+    /** Idempotently apply an exact named-structure member path selected by byte offset. */
+    function ensureOperandStructMemberOffset(address: Address, n: number, structureName: string, memberByteOffset: number | bigint, delta?: bigint | number): boolean;
 
     /** Set operand n to a based structure offset. */
     function setOperandBasedStructOffset(address: Address, n: number, operandValue: Address, base: Address): void;
@@ -2538,6 +2542,7 @@ export namespace decompiler {
     interface MicrocodeOperand {
         kind: MicrocodeOperandKind;
         registerId: number;
+        processorRegisterId: number;
         localVariableIndex: number;
         localVariableOffset: AddressDelta;
         secondRegisterId: number;

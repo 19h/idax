@@ -269,6 +269,7 @@ static v8::Local<v8::Object> MicrocodeOperandToJS(const ida::decompiler::Microco
     auto object = ObjectBuilder()
         .setStr("kind", MicrocodeOperandKindToString(operand.kind))
         .setInt("registerId", operand.register_id)
+        .setInt("processorRegisterId", operand.processor_register_id)
         .setInt("localVariableIndex", operand.local_variable_index)
         .set("localVariableOffset", v8::BigInt::New(isolate, operand.local_variable_offset))
         .setInt("secondRegisterId", operand.second_register_id)

@@ -14,7 +14,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
 |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~29 free fns]
- |-- ida::instruction    Decode/create, operands, representation         [1 enum, 1 struct, 2 classes, ~27 free fns]
+ |-- ida::instruction    Decode/create, opaque operand representation    [3 enums, 2 structs, 2 classes, free-fn surface]
  |
  |-- ida::name           Set/get/force/remove, inventories, demangling   [1 enum, 2 structs, ~13 free fns]
  |-- ida::xref           Unified refs, typed code/data categories        [3 enums, 1 struct, ~10 free fns]
@@ -74,7 +74,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
-| `ida::instruction` | Instruction decoding, processor-reported operand access modes, and named enum representations | `Instruction`, `Operand`, `OperandType`, `OperandEnum` |
+| `ida::instruction` | Instruction decoding, processor-reported operand access modes, opaque named enum representations, and copied root/member-name struct-offset paths | `Instruction`, `Operand`, `OperandType`, `OperandFormat`, `RegisterCategory`, `OperandEnum`, `StructOffsetPath` |
 
 ### Metadata Domains (read/write)
 
@@ -108,7 +108,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `BackendInfo`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
-| `ida::decompiler` | Decompilation, including pseudocode-switch events | `ScopedSession`, `DecompiledFunction` (pseudocode+formatted microcode), `LvarSnapshot`, `DecompileFailure`, `MaturityEvent`, `PseudocodeEvent`, `PopulatingPopupEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeMaturity`, `MicrocodeGenerationOptions`, `MicrocodeFunctionArgument`, `MicrocodeBlock`, `MicrocodeFunction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
+| `ida::decompiler` | Decompilation, pseudocode-switch events, and owned graph operands with copied microregister plus processor-register identities | `ScopedSession`, `DecompiledFunction` (pseudocode+formatted microcode), `LvarSnapshot`, `DecompileFailure`, `MaturityEvent`, `PseudocodeEvent`, `PopulatingPopupEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeMaturity`, `MicrocodeGenerationOptions`, `MicrocodeFunctionArgument`, `MicrocodeBlock`, `MicrocodeFunction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
 | `ida::lines` | Tagged text/color plus source mappings | `SourceFile`, `Color`, `kColorOn`, `kColorOff`, `kColorEsc`, `kColorInv`, `kColorAddr`, `kColorAddrSize` |
 | `ida::ui` | User interface and current-widget polling | `Widget`, `Chooser`, `WaitBox`, `Progress`, `FormBuilder`, typed form bindings, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |

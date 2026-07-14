@@ -415,6 +415,7 @@ Result<MicrocodeOperand> parse_sdk_operand(const mop_t& mop) {
         case mop_r:
             result.kind = MicrocodeOperandKind::Register;
             result.register_id = mop.r;
+            result.processor_register_id = mreg2reg(mop.r, mop.size);
             break;
         case mop_n:
             result.kind = MicrocodeOperandKind::UnsignedImmediate;

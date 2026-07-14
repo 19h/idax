@@ -20,7 +20,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 | Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
-| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct-call argument/return propagation, declarative allocator/wrapper/fixed-root discovery, exact argument-zero constructor/vtable roots, exact shifted propagated arguments, ordinal-preserving local structure-forward replacement, or persistent informational references to exact recovered members. Full upstream parity additionally requires indirect dynamic calls, RTTI-adjusted vtable-load chains, multi-element stroff paths, and a microcode-widget picker |
+| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct-call argument/return propagation, declarative allocator/wrapper/fixed-root discovery, exact argument-zero constructor/vtable roots, exact shifted propagated arguments, ordinal-preserving local structure-forward replacement, persistent informational references to exact recovered members, or source-ordered exact operand struct-offset paths. Full upstream parity additionally requires indirect dynamic calls, RTTI-adjusted vtable-load chains, and a microcode-widget picker |
 
 ## Notes
 
@@ -58,7 +58,10 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   incompatible declarations are preserved. Each exact compatible recovered
   field receives a persistent user informational reference from every unique
   access item head; the member identity remains internal, and apply reports
-  candidate/added/reused/skipped counts. Mutation requires the C++ apply action
-  or Rust `--apply`. The audited full-parity surfaces remain explicitly
-  separate rather than being approximated.
+  candidate/added/reused/skipped counts. Register-backed pointer-arithmetic and
+  memory-access observations select one source-ordered machine operand per
+  `(instruction, processor register)` group and apply a verified opaque
+  root/member path; later fields retain member references. Mutation requires
+  the C++ apply action or Rust `--apply`. The audited full-parity surfaces
+  remain explicitly separate rather than being approximated.
 - This file replaces the previous per-port gap audit documents.

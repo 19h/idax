@@ -15,8 +15,10 @@ use idax::decompiler::{
 };
 use idax::error::ErrorCategory;
 use idax::types::TypeInfo;
-use idax::{Error, Result, data, database, decompiler, function, segment, types, xref};
-use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+use idax::{
+    Error, Result, data, database, decompiler, function, instruction, segment, types, xref,
+};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 
 const MAXIMUM_VTABLE_METHODS: usize = 4096;
 
@@ -215,7 +217,14 @@ struct RawAccess {
     reads: usize,
     writes: usize,
     sites: Vec<Address>,
+    operand_sites: Vec<OperandSite>,
     first_seen: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+struct OperandSite {
+    address: Address,
+    processor_register_id: i32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -225,6 +234,15 @@ struct RecoveredField {
     reads: usize,
     writes: usize,
     sites: Vec<Address>,
+    operand_sites: Vec<OperandSite>,
+    first_seen: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct OperandObservation {
+    offset: i64,
+    site: OperandSite,
+    first_seen: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -308,6 +326,10 @@ struct ApplySummary {
     member_references_added: usize,
     member_references_reused: usize,
     member_references_skipped: usize,
+    operand_struct_offset_candidates: usize,
+    operand_struct_offsets_added: usize,
+    operand_struct_offsets_reused: usize,
+    operand_struct_offsets_skipped: usize,
     argument_changed: bool,
     argument_already_typed: bool,
     arguments_changed: usize,
@@ -335,6 +357,10 @@ struct AllocatorApplySummary {
     member_references_added: usize,
     member_references_reused: usize,
     member_references_skipped: usize,
+    operand_struct_offset_candidates: usize,
+    operand_struct_offsets_added: usize,
+    operand_struct_offsets_reused: usize,
+    operand_struct_offsets_skipped: usize,
     prototypes_changed: usize,
     prototypes_already_typed: usize,
     prototypes_ineligible: usize,
@@ -394,6 +420,10 @@ struct VtableApplySummary {
     member_references_added: usize,
     member_references_reused: usize,
     member_references_skipped: usize,
+    operand_struct_offset_candidates: usize,
+    operand_struct_offsets_added: usize,
+    operand_struct_offsets_reused: usize,
+    operand_struct_offsets_skipped: usize,
     prototypes_changed: usize,
     prototypes_already_typed: usize,
     prototypes_ineligible: usize,
@@ -601,9 +631,11 @@ fn immediate_value(operand: &MicrocodeOperand) -> Option<AbstractValue> {
 fn record_access(
     raw_accesses: &mut Vec<RawAccess>,
     pointer: Option<AbstractValue>,
+    location: &MicrocodeOperand,
     byte_width: i32,
     address: Address,
     write: bool,
+    observation_order: usize,
 ) {
     let Some(AbstractValue::StructurePointer(offset)) = pointer else {
         return;
@@ -621,6 +653,18 @@ fn record_access(
         if address != BAD_ADDRESS && !existing.sites.contains(&address) {
             existing.sites.push(address);
         }
+        if address != BAD_ADDRESS
+            && location.kind == MicrocodeOperandKind::Register
+            && location.processor_register_id >= 0
+        {
+            let site = OperandSite {
+                address,
+                processor_register_id: location.processor_register_id,
+            };
+            if !existing.operand_sites.contains(&site) {
+                existing.operand_sites.push(site);
+            }
+        }
         return;
     }
     raw_accesses.push(RawAccess {
@@ -633,8 +677,51 @@ fn record_access(
         } else {
             vec![address]
         },
-        first_seen: raw_accesses.len(),
+        operand_sites: if address != BAD_ADDRESS
+            && location.kind == MicrocodeOperandKind::Register
+            && location.processor_register_id >= 0
+        {
+            vec![OperandSite {
+                address,
+                processor_register_id: location.processor_register_id,
+            }]
+        } else {
+            Vec::new()
+        },
+        first_seen: observation_order,
     });
+}
+
+fn record_operand_observation(
+    observations: &mut Vec<OperandObservation>,
+    pointer: Option<AbstractValue>,
+    location: &MicrocodeOperand,
+    address: Address,
+    observation_order: usize,
+) {
+    let Some(AbstractValue::StructurePointer(offset)) = pointer else {
+        return;
+    };
+    if address == BAD_ADDRESS
+        || location.kind != MicrocodeOperandKind::Register
+        || location.processor_register_id < 0
+    {
+        return;
+    }
+    let observation = OperandObservation {
+        offset,
+        site: OperandSite {
+            address,
+            processor_register_id: location.processor_register_id,
+        },
+        first_seen: observation_order,
+    };
+    if !observations
+        .iter()
+        .any(|existing| existing.offset == observation.offset && existing.site == observation.site)
+    {
+        observations.push(observation);
+    }
 }
 
 fn topological_order(graph: &MicrocodeFunction) -> Vec<usize> {
@@ -1167,6 +1254,7 @@ struct InterproceduralAnalyzer<F> {
     active_contexts: HashSet<ContextKey>,
     completed_contexts: HashMap<ContextKey, Option<AbstractValue>>,
     raw_accesses: Vec<RawAccess>,
+    operand_observations: Vec<OperandObservation>,
     propagation_sites: Vec<PropagationSite>,
     return_sites: Vec<ReturnSite>,
     functions_processed: usize,
@@ -1179,6 +1267,7 @@ struct InterproceduralAnalyzer<F> {
     repeated_contexts: usize,
     unresolved_calls: usize,
     return_conflicts: usize,
+    next_observation_order: usize,
 }
 
 impl<F> InterproceduralAnalyzer<F>
@@ -1194,6 +1283,7 @@ where
             active_contexts: HashSet::new(),
             completed_contexts: HashMap::new(),
             raw_accesses: Vec::new(),
+            operand_observations: Vec::new(),
             propagation_sites: Vec::new(),
             return_sites: Vec::new(),
             functions_processed: 0,
@@ -1206,6 +1296,7 @@ where
             repeated_contexts: 0,
             unresolved_calls: 0,
             return_conflicts: 0,
+            next_observation_order: 0,
         }
     }
 
@@ -1390,10 +1481,19 @@ where
                         } else {
                             value as i128
                         };
-                        Some(AbstractValue::StructurePointer(signed_to_width(
+                        let shifted = Some(AbstractValue::StructurePointer(signed_to_width(
                             offset as i128 + delta,
                             byte_width,
-                        )))
+                        )));
+                        record_operand_observation(
+                            &mut self.operand_observations,
+                            shifted,
+                            &instruction.left,
+                            instruction.address,
+                            self.next_observation_order,
+                        );
+                        self.next_observation_order += 1;
+                        shifted
                     }
                     _ => None,
                 }
@@ -1403,10 +1503,13 @@ where
                 record_access(
                     &mut self.raw_accesses,
                     pointer,
+                    &instruction.right,
                     instruction.destination.byte_width,
                     instruction.address,
                     false,
+                    self.next_observation_order,
                 );
+                self.next_observation_order += 1;
                 None
             }
             MicrocodeOpcode::StoreMemory => {
@@ -1415,10 +1518,13 @@ where
                 record_access(
                     &mut self.raw_accesses,
                     pointer,
+                    &instruction.destination,
                     instruction.left.byte_width,
                     instruction.address,
                     true,
+                    self.next_observation_order,
                 );
+                self.next_observation_order += 1;
                 return Ok(None);
             }
             MicrocodeOpcode::Call | MicrocodeOpcode::IndirectCall => {
@@ -1587,10 +1693,32 @@ fn resolve_field_conflicts(raw_accesses: &[RawAccess]) -> (Vec<RecoveredField>, 
             reads: access.reads,
             writes: access.writes,
             sites: access.sites,
+            operand_sites: access.operand_sites,
+            first_seen: access.first_seen,
         });
         selected.sort_by_key(|field| field.offset);
     }
     (selected, negative, discarded)
+}
+
+fn attach_operand_observations(
+    fields: &mut [RecoveredField],
+    operand_observations: &[OperandObservation],
+) {
+    let mut observations = operand_observations.to_vec();
+    observations.sort_by_key(|observation| observation.first_seen);
+    for observation in observations {
+        let Some(field) = fields
+            .iter_mut()
+            .find(|field| field.offset == observation.offset)
+        else {
+            continue;
+        };
+        if !field.operand_sites.contains(&observation.site) {
+            field.operand_sites.push(observation.site);
+        }
+        field.first_seen = field.first_seen.min(observation.first_seen);
+    }
 }
 
 fn reconstruct_with_loader<F>(
@@ -1620,8 +1748,9 @@ where
         &[(argument_index, AbstractValue::StructurePointer(0))],
         0,
     )?;
-    let (fields, negative_accesses, conflict_discards) =
+    let (mut fields, negative_accesses, conflict_discards) =
         resolve_field_conflicts(&analyzer.raw_accesses);
+    attach_operand_observations(&mut fields, &analyzer.operand_observations);
     Ok(Reconstruction {
         function_address: graph.entry_address,
         argument_index,
@@ -1679,8 +1808,9 @@ where
     let mut analyzer =
         InterproceduralAnalyzer::new_for_allocation(max_depth, root.call_address, loader);
     analyzer.analyze_graph(graph, &[], 0)?;
-    let (resolved, negative_accesses, conflict_discards) =
+    let (mut resolved, negative_accesses, conflict_discards) =
         resolve_field_conflicts(&analyzer.raw_accesses);
+    attach_operand_observations(&mut resolved, &analyzer.operand_observations);
     let (fields, out_of_bounds): (Vec<_>, Vec<_>) = resolved.into_iter().partition(|field| {
         (field.offset as u64)
             .checked_add(field.byte_width as u64)
@@ -2010,6 +2140,11 @@ fn append_recovered_fields(
                     existing.sites.push(*site);
                 }
             }
+            for site in &field.operand_sites {
+                if !existing.operand_sites.contains(site) {
+                    existing.operand_sites.push(*site);
+                }
+            }
         } else {
             aggregate.push(RawAccess {
                 offset: field.offset,
@@ -2017,6 +2152,7 @@ fn append_recovered_fields(
                 reads: field.reads,
                 writes: field.writes,
                 sites: field.sites.clone(),
+                operand_sites: field.operand_sites.clone(),
                 first_seen: aggregate.len(),
             });
         }
@@ -2242,6 +2378,131 @@ fn ensure_recovered_member_references(
     Ok(())
 }
 
+fn operand_struct_offset_candidates(
+    fields: &[RecoveredField],
+) -> Vec<(OperandSite, &RecoveredField)> {
+    let mut grouped = BTreeMap::<OperandSite, &RecoveredField>::new();
+    for field in fields {
+        for site in &field.operand_sites {
+            match grouped.get(site) {
+                Some(existing) if existing.first_seen <= field.first_seen => {}
+                _ => {
+                    grouped.insert(*site, field);
+                }
+            }
+        }
+    }
+    grouped.into_iter().collect()
+}
+
+fn recovered_field_matches_member(
+    members: &[types::Member],
+    field: &RecoveredField,
+) -> Result<bool> {
+    let Ok(offset) = usize::try_from(field.offset) else {
+        return Ok(false);
+    };
+    if field.byte_width <= 0 {
+        return Ok(false);
+    }
+    let expected_text = member_type(field.byte_width)?.to_string()?;
+    let exact = members
+        .iter()
+        .filter(|member| member.bit_offset % 8 == 0 && member.bit_offset / 8 == offset)
+        .collect::<Vec<_>>();
+    Ok(exact.len() == 1 && exact[0].r#type.to_string()? == expected_text)
+}
+
+#[derive(Debug, Clone, Copy)]
+struct MachineOperandSelection {
+    operand_index: i32,
+    encoded_displacement: u64,
+    signed_byte_width: i32,
+}
+
+fn find_struct_offset_operand(
+    decoded: &instruction::Instruction,
+    processor_register_id: i32,
+) -> Option<MachineOperandSelection> {
+    for (index, operand) in decoded.operands().iter().enumerate() {
+        if matches!(
+            operand.op_type(),
+            instruction::OperandType::MemoryPhrase | instruction::OperandType::MemoryDisplacement
+        ) && i32::from(operand.register_id()) == processor_register_id
+        {
+            let encoded_displacement =
+                if operand.op_type() == instruction::OperandType::MemoryDisplacement {
+                    operand.target_address()
+                } else {
+                    0
+                };
+            return Some(MachineOperandSelection {
+                operand_index: operand.index(),
+                encoded_displacement,
+                signed_byte_width: 4,
+            });
+        }
+        if operand.op_type() == instruction::OperandType::Immediate
+            && index > 0
+            && decoded.operands()[index - 1].op_type() == instruction::OperandType::Register
+            && i32::from(decoded.operands()[index - 1].register_id()) == processor_register_id
+            && operand.byte_width() > 0
+        {
+            return Some(MachineOperandSelection {
+                operand_index: operand.index(),
+                encoded_displacement: operand.value(),
+                signed_byte_width: operand.byte_width(),
+            });
+        }
+    }
+    None
+}
+
+fn ensure_recovered_operand_struct_offsets(
+    structure: &TypeInfo,
+    structure_name: &str,
+    fields: &[RecoveredField],
+    candidates: &mut usize,
+    added: &mut usize,
+    reused: &mut usize,
+    skipped: &mut usize,
+) -> Result<()> {
+    let members = structure.members()?;
+    let selected = operand_struct_offset_candidates(fields);
+    *candidates += selected.len();
+    for (site, field) in selected {
+        if !recovered_field_matches_member(&members, field)? {
+            *skipped += 1;
+            continue;
+        }
+        let Ok(decoded) = instruction::decode(site.address) else {
+            *skipped += 1;
+            continue;
+        };
+        let Some(operand) = find_struct_offset_operand(&decoded, site.processor_register_id) else {
+            *skipped += 1;
+            continue;
+        };
+        let delta = signed_to_width(
+            field.offset as i128 - operand.encoded_displacement as i128,
+            operand.signed_byte_width,
+        );
+        match instruction::ensure_operand_struct_member_offset(
+            site.address,
+            operand.operand_index,
+            structure_name,
+            field.offset as usize,
+            delta,
+        ) {
+            Ok(true) => *added += 1,
+            Ok(false) => *reused += 1,
+            Err(error) if error.category == ErrorCategory::Conflict => *skipped += 1,
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(())
+}
+
 fn argument_eligibility(
     argument_type: &TypeInfo,
     structure_name: &str,
@@ -2328,6 +2589,15 @@ fn apply_reconstruction(
         &mut summary.member_references_added,
         &mut summary.member_references_reused,
         &mut summary.member_references_skipped,
+    )?;
+    ensure_recovered_operand_struct_offsets(
+        &structure,
+        structure_name,
+        &reconstruction.fields,
+        &mut summary.operand_struct_offset_candidates,
+        &mut summary.operand_struct_offsets_added,
+        &mut summary.operand_struct_offsets_reused,
+        &mut summary.operand_struct_offsets_skipped,
     )?;
     let pointer = TypeInfo::pointer_to(&structure);
 
@@ -2486,8 +2756,10 @@ fn apply_allocator_discovery(
             continue;
         }
         let mut structure_summary = ApplySummary::default();
+        let structure_name =
+            allocation_structure_name(structure_prefix, reconstruction.root.call_address);
         let structure = ensure_structure(
-            &allocation_structure_name(structure_prefix, reconstruction.root.call_address),
+            &structure_name,
             &reconstruction.fields,
             &mut structure_summary,
         )?;
@@ -2504,6 +2776,15 @@ fn apply_allocator_discovery(
             &mut summary.member_references_added,
             &mut summary.member_references_reused,
             &mut summary.member_references_skipped,
+        )?;
+        ensure_recovered_operand_struct_offsets(
+            &structure,
+            &structure_name,
+            &reconstruction.fields,
+            &mut summary.operand_struct_offset_candidates,
+            &mut summary.operand_struct_offsets_added,
+            &mut summary.operand_struct_offsets_reused,
+            &mut summary.operand_struct_offsets_skipped,
         )?;
     }
 
@@ -2805,6 +3086,15 @@ fn apply_vtable_discovery(discovery: &VtableDiscovery, prefix: &str) -> Result<V
             &mut summary.member_references_reused,
             &mut summary.member_references_skipped,
         )?;
+        ensure_recovered_operand_struct_offsets(
+            &class_type,
+            &class_name,
+            &candidate.fields,
+            &mut summary.operand_struct_offset_candidates,
+            &mut summary.operand_struct_offsets_added,
+            &mut summary.operand_struct_offsets_reused,
+            &mut summary.operand_struct_offsets_skipped,
+        )?;
         let class_pointer = TypeInfo::pointer_to(&class_type);
         let mut prototypes = candidate
             .constructors
@@ -2878,6 +3168,10 @@ fn print_report(
         "member_reference_candidates: {}",
         member_reference_candidate_count(&reconstruction.fields)
     );
+    println!(
+        "operand_struct_offset_candidates: {}",
+        operand_struct_offset_candidates(&reconstruction.fields).len()
+    );
     for site in &reconstruction.propagation_sites {
         println!(
             "  argument 0x{:x}[{}] name={} shift={:+#x}",
@@ -2927,6 +3221,22 @@ fn print_report(
         println!(
             "member_references_skipped: {}",
             summary.member_references_skipped
+        );
+        println!(
+            "operand_struct_offset_candidates: {}",
+            summary.operand_struct_offset_candidates
+        );
+        println!(
+            "operand_struct_offsets_added: {}",
+            summary.operand_struct_offsets_added
+        );
+        println!(
+            "operand_struct_offsets_reused: {}",
+            summary.operand_struct_offsets_reused
+        );
+        println!(
+            "operand_struct_offsets_skipped: {}",
+            summary.operand_struct_offsets_skipped
         );
         println!("argument_changed: {}", summary.argument_changed);
         println!("argument_already_typed: {}", summary.argument_already_typed);
@@ -2987,6 +3297,15 @@ fn print_allocator_report(
         reconstructions
             .iter()
             .map(|reconstruction| member_reference_candidate_count(&reconstruction.fields))
+            .sum::<usize>()
+    );
+    println!(
+        "operand_struct_offset_candidates: {}",
+        reconstructions
+            .iter()
+            .map(|reconstruction| {
+                operand_struct_offset_candidates(&reconstruction.fields).len()
+            })
             .sum::<usize>()
     );
     for wrapper in &discovery.wrappers {
@@ -3061,6 +3380,22 @@ fn print_allocator_report(
             "member_references_skipped: {}",
             summary.member_references_skipped
         );
+        println!(
+            "operand_struct_offset_candidates: {}",
+            summary.operand_struct_offset_candidates
+        );
+        println!(
+            "operand_struct_offsets_added: {}",
+            summary.operand_struct_offsets_added
+        );
+        println!(
+            "operand_struct_offsets_reused: {}",
+            summary.operand_struct_offsets_reused
+        );
+        println!(
+            "operand_struct_offsets_skipped: {}",
+            summary.operand_struct_offsets_skipped
+        );
         println!("prototypes_changed: {}", summary.prototypes_changed);
         println!(
             "prototypes_already_typed: {}",
@@ -3107,6 +3442,14 @@ fn print_vtable_report(
             .classes
             .iter()
             .map(|candidate| member_reference_candidate_count(&candidate.fields))
+            .sum::<usize>()
+    );
+    println!(
+        "operand_struct_offset_candidates: {}",
+        discovery
+            .classes
+            .iter()
+            .map(|candidate| operand_struct_offset_candidates(&candidate.fields).len())
             .sum::<usize>()
     );
     for candidate in &discovery.classes {
@@ -3180,6 +3523,22 @@ fn print_vtable_report(
         println!(
             "member_references_skipped: {}",
             summary.member_references_skipped
+        );
+        println!(
+            "operand_struct_offset_candidates: {}",
+            summary.operand_struct_offset_candidates
+        );
+        println!(
+            "operand_struct_offsets_added: {}",
+            summary.operand_struct_offsets_added
+        );
+        println!(
+            "operand_struct_offsets_reused: {}",
+            summary.operand_struct_offsets_reused
+        );
+        println!(
+            "operand_struct_offsets_skipped: {}",
+            summary.operand_struct_offsets_skipped
         );
         println!("prototypes_changed: {}", summary.prototypes_changed);
         println!(
@@ -3292,6 +3651,7 @@ mod tests {
         MicrocodeOperand {
             kind,
             register_id: 0,
+            processor_register_id: -1,
             local_variable_index: 0,
             local_variable_offset: 0,
             second_register_id: 0,
@@ -3444,8 +3804,10 @@ mod tests {
             .values
             .insert(Variable::Register(1), AbstractValue::StructurePointer(0));
         let mut add = instruction(MicrocodeOpcode::Add);
+        add.address = 0x1010;
         add.left = operand(MicrocodeOperandKind::Register, 8);
         add.left.register_id = 1;
+        add.left.processor_register_id = 7;
         add.right = operand(MicrocodeOperandKind::UnsignedImmediate, 8);
         add.right.unsigned_immediate = 8;
         add.destination = operand(MicrocodeOperandKind::Register, 8);
@@ -3464,6 +3826,29 @@ mod tests {
         assert_eq!(analyzer.raw_accesses[0].offset, 8);
         assert_eq!(analyzer.raw_accesses[0].byte_width, 4);
         assert_eq!(analyzer.raw_accesses[0].writes, 1);
+        assert!(analyzer.raw_accesses[0].operand_sites.is_empty());
+        assert_eq!(
+            analyzer.operand_observations,
+            vec![OperandObservation {
+                offset: 8,
+                site: OperandSite {
+                    address: 0x1010,
+                    processor_register_id: 7,
+                },
+                first_seen: 0,
+            }]
+        );
+        let (mut fields, negative, discarded) = resolve_field_conflicts(&analyzer.raw_accesses);
+        assert_eq!((negative, discarded), (0, 0));
+        attach_operand_observations(&mut fields, &analyzer.operand_observations);
+        assert_eq!(
+            fields[0].operand_sites,
+            vec![OperandSite {
+                address: 0x1010,
+                processor_register_id: 7,
+            }]
+        );
+        assert_eq!(fields[0].first_seen, 0);
     }
 
     #[test]
@@ -3475,6 +3860,7 @@ mod tests {
                 reads: 1,
                 writes: 0,
                 sites: vec![1],
+                operand_sites: Vec::new(),
                 first_seen: 0,
             },
             RawAccess {
@@ -3483,6 +3869,7 @@ mod tests {
                 reads: 1,
                 writes: 0,
                 sites: vec![2],
+                operand_sites: Vec::new(),
                 first_seen: 1,
             },
         ];
@@ -3503,6 +3890,8 @@ mod tests {
                 reads: 1,
                 writes: 0,
                 sites: vec![0x1000, 0x1004],
+                operand_sites: Vec::new(),
+                first_seen: 0,
             },
             RecoveredField {
                 offset: 8,
@@ -3510,9 +3899,49 @@ mod tests {
                 reads: 0,
                 writes: 1,
                 sites: vec![0x1010],
+                operand_sites: Vec::new(),
+                first_seen: 1,
             },
         ];
         assert_eq!(member_reference_candidate_count(&fields), 3);
+    }
+
+    #[test]
+    fn groups_operand_struct_offsets_by_site_and_preserves_first_observation() {
+        let shared = OperandSite {
+            address: 0x1000,
+            processor_register_id: 7,
+        };
+        let distinct_register = OperandSite {
+            address: 0x1000,
+            processor_register_id: 8,
+        };
+        let fields = vec![
+            RecoveredField {
+                offset: 4,
+                byte_width: 4,
+                reads: 1,
+                writes: 0,
+                sites: vec![0x1000],
+                operand_sites: vec![shared],
+                first_seen: 2,
+            },
+            RecoveredField {
+                offset: 8,
+                byte_width: 8,
+                reads: 1,
+                writes: 0,
+                sites: vec![0x1000],
+                operand_sites: vec![shared, distinct_register],
+                first_seen: 1,
+            },
+        ];
+        let selected = operand_struct_offset_candidates(&fields);
+        assert_eq!(selected.len(), 2);
+        assert_eq!(selected[0].0, shared);
+        assert_eq!(selected[0].1.offset, 8);
+        assert_eq!(selected[1].0, distinct_register);
+        assert_eq!(selected[1].1.offset, 8);
     }
 
     #[test]

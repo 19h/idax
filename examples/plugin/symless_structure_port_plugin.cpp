@@ -11,10 +11,11 @@
 /// store; table-size/xref inheritance guesses are deliberately not applied.
 /// Propagated arguments preserve exact shifted-parent metadata; shifted
 /// returns remain excluded as in the upstream generation path. Indirect
-/// dynamic calls, multi-element stroff paths, RTTI-adjusted vtable-load chains,
-/// and microcode-widget workflows remain outside the stated boundary. Exact
-/// compatible recovered fields receive persistent member-TID informational
-/// references without exposing SDK identifiers. Upstream
+/// dynamic calls, RTTI-adjusted vtable-load chains, and microcode-widget
+/// workflows remain outside the stated boundary. Exact compatible recovered
+/// fields receive persistent member-TID informational references and the first
+/// source-ordered field per machine operand receives an exact two-component
+/// struct-offset path, without exposing SDK identifiers. Upstream
 /// copyright/license: symless_port_LICENSE.txt.
 
 #include <ida/idax.hpp>
@@ -105,6 +106,13 @@ struct RawAccess {
     std::size_t reads{0};
     std::size_t writes{0};
     std::vector<ida::Address> sites;
+    struct OperandSite {
+        ida::Address address{ida::BadAddress};
+        int processor_register_id{-1};
+
+        auto operator<=>(const OperandSite&) const = default;
+    };
+    std::vector<OperandSite> operand_sites;
     std::size_t first_seen{0};
 };
 
@@ -114,6 +122,14 @@ struct RecoveredField {
     std::size_t reads{0};
     std::size_t writes{0};
     std::vector<ida::Address> sites;
+    std::vector<RawAccess::OperandSite> operand_sites;
+    std::size_t first_seen{0};
+};
+
+struct OperandObservation {
+    std::int64_t offset{0};
+    RawAccess::OperandSite site;
+    std::size_t first_seen{0};
 };
 
 struct Reconstruction {
@@ -240,6 +256,10 @@ struct ApplySummary {
     std::size_t member_references_added{0};
     std::size_t member_references_reused{0};
     std::size_t member_references_skipped{0};
+    std::size_t operand_struct_offset_candidates{0};
+    std::size_t operand_struct_offsets_added{0};
+    std::size_t operand_struct_offsets_reused{0};
+    std::size_t operand_struct_offsets_skipped{0};
     bool argument_changed{false};
     bool argument_already_typed{false};
     std::size_t arguments_changed{0};
@@ -266,6 +286,10 @@ struct AllocatorApplySummary {
     std::size_t member_references_added{0};
     std::size_t member_references_reused{0};
     std::size_t member_references_skipped{0};
+    std::size_t operand_struct_offset_candidates{0};
+    std::size_t operand_struct_offsets_added{0};
+    std::size_t operand_struct_offsets_reused{0};
+    std::size_t operand_struct_offsets_skipped{0};
     std::size_t prototypes_changed{0};
     std::size_t prototypes_already_typed{0};
     std::size_t prototypes_ineligible{0};
@@ -327,6 +351,10 @@ struct VtableApplySummary {
     std::size_t member_references_added{0};
     std::size_t member_references_reused{0};
     std::size_t member_references_skipped{0};
+    std::size_t operand_struct_offset_candidates{0};
+    std::size_t operand_struct_offsets_added{0};
+    std::size_t operand_struct_offsets_reused{0};
+    std::size_t operand_struct_offsets_skipped{0};
     std::size_t prototypes_changed{0};
     std::size_t prototypes_already_typed{0};
     std::size_t prototypes_ineligible{0};
@@ -415,9 +443,11 @@ immediate_value(const ida::decompiler::MicrocodeOperand& operand) {
 
 void record_access(std::vector<RawAccess>& accesses,
                    std::optional<AbstractValue> pointer,
+                   const ida::decompiler::MicrocodeOperand& location,
                    int byte_width,
                    ida::Address address,
-                   bool write) {
+                   bool write,
+                   std::size_t observation_order) {
     if (!pointer || pointer->kind != ValueKind::StructurePointer
         || byte_width <= 0) {
         return;
@@ -432,9 +462,15 @@ void record_access(std::vector<RawAccess>& accesses,
         access.byte_width = byte_width;
         access.reads = write ? 0 : 1;
         access.writes = write ? 1 : 0;
-        access.first_seen = accesses.size();
+        access.first_seen = observation_order;
         if (address != ida::BadAddress)
             access.sites.push_back(address);
+        if (address != ida::BadAddress
+            && location.kind == ida::decompiler::MicrocodeOperandKind::Register
+            && location.processor_register_id >= 0) {
+            access.operand_sites.push_back(
+                {address, location.processor_register_id});
+        }
         accesses.push_back(std::move(access));
         return;
     }
@@ -445,6 +481,43 @@ void record_access(std::vector<RawAccess>& accesses,
         && std::find(found->sites.begin(), found->sites.end(), address)
             == found->sites.end()) {
         found->sites.push_back(address);
+    }
+    if (address != ida::BadAddress
+        && location.kind == ida::decompiler::MicrocodeOperandKind::Register
+        && location.processor_register_id >= 0) {
+        const RawAccess::OperandSite site{address,
+                                         location.processor_register_id};
+        if (std::find(found->operand_sites.begin(),
+                      found->operand_sites.end(),
+                      site) == found->operand_sites.end()) {
+            found->operand_sites.push_back(site);
+        }
+    }
+}
+
+void record_operand_observation(
+    std::vector<OperandObservation>& observations,
+    std::optional<AbstractValue> pointer,
+    const ida::decompiler::MicrocodeOperand& location,
+    ida::Address address,
+    std::size_t observation_order) {
+    if (!pointer || pointer->kind != ValueKind::StructurePointer
+        || address == ida::BadAddress
+        || location.kind != ida::decompiler::MicrocodeOperandKind::Register
+        || location.processor_register_id < 0) {
+        return;
+    }
+    const RawAccess::OperandSite site{address,
+                                      location.processor_register_id};
+    const bool exists = std::any_of(
+        observations.begin(), observations.end(),
+        [&](const OperandObservation& observation) {
+            return observation.offset == pointer->value
+                && observation.site == site;
+        });
+    if (!exists) {
+        observations.push_back(
+            {pointer->value, site, observation_order});
     }
 }
 
@@ -1354,6 +1427,9 @@ struct InterproceduralAnalyzer {
                                        signed_to_width(shifted,
                                                        (*right)->byte_width),
                                        0};
+                record_operand_observation(
+                    operand_observations, result, instruction.left,
+                    instruction.address, next_observation_order++);
             }
             break;
         }
@@ -1362,8 +1438,10 @@ struct InterproceduralAnalyzer {
             if (!pointer)
                 return std::unexpected(pointer.error());
             record_access(raw_accesses, *pointer,
+                          instruction.right,
                           instruction.destination.byte_width,
-                          instruction.address, false);
+                          instruction.address, false,
+                          next_observation_order++);
             break;
         }
         case Opcode::StoreMemory: {
@@ -1374,8 +1452,10 @@ struct InterproceduralAnalyzer {
             if (!pointer)
                 return std::unexpected(pointer.error());
             record_access(raw_accesses, *pointer,
+                          instruction.destination,
                           instruction.left.byte_width,
-                          instruction.address, true);
+                          instruction.address, true,
+                          next_observation_order++);
             return std::optional<AbstractValue>{};
         }
         case Opcode::Call:
@@ -1518,6 +1598,7 @@ struct InterproceduralAnalyzer {
     std::set<ContextKey> active_contexts;
     std::map<ContextKey, std::optional<AbstractValue>> completed_contexts;
     std::vector<RawAccess> raw_accesses;
+    std::vector<OperandObservation> operand_observations;
     std::vector<PropagationSite> propagation_sites;
     std::vector<ReturnSite> return_sites;
     std::size_t functions_processed{0};
@@ -1530,6 +1611,7 @@ struct InterproceduralAnalyzer {
     std::size_t repeated_contexts{0};
     std::size_t unresolved_calls{0};
     std::size_t return_conflicts{0};
+    std::size_t next_observation_order{0};
 };
 
 std::tuple<std::vector<RecoveredField>, std::size_t, std::size_t>
@@ -1566,13 +1648,40 @@ resolve_field_conflicts(std::vector<RawAccess> accesses) {
             selected.erase(selected.begin() + static_cast<std::ptrdiff_t>(*iterator));
         selected.push_back({access.offset, access.byte_width,
                             access.reads, access.writes,
-                            std::move(access.sites)});
+                            std::move(access.sites),
+                            std::move(access.operand_sites),
+                            access.first_seen});
         std::sort(selected.begin(), selected.end(),
                   [](const auto& left, const auto& right) {
                       return left.offset < right.offset;
                   });
     }
     return {std::move(selected), negative, discarded};
+}
+
+void attach_operand_observations(
+    std::vector<RecoveredField>& fields,
+    std::vector<OperandObservation> observations) {
+    std::sort(observations.begin(), observations.end(),
+              [](const auto& left, const auto& right) {
+                  return left.first_seen < right.first_seen;
+              });
+    for (const auto& observation : observations) {
+        auto field = std::find_if(
+            fields.begin(), fields.end(),
+            [&](const RecoveredField& candidate) {
+                return candidate.offset == observation.offset;
+            });
+        if (field == fields.end())
+            continue;
+        if (std::find(field->operand_sites.begin(),
+                      field->operand_sites.end(), observation.site)
+            == field->operand_sites.end()) {
+            field->operand_sites.push_back(observation.site);
+        }
+        field->first_seen = std::min(field->first_seen,
+                                     observation.first_seen);
+    }
 }
 
 ida::Result<Reconstruction> reconstruct(
@@ -1629,6 +1738,8 @@ ida::Result<Reconstruction> reconstruct(
              output.negative_accesses,
              output.conflict_discards) = resolve_field_conflicts(
                  std::move(analyzer.raw_accesses));
+    attach_operand_observations(
+        output.fields, std::move(analyzer.operand_observations));
     return output;
 }
 
@@ -1662,6 +1773,8 @@ ida::Result<AllocationReconstruction> reconstruct_allocation(
     std::vector<RecoveredField> resolved;
     std::tie(resolved, output.negative_accesses, output.conflict_discards)
         = resolve_field_conflicts(std::move(analyzer.raw_accesses));
+    attach_operand_observations(
+        resolved, std::move(analyzer.operand_observations));
     for (auto& field : resolved) {
         const auto offset = static_cast<std::uint64_t>(field.offset);
         const auto width = static_cast<std::uint64_t>(field.byte_width);
@@ -1972,6 +2085,7 @@ void append_recovered_fields(std::vector<RawAccess>& aggregate,
         if (existing == aggregate.end()) {
             aggregate.push_back({field.offset, field.byte_width,
                                  field.reads, field.writes, field.sites,
+                                 field.operand_sites,
                                  aggregate.size()});
         } else {
             existing->byte_width = std::min(existing->byte_width,
@@ -1982,6 +2096,13 @@ void append_recovered_fields(std::vector<RawAccess>& aggregate,
                 if (std::find(existing->sites.begin(), existing->sites.end(), site)
                     == existing->sites.end()) {
                     existing->sites.push_back(site);
+                }
+            }
+            for (const auto& site : field.operand_sites) {
+                if (std::find(existing->operand_sites.begin(),
+                              existing->operand_sites.end(),
+                              site) == existing->operand_sites.end()) {
+                    existing->operand_sites.push_back(site);
                 }
             }
         }
@@ -2268,6 +2389,155 @@ ida::Status ensure_recovered_member_references(
     return ida::ok();
 }
 
+struct OperandStructOffsetCandidate {
+    RawAccess::OperandSite site;
+    const RecoveredField* field{nullptr};
+};
+
+std::vector<OperandStructOffsetCandidate>
+operand_struct_offset_candidates(const std::vector<RecoveredField>& fields) {
+    std::map<RawAccess::OperandSite, const RecoveredField*> grouped;
+    for (const auto& field : fields) {
+        for (const auto& site : field.operand_sites) {
+            auto [position, inserted] = grouped.emplace(site, &field);
+            if (!inserted && field.first_seen < position->second->first_seen)
+                position->second = &field;
+        }
+    }
+    std::vector<OperandStructOffsetCandidate> result;
+    result.reserve(grouped.size());
+    for (const auto& [site, field] : grouped)
+        result.push_back({site, field});
+    return result;
+}
+
+ida::Result<bool> recovered_field_matches_member(
+    const std::vector<ida::type::Member>& members,
+    const RecoveredField& field) {
+    if (field.offset < 0 || field.byte_width <= 0
+        || static_cast<std::uint64_t>(field.offset)
+            > std::numeric_limits<std::size_t>::max()) {
+        return false;
+    }
+    const auto offset = static_cast<std::size_t>(field.offset);
+    const auto expected_type = member_type(field.byte_width);
+    if (!expected_type)
+        return std::unexpected(expected_type.error());
+    auto expected_text = expected_type->to_string();
+    if (!expected_text)
+        return std::unexpected(expected_text.error());
+
+    const ida::type::Member* exact = nullptr;
+    for (const auto& member : members) {
+        if (member.bit_offset % 8 != 0 || member.bit_offset / 8 != offset)
+            continue;
+        if (exact != nullptr)
+            return false;
+        exact = &member;
+    }
+    if (exact == nullptr)
+        return false;
+    auto actual_text = exact->type.to_string();
+    if (!actual_text)
+        return std::unexpected(actual_text.error());
+    return *actual_text == *expected_text;
+}
+
+struct MachineOperandSelection {
+    int operand_index{0};
+    std::uint64_t encoded_displacement{0};
+    int signed_byte_width{0};
+};
+
+std::optional<MachineOperandSelection>
+find_struct_offset_operand(const ida::instruction::Instruction& instruction,
+                           int processor_register_id) {
+    const auto& operands = instruction.operands();
+    for (std::size_t index = 0; index < operands.size(); ++index) {
+        const auto& operand = operands[index];
+        if ((operand.type() == ida::instruction::OperandType::MemoryPhrase
+             || operand.type()
+                 == ida::instruction::OperandType::MemoryDisplacement)
+            && static_cast<int>(operand.register_id()) == processor_register_id) {
+            const auto displacement = operand.type()
+                    == ida::instruction::OperandType::MemoryDisplacement
+                ? operand.target_address()
+                : std::uint64_t{0};
+            return MachineOperandSelection{
+                operand.index(), displacement, 4};
+        }
+        if (operand.type() == ida::instruction::OperandType::Immediate
+            && index > 0
+            && operands[index - 1].type()
+                == ida::instruction::OperandType::Register
+            && static_cast<int>(operands[index - 1].register_id())
+                == processor_register_id
+            && operand.byte_width() > 0) {
+            return MachineOperandSelection{
+                operand.index(), operand.value(), operand.byte_width()};
+        }
+    }
+    return std::nullopt;
+}
+
+ida::Status ensure_recovered_operand_struct_offsets(
+    const ida::type::TypeInfo& structure,
+    std::string_view structure_name,
+    const std::vector<RecoveredField>& fields,
+    std::size_t& candidates,
+    std::size_t& added,
+    std::size_t& reused,
+    std::size_t& skipped) {
+    auto members = structure.members();
+    if (!members)
+        return std::unexpected(members.error());
+    const auto selected = operand_struct_offset_candidates(fields);
+    candidates += selected.size();
+    for (const auto& candidate : selected) {
+        auto compatible = recovered_field_matches_member(*members, *candidate.field);
+        if (!compatible)
+            return std::unexpected(compatible.error());
+        if (!*compatible) {
+            ++skipped;
+            continue;
+        }
+        auto decoded = ida::instruction::decode(candidate.site.address);
+        if (!decoded) {
+            ++skipped;
+            continue;
+        }
+        const auto operand = find_struct_offset_operand(
+            *decoded, candidate.site.processor_register_id);
+        if (!operand) {
+            ++skipped;
+            continue;
+        }
+        const std::uint64_t difference =
+            static_cast<std::uint64_t>(candidate.field->offset)
+            - operand->encoded_displacement;
+        const std::int64_t delta = signed_to_width(
+            difference, operand->signed_byte_width);
+        auto created = ida::instruction::ensure_operand_struct_member_offset(
+            candidate.site.address,
+            operand->operand_index,
+            structure_name,
+            static_cast<std::size_t>(candidate.field->offset),
+            delta);
+        if (!created) {
+            if (created.error().category == ida::ErrorCategory::Conflict) {
+                ++skipped;
+                continue;
+            }
+            return std::unexpected(created.error());
+        }
+        if (*created)
+            ++added;
+        else
+            ++reused;
+    }
+    return ida::ok();
+}
+
 ida::Result<ArgumentEligibility> argument_eligibility(
     const ida::type::TypeInfo& argument_type,
     std::string_view structure_name,
@@ -2367,6 +2637,14 @@ ida::Result<ApplySummary> apply_reconstruction(
         summary.member_references_skipped);
     if (!member_references)
         return std::unexpected(member_references.error());
+    auto operand_offsets = ensure_recovered_operand_struct_offsets(
+        *structure, structure_name, reconstruction.fields,
+        summary.operand_struct_offset_candidates,
+        summary.operand_struct_offsets_added,
+        summary.operand_struct_offsets_reused,
+        summary.operand_struct_offsets_skipped);
+    if (!operand_offsets)
+        return std::unexpected(operand_offsets.error());
     const auto pointer = ida::type::TypeInfo::pointer_to(*structure);
 
     for (const auto& site : reconstruction.propagation_sites) {
@@ -2575,9 +2853,10 @@ ida::Result<AllocatorApplySummary> apply_allocator_discovery(
             continue;
         }
         ApplySummary structure_summary;
+        const auto structure_name = allocation_structure_name(
+            structure_prefix, reconstruction.root.call_address);
         auto structure = ensure_structure(
-            allocation_structure_name(structure_prefix,
-                                      reconstruction.root.call_address),
+            structure_name,
             reconstruction.fields,
             structure_summary);
         if (!structure)
@@ -2596,6 +2875,14 @@ ida::Result<AllocatorApplySummary> apply_allocator_discovery(
             summary.member_references_skipped);
         if (!member_references)
             return std::unexpected(member_references.error());
+        auto operand_offsets = ensure_recovered_operand_struct_offsets(
+            *structure, structure_name, reconstruction.fields,
+            summary.operand_struct_offset_candidates,
+            summary.operand_struct_offsets_added,
+            summary.operand_struct_offsets_reused,
+            summary.operand_struct_offsets_skipped);
+        if (!operand_offsets)
+            return std::unexpected(operand_offsets.error());
     }
     std::set<ResolvedAllocator> allocators(
         discovery.seeds.begin(), discovery.seeds.end());
@@ -2962,6 +3249,14 @@ ida::Result<VtableApplySummary> apply_vtable_discovery(
             summary.member_references_skipped);
         if (!member_references)
             return std::unexpected(member_references.error());
+        auto operand_offsets = ensure_recovered_operand_struct_offsets(
+            *class_type, class_name, candidate.fields,
+            summary.operand_struct_offset_candidates,
+            summary.operand_struct_offsets_added,
+            summary.operand_struct_offsets_reused,
+            summary.operand_struct_offsets_skipped);
+        if (!operand_offsets)
+            return std::unexpected(operand_offsets.error());
         const auto class_pointer = ida::type::TypeInfo::pointer_to(*class_type);
         std::set<ida::Address> prototypes(candidate.constructors.begin(),
                                           candidate.constructors.end());
@@ -3005,7 +3300,8 @@ std::string report_text(const Reconstruction& reconstruction,
         "Recovered fields: %zu\nUnsupported instructions: %zu\n"
         "Negative accesses: %zu\nConflict discards: %zu\n"
         "Propagation sites: %zu\nReturn sites: %zu\n"
-        "Member-reference candidates: %zu\n",
+        "Member-reference candidates: %zu\n"
+        "Operand struct-offset candidates: %zu\n",
         static_cast<unsigned long long>(reconstruction.function_address),
         reconstruction.argument_index,
         reconstruction.argument_name.c_str(),
@@ -3026,7 +3322,8 @@ std::string report_text(const Reconstruction& reconstruction,
         reconstruction.conflict_discards,
         reconstruction.propagation_sites.size(),
         reconstruction.return_sites.size(),
-        member_reference_candidate_count(reconstruction.fields));
+        member_reference_candidate_count(reconstruction.fields),
+        operand_struct_offset_candidates(reconstruction.fields).size());
     for (const auto& site : reconstruction.propagation_sites) {
         report += format("  argument 0x%llx[%zu] name=%s shift=%+lld\n",
                          static_cast<unsigned long long>(site.function_address),
@@ -3053,6 +3350,10 @@ std::string report_text(const Reconstruction& reconstruction,
             "Member references added: %zu\n"
             "Member references reused: %zu\n"
             "Member references skipped: %zu\n"
+            "Operand struct-offset candidates: %zu\n"
+            "Operand struct offsets added: %zu\n"
+            "Operand struct offsets reused: %zu\n"
+            "Operand struct offsets skipped: %zu\n"
             "Argument changed: %s\nArgument already typed: %s\n"
             "Arguments changed: %zu\nArguments already typed: %zu\n"
             "Arguments shifted/changed: %zu\n"
@@ -3071,6 +3372,10 @@ std::string report_text(const Reconstruction& reconstruction,
             applied->member_references_added,
             applied->member_references_reused,
             applied->member_references_skipped,
+            applied->operand_struct_offset_candidates,
+            applied->operand_struct_offsets_added,
+            applied->operand_struct_offsets_reused,
+            applied->operand_struct_offsets_skipped,
             applied->argument_changed ? "yes" : "no",
             applied->argument_already_typed ? "yes" : "no",
             applied->arguments_changed,
@@ -3126,12 +3431,17 @@ std::string allocator_report_text(
         discovery.unclassified_calls,
         discovery.duplicate_heirs);
     std::size_t reference_candidates = 0;
+    std::size_t operand_offset_candidates = 0;
     for (const auto& reconstruction : analysis.reconstructions) {
         reference_candidates += member_reference_candidate_count(
             reconstruction.fields);
+        operand_offset_candidates += operand_struct_offset_candidates(
+            reconstruction.fields).size();
     }
-    report += format("Member-reference candidates: %zu\n",
-                     reference_candidates);
+    report += format(
+        "Member-reference candidates: %zu\n"
+        "Operand struct-offset candidates: %zu\n",
+        reference_candidates, operand_offset_candidates);
     for (const auto& wrapper : discovery.wrappers) {
         report += format(
             "  wrapper function=0x%llx source_call=0x%llx kind=%s size_index=%zu\n",
@@ -3175,6 +3485,10 @@ std::string allocator_report_text(
             "Member-reference candidates: %zu\n"
             "Member references added: %zu\nMember references reused: %zu\n"
             "Member references skipped: %zu\n"
+            "Operand struct-offset candidates: %zu\n"
+            "Operand struct offsets added: %zu\n"
+            "Operand struct offsets reused: %zu\n"
+            "Operand struct offsets skipped: %zu\n"
             "Prototypes changed: %zu\nPrototypes already typed: %zu\n"
             "Prototypes ineligible: %zu\n",
             applied->structures_created,
@@ -3187,6 +3501,10 @@ std::string allocator_report_text(
             applied->member_references_added,
             applied->member_references_reused,
             applied->member_references_skipped,
+            applied->operand_struct_offset_candidates,
+            applied->operand_struct_offsets_added,
+            applied->operand_struct_offsets_reused,
+            applied->operand_struct_offsets_skipped,
             applied->prototypes_changed,
             applied->prototypes_already_typed,
             applied->prototypes_ineligible);
@@ -3222,10 +3540,17 @@ std::string vtable_report_text(
         discovery.ambiguous_constructors.size(),
         discovery.secondary_stores.size());
     std::size_t reference_candidates = 0;
+    std::size_t operand_offset_candidates = 0;
     for (const auto& candidate : discovery.classes)
         reference_candidates += member_reference_candidate_count(candidate.fields);
-    report += format("Member-reference candidates: %zu\n",
-                     reference_candidates);
+    for (const auto& candidate : discovery.classes) {
+        operand_offset_candidates += operand_struct_offset_candidates(
+            candidate.fields).size();
+    }
+    report += format(
+        "Member-reference candidates: %zu\n"
+        "Operand struct-offset candidates: %zu\n",
+        reference_candidates, operand_offset_candidates);
     for (const auto& candidate : discovery.classes) {
         report += format(
             "  class vtable=0x%llx methods=%zu constructors=%zu fields=%zu "
@@ -3276,7 +3601,12 @@ std::string vtable_report_text(
             "Class members added: %zu\nClass members reused: %zu\n"
             "Members skipped: %zu\nMember-reference candidates: %zu\n"
             "Member references added: %zu\nMember references reused: %zu\n"
-            "Member references skipped: %zu\nPrototypes changed: %zu\n"
+            "Member references skipped: %zu\n"
+            "Operand struct-offset candidates: %zu\n"
+            "Operand struct offsets added: %zu\n"
+            "Operand struct offsets reused: %zu\n"
+            "Operand struct offsets skipped: %zu\n"
+            "Prototypes changed: %zu\n"
             "Prototypes already typed: %zu\nPrototypes ineligible: %zu\n"
             "Vtables applied: %zu\n",
             applied->vtable_types_created,
@@ -3294,6 +3624,10 @@ std::string vtable_report_text(
             applied->member_references_added,
             applied->member_references_reused,
             applied->member_references_skipped,
+            applied->operand_struct_offset_candidates,
+            applied->operand_struct_offsets_added,
+            applied->operand_struct_offsets_reused,
+            applied->operand_struct_offsets_skipped,
             applied->prototypes_changed,
             applied->prototypes_already_typed,
             applied->prototypes_ineligible,

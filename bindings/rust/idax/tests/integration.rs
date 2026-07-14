@@ -545,6 +545,98 @@ fn instruction_operand_enum_roundtrip() {
     );
 }
 
+fn instruction_operand_struct_offset_roundtrip() {
+    require_db!();
+    let structure = types::TypeInfo::create_struct();
+    structure
+        .add_member("first", &types::TypeInfo::uint32(), 0)
+        .unwrap();
+    structure
+        .add_member("second", &types::TypeInfo::uint32(), 4)
+        .unwrap();
+    structure
+        .save_as("idax_rust_operand_struct_offset")
+        .unwrap();
+
+    let candidate = function::all().find_map(|function| {
+        function::code_addresses(function.start())
+            .ok()?
+            .into_iter()
+            .find_map(|address| {
+                let decoded = instruction::decode(address).ok()?;
+                decoded
+                    .operands()
+                    .iter()
+                    .find(|operand| operand.is_immediate())
+                    .map(|operand| (address, operand.index()))
+            })
+    });
+    let Some((address, index)) = candidate else {
+        eprintln!("  [skipped — no immediate operand]");
+        return;
+    };
+
+    instruction::clear_operand_representation(address, index).unwrap();
+    instruction::set_operand_decimal(address, index).unwrap();
+    let before = instruction::operand_text(address, index).unwrap();
+    assert_eq!(
+        instruction::ensure_operand_struct_member_offset(
+            address,
+            index,
+            "idax_rust_operand_struct_offset",
+            4,
+            -4,
+        )
+        .unwrap_err()
+        .category,
+        ErrorCategory::Conflict
+    );
+    assert_eq!(instruction::operand_text(address, index).unwrap(), before);
+    instruction::clear_operand_representation(address, index).unwrap();
+
+    assert!(
+        instruction::ensure_operand_struct_member_offset(
+            address,
+            index,
+            "idax_rust_operand_struct_offset",
+            4,
+            -4,
+        )
+        .unwrap()
+    );
+    let path = instruction::operand_struct_offset_path(address, index).unwrap();
+    assert_eq!(path.structure_name, "idax_rust_operand_struct_offset");
+    assert_eq!(path.member_names, vec!["second"]);
+    assert_eq!(path.delta, -4);
+    assert_eq!(
+        instruction::operand_struct_offset_path_names(address, index).unwrap(),
+        vec!["idax_rust_operand_struct_offset", "second"]
+    );
+    assert!(
+        !instruction::ensure_operand_struct_member_offset(
+            address,
+            index,
+            "idax_rust_operand_struct_offset",
+            4,
+            -4,
+        )
+        .unwrap()
+    );
+    assert_eq!(
+        instruction::ensure_operand_struct_member_offset(
+            address,
+            index,
+            "idax_rust_operand_struct_offset",
+            0,
+            -4,
+        )
+        .unwrap_err()
+        .category,
+        ErrorCategory::Conflict
+    );
+    instruction::clear_operand_representation(address, index).unwrap();
+}
+
 fn instruction_classification() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -1923,6 +2015,21 @@ fn decompiler_owned_microcode_graph() {
         .map(|instruction| instruction.text.clone())
         .expect("owned graph should contain an addressed textual instruction");
 
+    for operand in graph
+        .blocks
+        .iter()
+        .flat_map(|block| &block.instructions)
+        .flat_map(|instruction| {
+            [
+                &instruction.left,
+                &instruction.right,
+                &instruction.destination,
+            ]
+        })
+    {
+        let _ = operand.processor_register_id;
+    }
+
     let second = decompiler::generate_microcode(f.start(), options).unwrap();
     assert!(!second.blocks.is_empty());
     assert!(
@@ -2344,6 +2451,10 @@ static TEST_CASES: &[TestCase] = &[
     (
         "instruction_operand_enum_roundtrip",
         instruction_operand_enum_roundtrip,
+    ),
+    (
+        "instruction_operand_struct_offset_roundtrip",
+        instruction_operand_struct_offset_roundtrip,
     ),
     ("instruction_classification", instruction_classification),
     ("instruction_code_refs", instruction_code_refs),

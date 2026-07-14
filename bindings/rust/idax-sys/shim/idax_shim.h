@@ -403,14 +403,14 @@ int idax_instruction_operand_enum(uint64_t ea, int n,
 int idax_instruction_set_operand_struct_offset_by_name(uint64_t ea, int n,
                                                        const char* structure_name,
                                                        int64_t delta);
-int idax_instruction_set_operand_struct_offset_by_id(uint64_t ea, int n,
-                                                     uint64_t structure_id,
-                                                     int64_t delta);
+int idax_instruction_ensure_operand_struct_member_offset(
+    uint64_t ea, int n, const char* structure_name,
+    size_t member_byte_offset, int64_t delta, int* out_added);
 int idax_instruction_set_operand_based_struct_offset(uint64_t ea, int n,
                                                      uint64_t operand_value,
                                                      uint64_t base);
 int idax_instruction_operand_struct_offset_path(uint64_t ea, int n,
-                                                uint64_t** out_ids,
+                                                char*** out_names,
                                                 size_t* out_count,
                                                 int64_t* out_delta);
 int idax_instruction_operand_struct_offset_path_names(uint64_t ea, int n,
@@ -1782,6 +1782,7 @@ typedef struct IdaxMicrocodeOperand {
     int64_t stack_offset;
     char* helper_name;
     int block_index;
+    int processor_register_id;
     struct IdaxMicrocodeInstruction* nested_instruction;
     uint64_t unsigned_immediate;
     int64_t signed_immediate;

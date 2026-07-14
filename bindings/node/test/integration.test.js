@@ -296,6 +296,82 @@ describe('Instructions', () => {
         }
     });
 
+    it('should apply an opaque exact-member struct-offset path idempotently', () => {
+        const structure = idax.type.createStruct();
+        structure.addMember('first', idax.type.uint32(), 0);
+        structure.addMember('second', idax.type.uint32(), 4);
+        structure.saveAs('idax_node_operand_struct_offset');
+
+        let candidate = null;
+        for (const func of idax.function.all()) {
+            for (const address of idax.function.codeAddresses(func.start)) {
+                const decoded = idax.instruction.decode(address);
+                const operand = decoded.operands.find(value => value.type === 'immediate');
+                if (operand) {
+                    candidate = { address, index: operand.index };
+                    break;
+                }
+            }
+            if (candidate) break;
+        }
+        if (!candidate) return;
+
+        idax.instruction.clearOperandRepresentation(candidate.address, candidate.index);
+        try {
+            idax.instruction.setOperandDecimal(candidate.address, candidate.index);
+            const before = idax.instruction.operandText(
+                candidate.address, candidate.index);
+            expect(() => idax.instruction.ensureOperandStructMemberOffset(
+                candidate.address,
+                candidate.index,
+                'idax_node_operand_struct_offset',
+                4,
+                -4,
+            )).toThrow();
+            expect(idax.instruction.operandText(
+                candidate.address, candidate.index)).toBe(before);
+            idax.instruction.clearOperandRepresentation(
+                candidate.address, candidate.index);
+
+            expect(idax.instruction.ensureOperandStructMemberOffset(
+                candidate.address,
+                candidate.index,
+                'idax_node_operand_struct_offset',
+                4,
+                -4,
+            )).toBe(true);
+            const path = idax.instruction.operandStructOffsetPath(
+                candidate.address, candidate.index);
+            expect(path.structureName).toBe('idax_node_operand_struct_offset');
+            expect(path.memberNames.length).toBe(1);
+            expect(path.memberNames[0]).toBe('second');
+            expect(path.delta).toBe(-4n);
+            const names = idax.instruction.operandStructOffsetPathNames(
+                candidate.address, candidate.index);
+            expect(names.length).toBe(2);
+            expect(names[0]).toBe('idax_node_operand_struct_offset');
+            expect(names[1]).toBe('second');
+            expect(idax.instruction.ensureOperandStructMemberOffset(
+                candidate.address,
+                candidate.index,
+                'idax_node_operand_struct_offset',
+                4,
+                -4,
+            )).toBe(false);
+            expect(() => idax.instruction.ensureOperandStructMemberOffset(
+                candidate.address,
+                candidate.index,
+                'idax_node_operand_struct_offset',
+                0,
+                -4,
+            )).toThrow();
+            expect(() => idax.instruction.setOperandStructOffset(
+                candidate.address, candidate.index, 1234n)).toThrow();
+        } finally {
+            idax.instruction.clearOperandRepresentation(candidate.address, candidate.index);
+        }
+    });
+
     it('should get instruction text', () => {
         const funcs = idax.function.all();
         const text = idax.instruction.text(funcs[0].start);
@@ -1254,6 +1330,9 @@ describe('Decompiler', () => {
         expect(typeof instructions[0].address).toBe('bigint');
         expect(typeof instructions[0].text).toBe('string');
         expect(typeof instructions[0].left.text).toBe('string');
+        expect(typeof instructions[0].left.processorRegisterId).toBe('number');
+        expect(typeof instructions[0].right.processorRegisterId).toBe('number');
+        expect(typeof instructions[0].destination.processorRegisterId).toBe('number');
         expect(Array.isArray(instructions[0].left.callArguments)).toBe(true);
 
         expect(() => idax.decompiler.generateMicrocode(

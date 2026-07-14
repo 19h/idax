@@ -352,7 +352,8 @@ void check_instruction_surface() {
     (void)ida::instruction::RegisterCategory::Mask;
 
     ida::instruction::StructOffsetPath stroff_path;
-    (void)stroff_path.structure_ids;
+    (void)stroff_path.structure_name;
+    (void)stroff_path.member_names;
     (void)stroff_path.delta;
     ida::instruction::OperandEnum operand_enum;
     (void)operand_enum.name;
@@ -370,10 +371,12 @@ void check_instruction_surface() {
                                                                       int,
                                                                       std::string_view,
                                                                       ida::AddressDelta);
-    using InstructionSetOperandStructOffsetByIdFn = ida::Status(*)(ida::Address,
-                                                                    int,
-                                                                    std::uint64_t,
-                                                                    ida::AddressDelta);
+    using InstructionEnsureOperandStructMemberOffsetFn = ida::Result<bool>(*)(
+        ida::Address,
+        int,
+        std::string_view,
+        std::size_t,
+        ida::AddressDelta);
     using InstructionSetOperandBasedStructOffsetFn = ida::Status(*)(ida::Address,
                                                                      int,
                                                                      ida::Address,
@@ -399,8 +402,8 @@ void check_instruction_surface() {
     (void)static_cast<InstructionOperandEnumFn>(&ida::instruction::operand_enum);
     (void)static_cast<InstructionSetOperandStructOffsetByNameFn>(
         &ida::instruction::set_operand_struct_offset);
-    (void)static_cast<InstructionSetOperandStructOffsetByIdFn>(
-        &ida::instruction::set_operand_struct_offset);
+    (void)static_cast<InstructionEnsureOperandStructMemberOffsetFn>(
+        &ida::instruction::ensure_operand_struct_member_offset);
     (void)static_cast<InstructionSetOperandBasedStructOffsetFn>(
         &ida::instruction::set_operand_based_struct_offset);
     (void)static_cast<InstructionStructOffsetPathFn>(
@@ -1910,6 +1913,7 @@ void check_decompiler_surface() {
     ida::decompiler::MicrocodeOperand typed_operand;
     (void)typed_operand.kind;
     (void)typed_operand.register_id;
+    (void)typed_operand.processor_register_id;
     (void)typed_operand.local_variable_index;
     (void)typed_operand.local_variable_offset;
     (void)typed_operand.second_register_id;

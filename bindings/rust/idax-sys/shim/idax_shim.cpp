@@ -1598,15 +1598,21 @@ int idax_instruction_set_operand_struct_offset_by_name(uint64_t ea,
         delta));
 }
 
-int idax_instruction_set_operand_struct_offset_by_id(uint64_t ea,
-                                                     int n,
-                                                     uint64_t structure_id,
-                                                     int64_t delta) {
-    RETURN_STATUS(ida::instruction::set_operand_struct_offset(
-        ea,
-        n,
-        structure_id,
-        delta));
+int idax_instruction_ensure_operand_struct_member_offset(
+    uint64_t ea,
+    int n,
+    const char* structure_name,
+    size_t member_byte_offset,
+    int64_t delta,
+    int* out_added) {
+    clear_error();
+    if (structure_name == nullptr || out_added == nullptr)
+        return fail(ida::Error::validation("Input or output pointer is null"));
+    auto result = ida::instruction::ensure_operand_struct_member_offset(
+        ea, n, structure_name, member_byte_offset, delta);
+    if (!result) return fail(result.error());
+    *out_added = *result ? 1 : 0;
+    return 0;
 }
 
 int idax_instruction_set_operand_based_struct_offset(uint64_t ea,
@@ -1622,27 +1628,23 @@ int idax_instruction_set_operand_based_struct_offset(uint64_t ea,
 
 int idax_instruction_operand_struct_offset_path(uint64_t ea,
                                                 int n,
-                                                uint64_t** out_ids,
+                                                char*** out_names,
                                                 size_t* out_count,
                                                 int64_t* out_delta) {
     clear_error();
+    if (out_names == nullptr || out_count == nullptr || out_delta == nullptr)
+        return fail(ida::Error::validation("Output pointer is null"));
+    *out_names = nullptr;
+    *out_count = 0;
+    *out_delta = 0;
     auto r = ida::instruction::operand_struct_offset_path(ea, n);
     if (!r) return fail(r.error());
-    *out_count = r->structure_ids.size();
     *out_delta = r->delta;
-    if (r->structure_ids.empty()) {
-        *out_ids = nullptr;
-        return 0;
-    }
-    *out_ids = static_cast<uint64_t*>(
-        std::malloc(r->structure_ids.size() * sizeof(uint64_t)));
-    if (*out_ids == nullptr) {
-        return fail(ida::Error::internal("malloc failed"));
-    }
-    std::memcpy(*out_ids,
-                r->structure_ids.data(),
-                r->structure_ids.size() * sizeof(uint64_t));
-    return 0;
+    std::vector<std::string> names;
+    names.reserve(1 + r->member_names.size());
+    names.push_back(r->structure_name);
+    names.insert(names.end(), r->member_names.begin(), r->member_names.end());
+    return fill_string_array(names, out_names, out_count);
 }
 
 int idax_instruction_operand_struct_offset_path_names(uint64_t ea,
@@ -6793,6 +6795,7 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
     out->stack_offset = operand.stack_offset;
     out->helper_name = dup_string(operand.helper_name);
     out->block_index = operand.block_index;
+    out->processor_register_id = operand.processor_register_id;
     out->unsigned_immediate = operand.unsigned_immediate;
     out->signed_immediate = operand.signed_immediate;
     out->byte_width = operand.byte_width;

@@ -57,11 +57,12 @@ enum class RegisterCategory {
 
 /// Structured representation of an operand struct-offset path.
 ///
-/// A path may contain nested structure/union ids. The `delta` field matches
-/// SDK `get_stroff_path()` semantics.
+/// Native type/member identities remain private. `member_names` preserves the
+/// ordered member-selection components after the named root structure.
 struct StructOffsetPath {
-    std::vector<std::uint64_t> structure_ids;
-    AddressDelta               delta{0};
+    std::string              structure_name;
+    std::vector<std::string> member_names;
+    AddressDelta             delta{0};
 };
 
 /// Copied metadata for a named enum operand representation.
@@ -199,13 +200,18 @@ Status set_operand_struct_offset(Address address,
                                  std::string_view structure_name,
                                  AddressDelta delta = 0);
 
-/// Set operand to display as a structure member offset by structure id.
+/// Idempotently set an operand to one exact saved-local structure member.
 ///
-/// `structure_id` is a raw SDK structure id (`tid_t`).
-Status set_operand_struct_offset(Address address,
-                                 int n,
-                                 std::uint64_t structure_id,
-                                 AddressDelta delta = 0);
+/// The member is selected by exact byte offset; all native type/member
+/// identities remain private. Returns true when the path was newly applied,
+/// false when the same path and delta were already present, and Conflict when
+/// an incompatible struct-offset path is already present.
+Result<bool> ensure_operand_struct_member_offset(
+    Address address,
+    int n,
+    std::string_view structure_name,
+    std::size_t member_byte_offset,
+    AddressDelta delta = 0);
 
 /// Set operand representation as a structure offset using an explicit base.
 ///
@@ -223,7 +229,7 @@ Result<StructOffsetPath> operand_struct_offset_path(Address address, int n);
 
 /// Read struct-offset path metadata as resolved type names.
 ///
-/// Name lookup falls back to `tid_<id>` for unresolved entries.
+/// The first entry is the root structure followed by ordered member names.
 Result<std::vector<std::string>> operand_struct_offset_path_names(Address address, int n);
 
 /// Set operand to display as a stack variable.

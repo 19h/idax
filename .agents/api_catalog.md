@@ -229,4 +229,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `TypeInfo::ensure_member_reference(byte_offset, source_address)` creates `dr_I | XREF_USER` without exposing the member TID and returns whether a new reference was added.
 - Exact offset uniqueness, stable local identity, item-head source validation, incompatible-reference rejection, and C++/Node/Rust parity.
 
+### 17.27 Opaque Exact Operand Struct-Offset Paths
+- `StructOffsetPath` copies the root structure name, ordered selected member names, and signed delta; no native type/member ID crosses the public boundary.
+- `ensure_operand_struct_member_offset(address, operand_index, structure_name, member_byte_offset, delta)` applies one exact `[root, member]` path idempotently and conflict-safely.
+- `MicrocodeOperand::processor_register_id` carries the owned processor-register identity derived from a register microoperand and its width, enabling exact source-audited machine-operand correlation.
+- C++/Node/Rust parity includes copied path readback, exact added/reused state, signed deltas, and unavailable-register sentinel `-1`.
+
 ---

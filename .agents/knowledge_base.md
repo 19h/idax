@@ -1559,3 +1559,49 @@ ECMAScript `BigInt` is not JSON-serializable. Because Node `Address` values are
 length and compare each element with strict equality. A serialization exception
 in this context is a harness failure, not evidence that the native address
 transfer or wrapper result is invalid.
+
+### 35.84. Keep Multi-Component Struct-Offset Identities Inside the Instruction Boundary [F428]
+
+- SDK struct-offset paths are semantic sequences: the first component identifies the root UDT and subsequent components identify selected UDT members; their native numeric values are database implementation identities, not portable public addresses.
+- Resolve readback to copied `structure_name` plus ordered `member_names` with `get_tid_name` and `get_udm_by_tid`. Treat any unresolved component as an error; never synthesize a `tid_<number>` public fallback.
+- Apply an exact member path by public structure name and member byte offset. Internally require a complete saved local UDT, exactly one member at `byte_offset * 8`, a stable member identity, and an existing-path preflight. Return added/reused state and reject incompatible paths before mutation.
+- Preserve Symless operand selection by copying `mreg2reg(mreg, byte_width)` into each owned register microcode operand. At a recorded access, match that processor register against a phrase/displacement base or the register immediately preceding an immediate; compute the delta using the upstream operand-width signed modular conversion.
+- Group by `(instruction address, processor register)` and retain first-observation order. Apply one stroff for the first recovered field; represent other fields at that instruction through exact member references.
+- Falsification probes: root-only, exact two-component, unresolved member, ambiguous exact-offset member, unsaved/forward/sub-TIL UDT, incompatible pre-existing path, repeated apply, fresh-process reopen, signed negative delta, phrase/displacement/immediate selection, same-instruction multiple fields, and processor-register conversion failure.
+
+### 35.85. Separate Pointer-Arithmetic Operand Evidence from Recovered Fields [F429]
+
+- Symless emits a size-zero access observation when a tracked structure pointer is shifted by an integer in microcode `add`/`sub`. Its location is the source register operand and its target offset is the shifted structure value.
+- This observation is semantic evidence for selecting a matching machine operand, not a UDT field. Do not insert it into width-conflict resolution or create a zero-width member.
+- Capture `(target byte offset, instruction address, processor-register ID)` only when the source microcode operand is a register whose `mreg2reg` conversion succeeded. After ordinary nonzero accesses are resolved, attach each observation to an exact recovered field offset.
+- Keep direct register-backed `ldx`/`stx` evidence as an additional valid source; nested address expressions require the pointer-arithmetic path.
+- Falsification probes: nested load address with register-plus-immediate precursor, subtract shift, unavailable processor-register mapping, unmatched shifted offset, duplicate observation, absence of an extra field, exact candidate count, and live operand-path readback.
+
+### 35.86. Treat Reopen Reuse as the Persistence Contract for Opaque Operand Paths [F430]
+
+- A successful mutation is insufficient evidence: rerun apply in a distinct initialized process and require every candidate to classify as an exact reuse through copied `structure_name`, ordered `member_names`, and `delta` readback.
+- On the arm64 forward-structure fixture, three recovered fields produce three candidates and three two-component paths. First apply adds all three; reopen adds zero and reuses all three, with no zero-width member.
+- The same reopen must retain Phase 43 member references and field layout, because the operand path is supplemental semantic metadata rather than a replacement for exact member references.
+- Falsification probes: missing member-name resolution, numeric fallback, delta drift, root-only readback, additional field creation, changed executable hash, reopen additions, or any reuse count below the candidate count.
+
+### 35.87. Preflight Operand Representation Flags Independently of Strooff Path Readback [F431]
+
+- `get_stroff_path()` answers only whether a struct-offset path can be read. It does not prove that the operand has no user-defined representation.
+- After an absent path, inspect `get_flags(address)` with arbitrary-operand `is_defarg(flags, n)`. If true, return `Conflict` without calling `op_stroff`; this preserves enum, offset, numeric, character, stack-variable, forced, floating, segment, and custom representations.
+- If `is_stroff(flags, n)` is true but `get_stroff_path()` returns no components, surface an SDK/readback failure rather than treating the operand as unformatted.
+- Falsification probes: pristine operand apply, exact stroff reuse, incompatible stroff conflict, enum/ordinary-offset preservation, corrupt stroff-flag/path disagreement, and no mutation on every preflight failure.
+
+### 35.88. Make Opaque Struct-Offset Readback Name-Total and Exact Apply Failure-Atomic [F432]
+
+- A successfully resolved native member identity with an empty member name is not a valid copied-name path component. Return `NotFound` rather than publishing an empty placeholder or numeric fallback.
+- Validate address and operand index before `get_stroff_path()`, `get_flags()`, or other native queries.
+- Exact ensure reaches `op_stroff` only from a pristine operand. On a false SDK return or mismatched readback, clear the attempted operand representation and return an error; this restores the known pre-state.
+- Falsification probes: bad address, negative/out-of-range index, anonymous member component, SDK false return, readback mismatch, pristine state after failure, exact reuse, and no numeric identity in any error/result value.
+
+### 35.89. Validate Exact Operand Paths at Four Independent Boundaries [F433]
+
+- Core boundary: exact root/member/delta readback, repeated false, incompatible stroff conflict, defined non-stroff preservation, bad-input rejection, and post-apply verification.
+- Binding boundary: C++/Node/Rust signatures contain copied names and checked offsets only; generated C ABI contains no raw-ID setter or numeric path transfer and remains byte-identical to checked bindings.
+- Analysis boundary: pointer add/sub size-zero observations yield candidates without creating fields; grouping selects one source-ordered field per `(instruction, processor register)`.
+- Persistence boundary: report is non-mutating, first apply adds every eligible path, and a distinct process reuses every path with zero additions while retaining fields and member references.
+- Phase 44 evidence: C++ 26/26; Node 238/238 structural and 82/82 live; Rust 139/139 library, 14/14 Symless, and 99/99 live; final fresh fixture 3 candidates -> 3 additions -> 3 reuses.

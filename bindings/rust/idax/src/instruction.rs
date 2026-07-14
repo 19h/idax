@@ -79,7 +79,8 @@ fn register_category_from_i32(value: i32) -> Result<RegisterCategory> {
 /// Structured representation of an operand struct-offset path.
 #[derive(Debug, Clone)]
 pub struct StructOffsetPath {
-    pub structure_ids: Vec<u64>,
+    pub structure_name: String,
+    pub member_names: Vec<String>,
     pub delta: AddressDelta,
 }
 
@@ -410,17 +411,33 @@ pub fn set_operand_struct_offset_by_name(
     error::int_to_status(ret, "set_operand_struct_offset_by_name failed")
 }
 
-/// Set operand as a structure member offset by raw structure id.
-pub fn set_operand_struct_offset_by_id(
+/// Idempotently apply one exact saved-local structure member path.
+pub fn ensure_operand_struct_member_offset(
     address: Address,
     n: i32,
-    structure_id: u64,
+    structure_name: &str,
+    member_byte_offset: usize,
     delta: AddressDelta,
-) -> Status {
+) -> Result<bool> {
+    let structure_name = CString::new(structure_name)
+        .map_err(|_| Error::validation("structure name contains a NUL byte"))?;
+    let mut added = 0;
     let ret = unsafe {
-        idax_sys::idax_instruction_set_operand_struct_offset_by_id(address, n, structure_id, delta)
+        idax_sys::idax_instruction_ensure_operand_struct_member_offset(
+            address,
+            n,
+            structure_name.as_ptr(),
+            member_byte_offset,
+            delta,
+            &mut added,
+        )
     };
-    error::int_to_status(ret, "set_operand_struct_offset_by_id failed")
+    if ret != 0 {
+        return Err(error::consume_last_error(
+            "ensure_operand_struct_member_offset failed",
+        ));
+    }
+    Ok(added != 0)
 }
 
 /// Set operand as a based structure offset.
@@ -439,13 +456,13 @@ pub fn set_operand_based_struct_offset(
 /// Read struct-offset path metadata for an operand.
 pub fn operand_struct_offset_path(address: Address, n: i32) -> Result<StructOffsetPath> {
     unsafe {
-        let mut out_ids: *mut u64 = std::ptr::null_mut();
+        let mut out_names: *mut *mut std::ffi::c_char = std::ptr::null_mut();
         let mut out_count: usize = 0;
         let mut out_delta: AddressDelta = 0;
         let ret = idax_sys::idax_instruction_operand_struct_offset_path(
             address,
             n,
-            &mut out_ids,
+            &mut out_names,
             &mut out_count,
             &mut out_delta,
         );
@@ -454,16 +471,24 @@ pub fn operand_struct_offset_path(address: Address, n: i32) -> Result<StructOffs
                 "operand_struct_offset_path failed",
             ));
         }
-        let structure_ids = if out_ids.is_null() || out_count == 0 {
-            Vec::new()
+        let names_result: Result<Vec<String>> = if out_names.is_null() || out_count == 0 {
+            Err(Error::internal(
+                "operand_struct_offset_path returned no root name",
+            ))
         } else {
-            std::slice::from_raw_parts(out_ids, out_count).to_vec()
+            let raw = std::slice::from_raw_parts(out_names, out_count);
+            raw.iter()
+                .map(|value| error::cstr_to_string(*value, "struct offset path name"))
+                .collect()
         };
-        if !out_ids.is_null() {
-            idax_sys::idax_free_addresses(out_ids);
+        if !out_names.is_null() {
+            idax_sys::idax_instruction_string_array_free(out_names, out_count);
         }
+        let mut names = names_result?;
+        let structure_name = names.remove(0);
         Ok(StructOffsetPath {
-            structure_ids,
+            structure_name,
+            member_names: names,
             delta: out_delta,
         })
     }

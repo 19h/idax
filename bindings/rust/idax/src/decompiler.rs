@@ -229,6 +229,7 @@ impl MicrocodeOperandKind {
 pub struct MicrocodeOperand {
     pub kind: MicrocodeOperandKind,
     pub register_id: i32,
+    pub processor_register_id: i32,
     pub local_variable_index: i32,
     pub local_variable_offset: i64,
     pub second_register_id: i32,
@@ -1893,6 +1894,7 @@ unsafe fn microcode_operand_from_ffi(
     Ok(MicrocodeOperand {
         kind: MicrocodeOperandKind::from_raw(raw.kind),
         register_id: raw.register_id,
+        processor_register_id: raw.processor_register_id,
         local_variable_index: raw.local_variable_index,
         local_variable_offset: raw.local_variable_offset,
         second_register_id: raw.second_register_id,

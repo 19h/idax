@@ -289,6 +289,8 @@ describe('Instruction Namespace Structure', () => {
         'decode', 'create', 'text',
         'setOperandHex', 'setOperandDecimal',
         'setOperandEnum', 'operandEnum',
+        'setOperandStructOffset', 'ensureOperandStructMemberOffset',
+        'operandStructOffsetPath', 'operandStructOffsetPathNames',
         'operandText', 'operandByteWidth',
         'codeRefsFrom', 'dataRefsFrom', 'callTargets',
         'isCall', 'isReturn', 'isJump',
@@ -310,6 +312,10 @@ describe('Instruction Namespace Structure', () => {
         expect(dts).toContain('isWritten: boolean');
         expect(dts).toContain('withFunctionArgumentType(index: number, replacement: TypeInfo): TypeInfo');
         expect(dts).toContain('function operandEnum(address: Address, n?: number): OperandEnum');
+        expect(dts).toContain('structureName: string');
+        expect(dts).toContain('memberNames: string[]');
+        expect(dts).toContain('function ensureOperandStructMemberOffset(');
+        expect(dts).toContain('processorRegisterId: number');
     });
 });
 

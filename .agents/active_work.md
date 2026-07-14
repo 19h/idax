@@ -109,3 +109,17 @@
 - **11.2. Boundary**
   - 11.2.1. **Scope:** Cover only informational references from recovered access instructions to exact generated UDT members, with explicit report/apply separation, deterministic validation, and reopen idempotence. Keep multi-element stroff paths, indirect dynamic calls, RTTI-adjusted vtable chains, and widget selection separate.
   - 11.2.2. **Status:** Complete (P43.2-P43.4; F425-F427; KB 35.81-35.83; decision 19.46). C++ passes 26/26, Node passes 234/234 structural plus 81/81 live checks, and Rust passes 138/138 library, 13/13 Symless, and 98/98 live checks. IDA Professional 9.4 report/apply/fresh-process reopen proves three candidates, three added on first apply, and all three reused with zero additions after reopen. No Phase 43 blocker remains.
+
+---
+
+### 12. Symless Exact Operand Struct-Offset Paths (Phase 44)
+
+- **12.1. Capability Audit**
+  - 12.1.1. **Action:** Compare upstream access-register conversion, machine-operand selection, signed delta calculation, two-component stroff application, and same-instruction multi-field handling with the owned graph/instruction/type surfaces and local IDA 9.3 contracts.
+  - 12.1.2. **Status:** Complete (P44.1; F428; KB 35.84; decision 19.47). The existing wrapper supports only one-component paths and publicly leaks native type/member identities through raw numeric IDs.
+- **12.2. Opaque Path Closure**
+  - 12.2.1. **Action:** Replace raw-ID setters/readback with copied root/member names, add exact member-by-byte-offset idempotent application, copy `mreg2reg` evidence into owned microcode operands, and mirror the result through Node and Rust.
+  - 12.2.2. **Status:** Complete (P44.2; F428-F429; KB 35.84-35.85). Opaque C++/Node/Rust path and processor-register surfaces pass focused structural and live validation.
+- **12.3. Boundary**
+  - 12.3.1. **Scope:** Apply one source-ordered stroff path per unique recovered `(instruction, processor register)` group; retain additional same-instruction fields as Phase 43 member references; preserve incompatible existing operand representations and report every candidate/add/reuse/skip. Keep indirect dynamic calls, RTTI-adjusted vtable chains, and microcode-widget selection separate.
+  - 12.3.2. **Status:** Port integration, real report/apply/reopen evidence, documentation, and complete validation are complete (P44.3; F430-F433; KB 35.86-35.89). P44.4 staged review, commit, and push are active; no Phase 44 blocker.

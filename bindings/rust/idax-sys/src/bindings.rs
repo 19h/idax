@@ -1139,11 +1139,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
-    pub fn idax_instruction_set_operand_struct_offset_by_id(
+    pub fn idax_instruction_ensure_operand_struct_member_offset(
         ea: u64,
         n: ::std::os::raw::c_int,
-        structure_id: u64,
+        structure_name: *const ::std::os::raw::c_char,
+        member_byte_offset: usize,
         delta: i64,
+        out_added: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
@@ -1158,7 +1160,7 @@ unsafe extern "C" {
     pub fn idax_instruction_operand_struct_offset_path(
         ea: u64,
         n: ::std::os::raw::c_int,
-        out_ids: *mut *mut u64,
+        out_names: *mut *mut *mut ::std::os::raw::c_char,
         out_count: *mut usize,
         out_delta: *mut i64,
     ) -> ::std::os::raw::c_int;
@@ -5359,6 +5361,7 @@ pub struct IdaxMicrocodeOperand {
     pub stack_offset: i64,
     pub helper_name: *mut ::std::os::raw::c_char,
     pub block_index: ::std::os::raw::c_int,
+    pub processor_register_id: ::std::os::raw::c_int,
     pub nested_instruction: *mut IdaxMicrocodeInstruction,
     pub unsigned_immediate: u64,
     pub signed_immediate: i64,
@@ -5392,6 +5395,8 @@ const _: () = {
         [::std::mem::offset_of!(IdaxMicrocodeOperand, helper_name) - 48usize];
     ["Offset of field: IdaxMicrocodeOperand::block_index"]
         [::std::mem::offset_of!(IdaxMicrocodeOperand, block_index) - 56usize];
+    ["Offset of field: IdaxMicrocodeOperand::processor_register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, processor_register_id) - 60usize];
     ["Offset of field: IdaxMicrocodeOperand::nested_instruction"]
         [::std::mem::offset_of!(IdaxMicrocodeOperand, nested_instruction) - 64usize];
     ["Offset of field: IdaxMicrocodeOperand::unsigned_immediate"]

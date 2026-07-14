@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <limits>
+#include <optional>
 
 namespace ida::instruction {
 
@@ -128,6 +130,102 @@ Result<insn_t> decode_raw_instruction(Address ea) {
     if (decode_insn(&raw, ea) <= 0)
         return std::unexpected(Error::sdk("decode_insn failed", std::to_string(ea)));
     return raw;
+}
+
+struct ExactStructMemberIdentity {
+    tid_t structure_tid{BADNODE};
+    tid_t member_tid{BADADDR};
+};
+
+Result<ExactStructMemberIdentity>
+resolve_exact_struct_member(std::string_view structure_name,
+                            std::size_t member_byte_offset) {
+    if (structure_name.empty())
+        return std::unexpected(Error::validation("Structure name must not be empty"));
+    if (structure_name.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation(
+            "Structure name must not contain NUL bytes"));
+    if (member_byte_offset > std::numeric_limits<std::uint64_t>::max() / 8)
+        return std::unexpected(Error::validation("Member byte offset is too large"));
+
+    const std::string name(structure_name);
+    tinfo_t type;
+    if (!type.get_named_type(get_idati(), name.c_str()))
+        return std::unexpected(Error::not_found("Structure not found", name));
+    if (!type.is_udt() || type.is_forward_decl())
+        return std::unexpected(Error::validation(
+            "Exact member paths require a complete struct or union", name));
+    if (type.is_from_subtil() || type.get_ordinal() == 0)
+        return std::unexpected(Error::conflict(
+            "Exact member paths require a saved local UDT", name));
+
+    udt_type_data_t details;
+    if (!type.get_udt_details(&details))
+        return std::unexpected(Error::sdk("Failed to get UDT details", name));
+
+    const std::uint64_t bit_offset =
+        static_cast<std::uint64_t>(member_byte_offset) * 8;
+    std::optional<std::size_t> member_index;
+    for (std::size_t index = 0; index < details.size(); ++index) {
+        if (details[index].offset != bit_offset)
+            continue;
+        if (member_index) {
+            return std::unexpected(Error::conflict(
+                "Member byte offset is ambiguous",
+                name + ":" + std::to_string(member_byte_offset)));
+        }
+        member_index = index;
+    }
+    if (!member_index) {
+        return std::unexpected(Error::not_found(
+            "No exact UDT member at byte offset",
+            name + ":" + std::to_string(member_byte_offset)));
+    }
+
+    const tid_t structure_tid = get_named_type_tid(name.c_str());
+    if (structure_tid == BADNODE || structure_tid == BADADDR)
+        return std::unexpected(Error::conflict(
+            "Structure has no stable database identity", name));
+    const tid_t member_tid = type.get_udm_tid(*member_index);
+    if (member_tid == BADNODE || member_tid == BADADDR)
+        return std::unexpected(Error::conflict(
+            "UDT member has no stable database identity",
+            name + ":" + std::to_string(member_byte_offset)));
+    return ExactStructMemberIdentity{structure_tid, member_tid};
+}
+
+struct NativeStructOffsetPath {
+    std::vector<tid_t> components;
+    adiff_t delta{0};
+};
+
+Result<NativeStructOffsetPath>
+native_struct_offset_path(Address ea, int n) {
+    if (ea == BadAddress)
+        return std::unexpected(Error::validation("Address must not be BadAddress"));
+    if (n < 0 || n >= UA_MAXOP)
+        return std::unexpected(Error::validation("Operand index out of range",
+                                                 std::to_string(n)));
+    tid_t path[MAXSTRUCPATH] = {};
+    adiff_t delta = 0;
+    const int length = get_stroff_path(path, &delta, ea, n);
+    if (length <= 0) {
+        if (is_stroff(get_flags(ea), n)) {
+            return std::unexpected(Error::sdk(
+                "Operand is marked as a struct offset but its path is unavailable",
+                std::to_string(ea) + ":" + std::to_string(n)));
+        }
+        return std::unexpected(Error::not_found(
+            "Operand has no struct-offset path",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    if (length > static_cast<int>(MAXSTRUCPATH))
+        return std::unexpected(Error::sdk("Struct-offset path exceeds SDK bound"));
+
+    NativeStructOffsetPath result;
+    result.delta = delta;
+    result.components.assign(path, path + length);
+    return result;
 }
 
 std::string decode_operand_register_name(Address address,
@@ -400,36 +498,84 @@ Status set_operand_struct_offset(Address ea,
 
     const std::string name_text(structure_name);
     const tid_t structure_id = get_named_type_tid(name_text.c_str());
-    if (structure_id == BADNODE) {
+    if (structure_id == BADNODE || structure_id == BADADDR) {
         return std::unexpected(Error::not_found("Structure not found", name_text));
-    }
-
-    return set_operand_struct_offset(ea,
-                                     n,
-                                     static_cast<std::uint64_t>(structure_id),
-                                     delta);
-}
-
-Status set_operand_struct_offset(Address ea,
-                                 int n,
-                                 std::uint64_t structure_id,
-                                 AddressDelta delta) {
-    const tid_t tid = static_cast<tid_t>(structure_id);
-    if (tid == BADNODE) {
-        return std::unexpected(Error::not_found("Structure id is invalid",
-                                                std::to_string(structure_id)));
     }
 
     auto raw = decode_raw_instruction(ea);
     if (!raw)
         return std::unexpected(raw.error());
 
-    const tid_t path[1] = {tid};
+    const tid_t path[1] = {structure_id};
     if (!op_stroff(*raw, n, path, 1, static_cast<adiff_t>(delta))) {
         return std::unexpected(Error::sdk("op_stroff failed",
                                           std::to_string(ea) + ":" + std::to_string(n)));
     }
     return ida::ok();
+}
+
+Result<bool> ensure_operand_struct_member_offset(
+    Address ea,
+    int n,
+    std::string_view structure_name,
+    std::size_t member_byte_offset,
+    AddressDelta delta) {
+    if (ea == BadAddress)
+        return std::unexpected(Error::validation("Address must not be BadAddress"));
+    if (n < 0 || n >= UA_MAXOP)
+        return std::unexpected(Error::validation("Operand index out of range",
+                                                 std::to_string(n)));
+
+    auto identity = resolve_exact_struct_member(structure_name, member_byte_offset);
+    if (!identity)
+        return std::unexpected(identity.error());
+    const std::vector<tid_t> expected{
+        identity->structure_tid,
+        identity->member_tid,
+    };
+
+    auto existing = native_struct_offset_path(ea, n);
+    if (existing) {
+        if (existing->components == expected
+            && existing->delta == static_cast<adiff_t>(delta)) {
+            return false;
+        }
+        return std::unexpected(Error::conflict(
+            "Operand already has an incompatible struct-offset path",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    if (existing.error().category != ErrorCategory::NotFound)
+        return std::unexpected(existing.error());
+
+    if (is_defarg(get_flags(ea), n)) {
+        return std::unexpected(Error::conflict(
+            "Operand already has an incompatible representation",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+
+    auto raw = decode_raw_instruction(ea);
+    if (!raw)
+        return std::unexpected(raw.error());
+    if (!op_stroff(*raw,
+                   n,
+                   expected.data(),
+                   static_cast<int>(expected.size()),
+                   static_cast<adiff_t>(delta))) {
+        (void)clr_op_type(ea, n);
+        return std::unexpected(Error::sdk(
+            "op_stroff failed",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+
+    auto verified = native_struct_offset_path(ea, n);
+    if (!verified || verified->components != expected
+        || verified->delta != static_cast<adiff_t>(delta)) {
+        (void)clr_op_type(ea, n);
+        return std::unexpected(Error::sdk(
+            "Struct-offset path verification failed",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    return true;
 }
 
 Status set_operand_based_struct_offset(Address ea,
@@ -451,21 +597,39 @@ Status set_operand_based_struct_offset(Address ea,
 }
 
 Result<StructOffsetPath> operand_struct_offset_path(Address ea, int n) {
-    tid_t path[MAXSTRUCPATH] = {};
-    adiff_t delta = 0;
-
-    const int length = get_stroff_path(path, &delta, ea, n);
-    if (length <= 0) {
-        return std::unexpected(Error::not_found("Operand has no struct-offset path",
-                                                std::to_string(ea) + ":" + std::to_string(n)));
-    }
+    auto native = native_struct_offset_path(ea, n);
+    if (!native)
+        return std::unexpected(native.error());
+    if (native->components.empty())
+        return std::unexpected(Error::sdk("Struct-offset path has no root component"));
 
     StructOffsetPath result;
-    result.delta = static_cast<AddressDelta>(delta);
-    const int bounded_length = std::min(length, static_cast<int>(MAXSTRUCPATH));
-    result.structure_ids.reserve(static_cast<std::size_t>(bounded_length));
-    for (int index = 0; index < bounded_length; ++index) {
-        result.structure_ids.push_back(static_cast<std::uint64_t>(path[index]));
+    result.delta = static_cast<AddressDelta>(native->delta);
+
+    qstring root_name;
+    if (!get_tid_name(&root_name, native->components.front()) || root_name.empty()) {
+        return std::unexpected(Error::not_found(
+            "Struct-offset root name is unavailable",
+            std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    result.structure_name = ida::detail::to_string(root_name);
+    result.member_names.reserve(native->components.size() - 1);
+    for (std::size_t index = 1; index < native->components.size(); ++index) {
+        tinfo_t owner;
+        udm_t member;
+        if (owner.get_udm_by_tid(&member, native->components[index]) < 0) {
+            return std::unexpected(Error::not_found(
+                "Struct-offset member name is unavailable",
+                std::to_string(ea) + ":" + std::to_string(n)
+                    + ":" + std::to_string(index)));
+        }
+        if (member.name.empty()) {
+            return std::unexpected(Error::not_found(
+                "Struct-offset member name is empty",
+                std::to_string(ea) + ":" + std::to_string(n)
+                    + ":" + std::to_string(index)));
+        }
+        result.member_names.push_back(ida::detail::to_string(member.name));
     }
     return result;
 }
@@ -477,17 +641,9 @@ Result<std::vector<std::string>> operand_struct_offset_path_names(Address ea, in
     }
 
     std::vector<std::string> names;
-    names.reserve(path->structure_ids.size());
-
-    for (const auto id_value : path->structure_ids) {
-        qstring name;
-        const tid_t tid = static_cast<tid_t>(id_value);
-        if (get_tid_name(&name, tid)) {
-            names.push_back(ida::detail::to_string(name));
-        } else {
-            names.push_back("tid_" + std::to_string(id_value));
-        }
-    }
+    names.reserve(1 + path->member_names.size());
+    names.push_back(path->structure_name);
+    names.insert(names.end(), path->member_names.begin(), path->member_names.end());
     return names;
 }
 

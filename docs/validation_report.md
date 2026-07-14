@@ -992,3 +992,35 @@ tracked in `docs/compatibility_matrix.md`.
   `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
   and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
   `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.
+
+- 2026-07-14 Phase 44 Symless exact operand struct-offset paths:
+  Replaced public native structure/member-ID path metadata with copied root and
+  ordered member names across C++, Node, generated C ABI, and safe Rust. Added
+  conflict-safe exact-member ensure with complete saved-local UDT validation,
+  arbitrary-operand representation preflight, two-component apply/readback,
+  post-apply verification, and failure-atomic cleanup. Owned microcode register
+  operands now retain copied processor-register IDs from `mreg2reg`. Both
+  Symless adaptations preserve direct memory and size-zero pointer add/sub
+  evidence, group by `(instruction, processor register)`, select the upstream
+  phrase/displacement or register-preceded immediate, and report exact
+  candidate/add/reuse/skip counts for ordinary, allocator, and class/vtable
+  reconstructions. Full C++ build and CTest pass 26/26 in 22.90 s; the Symless
+  plugin links. Node native build, authoritative strict example declarations,
+  structural tests, and ABI-matched live integration pass 238/238 and 82/82.
+  Rust formatting/all-target checks, library/sys/port tests, and
+  process-main-thread IDA Professional 9.4 integration pass 139/139, 0 sys,
+  14/14, and 99/99. Generated bindings are byte-identical at SHA-256
+  `3a143a13309725ed66c5ebce1dd5199fafcc30ea8a0d92b33404c9fef66d7a13`.
+  The final fresh arm64 fixture (source SHA-256
+  `031535bef12bf6b7559501ad30e719a2a013c14f78299ae7fe5953665d8220dd`;
+  executable SHA-256
+  `1c1f7d72a5d13a6f74101e09c0f46048d1321190c3272a728dbc0bce94bb0843`)
+  recovers three fields and three operand candidates. Report mode creates no
+  IDB; first apply adds three two-component paths plus three members/references;
+  fresh-process apply adds zero and reuses all three of each. The reopened IDB
+  SHA-256 is
+  `5eacc6b9554734a9d58fec4475697c09207eeb42330edda16f13047ffa2e4f94`.
+  Tracked executable and adjacent IDB remain respectively SHA-256
+  `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
+  and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.

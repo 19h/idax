@@ -76,12 +76,12 @@
 
 - **Format**: Host-native executable built on demand with DWARF
 - **Source**: `tests/fixtures/symless_forward_host.c`
-- **Used by**: Symless local forward-declaration and member-reference report/apply validation
+- **Used by**: Symless local forward-declaration, member-reference, and exact operand struct-offset report/apply validation
 - **Key characteristics**:
   - Exports one root whose argument is a pointer to an intentionally incomplete named structure
   - Recovers deterministic fields at `+4 B`/4 B, `+8 B`/8 B, and `+24 B`/1 B through byte-addressed accesses
   - Generated executable and IDB live in a temporary directory and are not tracked
-  - Exercises exact local forward classification, ordinal-preserving complete-definition copy, existing pointer-reference resolution, opaque persistent member-TID informational references, prototype application, and idempotent reopen
+  - Exercises exact local forward classification, ordinal-preserving complete-definition copy, existing pointer-reference resolution, opaque persistent member-TID informational references, processor-register-selected two-component operand struct-offset paths, prototype application, and idempotent reopen
 
 ## Scenario Fixture Directories
 
