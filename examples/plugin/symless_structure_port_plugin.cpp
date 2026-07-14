@@ -12,8 +12,8 @@
 /// store; table-size/xref inheritance guesses are deliberately not applied.
 /// Propagated arguments preserve exact shifted-parent metadata; shifted
 /// returns remain excluded as in the upstream generation path. Runtime-only
-/// indirect calls, object-dependent virtual dispatch, RTTI-adjusted vtable-load
-/// chains, and microcode-widget workflows remain outside the stated boundary.
+/// runtime-only object-dependent virtual dispatch and microcode-widget
+/// workflows remain outside the stated boundary.
 /// Exact compatible recovered
 /// fields receive persistent member-TID informational references and the first
 /// source-ordered field per machine operand receives an exact two-component
@@ -334,6 +334,16 @@ struct VtableDiscovery {
     std::size_t functions_analyzed{0};
     std::size_t functions_without_argument_zero{0};
     std::size_t graph_failures{0};
+    std::size_t load_references_examined{0};
+    std::size_t data_aliases_followed{0};
+    std::size_t data_alias_value_rejections{0};
+    std::size_t data_alias_cycles{0};
+    std::size_t direct_load_tables{0};
+    std::size_t rtti_fallback_tables{0};
+    std::size_t rtti_load_tables{0};
+    std::size_t virtual_methods_analyzed{0};
+    std::size_t virtual_methods_without_argument_zero{0};
+    std::size_t duplicate_virtual_method_roots{0};
 };
 
 struct VtableAnalysis {
@@ -2109,6 +2119,42 @@ ida::Result<ida::Address> read_database_pointer(ida::Address address,
         "Vtable discovery requires a 4 B or 8 B address width"));
 }
 
+ida::Status collect_vtable_load_candidates(
+    ida::Address evidence_address,
+    ida::Address table_address,
+    std::size_t pointer_width,
+    std::map<ida::Address, std::set<ida::Address>>& function_candidates,
+    VtableDiscovery& discovery,
+    std::set<ida::Address>& visited) {
+    if (!visited.insert(evidence_address).second) {
+        ++discovery.data_alias_cycles;
+        return ida::ok();
+    }
+    auto references = ida::xref::data_refs_to(evidence_address);
+    if (!references)
+        return std::unexpected(references.error());
+    for (const auto& reference : *references) {
+        ++discovery.load_references_examined;
+        auto containing = ida::function::at(reference.from);
+        if (containing) {
+            function_candidates[containing->start()].insert(table_address);
+            continue;
+        }
+        auto value = read_database_pointer(reference.from, pointer_width);
+        if (!value || *value != evidence_address) {
+            ++discovery.data_alias_value_rejections;
+            continue;
+        }
+        ++discovery.data_aliases_followed;
+        auto nested = collect_vtable_load_candidates(
+            reference.from, table_address, pointer_width,
+            function_candidates, discovery, visited);
+        if (!nested)
+            return std::unexpected(nested.error());
+    }
+    return ida::ok();
+}
+
 ida::Result<std::optional<VtableMember>> vtable_member_at(
     ida::Address table_address,
     ida::Address member_address,
@@ -2245,6 +2291,7 @@ struct ConstructorAnalyzer {
     std::set<ida::Address> candidate_tables;
     std::size_t pointer_width{0};
     std::vector<ConstructorStore> stores;
+    std::set<ida::Address> confirmed_tables;
 
     ida::Result<std::optional<AbstractValue>> operand_value(
         State& state,
@@ -2262,10 +2309,30 @@ struct ConstructorAnalyzer {
         std::optional<AbstractValue> result;
         switch (instruction.opcode) {
         case Opcode::Move: {
-            auto source = operand_value(state, instruction.left);
-            if (!source)
-                return std::unexpected(source.error());
-            result = *source;
+            if (instruction.left.kind
+                == ida::decompiler::MicrocodeOperandKind::GlobalAddress) {
+                auto loaded = read_database_value(
+                    instruction.left.global_address,
+                    instruction.destination.byte_width);
+                if (!loaded)
+                    return std::unexpected(loaded.error());
+                result = *loaded;
+            } else if (auto address = address_of_global_value(
+                           instruction.left,
+                           instruction.destination.byte_width)) {
+                result = *address;
+            } else {
+                auto source = operand_value(state, instruction.left);
+                if (!source)
+                    return std::unexpected(source.error());
+                result = *source;
+            }
+            if (result && is_scalar_value(*result)) {
+                result->value = signed_to_width(
+                    static_cast<std::uint64_t>(result->value),
+                    instruction.destination.byte_width);
+                result->byte_width = instruction.destination.byte_width;
+            }
             break;
         }
         case Opcode::ZeroExtend:
@@ -2273,7 +2340,15 @@ struct ConstructorAnalyzer {
             auto source = operand_value(state, instruction.left);
             if (!source)
                 return std::unexpected(source.error());
-            result = *source;
+            if (*source && is_scalar_value(**source)) {
+                result = **source;
+                const std::uint64_t raw = instruction.opcode == Opcode::ZeroExtend
+                    ? unsigned_value(*result)
+                    : static_cast<std::uint64_t>(result->value);
+                result->value = signed_to_width(
+                    raw, instruction.destination.byte_width);
+                result->byte_width = instruction.destination.byte_width;
+            }
             break;
         }
         case Opcode::Add:
@@ -2287,7 +2362,7 @@ struct ConstructorAnalyzer {
             if (*left && *right
                 && (*right)->kind == ValueKind::Integer
                 && ((*left)->kind == ValueKind::StructurePointer
-                    || (*left)->kind == ValueKind::Integer)) {
+                    || is_scalar_value(**left))) {
                 const std::uint64_t base =
                     static_cast<std::uint64_t>((*left)->value);
                 const std::uint64_t delta =
@@ -2304,6 +2379,21 @@ struct ConstructorAnalyzer {
             }
             break;
         }
+        case Opcode::LoadMemory: {
+            auto pointer = operand_value(state, instruction.right);
+            if (!pointer)
+                return std::unexpected(pointer.error());
+            if (*pointer
+                && (*pointer)->kind == ValueKind::DatabaseValue) {
+                auto loaded = read_database_value(
+                    unsigned_value(**pointer),
+                    instruction.destination.byte_width);
+                if (!loaded)
+                    return std::unexpected(loaded.error());
+                result = *loaded;
+            }
+            break;
+        }
         case Opcode::StoreMemory: {
             auto value = operand_value(state, instruction.left);
             if (!value)
@@ -2313,11 +2403,14 @@ struct ConstructorAnalyzer {
                 return std::unexpected(destination.error());
             if (instruction.left.byte_width
                     == static_cast<int>(pointer_width)
-                && *value && (*value)->kind == ValueKind::Integer
-                && *destination
-                && (*destination)->kind == ValueKind::StructurePointer) {
-                const auto table = std::bit_cast<ida::Address>((*value)->value);
+                && *value && is_scalar_value(**value)) {
+                const auto table = unsigned_value(**value);
                 if (candidate_tables.contains(table)) {
+                    confirmed_tables.insert(table);
+                }
+                if (candidate_tables.contains(table)
+                    && *destination
+                    && (*destination)->kind == ValueKind::StructurePointer) {
                     ConstructorStore store;
                     store.instruction_address = instruction.address;
                     store.vtable_address = table;
@@ -2330,7 +2423,6 @@ struct ConstructorAnalyzer {
             }
             return std::optional<AbstractValue>{};
         }
-        case Opcode::LoadMemory:
         case Opcode::Call:
         case Opcode::IndirectCall:
             break;
@@ -2423,44 +2515,82 @@ ida::Result<VtableDiscovery> discover_vtable_classes(
     if (!candidates)
         return std::unexpected(candidates.error());
 
-    std::map<ida::Address, std::set<ida::Address>> function_candidates;
-    for (const auto& candidate : *candidates) {
-        auto references = ida::xref::data_refs_to(candidate.vtable_address);
-        if (!references)
-            return std::unexpected(references.error());
-        for (const auto& reference : *references) {
-            auto function = ida::function::at(reference.from);
-            if (function)
-                function_candidates[function->start()].insert(
-                    candidate.vtable_address);
-        }
-    }
-
     std::map<ida::Address, ida::decompiler::MicrocodeFunction> graph_cache;
     std::vector<ConstructorStore> stores;
-    for (const auto& [function_address, table_addresses] : function_candidates) {
-        auto graph = analyzed_graph(function_address);
-        if (!graph) {
-            ++discovery.graph_failures;
-            continue;
+    auto analyze_candidates = [&discovery, &graph_cache, &stores,
+                               pointer_width](
+        const std::map<ida::Address, std::set<ida::Address>>& function_candidates)
+        -> std::set<ida::Address> {
+        std::set<ida::Address> confirmed;
+        for (const auto& [function_address, table_addresses]
+             : function_candidates) {
+            ida::decompiler::MicrocodeFunction graph;
+            if (auto found = graph_cache.find(function_address);
+                found != graph_cache.end()) {
+                graph = found->second;
+            } else {
+                auto generated = analyzed_graph(function_address);
+                if (!generated) {
+                    ++discovery.graph_failures;
+                    continue;
+                }
+                graph = *generated;
+                graph_cache.emplace(function_address, graph);
+            }
+            ConstructorAnalyzer analyzer{table_addresses, pointer_width};
+            auto analyzed = analyzer.analyze(graph);
+            if (!analyzed) {
+                ++discovery.graph_failures;
+                continue;
+            }
+            ++discovery.functions_analyzed;
+            confirmed.insert(analyzer.confirmed_tables.begin(),
+                             analyzer.confirmed_tables.end());
+            if (!*analyzed) {
+                ++discovery.functions_without_argument_zero;
+                continue;
+            }
+            for (auto store : analyzer.stores) {
+                store.function_address = function_address;
+                if (std::find(stores.begin(), stores.end(), store)
+                    == stores.end()) {
+                    stores.push_back(store);
+                }
+            }
         }
-        graph_cache.emplace(function_address, *graph);
-        ConstructorAnalyzer analyzer{table_addresses, pointer_width};
-        auto analyzed = analyzer.analyze(*graph);
-        if (!analyzed) {
-            ++discovery.graph_failures;
-            continue;
-        }
-        ++discovery.functions_analyzed;
-        if (!*analyzed) {
-            ++discovery.functions_without_argument_zero;
-            continue;
-        }
-        for (auto store : analyzer.stores) {
-            store.function_address = function_address;
-            stores.push_back(store);
-        }
+        return confirmed;
+    };
+
+    std::map<ida::Address, std::set<ida::Address>> direct_candidates;
+    for (const auto& candidate : *candidates) {
+        std::set<ida::Address> visited;
+        auto collected = collect_vtable_load_candidates(
+            candidate.vtable_address, candidate.vtable_address,
+            pointer_width, direct_candidates, discovery, visited);
+        if (!collected)
+            return std::unexpected(collected.error());
     }
+    const auto direct_confirmed = analyze_candidates(direct_candidates);
+    discovery.direct_load_tables = direct_confirmed.size();
+
+    std::map<ida::Address, std::set<ida::Address>> rtti_candidates;
+    for (const auto& candidate : *candidates) {
+        if (direct_confirmed.contains(candidate.vtable_address))
+            continue;
+        ++discovery.rtti_fallback_tables;
+        const auto prefix_size = static_cast<ida::Address>(2 * pointer_width);
+        if (candidate.vtable_address < prefix_size)
+            continue;
+        std::set<ida::Address> visited;
+        auto collected = collect_vtable_load_candidates(
+            candidate.vtable_address - prefix_size,
+            candidate.vtable_address, pointer_width,
+            rtti_candidates, discovery, visited);
+        if (!collected)
+            return std::unexpected(collected.error());
+    }
+    const auto rtti_confirmed = analyze_candidates(rtti_candidates);
+    discovery.rtti_load_tables = rtti_confirmed.size();
 
     std::map<ida::Address, std::set<ida::Address>> zero_tables_by_function;
     for (const auto& store : stores) {
@@ -2498,6 +2628,41 @@ ida::Result<VtableDiscovery> discover_vtable_classes(
                 ++discovery.graph_failures;
                 continue;
             }
+            append_recovered_fields(aggregate, reconstruction->fields,
+                                    pointer_width);
+        }
+        std::set<ida::Address> seeded_methods;
+        for (const auto& method : candidate.methods) {
+            if (method.imported)
+                continue;
+            if (!seeded_methods.insert(method.function_address).second) {
+                ++discovery.duplicate_virtual_method_roots;
+                continue;
+            }
+            ida::decompiler::MicrocodeFunction graph;
+            if (auto found = graph_cache.find(method.function_address);
+                found != graph_cache.end()) {
+                graph = found->second;
+            } else {
+                auto generated = analyzed_graph(method.function_address);
+                if (!generated) {
+                    ++discovery.graph_failures;
+                    continue;
+                }
+                graph = *generated;
+                graph_cache.emplace(method.function_address, graph);
+            }
+            if (graph.arguments.empty()) {
+                ++discovery.virtual_methods_without_argument_zero;
+                continue;
+            }
+            auto reconstruction = reconstruct(graph, 0,
+                                              maximum_call_depth);
+            if (!reconstruction) {
+                ++discovery.graph_failures;
+                continue;
+            }
+            ++discovery.virtual_methods_analyzed;
             append_recovered_fields(aggregate, reconstruction->fields,
                                     pointer_width);
         }
@@ -3832,7 +3997,14 @@ std::string vtable_report_text(
         "Accepted class roots: %zu\nAll-import tables: %zu\n"
         "Referenced-slot stops: %zu\nTables without constructor: %zu\n"
         "Functions analyzed: %zu\nFunctions without argument zero: %zu\n"
-        "Graph failures: %zu\nAmbiguous constructors: %zu\n"
+        "Graph failures: %zu\nLoad references examined: %zu\n"
+        "Data aliases followed: %zu\nData-alias value rejections: %zu\n"
+        "Data-alias cycles: %zu\nDirect-load tables: %zu\n"
+        "RTTI fallback tables: %zu\nRTTI-load tables: %zu\n"
+        "Virtual methods analyzed: %zu\n"
+        "Virtual methods without argument zero: %zu\n"
+        "Duplicate virtual-method roots: %zu\n"
+        "Ambiguous constructors: %zu\n"
         "Secondary stores: %zu\n",
         std::string(prefix).c_str(),
         analysis.maximum_call_depth,
@@ -3845,6 +4017,16 @@ std::string vtable_report_text(
         discovery.functions_analyzed,
         discovery.functions_without_argument_zero,
         discovery.graph_failures,
+        discovery.load_references_examined,
+        discovery.data_aliases_followed,
+        discovery.data_alias_value_rejections,
+        discovery.data_alias_cycles,
+        discovery.direct_load_tables,
+        discovery.rtti_fallback_tables,
+        discovery.rtti_load_tables,
+        discovery.virtual_methods_analyzed,
+        discovery.virtual_methods_without_argument_zero,
+        discovery.duplicate_virtual_method_roots,
         discovery.ambiguous_constructors.size(),
         discovery.secondary_stores.size());
     std::size_t reference_candidates = 0;
@@ -3946,7 +4128,7 @@ std::string vtable_report_text(
 
 ida::Result<VtableAnalysis> analyze_vtable_classes() {
     auto max_depth = ida::ui::ask_long(
-        "Maximum resolved direct-call depth from each constructor", 8);
+        "Maximum resolved call depth from each constructor and virtual method", 8);
     if (!max_depth)
         return std::unexpected(max_depth.error());
     if (*max_depth < 0 || *max_depth > 100) {

@@ -1637,3 +1637,24 @@ transfer or wrapper result is invalid.
 - No public wrapper/binding delta is required; generated C ABI identity is therefore a negative control, not an omitted validation layer.
 - Required final evidence is C++ 26/26, Node 238 structural plus 82 live, Rust 139 library plus 15 Symless plus 99 live, strict declarations/all-target formatting checks, unchanged tracked fixtures, and byte-identical generated bindings.
 - A changed binding hash, decreased test count, ignored live test, fixture mutation, or any failure in an unchanged language surface falsifies the bounded no-public-API conclusion.
+
+### 35.94. Separate Static Vtable Root Expansion from Dynamic Dispatch [F438]
+
+For a candidate whose first function pointer is at address `T`, upstream load discovery searches confirmed references to `T`; only if that produces no load does it search the RTTI label `T - 2P`, where `P` is the database pointer width, while recursively crossing data locations that contain the exact referenced address. Every code candidate still requires microcode confirmation that the value eventually stored is exactly `T`. Once the table is accepted, each non-import member function with an argument-zero location is an independent `this`-pointer root and its recovered fields join the class layout.
+
+- Assumption A46.1: the ABI uses the audited two-pointer Itanium prefix when the constructor references a label before the function array. Falsify with an ABI-specific prefix of another width; dependent result: RTTI fallback reachability only.
+- Assumption A46.2: relevant data aliases are pointer-width database items whose loaded value exactly equals the preceding reference address. Falsify with encoded, runtime-initialized, or non-pointer aliases; dependent result: alias reachability only.
+- Stress probes: a direct-only fixture must keep RTTI counters at zero; a constructor that computes `label + 2P` must be missed when fallback is disabled and accepted when enabled; a data alias containing the wrong pointer must be rejected; a field touched only by a virtual method must disappear when method seeding is disabled and appear when enabled. Runtime object-dependent targets remain unknown and outside this static model.
+
+### 35.95. Phase 46 Live RTTI and Virtual-Method Persistence Boundary [F439]
+
+- A source-level aggregate may cause DWARF to itemize the entire RTTI blob as one database item, making `next_head` skip the interior method array. The fixture therefore emits the prefix and method array as adjacent assembly labels while retaining C/DWARF function prototypes; this tests the analyzer rather than debug-item coalescing.
+- Required report invariants are one candidate and accepted class, `direct_load_tables = 0`, `rtti_fallback_tables = rtti_load_tables = 1`, `data_aliases_followed = 1`, `virtual_methods_analyzed = 3`, zero graph/arity failures, and four fields including method-only `+24/1 B` and `+32/8 B`.
+- Required persistence transitions are class/vtable creation then reuse; five class and three method members added then reused; eleven member references and operand paths added then reused; and four prototypes changed then already typed. Any reopen addition/change, lost field, direct-load acceptance, missing alias, or reduced method count falsifies the bounded result.
+- Complexity: recursive evidence collection is `O(V + E)` time and `O(V)` visited storage over exact pointer-alias addresses/references; candidate graph evaluation remains bounded by owned graph size, and method propagation is `O(M * G)` before existing interprocedural depth/context bounds for `M` unique non-import methods and representative graph cost `G`.
+
+### 35.96. Phase 46 Cross-Language and Direct-Path Regression Boundary [F440]
+
+- No wrapper header, compiled wrapper source, Node surface, Rust library, C shim, or generated binding changes are required; the two adaptations consume existing opaque values.
+- The original direct-table fixture is the fallback negative control: it must report one direct load, zero RTTI fallback/load, zero aliases followed, three methods, and unchanged `+8/4 B`, `+16/8 B`, `+24/1 B` fields.
+- Complete evidence is C++ 26/26, Node 238 structural plus 82 live, Rust 139 library plus 0 sys plus 17 Symless plus 99 live, strict/all-target checks, generated-binding identity at `3a143a13309725ed66c5ebce1dd5199fafcc30ea8a0d92b33404c9fef66d7a13`, and unchanged tracked fixture hashes/blob. Any reduced count, binding delta, direct-path fallback, or tracked fixture mutation falsifies the no-public-API conclusion.

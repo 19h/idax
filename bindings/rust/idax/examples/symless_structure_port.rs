@@ -405,6 +405,16 @@ struct VtableDiscovery {
     functions_analyzed: usize,
     functions_without_argument_zero: usize,
     graph_failures: usize,
+    load_references_examined: usize,
+    data_aliases_followed: usize,
+    data_alias_value_rejections: usize,
+    data_alias_cycles: usize,
+    direct_load_tables: usize,
+    rtti_fallback_tables: usize,
+    rtti_load_tables: usize,
+    virtual_methods_analyzed: usize,
+    virtual_methods_without_argument_zero: usize,
+    duplicate_virtual_method_roots: usize,
 }
 
 #[derive(Debug, Default)]
@@ -455,7 +465,7 @@ fn parse_options(args: &[String]) -> Result<Options> {
                      realloc:<locator>:<size-index>, or \
                      calloc:<locator>:<count-index>:<size-index>; \
                      locator may be a name, address, or module!import-prefix; \
-                     --vtables scans for exact argument-zero constructor stores",
+                     --vtables scans direct/RTTI table loads, exact argument-zero constructor stores, and static virtual-method roots",
                 );
                 std::process::exit(0);
             }
@@ -2213,6 +2223,45 @@ fn read_database_pointer(address: Address, pointer_width: usize) -> Result<Addre
     }
 }
 
+fn collect_vtable_load_candidates(
+    evidence_address: Address,
+    table_address: Address,
+    pointer_width: usize,
+    function_candidates: &mut HashMap<Address, BTreeSet<Address>>,
+    discovery: &mut VtableDiscovery,
+    visited: &mut HashSet<Address>,
+) -> Result<()> {
+    if !visited.insert(evidence_address) {
+        discovery.data_alias_cycles += 1;
+        return Ok(());
+    }
+    for reference in xref::data_refs_to(evidence_address)? {
+        discovery.load_references_examined += 1;
+        if let Ok(containing) = function::at(reference) {
+            function_candidates
+                .entry(containing.start())
+                .or_default()
+                .insert(table_address);
+            continue;
+        }
+        match read_database_pointer(reference, pointer_width) {
+            Ok(value) if value == evidence_address => {
+                discovery.data_aliases_followed += 1;
+                collect_vtable_load_candidates(
+                    reference,
+                    table_address,
+                    pointer_width,
+                    function_candidates,
+                    discovery,
+                    visited,
+                )?;
+            }
+            _ => discovery.data_alias_value_rejections += 1,
+        }
+    }
+    Ok(())
+}
+
 fn vtable_member_at(
     table_address: Address,
     member_address: Address,
@@ -2336,6 +2385,7 @@ struct ConstructorAnalyzer {
     candidate_tables: BTreeSet<Address>,
     pointer_width: usize,
     stores: Vec<ConstructorStore>,
+    confirmed_tables: BTreeSet<Address>,
 }
 
 impl ConstructorAnalyzer {
@@ -2356,8 +2406,61 @@ impl ConstructorAnalyzer {
         instruction: &MicrocodeInstruction,
     ) -> Result<Option<AbstractValue>> {
         let result = match instruction.opcode {
-            MicrocodeOpcode::Move | MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
-                self.operand_value(state, &instruction.left)?
+            MicrocodeOpcode::Move => {
+                let value = if instruction.left.kind == MicrocodeOperandKind::GlobalAddress {
+                    read_database_value(
+                        instruction.left.global_address,
+                        instruction.destination.byte_width,
+                    )?
+                } else if let Some(address) =
+                    address_of_global_value(&instruction.left, instruction.destination.byte_width)
+                {
+                    Some(address)
+                } else {
+                    self.operand_value(state, &instruction.left)?
+                };
+                match value {
+                    Some(AbstractValue::Integer { value, .. }) => Some(AbstractValue::Integer {
+                        value: signed_to_width(value as i128, instruction.destination.byte_width),
+                        byte_width: instruction.destination.byte_width,
+                    }),
+                    Some(AbstractValue::DatabaseValue { value, .. }) => {
+                        Some(AbstractValue::DatabaseValue {
+                            value: signed_to_width(
+                                value as i128,
+                                instruction.destination.byte_width,
+                            ),
+                            byte_width: instruction.destination.byte_width,
+                        })
+                    }
+                    other => other,
+                }
+            }
+            MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
+                match self.operand_value(state, &instruction.left)? {
+                    Some(value @ AbstractValue::Integer { .. })
+                    | Some(value @ AbstractValue::DatabaseValue { .. }) => {
+                        let database_derived = matches!(value, AbstractValue::DatabaseValue { .. });
+                        let raw = if instruction.opcode == MicrocodeOpcode::ZeroExtend {
+                            unsigned_scalar(value).unwrap_or_default() as i128
+                        } else {
+                            scalar_parts(value).map_or(0, |(value, _)| value as i128)
+                        };
+                        let value = signed_to_width(raw, instruction.destination.byte_width);
+                        Some(if database_derived {
+                            AbstractValue::DatabaseValue {
+                                value,
+                                byte_width: instruction.destination.byte_width,
+                            }
+                        } else {
+                            AbstractValue::Integer {
+                                value,
+                                byte_width: instruction.destination.byte_width,
+                            }
+                        })
+                    }
+                    _ => None,
+                }
             }
             MicrocodeOpcode::Add | MicrocodeOpcode::Subtract => {
                 let left = self.operand_value(state, &instruction.left)?;
@@ -2374,39 +2477,60 @@ impl ConstructorAnalyzer {
                         },
                     )),
                     (
-                        Some(AbstractValue::Integer {
-                            value: base,
-                            byte_width,
-                        }),
+                        Some(left @ AbstractValue::Integer { .. }),
                         Some(AbstractValue::Integer { value: delta, .. }),
-                    ) => Some(AbstractValue::Integer {
-                        value: if instruction.opcode == MicrocodeOpcode::Subtract {
+                    )
+                    | (
+                        Some(left @ AbstractValue::DatabaseValue { .. }),
+                        Some(AbstractValue::Integer { value: delta, .. }),
+                    ) => {
+                        let database_derived = matches!(left, AbstractValue::DatabaseValue { .. });
+                        let (base, _) = scalar_parts(left).unwrap();
+                        let value = if instruction.opcode == MicrocodeOpcode::Subtract {
                             base.wrapping_sub(delta)
                         } else {
                             base.wrapping_add(delta)
-                        },
-                        byte_width,
-                    }),
+                        };
+                        let byte_width = instruction.destination.byte_width;
+                        let value = signed_to_width(value as i128, byte_width);
+                        Some(if database_derived {
+                            AbstractValue::DatabaseValue { value, byte_width }
+                        } else {
+                            AbstractValue::Integer { value, byte_width }
+                        })
+                    }
                     _ => None,
                 }
             }
+            MicrocodeOpcode::LoadMemory => match self.operand_value(state, &instruction.right)? {
+                Some(value @ AbstractValue::DatabaseValue { .. }) => read_database_value(
+                    unsigned_scalar(value).unwrap_or_default(),
+                    instruction.destination.byte_width,
+                )?,
+                _ => None,
+            },
             MicrocodeOpcode::StoreMemory => {
                 let value = self.operand_value(state, &instruction.left)?;
                 let destination = self.operand_value(state, &instruction.destination)?;
                 if instruction.left.byte_width == self.pointer_width as i32
-                    && let Some(AbstractValue::Integer { value, .. }) = value
-                    && let Some(AbstractValue::StructurePointer(object_offset)) = destination
+                    && let Some(
+                        value @ (AbstractValue::Integer { .. }
+                        | AbstractValue::DatabaseValue { .. }),
+                    ) = value
                 {
-                    let table = value as u64;
+                    let table = unsigned_scalar(value).unwrap_or_default();
                     if self.candidate_tables.contains(&table) {
-                        let store = ConstructorStore {
-                            function_address: BAD_ADDRESS,
-                            instruction_address: instruction.address,
-                            vtable_address: table,
-                            object_offset,
-                        };
-                        if !self.stores.contains(&store) {
-                            self.stores.push(store);
+                        self.confirmed_tables.insert(table);
+                        if let Some(AbstractValue::StructurePointer(object_offset)) = destination {
+                            let store = ConstructorStore {
+                                function_address: BAD_ADDRESS,
+                                instruction_address: instruction.address,
+                                vtable_address: table,
+                                object_offset,
+                            };
+                            if !self.stores.contains(&store) {
+                                self.stores.push(store);
+                            }
                         }
                     }
                 }
@@ -2519,55 +2643,111 @@ fn append_recovered_fields(
     }
 }
 
-fn discover_vtable_classes(maximum_call_depth: usize) -> Result<VtableDiscovery> {
-    let pointer_width = (database::address_bitness()? / 8) as usize;
-    let mut discovery = VtableDiscovery::default();
-    let mut candidates = scan_vtable_candidates(pointer_width, &mut discovery)?;
-    let mut function_candidates = HashMap::<Address, BTreeSet<Address>>::new();
-    for candidate in &candidates {
-        for reference in xref::data_refs_to(candidate.vtable_address)? {
-            if let Ok(containing) = function::at(reference) {
-                function_candidates
-                    .entry(containing.start())
-                    .or_default()
-                    .insert(candidate.vtable_address);
-            }
-        }
-    }
-
-    let mut graph_cache = HashMap::<Address, MicrocodeFunction>::new();
-    let mut stores = Vec::<ConstructorStore>::new();
+fn analyze_constructor_candidates(
+    function_candidates: HashMap<Address, BTreeSet<Address>>,
+    pointer_width: usize,
+    discovery: &mut VtableDiscovery,
+    graph_cache: &mut HashMap<Address, MicrocodeFunction>,
+    stores: &mut Vec<ConstructorStore>,
+) -> BTreeSet<Address> {
+    let mut confirmed = BTreeSet::new();
     for (function_address, table_addresses) in function_candidates {
-        let graph = match analyzed_graph(function_address) {
-            Ok(graph) => graph,
-            Err(_) => {
-                discovery.graph_failures += 1;
-                continue;
+        let graph = if let Some(graph) = graph_cache.get(&function_address) {
+            graph.clone()
+        } else {
+            match analyzed_graph(function_address) {
+                Ok(graph) => {
+                    graph_cache.insert(function_address, graph.clone());
+                    graph
+                }
+                Err(_) => {
+                    discovery.graph_failures += 1;
+                    continue;
+                }
             }
         };
-        graph_cache.insert(function_address, graph.clone());
         let mut analyzer = ConstructorAnalyzer {
             candidate_tables: table_addresses,
             pointer_width,
             stores: Vec::new(),
+            confirmed_tables: BTreeSet::new(),
         };
         match analyzer.analyze(&graph) {
             Ok(true) => discovery.functions_analyzed += 1,
             Ok(false) => {
                 discovery.functions_analyzed += 1;
                 discovery.functions_without_argument_zero += 1;
-                continue;
             }
             Err(_) => {
                 discovery.graph_failures += 1;
                 continue;
             }
         }
-        stores.extend(analyzer.stores.into_iter().map(|mut store| {
+        confirmed.extend(analyzer.confirmed_tables);
+        for mut store in analyzer.stores {
             store.function_address = function_address;
-            store
-        }));
+            if !stores.contains(&store) {
+                stores.push(store);
+            }
+        }
     }
+    confirmed
+}
+
+fn discover_vtable_classes(maximum_call_depth: usize) -> Result<VtableDiscovery> {
+    let pointer_width = (database::address_bitness()? / 8) as usize;
+    let mut discovery = VtableDiscovery::default();
+    let mut candidates = scan_vtable_candidates(pointer_width, &mut discovery)?;
+    let mut direct_candidates = HashMap::<Address, BTreeSet<Address>>::new();
+    for candidate in &candidates {
+        collect_vtable_load_candidates(
+            candidate.vtable_address,
+            candidate.vtable_address,
+            pointer_width,
+            &mut direct_candidates,
+            &mut discovery,
+            &mut HashSet::new(),
+        )?;
+    }
+
+    let mut graph_cache = HashMap::<Address, MicrocodeFunction>::new();
+    let mut stores = Vec::<ConstructorStore>::new();
+    let direct_confirmed = analyze_constructor_candidates(
+        direct_candidates,
+        pointer_width,
+        &mut discovery,
+        &mut graph_cache,
+        &mut stores,
+    );
+    discovery.direct_load_tables = direct_confirmed.len();
+
+    let mut rtti_candidates = HashMap::<Address, BTreeSet<Address>>::new();
+    for candidate in &candidates {
+        if direct_confirmed.contains(&candidate.vtable_address) {
+            continue;
+        }
+        discovery.rtti_fallback_tables += 1;
+        let prefix_size = (2 * pointer_width) as u64;
+        let Some(label_address) = candidate.vtable_address.checked_sub(prefix_size) else {
+            continue;
+        };
+        collect_vtable_load_candidates(
+            label_address,
+            candidate.vtable_address,
+            pointer_width,
+            &mut rtti_candidates,
+            &mut discovery,
+            &mut HashSet::new(),
+        )?;
+    }
+    let rtti_confirmed = analyze_constructor_candidates(
+        rtti_candidates,
+        pointer_width,
+        &mut discovery,
+        &mut graph_cache,
+        &mut stores,
+    );
+    discovery.rtti_load_tables = rtti_confirmed.len();
 
     let mut constructors_by_table = classify_constructor_stores(stores, &mut discovery);
     for mut candidate in candidates.drain(..) {
@@ -2584,6 +2764,41 @@ fn discover_vtable_classes(maximum_call_depth: usize) -> Result<VtableDiscovery>
             match reconstruct(graph, 0, maximum_call_depth) {
                 Ok(reconstruction) => {
                     append_recovered_fields(&mut aggregate, &reconstruction.fields, pointer_width)
+                }
+                Err(_) => discovery.graph_failures += 1,
+            }
+        }
+        let mut seeded_methods = BTreeSet::new();
+        for method in &candidate.methods {
+            if method.imported {
+                continue;
+            }
+            if !seeded_methods.insert(method.function_address) {
+                discovery.duplicate_virtual_method_roots += 1;
+                continue;
+            }
+            let graph = if let Some(graph) = graph_cache.get(&method.function_address) {
+                graph.clone()
+            } else {
+                match analyzed_graph(method.function_address) {
+                    Ok(graph) => {
+                        graph_cache.insert(method.function_address, graph.clone());
+                        graph
+                    }
+                    Err(_) => {
+                        discovery.graph_failures += 1;
+                        continue;
+                    }
+                }
+            };
+            if graph.arguments.is_empty() {
+                discovery.virtual_methods_without_argument_zero += 1;
+                continue;
+            }
+            match reconstruct(&graph, 0, maximum_call_depth) {
+                Ok(reconstruction) => {
+                    discovery.virtual_methods_analyzed += 1;
+                    append_recovered_fields(&mut aggregate, &reconstruction.fields, pointer_width);
                 }
                 Err(_) => discovery.graph_failures += 1,
             }
@@ -3801,6 +4016,31 @@ fn print_vtable_report(
     );
     println!("graph_failures: {}", discovery.graph_failures);
     println!(
+        "load_references_examined: {}",
+        discovery.load_references_examined
+    );
+    println!("data_aliases_followed: {}", discovery.data_aliases_followed);
+    println!(
+        "data_alias_value_rejections: {}",
+        discovery.data_alias_value_rejections
+    );
+    println!("data_alias_cycles: {}", discovery.data_alias_cycles);
+    println!("direct_load_tables: {}", discovery.direct_load_tables);
+    println!("rtti_fallback_tables: {}", discovery.rtti_fallback_tables);
+    println!("rtti_load_tables: {}", discovery.rtti_load_tables);
+    println!(
+        "virtual_methods_analyzed: {}",
+        discovery.virtual_methods_analyzed
+    );
+    println!(
+        "virtual_methods_without_argument_zero: {}",
+        discovery.virtual_methods_without_argument_zero
+    );
+    println!(
+        "duplicate_virtual_method_roots: {}",
+        discovery.duplicate_virtual_method_roots
+    );
+    println!(
         "ambiguous_constructors: {}",
         discovery.ambiguous_constructors.len()
     );
@@ -4112,6 +4352,7 @@ mod tests {
             candidate_tables: BTreeSet::from([0x4000]),
             pointer_width: 8,
             stores: Vec::new(),
+            confirmed_tables: BTreeSet::new(),
         };
         assert!(analyzer.analyze(&constructor_graph(true)).unwrap());
         assert_eq!(analyzer.stores.len(), 2);
@@ -4123,9 +4364,67 @@ mod tests {
             candidate_tables: BTreeSet::from([0x4000]),
             pointer_width: 8,
             stores: Vec::new(),
+            confirmed_tables: BTreeSet::new(),
         };
         assert!(!without_argument.analyze(&constructor_graph(false)).unwrap());
         assert!(without_argument.stores.is_empty());
+    }
+
+    #[test]
+    fn constructor_analyzer_confirms_rtti_label_adjustment() {
+        let mut graph = constructor_graph(true);
+        let store = &mut graph.blocks[0].instructions[1];
+        let mut label_add = instruction(MicrocodeOpcode::Add);
+        label_add.left = operand(MicrocodeOperandKind::AddressReference, 8);
+        let mut label = operand(MicrocodeOperandKind::GlobalAddress, 8);
+        label.global_address = 0x3ff0;
+        label_add.left.referenced_operand = Some(Box::new(label));
+        label_add.right = operand(MicrocodeOperandKind::UnsignedImmediate, 8);
+        label_add.right.unsigned_immediate = 16;
+        label_add.destination = operand(MicrocodeOperandKind::Register, 8);
+        label_add.destination.register_id = 3;
+        store.left = operand(MicrocodeOperandKind::NestedInstruction, 8);
+        store.left.nested_instruction = Some(Box::new(label_add));
+
+        let mut analyzer = ConstructorAnalyzer {
+            candidate_tables: BTreeSet::from([0x4000]),
+            pointer_width: 8,
+            stores: Vec::new(),
+            confirmed_tables: BTreeSet::new(),
+        };
+        assert!(analyzer.analyze(&graph).unwrap());
+        assert_eq!(analyzer.confirmed_tables, BTreeSet::from([0x4000]));
+        assert_eq!(analyzer.stores[0].vtable_address, 0x4000);
+        assert_eq!(analyzer.stores[0].object_offset, 0);
+    }
+
+    #[test]
+    fn virtual_method_fields_join_constructor_fields() {
+        let constructor = RecoveredField {
+            offset: 8,
+            byte_width: 4,
+            reads: 0,
+            writes: 1,
+            sites: vec![0x1000],
+            operand_sites: Vec::new(),
+            first_seen: 0,
+        };
+        let method_only = RecoveredField {
+            offset: 24,
+            byte_width: 8,
+            reads: 1,
+            writes: 0,
+            sites: vec![0x2000],
+            operand_sites: Vec::new(),
+            first_seen: 0,
+        };
+        let mut aggregate = Vec::new();
+        append_recovered_fields(&mut aggregate, &[constructor], 8);
+        append_recovered_fields(&mut aggregate, &[method_only], 8);
+        let fields = resolve_field_conflicts(&aggregate).0;
+        assert_eq!(fields.len(), 2);
+        assert_eq!(fields[0].offset, 8);
+        assert_eq!(fields[1].offset, 24);
     }
 
     #[test]

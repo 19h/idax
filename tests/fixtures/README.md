@@ -73,6 +73,19 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises conservative table recognition, constructor-root proof, semantic class/vftable UDT materialization, method typing, and idempotent reopen
 
+### `symless_rtti_vtable_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/symless_rtti_vtable_host.c`
+- **Used by**: Symless RTTI-adjusted vtable reachability and virtual-method propagation validation
+- **Key characteristics**:
+  - Exports one three-entry function-pointer array preceded by the two-pointer Itanium RTTI prefix shape
+  - Reaches the prefix through an exact pointer-valued data alias, then adds `2 * sizeof(void*)` before the argument-zero store
+  - Writes deterministic constructor fields at `+8 B`/4 B and `+16 B`/8 B
+  - Accesses additional fields at `+24 B`/1 B and `+32 B`/8 B only from accepted non-import virtual methods
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises direct-search fallback, recursive exact data-alias traversal, final table-value confirmation, static virtual-method roots, and idempotent report/apply/reopen
+
 ### `symless_shifted_host.c` -> temporary host-native executable
 
 - **Format**: Host-native executable built on demand

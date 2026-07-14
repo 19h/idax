@@ -278,14 +278,19 @@ a class root only when preoptimized microcode proves an exact table store into
 argument zero at byte offset zero. Referenced non-first slots terminate a table,
 all-import tables are excluded, multiple distinct zero-offset tables make the
 constructor ambiguous, and nonzero stores remain reported secondary evidence.
-Apply creates semantic class/vftable UDTs, reconstructs post-vftable fields,
+Load discovery searches the function-array address first, then falls back to
+the two-pointer Itanium RTTI label and recursively crosses only exact
+pointer-valued data aliases. Every candidate still requires final table-value
+store confirmation. Accepted non-import table members become deduplicated
+argument-zero roots, so method-only fields join constructor evidence under the
+same depth and conflict bounds. Apply creates semantic class/vftable UDTs,
 applies the table type, and replaces only existing eligible generic `this`
-arguments. It does not synthesize missing ABI parameters or rank inheritance by
-table size/xref counts.
+arguments. It does not synthesize missing ABI parameters, resolve runtime
+object dispatch, or rank inheritance by table size/xref counts.
 
 This is not a full Symless parity claim: runtime-only or object-dependent
-indirect dispatch, RTTI-adjusted vtable-load chains, and microcode-widget
-operand selection remain outside this port. The upstream MIT notice is retained in
+indirect dispatch and microcode-widget operand selection remain outside this
+port. The upstream MIT notice is retained in
 `plugin/symless_port_LICENSE.txt`.
 
 The Rust adaptation (`symless_structure_port`) is report-only by default and

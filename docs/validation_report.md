@@ -1058,3 +1058,33 @@ tracked in `docs/compatibility_matrix.md`.
   `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
   and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
   `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.
+
+- 2026-07-14 Phase 46 Symless RTTI-adjusted vtable propagation:
+  Extended both Symless adaptations without a public API delta. Candidate
+  tables now search direct load references first; only tables without a
+  confirmed direct load fall back to the two-pointer Itanium RTTI label.
+  Reference traversal recursively crosses exact pointer-valued data aliases
+  with cycle/value accounting, while owned microcode must still confirm the
+  final function-array value stored through argument zero. Every unique
+  non-import member is then an argument-zero propagation root under the
+  existing depth/context/conflict bounds. Full C++ build and CTest pass 26/26
+  in 22.42 s; Node native build, strict declarations, structural tests, and
+  ABI-matched live integration pass 238/238 and 82/82. Rust formatting and
+  all-target checks, library/sys/Symless tests, and process-main-thread IDA
+  Professional 9.4 integration pass 139/139, 0 sys, 17/17, and 99/99. Fresh
+  bindgen output is byte-identical at SHA-256
+  `3a143a13309725ed66c5ebce1dd5199fafcc30ea8a0d92b33404c9fef66d7a13`.
+  The arm64 RTTI fixture (source SHA-256
+  `ab2594cd975742e0d521dfec0d494952fba7408453b6e57ea78ffab9c0984e56`;
+  executable SHA-256
+  `3408da9c64e5bfe34b18bd980c46bacd680b7f70747a4425eea244ebb88a7b75`)
+  reports one accepted class, zero direct loads, one RTTI fallback/load, one
+  followed data alias, three virtual methods, and exact `+8/4 B`, `+16/8 B`,
+  `+24/1 B`, and `+32/8 B` fields; the last two are method-only. First apply
+  adds five class members, three method members, eleven references/operand
+  paths, and four prototypes. Fresh-process reopen adds or changes zero and
+  reuses every item; the resulting IDB SHA-256 is
+  `41e72624faf91985ebc93fd583b422bd92b7e9983edc20ad9a705180a087e116`.
+  The original direct-table fixture remains the negative control with one
+  direct load, zero RTTI fallback/load, three methods, and unchanged fields.
+  Tracked executable/IDB hashes and IDB blob remain unchanged.
