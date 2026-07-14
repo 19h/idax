@@ -51,7 +51,7 @@ Current overall phase status:
 - Phase 38: complete (depth-bounded resolved direct-call argument/return propagation, explicit call analysis, and metadata-preserving return-type edits)
 - Phase 39: complete (declarative direct allocator/wrapper discovery, fixed-size roots, metadata-preserving argument-name edits, and report/apply/reopen evidence)
 - Phase 40: complete (exact argument-zero constructor/vtable roots, metadata-preserving UDT semantic flags, conservative semantic UDT materialization, and report/apply/reopen evidence)
-- Phase 41: in progress (opaque shifted-pointer metadata and evidence-bounded shifted argument application)
+- Phase 41: complete (opaque shifted-pointer metadata and evidence-bounded shifted argument application)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -284,6 +284,6 @@ Current overall phase status:
 - [x] P41.1 Audit upstream shifted-pointer construction/eligibility and local `ptr_type_data_t` contracts against current opaque C++/Node/Rust type surfaces.
 - [x] P41.2 Add metadata-preserving shifted-pointer construction/introspection across C++, Node, and Rust with exact parent/delta and failure-atomicity tests.
 - [x] P41.3 Apply explicit shifted parent/delta types to eligible propagated argument sites in both Symless adaptations while preserving shifted-return and incompatible-type exclusions.
-- [ ] P41.4 Add pure and real-IDA shifted report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P41.4 Add pure and real-IDA shifted report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
