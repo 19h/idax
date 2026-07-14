@@ -374,6 +374,129 @@ void test_parse_declarations() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: exact local forward declaration classification/replacement
+// ---------------------------------------------------------------------------
+void test_forward_declaration_replacement() {
+    std::cout << "--- forward declaration replacement ---\n";
+
+    const char declarations[] =
+        "struct idax_forward_replace_struct;\n"
+        "union idax_forward_replace_union;\n"
+        "struct idax_forward_preserve_complete { unsigned int keep; };\n";
+    auto report = ida::type::parse_declarations(declarations);
+    CHECK_OK(report);
+    if (!report || !report->ok())
+        return;
+
+    auto struct_forward = ida::type::TypeInfo::by_name(
+        "idax_forward_replace_struct");
+    auto union_forward = ida::type::TypeInfo::by_name(
+        "idax_forward_replace_union");
+    auto complete_target = ida::type::TypeInfo::by_name(
+        "idax_forward_preserve_complete");
+    CHECK_OK(struct_forward);
+    CHECK_OK(union_forward);
+    CHECK_OK(complete_target);
+    if (!struct_forward || !union_forward || !complete_target)
+        return;
+
+    CHECK(struct_forward->is_forward_declaration());
+    CHECK(struct_forward->forward_declaration_kind()
+          == ida::type::TypeKind::Struct);
+    CHECK(union_forward->is_forward_declaration());
+    CHECK(union_forward->forward_declaration_kind()
+          == ida::type::TypeKind::Union);
+    CHECK(!complete_target->is_forward_declaration());
+    CHECK(complete_target->forward_declaration_kind()
+          == ida::type::TypeKind::Unknown);
+
+    auto pointer_before = ida::type::TypeInfo::pointer_to(*struct_forward);
+    auto forward_pointee = pointer_before.pointee_type();
+    CHECK_OK(forward_pointee);
+    if (forward_pointee) {
+        CHECK(forward_pointee->is_forward_declaration());
+        CHECK(forward_pointee->forward_declaration_kind()
+              == ida::type::TypeKind::Struct);
+    }
+
+    auto struct_source = ida::type::TypeInfo::create_struct();
+    CHECK_OK(struct_source.add_member("first", ida::type::TypeInfo::uint32(), 0));
+    CHECK_OK(struct_source.add_member("second", ida::type::TypeInfo::uint64(), 8));
+    CHECK_OK(struct_source.save_as("idax_forward_copy_source"));
+    auto named_source = ida::type::TypeInfo::by_name("idax_forward_copy_source");
+    CHECK_OK(named_source);
+    if (!named_source)
+        return;
+
+    CHECK_ERR(named_source->replace_forward_declaration(""),
+              ida::ErrorCategory::Validation);
+    const std::string embedded_nul("idax\0forward", 12);
+    CHECK_ERR(named_source->replace_forward_declaration(
+                  std::string_view(embedded_nul.data(), embedded_nul.size())),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(named_source->replace_forward_declaration(
+                  "idax_forward_missing_target"),
+              ida::ErrorCategory::NotFound);
+    CHECK_ERR(ida::type::TypeInfo::uint32().replace_forward_declaration(
+                  "idax_forward_replace_struct"),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(struct_forward->replace_forward_declaration(
+                  "idax_forward_replace_union"),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(named_source->replace_forward_declaration(
+                  "idax_forward_replace_union"),
+              ida::ErrorCategory::Conflict);
+    CHECK_ERR(named_source->replace_forward_declaration(
+                  "idax_forward_preserve_complete"),
+              ida::ErrorCategory::Conflict);
+    auto still_union_forward = ida::type::TypeInfo::by_name(
+        "idax_forward_replace_union");
+    CHECK_OK(still_union_forward);
+    if (still_union_forward)
+        CHECK(still_union_forward->is_forward_declaration());
+    auto still_complete = ida::type::TypeInfo::by_name(
+        "idax_forward_preserve_complete");
+    CHECK_OK(still_complete);
+    if (still_complete) {
+        CHECK(!still_complete->is_forward_declaration());
+        CHECK(still_complete->member_by_name("keep").has_value());
+    }
+
+    auto replaced = named_source->replace_forward_declaration(
+        "idax_forward_replace_struct");
+    CHECK_OK(replaced);
+    if (replaced) {
+        CHECK(replaced->is_struct());
+        CHECK(!replaced->is_forward_declaration());
+        CHECK(replaced->name().value_or("") == "idax_forward_replace_struct");
+        CHECK(replaced->member_count().value_or(0) == 2);
+        CHECK(replaced->member_by_name("first").has_value());
+        CHECK(replaced->member_by_name("second").has_value());
+    }
+    CHECK(named_source->name().value_or("") == "idax_forward_copy_source");
+    CHECK(named_source->member_count().value_or(0) == 2);
+
+    auto pointer_pointee = pointer_before.pointee_type();
+    CHECK_OK(pointer_pointee);
+    if (pointer_pointee) {
+        CHECK(pointer_pointee->is_struct());
+        CHECK(pointer_pointee->member_count().value_or(0) == 2);
+    }
+
+    auto union_source = ida::type::TypeInfo::create_union();
+    CHECK_OK(union_source.add_member("wide", ida::type::TypeInfo::uint64(), 0));
+    CHECK_OK(union_source.add_member("narrow", ida::type::TypeInfo::uint32(), 0));
+    auto replaced_union = union_source.replace_forward_declaration(
+        "idax_forward_replace_union");
+    CHECK_OK(replaced_union);
+    if (replaced_union) {
+        CHECK(replaced_union->is_union());
+        CHECK(!replaced_union->is_forward_declaration());
+        CHECK(replaced_union->member_count().value_or(0) == 2);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Test: function type + calling convention workflows
 // ---------------------------------------------------------------------------
 void test_function_type_workflows() {
@@ -1132,6 +1255,7 @@ int main(int argc, char* argv[]) {
     test_type_decomposition_helpers();
     test_from_declaration();
     test_parse_declarations();
+    test_forward_declaration_replacement();
     test_function_type_workflows();
     test_enum_workflows();
     test_rich_type_layout_metadata();

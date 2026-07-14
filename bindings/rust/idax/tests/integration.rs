@@ -1401,6 +1401,159 @@ fn types_shifted_pointer_metadata() {
     );
 }
 
+fn types_forward_declaration_replacement() {
+    require_db!();
+    let report = types::parse_declarations(
+        "struct idax_rust_forward_struct;\n\
+         union idax_rust_forward_union;\n\
+         struct idax_rust_forward_complete { unsigned int keep; };",
+        types::ParseDeclarationsOptions::default(),
+    )
+    .unwrap();
+    assert!(report.ok());
+
+    let struct_forward = types::TypeInfo::by_name("idax_rust_forward_struct").unwrap();
+    let union_forward = types::TypeInfo::by_name("idax_rust_forward_union").unwrap();
+    let complete = types::TypeInfo::by_name("idax_rust_forward_complete").unwrap();
+    assert!(struct_forward.is_forward_declaration());
+    assert_eq!(
+        struct_forward.forward_declaration_kind().unwrap(),
+        types::TypeKind::Struct
+    );
+    assert!(union_forward.is_forward_declaration());
+    assert_eq!(
+        union_forward.forward_declaration_kind().unwrap(),
+        types::TypeKind::Union
+    );
+    assert!(!complete.is_forward_declaration());
+    assert_eq!(
+        complete.forward_declaration_kind().unwrap(),
+        types::TypeKind::Unknown
+    );
+
+    let pointer_before = types::TypeInfo::pointer_to(&struct_forward);
+    assert!(
+        pointer_before
+            .pointee_type()
+            .unwrap()
+            .is_forward_declaration()
+    );
+    assert_eq!(
+        pointer_before
+            .pointee_type()
+            .unwrap()
+            .forward_declaration_kind()
+            .unwrap(),
+        types::TypeKind::Struct
+    );
+    let source = types::TypeInfo::create_struct();
+    source
+        .add_member("first", &types::TypeInfo::uint32(), 0)
+        .unwrap();
+    source
+        .add_member("second", &types::TypeInfo::uint64(), 8)
+        .unwrap();
+    source.save_as("idax_rust_forward_source").unwrap();
+    let named_source = types::TypeInfo::by_name("idax_rust_forward_source").unwrap();
+
+    assert_eq!(
+        named_source
+            .replace_forward_declaration("")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        named_source
+            .replace_forward_declaration("idax\0rust")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        named_source
+            .replace_forward_declaration("idax_rust_forward_missing")
+            .unwrap_err()
+            .category,
+        ErrorCategory::NotFound
+    );
+    assert_eq!(
+        types::TypeInfo::uint32()
+            .replace_forward_declaration("idax_rust_forward_struct")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        struct_forward
+            .replace_forward_declaration("idax_rust_forward_union")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        named_source
+            .replace_forward_declaration("idax_rust_forward_union")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Conflict
+    );
+    assert_eq!(
+        named_source
+            .replace_forward_declaration("idax_rust_forward_complete")
+            .unwrap_err()
+            .category,
+        ErrorCategory::Conflict
+    );
+    assert!(
+        types::TypeInfo::by_name("idax_rust_forward_union")
+            .unwrap()
+            .is_forward_declaration()
+    );
+    assert_eq!(
+        types::TypeInfo::by_name("idax_rust_forward_complete")
+            .unwrap()
+            .member_by_name("keep")
+            .unwrap()
+            .name,
+        "keep"
+    );
+
+    let replaced = named_source
+        .replace_forward_declaration("idax_rust_forward_struct")
+        .unwrap();
+    assert!(replaced.is_struct());
+    assert!(!replaced.is_forward_declaration());
+    assert_eq!(replaced.name().unwrap(), "idax_rust_forward_struct");
+    assert_eq!(replaced.member_count().unwrap(), 2);
+    assert_eq!(replaced.member_by_name("first").unwrap().name, "first");
+    assert_eq!(replaced.member_by_name("second").unwrap().name, "second");
+    assert_eq!(named_source.name().unwrap(), "idax_rust_forward_source");
+    assert_eq!(named_source.member_count().unwrap(), 2);
+    assert_eq!(
+        pointer_before
+            .pointee_type()
+            .unwrap()
+            .member_count()
+            .unwrap(),
+        2
+    );
+
+    let union_source = types::TypeInfo::create_union();
+    union_source
+        .add_member("wide", &types::TypeInfo::uint64(), 0)
+        .unwrap();
+    union_source
+        .add_member("narrow", &types::TypeInfo::uint32(), 0)
+        .unwrap();
+    let replaced_union = union_source
+        .replace_forward_declaration("idax_rust_forward_union")
+        .unwrap();
+    assert!(replaced_union.is_union());
+    assert!(!replaced_union.is_forward_declaration());
+    assert_eq!(replaced_union.member_count().unwrap(), 2);
+}
+
 fn types_struct_creation() {
     require_db!();
     let s = types::TypeInfo::create_struct();
@@ -2172,6 +2325,10 @@ static TEST_CASES: &[TestCase] = &[
     (
         "types_shifted_pointer_metadata",
         types_shifted_pointer_metadata,
+    ),
+    (
+        "types_forward_declaration_replacement",
+        types_forward_declaration_replacement,
     ),
     ("types_struct_creation", types_struct_creation),
     ("types_udt_semantics", types_udt_semantics),

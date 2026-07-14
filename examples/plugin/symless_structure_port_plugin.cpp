@@ -229,6 +229,7 @@ enum class ArgumentEligibility {
 
 struct ApplySummary {
     bool structure_created{false};
+    bool structure_forward_replaced{false};
     std::size_t members_added{0};
     std::size_t members_reused{0};
     std::size_t members_skipped{0};
@@ -249,6 +250,7 @@ struct ApplySummary {
 
 struct AllocatorApplySummary {
     std::size_t structures_created{0};
+    std::size_t structures_forward_replaced{0};
     std::size_t structures_ineligible{0};
     std::size_t members_added{0};
     std::size_t members_reused{0};
@@ -301,8 +303,10 @@ struct VtableAnalysis {
 struct VtableApplySummary {
     std::size_t vtable_types_created{0};
     std::size_t vtable_types_reused{0};
+    std::size_t vtable_types_forward_replaced{0};
     std::size_t class_types_created{0};
     std::size_t class_types_reused{0};
+    std::size_t class_types_forward_replaced{0};
     std::size_t method_members_added{0};
     std::size_t method_members_reused{0};
     std::size_t class_members_added{0};
@@ -2099,12 +2103,23 @@ ida::Result<ida::type::TypeInfo> ensure_structure(
     ApplySummary& summary) {
     auto existing = ida::type::TypeInfo::by_name(name);
     ida::type::TypeInfo structure;
+    bool replacing_forward = false;
     if (existing) {
-        if (!existing->is_struct()) {
+        if (existing->is_forward_declaration()) {
+            if (existing->forward_declaration_kind()
+                != ida::type::TypeKind::Struct) {
+                return std::unexpected(ida::Error::conflict(
+                    "Structure name is occupied by a non-struct forward",
+                    std::string(name)));
+            }
+            structure = ida::type::TypeInfo::create_struct();
+            replacing_forward = true;
+        } else if (!existing->is_struct()) {
             return std::unexpected(ida::Error::conflict(
                 "Structure name is occupied by a non-struct", std::string(name)));
+        } else {
+            structure = *existing;
         }
-        structure = *existing;
     } else if (existing.error().category == ida::ErrorCategory::NotFound) {
         structure = ida::type::TypeInfo::create_struct();
         summary.structure_created = true;
@@ -2113,7 +2128,7 @@ ida::Result<ida::type::TypeInfo> ensure_structure(
     }
 
     std::vector<std::pair<std::size_t, std::size_t>> occupied;
-    if (!summary.structure_created) {
+    if (!summary.structure_created && !replacing_forward) {
         auto members = structure.members();
         if (!members)
             return std::unexpected(members.error());
@@ -2154,6 +2169,13 @@ ida::Result<ida::type::TypeInfo> ensure_structure(
         ++summary.members_added;
     }
 
+    if (replacing_forward) {
+        auto replaced = structure.replace_forward_declaration(name);
+        if (!replaced)
+            return std::unexpected(replaced.error());
+        summary.structure_forward_replaced = true;
+        return replaced;
+    }
     if (summary.structure_created || summary.members_added > 0) {
         auto saved = structure.save_as(name);
         if (!saved)
@@ -2470,6 +2492,8 @@ ida::Result<AllocatorApplySummary> apply_allocator_discovery(
         if (!structure)
             return std::unexpected(structure.error());
         summary.structures_created += structure_summary.structure_created ? 1 : 0;
+        summary.structures_forward_replaced +=
+            structure_summary.structure_forward_replaced ? 1 : 0;
         summary.members_added += structure_summary.members_added;
         summary.members_reused += structure_summary.members_reused;
         summary.members_skipped += structure_summary.members_skipped;
@@ -2502,31 +2526,49 @@ ida::Result<ida::type::TypeInfo> ensure_semantic_struct(
     bool is_cpp_object,
     bool is_vftable,
     std::size_t& created,
-    std::size_t& reused) {
+    std::size_t& reused,
+    std::size_t& forward_replaced) {
     auto existing = ida::type::TypeInfo::by_name(name);
     ida::type::TypeInfo structure;
+    bool replacing_forward = false;
     if (existing) {
-        if (!existing->is_struct()) {
+        if (existing->is_forward_declaration()) {
+            if (existing->forward_declaration_kind()
+                != ida::type::TypeKind::Struct) {
+                return std::unexpected(ida::Error::conflict(
+                    "Semantic UDT name is occupied by a non-struct forward",
+                    std::string(name)));
+            }
+            structure = ida::type::TypeInfo::create_struct();
+            replacing_forward = true;
+        } else if (!existing->is_struct()) {
             return std::unexpected(ida::Error::conflict(
                 "Semantic UDT name is occupied by a non-struct",
                 std::string(name)));
+        } else {
+            structure = *existing;
+            ++reused;
+            return structure;
         }
-        structure = *existing;
-        ++reused;
     } else if (existing.error().category == ida::ErrorCategory::NotFound) {
         structure = ida::type::TypeInfo::create_struct();
-        ++created;
     } else {
         return std::unexpected(existing.error());
     }
-    if (existing)
-        return structure;
     auto semantic = structure.set_udt_semantics(is_cpp_object, is_vftable);
     if (!semantic)
         return std::unexpected(semantic.error());
+    if (replacing_forward) {
+        auto replaced = structure.replace_forward_declaration(name);
+        if (!replaced)
+            return std::unexpected(replaced.error());
+        ++forward_replaced;
+        return replaced;
+    }
     auto saved = structure.save_as(name);
     if (!saved)
         return std::unexpected(saved.error());
+    ++created;
     return ida::type::TypeInfo::by_name(name);
 }
 
@@ -2601,7 +2643,8 @@ ida::Result<bool> populate_class_type(
     VtableApplySummary& summary) {
     auto class_type = ensure_semantic_struct(
         class_name, true, false,
-        summary.class_types_created, summary.class_types_reused);
+        summary.class_types_created, summary.class_types_reused,
+        summary.class_types_forward_replaced);
     if (!class_type)
         return std::unexpected(class_type.error());
     const auto vtable_pointer = ida::type::TypeInfo::pointer_to(vtable_type);
@@ -2794,7 +2837,8 @@ ida::Result<VtableApplySummary> apply_vtable_discovery(
                                                 candidate.vtable_address);
         auto vtable = ensure_semantic_struct(
             vtable_name, false, true,
-            summary.vtable_types_created, summary.vtable_types_reused);
+            summary.vtable_types_created, summary.vtable_types_reused,
+            summary.vtable_types_forward_replaced);
         if (!vtable)
             return std::unexpected(vtable.error());
         auto compatible = vtable_layout_compatible(candidate, *vtable, summary);
@@ -2893,7 +2937,8 @@ std::string report_text(const Reconstruction& reconstruction,
     }
     if (applied != nullptr) {
         report += format(
-            "Structure created: %s\nMembers added: %zu\n"
+            "Structure created: %s\nStructure forward replaced: %s\n"
+            "Members added: %zu\n"
             "Members reused: %zu\nMembers skipped: %zu\n"
             "Argument changed: %s\nArgument already typed: %s\n"
             "Arguments changed: %zu\nArguments already typed: %zu\n"
@@ -2905,6 +2950,7 @@ std::string report_text(const Reconstruction& reconstruction,
             "Returns changed: %zu\nReturns already typed: %zu\n"
             "Returns shifted/skipped: %zu\nReturns ineligible: %zu\n",
             applied->structure_created ? "yes" : "no",
+            applied->structure_forward_replaced ? "yes" : "no",
             applied->members_added,
             applied->members_reused,
             applied->members_skipped,
@@ -2999,11 +3045,13 @@ std::string allocator_report_text(
     }
     if (applied != nullptr) {
         report += format(
-            "Structures created: %zu\nStructures ineligible: %zu\n"
+            "Structures created: %zu\nStructures forward replaced: %zu\n"
+            "Structures ineligible: %zu\n"
             "Members added: %zu\nMembers reused: %zu\nMembers skipped: %zu\n"
             "Prototypes changed: %zu\nPrototypes already typed: %zu\n"
             "Prototypes ineligible: %zu\n",
             applied->structures_created,
+            applied->structures_forward_replaced,
             applied->structures_ineligible,
             applied->members_added,
             applied->members_reused,
@@ -3085,7 +3133,9 @@ std::string vtable_report_text(
     if (applied != nullptr) {
         report += format(
             "Vtable types created: %zu\nVtable types reused: %zu\n"
+            "Vtable types forward replaced: %zu\n"
             "Class types created: %zu\nClass types reused: %zu\n"
+            "Class types forward replaced: %zu\n"
             "Method members added: %zu\nMethod members reused: %zu\n"
             "Class members added: %zu\nClass members reused: %zu\n"
             "Members skipped: %zu\nPrototypes changed: %zu\n"
@@ -3093,8 +3143,10 @@ std::string vtable_report_text(
             "Vtables applied: %zu\n",
             applied->vtable_types_created,
             applied->vtable_types_reused,
+            applied->vtable_types_forward_replaced,
             applied->class_types_created,
             applied->class_types_reused,
+            applied->class_types_forward_replaced,
             applied->method_members_added,
             applied->method_members_reused,
             applied->class_members_added,

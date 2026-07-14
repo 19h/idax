@@ -2885,6 +2885,15 @@ unsafe extern "C" {
     pub fn idax_type_is_signed(ti: IdaxTypeHandle) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_type_is_forward_declaration(ti: IdaxTypeHandle) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_forward_declaration_kind(
+        ti: IdaxTypeHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_type_kind(
         ti: IdaxTypeHandle,
         out: *mut ::std::os::raw::c_int,
@@ -3033,6 +3042,13 @@ unsafe extern "C" {
     pub fn idax_type_save_as(
         ti: IdaxTypeHandle,
         name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_replace_forward_declaration(
+        ti: IdaxTypeHandle,
+        name: *const ::std::os::raw::c_char,
+        out: *mut IdaxTypeHandle,
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {

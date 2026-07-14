@@ -407,7 +407,7 @@ back to common host clipboard commands such as `wl-copy`, `xclip`, `xsel`,
 TypeInfo factory/runtime operations require an initialized IDA runtime/database; pure structural tests should inspect declarations or initialized integration tests rather than constructing TypeInfo objects in an uninitialized Node process.
 
 ### `TypeInfo` Class Methods
-* `isVoid(): boolean`, `isInteger()`, `isFloatingPoint()`, `isPointer()`, `isArray()`, `isFunction()`, `isStruct()`, `isUnion()`, `isEnum()`, `isTypedef()`, `isBool()`, `isChar()`, `isUnsignedChar()`, `isSigned()`, `kind()`, `name()`
+* `isVoid(): boolean`, `isInteger()`, `isFloatingPoint()`, `isPointer()`, `isArray()`, `isFunction()`, `isStruct()`, `isUnion()`, `isEnum()`, `isTypedef()`, `isBool()`, `isChar()`, `isUnsignedChar()`, `isSigned()`, `isForwardDeclaration()`, `forwardDeclarationKind()`, `kind()`, `name()`
 * `size(): number`, `toString(): string`, `declaration(declaratorName?: string): string`
 * `pointeeType(): TypeInfo`, `pointerDetails(): PointerDetails`, `withShiftedParent(parent: TypeInfo, byteDelta: number): TypeInfo`, `arrayElementType(): TypeInfo`, `arrayLength(): number`, `resolveTypedef(): TypeInfo`
 * `functionReturnType(): TypeInfo`, `functionArgumentTypes(): TypeInfo[]`, `functionDetails(): FunctionDetails`, `callingConvention(): CallingConvention`, `isVariadicFunction(): boolean`
@@ -417,6 +417,7 @@ TypeInfo factory/runtime operations require an initialized IDA runtime/database;
 * `addMember(name: string, type: TypeInfo, byteOffset?: number): void`
 * `apply(address: Address): void`
 * `saveAs(name: string): void`
+* `replaceForwardDeclaration(name: string): TypeInfo` — exact local struct/union forward only; preserves the existing ordinal and source object
 
 ### API (Factories & Library Operations)
 * `voidType(): TypeInfo`, `int8()`, `int16()`, `int32()`, `int64()`, `uint8()`, `uint16()`, `uint32()`, `uint64()`, `float32()`, `float64()`

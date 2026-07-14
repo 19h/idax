@@ -168,6 +168,12 @@ public:
     [[nodiscard]] bool is_unsigned_char()  const;
     [[nodiscard]] bool is_signed()         const;
 
+    /// Whether this value denotes a local-type forward declaration.
+    [[nodiscard]] bool is_forward_declaration() const;
+
+    /// Declared kind of a forward declaration; `Unknown` otherwise.
+    [[nodiscard]] TypeKind forward_declaration_kind() const;
+
     [[nodiscard]] TypeKind kind() const;
     [[nodiscard]] Result<std::string> name() const;
 
@@ -260,6 +266,12 @@ public:
 
     /// Save this type to the local type library under the given name.
     Status save_as(std::string_view name) const;
+
+    /// Replace an exact same-name local struct/union forward declaration
+    /// with a complete copy of this same-kind UDT while preserving its ordinal.
+    /// Complete definitions and nonlocal types are never overwritten.
+    [[nodiscard]] Result<TypeInfo>
+    replace_forward_declaration(std::string_view name) const;
 
     // ── Internal (opaque pimpl) ─────────────────────────────────────────
     struct Impl;

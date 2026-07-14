@@ -3580,6 +3580,21 @@ int idax_type_is_signed(IdaxTypeHandle ti) {
     return static_cast<ida::type::TypeInfo*>(ti)->is_signed() ? 1 : 0;
 }
 
+int idax_type_is_forward_declaration(IdaxTypeHandle ti) {
+    return static_cast<ida::type::TypeInfo*>(ti)->is_forward_declaration() ? 1 : 0;
+}
+
+int idax_type_forward_declaration_kind(IdaxTypeHandle ti, int* out) {
+    clear_error();
+    if (ti == nullptr || out == nullptr) {
+        return fail(ida::Error::validation(
+            ti == nullptr ? "Type handle is null" : "Output pointer is null"));
+    }
+    *out = type_kind_to_int(
+        static_cast<ida::type::TypeInfo*>(ti)->forward_declaration_kind());
+    return 0;
+}
+
 int idax_type_kind(IdaxTypeHandle ti, int* out) {
     clear_error();
     if (out == nullptr) {
@@ -3904,6 +3919,25 @@ int idax_type_apply(IdaxTypeHandle ti, uint64_t ea) {
 
 int idax_type_save_as(IdaxTypeHandle ti, const char* name) {
     RETURN_STATUS(static_cast<ida::type::TypeInfo*>(ti)->save_as(name));
+}
+
+int idax_type_replace_forward_declaration(IdaxTypeHandle ti,
+                                          const char* name,
+                                          IdaxTypeHandle* out) {
+    clear_error();
+    if (ti == nullptr || name == nullptr || out == nullptr) {
+        return fail(ida::Error::validation(
+            ti == nullptr ? "Type handle is null"
+                : name == nullptr ? "Forward declaration name is null"
+                                  : "Output pointer is null"));
+    }
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)
+        ->replace_forward_declaration(name);
+    if (!result)
+        return fail(result.error());
+    *out = new ida::type::TypeInfo(std::move(*result));
+    return 0;
 }
 
 int idax_type_retrieve(uint64_t ea, IdaxTypeHandle* out) {

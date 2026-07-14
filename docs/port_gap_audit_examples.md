@@ -20,7 +20,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 | Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
-| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct-call argument/return propagation, declarative allocator/wrapper/fixed-root discovery, exact argument-zero constructor/vtable roots, or exact shifted propagated arguments. Full upstream parity additionally requires indirect dynamic calls, RTTI-adjusted vtable-load chains, local-type forward replacement, member xrefs, multi-stroff paths, and a microcode-widget picker |
+| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct-call argument/return propagation, declarative allocator/wrapper/fixed-root discovery, exact argument-zero constructor/vtable roots, exact shifted propagated arguments, or ordinal-preserving local structure-forward replacement. Full upstream parity additionally requires indirect dynamic calls, RTTI-adjusted vtable-load chains, member xrefs, multi-stroff paths, and a microcode-widget picker |
 
 ## Notes
 
@@ -53,7 +53,9 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   confirmation, cycle-safe heir traversal, and call-site-specific UDTs. Report
   mode is non-mutating. Proven nonzero argument shifts use copied exact
   parent/delta metadata; shifted returns and mismatched complex pointers remain
-  excluded. Mutation requires the C++ apply
+  excluded. Exact same-name local structure forwards are replaced at their
+  existing ordinal with a copied complete definition; complete definitions and
+  incompatible declarations are preserved. Mutation requires the C++ apply
   action or Rust `--apply`. The audited full-parity surfaces remain explicitly
   separate rather than being approximated.
 - This file replaces the previous per-port gap audit documents.

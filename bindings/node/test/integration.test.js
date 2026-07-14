@@ -831,6 +831,70 @@ describe('Type System', () => {
         expect(() => idax.type.uint32().pointerDetails()).toThrow();
     });
 
+    it('should classify and replace exact local forward declarations', () => {
+        const report = idax.type.parseDeclarations(
+            'struct idax_node_forward_struct;\n' +
+            'union idax_node_forward_union;\n' +
+            'struct idax_node_forward_complete { unsigned int keep; };\n',
+        );
+        expect(report.ok).toBe(true);
+
+        const structForward = idax.type.byName('idax_node_forward_struct');
+        const unionForward = idax.type.byName('idax_node_forward_union');
+        const complete = idax.type.byName('idax_node_forward_complete');
+        expect(structForward.isForwardDeclaration()).toBe(true);
+        expect(structForward.forwardDeclarationKind()).toBe('struct');
+        expect(unionForward.isForwardDeclaration()).toBe(true);
+        expect(unionForward.forwardDeclarationKind()).toBe('union');
+        expect(complete.isForwardDeclaration()).toBe(false);
+        expect(complete.forwardDeclarationKind()).toBe('unknown');
+
+        const pointerBefore = idax.type.pointerTo(structForward);
+        expect(pointerBefore.pointeeType().isForwardDeclaration()).toBe(true);
+        expect(pointerBefore.pointeeType().forwardDeclarationKind()).toBe('struct');
+        const source = idax.type.createStruct();
+        source.addMember('first', idax.type.uint32(), 0);
+        source.addMember('second', idax.type.uint64(), 8);
+        source.saveAs('idax_node_forward_source');
+        const namedSource = idax.type.byName('idax_node_forward_source');
+
+        expect(() => namedSource.replaceForwardDeclaration('')).toThrow();
+        expect(() => namedSource.replaceForwardDeclaration('missing_node_forward')).toThrow();
+        expect(() => idax.type.uint32().replaceForwardDeclaration(
+            'idax_node_forward_struct')).toThrow();
+        expect(() => structForward.replaceForwardDeclaration(
+            'idax_node_forward_union')).toThrow();
+        expect(() => namedSource.replaceForwardDeclaration(
+            'idax_node_forward_union')).toThrow();
+        expect(() => namedSource.replaceForwardDeclaration(
+            'idax_node_forward_complete')).toThrow();
+        expect(idax.type.byName('idax_node_forward_union')
+            .isForwardDeclaration()).toBe(true);
+        expect(idax.type.byName('idax_node_forward_complete')
+            .memberByName('keep').name).toBe('keep');
+
+        const replaced = namedSource.replaceForwardDeclaration(
+            'idax_node_forward_struct');
+        expect(replaced.isStruct()).toBe(true);
+        expect(replaced.isForwardDeclaration()).toBe(false);
+        expect(replaced.name()).toBe('idax_node_forward_struct');
+        expect(replaced.memberCount()).toBe(2);
+        expect(replaced.memberByName('first').name).toBe('first');
+        expect(replaced.memberByName('second').name).toBe('second');
+        expect(namedSource.name()).toBe('idax_node_forward_source');
+        expect(namedSource.memberCount()).toBe(2);
+        expect(pointerBefore.pointeeType().memberCount()).toBe(2);
+
+        const unionSource = idax.type.createUnion();
+        unionSource.addMember('wide', idax.type.uint64(), 0);
+        unionSource.addMember('narrow', idax.type.uint32(), 0);
+        const replacedUnion = unionSource.replaceForwardDeclaration(
+            'idax_node_forward_union');
+        expect(replacedUnion.isUnion()).toBe(true);
+        expect(replacedUnion.isForwardDeclaration()).toBe(false);
+        expect(replacedUnion.memberCount()).toBe(2);
+    });
+
     it('should create array type', () => {
         const elem = idax.type.uint8();
         const arr = idax.type.arrayOf(elem, 100);

@@ -145,6 +145,30 @@ auto details = shifted->pointer_details();
 The delta is a nonzero signed 32-bit byte offset. The parent must be a struct.
 The source pointer remains unchanged.
 
+### Local forward declarations
+
+```cpp
+// Legacy:
+// auto ordinal = forward_tif.get_ordinal();
+// complete_tif.set_numbered_type(get_idati(), ordinal,
+//                                NTF_REPLACE | NTF_COPY);
+
+// idax: classify explicitly and replace only the exact local forward ordinal.
+auto target = ida::type::TypeInfo::by_name("object");
+if (target && target->is_forward_declaration()
+    && target->forward_declaration_kind() == ida::type::TypeKind::Struct) {
+    auto complete = ida::type::TypeInfo::create_struct();
+    complete.add_member("flags", ida::type::TypeInfo::uint32(), 0);
+    auto replaced = complete.replace_forward_declaration("object");
+}
+```
+
+`replace_forward_declaration` accepts only an exact local structure/union
+forward of the same kind. It copies the complete candidate into the existing
+ordinal and returns a fresh named handle. Complete definitions, sub-TIL types,
+enum forwards, mismatched kinds, and non-UDT candidates are preserved and
+reported as errors; the candidate remains unchanged.
+
 ### Struct creation and member access
 
 ```cpp

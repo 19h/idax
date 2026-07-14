@@ -243,7 +243,9 @@ argument injection, and conservative terminal-return consensus. Apply creates
 or reuses a named UDT, changes eligible ordinary arguments/returns, and applies
 exact shifted-parent/delta metadata to proven nonzero propagated argument
 sites. Existing mismatched complex pointers remain unchanged; shifted returns
-remain excluded as in upstream Symless.
+remain excluded as in upstream Symless. Exact same-name local structure
+forwards are replaced at their existing ordinal with the recovered complete
+definition; complete definitions and incompatible declarations are preserved.
 
 Allocator mode accepts one specification per line: `malloc:<locator>:<size-index>`,
 `realloc:<locator>:<size-index>`, or
@@ -267,9 +269,8 @@ arguments. It does not synthesize missing ABI parameters or rank inheritance by
 table size/xref counts.
 
 This is not a full Symless parity claim: indirect dynamic calls,
-RTTI-adjusted vtable-load chains, local-type forward replacement, member-TID
-xrefs, multi-element stroff paths, and microcode-widget operand selection
-remain outside this port. The upstream MIT notice is retained in
+RTTI-adjusted vtable-load chains, member-TID xrefs, multi-element stroff paths,
+and microcode-widget operand selection remain outside this port. The upstream MIT notice is retained in
 `plugin/symless_port_LICENSE.txt`.
 
 The Rust adaptation (`symless_structure_port`) is report-only by default and

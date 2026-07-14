@@ -1467,3 +1467,49 @@ interprocedural reconstruction bound remains KB 35.67; this phase adds no graph
 traversal. The falsification probes are a mismatched parent, mismatched signed
 delta, delta outside `[-2^31, 2^31-1] B`, and fresh-process reopen after exact
 application.
+
+### 35.78. Replace Only Exact Local Forward Ordinals [F422]
+Treat a forward declaration as a distinct local-type state, not as an empty
+complete UDT. Classification copies the native forward property and maps its
+declared base to `Struct`, `Union`, `Enum`, or `Unknown`. Replacement is bounded
+to structure/union targets: require a nonempty NUL-free exact name, a local
+non-sub-TIL target with a nonzero ordinal, explicit forward state, and a complete
+non-forward candidate of the same struct/union kind. Copy the candidate and save
+that copy into the target ordinal with `NTF_REPLACE | NTF_COPY`; return a fresh
+named lookup and leave the source candidate unchanged.
+
+This preserves the identity referenced by existing ordinal-based type links and
+prevents the generic `save_as` overwrite contract from being used as a forward
+classifier. Preconditions are evaluated before the one SDK save operation.
+Classification is `O(1)` time/space excluding opaque type storage; replacement
+is `O(M)` time and space for `M` copied UDT members. Falsification probes are an
+absent name, base-TIL type, complete target, enum forward, forward candidate,
+non-UDT candidate, struct/union mismatch, embedded NUL, and named candidate whose
+definition must be copied rather than stored as a typeref.
+
+### 35.79. Extract Forward Pointees from Pointer Details [F423]
+For any value classified as a pointer, call `get_ptr_details()` and copy
+`ptr_type_data_t::obj_type`; do not rely on `get_pointed_object()`. IDA 9.4 can
+return an absent pointed object for a valid pointer to a named local forward
+while the complete pointer record retains that forward pointee. This makes
+forward state and declared kind observable before replacement, and an existing
+pointer link to the ordinal resolves to the complete UDT after replacement.
+
+The operation remains `O(1)` excluding opaque type-copy storage. Falsification
+probes are ordinary primitive pointers, complete named UDT pointers, local
+structure/union forward pointers before replacement, and the same retained
+pointer after ordinal-preserving replacement.
+
+### 35.80. Existing Ordinal Links Resolve After Forward Replacement [F424]
+A same-ordinal complete-definition save updates consumers that already refer to
+the local forward. Do not rewrite those consumers merely because the target was
+previously incomplete: after replacement, re-read each prototype and apply the
+ordinary exact type-eligibility rule. In the measured DWARF case, the original
+pointer argument becomes an exact pointer to the recovered structure and is
+therefore already typed.
+
+Report creation, forward replacement, and prototype mutation separately. First
+apply should show one forward replacement, member additions, and zero redundant
+prototype changes; fresh-process reopen should show zero replacement/addition,
+all members reused, and the prototype still already typed. A changed ordinal or
+delete-plus-recreate implementation falsifies this behavior.

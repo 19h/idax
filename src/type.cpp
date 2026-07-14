@@ -295,6 +295,21 @@ bool TypeInfo::is_bool()           const { return impl_ && impl_->ti.is_bool(); 
 bool TypeInfo::is_char()           const { return impl_ && impl_->ti.is_char(); }
 bool TypeInfo::is_unsigned_char()  const { return impl_ && impl_->ti.is_uchar(); }
 bool TypeInfo::is_signed()         const { return impl_ && impl_->ti.is_signed(); }
+bool TypeInfo::is_forward_declaration() const {
+    return impl_ && impl_->ti.is_forward_decl();
+}
+
+TypeKind TypeInfo::forward_declaration_kind() const {
+    if (!impl_ || !impl_->ti.is_forward_decl())
+        return TypeKind::Unknown;
+    if (impl_->ti.is_forward_struct())
+        return TypeKind::Struct;
+    if (impl_->ti.is_forward_union())
+        return TypeKind::Union;
+    if (impl_->ti.is_forward_enum())
+        return TypeKind::Enum;
+    return TypeKind::Unknown;
+}
 
 TypeKind TypeInfo::kind() const {
     if (!impl_ || !impl_->ti.present())
@@ -373,12 +388,12 @@ Result<TypeInfo> TypeInfo::pointee_type() const {
     if (!impl_->ti.is_ptr())
         return std::unexpected(Error::validation("Type is not a pointer"));
 
-    tinfo_t pointee = impl_->ti.get_pointed_object();
-    if (!pointee.present())
+    ptr_type_data_t pointer;
+    if (!impl_->ti.get_ptr_details(&pointer))
         return std::unexpected(Error::sdk("Failed to get pointer target type"));
 
     TypeInfo result;
-    TypeInfoAccess::get(result)->ti = pointee;
+    TypeInfoAccess::get(result)->ti = pointer.obj_type;
     return result;
 }
 
@@ -923,6 +938,74 @@ Status TypeInfo::save_as(std::string_view name) const {
         return std::unexpected(Error::sdk("Failed to save named type",
                                           name_str + ": " + std::string(tinfo_errstr(rc))));
     return ida::ok();
+}
+
+Result<TypeInfo>
+TypeInfo::replace_forward_declaration(std::string_view name) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (name.empty())
+        return std::unexpected(Error::validation(
+            "Forward declaration name cannot be empty"));
+    if (name.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation(
+            "Forward declaration name cannot contain embedded NUL bytes"));
+    if (impl_->ti.is_forward_decl())
+        return std::unexpected(Error::validation(
+            "Replacement type must be a complete struct or union"));
+
+    const bool replacement_is_struct = impl_->ti.is_struct();
+    const bool replacement_is_union = impl_->ti.is_union();
+    if (!replacement_is_struct && !replacement_is_union)
+        return std::unexpected(Error::validation(
+            "Replacement type must be a complete struct or union"));
+
+    const std::string name_string(name);
+    tinfo_t forward;
+    if (!forward.get_named_type(get_idati(), name_string.c_str(),
+                                BTF_TYPEDEF, true, true)
+        || forward.is_from_subtil()) {
+        return std::unexpected(Error::not_found(
+            "Local forward declaration not found", name_string));
+    }
+    if (!forward.is_forward_decl())
+        return std::unexpected(Error::conflict(
+            "Named local type is not a forward declaration", name_string));
+
+    const bool forward_is_struct = forward.is_forward_struct();
+    const bool forward_is_union = forward.is_forward_union();
+    if (!forward_is_struct && !forward_is_union)
+        return std::unexpected(Error::conflict(
+            "Only struct or union forward declarations can be replaced",
+            name_string));
+    if (forward_is_struct != replacement_is_struct
+        || forward_is_union != replacement_is_union) {
+        return std::unexpected(Error::conflict(
+            "Forward declaration kind does not match replacement UDT",
+            name_string));
+    }
+
+    const ::uint32 ordinal = forward.get_ordinal();
+    if (ordinal == 0)
+        return std::unexpected(Error::conflict(
+            "Forward declaration has no local type ordinal", name_string));
+
+    tinfo_t replacement = impl_->ti;
+    const tinfo_code_t rc = replacement.set_numbered_type(
+        get_idati(), ordinal, NTF_REPLACE | NTF_COPY);
+    if (rc != TERR_OK)
+        return std::unexpected(Error::sdk(
+            "Failed to replace forward declaration",
+            name_string + ": " + std::string(tinfo_errstr(rc))));
+
+    auto result = TypeInfo::by_name(name);
+    if (!result)
+        return std::unexpected(result.error());
+    if (result->is_forward_declaration())
+        return std::unexpected(Error::sdk(
+            "Forward declaration remained unresolved after replacement",
+            name_string));
+    return result;
 }
 
 // ── Free functions ──────────────────────────────────────────────────────

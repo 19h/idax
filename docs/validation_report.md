@@ -940,3 +940,28 @@ tracked in `docs/compatibility_matrix.md`.
   members and recognizes both arguments with zero mutation. Generated bindings
   are byte-identical at SHA-256
   `4b0958634a70f67ce68945a13a9d89c27ed9bd7b0d3a1fcdb451a1dc9a3f484c`.
+
+- 2026-07-14 Phase 42 Symless forward local-type replacement:
+  Added explicit local forward-declaration state/kind and failure-atomic,
+  ordinal-preserving same-name structure/union replacement across C++, Node,
+  generated C ABI, and safe Rust. Extended both Symless adaptations to replace
+  exact forwards only during explicit apply, retain complete/incompatible
+  definitions, and report creation/reuse/replacement independently. Full C++
+  build and CTest pass 26/26 in 22.04 s; the Symless plugin links. Node native
+  build, strict example declarations, structural tests, and IDA 9.4 integration
+  pass 234/234 and 80/80. Rust formatting/all-target checks, library/sys/port
+  tests, and process-main-thread IDA 9.4 integration pass 138/138, 0 sys,
+  12/12, and 97/97. The DWARF host fixture (source SHA-256
+  `031535bef12bf6b7559501ad30e719a2a013c14f78299ae7fe5953665d8220dd`;
+  arm64 binary SHA-256
+  `108394bb40d9a50db4b63fe0d7f535c383632da1110f5527afda0b362dc45b3b`)
+  yields exact `+4/4 B`, `+8/8 B`, and `+24/1 B` reads. First apply replaces
+  one forward ordinal, adds three members, creates no duplicate UDT, and
+  recognizes the existing pointer argument as already typed; fresh-process
+  reopen performs zero replacement/addition and reuses all three members.
+  Generated bindings are byte-identical at SHA-256
+  `82702ed7f7a98b3e446c1e9053704d84e0f47c7d8f2cbd9cad126363f8473ac8`.
+  The tracked executable and adjacent IDB remain respectively SHA-256
+  `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`
+  and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` / SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.

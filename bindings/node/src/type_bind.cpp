@@ -115,6 +115,8 @@ private:
     static NAN_METHOD(IsChar);
     static NAN_METHOD(IsUnsignedChar);
     static NAN_METHOD(IsSigned);
+    static NAN_METHOD(IsForwardDeclaration);
+    static NAN_METHOD(ForwardDeclarationKind);
     static NAN_METHOD(Kind);
     static NAN_METHOD(Name);
 
@@ -150,6 +152,7 @@ private:
 
     static NAN_METHOD(Apply);
     static NAN_METHOD(SaveAs);
+    static NAN_METHOD(ReplaceForwardDeclaration);
 
     static Nan::Persistent<v8::Function> constructor;
 
@@ -310,6 +313,8 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "isChar",           IsChar);
     Nan::SetPrototypeMethod(tpl, "isUnsignedChar",   IsUnsignedChar);
     Nan::SetPrototypeMethod(tpl, "isSigned",         IsSigned);
+    Nan::SetPrototypeMethod(tpl, "isForwardDeclaration", IsForwardDeclaration);
+    Nan::SetPrototypeMethod(tpl, "forwardDeclarationKind", ForwardDeclarationKind);
     Nan::SetPrototypeMethod(tpl, "kind",             Kind);
     Nan::SetPrototypeMethod(tpl, "name",             Name);
 
@@ -345,6 +350,7 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
 
     Nan::SetPrototypeMethod(tpl, "apply",  Apply);
     Nan::SetPrototypeMethod(tpl, "saveAs", SaveAs);
+    Nan::SetPrototypeMethod(tpl, "replaceForwardDeclaration", ReplaceForwardDeclaration);
 
     constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
@@ -471,6 +477,18 @@ NAN_METHOD(TypeInfoWrapper::IsUnsignedChar) {
 NAN_METHOD(TypeInfoWrapper::IsSigned) {
     SELF();
     info.GetReturnValue().Set(Nan::New(self->type_info_.is_signed()));
+}
+
+NAN_METHOD(TypeInfoWrapper::IsForwardDeclaration) {
+    SELF();
+    info.GetReturnValue().Set(Nan::New(
+        self->type_info_.is_forward_declaration()));
+}
+
+NAN_METHOD(TypeInfoWrapper::ForwardDeclarationKind) {
+    SELF();
+    info.GetReturnValue().Set(FromString(TypeKindToString(
+        self->type_info_.forward_declaration_kind())));
 }
 
 NAN_METHOD(TypeInfoWrapper::Kind) {
@@ -751,6 +769,17 @@ NAN_METHOD(TypeInfoWrapper::SaveAs) {
     if (!GetStringArg(info, 0, name)) return;
 
     IDAX_CHECK_STATUS(self->type_info_.save_as(name));
+}
+
+NAN_METHOD(TypeInfoWrapper::ReplaceForwardDeclaration) {
+    SELF();
+    std::string name;
+    if (!GetStringArg(info, 0, name)) return;
+
+    IDAX_UNWRAP(auto replaced,
+                self->type_info_.replace_forward_declaration(name));
+    info.GetReturnValue().Set(
+        TypeInfoWrapper::NewInstance(std::move(replaced)));
 }
 
 #undef SELF

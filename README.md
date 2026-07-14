@@ -285,6 +285,15 @@ if (packet) {
     }
 }
 
+// Replace only an exact local forward declaration, preserving its ordinal.
+auto forward = ida::type::TypeInfo::by_name("packet_forward");
+if (forward && forward->is_forward_declaration()
+    && forward->forward_declaration_kind() == ida::type::TypeKind::Struct) {
+    auto complete = ida::type::TypeInfo::create_struct();
+    complete.add_member("length", ida::type::TypeInfo::uint32(), 0);
+    auto replaced = complete.replace_forward_declaration("packet_forward");
+}
+
 // Parse from C declaration
 auto parsed = ida::type::TypeInfo::from_declaration("int (*callback)(void*, size_t)");
 ```

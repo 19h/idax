@@ -300,6 +300,7 @@ enum ArgumentEligibility {
 #[derive(Debug, Default)]
 struct ApplySummary {
     structure_created: bool,
+    structure_forward_replaced: bool,
     members_added: usize,
     members_reused: usize,
     members_skipped: usize,
@@ -321,6 +322,7 @@ struct ApplySummary {
 #[derive(Debug, Default)]
 struct AllocatorApplySummary {
     structures_created: usize,
+    structures_forward_replaced: usize,
     structures_ineligible: usize,
     members_added: usize,
     members_reused: usize,
@@ -371,8 +373,10 @@ struct VtableDiscovery {
 struct VtableApplySummary {
     vtable_types_created: usize,
     vtable_types_reused: usize,
+    vtable_types_forward_replaced: usize,
     class_types_created: usize,
     class_types_reused: usize,
+    class_types_forward_replaced: usize,
     method_members_added: usize,
     method_members_reused: usize,
     class_members_added: usize,
@@ -2112,7 +2116,17 @@ fn ensure_structure(
     fields: &[RecoveredField],
     summary: &mut ApplySummary,
 ) -> Result<TypeInfo> {
+    let mut replacing_forward = false;
     let structure = match TypeInfo::by_name(name) {
+        Ok(existing) if existing.is_forward_declaration() => {
+            if existing.forward_declaration_kind()? != types::TypeKind::Struct {
+                return Err(Error::conflict(format!(
+                    "{name} is not a struct forward declaration"
+                )));
+            }
+            replacing_forward = true;
+            TypeInfo::create_struct()
+        }
         Ok(existing) if existing.is_struct() => existing,
         Ok(_) => return Err(Error::conflict(format!("{name} is not a struct type"))),
         Err(error) if error.category == ErrorCategory::NotFound => {
@@ -2121,7 +2135,7 @@ fn ensure_structure(
         }
         Err(error) => return Err(error),
     };
-    let mut occupied = if summary.structure_created {
+    let mut occupied = if summary.structure_created || replacing_forward {
         Vec::new()
     } else {
         structure
@@ -2161,7 +2175,11 @@ fn ensure_structure(
         occupied.push((offset, width));
         summary.members_added += 1;
     }
-    if summary.structure_created || summary.members_added > 0 {
+    if replacing_forward {
+        let replaced = structure.replace_forward_declaration(name)?;
+        summary.structure_forward_replaced = true;
+        Ok(replaced)
+    } else if summary.structure_created || summary.members_added > 0 {
         structure.save_as(name)?;
         TypeInfo::by_name(name)
     } else {
@@ -2411,6 +2429,8 @@ fn apply_allocator_discovery(
             &mut structure_summary,
         )?;
         summary.structures_created += usize::from(structure_summary.structure_created);
+        summary.structures_forward_replaced +=
+            usize::from(structure_summary.structure_forward_replaced);
         summary.members_added += structure_summary.members_added;
         summary.members_reused += structure_summary.members_reused;
         summary.members_skipped += structure_summary.members_skipped;
@@ -2447,8 +2467,19 @@ fn ensure_semantic_struct(
     is_vftable: bool,
     created: &mut usize,
     reused: &mut usize,
+    forward_replaced: &mut usize,
 ) -> Result<TypeInfo> {
+    let mut replacing_forward = false;
     let structure = match TypeInfo::by_name(name) {
+        Ok(existing) if existing.is_forward_declaration() => {
+            if existing.forward_declaration_kind()? != types::TypeKind::Struct {
+                return Err(Error::conflict(format!(
+                    "semantic UDT name '{name}' is occupied by a non-struct forward"
+                )));
+            }
+            replacing_forward = true;
+            TypeInfo::create_struct()
+        }
         Ok(existing) if existing.is_struct() => {
             *reused += 1;
             return Ok(existing);
@@ -2458,14 +2489,17 @@ fn ensure_semantic_struct(
                 "semantic UDT name '{name}' is occupied by a non-struct"
             )));
         }
-        Err(error) if error.category == ErrorCategory::NotFound => {
-            *created += 1;
-            TypeInfo::create_struct()
-        }
+        Err(error) if error.category == ErrorCategory::NotFound => TypeInfo::create_struct(),
         Err(error) => return Err(error),
     };
     structure.set_udt_semantics(is_cpp_object, is_vftable)?;
+    if replacing_forward {
+        let replaced = structure.replace_forward_declaration(name)?;
+        *forward_replaced += 1;
+        return Ok(replaced);
+    }
     structure.save_as(name)?;
+    *created += 1;
     TypeInfo::by_name(name)
 }
 
@@ -2537,6 +2571,7 @@ fn populate_class_type(
         false,
         &mut summary.class_types_created,
         &mut summary.class_types_reused,
+        &mut summary.class_types_forward_replaced,
     )?;
     let vtable_pointer = TypeInfo::pointer_to(vtable_type);
     let mut occupied = class_type
@@ -2682,6 +2717,7 @@ fn apply_vtable_discovery(discovery: &VtableDiscovery, prefix: &str) -> Result<V
             true,
             &mut summary.vtable_types_created,
             &mut summary.vtable_types_reused,
+            &mut summary.vtable_types_forward_replaced,
         )?;
         if !vtable_layout_compatible(candidate, &vtable_type, &mut summary)? {
             continue;
@@ -2785,6 +2821,10 @@ fn print_report(
     }
     if let Some(summary) = apply_summary {
         println!("structure_created: {}", summary.structure_created);
+        println!(
+            "structure_forward_replaced: {}",
+            summary.structure_forward_replaced
+        );
         println!("members_added: {}", summary.members_added);
         println!("members_reused: {}", summary.members_reused);
         println!("members_skipped: {}", summary.members_skipped);
@@ -2890,6 +2930,10 @@ fn print_allocator_report(
     }
     if let Some(summary) = apply_summary {
         println!("structures_created: {}", summary.structures_created);
+        println!(
+            "structures_forward_replaced: {}",
+            summary.structures_forward_replaced
+        );
         println!("structures_ineligible: {}", summary.structures_ineligible);
         println!("members_added: {}", summary.members_added);
         println!("members_reused: {}", summary.members_reused);
@@ -2975,8 +3019,16 @@ fn print_vtable_report(
     if let Some(summary) = apply_summary {
         println!("vtable_types_created: {}", summary.vtable_types_created);
         println!("vtable_types_reused: {}", summary.vtable_types_reused);
+        println!(
+            "vtable_types_forward_replaced: {}",
+            summary.vtable_types_forward_replaced
+        );
         println!("class_types_created: {}", summary.class_types_created);
         println!("class_types_reused: {}", summary.class_types_reused);
+        println!(
+            "class_types_forward_replaced: {}",
+            summary.class_types_forward_replaced
+        );
         println!("method_members_added: {}", summary.method_members_added);
         println!("method_members_reused: {}", summary.method_members_reused);
         println!("class_members_added: {}", summary.class_members_added);

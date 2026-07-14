@@ -449,6 +449,23 @@ impl TypeInfo {
         unsafe { idax_sys::idax_type_is_signed(self.handle) != 0 }
     }
 
+    /// Whether this value denotes a local-type forward declaration.
+    pub fn is_forward_declaration(&self) -> bool {
+        unsafe { idax_sys::idax_type_is_forward_declaration(self.handle) != 0 }
+    }
+
+    /// Declared kind of a forward declaration, or [`TypeKind::Unknown`].
+    pub fn forward_declaration_kind(&self) -> Result<TypeKind> {
+        let mut raw: i32 = 0;
+        let ret = unsafe { idax_sys::idax_type_forward_declaration_kind(self.handle, &mut raw) };
+        if ret != 0 {
+            return Err(error::consume_last_error(
+                "type::forward_declaration_kind failed",
+            ));
+        }
+        type_kind_from_i32(raw)
+    }
+
     pub fn kind(&self) -> Result<TypeKind> {
         let mut raw: i32 = 0;
         let ret = unsafe { idax_sys::idax_type_kind(self.handle, &mut raw) };
@@ -915,6 +932,18 @@ impl TypeInfo {
         let c = CString::new(name).map_err(|_| Error::validation("invalid name"))?;
         let ret = unsafe { idax_sys::idax_type_save_as(self.handle, c.as_ptr()) };
         error::int_to_status(ret, "type::save_as failed")
+    }
+
+    /// Replace an exact local same-name struct/union forward declaration with
+    /// a complete copy of this UDT while preserving the forward ordinal.
+    pub fn replace_forward_declaration(&self, name: &str) -> Result<Self> {
+        let c = CString::new(name)
+            .map_err(|_| Error::validation("invalid forward declaration name"))?;
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = unsafe {
+            idax_sys::idax_type_replace_forward_declaration(self.handle, c.as_ptr(), &mut out)
+        };
+        Self::from_out_handle(ret, out, "replace_forward_declaration failed")
     }
 
     /// Get the raw handle for FFI interop.

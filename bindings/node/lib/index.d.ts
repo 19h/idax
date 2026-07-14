@@ -1687,6 +1687,10 @@ export namespace type {
         isChar(): boolean;
         isUnsignedChar(): boolean;
         isSigned(): boolean;
+        /** Whether this value denotes a local-type forward declaration. */
+        isForwardDeclaration(): boolean;
+        /** Declared kind of a forward declaration, or `unknown`. */
+        forwardDeclarationKind(): TypeKind;
         kind(): TypeKind;
         name(): string;
 
@@ -1778,6 +1782,9 @@ export namespace type {
 
         /** Save this type to the local type library under the given name. */
         saveAs(name: string): void;
+
+        /** Replace an exact local same-name struct/union forward while preserving its ordinal. */
+        replaceForwardDeclaration(name: string): TypeInfo;
     }
 
     // ── Primitive type factories ────────────────────────────────────────

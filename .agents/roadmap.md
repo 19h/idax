@@ -52,6 +52,7 @@ Current overall phase status:
 - Phase 39: complete (declarative direct allocator/wrapper discovery, fixed-size roots, metadata-preserving argument-name edits, and report/apply/reopen evidence)
 - Phase 40: complete (exact argument-zero constructor/vtable roots, metadata-preserving UDT semantic flags, conservative semantic UDT materialization, and report/apply/reopen evidence)
 - Phase 41: complete (opaque shifted-pointer metadata and evidence-bounded shifted argument application)
+- Phase 42: in progress (opaque local-type declaration classification and failure-atomic forward replacement)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -285,5 +286,14 @@ Current overall phase status:
 - [x] P41.2 Add metadata-preserving shifted-pointer construction/introspection across C++, Node, and Rust with exact parent/delta and failure-atomicity tests.
 - [x] P41.3 Apply explicit shifted parent/delta types to eligible propagated argument sites in both Symless adaptations while preserving shifted-return and incompatible-type exclusions.
 - [x] P41.4 Add pure and real-IDA shifted report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+
+---
+
+### Phase 42 TODO Action Items (Symless Forward Local-Type Replacement)
+
+- [x] P42.1 Audit upstream forward-declaration detection/replacement and local IDA named-type contracts against current opaque C++/Node/Rust type surfaces.
+- [x] P42.2 Add explicit local-type declaration classification and failure-atomic forward replacement across C++, Node, and Rust with exact preservation/rejection evidence.
+- [x] P42.3 Integrate forward-aware named UDT materialization into both Symless adaptations while preserving complete existing definitions and report/apply separation.
+- [~] P42.4 Add real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---

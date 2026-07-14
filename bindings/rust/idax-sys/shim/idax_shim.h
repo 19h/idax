@@ -930,6 +930,8 @@ int idax_type_is_bool(IdaxTypeHandle ti);
 int idax_type_is_char(IdaxTypeHandle ti);
 int idax_type_is_unsigned_char(IdaxTypeHandle ti);
 int idax_type_is_signed(IdaxTypeHandle ti);
+int idax_type_is_forward_declaration(IdaxTypeHandle ti);
+int idax_type_forward_declaration_kind(IdaxTypeHandle ti, int* out);
 int idax_type_kind(IdaxTypeHandle ti, int* out);
 
 int idax_type_size(IdaxTypeHandle ti, size_t* out);
@@ -971,6 +973,9 @@ int idax_type_from_declaration(const char* c_decl, IdaxTypeHandle* out);
 
 int idax_type_apply(IdaxTypeHandle ti, uint64_t ea);
 int idax_type_save_as(IdaxTypeHandle ti, const char* name);
+int idax_type_replace_forward_declaration(IdaxTypeHandle ti,
+                                          const char* name,
+                                          IdaxTypeHandle* out);
 int idax_type_retrieve(uint64_t ea, IdaxTypeHandle* out);
 int idax_type_retrieve_operand(uint64_t ea, int operand_index, IdaxTypeHandle* out);
 int idax_type_remove(uint64_t ea);

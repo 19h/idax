@@ -1091,6 +1091,8 @@ mod types_tests {
         let _: fn(&TypeInfo) -> bool = TypeInfo::is_char;
         let _: fn(&TypeInfo) -> bool = TypeInfo::is_unsigned_char;
         let _: fn(&TypeInfo) -> bool = TypeInfo::is_signed;
+        let _: fn(&TypeInfo) -> bool = TypeInfo::is_forward_declaration;
+        let _: fn(&TypeInfo) -> Result<TypeKind> = TypeInfo::forward_declaration_kind;
         let _: fn(&TypeInfo) -> Result<TypeKind> = TypeInfo::kind;
         let _: fn(&TypeInfo) -> Result<String> = TypeInfo::name;
         let _: fn(&TypeInfo, Option<&str>) -> Result<String> = TypeInfo::declaration;
@@ -1105,6 +1107,7 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
         let _: fn(&TypeInfo, bool, bool) -> crate::error::Status = TypeInfo::set_udt_semantics;
+        let _: fn(&TypeInfo, &str) -> Result<TypeInfo> = TypeInfo::replace_forward_declaration;
 
         let member = Member {
             name: "field".to_string(),

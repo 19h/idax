@@ -72,6 +72,17 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises exact shifted-parent/delta prototype application and idempotent reopen
 
+### `symless_forward_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand with DWARF
+- **Source**: `tests/fixtures/symless_forward_host.c`
+- **Used by**: Symless local forward-declaration report/apply validation
+- **Key characteristics**:
+  - Exports one root whose argument is a pointer to an intentionally incomplete named structure
+  - Recovers deterministic fields at `+4 B`/4 B, `+8 B`/8 B, and `+24 B`/1 B through byte-addressed accesses
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises exact local forward classification, ordinal-preserving complete-definition copy, existing pointer-reference resolution, prototype application, and idempotent reopen
+
 ## Scenario Fixture Directories
 
 ### `loader/`

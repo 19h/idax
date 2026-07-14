@@ -138,7 +138,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), copied `PointerDetails` plus metadata-preserving `with_shifted_parent`, `with_function_argument_type`, `with_function_argument_name`, `with_function_return_type`, and `set_udt_semantics`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
+| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), copied `PointerDetails` plus metadata-preserving `with_shifted_parent`, explicit `is_forward_declaration`/`forward_declaration_kind` and ordinal-preserving `replace_forward_declaration`, `with_function_argument_type`, `with_function_argument_name`, `with_function_return_type`, and `set_udt_semantics`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
 
 ### Advanced
 
