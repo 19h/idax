@@ -122,4 +122,4 @@
   - 12.2.2. **Status:** Complete (P44.2; F428-F429; KB 35.84-35.85). Opaque C++/Node/Rust path and processor-register surfaces pass focused structural and live validation.
 - **12.3. Boundary**
   - 12.3.1. **Scope:** Apply one source-ordered stroff path per unique recovered `(instruction, processor register)` group; retain additional same-instruction fields as Phase 43 member references; preserve incompatible existing operand representations and report every candidate/add/reuse/skip. Keep indirect dynamic calls, RTTI-adjusted vtable chains, and microcode-widget selection separate.
-  - 12.3.2. **Status:** Port integration, real report/apply/reopen evidence, documentation, and complete validation are complete (P44.3; F430-F433; KB 35.86-35.89). P44.4 staged review, commit, and push are active; no Phase 44 blocker.
+  - 12.3.2. **Status:** Complete (P44.3-P44.4; F430-F433; KB 35.86-35.89). The exact 38-file staged review passed without findings; implementation commit `6e523eb40ea0d2b3168b5a81d8584f06bd96b9a7` is pushed and no Phase 44 blocker remains.

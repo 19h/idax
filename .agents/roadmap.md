@@ -54,6 +54,7 @@ Current overall phase status:
 - Phase 41: complete (opaque shifted-pointer metadata and evidence-bounded shifted argument application)
 - Phase 42: complete (opaque local-type declaration classification and failure-atomic ordinal-preserving forward replacement)
 - Phase 43: complete (opaque exact-member persistent informational references plus Symless report/apply/reopen integration)
+- Phase 44: complete (opaque exact operand root/member paths, processor-register evidence, and Symless report/apply/reopen integration)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -313,6 +314,6 @@ Current overall phase status:
 - [x] P44.1 Audit upstream register-selected multi-component stroff generation and local IDA path/member contracts against the current C++/Node/Rust surfaces.
 - [x] P44.2 Replace public native type-ID leakage with opaque copied path metadata and add conflict-safe exact-member stroff application plus processor-register evidence across C++, Node, and Rust.
 - [x] P44.3 Integrate source-ordered exact operand stroff application into both Symless adaptations while preserving report/apply separation, additional-member references, and idempotence.
-- [ ] P44.4 Add real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P44.4 Add real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
