@@ -86,6 +86,7 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.9 `ida::type`
 - `TypeInfo` value object with constructor helpers (primitive/pointer/array/function)
 - Immutable indexed function-argument replacement that preserves the native prototype record (`with_function_argument_type`)
+- Immutable indexed function-argument renaming that preserves the native prototype record (`with_function_argument_name`)
 - Immutable function-return replacement that preserves the native prototype record (`with_function_return_type`)
 - Struct/union/member APIs with byte-based offsets
 - Apply/retrieve type operations

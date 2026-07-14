@@ -73,3 +73,14 @@
   - 7.1.2. **Evidence:** HCLI downloads IDA 9.3, then reports `No licenses found matching criteria` and cannot find the configured `*96-0000-0000-XX.hexlic` file (F377).
   - 7.1.3. **Mitigation:** Renew or correct the HCLI account/license assignment and corresponding GitHub Actions secrets, then rerun all three workflows on `edbc6f1` or its successor.
   - 7.1.4. **Status:** Blocked on external license/secret provisioning; no repository code fix indicated.
+
+---
+
+### 9. Symless Allocator Seed and Wrapper Discovery (Phase 39)
+
+- **9.1. Capability Audit**
+  - 9.1.1. **Action:** Compare upstream malloc/calloc/realloc seed parsing, call-site size evaluation, return-confirmed wrapper classification, heir recursion, and allocator typing with idax graph/xref/type surfaces.
+  - 9.1.2. **Status:** Complete (P39.1; F414; decision 19.41).
+- **9.2. Bounded Port**
+  - 9.2.1. **Boundary:** Preserve declarative direct allocator seeds, constant-size allocation roots, argument-forwarding wrappers, and explicit report/apply behavior; do not conflate constructor/vtable or indirect-dynamic discovery with allocator classification.
+  - 9.2.2. **Status:** Complete (P39.2-P39.4; F415; validation synchronized). Both adaptations implement explicit seed parsing/resolution, exact direct-call classification, static roots, terminal-return-confirmed wrappers, cycle-safe heir traversal, bounded root reconstruction, and explicit generic-prototype/UDT apply. No Phase 39 blocker remains.

@@ -3681,6 +3681,21 @@ int idax_type_with_function_argument_type(IdaxTypeHandle ti,
     return 0;
 }
 
+int idax_type_with_function_argument_name(IdaxTypeHandle ti,
+                                          size_t index,
+                                          const char* name,
+                                          IdaxTypeHandle* out) {
+    clear_error();
+    if (ti == nullptr || name == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Type handle, name, or output pointer is null"));
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)->with_function_argument_name(
+        index, name);
+    if (!result) return fail(result.error());
+    *out = new ida::type::TypeInfo(std::move(*result));
+    return 0;
+}
+
 int idax_type_with_function_return_type(IdaxTypeHandle ti,
                                         IdaxTypeHandle replacement,
                                         IdaxTypeHandle* out) {

@@ -15,13 +15,14 @@ use idax::decompiler::{
 };
 use idax::error::ErrorCategory;
 use idax::types::TypeInfo;
-use idax::{Error, Result, database, decompiler, types};
-use std::collections::{HashMap, HashSet};
+use idax::{Error, Result, database, decompiler, function, types, xref};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 #[derive(Debug, Clone)]
 struct Options {
     input: String,
     function: String,
+    allocator_specs: Vec<AllocatorSpec>,
     argument_index: usize,
     structure_name: Option<String>,
     apply: bool,
@@ -34,6 +35,7 @@ impl Default for Options {
         Self {
             input: String::new(),
             function: String::new(),
+            allocator_specs: Vec::new(),
             argument_index: 0,
             structure_name: None,
             apply: false,
@@ -41,6 +43,123 @@ impl Default for Options {
             max_depth: 8,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum AllocatorKind {
+    Malloc,
+    Calloc,
+    Realloc,
+}
+
+impl AllocatorKind {
+    fn parse(value: &str) -> Result<Self> {
+        match value {
+            "malloc" => Ok(Self::Malloc),
+            "calloc" => Ok(Self::Calloc),
+            "realloc" => Ok(Self::Realloc),
+            _ => Err(Error::validation(format!(
+                "unknown allocator kind '{value}'"
+            ))),
+        }
+    }
+
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Malloc => "malloc",
+            Self::Calloc => "calloc",
+            Self::Realloc => "realloc",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct AllocatorSpec {
+    locator: String,
+    kind: AllocatorKind,
+    count_index: Option<usize>,
+    size_index: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct ResolvedAllocator {
+    address: Address,
+    kind: AllocatorKind,
+    count_index: Option<usize>,
+    size_index: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct AllocationRoot {
+    function_address: Address,
+    call_address: Address,
+    allocation_size: u64,
+    allocator: ResolvedAllocator,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct AllocatorWrapper {
+    function_address: Address,
+    source_call_address: Address,
+    allocator: ResolvedAllocator,
+}
+
+#[derive(Debug, Default)]
+struct AllocatorDiscovery {
+    seeds: Vec<ResolvedAllocator>,
+    wrappers: Vec<AllocatorWrapper>,
+    roots: Vec<AllocationRoot>,
+    references_examined: usize,
+    non_call_references: usize,
+    unresolved_callers: usize,
+    unclassified_calls: usize,
+    duplicate_heirs: usize,
+}
+
+fn parse_allocator_spec(value: &str) -> Result<AllocatorSpec> {
+    let parts = value.split(':').collect::<Vec<_>>();
+    if parts.len() < 3 || parts.len() > 4 || parts.iter().any(|part| part.is_empty()) {
+        return Err(Error::validation(
+            "allocator syntax is <kind>:<name-or-address-or-module!prefix>:<size-index> or calloc:<locator>:<count-index>:<size-index>",
+        ));
+    }
+    let kind = AllocatorKind::parse(parts[0])?;
+    let parse_index = |text: &str| -> Result<usize> {
+        let index = text
+            .parse::<usize>()
+            .map_err(|_| Error::validation(format!("invalid allocator argument index '{text}'")))?;
+        if index > 1024 {
+            return Err(Error::validation(
+                "allocator argument indexes must be in 0..=1024",
+            ));
+        }
+        Ok(index)
+    };
+    let (count_index, size_index) = match (kind, parts.len()) {
+        (AllocatorKind::Calloc, 4) => (Some(parse_index(parts[2])?), parse_index(parts[3])?),
+        (AllocatorKind::Calloc, _) => {
+            return Err(Error::validation(
+                "calloc allocator syntax requires count and size indexes",
+            ));
+        }
+        (_, 3) => (None, parse_index(parts[2])?),
+        (_, _) => {
+            return Err(Error::validation(
+                "malloc/realloc allocator syntax requires one size index",
+            ));
+        }
+    };
+    if count_index == Some(size_index) {
+        return Err(Error::validation(
+            "calloc count and size indexes must be distinct",
+        ));
+    }
+    Ok(AllocatorSpec {
+        locator: parts[1].to_owned(),
+        kind,
+        count_index,
+        size_index,
+    })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -128,6 +247,25 @@ struct Reconstruction {
     return_sites: Vec<ReturnSite>,
 }
 
+#[derive(Debug, Clone)]
+struct AllocationReconstruction {
+    root: AllocationRoot,
+    fields: Vec<RecoveredField>,
+    out_of_bounds_fields: usize,
+    instructions_processed: usize,
+    blocks_processed: usize,
+    unsupported_instructions: usize,
+    negative_accesses: usize,
+    conflict_discards: usize,
+    functions_processed: usize,
+    calls_followed: usize,
+    depth_skips: usize,
+    cycle_skips: usize,
+    repeated_contexts: usize,
+    unresolved_calls: usize,
+    return_conflicts: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct PropagationSite {
     function_address: Address,
@@ -173,6 +311,18 @@ struct ApplySummary {
     returns_ineligible: usize,
 }
 
+#[derive(Debug, Default)]
+struct AllocatorApplySummary {
+    structures_created: usize,
+    structures_ineligible: usize,
+    members_added: usize,
+    members_reused: usize,
+    members_skipped: usize,
+    prototypes_changed: usize,
+    prototypes_already_typed: usize,
+    prototypes_ineligible: usize,
+}
+
 fn parse_options(args: &[String]) -> Result<Options> {
     if args.len() < 2 {
         return Err(Error::validation("missing binary_file argument"));
@@ -187,8 +337,13 @@ fn parse_options(args: &[String]) -> Result<Options> {
             "-h" | "--help" => {
                 print_usage(
                     &args[0],
-                    "<binary_file> --function <address-or-name> [--argument <index>] \
-                     [--name <type>] [--show <count>] [--max-depth <count>] [--apply]",
+                    "<binary_file> (--function <address-or-name> | --allocator <spec>...) \
+                     [--argument <index>] [--name <type-or-prefix>] [--show <count>] \
+                     [--max-depth <count>] [--apply]\n\
+                     allocator spec: malloc:<locator>:<size-index>, \
+                     realloc:<locator>:<size-index>, or \
+                     calloc:<locator>:<count-index>:<size-index>; \
+                     locator may be a name, address, or module!import-prefix",
                 );
                 std::process::exit(0);
             }
@@ -198,6 +353,13 @@ fn parse_options(args: &[String]) -> Result<Options> {
                     .get(index)
                     .ok_or_else(|| Error::validation("--function requires a value"))?
                     .clone();
+            }
+            "--allocator" => {
+                index += 1;
+                let value = args
+                    .get(index)
+                    .ok_or_else(|| Error::validation("--allocator requires a value"))?;
+                options.allocator_specs.push(parse_allocator_spec(value)?);
             }
             "--argument" => {
                 index += 1;
@@ -239,10 +401,70 @@ fn parse_options(args: &[String]) -> Result<Options> {
         }
         index += 1;
     }
-    if options.function.is_empty() {
-        return Err(Error::validation("--function is required"));
+    if options.function.is_empty() == options.allocator_specs.is_empty() {
+        return Err(Error::validation(
+            "select exactly one mode: --function or one or more --allocator specifications",
+        ));
     }
     Ok(options)
+}
+
+fn resolve_allocator_spec(spec: &AllocatorSpec) -> Result<ResolvedAllocator> {
+    let address = if let Some((module_name, prefix)) = spec.locator.split_once('!') {
+        if module_name.is_empty() || prefix.is_empty() || prefix.contains('!') {
+            return Err(Error::validation(format!(
+                "invalid module!import-prefix locator '{}'",
+                spec.locator
+            )));
+        }
+        let modules = database::import_modules()?;
+        let module = modules
+            .iter()
+            .find(|module| module.name == module_name)
+            .ok_or_else(|| Error::not_found(format!("import module '{module_name}' not found")))?;
+        let matches = module
+            .symbols
+            .iter()
+            .filter(|symbol| symbol.name.starts_with(prefix))
+            .collect::<Vec<_>>();
+        if matches.len() != 1 {
+            return Err(Error::validation(format!(
+                "locator '{}' matched {} imports; exactly one is required",
+                spec.locator,
+                matches.len()
+            )));
+        }
+        matches[0].address
+    } else {
+        resolve_symbol_or_address(&spec.locator)?
+    };
+    Ok(ResolvedAllocator {
+        address,
+        kind: spec.kind,
+        count_index: spec.count_index,
+        size_index: spec.size_index,
+    })
+}
+
+fn resolve_allocator_specs(specs: &[AllocatorSpec]) -> Result<Vec<ResolvedAllocator>> {
+    let mut resolved = Vec::<ResolvedAllocator>::new();
+    for spec in specs {
+        let allocator = resolve_allocator_spec(spec)?;
+        if let Some(existing) = resolved
+            .iter()
+            .find(|existing| existing.address == allocator.address)
+        {
+            if existing != &allocator {
+                return Err(Error::conflict(format!(
+                    "allocator target 0x{:x} has conflicting specifications",
+                    allocator.address
+                )));
+            }
+            continue;
+        }
+        resolved.push(allocator);
+    }
+    Ok(resolved)
 }
 
 fn variable_for_operand(operand: &MicrocodeOperand) -> Option<Variable> {
@@ -446,9 +668,419 @@ fn call_information(instruction: &MicrocodeInstruction) -> Option<&MicrocodeOper
     .find(|operand| operand.kind == MicrocodeOperandKind::CallArguments)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DiscoveryValue {
+    CallerArgument(usize),
+    Integer(i64),
+    CallOrigin(Address),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum SiteClassification {
+    Static(u64),
+    Wrapper {
+        count_index: Option<usize>,
+        size_index: usize,
+    },
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum SiteCandidate {
+    Static(u64),
+    Wrapper {
+        count_index: Option<usize>,
+        size_index: usize,
+    },
+}
+
+#[derive(Default)]
+struct DiscoveryEvaluation {
+    candidate: Option<SiteCandidate>,
+    matching_calls: usize,
+}
+
+fn discovery_immediate(operand: &MicrocodeOperand) -> Option<DiscoveryValue> {
+    match immediate_value(operand) {
+        Some(AbstractValue::Integer { value, .. }) => Some(DiscoveryValue::Integer(value)),
+        _ => None,
+    }
+}
+
+fn valid_allocator_size(value: i64) -> Option<u64> {
+    (value > 0 && value < 0x4000).then_some(value as u64)
+}
+
+fn classify_call_arguments(
+    allocator: &ResolvedAllocator,
+    arguments: &[Option<DiscoveryValue>],
+) -> Option<SiteCandidate> {
+    let size = arguments.get(allocator.size_index)?.as_ref()?;
+    match allocator.kind {
+        AllocatorKind::Malloc | AllocatorKind::Realloc => match size {
+            DiscoveryValue::Integer(value) => {
+                valid_allocator_size(*value).map(SiteCandidate::Static)
+            }
+            DiscoveryValue::CallerArgument(index) => Some(SiteCandidate::Wrapper {
+                count_index: None,
+                size_index: *index,
+            }),
+            DiscoveryValue::CallOrigin(_) => None,
+        },
+        AllocatorKind::Calloc => {
+            let count = arguments.get(allocator.count_index?)?.as_ref()?;
+            match (count, size) {
+                (DiscoveryValue::Integer(count), DiscoveryValue::Integer(size)) => {
+                    let count = valid_allocator_size(*count)?;
+                    let size = valid_allocator_size(*size)?;
+                    count.checked_mul(size).map(SiteCandidate::Static)
+                }
+                (
+                    DiscoveryValue::CallerArgument(count_index),
+                    DiscoveryValue::CallerArgument(size_index),
+                ) => Some(SiteCandidate::Wrapper {
+                    count_index: Some(*count_index),
+                    size_index: *size_index,
+                }),
+                _ => None,
+            }
+        }
+    }
+}
+
+fn discovery_operand_value(
+    state: &mut HashMap<Variable, DiscoveryValue>,
+    operand: &MicrocodeOperand,
+    call_address: Address,
+    allocator: &ResolvedAllocator,
+    evaluation: &mut DiscoveryEvaluation,
+) -> Option<DiscoveryValue> {
+    if let Some(nested) = operand.nested_instruction.as_deref() {
+        return process_discovery_instruction(state, nested, call_address, allocator, evaluation);
+    }
+    variable_for_operand(operand)
+        .and_then(|variable| state.get(&variable).copied())
+        .or_else(|| discovery_immediate(operand))
+}
+
+fn process_discovery_instruction(
+    state: &mut HashMap<Variable, DiscoveryValue>,
+    instruction: &MicrocodeInstruction,
+    call_address: Address,
+    allocator: &ResolvedAllocator,
+    evaluation: &mut DiscoveryEvaluation,
+) -> Option<DiscoveryValue> {
+    let result = match instruction.opcode {
+        MicrocodeOpcode::Move => discovery_operand_value(
+            state,
+            &instruction.left,
+            call_address,
+            allocator,
+            evaluation,
+        ),
+        MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
+            match discovery_operand_value(
+                state,
+                &instruction.left,
+                call_address,
+                allocator,
+                evaluation,
+            ) {
+                Some(DiscoveryValue::Integer(value)) => Some(DiscoveryValue::Integer(
+                    signed_to_width(value as i128, instruction.destination.byte_width),
+                )),
+                other => other,
+            }
+        }
+        MicrocodeOpcode::Add | MicrocodeOpcode::Subtract => {
+            let left = discovery_operand_value(
+                state,
+                &instruction.left,
+                call_address,
+                allocator,
+                evaluation,
+            );
+            let right = discovery_operand_value(
+                state,
+                &instruction.right,
+                call_address,
+                allocator,
+                evaluation,
+            );
+            match (left, right) {
+                (Some(DiscoveryValue::Integer(left)), Some(DiscoveryValue::Integer(right))) => {
+                    let result = if instruction.opcode == MicrocodeOpcode::Subtract {
+                        left as i128 - right as i128
+                    } else {
+                        left as i128 + right as i128
+                    };
+                    Some(DiscoveryValue::Integer(signed_to_width(
+                        result,
+                        instruction.destination.byte_width,
+                    )))
+                }
+                _ => None,
+            }
+        }
+        MicrocodeOpcode::Call => {
+            let call_info = call_information(instruction);
+            let target = call_info
+                .and_then(|info| (info.call_target != BAD_ADDRESS).then_some(info.call_target))
+                .or_else(|| address_from_operand(&instruction.left));
+            if instruction.address == call_address && target == Some(allocator.address) {
+                evaluation.matching_calls += 1;
+                let arguments = call_info
+                    .map(|info| {
+                        info.call_arguments
+                            .iter()
+                            .map(|argument| {
+                                discovery_operand_value(
+                                    state,
+                                    argument,
+                                    call_address,
+                                    allocator,
+                                    evaluation,
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+                let candidate = classify_call_arguments(allocator, &arguments);
+                if evaluation.candidate.is_none() {
+                    evaluation.candidate = candidate.clone();
+                } else if evaluation.candidate != candidate {
+                    evaluation.candidate = None;
+                }
+                match candidate {
+                    Some(SiteCandidate::Wrapper { .. }) => {
+                        Some(DiscoveryValue::CallOrigin(call_address))
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        }
+        MicrocodeOpcode::StoreMemory => return None,
+        _ => None,
+    };
+    if instruction.opcode != MicrocodeOpcode::StoreMemory {
+        if let Some(variable) = variable_for_operand(&instruction.destination) {
+            if let Some(value) = result {
+                state.insert(variable, value);
+            } else {
+                state.remove(&variable);
+            }
+        }
+    }
+    result
+}
+
+fn classify_allocator_site(
+    graph: &MicrocodeFunction,
+    call_address: Address,
+    allocator: &ResolvedAllocator,
+) -> Result<SiteClassification> {
+    if graph.maturity != MicrocodeMaturity::Preoptimized {
+        return Err(Error::validation(
+            "allocator discovery requires preoptimized microcode",
+        ));
+    }
+    let order = topological_order(graph);
+    if order.is_empty() {
+        return Ok(SiteClassification::Unknown);
+    }
+    let mut initial = HashMap::new();
+    for (index, argument) in graph.arguments.iter().enumerate() {
+        if let Ok(variable) = variable_for_location(&argument.location) {
+            initial.insert(variable, DiscoveryValue::CallerArgument(index));
+        }
+    }
+    let mut evaluation = DiscoveryEvaluation::default();
+    let mut end_states: HashMap<i32, HashMap<Variable, DiscoveryValue>> = HashMap::new();
+    for (order_index, block_position) in order.iter().copied().enumerate() {
+        let block = &graph.blocks[block_position];
+        let mut state = if order_index == 0 {
+            initial.clone()
+        } else {
+            block
+                .predecessors
+                .iter()
+                .filter_map(|predecessor| end_states.get(predecessor))
+                .max_by_key(|state| state.len())
+                .cloned()
+                .unwrap_or_default()
+        };
+        for instruction in &block.instructions {
+            let _ = process_discovery_instruction(
+                &mut state,
+                instruction,
+                call_address,
+                allocator,
+                &mut evaluation,
+            );
+        }
+        end_states.insert(block.index, state);
+    }
+    if evaluation.matching_calls != 1 {
+        return Ok(SiteClassification::Unknown);
+    }
+    match evaluation.candidate {
+        Some(SiteCandidate::Static(size)) => Ok(SiteClassification::Static(size)),
+        Some(SiteCandidate::Wrapper {
+            count_index,
+            size_index,
+        }) => {
+            let Some(return_location) = graph.return_location.as_ref() else {
+                return Ok(SiteClassification::Unknown);
+            };
+            let active_ids = graph
+                .blocks
+                .iter()
+                .filter(|block| !block.instructions.is_empty())
+                .map(|block| block.index)
+                .collect::<HashSet<_>>();
+            let terminals = graph
+                .blocks
+                .iter()
+                .filter(|block| {
+                    active_ids.contains(&block.index)
+                        && !block
+                            .successors
+                            .iter()
+                            .any(|successor| active_ids.contains(successor))
+                })
+                .collect::<Vec<_>>();
+            if terminals.is_empty()
+                || terminals.iter().any(|block| {
+                    end_states.get(&block.index).and_then(|state| {
+                        variable_for_location(return_location)
+                            .ok()
+                            .and_then(|variable| state.get(&variable).copied())
+                    }) != Some(DiscoveryValue::CallOrigin(call_address))
+                })
+            {
+                return Ok(SiteClassification::Unknown);
+            }
+            Ok(SiteClassification::Wrapper {
+                count_index,
+                size_index,
+            })
+        }
+        None => Ok(SiteClassification::Unknown),
+    }
+}
+
+fn analyzed_graph(address: Address) -> Result<MicrocodeFunction> {
+    decompiler::generate_microcode(
+        address,
+        MicrocodeGenerationOptions {
+            maturity: MicrocodeMaturity::Preoptimized,
+            analyze_calls: true,
+        },
+    )
+}
+
+fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscovery> {
+    let mut discovery = AllocatorDiscovery {
+        seeds: seeds.clone(),
+        ..AllocatorDiscovery::default()
+    };
+    let mut queue = seeds.into_iter().collect::<VecDeque<_>>();
+    let mut visited = HashSet::<ResolvedAllocator>::new();
+    let mut graph_cache = HashMap::<Address, MicrocodeFunction>::new();
+    while let Some(allocator) = queue.pop_front() {
+        if !visited.insert(allocator.clone()) {
+            discovery.duplicate_heirs += 1;
+            continue;
+        }
+        for reference in xref::refs_to(allocator.address)? {
+            discovery.references_examined += 1;
+            if !reference.is_code || !xref::is_call(reference.ref_type) {
+                discovery.non_call_references += 1;
+                continue;
+            }
+            let caller = match function::at(reference.from) {
+                Ok(function) => function.start(),
+                Err(_) => {
+                    discovery.unresolved_callers += 1;
+                    continue;
+                }
+            };
+            let graph = if let Some(graph) = graph_cache.get(&caller) {
+                graph.clone()
+            } else {
+                match analyzed_graph(caller) {
+                    Ok(graph) if graph.entry_address == caller => {
+                        graph_cache.insert(caller, graph.clone());
+                        graph
+                    }
+                    Ok(_) | Err(_) => {
+                        discovery.unresolved_callers += 1;
+                        continue;
+                    }
+                }
+            };
+            match classify_allocator_site(&graph, reference.from, &allocator)? {
+                SiteClassification::Static(allocation_size) => {
+                    let root = AllocationRoot {
+                        function_address: caller,
+                        call_address: reference.from,
+                        allocation_size,
+                        allocator: allocator.clone(),
+                    };
+                    if !discovery.roots.iter().any(|existing| {
+                        existing.function_address == root.function_address
+                            && existing.call_address == root.call_address
+                            && existing.allocation_size == root.allocation_size
+                    }) {
+                        discovery.roots.push(root);
+                    }
+                }
+                SiteClassification::Wrapper {
+                    count_index,
+                    size_index,
+                } => {
+                    let heir = ResolvedAllocator {
+                        address: caller,
+                        kind: allocator.kind,
+                        count_index,
+                        size_index,
+                    };
+                    let wrapper = AllocatorWrapper {
+                        function_address: caller,
+                        source_call_address: reference.from,
+                        allocator: heir.clone(),
+                    };
+                    if !discovery.wrappers.iter().any(|existing| {
+                        existing.function_address == wrapper.function_address
+                            && existing.allocator == wrapper.allocator
+                    }) {
+                        discovery.wrappers.push(wrapper);
+                    }
+                    if visited.contains(&heir) || queue.contains(&heir) {
+                        discovery.duplicate_heirs += 1;
+                    } else {
+                        queue.push_back(heir);
+                    }
+                }
+                SiteClassification::Unknown => discovery.unclassified_calls += 1,
+            }
+        }
+    }
+    discovery
+        .roots
+        .sort_by_key(|root| (root.function_address, root.call_address));
+    discovery
+        .wrappers
+        .sort_by_key(|wrapper| wrapper.function_address);
+    Ok(discovery)
+}
+
 struct InterproceduralAnalyzer<F> {
     loader: F,
     max_depth: usize,
+    allocation_call: Option<Address>,
     graph_cache: HashMap<Address, MicrocodeFunction>,
     active_contexts: HashSet<ContextKey>,
     completed_contexts: HashMap<ContextKey, Option<AbstractValue>>,
@@ -475,6 +1107,7 @@ where
         Self {
             loader,
             max_depth,
+            allocation_call: None,
             graph_cache: HashMap::new(),
             active_contexts: HashSet::new(),
             completed_contexts: HashMap::new(),
@@ -492,6 +1125,12 @@ where
             unresolved_calls: 0,
             return_conflicts: 0,
         }
+    }
+
+    fn new_for_allocation(max_depth: usize, call_address: Address, loader: F) -> Self {
+        let mut analyzer = Self::new(max_depth, loader);
+        analyzer.allocation_call = Some(call_address);
+        analyzer
     }
 
     fn context_key(
@@ -567,6 +1206,9 @@ where
         if instruction.opcode != MicrocodeOpcode::Call {
             self.unresolved_calls += 1;
             return Ok(None);
+        }
+        if self.allocation_call == Some(instruction.address) {
+            return Ok(Some(AbstractValue::StructurePointer(0)));
         }
         let Some(call_info) = call_information(instruction) else {
             self.unresolved_calls += 1;
@@ -938,6 +1580,57 @@ fn reconstruct(
     })
 }
 
+fn reconstruct_allocation_with_loader<F>(
+    graph: &MicrocodeFunction,
+    root: &AllocationRoot,
+    max_depth: usize,
+    loader: F,
+) -> Result<AllocationReconstruction>
+where
+    F: FnMut(Address) -> Result<MicrocodeFunction>,
+{
+    if graph.entry_address != root.function_address {
+        return Err(Error::validation(
+            "allocation root graph does not match its containing function",
+        ));
+    }
+    let mut analyzer =
+        InterproceduralAnalyzer::new_for_allocation(max_depth, root.call_address, loader);
+    analyzer.analyze_graph(graph, &[], 0)?;
+    let (resolved, negative_accesses, conflict_discards) =
+        resolve_field_conflicts(&analyzer.raw_accesses);
+    let (fields, out_of_bounds): (Vec<_>, Vec<_>) = resolved.into_iter().partition(|field| {
+        (field.offset as u64)
+            .checked_add(field.byte_width as u64)
+            .is_some_and(|end| end <= root.allocation_size)
+    });
+    Ok(AllocationReconstruction {
+        root: root.clone(),
+        fields,
+        out_of_bounds_fields: out_of_bounds.len(),
+        instructions_processed: analyzer.instructions_processed,
+        blocks_processed: analyzer.blocks_processed,
+        unsupported_instructions: analyzer.unsupported_instructions,
+        negative_accesses,
+        conflict_discards,
+        functions_processed: analyzer.functions_processed,
+        calls_followed: analyzer.calls_followed,
+        depth_skips: analyzer.depth_skips,
+        cycle_skips: analyzer.cycle_skips,
+        repeated_contexts: analyzer.repeated_contexts,
+        unresolved_calls: analyzer.unresolved_calls,
+        return_conflicts: analyzer.return_conflicts,
+    })
+}
+
+fn reconstruct_allocation(
+    root: &AllocationRoot,
+    max_depth: usize,
+) -> Result<AllocationReconstruction> {
+    let graph = analyzed_graph(root.function_address)?;
+    reconstruct_allocation_with_loader(&graph, root, max_depth, analyzed_graph)
+}
+
 fn member_type(byte_width: i32) -> Result<TypeInfo> {
     match byte_width {
         1 => Ok(TypeInfo::uint8()),
@@ -1136,6 +1829,110 @@ fn apply_reconstruction(
     Ok(summary)
 }
 
+fn size_type() -> Result<TypeInfo> {
+    match TypeInfo::by_name("size_t") {
+        Ok(value) => Ok(value),
+        Err(error) if error.category == ErrorCategory::NotFound => {
+            Ok(if database::address_bitness()? == 64 {
+                TypeInfo::uint64()
+            } else {
+                TypeInfo::uint32()
+            })
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn same_type(left: &TypeInfo, right: &TypeInfo) -> Result<bool> {
+    Ok(left.to_string()? == right.to_string()?)
+}
+
+fn apply_allocator_prototype(
+    allocator: &ResolvedAllocator,
+    summary: &mut AllocatorApplySummary,
+) -> Result<()> {
+    let original = types::retrieve(allocator.address)?;
+    let details = original.function_details()?;
+    let size = size_type()?;
+    let generic_return = TypeInfo::pointer_to(&TypeInfo::void_type());
+    let mut updated = original.clone();
+    let mut changed = false;
+    if !same_type(&original.function_return_type()?, &generic_return)? {
+        updated = updated.with_function_return_type(&generic_return)?;
+        changed = true;
+    }
+    let roles = match allocator.count_index {
+        Some(count_index) => vec![(count_index, "count"), (allocator.size_index, "size")],
+        None => vec![(allocator.size_index, "size")],
+    };
+    for (index, argument_name) in roles {
+        let Some(argument) = details.arguments.get(index) else {
+            summary.prototypes_ineligible += 1;
+            continue;
+        };
+        if !same_type(&argument.r#type, &size)? {
+            updated = updated.with_function_argument_type(index, &size)?;
+            changed = true;
+        }
+        if argument.name != argument_name {
+            updated = updated.with_function_argument_name(index, argument_name)?;
+            changed = true;
+        }
+    }
+    if changed {
+        updated.apply(allocator.address)?;
+        decompiler::mark_dirty(allocator.address, false)?;
+        summary.prototypes_changed += 1;
+    } else {
+        summary.prototypes_already_typed += 1;
+    }
+    Ok(())
+}
+
+fn allocation_structure_name(prefix: &str, call_address: Address) -> String {
+    format!("{prefix}_{call_address:x}")
+}
+
+fn apply_allocator_discovery(
+    discovery: &AllocatorDiscovery,
+    reconstructions: &[AllocationReconstruction],
+    structure_prefix: &str,
+) -> Result<AllocatorApplySummary> {
+    let mut summary = AllocatorApplySummary::default();
+    for reconstruction in reconstructions {
+        if reconstruction.fields.is_empty() {
+            summary.structures_ineligible += 1;
+            continue;
+        }
+        let mut structure_summary = ApplySummary::default();
+        ensure_structure(
+            &allocation_structure_name(structure_prefix, reconstruction.root.call_address),
+            &reconstruction.fields,
+            &mut structure_summary,
+        )?;
+        summary.structures_created += usize::from(structure_summary.structure_created);
+        summary.members_added += structure_summary.members_added;
+        summary.members_reused += structure_summary.members_reused;
+        summary.members_skipped += structure_summary.members_skipped;
+    }
+
+    let mut allocators = discovery.seeds.clone();
+    allocators.extend(
+        discovery
+            .wrappers
+            .iter()
+            .map(|wrapper| wrapper.allocator.clone()),
+    );
+    allocators.sort_by_key(|allocator| allocator.address);
+    allocators.dedup();
+    for allocator in &allocators {
+        if apply_allocator_prototype(allocator, &mut summary).is_err() {
+            summary.prototypes_ineligible += 1;
+        }
+    }
+    Ok(summary)
+}
+
 fn default_structure_name(function_address: Address, argument_index: usize) -> String {
     format!("symless_{function_address:x}_arg{argument_index}")
 }
@@ -1236,10 +2033,123 @@ fn print_report(
     }
 }
 
+fn print_allocator_report(
+    options: &Options,
+    discovery: &AllocatorDiscovery,
+    reconstructions: &[AllocationReconstruction],
+    structure_prefix: &str,
+    apply_summary: Option<&AllocatorApplySummary>,
+) {
+    println!("Symless allocator seed and wrapper discovery (Rust headless adaptation)");
+    println!("input: {}", options.input);
+    println!("mode: {}", if options.apply { "apply" } else { "report" });
+    println!("structure_prefix: {structure_prefix}");
+    println!("max_depth: {}", options.max_depth);
+    println!("allocator_seeds: {}", discovery.seeds.len());
+    println!("allocator_wrappers: {}", discovery.wrappers.len());
+    println!("allocation_roots: {}", discovery.roots.len());
+    println!("references_examined: {}", discovery.references_examined);
+    println!("non_call_references: {}", discovery.non_call_references);
+    println!("unresolved_callers: {}", discovery.unresolved_callers);
+    println!("unclassified_calls: {}", discovery.unclassified_calls);
+    println!("duplicate_heirs: {}", discovery.duplicate_heirs);
+    for wrapper in &discovery.wrappers {
+        println!(
+            "  wrapper function=0x{:x} source_call=0x{:x} kind={} count_index={} size_index={}",
+            wrapper.function_address,
+            wrapper.source_call_address,
+            wrapper.allocator.kind.as_str(),
+            wrapper
+                .allocator
+                .count_index
+                .map(|index| index.to_string())
+                .unwrap_or_else(|| "none".to_owned()),
+            wrapper.allocator.size_index
+        );
+    }
+    for reconstruction in reconstructions {
+        println!(
+            "  allocation_root function=0x{:x} call=0x{:x} size={} B kind={} fields={} out_of_bounds={}",
+            reconstruction.root.function_address,
+            reconstruction.root.call_address,
+            reconstruction.root.allocation_size,
+            reconstruction.root.allocator.kind.as_str(),
+            reconstruction.fields.len(),
+            reconstruction.out_of_bounds_fields
+        );
+        println!(
+            "    evidence functions={} calls={} blocks={} instructions={} unsupported={} negative={} conflicts={} depth_skips={} cycle_skips={} repeated={} unresolved={} return_conflicts={}",
+            reconstruction.functions_processed,
+            reconstruction.calls_followed,
+            reconstruction.blocks_processed,
+            reconstruction.instructions_processed,
+            reconstruction.unsupported_instructions,
+            reconstruction.negative_accesses,
+            reconstruction.conflict_discards,
+            reconstruction.depth_skips,
+            reconstruction.cycle_skips,
+            reconstruction.repeated_contexts,
+            reconstruction.unresolved_calls,
+            reconstruction.return_conflicts
+        );
+        for field in reconstruction.fields.iter().take(options.show) {
+            println!(
+                "    +0x{:x} width={} B reads={} writes={}",
+                field.offset, field.byte_width, field.reads, field.writes
+            );
+        }
+    }
+    if let Some(summary) = apply_summary {
+        println!("structures_created: {}", summary.structures_created);
+        println!("structures_ineligible: {}", summary.structures_ineligible);
+        println!("members_added: {}", summary.members_added);
+        println!("members_reused: {}", summary.members_reused);
+        println!("members_skipped: {}", summary.members_skipped);
+        println!("prototypes_changed: {}", summary.prototypes_changed);
+        println!(
+            "prototypes_already_typed: {}",
+            summary.prototypes_already_typed
+        );
+        println!("prototypes_ineligible: {}", summary.prototypes_ineligible);
+    }
+}
+
 fn run() -> Result<()> {
     let args = std::env::args().collect::<Vec<_>>();
     let options = parse_options(&args)?;
     let _session = DatabaseSession::open(&options.input, true)?;
+    if !options.allocator_specs.is_empty() {
+        let seeds = resolve_allocator_specs(&options.allocator_specs)?;
+        let discovery = discover_allocators(seeds)?;
+        let reconstructions = discovery
+            .roots
+            .iter()
+            .map(|root| reconstruct_allocation(root, options.max_depth))
+            .collect::<Result<Vec<_>>>()?;
+        let structure_prefix = options
+            .structure_name
+            .clone()
+            .unwrap_or_else(|| "symless_alloc".to_owned());
+        if structure_prefix.is_empty() {
+            return Err(Error::validation("structure prefix must not be empty"));
+        }
+        let apply_summary = if options.apply {
+            let summary =
+                apply_allocator_discovery(&discovery, &reconstructions, &structure_prefix)?;
+            database::save()?;
+            Some(summary)
+        } else {
+            None
+        };
+        print_allocator_report(
+            &options,
+            &discovery,
+            &reconstructions,
+            &structure_prefix,
+            apply_summary.as_ref(),
+        );
+        return Ok(());
+    }
     let function_address = resolve_symbol_or_address(&options.function)?;
     let graph = decompiler::generate_microcode(
         function_address,
@@ -1711,5 +2621,213 @@ mod tests {
         .unwrap();
         assert_eq!(differing_result.return_conflicts, 1);
         assert!(differing_result.return_sites.is_empty());
+    }
+
+    fn allocator(
+        address: Address,
+        kind: AllocatorKind,
+        count_index: Option<usize>,
+        size_index: usize,
+    ) -> ResolvedAllocator {
+        ResolvedAllocator {
+            address,
+            kind,
+            count_index,
+            size_index,
+        }
+    }
+
+    fn allocator_call(
+        target: Address,
+        call_address: Address,
+        arguments: Vec<MicrocodeOperand>,
+    ) -> MicrocodeInstruction {
+        let mut call = instruction(MicrocodeOpcode::Call);
+        call.address = call_address;
+        call.left = operand(MicrocodeOperandKind::GlobalAddress, 8);
+        call.left.global_address = target;
+        call.destination = operand(MicrocodeOperandKind::CallArguments, 8);
+        call.destination.call_target = target;
+        call.destination.call_arguments = arguments;
+        call
+    }
+
+    fn register_operand(register_id: i32) -> MicrocodeOperand {
+        let mut value = operand(MicrocodeOperandKind::Register, 8);
+        value.register_id = register_id;
+        value
+    }
+
+    fn immediate_operand(value: u64) -> MicrocodeOperand {
+        let mut operand = operand(MicrocodeOperandKind::UnsignedImmediate, 8);
+        operand.unsigned_immediate = value;
+        operand
+    }
+
+    fn move_nested_call(call: MicrocodeInstruction, destination: i32) -> MicrocodeInstruction {
+        let mut nested = operand(MicrocodeOperandKind::NestedInstruction, 8);
+        nested.nested_instruction = Some(Box::new(call));
+        let mut move_result = instruction(MicrocodeOpcode::Move);
+        move_result.left = nested;
+        move_result.destination = register_operand(destination);
+        move_result
+    }
+
+    #[test]
+    fn parses_bounded_allocator_specs() {
+        assert_eq!(
+            parse_allocator_spec("malloc:_malloc:0").unwrap(),
+            AllocatorSpec {
+                locator: "_malloc".to_owned(),
+                kind: AllocatorKind::Malloc,
+                count_index: None,
+                size_index: 0,
+            }
+        );
+        assert_eq!(
+            parse_allocator_spec("calloc:libSystem!_calloc:0:1").unwrap(),
+            AllocatorSpec {
+                locator: "libSystem!_calloc".to_owned(),
+                kind: AllocatorKind::Calloc,
+                count_index: Some(0),
+                size_index: 1,
+            }
+        );
+        assert!(parse_allocator_spec("calloc:_calloc:0:0").is_err());
+        assert!(parse_allocator_spec("malloc:_malloc:1025").is_err());
+        assert!(parse_allocator_spec("operator:new:0").is_err());
+    }
+
+    #[test]
+    fn classifies_static_malloc_and_calloc_sizes_with_bounds() {
+        let malloc = allocator(0x9000, AllocatorKind::Malloc, None, 0);
+        let malloc_graph = one_block_graph(
+            0x8000,
+            Vec::new(),
+            None,
+            vec![allocator_call(0x9000, 0x8010, vec![immediate_operand(32)])],
+        );
+        assert_eq!(
+            classify_allocator_site(&malloc_graph, 0x8010, &malloc).unwrap(),
+            SiteClassification::Static(32)
+        );
+        let invalid_graph = one_block_graph(
+            0x8100,
+            Vec::new(),
+            None,
+            vec![allocator_call(
+                0x9000,
+                0x8110,
+                vec![immediate_operand(0x4000)],
+            )],
+        );
+        assert_eq!(
+            classify_allocator_site(&invalid_graph, 0x8110, &malloc).unwrap(),
+            SiteClassification::Unknown
+        );
+
+        let calloc = allocator(0x9100, AllocatorKind::Calloc, Some(0), 1);
+        let calloc_graph = one_block_graph(
+            0x8200,
+            Vec::new(),
+            None,
+            vec![allocator_call(
+                0x9100,
+                0x8210,
+                vec![immediate_operand(4), immediate_operand(24)],
+            )],
+        );
+        assert_eq!(
+            classify_allocator_site(&calloc_graph, 0x8210, &calloc).unwrap(),
+            SiteClassification::Static(96)
+        );
+    }
+
+    #[test]
+    fn confirms_only_terminally_returned_forwarding_wrappers() {
+        let malloc = allocator(0x9000, AllocatorKind::Malloc, None, 0);
+        let wrapper = one_block_graph(
+            0x8300,
+            vec![function_argument("requested", 1)],
+            Some(register_location(10)),
+            vec![move_nested_call(
+                allocator_call(0x9000, 0x8310, vec![register_operand(1)]),
+                10,
+            )],
+        );
+        assert_eq!(
+            classify_allocator_site(&wrapper, 0x8310, &malloc).unwrap(),
+            SiteClassification::Wrapper {
+                count_index: None,
+                size_index: 0,
+            }
+        );
+
+        let mut scalar_return = instruction(MicrocodeOpcode::Move);
+        scalar_return.left = immediate_operand(1);
+        scalar_return.destination = register_operand(10);
+        let rejected = one_block_graph(
+            0x8400,
+            vec![function_argument("requested", 1)],
+            Some(register_location(10)),
+            vec![
+                move_nested_call(allocator_call(0x9000, 0x8410, vec![register_operand(1)]), 2),
+                scalar_return,
+            ],
+        );
+        assert_eq!(
+            classify_allocator_site(&rejected, 0x8410, &malloc).unwrap(),
+            SiteClassification::Unknown
+        );
+    }
+
+    #[test]
+    fn reconstructs_allocation_result_and_rejects_extent_overruns() {
+        let root = AllocationRoot {
+            function_address: 0x8500,
+            call_address: 0x8510,
+            allocation_size: 32,
+            allocator: allocator(0x9000, AllocatorKind::Malloc, None, 0),
+        };
+        let allocation = move_nested_call(
+            allocator_call(0x9000, root.call_address, vec![immediate_operand(32)]),
+            2,
+        );
+        let mut in_bounds_add = instruction(MicrocodeOpcode::Add);
+        in_bounds_add.left = register_operand(2);
+        in_bounds_add.right = immediate_operand(4);
+        in_bounds_add.destination = register_operand(3);
+        let mut in_bounds_load = instruction(MicrocodeOpcode::LoadMemory);
+        in_bounds_load.right = register_operand(3);
+        in_bounds_load.destination = operand(MicrocodeOperandKind::Register, 4);
+        in_bounds_load.destination.register_id = 4;
+        let mut overrun_add = instruction(MicrocodeOpcode::Add);
+        overrun_add.left = register_operand(2);
+        overrun_add.right = immediate_operand(31);
+        overrun_add.destination = register_operand(5);
+        let mut overrun_load = instruction(MicrocodeOpcode::LoadMemory);
+        overrun_load.right = register_operand(5);
+        overrun_load.destination = operand(MicrocodeOperandKind::Register, 4);
+        overrun_load.destination.register_id = 6;
+        let graph = one_block_graph(
+            root.function_address,
+            Vec::new(),
+            None,
+            vec![
+                allocation,
+                in_bounds_add,
+                in_bounds_load,
+                overrun_add,
+                overrun_load,
+            ],
+        );
+        let reconstruction = reconstruct_allocation_with_loader(&graph, &root, 0, |_| {
+            Err(Error::internal("allocation unit graph has no callees"))
+        })
+        .unwrap();
+        assert_eq!(reconstruction.fields.len(), 1);
+        assert_eq!(reconstruction.fields[0].offset, 4);
+        assert_eq!(reconstruction.fields[0].byte_width, 4);
+        assert_eq!(reconstruction.out_of_bounds_fields, 1);
     }
 }

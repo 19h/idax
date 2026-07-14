@@ -1361,6 +1361,19 @@ fn types_replace_function_argument() {
             .is_signed()
     );
 
+    let renamed = original.with_function_argument_name(0, "size").unwrap();
+    let renamed_after = renamed.function_details().unwrap();
+    assert_eq!(renamed_after.arguments[0].name, "size");
+    assert!(renamed_after.arguments[0].r#type.is_signed());
+    assert_eq!(renamed_after.arguments[1].name, before.arguments[1].name);
+    assert!(renamed_after.arguments[1].r#type.is_pointer());
+    assert_eq!(renamed_after.calling_convention, before.calling_convention);
+    assert_eq!(renamed_after.variadic, before.variadic);
+    assert_eq!(
+        original.function_details().unwrap().arguments[0].name,
+        before.arguments[0].name
+    );
+
     let return_edited = original
         .with_function_return_type(&types::TypeInfo::uint64())
         .unwrap();
@@ -1382,6 +1395,12 @@ fn types_replace_function_argument() {
         edited_pointer.function_details().unwrap().arguments[1]
             .r#type
             .is_integer()
+    );
+    let renamed_pointer = pointer.with_function_argument_name(1, "buffer").unwrap();
+    assert!(renamed_pointer.is_pointer());
+    assert_eq!(
+        renamed_pointer.function_details().unwrap().arguments[1].name,
+        "buffer"
     );
     let return_edited_pointer = pointer
         .with_function_return_type(&types::TypeInfo::uint64())

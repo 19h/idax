@@ -1096,6 +1096,8 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<FunctionDetails> = TypeInfo::function_details;
         let _: fn(&TypeInfo, usize, &TypeInfo) -> Result<TypeInfo> =
             TypeInfo::with_function_argument_type;
+        let _: fn(&TypeInfo, usize, &str) -> Result<TypeInfo> =
+            TypeInfo::with_function_argument_name;
         let _: fn(&TypeInfo, &TypeInfo) -> Result<TypeInfo> = TypeInfo::with_function_return_type;
         let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;

@@ -197,6 +197,14 @@ public:
     with_function_argument_type(std::size_t index,
                                 const TypeInfo& replacement) const;
 
+    /// Return a copy with one function argument name replaced.
+    /// Preserves its type/location/comment/flags and all other prototype metadata.
+    /// An empty name clears the argument name. Embedded NUL bytes are rejected.
+    /// Accepts direct function types and function-pointer types.
+    [[nodiscard]] Result<TypeInfo>
+    with_function_argument_name(std::size_t index,
+                                std::string_view name) const;
+
     /// Return a copy with the function return type replaced.
     /// Preserves argument names/locations/flags and all other prototype metadata.
     /// Accepts direct function types and function-pointer types.

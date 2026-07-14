@@ -138,7 +138,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), metadata-preserving `with_function_argument_type` and `with_function_return_type`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
+| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), metadata-preserving `with_function_argument_type`, `with_function_argument_name`, and `with_function_return_type`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
 
 ### Advanced
 

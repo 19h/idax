@@ -572,6 +572,23 @@ impl TypeInfo {
         Self::from_out_handle(ret, out, "with_function_argument_type failed")
     }
 
+    /// Return a copy with one function argument name replaced while preserving
+    /// its type, location, comment, flags, and all unaffected metadata.
+    pub fn with_function_argument_name(&self, index: usize, name: &str) -> Result<Self> {
+        let name = CString::new(name)
+            .map_err(|_| Error::validation("function argument name contains an embedded NUL"))?;
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = unsafe {
+            idax_sys::idax_type_with_function_argument_name(
+                self.handle,
+                index,
+                name.as_ptr(),
+                &mut out,
+            )
+        };
+        Self::from_out_handle(ret, out, "with_function_argument_name failed")
+    }
+
     /// Return a copy with the function return type replaced while preserving
     /// argument metadata, locations, calling convention, and function flags.
     pub fn with_function_return_type(&self, replacement: &TypeInfo) -> Result<Self> {

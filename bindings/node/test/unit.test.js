@@ -481,6 +481,7 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'name(): string',
             'declaration(declaratorName?: string): string',
             'functionDetails(): FunctionDetails',
+            'withFunctionArgumentName(index: number, name: string): TypeInfo',
             'withFunctionReturnType(replacement: TypeInfo): TypeInfo',
             'enumDetails(): EnumDetails',
             'udtDetails(): UdtDetails',

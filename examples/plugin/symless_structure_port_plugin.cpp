@@ -1,21 +1,25 @@
 /// \file symless_structure_port_plugin.cpp
 /// \brief Depth-bounded interprocedural structure reconstruction adapted from Symless.
 ///
-/// This port deliberately covers one selected function argument. It preserves
+/// This port covers one selected function argument or declarative allocator
+/// seeds. It preserves
 /// Symless's register/stack propagation, recursive micro-instruction evaluation,
 /// pointer shifts, load/store recovery, predecessor-state preference,
 /// minimum-width field conflict rule, and resolved direct-call argument/return
-/// flow. Allocator discovery, indirect dynamic calls, vtables, shifted-pointer
-/// typing, member xrefs, and microcode-widget workflows are outside the stated
-/// boundary. Upstream copyright/license: symless_port_LICENSE.txt.
+/// flow, static allocation roots, and return-confirmed allocator wrappers.
+/// Indirect dynamic calls, vtables, shifted-pointer typing, member xrefs, and
+/// microcode-widget workflows are outside the stated boundary. Upstream
+/// copyright/license: symless_port_LICENSE.txt.
 
 #include <ida/idax.hpp>
 
 #include <algorithm>
 #include <bit>
+#include <charconv>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
+#include <deque>
 #include <map>
 #include <optional>
 #include <set>
@@ -29,6 +33,8 @@ namespace {
 
 constexpr std::string_view kReportAction = "idax:symless:report_argument";
 constexpr std::string_view kApplyAction = "idax:symless:apply_argument";
+constexpr std::string_view kAllocatorReportAction = "idax:symless:report_allocators";
+constexpr std::string_view kAllocatorApplyAction = "idax:symless:apply_allocators";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
 
 template <typename... Args>
@@ -122,6 +128,70 @@ struct Reconstruction {
     std::vector<struct ReturnSite> return_sites;
 };
 
+enum class AllocatorKind {
+    Malloc,
+    Calloc,
+    Realloc,
+};
+
+struct AllocatorSpec {
+    std::string locator;
+    AllocatorKind kind{AllocatorKind::Malloc};
+    std::optional<std::size_t> count_index;
+    std::size_t size_index{0};
+};
+
+struct ResolvedAllocator {
+    ida::Address address{ida::BadAddress};
+    AllocatorKind kind{AllocatorKind::Malloc};
+    std::optional<std::size_t> count_index;
+    std::size_t size_index{0};
+
+    auto operator<=>(const ResolvedAllocator&) const = default;
+};
+
+struct AllocationRoot {
+    ida::Address function_address{ida::BadAddress};
+    ida::Address call_address{ida::BadAddress};
+    std::uint64_t allocation_size{0};
+    ResolvedAllocator allocator;
+};
+
+struct AllocatorWrapper {
+    ida::Address function_address{ida::BadAddress};
+    ida::Address source_call_address{ida::BadAddress};
+    ResolvedAllocator allocator;
+};
+
+struct AllocatorDiscovery {
+    std::vector<ResolvedAllocator> seeds;
+    std::vector<AllocatorWrapper> wrappers;
+    std::vector<AllocationRoot> roots;
+    std::size_t references_examined{0};
+    std::size_t non_call_references{0};
+    std::size_t unresolved_callers{0};
+    std::size_t unclassified_calls{0};
+    std::size_t duplicate_heirs{0};
+};
+
+struct AllocationReconstruction {
+    AllocationRoot root;
+    std::vector<RecoveredField> fields;
+    std::size_t out_of_bounds_fields{0};
+    std::size_t instructions_processed{0};
+    std::size_t blocks_processed{0};
+    std::size_t unsupported_instructions{0};
+    std::size_t negative_accesses{0};
+    std::size_t conflict_discards{0};
+    std::size_t functions_processed{0};
+    std::size_t calls_followed{0};
+    std::size_t depth_skips{0};
+    std::size_t cycle_skips{0};
+    std::size_t repeated_contexts{0};
+    std::size_t unresolved_calls{0};
+    std::size_t return_conflicts{0};
+};
+
 struct PropagationSite {
     ida::Address function_address{ida::BadAddress};
     std::size_t argument_index{0};
@@ -164,6 +234,17 @@ struct ApplySummary {
     std::size_t returns_already_typed{0};
     std::size_t returns_skipped_shifted{0};
     std::size_t returns_ineligible{0};
+};
+
+struct AllocatorApplySummary {
+    std::size_t structures_created{0};
+    std::size_t structures_ineligible{0};
+    std::size_t members_added{0};
+    std::size_t members_reused{0};
+    std::size_t members_skipped{0};
+    std::size_t prototypes_changed{0};
+    std::size_t prototypes_already_typed{0};
+    std::size_t prototypes_ineligible{0};
 };
 
 std::optional<Variable>
@@ -434,12 +515,577 @@ const ida::decompiler::MicrocodeOperand* call_information(
     return nullptr;
 }
 
+enum class DiscoveryValueKind {
+    CallerArgument,
+    Integer,
+    CallOrigin,
+};
+
+struct DiscoveryValue {
+    DiscoveryValueKind kind{DiscoveryValueKind::Integer};
+    std::int64_t value{0};
+
+    bool operator==(const DiscoveryValue&) const = default;
+};
+
+enum class SiteClassificationKind {
+    Static,
+    Wrapper,
+    Unknown,
+};
+
+struct SiteClassification {
+    SiteClassificationKind kind{SiteClassificationKind::Unknown};
+    std::uint64_t allocation_size{0};
+    std::optional<std::size_t> count_index;
+    std::size_t size_index{0};
+
+    bool operator==(const SiteClassification&) const = default;
+};
+
+struct DiscoveryEvaluation {
+    std::optional<SiteClassification> candidate;
+    std::size_t matching_calls{0};
+};
+
+using DiscoveryState = std::map<Variable, DiscoveryValue>;
+
+std::optional<DiscoveryValue> discovery_immediate(
+    const ida::decompiler::MicrocodeOperand& operand) {
+    auto value = immediate_value(operand);
+    if (!value || value->kind != ValueKind::Integer)
+        return std::nullopt;
+    return DiscoveryValue{DiscoveryValueKind::Integer, value->value};
+}
+
+std::optional<std::uint64_t> valid_allocator_size(std::int64_t value) {
+    if (value <= 0 || value >= 0x4000)
+        return std::nullopt;
+    return static_cast<std::uint64_t>(value);
+}
+
+std::optional<SiteClassification> classify_call_arguments(
+    const ResolvedAllocator& allocator,
+    const std::vector<std::optional<DiscoveryValue>>& arguments) {
+    if (allocator.size_index >= arguments.size()
+        || !arguments[allocator.size_index]) {
+        return std::nullopt;
+    }
+    const auto size = *arguments[allocator.size_index];
+    if (allocator.kind != AllocatorKind::Calloc) {
+        if (size.kind == DiscoveryValueKind::Integer) {
+            auto bounded = valid_allocator_size(size.value);
+            return bounded
+                ? std::optional<SiteClassification>(SiteClassification{
+                      SiteClassificationKind::Static, *bounded, std::nullopt, 0})
+                : std::nullopt;
+        }
+        if (size.kind == DiscoveryValueKind::CallerArgument) {
+            return SiteClassification{
+                SiteClassificationKind::Wrapper,
+                0,
+                std::nullopt,
+                static_cast<std::size_t>(size.value)};
+        }
+        return std::nullopt;
+    }
+    if (!allocator.count_index
+        || *allocator.count_index >= arguments.size()
+        || !arguments[*allocator.count_index]) {
+        return std::nullopt;
+    }
+    const auto count = *arguments[*allocator.count_index];
+    if (count.kind == DiscoveryValueKind::Integer
+        && size.kind == DiscoveryValueKind::Integer) {
+        auto bounded_count = valid_allocator_size(count.value);
+        auto bounded_size = valid_allocator_size(size.value);
+        if (!bounded_count || !bounded_size)
+            return std::nullopt;
+        return SiteClassification{
+            SiteClassificationKind::Static,
+            *bounded_count * *bounded_size,
+            std::nullopt,
+            0};
+    }
+    if (count.kind == DiscoveryValueKind::CallerArgument
+        && size.kind == DiscoveryValueKind::CallerArgument) {
+        return SiteClassification{
+            SiteClassificationKind::Wrapper,
+            0,
+            static_cast<std::size_t>(count.value),
+            static_cast<std::size_t>(size.value)};
+    }
+    return std::nullopt;
+}
+
+std::optional<DiscoveryValue> process_discovery_instruction(
+    DiscoveryState& state,
+    const ida::decompiler::MicrocodeInstruction& instruction,
+    ida::Address call_address,
+    const ResolvedAllocator& allocator,
+    DiscoveryEvaluation& evaluation);
+
+std::optional<DiscoveryValue> discovery_operand_value(
+    DiscoveryState& state,
+    const ida::decompiler::MicrocodeOperand& operand,
+    ida::Address call_address,
+    const ResolvedAllocator& allocator,
+    DiscoveryEvaluation& evaluation) {
+    if (operand.nested_instruction) {
+        return process_discovery_instruction(
+            state, *operand.nested_instruction, call_address,
+            allocator, evaluation);
+    }
+    if (auto variable = variable_for_operand(operand)) {
+        if (auto found = state.find(*variable); found != state.end())
+            return found->second;
+    }
+    return discovery_immediate(operand);
+}
+
+std::optional<DiscoveryValue> process_discovery_instruction(
+    DiscoveryState& state,
+    const ida::decompiler::MicrocodeInstruction& instruction,
+    ida::Address call_address,
+    const ResolvedAllocator& allocator,
+    DiscoveryEvaluation& evaluation) {
+    using Opcode = ida::decompiler::MicrocodeOpcode;
+    std::optional<DiscoveryValue> result;
+    switch (instruction.opcode) {
+    case Opcode::Move:
+        result = discovery_operand_value(
+            state, instruction.left, call_address, allocator, evaluation);
+        break;
+    case Opcode::ZeroExtend:
+    case Opcode::SignedExtend:
+        result = discovery_operand_value(
+            state, instruction.left, call_address, allocator, evaluation);
+        if (result && result->kind == DiscoveryValueKind::Integer) {
+            result->value = signed_to_width(
+                static_cast<std::uint64_t>(result->value),
+                instruction.destination.byte_width);
+        }
+        break;
+    case Opcode::Add:
+    case Opcode::Subtract: {
+        auto left = discovery_operand_value(
+            state, instruction.left, call_address, allocator, evaluation);
+        auto right = discovery_operand_value(
+            state, instruction.right, call_address, allocator, evaluation);
+        if (left && right
+            && left->kind == DiscoveryValueKind::Integer
+            && right->kind == DiscoveryValueKind::Integer) {
+            const std::uint64_t left_bits = static_cast<std::uint64_t>(left->value);
+            const std::uint64_t right_bits = static_cast<std::uint64_t>(right->value);
+            const std::uint64_t computed = instruction.opcode == Opcode::Subtract
+                ? left_bits - right_bits
+                : left_bits + right_bits;
+            result = DiscoveryValue{
+                DiscoveryValueKind::Integer,
+                signed_to_width(computed, instruction.destination.byte_width)};
+        }
+        break;
+    }
+    case Opcode::Call: {
+        const auto* info = call_information(instruction);
+        std::optional<ida::Address> target;
+        if (info != nullptr && info->call_target != ida::BadAddress)
+            target = info->call_target;
+        else
+            target = address_from_operand(instruction.left);
+        if (instruction.address == call_address
+            && target == allocator.address) {
+            ++evaluation.matching_calls;
+            std::vector<std::optional<DiscoveryValue>> arguments;
+            if (info != nullptr) {
+                arguments.reserve(info->call_arguments.size());
+                for (const auto& argument : info->call_arguments) {
+                    arguments.push_back(discovery_operand_value(
+                        state, argument, call_address, allocator, evaluation));
+                }
+            }
+            evaluation.candidate = classify_call_arguments(allocator, arguments);
+            if (evaluation.candidate
+                && evaluation.candidate->kind == SiteClassificationKind::Wrapper) {
+                result = DiscoveryValue{
+                    DiscoveryValueKind::CallOrigin,
+                    static_cast<std::int64_t>(call_address)};
+            }
+        }
+        break;
+    }
+    case Opcode::StoreMemory:
+        return std::nullopt;
+    default:
+        break;
+    }
+    if (auto variable = variable_for_operand(instruction.destination)) {
+        if (result)
+            state[*variable] = *result;
+        else
+            state.erase(*variable);
+    }
+    return result;
+}
+
+ida::Result<SiteClassification> classify_allocator_site(
+    const ida::decompiler::MicrocodeFunction& graph,
+    ida::Address call_address,
+    const ResolvedAllocator& allocator) {
+    if (graph.maturity != ida::decompiler::MicrocodeMaturity::Preoptimized) {
+        return std::unexpected(ida::Error::validation(
+            "Allocator discovery requires preoptimized microcode"));
+    }
+    const auto order = topological_order(graph);
+    if (order.empty())
+        return SiteClassification{};
+    DiscoveryState initial;
+    for (std::size_t index = 0; index < graph.arguments.size(); ++index) {
+        auto variable = variable_for_location(graph.arguments[index].location);
+        if (variable) {
+            initial[*variable] = DiscoveryValue{
+                DiscoveryValueKind::CallerArgument,
+                static_cast<std::int64_t>(index)};
+        }
+    }
+    DiscoveryEvaluation evaluation;
+    std::map<int, DiscoveryState> end_states;
+    for (std::size_t order_index = 0; order_index < order.size(); ++order_index) {
+        const auto& block = graph.blocks[order[order_index]];
+        DiscoveryState state = initial;
+        if (order_index != 0) {
+            const DiscoveryState* selected = nullptr;
+            for (int predecessor : block.predecessors) {
+                auto found = end_states.find(predecessor);
+                if (found != end_states.end()
+                    && (selected == nullptr
+                        || found->second.size() > selected->size())) {
+                    selected = &found->second;
+                }
+            }
+            state = selected == nullptr ? DiscoveryState{} : *selected;
+        }
+        for (const auto& instruction : block.instructions) {
+            (void)process_discovery_instruction(
+                state, instruction, call_address, allocator, evaluation);
+        }
+        end_states[block.index] = std::move(state);
+    }
+    if (evaluation.matching_calls != 1 || !evaluation.candidate)
+        return SiteClassification{};
+    if (evaluation.candidate->kind == SiteClassificationKind::Static)
+        return *evaluation.candidate;
+    if (!graph.return_location)
+        return SiteClassification{};
+    std::set<int> active;
+    for (const auto& block : graph.blocks) {
+        if (!block.instructions.empty())
+            active.insert(block.index);
+    }
+    std::size_t terminals = 0;
+    for (const auto& block : graph.blocks) {
+        if (!active.contains(block.index))
+            continue;
+        const bool has_successor = std::any_of(
+            block.successors.begin(), block.successors.end(),
+            [&](int successor) { return active.contains(successor); });
+        if (has_successor)
+            continue;
+        ++terminals;
+        auto state = end_states.find(block.index);
+        auto variable = variable_for_location(*graph.return_location);
+        if (state == end_states.end() || !variable)
+            return SiteClassification{};
+        auto value = state->second.find(*variable);
+        if (value == state->second.end()
+            || value->second.kind != DiscoveryValueKind::CallOrigin
+            || static_cast<ida::Address>(value->second.value) != call_address) {
+            return SiteClassification{};
+        }
+    }
+    return terminals == 0 ? SiteClassification{} : *evaluation.candidate;
+}
+
+ida::Result<ida::decompiler::MicrocodeFunction> analyzed_graph(
+    ida::Address address) {
+    ida::decompiler::MicrocodeGenerationOptions options;
+    options.maturity = ida::decompiler::MicrocodeMaturity::Preoptimized;
+    options.analyze_calls = true;
+    return ida::decompiler::generate_microcode(address, options);
+}
+
+std::vector<std::string_view> split(std::string_view value, char delimiter) {
+    std::vector<std::string_view> parts;
+    while (true) {
+        const auto position = value.find(delimiter);
+        parts.push_back(value.substr(0, position));
+        if (position == std::string_view::npos)
+            break;
+        value.remove_prefix(position + 1);
+    }
+    return parts;
+}
+
+ida::Result<std::size_t> parse_allocator_index(std::string_view value) {
+    std::size_t parsed = 0;
+    const auto [end, error] = std::from_chars(
+        value.data(), value.data() + value.size(), parsed);
+    if (error != std::errc{} || end != value.data() + value.size()
+        || parsed > 1024) {
+        return std::unexpected(ida::Error::validation(
+            "Allocator argument index must be an integer in 0..1024"));
+    }
+    return parsed;
+}
+
+ida::Result<AllocatorSpec> parse_allocator_spec(std::string_view value) {
+    const auto parts = split(value, ':');
+    if (parts.size() < 3 || parts.size() > 4
+        || std::any_of(parts.begin(), parts.end(),
+                       [](auto part) { return part.empty(); })) {
+        return std::unexpected(ida::Error::validation(
+            "Allocator syntax is kind:locator:size-index or calloc:locator:count-index:size-index"));
+    }
+    AllocatorSpec spec;
+    if (parts[0] == "malloc")
+        spec.kind = AllocatorKind::Malloc;
+    else if (parts[0] == "calloc")
+        spec.kind = AllocatorKind::Calloc;
+    else if (parts[0] == "realloc")
+        spec.kind = AllocatorKind::Realloc;
+    else
+        return std::unexpected(ida::Error::validation("Unknown allocator kind"));
+    spec.locator = parts[1];
+    if (spec.kind == AllocatorKind::Calloc) {
+        if (parts.size() != 4) {
+            return std::unexpected(ida::Error::validation(
+                "calloc requires count and size indexes"));
+        }
+        auto count = parse_allocator_index(parts[2]);
+        auto size = parse_allocator_index(parts[3]);
+        if (!count)
+            return std::unexpected(count.error());
+        if (!size)
+            return std::unexpected(size.error());
+        if (*count == *size) {
+            return std::unexpected(ida::Error::validation(
+                "calloc count and size indexes must be distinct"));
+        }
+        spec.count_index = *count;
+        spec.size_index = *size;
+    } else {
+        if (parts.size() != 3) {
+            return std::unexpected(ida::Error::validation(
+                "malloc/realloc require one size index"));
+        }
+        auto size = parse_allocator_index(parts[2]);
+        if (!size)
+            return std::unexpected(size.error());
+        spec.size_index = *size;
+    }
+    return spec;
+}
+
+ida::Result<std::vector<AllocatorSpec>> parse_allocator_specs(
+    std::string_view text) {
+    std::vector<AllocatorSpec> specs;
+    for (auto line : split(text, '\n')) {
+        while (!line.empty() && (line.front() == ' ' || line.front() == '\t'
+                                 || line.front() == '\r'))
+            line.remove_prefix(1);
+        while (!line.empty() && (line.back() == ' ' || line.back() == '\t'
+                                 || line.back() == '\r'))
+            line.remove_suffix(1);
+        if (line.empty())
+            continue;
+        auto spec = parse_allocator_spec(line);
+        if (!spec)
+            return std::unexpected(spec.error());
+        specs.push_back(std::move(*spec));
+    }
+    if (specs.empty()) {
+        return std::unexpected(ida::Error::validation(
+            "At least one allocator specification is required"));
+    }
+    return specs;
+}
+
+ida::Result<ida::Address> resolve_allocator_locator(std::string_view locator) {
+    if (const auto separator = locator.find('!');
+        separator != std::string_view::npos) {
+        const auto module_name = locator.substr(0, separator);
+        const auto prefix = locator.substr(separator + 1);
+        if (module_name.empty() || prefix.empty()
+            || prefix.find('!') != std::string_view::npos) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid module!import-prefix allocator locator"));
+        }
+        auto modules = ida::database::import_modules();
+        if (!modules)
+            return std::unexpected(modules.error());
+        auto module = std::find_if(
+            modules->begin(), modules->end(),
+            [&](const auto& candidate) { return candidate.name == module_name; });
+        if (module == modules->end()) {
+            return std::unexpected(ida::Error::not_found(
+                "Allocator import module not found", std::string(module_name)));
+        }
+        std::vector<ida::Address> matches;
+        for (const auto& symbol : module->symbols) {
+            if (symbol.name.starts_with(prefix))
+                matches.push_back(symbol.address);
+        }
+        if (matches.size() != 1) {
+            return std::unexpected(ida::Error::validation(
+                "Allocator import prefix must resolve to exactly one symbol"));
+        }
+        return matches.front();
+    }
+    ida::Address parsed = 0;
+    int base = 10;
+    if (locator.starts_with("0x") || locator.starts_with("0X")) {
+        locator.remove_prefix(2);
+        base = 16;
+    }
+    const auto [end, error] = std::from_chars(
+        locator.data(), locator.data() + locator.size(), parsed, base);
+    if (error == std::errc{} && end == locator.data() + locator.size())
+        return parsed;
+    return ida::name::resolve(locator);
+}
+
+ida::Result<std::vector<ResolvedAllocator>> resolve_allocator_specs(
+    const std::vector<AllocatorSpec>& specs) {
+    std::vector<ResolvedAllocator> resolved;
+    for (const auto& spec : specs) {
+        auto address = resolve_allocator_locator(spec.locator);
+        if (!address)
+            return std::unexpected(address.error());
+        ResolvedAllocator allocator{
+            *address, spec.kind, spec.count_index, spec.size_index};
+        auto same_address = std::find_if(
+            resolved.begin(), resolved.end(),
+            [&](const auto& existing) { return existing.address == *address; });
+        if (same_address != resolved.end()) {
+            if (*same_address != allocator) {
+                return std::unexpected(ida::Error::conflict(
+                    "Allocator target has conflicting specifications"));
+            }
+            continue;
+        }
+        resolved.push_back(allocator);
+    }
+    return resolved;
+}
+
+ida::Result<AllocatorDiscovery> discover_allocators(
+    std::vector<ResolvedAllocator> seeds) {
+    AllocatorDiscovery discovery;
+    discovery.seeds = seeds;
+    std::deque<ResolvedAllocator> queue(seeds.begin(), seeds.end());
+    std::set<ResolvedAllocator> visited;
+    std::map<ida::Address, ida::decompiler::MicrocodeFunction> graph_cache;
+    while (!queue.empty()) {
+        const auto allocator = queue.front();
+        queue.pop_front();
+        if (!visited.insert(allocator).second) {
+            ++discovery.duplicate_heirs;
+            continue;
+        }
+        auto references = ida::xref::refs_to(allocator.address);
+        if (!references)
+            return std::unexpected(references.error());
+        for (const auto& reference : *references) {
+            ++discovery.references_examined;
+            if (!reference.is_code || !ida::xref::is_call(reference.type)) {
+                ++discovery.non_call_references;
+                continue;
+            }
+            auto caller_function = ida::function::at(reference.from);
+            if (!caller_function) {
+                ++discovery.unresolved_callers;
+                continue;
+            }
+            const ida::Address caller = caller_function->start();
+            ida::decompiler::MicrocodeFunction graph;
+            if (auto found = graph_cache.find(caller);
+                found != graph_cache.end()) {
+                graph = found->second;
+            } else {
+                auto generated = analyzed_graph(caller);
+                if (!generated || generated->entry_address != caller) {
+                    ++discovery.unresolved_callers;
+                    continue;
+                }
+                graph = *generated;
+                graph_cache.emplace(caller, graph);
+            }
+            auto classification = classify_allocator_site(
+                graph, reference.from, allocator);
+            if (!classification)
+                return std::unexpected(classification.error());
+            if (classification->kind == SiteClassificationKind::Static) {
+                AllocationRoot root{caller, reference.from,
+                                    classification->allocation_size, allocator};
+                const bool exists = std::any_of(
+                    discovery.roots.begin(), discovery.roots.end(),
+                    [&](const auto& current) {
+                        return current.function_address == root.function_address
+                            && current.call_address == root.call_address
+                            && current.allocation_size == root.allocation_size;
+                    });
+                if (!exists)
+                    discovery.roots.push_back(root);
+            } else if (classification->kind
+                       == SiteClassificationKind::Wrapper) {
+                ResolvedAllocator heir{
+                    caller, allocator.kind,
+                    classification->count_index,
+                    classification->size_index};
+                const bool exists = std::any_of(
+                    discovery.wrappers.begin(), discovery.wrappers.end(),
+                    [&](const auto& current) {
+                        return current.function_address == caller
+                            && current.allocator == heir;
+                    });
+                if (!exists) {
+                    discovery.wrappers.push_back(
+                        {caller, reference.from, heir});
+                }
+                if (visited.contains(heir)
+                    || std::find(queue.begin(), queue.end(), heir) != queue.end()) {
+                    ++discovery.duplicate_heirs;
+                } else {
+                    queue.push_back(heir);
+                }
+            } else {
+                ++discovery.unclassified_calls;
+            }
+        }
+    }
+    std::sort(discovery.roots.begin(), discovery.roots.end(),
+              [](const auto& left, const auto& right) {
+                  return std::tie(left.function_address, left.call_address)
+                      < std::tie(right.function_address, right.call_address);
+              });
+    std::sort(discovery.wrappers.begin(), discovery.wrappers.end(),
+              [](const auto& left, const auto& right) {
+                  return left.function_address < right.function_address;
+              });
+    return discovery;
+}
+
 struct InterproceduralAnalyzer {
     using Loader = std::function<ida::Result<ida::decompiler::MicrocodeFunction>(
         ida::Address)>;
 
-    explicit InterproceduralAnalyzer(std::size_t max_depth, Loader loader)
-        : loader_(std::move(loader)), max_depth(max_depth) {}
+    explicit InterproceduralAnalyzer(
+        std::size_t max_depth,
+        Loader loader,
+        std::optional<ida::Address> allocation_call = std::nullopt)
+        : loader_(std::move(loader)),
+          max_depth(max_depth),
+          allocation_call(allocation_call) {}
 
     static ContextKey context_key(
         ida::Address function_address,
@@ -501,6 +1147,10 @@ struct InterproceduralAnalyzer {
         if (instruction.opcode != Opcode::Call) {
             ++unresolved_calls;
             return std::optional<AbstractValue>{};
+        }
+        if (allocation_call == instruction.address) {
+            return std::optional<AbstractValue>(AbstractValue{
+                ValueKind::StructurePointer, 0, 0});
         }
         const auto* call_info = call_information(instruction);
         if (call_info == nullptr) {
@@ -777,6 +1427,7 @@ struct InterproceduralAnalyzer {
 
     Loader loader_;
     std::size_t max_depth{0};
+    std::optional<ida::Address> allocation_call;
     std::map<ida::Address, ida::decompiler::MicrocodeFunction> graph_cache;
     std::set<ContextKey> active_contexts;
     std::map<ContextKey, std::optional<AbstractValue>> completed_contexts;
@@ -892,6 +1543,49 @@ ida::Result<Reconstruction> reconstruct(
              output.negative_accesses,
              output.conflict_discards) = resolve_field_conflicts(
                  std::move(analyzer.raw_accesses));
+    return output;
+}
+
+ida::Result<AllocationReconstruction> reconstruct_allocation(
+    const AllocationRoot& root,
+    std::size_t max_depth) {
+    auto graph = analyzed_graph(root.function_address);
+    if (!graph)
+        return std::unexpected(graph.error());
+    if (graph->entry_address != root.function_address) {
+        return std::unexpected(ida::Error::validation(
+            "Allocation root graph does not match its containing function"));
+    }
+    InterproceduralAnalyzer analyzer(
+        max_depth, analyzed_graph, root.call_address);
+    auto analyzed = analyzer.analyze_graph(*graph, {}, 0);
+    if (!analyzed)
+        return std::unexpected(analyzed.error());
+    AllocationReconstruction output;
+    output.root = root;
+    output.functions_processed = analyzer.functions_processed;
+    output.blocks_processed = analyzer.blocks_processed;
+    output.instructions_processed = analyzer.instructions_processed;
+    output.unsupported_instructions = analyzer.unsupported_instructions;
+    output.calls_followed = analyzer.calls_followed;
+    output.depth_skips = analyzer.depth_skips;
+    output.cycle_skips = analyzer.cycle_skips;
+    output.repeated_contexts = analyzer.repeated_contexts;
+    output.unresolved_calls = analyzer.unresolved_calls;
+    output.return_conflicts = analyzer.return_conflicts;
+    std::vector<RecoveredField> resolved;
+    std::tie(resolved, output.negative_accesses, output.conflict_discards)
+        = resolve_field_conflicts(std::move(analyzer.raw_accesses));
+    for (auto& field : resolved) {
+        const auto offset = static_cast<std::uint64_t>(field.offset);
+        const auto width = static_cast<std::uint64_t>(field.byte_width);
+        if (offset <= root.allocation_size
+            && width <= root.allocation_size - offset) {
+            output.fields.push_back(std::move(field));
+        } else {
+            ++output.out_of_bounds_fields;
+        }
+    }
     return output;
 }
 
@@ -1132,6 +1826,141 @@ ida::Result<ApplySummary> apply_reconstruction(
     return summary;
 }
 
+ida::Result<ida::type::TypeInfo> allocator_size_type() {
+    auto named = ida::type::TypeInfo::by_name("size_t");
+    if (named)
+        return *named;
+    if (named.error().category != ida::ErrorCategory::NotFound)
+        return std::unexpected(named.error());
+    auto bitness = ida::database::address_bitness();
+    if (!bitness)
+        return std::unexpected(bitness.error());
+    return *bitness == 64
+        ? ida::type::TypeInfo::uint64()
+        : ida::type::TypeInfo::uint32();
+}
+
+ida::Result<bool> same_type(const ida::type::TypeInfo& left,
+                            const ida::type::TypeInfo& right) {
+    auto left_text = left.to_string();
+    auto right_text = right.to_string();
+    if (!left_text)
+        return std::unexpected(left_text.error());
+    if (!right_text)
+        return std::unexpected(right_text.error());
+    return *left_text == *right_text;
+}
+
+ida::Status apply_allocator_prototype(
+    const ResolvedAllocator& allocator,
+    AllocatorApplySummary& summary) {
+    auto original = ida::type::retrieve(allocator.address);
+    if (!original)
+        return std::unexpected(original.error());
+    auto details = original->function_details();
+    if (!details)
+        return std::unexpected(details.error());
+    auto size = allocator_size_type();
+    if (!size)
+        return std::unexpected(size.error());
+    const auto generic_return = ida::type::TypeInfo::pointer_to(
+        ida::type::TypeInfo::void_type());
+    ida::type::TypeInfo updated = *original;
+    bool changed = false;
+    auto return_type = original->function_return_type();
+    if (!return_type)
+        return std::unexpected(return_type.error());
+    auto return_matches = same_type(*return_type, generic_return);
+    if (!return_matches)
+        return std::unexpected(return_matches.error());
+    if (!*return_matches) {
+        auto replacement = updated.with_function_return_type(generic_return);
+        if (!replacement)
+            return std::unexpected(replacement.error());
+        updated = std::move(*replacement);
+        changed = true;
+    }
+    std::vector<std::pair<std::size_t, std::string_view>> roles;
+    if (allocator.count_index)
+        roles.emplace_back(*allocator.count_index, "count");
+    roles.emplace_back(allocator.size_index, "size");
+    for (const auto& [index, name] : roles) {
+        if (index >= details->arguments.size()) {
+            ++summary.prototypes_ineligible;
+            continue;
+        }
+        auto argument_matches = same_type(details->arguments[index].type, *size);
+        if (!argument_matches)
+            return std::unexpected(argument_matches.error());
+        if (!*argument_matches) {
+            auto replacement = updated.with_function_argument_type(index, *size);
+            if (!replacement)
+                return std::unexpected(replacement.error());
+            updated = std::move(*replacement);
+            changed = true;
+        }
+        if (details->arguments[index].name != name) {
+            auto replacement = updated.with_function_argument_name(index, name);
+            if (!replacement)
+                return std::unexpected(replacement.error());
+            updated = std::move(*replacement);
+            changed = true;
+        }
+    }
+    if (!changed) {
+        ++summary.prototypes_already_typed;
+        return ida::ok();
+    }
+    auto applied = updated.apply(allocator.address);
+    if (!applied)
+        return std::unexpected(applied.error());
+    auto dirty = ida::decompiler::mark_dirty(allocator.address, false);
+    if (!dirty)
+        return std::unexpected(dirty.error());
+    ++summary.prototypes_changed;
+    return ida::ok();
+}
+
+std::string allocation_structure_name(std::string_view prefix,
+                                      ida::Address call_address) {
+    return format("%s_%llx", std::string(prefix).c_str(),
+                  static_cast<unsigned long long>(call_address));
+}
+
+ida::Result<AllocatorApplySummary> apply_allocator_discovery(
+    const AllocatorDiscovery& discovery,
+    const std::vector<AllocationReconstruction>& reconstructions,
+    std::string_view structure_prefix) {
+    AllocatorApplySummary summary;
+    for (const auto& reconstruction : reconstructions) {
+        if (reconstruction.fields.empty()) {
+            ++summary.structures_ineligible;
+            continue;
+        }
+        ApplySummary structure_summary;
+        auto structure = ensure_structure(
+            allocation_structure_name(structure_prefix,
+                                      reconstruction.root.call_address),
+            reconstruction.fields,
+            structure_summary);
+        if (!structure)
+            return std::unexpected(structure.error());
+        summary.structures_created += structure_summary.structure_created ? 1 : 0;
+        summary.members_added += structure_summary.members_added;
+        summary.members_reused += structure_summary.members_reused;
+        summary.members_skipped += structure_summary.members_skipped;
+    }
+    std::set<ResolvedAllocator> allocators(
+        discovery.seeds.begin(), discovery.seeds.end());
+    for (const auto& wrapper : discovery.wrappers)
+        allocators.insert(wrapper.allocator);
+    for (const auto& allocator : allocators) {
+        if (auto status = apply_allocator_prototype(allocator, summary); !status)
+            ++summary.prototypes_ineligible;
+    }
+    return summary;
+}
+
 std::string default_structure_name(ida::Address function_address,
                                    std::size_t argument_index) {
     return format("symless_%llx_arg%zu",
@@ -1215,6 +2044,175 @@ std::string report_text(const Reconstruction& reconstruction,
             applied->returns_ineligible);
     }
     return report;
+}
+
+const char* allocator_kind_name(AllocatorKind kind) {
+    switch (kind) {
+    case AllocatorKind::Malloc: return "malloc";
+    case AllocatorKind::Calloc: return "calloc";
+    case AllocatorKind::Realloc: return "realloc";
+    }
+    return "unknown";
+}
+
+struct AllocatorAnalysis {
+    AllocatorDiscovery discovery;
+    std::vector<AllocationReconstruction> reconstructions;
+    std::size_t max_depth{0};
+};
+
+std::string allocator_report_text(
+    const AllocatorAnalysis& analysis,
+    std::string_view structure_prefix,
+    const AllocatorApplySummary* applied = nullptr) {
+    const auto& discovery = analysis.discovery;
+    std::string report = format(
+        "Symless allocator seed and wrapper discovery\n"
+        "Structure prefix: %s\nMaximum call depth: %zu\n"
+        "Seeds: %zu\nWrappers: %zu\nAllocation roots: %zu\n"
+        "References examined: %zu\nNon-call references: %zu\n"
+        "Unresolved callers: %zu\nUnclassified calls: %zu\n"
+        "Duplicate heirs: %zu\n",
+        std::string(structure_prefix).c_str(),
+        analysis.max_depth,
+        discovery.seeds.size(),
+        discovery.wrappers.size(),
+        discovery.roots.size(),
+        discovery.references_examined,
+        discovery.non_call_references,
+        discovery.unresolved_callers,
+        discovery.unclassified_calls,
+        discovery.duplicate_heirs);
+    for (const auto& wrapper : discovery.wrappers) {
+        report += format(
+            "  wrapper function=0x%llx source_call=0x%llx kind=%s size_index=%zu\n",
+            static_cast<unsigned long long>(wrapper.function_address),
+            static_cast<unsigned long long>(wrapper.source_call_address),
+            allocator_kind_name(wrapper.allocator.kind),
+            wrapper.allocator.size_index);
+    }
+    for (const auto& reconstruction : analysis.reconstructions) {
+        report += format(
+            "  allocation root function=0x%llx call=0x%llx size=%llu B "
+            "kind=%s fields=%zu out_of_bounds=%zu\n"
+            "    functions=%zu calls=%zu blocks=%zu instructions=%zu "
+            "unsupported=%zu unresolved=%zu\n",
+            static_cast<unsigned long long>(
+                reconstruction.root.function_address),
+            static_cast<unsigned long long>(reconstruction.root.call_address),
+            static_cast<unsigned long long>(
+                reconstruction.root.allocation_size),
+            allocator_kind_name(reconstruction.root.allocator.kind),
+            reconstruction.fields.size(),
+            reconstruction.out_of_bounds_fields,
+            reconstruction.functions_processed,
+            reconstruction.calls_followed,
+            reconstruction.blocks_processed,
+            reconstruction.instructions_processed,
+            reconstruction.unsupported_instructions,
+            reconstruction.unresolved_calls);
+        for (const auto& field : reconstruction.fields) {
+            report += format(
+                "    +0x%llx width=%d B reads=%zu writes=%zu\n",
+                static_cast<unsigned long long>(field.offset),
+                field.byte_width, field.reads, field.writes);
+        }
+    }
+    if (applied != nullptr) {
+        report += format(
+            "Structures created: %zu\nStructures ineligible: %zu\n"
+            "Members added: %zu\nMembers reused: %zu\nMembers skipped: %zu\n"
+            "Prototypes changed: %zu\nPrototypes already typed: %zu\n"
+            "Prototypes ineligible: %zu\n",
+            applied->structures_created,
+            applied->structures_ineligible,
+            applied->members_added,
+            applied->members_reused,
+            applied->members_skipped,
+            applied->prototypes_changed,
+            applied->prototypes_already_typed,
+            applied->prototypes_ineligible);
+    }
+    return report;
+}
+
+ida::Result<AllocatorAnalysis> analyze_configured_allocators() {
+    auto text = ida::ui::ask_text(
+        "Allocator specifications, one per line\n"
+        "malloc/realloc: kind:locator:size-index\n"
+        "calloc: calloc:locator:count-index:size-index",
+        "malloc:_malloc:0");
+    if (!text)
+        return std::unexpected(text.error());
+    auto specs = parse_allocator_specs(*text);
+    if (!specs)
+        return std::unexpected(specs.error());
+    auto max_depth = ida::ui::ask_long(
+        "Maximum resolved direct-call depth from each allocation root", 8);
+    if (!max_depth)
+        return std::unexpected(max_depth.error());
+    if (*max_depth < 0 || *max_depth > 100) {
+        return std::unexpected(ida::Error::validation(
+            "Maximum call depth must be in 0..100"));
+    }
+    auto seeds = resolve_allocator_specs(*specs);
+    if (!seeds)
+        return std::unexpected(seeds.error());
+    auto discovery = discover_allocators(std::move(*seeds));
+    if (!discovery)
+        return std::unexpected(discovery.error());
+    AllocatorAnalysis analysis;
+    analysis.max_depth = static_cast<std::size_t>(*max_depth);
+    analysis.discovery = std::move(*discovery);
+    for (const auto& root : analysis.discovery.roots) {
+        auto reconstruction = reconstruct_allocation(root, analysis.max_depth);
+        if (!reconstruction)
+            return std::unexpected(reconstruction.error());
+        analysis.reconstructions.push_back(std::move(*reconstruction));
+    }
+    return analysis;
+}
+
+ida::Status run_allocator_report_action() {
+    auto analysis = analyze_configured_allocators();
+    if (!analysis)
+        return std::unexpected(analysis.error());
+    const auto report = allocator_report_text(*analysis, "symless_alloc");
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
+}
+
+ida::Status run_allocator_apply_action() {
+    auto analysis = analyze_configured_allocators();
+    if (!analysis)
+        return std::unexpected(analysis.error());
+    auto prefix = ida::ui::ask_string(
+        "Allocation structure name prefix", "symless_alloc");
+    if (!prefix)
+        return std::unexpected(prefix.error());
+    if (prefix->empty()) {
+        return std::unexpected(ida::Error::validation(
+            "Allocation structure prefix must not be empty"));
+    }
+    const auto preview = allocator_report_text(*analysis, *prefix);
+    auto confirmed = ida::ui::ask_yn(
+        preview
+            + "\nCreate/reuse these UDTs and enrich generic allocator prototypes?",
+        false);
+    if (!confirmed)
+        return std::unexpected(confirmed.error());
+    if (!*confirmed)
+        return ida::ok();
+    auto summary = apply_allocator_discovery(
+        analysis->discovery, analysis->reconstructions, *prefix);
+    if (!summary)
+        return std::unexpected(summary.error());
+    ida::ui::refresh_all_views();
+    const auto report = allocator_report_text(*analysis, *prefix, &*summary);
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
 }
 
 ida::Result<Reconstruction> reconstruct_current_argument() {
@@ -1303,8 +2301,8 @@ public:
         return {
             .name = "Symless Structure Reconstruction Port",
             .hotkey = "Ctrl-Alt-Shift-S",
-            .comment = "Reconstruct fields reached from one argument through bounded direct calls",
-            .help = "Depth-bounded Symless call/return adaptation over owned idax microcode graphs.",
+            .comment = "Reconstruct argument and fixed-size allocator-root structures",
+            .help = "Depth-bounded Symless call/return and allocator-wrapper adaptation over owned idax microcode graphs.",
         };
     }
 
@@ -1319,6 +2317,20 @@ public:
                              "Symless: Apply Argument Structure",
                              "Create/reuse a UDT and update eligible propagated prototypes",
                              [] { return run_apply_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kAllocatorReportAction,
+                             "Symless: Report Allocator Roots",
+                             "Discover configured allocator wrappers and fixed-size roots",
+                             [] { return run_allocator_report_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kAllocatorApplyAction,
+                             "Symless: Apply Allocator Roots",
+                             "Create allocation UDTs and enrich generic allocator prototypes",
+                             [] { return run_allocator_apply_action(); })) {
             unregister_all();
             return false;
         }

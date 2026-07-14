@@ -875,3 +875,25 @@ tracked in `docs/compatibility_matrix.md`.
   3/3 members and types 3/3 arguments plus 1/1 return; fresh-process reopen is
   idempotent. Generated bindings are byte-identical at SHA-256
   `6a14f8a22c18ecd8576773854a99b96c8463631860aafbd76a0449900dd2b0e4`.
+
+- 2026-07-14 Phase 39 Symless allocator seed and wrapper discovery:
+  Added metadata-preserving function-argument renaming across C++, Node, and
+  Rust. Extended both Symless adaptations with declarative malloc/calloc/realloc
+  locators, exact direct-call classification, bounded static sizes,
+  terminal-call-token wrapper confirmation, cycle-safe heir traversal,
+  allocation-call structure roots, extent checks, distinct root UDTs, and
+  generic allocator prototype enrichment. Complete C++ build/CTest pass 26/26
+  in 24.91 s and the four-action C++ plugin links. Node native build, strict
+  declarations, structural tests, and IDA 9.4 integration pass 234/234 and
+  77/77. Rust formatting/all-target checks, library/sys/port tests, and
+  process-main-thread IDA 9.4 integration pass 138/138, 0 sys, 10/10, and
+  94/94. The host-native arm64 fixture (source SHA-256
+  `25dc8ab5303f5d8cbe4dad89e19f3c36ce8c8e095d9a007a97a30ef29491109e`;
+  binary SHA-256
+  `6e85799ebf264654b5a898c44ae77c6990cf5c3b772e1ba9fd8106a04721fac6`)
+  yields one malloc wrapper and one 32 B root with exact `+4/4 B`, `+8/8 B`,
+  and `+24/1 B` read/write fields and zero extent violations. First apply
+  creates one UDT/three members and changes two generic prototypes; a fresh
+  process reuses all members and recognizes both prototypes with zero changes.
+  Generated bindings are byte-identical at SHA-256
+  `414fe27fd05155e75246ee686c98919c0cab40e44b02c692fe927632e925c428`.

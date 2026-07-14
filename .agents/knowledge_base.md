@@ -1347,3 +1347,35 @@ flow back to the caller. Differing structure shifts, or any mixture of
 structure and non-structure values, mean conflicting and must not propagate.
 This avoids both false conflicts on ordinary helpers and unsound propagation
 from path-dependent returns.
+
+### 35.70. Separate Allocator Classification from Prototype Enrichment [F414]
+Resolve allocator seeds from copied import modules/symbols or exact function
+addresses, then inspect references only when the containing owned graph has an
+exact direct call at that site. Track caller arguments, bounded integers, and
+call-origin tokens. A malloc-like integer size in `1..0x3fff` is a static
+allocation; a forwarded argument is a wrapper candidate. Callee arguments for
+calloc must both be integers or both caller arguments. Confirm a wrapper only
+when every usable terminal return agrees on the candidate call origin, and key
+recursive heir traversal by allocator target/kind/index mapping.
+
+Analysis needs no new native surface: imports, xrefs, function containment,
+owned call arguments, and return locations are already copied. Prototype
+enrichment is distinct. To rename an existing size/count argument safely, copy
+the complete `func_type_data_t`, modify only `funcarg_t::name`, and rebuild the
+direct or pointer function type. Do not reconstruct from `FunctionDetails` or
+invent absent ABI arguments; report a missing configured index as ineligible.
+
+### 35.71. Separate Wrapper Call Tokens from Allocation-Object Roots [F415]
+Classify each referenced site against one exact direct allocator call. A static
+bounded integer size creates an allocation root even when the result is not
+returned. Forwarded caller arguments create only a wrapper candidate; confirm
+that candidate when every terminal ABI return location contains the token from
+that exact call address. A scalar, different call token, mixed terminal, or
+missing return location rejects the wrapper.
+
+For a static root, inject `StructurePointer(0)` at the allocation call result
+and reuse depth/cycle/context-bounded direct-call structure propagation. Treat
+the recovered allocation size as a field upper bound and exclude accesses whose
+nonnegative `offset + width` exceeds it. Materialize a call-site-specific UDT,
+but keep allocator and wrapper returns generic `void*`; assigning one root UDT
+to a reusable allocator return conflates distinct allocation objects.

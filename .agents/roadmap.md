@@ -49,6 +49,7 @@ Current overall phase status:
 - Phase 36: complete (Auto Enum port plus metadata-preserving function-argument type edits and named operand-enum representations)
 - Phase 37: complete (bounded Symless structure reconstruction plus owned maturity-explicit microcode graphs across C++/Node/Rust)
 - Phase 38: complete (depth-bounded resolved direct-call argument/return propagation, explicit call analysis, and metadata-preserving return-type edits)
+- Phase 39: complete (declarative direct allocator/wrapper discovery, fixed-size roots, metadata-preserving argument-name edits, and report/apply/reopen evidence)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -255,5 +256,14 @@ Current overall phase status:
 - [x] P38.2 Add metadata-preserving function return-type replacement with C++/Node/Rust parity and exact preservation tests.
 - [x] P38.3 Extend the C++ and Rust Symless adaptations with depth-bounded, cycle-safe direct-callee argument/return propagation and conservative shifted-site mutation rules.
 - [x] P38.4 Add pure and real-IDA report/apply/reopen evidence, synchronize all protocol records and documentation, and run complete validation.
+
+---
+
+### Phase 39 TODO Action Items (Symless Allocator Seed and Wrapper Discovery)
+
+- [x] P39.1 Audit Symless allocator configuration, static-size call classification, wrapper-return confirmation, recursive heir discovery, and allocator prototype mutation against current opaque APIs.
+- [x] P39.2 Close each concrete C++/Node/Rust wrapper gap required by a bounded allocator-discovery surface, with exact SDK provenance and preservation tests.
+- [x] P39.3 Extend the C++ and Rust Symless adaptations with declarative malloc/calloc/realloc seeds, cycle-safe wrapper discovery, and fixed-size allocation-root reconstruction.
+- [x] P39.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---

@@ -130,6 +130,7 @@ private:
     static NAN_METHOD(FunctionReturnType);
     static NAN_METHOD(FunctionArgumentTypes);
     static NAN_METHOD(WithFunctionArgumentType);
+    static NAN_METHOD(WithFunctionArgumentName);
     static NAN_METHOD(WithFunctionReturnType);
     static NAN_METHOD(FunctionDetails);
     static NAN_METHOD(CallingConventionMethod);
@@ -307,6 +308,7 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "functionReturnType",    FunctionReturnType);
     Nan::SetPrototypeMethod(tpl, "functionArgumentTypes", FunctionArgumentTypes);
     Nan::SetPrototypeMethod(tpl, "withFunctionArgumentType", WithFunctionArgumentType);
+    Nan::SetPrototypeMethod(tpl, "withFunctionArgumentName", WithFunctionArgumentName);
     Nan::SetPrototypeMethod(tpl, "withFunctionReturnType", WithFunctionReturnType);
     Nan::SetPrototypeMethod(tpl, "functionDetails",       FunctionDetails);
     Nan::SetPrototypeMethod(tpl, "callingConvention",     CallingConventionMethod);
@@ -539,6 +541,21 @@ NAN_METHOD(TypeInfoWrapper::WithFunctionArgumentType) {
     IDAX_UNWRAP(auto result,
                 self->type_info_.with_function_argument_type(index,
                                                               replacement->typeInfo()));
+    info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(result)));
+}
+
+NAN_METHOD(TypeInfoWrapper::WithFunctionArgumentName) {
+    SELF();
+    if (info.Length() < 2 || !info[0]->IsUint32() || !info[1]->IsString()) {
+        Nan::ThrowTypeError("Expected (non-negative argument index, name string) arguments");
+        return;
+    }
+    const auto index = static_cast<std::size_t>(
+        Nan::To<std::uint32_t>(info[0]).FromJust());
+    const std::string name = idax_node::ToString(info[1]);
+
+    IDAX_UNWRAP(auto result,
+                self->type_info_.with_function_argument_name(index, name));
     info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(result)));
 }
 

@@ -545,6 +545,43 @@ TypeInfo::with_function_argument_type(std::size_t index,
 }
 
 Result<TypeInfo>
+TypeInfo::with_function_argument_name(std::size_t index,
+                                      std::string_view name) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (name.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation(
+            "Function argument name contains an embedded NUL"));
+
+    const bool is_pointer = impl_->ti.is_ptr();
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    func_type_data_t function_data;
+    if (!function_type->get_func_details(&function_data))
+        return std::unexpected(Error::sdk("Failed to get function details"));
+    if (index >= function_data.size())
+        return std::unexpected(Error::validation("Function argument index out of range",
+                                                 std::to_string(index)));
+
+    function_data[index].name = ida::detail::to_qstring(name);
+    tinfo_t rebuilt_function;
+    if (!rebuilt_function.create_func(function_data))
+        return std::unexpected(Error::sdk("Failed to rebuild function argument name",
+                                          std::to_string(index)));
+
+    TypeInfo result;
+    if (is_pointer) {
+        if (!result.impl_->ti.create_ptr(rebuilt_function))
+            return std::unexpected(Error::sdk("Failed to rebuild function pointer type"));
+    } else {
+        result.impl_->ti = rebuilt_function;
+    }
+    return result;
+}
+
+Result<TypeInfo>
 TypeInfo::with_function_return_type(const TypeInfo& replacement) const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));

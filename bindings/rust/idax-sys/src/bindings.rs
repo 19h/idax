@@ -2924,6 +2924,14 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_type_with_function_argument_name(
+        ti: IdaxTypeHandle,
+        index: usize,
+        name: *const ::std::os::raw::c_char,
+        out: *mut IdaxTypeHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_type_with_function_return_type(
         ti: IdaxTypeHandle,
         replacement: IdaxTypeHandle,

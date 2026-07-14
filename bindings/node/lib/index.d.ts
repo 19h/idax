@@ -1715,6 +1715,9 @@ export namespace type {
         /** Return a copy with one argument type replaced and prototype metadata preserved. */
         withFunctionArgumentType(index: number, replacement: TypeInfo): TypeInfo;
 
+        /** Return a copy with one argument name replaced and prototype metadata preserved. */
+        withFunctionArgumentName(index: number, name: string): TypeInfo;
+
         /** Return a copy with its return type replaced and prototype metadata preserved. */
         withFunctionReturnType(replacement: TypeInfo): TypeInfo;
 

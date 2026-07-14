@@ -826,6 +826,16 @@ describe('Type System', () => {
         expect(after.variadic).toBe(before.variadic);
         expect(original.functionDetails().arguments[0].type.isSigned()).toBe(true);
 
+        const renamed = original.withFunctionArgumentName(0, 'size');
+        const renamedAfter = renamed.functionDetails();
+        expect(renamedAfter.arguments[0].name).toBe('size');
+        expect(renamedAfter.arguments[0].type.isSigned()).toBe(true);
+        expect(renamedAfter.arguments[1].name).toBe(before.arguments[1].name);
+        expect(renamedAfter.arguments[1].type.isPointer()).toBe(true);
+        expect(renamedAfter.callingConvention).toBe(before.callingConvention);
+        expect(renamedAfter.variadic).toBe(before.variadic);
+        expect(original.functionDetails().arguments[0].name).toBe(before.arguments[0].name);
+
         const returnEdited = original.withFunctionReturnType(idax.type.uint64());
         const returnAfter = returnEdited.functionDetails();
         expect(returnAfter.returnType.isInteger()).toBe(true);
@@ -840,6 +850,9 @@ describe('Type System', () => {
         const editedPointer = pointer.withFunctionArgumentType(1, idax.type.uint32());
         expect(editedPointer.isPointer()).toBe(true);
         expect(editedPointer.functionDetails().arguments[1].type.isInteger()).toBe(true);
+        const renamedPointer = pointer.withFunctionArgumentName(1, 'buffer');
+        expect(renamedPointer.isPointer()).toBe(true);
+        expect(renamedPointer.functionDetails().arguments[1].name).toBe('buffer');
         const returnEditedPointer = pointer.withFunctionReturnType(idax.type.uint64());
         expect(returnEditedPointer.isPointer()).toBe(true);
         expect(returnEditedPointer.functionReturnType().isSigned()).toBe(false);

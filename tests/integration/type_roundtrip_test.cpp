@@ -389,6 +389,28 @@ void test_function_type_workflows() {
             if (original_after)
                 CHECK(original_after->arguments[0].type.is_signed());
 
+            auto renamed = named_fn->with_function_argument_name(0, "size");
+            CHECK_OK(renamed);
+            if (renamed) {
+                auto renamed_details = renamed->function_details();
+                CHECK_OK(renamed_details);
+                if (renamed_details) {
+                    CHECK(renamed_details->arguments[0].name == "size");
+                    CHECK(renamed_details->arguments[0].type.is_signed());
+                    CHECK(renamed_details->arguments[1].name
+                          == before->arguments[1].name);
+                    CHECK(renamed_details->arguments[1].type.is_pointer());
+                    CHECK(renamed_details->calling_convention
+                          == before->calling_convention);
+                    CHECK(renamed_details->variadic == before->variadic);
+                }
+            }
+            auto original_named = named_fn->function_details();
+            CHECK_OK(original_named);
+            if (original_named)
+                CHECK(original_named->arguments[0].name
+                      == before->arguments[0].name);
+
             auto return_edited = named_fn->with_function_return_type(
                 ida::type::TypeInfo::uint64());
             CHECK_OK(return_edited);
@@ -423,6 +445,15 @@ void test_function_type_workflows() {
                     CHECK(pointer_details->arguments[1].type.is_integer());
                 }
             }
+            auto renamed_pointer = pointer.with_function_argument_name(1, "buffer");
+            CHECK_OK(renamed_pointer);
+            if (renamed_pointer) {
+                CHECK(renamed_pointer->is_pointer());
+                auto pointer_details = renamed_pointer->function_details();
+                CHECK_OK(pointer_details);
+                if (pointer_details)
+                    CHECK(pointer_details->arguments[1].name == "buffer");
+            }
             auto return_edited_pointer = pointer.with_function_return_type(
                 ida::type::TypeInfo::uint64());
             CHECK_OK(return_edited_pointer);
@@ -437,6 +468,11 @@ void test_function_type_workflows() {
 
         CHECK_ERR(named_fn->with_function_argument_type(2, replacement),
                   ida::ErrorCategory::Validation);
+        CHECK_ERR(named_fn->with_function_argument_name(2, "missing"),
+                  ida::ErrorCategory::Validation);
+        CHECK_ERR(named_fn->with_function_argument_name(
+                      0, std::string_view("bad\0name", 8)),
+                  ida::ErrorCategory::Validation);
     }
 
     CHECK_ERR(ida::type::TypeInfo::int32().with_function_argument_type(
@@ -444,6 +480,9 @@ void test_function_type_workflows() {
               ida::ErrorCategory::Validation);
     CHECK_ERR(ida::type::TypeInfo::int32().with_function_return_type(
                   ida::type::TypeInfo::uint32()),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::type::TypeInfo::int32().with_function_argument_name(
+                  0, "size"),
               ida::ErrorCategory::Validation);
 }
 

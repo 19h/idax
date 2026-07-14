@@ -544,6 +544,8 @@ void check_type_surface() {
     using FunctionDetailsFn = ida::Result<ida::type::FunctionDetails>(ida::type::TypeInfo::*)() const;
     using WithFunctionArgumentTypeFn = ida::Result<ida::type::TypeInfo>(
         ida::type::TypeInfo::*)(std::size_t, const ida::type::TypeInfo&) const;
+    using WithFunctionArgumentNameFn = ida::Result<ida::type::TypeInfo>(
+        ida::type::TypeInfo::*)(std::size_t, std::string_view) const;
     using WithFunctionReturnTypeFn = ida::Result<ida::type::TypeInfo>(
         ida::type::TypeInfo::*)(const ida::type::TypeInfo&) const;
     using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
@@ -584,6 +586,8 @@ void check_type_surface() {
     (void)static_cast<FunctionDetailsFn>(&ida::type::TypeInfo::function_details);
     (void)static_cast<WithFunctionArgumentTypeFn>(
         &ida::type::TypeInfo::with_function_argument_type);
+    (void)static_cast<WithFunctionArgumentNameFn>(
+        &ida::type::TypeInfo::with_function_argument_name);
     (void)static_cast<WithFunctionReturnTypeFn>(
         &ida::type::TypeInfo::with_function_return_type);
     (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);

@@ -941,6 +941,10 @@ int idax_type_with_function_argument_type(IdaxTypeHandle ti,
                                           size_t index,
                                           IdaxTypeHandle replacement,
                                           IdaxTypeHandle* out);
+int idax_type_with_function_argument_name(IdaxTypeHandle ti,
+                                          size_t index,
+                                          const char* name,
+                                          IdaxTypeHandle* out);
 int idax_type_with_function_return_type(IdaxTypeHandle ti,
                                         IdaxTypeHandle replacement,
                                         IdaxTypeHandle* out);

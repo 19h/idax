@@ -233,7 +233,8 @@ cargo run -p idax --example auto_enum_port -- <idb> --apply
 
 Bounded port of `<userhome>/Downloads/plo/symless-main` to the opaque owned
 microcode graph and type APIs. The interactive plugin has separate report and
-apply actions for one selected function argument. It preserves register/stack
+apply actions for one selected function argument and for declarative allocator
+roots. It preserves register/stack
 propagation, nested instruction evaluation, pointer add/sub, load/store width
 recovery, topological predecessor-state preference, and the upstream
 minimum-width overlap rule. It also follows resolved direct calls with an
@@ -241,8 +242,19 @@ explicit maximum depth, active-cycle rejection, completed-context reuse, ABI
 argument injection, and conservative terminal-return consensus. Apply creates
 or reuses a named UDT and changes eligible zero-shift arguments and returns.
 
-This is not a full Symless parity claim: allocator/wrapper discovery,
-indirect dynamic calls, constructors/vtables, shifted-pointer types, forward
+Allocator mode accepts one specification per line: `malloc:<locator>:<size-index>`,
+`realloc:<locator>:<size-index>`, or
+`calloc:<locator>:<count-index>:<size-index>`. A locator is an exact
+name/address or `module!import-prefix`. The bounded classifier verifies exact
+direct calls, recognizes constants in `1..0x3fff`, confirms forwarding wrappers
+only through terminal return of the originating call token, recursively visits
+unique heirs, and reconstructs each fixed-size root as a distinct UDT. Apply
+keeps allocator/wrapper returns generic `void*` and types/names existing
+size/count parameters as `size_t`; it does not synthesize parameters or assign
+one allocation-specific type to a reusable allocator return.
+
+This is not a full Symless parity claim: indirect dynamic calls,
+constructors/vtables, shifted-pointer types, forward
 local-type replacement/flags, member-TID xrefs, multi-element stroff paths,
 and microcode-widget operand selection remain outside this port. The upstream
 MIT notice is retained in `plugin/symless_port_LICENSE.txt`.
@@ -253,6 +265,8 @@ requires `--apply` before saving the UDT/prototype mutation:
 ```bash
 cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0 --max-depth 8
 cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0 --max-depth 8 --name recovered_type --apply
+cargo run -p idax --example symless_structure_port -- <idb> --allocator malloc:_malloc:0 --max-depth 8
+cargo run -p idax --example symless_structure_port -- <idb> --allocator malloc:_malloc:0 --name recovered_alloc --max-depth 8 --apply
 ```
 
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
