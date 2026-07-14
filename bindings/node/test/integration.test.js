@@ -1031,6 +1031,51 @@ describe('Decompiler', () => {
         }
     });
 
+    it('should return an owned preoptimized microcode graph', () => {
+        if (!idax.decompiler.available()) return;
+        const funcs = idax.function.all();
+        const limit = Math.min(funcs.length, 20);
+        let graph = null;
+        for (let i = 0; i < limit; i++) {
+            try {
+                graph = idax.decompiler.generateMicrocode(
+                    funcs[i].start,
+                    'preoptimized',
+                );
+                break;
+            } catch (_) {
+                continue;
+            }
+        }
+        if (limit === 0) return;
+        expect(graph === null).toBe(false);
+        expect(typeof graph.entryAddress).toBe('bigint');
+        expect(graph.maturity).toBe('preoptimized');
+        expect(Array.isArray(graph.arguments)).toBe(true);
+        expect(Array.isArray(graph.blocks)).toBe(true);
+        expect(graph.blocks.length).toBeGreaterThan(0);
+
+        const instructions = graph.blocks.flatMap((block) => {
+            expect(typeof block.index).toBe('number');
+            expect(typeof block.startAddress).toBe('bigint');
+            expect(typeof block.endAddress).toBe('bigint');
+            expect(Array.isArray(block.predecessors)).toBe(true);
+            expect(Array.isArray(block.successors)).toBe(true);
+            expect(Array.isArray(block.instructions)).toBe(true);
+            return block.instructions;
+        });
+        expect(instructions.length).toBeGreaterThan(0);
+        expect(typeof instructions[0].address).toBe('bigint');
+        expect(typeof instructions[0].text).toBe('string');
+        expect(typeof instructions[0].left.text).toBe('string');
+        expect(Array.isArray(instructions[0].left.callArguments)).toBe(true);
+
+        expect(() => idax.decompiler.generateMicrocode(
+            graph.entryAddress,
+            'notAMaturity',
+        )).toThrow(/maturity/);
+    });
+
     it('should expose microcode context introspection in filter callbacks', () => {
         if (!idax.decompiler.available()) return;
         const funcs = idax.function.all();

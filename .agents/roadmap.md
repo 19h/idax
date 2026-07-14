@@ -235,3 +235,12 @@ Current overall phase status:
 - [x] P36.2 Add metadata-preserving function-argument type replacement and named operand-enum representation/readback with C++/Node/Rust parity.
 - [x] P36.3 Port the Auto Enum analysis and explicit annotation workflows to an interactive C++ plugin and headless Rust adaptation.
 - [x] P36.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.
+
+---
+
+### Phase 37 TODO Action Items (Symless Structure Reconstruction Port)
+
+- [x] P37.1 Audit the upstream microcode data-flow, pointer-access, structure-generation, vtable, and entry-point workflows against current C++/Node/Rust wrapper coverage and authoritative SDK contracts.
+- [x] P37.2 Close each concrete opaque wrapper gap required by the selected reconstruction boundary, with C++/Node/Rust parity where the namespace is already cross-language.
+- [x] P37.3 Port a source-audited, explicitly bounded Symless reconstruction workflow to an interactive C++ plugin and a headless Rust adaptation.
+- [x] P37.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.

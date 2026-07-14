@@ -251,6 +251,13 @@ enum class MicrocodeOpcode : int {
     FloatDiv,
     IntegerToFloat,
     FloatToFloat,
+    SignedExtend,
+    Call,
+    IndirectCall,
+    Goto,
+    IndirectJump,
+    Return,
+    Other,
 };
 
 struct MicrocodeInstruction;
@@ -268,6 +275,11 @@ enum class MicrocodeOperandKind : int {
     NestedInstruction,
     UnsignedImmediate,
     SignedImmediate,
+    AddressReference,
+    CallArguments,
+    StringConstant,
+    FloatingPointConstant,
+    Other,
 };
 
 /// One typed microcode operand.
@@ -286,6 +298,10 @@ struct MicrocodeOperand {
     std::int64_t signed_immediate{0};
     int byte_width{0};
     bool mark_user_defined_type{false};
+    std::shared_ptr<MicrocodeOperand> referenced_operand{};
+    std::vector<MicrocodeOperand> call_arguments{};
+    Address call_target{BadAddress};
+    std::string text{};
 };
 
 /// Generic typed microcode instruction model.
@@ -297,6 +313,25 @@ struct MicrocodeInstruction {
     MicrocodeOperand right{};
     MicrocodeOperand destination{};
     bool floating_point_instruction{false};
+    Address address{BadAddress};
+    std::string text{};
+};
+
+/// Requested/observed maturity of an owned function-level microcode graph.
+enum class MicrocodeMaturity : int {
+    Generated    = 1,
+    Preoptimized = 2,
+    LocallyOptimized = 3,
+    CallsAnalyzed = 4,
+    GloballyOptimized1 = 5,
+    GloballyOptimized2 = 6,
+    GloballyOptimized3 = 7,
+    LocalVariables = 8,
+};
+
+/// Options for generation of an owned function-level microcode graph.
+struct MicrocodeGenerationOptions {
+    MicrocodeMaturity maturity{MicrocodeMaturity::Preoptimized};
 };
 
 /// Placement policy for emitted microcode instructions.
@@ -360,6 +395,32 @@ struct MicrocodeValueLocation {
     std::int64_t stack_offset{0};
     Address static_address{BadAddress};
     std::vector<MicrocodeLocationPart> scattered_parts{};
+};
+
+/// One copied function argument and its microcode-level storage location.
+struct MicrocodeFunctionArgument {
+    std::string name{};
+    MicrocodeValueLocation location{};
+    int byte_width{0};
+};
+
+/// One copied microcode basic block.
+struct MicrocodeBlock {
+    int index{0};
+    Address start_address{BadAddress};
+    Address end_address{BadAddress};
+    std::vector<int> predecessors{};
+    std::vector<int> successors{};
+    std::vector<MicrocodeInstruction> instructions{};
+};
+
+/// SDK-independent snapshot of a complete function-level microcode graph.
+struct MicrocodeFunction {
+    Address entry_address{BadAddress};
+    MicrocodeMaturity maturity{MicrocodeMaturity::Generated};
+    std::vector<MicrocodeFunctionArgument> arguments{};
+    std::optional<MicrocodeValueLocation> return_location{};
+    std::vector<MicrocodeBlock> blocks{};
 };
 
 /// Optional per-argument semantic flags for helper-call arguments.
@@ -1444,6 +1505,15 @@ Result<DecompiledFunction> decompile(Address ea, DecompileFailure* failure);
 /// Decompile the function at \p ea.
 /// The decompiler must be available (call available() first or handle the error).
 Result<DecompiledFunction> decompile(Address ea);
+
+/// Generate and copy a complete function-level microcode graph.
+///
+/// The returned graph owns no SDK objects and remains valid after the native
+/// microcode array is destroyed. Pre-local-optimization maturities have their
+/// control-flow graph built before copying.
+Result<MicrocodeFunction>
+generate_microcode(Address function_address,
+                   const MicrocodeGenerationOptions& options = {});
 
 // ── Raw pseudocode access from event handles ────────────────────────────
 

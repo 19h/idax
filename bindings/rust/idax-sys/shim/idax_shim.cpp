@@ -6579,12 +6579,28 @@ void free_microcode_operand(IdaxMicrocodeOperand* operand) {
 
     std::free(operand->helper_name);
     operand->helper_name = nullptr;
+    std::free(operand->text);
+    operand->text = nullptr;
 
     if (operand->nested_instruction != nullptr) {
         idax_microcode_instruction_free(operand->nested_instruction);
         std::free(operand->nested_instruction);
         operand->nested_instruction = nullptr;
     }
+
+    if (operand->referenced_operand != nullptr) {
+        free_microcode_operand(operand->referenced_operand);
+        std::free(operand->referenced_operand);
+        operand->referenced_operand = nullptr;
+    }
+
+    if (operand->call_arguments != nullptr) {
+        for (std::size_t index = 0; index < operand->call_argument_count; ++index)
+            free_microcode_operand(&operand->call_arguments[index]);
+        std::free(operand->call_arguments);
+        operand->call_arguments = nullptr;
+    }
+    operand->call_argument_count = 0;
 }
 
 ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
@@ -6606,8 +6622,12 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
     out->signed_immediate = operand.signed_immediate;
     out->byte_width = operand.byte_width;
     out->mark_user_defined_type = operand.mark_user_defined_type ? 1 : 0;
+    out->call_target = operand.call_target;
+    out->text = dup_string(operand.text);
 
-    if (out->helper_name == nullptr && !operand.helper_name.empty()) {
+    if ((out->helper_name == nullptr && !operand.helper_name.empty())
+        || (out->text == nullptr && !operand.text.empty())) {
+        free_microcode_operand(out);
         return std::unexpected(ida::Error::internal("malloc failed"));
     }
 
@@ -6615,8 +6635,7 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
         out->nested_instruction = static_cast<IdaxMicrocodeInstruction*>(
             std::calloc(1, sizeof(IdaxMicrocodeInstruction)));
         if (out->nested_instruction == nullptr) {
-            std::free(out->helper_name);
-            out->helper_name = nullptr;
+            free_microcode_operand(out);
             return std::unexpected(ida::Error::internal("malloc failed"));
         }
 
@@ -6626,9 +6645,43 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
             idax_microcode_instruction_free(out->nested_instruction);
             std::free(out->nested_instruction);
             out->nested_instruction = nullptr;
-            std::free(out->helper_name);
-            out->helper_name = nullptr;
+            free_microcode_operand(out);
             return status;
+        }
+    }
+
+    if (operand.referenced_operand != nullptr) {
+        out->referenced_operand = static_cast<IdaxMicrocodeOperand*>(
+            std::calloc(1, sizeof(IdaxMicrocodeOperand)));
+        if (out->referenced_operand == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        auto status = fill_microcode_operand(out->referenced_operand,
+                                             *operand.referenced_operand);
+        if (!status) {
+            free_microcode_operand(out);
+            return status;
+        }
+    }
+
+    if (!operand.call_arguments.empty()) {
+        out->call_argument_count = operand.call_arguments.size();
+        out->call_arguments = static_cast<IdaxMicrocodeOperand*>(
+            std::calloc(out->call_argument_count, sizeof(IdaxMicrocodeOperand)));
+        if (out->call_arguments == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        for (std::size_t index = 0; index < out->call_argument_count; ++index) {
+            auto status = fill_microcode_operand(&out->call_arguments[index],
+                                                 operand.call_arguments[index]);
+            if (!status) {
+                free_microcode_operand(out);
+                return status;
+            }
         }
     }
 
@@ -6643,23 +6696,243 @@ ida::Status fill_microcode_instruction(IdaxMicrocodeInstruction* out,
     std::memset(out, 0, sizeof(*out));
     out->opcode = static_cast<int>(instruction.opcode);
     out->floating_point_instruction = instruction.floating_point_instruction ? 1 : 0;
+    out->address = instruction.address;
+    out->text = dup_string(instruction.text);
+    if (out->text == nullptr && !instruction.text.empty())
+        return std::unexpected(ida::Error::internal("malloc failed"));
 
     auto left_status = fill_microcode_operand(&out->left, instruction.left);
-    if (!left_status)
+    if (!left_status) {
+        idax_microcode_instruction_free(out);
         return left_status;
+    }
 
     auto right_status = fill_microcode_operand(&out->right, instruction.right);
     if (!right_status) {
-        free_microcode_operand(&out->left);
+        idax_microcode_instruction_free(out);
         return right_status;
     }
 
     auto destination_status = fill_microcode_operand(&out->destination,
                                                      instruction.destination);
     if (!destination_status) {
-        free_microcode_operand(&out->right);
-        free_microcode_operand(&out->left);
+        idax_microcode_instruction_free(out);
         return destination_status;
+    }
+
+    return ida::ok();
+}
+
+void free_microcode_location(IdaxMicrocodeValueLocation* location) {
+    if (location == nullptr)
+        return;
+    std::free(location->scattered_parts);
+    location->scattered_parts = nullptr;
+    location->scattered_part_count = 0;
+}
+
+ida::Status fill_microcode_location(
+    IdaxMicrocodeValueLocation* out,
+    const ida::decompiler::MicrocodeValueLocation& location) {
+    if (out == nullptr)
+        return std::unexpected(ida::Error::internal("null microcode location output"));
+
+    std::memset(out, 0, sizeof(*out));
+    out->kind = static_cast<int>(location.kind);
+    out->register_id = location.register_id;
+    out->second_register_id = location.second_register_id;
+    out->register_offset = location.register_offset;
+    out->register_relative_offset = location.register_relative_offset;
+    out->stack_offset = location.stack_offset;
+    out->static_address = location.static_address;
+
+    if (!location.scattered_parts.empty()) {
+        out->scattered_part_count = location.scattered_parts.size();
+        out->scattered_parts = static_cast<IdaxMicrocodeLocationPart*>(
+            std::calloc(out->scattered_part_count, sizeof(IdaxMicrocodeLocationPart)));
+        if (out->scattered_parts == nullptr) {
+            out->scattered_part_count = 0;
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        for (std::size_t index = 0; index < out->scattered_part_count; ++index) {
+            const auto& source = location.scattered_parts[index];
+            auto& destination = out->scattered_parts[index];
+            destination.kind = static_cast<int>(source.kind);
+            destination.register_id = source.register_id;
+            destination.second_register_id = source.second_register_id;
+            destination.register_offset = source.register_offset;
+            destination.register_relative_offset = source.register_relative_offset;
+            destination.stack_offset = source.stack_offset;
+            destination.static_address = source.static_address;
+            destination.byte_offset = source.byte_offset;
+            destination.byte_size = source.byte_size;
+        }
+    }
+
+    return ida::ok();
+}
+
+void free_microcode_function_contents(IdaxMicrocodeFunction* function) {
+    if (function == nullptr)
+        return;
+
+    if (function->arguments != nullptr) {
+        for (std::size_t index = 0; index < function->argument_count; ++index) {
+            std::free(function->arguments[index].name);
+            function->arguments[index].name = nullptr;
+            free_microcode_location(&function->arguments[index].location);
+        }
+        std::free(function->arguments);
+        function->arguments = nullptr;
+    }
+    function->argument_count = 0;
+
+    free_microcode_location(&function->return_location);
+    function->has_return_location = 0;
+
+    if (function->blocks != nullptr) {
+        for (std::size_t block_index = 0;
+             block_index < function->block_count;
+             ++block_index) {
+            auto& block = function->blocks[block_index];
+            std::free(block.predecessors);
+            block.predecessors = nullptr;
+            block.predecessor_count = 0;
+            std::free(block.successors);
+            block.successors = nullptr;
+            block.successor_count = 0;
+            if (block.instructions != nullptr) {
+                for (std::size_t instruction_index = 0;
+                     instruction_index < block.instruction_count;
+                     ++instruction_index) {
+                    idax_microcode_instruction_free(
+                        &block.instructions[instruction_index]);
+                }
+                std::free(block.instructions);
+                block.instructions = nullptr;
+            }
+            block.instruction_count = 0;
+        }
+        std::free(function->blocks);
+        function->blocks = nullptr;
+    }
+    function->block_count = 0;
+}
+
+ida::Status fill_microcode_function(
+    IdaxMicrocodeFunction* out,
+    const ida::decompiler::MicrocodeFunction& function) {
+    if (out == nullptr)
+        return std::unexpected(ida::Error::internal("null microcode function output"));
+
+    std::memset(out, 0, sizeof(*out));
+    out->entry_address = function.entry_address;
+    out->maturity = static_cast<int>(function.maturity);
+
+    if (!function.arguments.empty()) {
+        out->argument_count = function.arguments.size();
+        out->arguments = static_cast<IdaxMicrocodeFunctionArgument*>(
+            std::calloc(out->argument_count, sizeof(IdaxMicrocodeFunctionArgument)));
+        if (out->arguments == nullptr) {
+            free_microcode_function_contents(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        for (std::size_t index = 0; index < out->argument_count; ++index) {
+            const auto& source = function.arguments[index];
+            auto& destination = out->arguments[index];
+            destination.name = dup_string(source.name);
+            destination.byte_width = source.byte_width;
+            if (destination.name == nullptr && !source.name.empty()) {
+                free_microcode_function_contents(out);
+                return std::unexpected(ida::Error::internal("malloc failed"));
+            }
+            auto status = fill_microcode_location(&destination.location,
+                                                  source.location);
+            if (!status) {
+                free_microcode_function_contents(out);
+                return status;
+            }
+        }
+    }
+
+    if (function.return_location.has_value()) {
+        out->has_return_location = 1;
+        auto status = fill_microcode_location(&out->return_location,
+                                              *function.return_location);
+        if (!status) {
+            free_microcode_function_contents(out);
+            return status;
+        }
+    }
+
+    if (!function.blocks.empty()) {
+        out->block_count = function.blocks.size();
+        out->blocks = static_cast<IdaxMicrocodeBlock*>(
+            std::calloc(out->block_count, sizeof(IdaxMicrocodeBlock)));
+        if (out->blocks == nullptr) {
+            free_microcode_function_contents(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+
+        for (std::size_t block_index = 0;
+             block_index < out->block_count;
+             ++block_index) {
+            const auto& source = function.blocks[block_index];
+            auto& destination = out->blocks[block_index];
+            destination.index = source.index;
+            destination.start_address = source.start_address;
+            destination.end_address = source.end_address;
+
+            if (!source.predecessors.empty()) {
+                destination.predecessor_count = source.predecessors.size();
+                destination.predecessors = static_cast<int*>(
+                    std::calloc(destination.predecessor_count, sizeof(int)));
+                if (destination.predecessors == nullptr) {
+                    free_microcode_function_contents(out);
+                    return std::unexpected(ida::Error::internal("malloc failed"));
+                }
+                std::memcpy(destination.predecessors,
+                            source.predecessors.data(),
+                            destination.predecessor_count * sizeof(int));
+            }
+
+            if (!source.successors.empty()) {
+                destination.successor_count = source.successors.size();
+                destination.successors = static_cast<int*>(
+                    std::calloc(destination.successor_count, sizeof(int)));
+                if (destination.successors == nullptr) {
+                    free_microcode_function_contents(out);
+                    return std::unexpected(ida::Error::internal("malloc failed"));
+                }
+                std::memcpy(destination.successors,
+                            source.successors.data(),
+                            destination.successor_count * sizeof(int));
+            }
+
+            if (!source.instructions.empty()) {
+                destination.instruction_count = source.instructions.size();
+                destination.instructions = static_cast<IdaxMicrocodeInstruction*>(
+                    std::calloc(destination.instruction_count,
+                                sizeof(IdaxMicrocodeInstruction)));
+                if (destination.instructions == nullptr) {
+                    free_microcode_function_contents(out);
+                    return std::unexpected(ida::Error::internal("malloc failed"));
+                }
+                for (std::size_t instruction_index = 0;
+                     instruction_index < destination.instruction_count;
+                     ++instruction_index) {
+                    auto status = fill_microcode_instruction(
+                        &destination.instructions[instruction_index],
+                        source.instructions[instruction_index]);
+                    if (!status) {
+                        free_microcode_function_contents(out);
+                        return status;
+                    }
+                }
+            }
+        }
     }
 
     return ida::ok();
@@ -6694,8 +6967,48 @@ void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction) {
     free_microcode_operand(&instruction->left);
     free_microcode_operand(&instruction->right);
     free_microcode_operand(&instruction->destination);
+    std::free(instruction->text);
+    instruction->text = nullptr;
     instruction->opcode = 0;
     instruction->floating_point_instruction = 0;
+    instruction->address = 0;
+}
+
+int idax_decompiler_generate_microcode(uint64_t function_address,
+                                       int maturity,
+                                       IdaxMicrocodeFunction** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("microcode function output is null"));
+    *out = nullptr;
+
+    ida::decompiler::MicrocodeGenerationOptions options;
+    options.maturity = static_cast<ida::decompiler::MicrocodeMaturity>(maturity);
+    auto result = ida::decompiler::generate_microcode(function_address, options);
+    if (!result)
+        return fail(result.error());
+
+    auto* copied = static_cast<IdaxMicrocodeFunction*>(
+        std::calloc(1, sizeof(IdaxMicrocodeFunction)));
+    if (copied == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+
+    auto status = fill_microcode_function(copied, *result);
+    if (!status) {
+        free_microcode_function_contents(copied);
+        std::free(copied);
+        return fail(status.error());
+    }
+
+    *out = copied;
+    return 0;
+}
+
+void idax_decompiler_microcode_function_free(IdaxMicrocodeFunction* function) {
+    if (function == nullptr)
+        return;
+    free_microcode_function_contents(function);
+    std::free(function);
 }
 
 int idax_decompiler_register_microcode_filter(

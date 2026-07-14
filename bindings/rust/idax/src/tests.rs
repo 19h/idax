@@ -1178,6 +1178,7 @@ mod fixup_tests {
 
 #[cfg(test)]
 mod decompiler_tests {
+    use crate::address::Address;
     use crate::decompiler::*;
     use crate::error::{Result, Status};
 
@@ -1186,6 +1187,24 @@ mod decompiler_tests {
         assert_eq!(Maturity::Zero as i32, 0);
         assert_eq!(Maturity::Built as i32, 1);
         assert_eq!(Maturity::Final as i32, 8);
+    }
+
+    #[test]
+    fn test_owned_microcode_graph_surface() {
+        assert_eq!(MicrocodeMaturity::Generated as i32, 1);
+        assert_eq!(MicrocodeMaturity::Preoptimized as i32, 2);
+        assert_eq!(MicrocodeMaturity::LocalVariables as i32, 8);
+        assert_eq!(
+            MicrocodeGenerationOptions::default().maturity,
+            MicrocodeMaturity::Preoptimized
+        );
+        assert_eq!(MicrocodeOpcode::SignedExtend as i32, 20);
+        assert_eq!(MicrocodeOpcode::Other as i32, 26);
+        assert_eq!(MicrocodeOperandKind::AddressReference as i32, 11);
+        assert_eq!(MicrocodeOperandKind::Other as i32, 15);
+        assert_eq!(MicrocodeValueLocationKind::Scattered as i32, 7);
+        let _: fn(Address, MicrocodeGenerationOptions) -> Result<MicrocodeFunction> =
+            generate_microcode;
     }
 
     #[test]

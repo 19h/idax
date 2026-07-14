@@ -33,6 +33,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `plan_ea(ea)` | `ida::analysis::schedule_reanalysis(address)` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
+| `gen_microcode(...)` + `mba_t::build_graph()` + native block/operand traversal | `ida::decompiler::generate_microcode(address, options)` returning an owned `MicrocodeFunction` |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |
 | `loader_t::load_file` | `ida::loader::Loader::load(file, format)` |
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |

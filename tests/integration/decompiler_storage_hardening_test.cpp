@@ -10,6 +10,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -608,6 +609,67 @@ void test_microcode_output(ida::Address fn_ea) {
     }
 
     std::cout << "  microcode lines: " << lines->size() << "\n";
+}
+
+void test_owned_microcode_graph(ida::Address fn_ea) {
+    std::cout << "--- owned microcode graph ---\n";
+
+    auto avail = ida::decompiler::available();
+    if (!avail || !*avail) return;
+
+    ida::decompiler::MicrocodeGenerationOptions options;
+    options.maturity = ida::decompiler::MicrocodeMaturity::Preoptimized;
+    auto graph = ida::decompiler::generate_microcode(fn_ea, options);
+    CHECK_OK(graph);
+    if (!graph) return;
+
+    CHECK(graph->entry_address == fn_ea);
+    CHECK(graph->maturity == ida::decompiler::MicrocodeMaturity::Preoptimized);
+    CHECK(!graph->blocks.empty());
+
+    std::size_t instruction_count = 0;
+    std::size_t addressed_count = 0;
+    std::unordered_set<int> block_indexes;
+    for (const auto& block : graph->blocks) {
+        CHECK(block_indexes.insert(block.index).second);
+        for (const int predecessor : block.predecessors)
+            CHECK(predecessor >= 0
+                  && static_cast<std::size_t>(predecessor) < graph->blocks.size());
+        for (const int successor : block.successors)
+            CHECK(successor >= 0
+                  && static_cast<std::size_t>(successor) < graph->blocks.size());
+        for (const auto& instruction : block.instructions) {
+            ++instruction_count;
+            if (instruction.address != ida::BadAddress)
+                ++addressed_count;
+            CHECK(!instruction.text.empty());
+        }
+    }
+    CHECK(instruction_count > 0);
+    CHECK(addressed_count > 0);
+
+    const std::string retained_text = [&]() {
+        for (const auto& block : graph->blocks) {
+            if (!block.instructions.empty())
+                return block.instructions.front().text;
+        }
+        return std::string{};
+    }();
+    auto second_graph = ida::decompiler::generate_microcode(fn_ea, options);
+    CHECK_OK(second_graph);
+    CHECK(!retained_text.empty());
+    CHECK([&]() {
+        for (const auto& block : graph->blocks) {
+            if (!block.instructions.empty())
+                return block.instructions.front().text == retained_text;
+        }
+        return false;
+    }());
+
+    auto bad_address = ida::decompiler::generate_microcode(ida::BadAddress, options);
+    CHECK(!bad_address);
+    if (!bad_address)
+        CHECK(bad_address.error().category == ida::ErrorCategory::Validation);
 }
 
 // ---------------------------------------------------------------------------
@@ -2764,6 +2826,7 @@ int main(int argc, char* argv[]) {
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);
         test_microcode_output(fn_ea);
+        test_owned_microcode_graph(fn_ea);
         test_maturity_subscription_and_dirty(fn_ea);
         test_microcode_filter_registration(fn_ea);
         test_decompiler_comments(fn_ea);

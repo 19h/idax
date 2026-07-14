@@ -2491,12 +2491,14 @@ export namespace decompiler {
         | 'loadMemory' | 'storeMemory' | 'bitwiseOr' | 'bitwiseAnd' | 'bitwiseXor'
         | 'shiftLeft' | 'shiftRightLogical' | 'shiftRightArithmetic'
         | 'floatAdd' | 'floatSub' | 'floatMul' | 'floatDiv'
-        | 'integerToFloat' | 'floatToFloat';
+        | 'integerToFloat' | 'floatToFloat' | 'signedExtend'
+        | 'call' | 'indirectCall' | 'goto' | 'indirectJump' | 'return' | 'other';
 
     type MicrocodeOperandKind =
         | 'empty' | 'register' | 'localVariable' | 'registerPair' | 'globalAddress'
         | 'stackVariable' | 'helperReference' | 'blockReference' | 'nestedInstruction'
-        | 'unsignedImmediate' | 'signedImmediate';
+        | 'unsignedImmediate' | 'signedImmediate' | 'addressReference' | 'callArguments'
+        | 'stringConstant' | 'floatingPointConstant' | 'other';
 
     interface MicrocodeOperand {
         kind: MicrocodeOperandKind;
@@ -2513,6 +2515,10 @@ export namespace decompiler {
         signedImmediate: bigint;
         byteWidth: number;
         markUserDefinedType: boolean;
+        referencedOperand: MicrocodeOperand | null;
+        callArguments: MicrocodeOperand[];
+        callTarget: Address;
+        text: string;
     }
 
     interface MicrocodeInstruction {
@@ -2521,6 +2527,63 @@ export namespace decompiler {
         right: MicrocodeOperand;
         destination: MicrocodeOperand;
         floatingPointInstruction: boolean;
+        address: Address;
+        text: string;
+    }
+
+    type MicrocodeMaturity =
+        | 'generated' | 'preoptimized' | 'locallyOptimized' | 'callsAnalyzed'
+        | 'globallyOptimized1' | 'globallyOptimized2' | 'globallyOptimized3'
+        | 'localVariables';
+
+    type MicrocodeValueLocationKind =
+        | 'unspecified' | 'register' | 'registerWithOffset' | 'registerPair'
+        | 'registerRelative' | 'stackOffset' | 'staticAddress' | 'scattered';
+
+    interface MicrocodeLocationPart {
+        kind: MicrocodeValueLocationKind;
+        registerId: number;
+        secondRegisterId: number;
+        registerOffset: number;
+        registerRelativeOffset: AddressDelta;
+        stackOffset: AddressDelta;
+        staticAddress: Address;
+        byteOffset: number;
+        byteSize: number;
+    }
+
+    interface MicrocodeValueLocation {
+        kind: MicrocodeValueLocationKind;
+        registerId: number;
+        secondRegisterId: number;
+        registerOffset: number;
+        registerRelativeOffset: AddressDelta;
+        stackOffset: AddressDelta;
+        staticAddress: Address;
+        scatteredParts: MicrocodeLocationPart[];
+    }
+
+    interface MicrocodeFunctionArgument {
+        name: string;
+        location: MicrocodeValueLocation;
+        byteWidth: number;
+    }
+
+    interface MicrocodeBlock {
+        index: number;
+        startAddress: Address;
+        endAddress: Address;
+        predecessors: number[];
+        successors: number[];
+        instructions: MicrocodeInstruction[];
+    }
+
+    interface MicrocodeFunction {
+        entryAddress: Address;
+        maturity: MicrocodeMaturity;
+        arguments: MicrocodeFunctionArgument[];
+        returnLocation: MicrocodeValueLocation | null;
+        blocks: MicrocodeBlock[];
     }
 
     interface MicrocodeContext {
@@ -2559,6 +2622,12 @@ export namespace decompiler {
 
     /** Decompile the function at the given address. */
     function decompile(address: Address): DecompiledFunction;
+
+    /** Generate a native-lifetime-independent function-level microcode graph. */
+    function generateMicrocode(
+        address: Address,
+        maturity?: MicrocodeMaturity,
+    ): MicrocodeFunction;
 
     /** Register a microcode filter callback pair. */
     function registerMicrocodeFilter(

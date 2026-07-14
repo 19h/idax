@@ -197,6 +197,9 @@ This section captures the intended public API semantics at a concrete level so i
   popup-population callbacks for dynamic decompiler menus
 - Microcode-filter lifecycle (`register_microcode_filter`, `unregister_microcode_filter`)
 - `MicrocodeContext` typed block/introspection read-back (`instruction`, `instruction_at_index`, `last_emitted_instruction`)
+- Maturity-explicit owned function graph generation (`generate_microcode`) with
+  copied argument/return locations, CFG adjacency, addressed recursive
+  instructions/operands, and C++/Node/Rust value parity
 
 ### 17.23 `ida::storage` (advanced)
 - Opaque node abstraction

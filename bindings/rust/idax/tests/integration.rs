@@ -1476,6 +1476,57 @@ fn decompiler_microcode() {
     let _ = df.microcode();
 }
 
+fn decompiler_owned_microcode_graph() {
+    require_db!();
+    if !decompiler::available().unwrap_or(false) {
+        eprintln!("  [skipped — decompiler not available]");
+        return;
+    }
+
+    let f = function::by_index(0).unwrap();
+    let options = decompiler::MicrocodeGenerationOptions::default();
+    let graph = decompiler::generate_microcode(f.start(), options).unwrap();
+    assert_eq!(graph.maturity, decompiler::MicrocodeMaturity::Preoptimized);
+    assert_eq!(graph.entry_address, f.start());
+    assert!(
+        !graph.blocks.is_empty(),
+        "owned graph should contain blocks"
+    );
+
+    let indices: Vec<i32> = graph.blocks.iter().map(|block| block.index).collect();
+    for block in &graph.blocks {
+        assert!(indices.contains(&block.index));
+        for edge in block.predecessors.iter().chain(&block.successors) {
+            assert!(
+                indices.contains(edge),
+                "edge {edge} should name a copied block"
+            );
+        }
+    }
+
+    let retained_text = graph
+        .blocks
+        .iter()
+        .flat_map(|block| &block.instructions)
+        .find(|instruction| instruction.address != BAD_ADDRESS && !instruction.text.is_empty())
+        .map(|instruction| instruction.text.clone())
+        .expect("owned graph should contain an addressed textual instruction");
+
+    let second = decompiler::generate_microcode(f.start(), options).unwrap();
+    assert!(!second.blocks.is_empty());
+    assert!(
+        graph
+            .blocks
+            .iter()
+            .flat_map(|block| &block.instructions)
+            .any(|instruction| instruction.address != BAD_ADDRESS
+                && instruction.text == retained_text)
+    );
+
+    let error = decompiler::generate_microcode(BAD_ADDRESS, options).unwrap_err();
+    assert_eq!(error.category, ErrorCategory::Validation);
+}
+
 fn decompiler_microcode_filter_context_introspection() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -1939,6 +1990,10 @@ static TEST_CASES: &[TestCase] = &[
     ("decompiler_decompile", decompiler_decompile),
     ("decompiler_variables", decompiler_variables),
     ("decompiler_microcode", decompiler_microcode),
+    (
+        "decompiler_owned_microcode_graph",
+        decompiler_owned_microcode_graph,
+    ),
     (
         "decompiler_microcode_filter_context_introspection",
         decompiler_microcode_filter_context_introspection,

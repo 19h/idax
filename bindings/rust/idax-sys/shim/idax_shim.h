@@ -1751,6 +1751,11 @@ typedef struct IdaxMicrocodeOperand {
     int64_t signed_immediate;
     int byte_width;
     int mark_user_defined_type;
+    struct IdaxMicrocodeOperand* referenced_operand;
+    struct IdaxMicrocodeOperand* call_arguments;
+    size_t call_argument_count;
+    uint64_t call_target;
+    char* text;
 } IdaxMicrocodeOperand;
 
 typedef struct IdaxMicrocodeInstruction {
@@ -1759,9 +1764,69 @@ typedef struct IdaxMicrocodeInstruction {
     IdaxMicrocodeOperand right;
     IdaxMicrocodeOperand destination;
     int floating_point_instruction;
+    uint64_t address;
+    char* text;
 } IdaxMicrocodeInstruction;
 
 void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction);
+
+typedef struct IdaxMicrocodeLocationPart {
+    int kind;
+    int register_id;
+    int second_register_id;
+    int register_offset;
+    int64_t register_relative_offset;
+    int64_t stack_offset;
+    uint64_t static_address;
+    int byte_offset;
+    int byte_size;
+} IdaxMicrocodeLocationPart;
+
+typedef struct IdaxMicrocodeValueLocation {
+    int kind;
+    int register_id;
+    int second_register_id;
+    int register_offset;
+    int64_t register_relative_offset;
+    int64_t stack_offset;
+    uint64_t static_address;
+    IdaxMicrocodeLocationPart* scattered_parts;
+    size_t scattered_part_count;
+} IdaxMicrocodeValueLocation;
+
+typedef struct IdaxMicrocodeFunctionArgument {
+    char* name;
+    IdaxMicrocodeValueLocation location;
+    int byte_width;
+} IdaxMicrocodeFunctionArgument;
+
+typedef struct IdaxMicrocodeBlock {
+    int index;
+    uint64_t start_address;
+    uint64_t end_address;
+    int* predecessors;
+    size_t predecessor_count;
+    int* successors;
+    size_t successor_count;
+    IdaxMicrocodeInstruction* instructions;
+    size_t instruction_count;
+} IdaxMicrocodeBlock;
+
+typedef struct IdaxMicrocodeFunction {
+    uint64_t entry_address;
+    int maturity;
+    IdaxMicrocodeFunctionArgument* arguments;
+    size_t argument_count;
+    int has_return_location;
+    IdaxMicrocodeValueLocation return_location;
+    IdaxMicrocodeBlock* blocks;
+    size_t block_count;
+} IdaxMicrocodeFunction;
+
+int idax_decompiler_generate_microcode(uint64_t function_address,
+                                       int maturity,
+                                       IdaxMicrocodeFunction** out);
+void idax_decompiler_microcode_function_free(IdaxMicrocodeFunction* function);
 
 int idax_decompiler_microcode_context_address(const void* mctx, uint64_t* out);
 int idax_decompiler_microcode_context_instruction_type(const void* mctx, int* out);

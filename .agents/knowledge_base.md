@@ -1260,3 +1260,49 @@ that operation in an interactive C++ action instead of reconstructing cursor
 state or call operands from Rust's flat expression snapshots. A disposable
 host-native fixture supplies reproducible report/apply/reopen evidence for the
 headless global path; C++ link and primitive runtime tests cover the local path.
+
+### 35.63. Function-Level Microcode Analysis Requires an Owned Graph Snapshot [F406, F407]
+Formatted `cfunc_t::mba` output is not a semantic graph, and lifting-filter
+instruction values are callback-scoped. Generate a dedicated MBA at an explicit
+microcode maturity, call `build_graph()` exactly once when the requested stage
+precedes `MMAT_LOCOPT`, and copy entry/maturity, function argument locations,
+block ranges and adjacency, addressed instructions, recursive operands, call
+arguments, and display text before native destruction. Keep known semantic
+opcodes/kinds typed; preserve unmodeled valid values as `Other` plus copied text
+so one unrelated instruction cannot make the complete function unavailable.
+
+### 35.64. State the Symless Port Boundary in Capability Terms [F408]
+The bounded Phase 37 adaptation starts from one function argument and preserves
+intraprocedural register/stack propagation, move/add/sub/extension semantics,
+nested evaluation, load/store access recovery, and Symless's minimum-width
+field-conflict policy. It may generate a named UDT and explicitly replace the
+selected scalar or scalar-pointer prototype argument with a pointer to that UDT.
+Do not infer that this covers allocator/wrapper discovery, interprocedural
+call/return flow, vtables/constructors, shifted pointers, forward-reference or
+UDT-flag mutation, member-TID xref repair, multi-element stroff paths, or the
+microcode-widget operand picker; those are distinct audited surface gaps.
+
+### 35.65. Treat Recursive Graph Transfer as a Single Ownership Tree [F409]
+The C transfer root owns every argument name, scattered-location array, block
+edge array, instruction array, instruction/operand text string, nested
+instruction, referenced operand, and call-argument array below it. Set counts
+only for allocated arrays, recursively clear partial values on construction
+failure, and make the root free operation idempotent for already-cleared
+children. Before `slice::from_raw_parts`, safe Rust must reject a null pointer
+with nonzero count and any count whose byte extent exceeds `isize::MAX`; copy
+all values before freeing the C tree. Consecutive real-host generations are the
+minimum ownership probe because they detect retained pointers into the first
+destroyed MBA.
+
+### 35.66. Preserve Symless State-Transfer Asymmetries [F410]
+The store destination is an address operand, not a variable assignment target:
+record the write but retain the pointer in state. Unsupported ordinary
+instructions drop a real variable destination, while loads replace their
+destination with an unknown dereference. For a block with multiple available
+predecessors, choose the first state having the maximal count of tracked
+structure values; do not let a later equal-score predecessor replace it. Build
+fields in access order, allow a new untyped overlap only when its width is no
+larger than every conflicting field, and reject negative offsets before UDT
+materialization. This yields expected `O(B^2 + I*D + F^2)` worst-case time for
+`B` blocks, `I` instructions, maximum nested depth `D`, and recovered field
+candidates `F`, with `O(B*S + F)` storage for saved block states of size `S`.

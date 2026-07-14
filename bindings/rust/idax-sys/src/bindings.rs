@@ -5262,10 +5262,15 @@ pub struct IdaxMicrocodeOperand {
     pub signed_immediate: i64,
     pub byte_width: ::std::os::raw::c_int,
     pub mark_user_defined_type: ::std::os::raw::c_int,
+    pub referenced_operand: *mut IdaxMicrocodeOperand,
+    pub call_arguments: *mut IdaxMicrocodeOperand,
+    pub call_argument_count: usize,
+    pub call_target: u64,
+    pub text: *mut ::std::os::raw::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxMicrocodeOperand"][::std::mem::size_of::<IdaxMicrocodeOperand>() - 96usize];
+    ["Size of IdaxMicrocodeOperand"][::std::mem::size_of::<IdaxMicrocodeOperand>() - 136usize];
     ["Alignment of IdaxMicrocodeOperand"][::std::mem::align_of::<IdaxMicrocodeOperand>() - 8usize];
     ["Offset of field: IdaxMicrocodeOperand::kind"]
         [::std::mem::offset_of!(IdaxMicrocodeOperand, kind) - 0usize];
@@ -5295,6 +5300,16 @@ const _: () = {
         [::std::mem::offset_of!(IdaxMicrocodeOperand, byte_width) - 88usize];
     ["Offset of field: IdaxMicrocodeOperand::mark_user_defined_type"]
         [::std::mem::offset_of!(IdaxMicrocodeOperand, mark_user_defined_type) - 92usize];
+    ["Offset of field: IdaxMicrocodeOperand::referenced_operand"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, referenced_operand) - 96usize];
+    ["Offset of field: IdaxMicrocodeOperand::call_arguments"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, call_arguments) - 104usize];
+    ["Offset of field: IdaxMicrocodeOperand::call_argument_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, call_argument_count) - 112usize];
+    ["Offset of field: IdaxMicrocodeOperand::call_target"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, call_target) - 120usize];
+    ["Offset of field: IdaxMicrocodeOperand::text"]
+        [::std::mem::offset_of!(IdaxMicrocodeOperand, text) - 128usize];
 };
 impl Default for IdaxMicrocodeOperand {
     fn default() -> Self {
@@ -5313,9 +5328,223 @@ pub struct IdaxMicrocodeInstruction {
     pub right: IdaxMicrocodeOperand,
     pub destination: IdaxMicrocodeOperand,
     pub floating_point_instruction: ::std::os::raw::c_int,
+    pub address: u64,
+    pub text: *mut ::std::os::raw::c_char,
 }
 unsafe extern "C" {
     pub fn idax_microcode_instruction_free(instruction: *mut IdaxMicrocodeInstruction);
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxMicrocodeLocationPart {
+    pub kind: ::std::os::raw::c_int,
+    pub register_id: ::std::os::raw::c_int,
+    pub second_register_id: ::std::os::raw::c_int,
+    pub register_offset: ::std::os::raw::c_int,
+    pub register_relative_offset: i64,
+    pub stack_offset: i64,
+    pub static_address: u64,
+    pub byte_offset: ::std::os::raw::c_int,
+    pub byte_size: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeLocationPart"]
+        [::std::mem::size_of::<IdaxMicrocodeLocationPart>() - 48usize];
+    ["Alignment of IdaxMicrocodeLocationPart"]
+        [::std::mem::align_of::<IdaxMicrocodeLocationPart>() - 8usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, kind) - 0usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, register_id) - 4usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::second_register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, second_register_id) - 8usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::register_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, register_offset) - 12usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::register_relative_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, register_relative_offset) - 16usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::stack_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, stack_offset) - 24usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::static_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, static_address) - 32usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::byte_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, byte_offset) - 40usize];
+    ["Offset of field: IdaxMicrocodeLocationPart::byte_size"]
+        [::std::mem::offset_of!(IdaxMicrocodeLocationPart, byte_size) - 44usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeValueLocation {
+    pub kind: ::std::os::raw::c_int,
+    pub register_id: ::std::os::raw::c_int,
+    pub second_register_id: ::std::os::raw::c_int,
+    pub register_offset: ::std::os::raw::c_int,
+    pub register_relative_offset: i64,
+    pub stack_offset: i64,
+    pub static_address: u64,
+    pub scattered_parts: *mut IdaxMicrocodeLocationPart,
+    pub scattered_part_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeValueLocation"]
+        [::std::mem::size_of::<IdaxMicrocodeValueLocation>() - 56usize];
+    ["Alignment of IdaxMicrocodeValueLocation"]
+        [::std::mem::align_of::<IdaxMicrocodeValueLocation>() - 8usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, kind) - 0usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, register_id) - 4usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::second_register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, second_register_id) - 8usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::register_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, register_offset) - 12usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::register_relative_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, register_relative_offset) - 16usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::stack_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, stack_offset) - 24usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::static_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, static_address) - 32usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::scattered_parts"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, scattered_parts) - 40usize];
+    ["Offset of field: IdaxMicrocodeValueLocation::scattered_part_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeValueLocation, scattered_part_count) - 48usize];
+};
+impl Default for IdaxMicrocodeValueLocation {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeFunctionArgument {
+    pub name: *mut ::std::os::raw::c_char,
+    pub location: IdaxMicrocodeValueLocation,
+    pub byte_width: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeFunctionArgument"]
+        [::std::mem::size_of::<IdaxMicrocodeFunctionArgument>() - 72usize];
+    ["Alignment of IdaxMicrocodeFunctionArgument"]
+        [::std::mem::align_of::<IdaxMicrocodeFunctionArgument>() - 8usize];
+    ["Offset of field: IdaxMicrocodeFunctionArgument::name"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunctionArgument, name) - 0usize];
+    ["Offset of field: IdaxMicrocodeFunctionArgument::location"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunctionArgument, location) - 8usize];
+    ["Offset of field: IdaxMicrocodeFunctionArgument::byte_width"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunctionArgument, byte_width) - 64usize];
+};
+impl Default for IdaxMicrocodeFunctionArgument {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeBlock {
+    pub index: ::std::os::raw::c_int,
+    pub start_address: u64,
+    pub end_address: u64,
+    pub predecessors: *mut ::std::os::raw::c_int,
+    pub predecessor_count: usize,
+    pub successors: *mut ::std::os::raw::c_int,
+    pub successor_count: usize,
+    pub instructions: *mut IdaxMicrocodeInstruction,
+    pub instruction_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeBlock"][::std::mem::size_of::<IdaxMicrocodeBlock>() - 72usize];
+    ["Alignment of IdaxMicrocodeBlock"][::std::mem::align_of::<IdaxMicrocodeBlock>() - 8usize];
+    ["Offset of field: IdaxMicrocodeBlock::index"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, index) - 0usize];
+    ["Offset of field: IdaxMicrocodeBlock::start_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, start_address) - 8usize];
+    ["Offset of field: IdaxMicrocodeBlock::end_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, end_address) - 16usize];
+    ["Offset of field: IdaxMicrocodeBlock::predecessors"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, predecessors) - 24usize];
+    ["Offset of field: IdaxMicrocodeBlock::predecessor_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, predecessor_count) - 32usize];
+    ["Offset of field: IdaxMicrocodeBlock::successors"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, successors) - 40usize];
+    ["Offset of field: IdaxMicrocodeBlock::successor_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, successor_count) - 48usize];
+    ["Offset of field: IdaxMicrocodeBlock::instructions"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, instructions) - 56usize];
+    ["Offset of field: IdaxMicrocodeBlock::instruction_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, instruction_count) - 64usize];
+};
+impl Default for IdaxMicrocodeBlock {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeFunction {
+    pub entry_address: u64,
+    pub maturity: ::std::os::raw::c_int,
+    pub arguments: *mut IdaxMicrocodeFunctionArgument,
+    pub argument_count: usize,
+    pub has_return_location: ::std::os::raw::c_int,
+    pub return_location: IdaxMicrocodeValueLocation,
+    pub blocks: *mut IdaxMicrocodeBlock,
+    pub block_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeFunction"][::std::mem::size_of::<IdaxMicrocodeFunction>() - 112usize];
+    ["Alignment of IdaxMicrocodeFunction"]
+        [::std::mem::align_of::<IdaxMicrocodeFunction>() - 8usize];
+    ["Offset of field: IdaxMicrocodeFunction::entry_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, entry_address) - 0usize];
+    ["Offset of field: IdaxMicrocodeFunction::maturity"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, maturity) - 8usize];
+    ["Offset of field: IdaxMicrocodeFunction::arguments"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, arguments) - 16usize];
+    ["Offset of field: IdaxMicrocodeFunction::argument_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, argument_count) - 24usize];
+    ["Offset of field: IdaxMicrocodeFunction::has_return_location"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, has_return_location) - 32usize];
+    ["Offset of field: IdaxMicrocodeFunction::return_location"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, return_location) - 40usize];
+    ["Offset of field: IdaxMicrocodeFunction::blocks"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, blocks) - 96usize];
+    ["Offset of field: IdaxMicrocodeFunction::block_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, block_count) - 104usize];
+};
+impl Default for IdaxMicrocodeFunction {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_generate_microcode(
+        function_address: u64,
+        maturity: ::std::os::raw::c_int,
+        out: *mut *mut IdaxMicrocodeFunction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiler_microcode_function_free(function: *mut IdaxMicrocodeFunction);
 }
 unsafe extern "C" {
     pub fn idax_decompiler_microcode_context_address(

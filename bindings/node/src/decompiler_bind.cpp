@@ -228,6 +228,13 @@ static const char* MicrocodeOpcodeToString(ida::decompiler::MicrocodeOpcode opco
         case ida::decompiler::MicrocodeOpcode::FloatDiv:             return "floatDiv";
         case ida::decompiler::MicrocodeOpcode::IntegerToFloat:       return "integerToFloat";
         case ida::decompiler::MicrocodeOpcode::FloatToFloat:         return "floatToFloat";
+        case ida::decompiler::MicrocodeOpcode::SignedExtend:         return "signedExtend";
+        case ida::decompiler::MicrocodeOpcode::Call:                 return "call";
+        case ida::decompiler::MicrocodeOpcode::IndirectCall:         return "indirectCall";
+        case ida::decompiler::MicrocodeOpcode::Goto:                 return "goto";
+        case ida::decompiler::MicrocodeOpcode::IndirectJump:         return "indirectJump";
+        case ida::decompiler::MicrocodeOpcode::Return:               return "return";
+        case ida::decompiler::MicrocodeOpcode::Other:                return "other";
     }
     return "unknown";
 }
@@ -245,6 +252,12 @@ static const char* MicrocodeOperandKindToString(ida::decompiler::MicrocodeOperan
         case ida::decompiler::MicrocodeOperandKind::NestedInstruction: return "nestedInstruction";
         case ida::decompiler::MicrocodeOperandKind::UnsignedImmediate: return "unsignedImmediate";
         case ida::decompiler::MicrocodeOperandKind::SignedImmediate:   return "signedImmediate";
+        case ida::decompiler::MicrocodeOperandKind::AddressReference:  return "addressReference";
+        case ida::decompiler::MicrocodeOperandKind::CallArguments:     return "callArguments";
+        case ida::decompiler::MicrocodeOperandKind::StringConstant:    return "stringConstant";
+        case ida::decompiler::MicrocodeOperandKind::FloatingPointConstant:
+            return "floatingPointConstant";
+        case ida::decompiler::MicrocodeOperandKind::Other:              return "other";
     }
     return "unknown";
 }
@@ -266,12 +279,28 @@ static v8::Local<v8::Object> MicrocodeOperandToJS(const ida::decompiler::Microco
         .set("unsignedImmediate", v8::BigInt::NewFromUnsigned(isolate, operand.unsigned_immediate))
         .set("signedImmediate", v8::BigInt::New(isolate, operand.signed_immediate))
         .setInt("byteWidth", operand.byte_width)
-        .setBool("markUserDefinedType", operand.mark_user_defined_type);
+        .setBool("markUserDefinedType", operand.mark_user_defined_type)
+        .setAddr("callTarget", operand.call_target)
+        .setStr("text", operand.text);
 
     if (operand.nested_instruction != nullptr)
         object.set("nestedInstruction", MicrocodeInstructionToJS(*operand.nested_instruction));
     else
         object.setNull("nestedInstruction");
+
+    if (operand.referenced_operand != nullptr)
+        object.set("referencedOperand", MicrocodeOperandToJS(*operand.referenced_operand));
+    else
+        object.setNull("referencedOperand");
+
+    auto call_arguments = Nan::New<v8::Array>(
+        static_cast<int>(operand.call_arguments.size()));
+    for (std::size_t index = 0; index < operand.call_arguments.size(); ++index) {
+        Nan::Set(call_arguments,
+                 static_cast<uint32_t>(index),
+                 MicrocodeOperandToJS(operand.call_arguments[index]));
+    }
+    object.set("callArguments", call_arguments);
 
     return object.build();
 }
@@ -283,7 +312,149 @@ static v8::Local<v8::Object> MicrocodeInstructionToJS(const ida::decompiler::Mic
         .set("right", MicrocodeOperandToJS(instruction.right))
         .set("destination", MicrocodeOperandToJS(instruction.destination))
         .setBool("floatingPointInstruction", instruction.floating_point_instruction)
+        .setAddr("address", instruction.address)
+        .setStr("text", instruction.text)
         .build();
+}
+
+static const char* MicrocodeLocationKindToString(
+    ida::decompiler::MicrocodeValueLocationKind kind) {
+    switch (kind) {
+        case ida::decompiler::MicrocodeValueLocationKind::Unspecified: return "unspecified";
+        case ida::decompiler::MicrocodeValueLocationKind::Register: return "register";
+        case ida::decompiler::MicrocodeValueLocationKind::RegisterWithOffset:
+            return "registerWithOffset";
+        case ida::decompiler::MicrocodeValueLocationKind::RegisterPair: return "registerPair";
+        case ida::decompiler::MicrocodeValueLocationKind::RegisterRelative:
+            return "registerRelative";
+        case ida::decompiler::MicrocodeValueLocationKind::StackOffset: return "stackOffset";
+        case ida::decompiler::MicrocodeValueLocationKind::StaticAddress: return "staticAddress";
+        case ida::decompiler::MicrocodeValueLocationKind::Scattered: return "scattered";
+    }
+    return "unspecified";
+}
+
+static v8::Local<v8::Object> MicrocodeLocationPartToJS(
+    const ida::decompiler::MicrocodeLocationPart& part) {
+    auto isolate = v8::Isolate::GetCurrent();
+    return ObjectBuilder()
+        .setStr("kind", MicrocodeLocationKindToString(part.kind))
+        .setInt("registerId", part.register_id)
+        .setInt("secondRegisterId", part.second_register_id)
+        .setInt("registerOffset", part.register_offset)
+        .set("registerRelativeOffset",
+             v8::BigInt::New(isolate, part.register_relative_offset))
+        .set("stackOffset", v8::BigInt::New(isolate, part.stack_offset))
+        .setAddr("staticAddress", part.static_address)
+        .setInt("byteOffset", part.byte_offset)
+        .setInt("byteSize", part.byte_size)
+        .build();
+}
+
+static v8::Local<v8::Object> MicrocodeLocationToJS(
+    const ida::decompiler::MicrocodeValueLocation& location) {
+    auto isolate = v8::Isolate::GetCurrent();
+    auto parts = Nan::New<v8::Array>(
+        static_cast<int>(location.scattered_parts.size()));
+    for (std::size_t index = 0; index < location.scattered_parts.size(); ++index) {
+        Nan::Set(parts,
+                 static_cast<uint32_t>(index),
+                 MicrocodeLocationPartToJS(location.scattered_parts[index]));
+    }
+    return ObjectBuilder()
+        .setStr("kind", MicrocodeLocationKindToString(location.kind))
+        .setInt("registerId", location.register_id)
+        .setInt("secondRegisterId", location.second_register_id)
+        .setInt("registerOffset", location.register_offset)
+        .set("registerRelativeOffset",
+             v8::BigInt::New(isolate, location.register_relative_offset))
+        .set("stackOffset", v8::BigInt::New(isolate, location.stack_offset))
+        .setAddr("staticAddress", location.static_address)
+        .set("scatteredParts", parts)
+        .build();
+}
+
+static const char* MicrocodeMaturityToString(ida::decompiler::MicrocodeMaturity maturity) {
+    switch (maturity) {
+        case ida::decompiler::MicrocodeMaturity::Generated: return "generated";
+        case ida::decompiler::MicrocodeMaturity::Preoptimized: return "preoptimized";
+        case ida::decompiler::MicrocodeMaturity::LocallyOptimized: return "locallyOptimized";
+        case ida::decompiler::MicrocodeMaturity::CallsAnalyzed: return "callsAnalyzed";
+        case ida::decompiler::MicrocodeMaturity::GloballyOptimized1: return "globallyOptimized1";
+        case ida::decompiler::MicrocodeMaturity::GloballyOptimized2: return "globallyOptimized2";
+        case ida::decompiler::MicrocodeMaturity::GloballyOptimized3: return "globallyOptimized3";
+        case ida::decompiler::MicrocodeMaturity::LocalVariables: return "localVariables";
+    }
+    return "generated";
+}
+
+static bool ParseMicrocodeMaturity(
+    std::string_view text,
+    ida::decompiler::MicrocodeMaturity& maturity) {
+    using Maturity = ida::decompiler::MicrocodeMaturity;
+    if (text == "generated") maturity = Maturity::Generated;
+    else if (text == "preoptimized") maturity = Maturity::Preoptimized;
+    else if (text == "locallyOptimized") maturity = Maturity::LocallyOptimized;
+    else if (text == "callsAnalyzed") maturity = Maturity::CallsAnalyzed;
+    else if (text == "globallyOptimized1") maturity = Maturity::GloballyOptimized1;
+    else if (text == "globallyOptimized2") maturity = Maturity::GloballyOptimized2;
+    else if (text == "globallyOptimized3") maturity = Maturity::GloballyOptimized3;
+    else if (text == "localVariables") maturity = Maturity::LocalVariables;
+    else return false;
+    return true;
+}
+
+static v8::Local<v8::Object> MicrocodeFunctionToJS(
+    const ida::decompiler::MicrocodeFunction& function) {
+    auto arguments = Nan::New<v8::Array>(static_cast<int>(function.arguments.size()));
+    for (std::size_t index = 0; index < function.arguments.size(); ++index) {
+        const auto& argument = function.arguments[index];
+        Nan::Set(arguments,
+                 static_cast<uint32_t>(index),
+                 ObjectBuilder()
+                     .setStr("name", argument.name)
+                     .set("location", MicrocodeLocationToJS(argument.location))
+                     .setInt("byteWidth", argument.byte_width)
+                     .build());
+    }
+
+    auto blocks = Nan::New<v8::Array>(static_cast<int>(function.blocks.size()));
+    for (std::size_t index = 0; index < function.blocks.size(); ++index) {
+        const auto& block = function.blocks[index];
+        auto predecessors = Nan::New<v8::Array>(static_cast<int>(block.predecessors.size()));
+        for (std::size_t item = 0; item < block.predecessors.size(); ++item)
+            Nan::Set(predecessors, static_cast<uint32_t>(item), Nan::New(block.predecessors[item]));
+        auto successors = Nan::New<v8::Array>(static_cast<int>(block.successors.size()));
+        for (std::size_t item = 0; item < block.successors.size(); ++item)
+            Nan::Set(successors, static_cast<uint32_t>(item), Nan::New(block.successors[item]));
+        auto instructions = Nan::New<v8::Array>(static_cast<int>(block.instructions.size()));
+        for (std::size_t item = 0; item < block.instructions.size(); ++item) {
+            Nan::Set(instructions,
+                     static_cast<uint32_t>(item),
+                     MicrocodeInstructionToJS(block.instructions[item]));
+        }
+        Nan::Set(blocks,
+                 static_cast<uint32_t>(index),
+                 ObjectBuilder()
+                     .setInt("index", block.index)
+                     .setAddr("startAddress", block.start_address)
+                     .setAddr("endAddress", block.end_address)
+                     .set("predecessors", predecessors)
+                     .set("successors", successors)
+                     .set("instructions", instructions)
+                     .build());
+    }
+
+    auto result = ObjectBuilder()
+        .setAddr("entryAddress", function.entry_address)
+        .setStr("maturity", MicrocodeMaturityToString(function.maturity))
+        .set("arguments", arguments)
+        .set("blocks", blocks);
+    if (function.return_location.has_value())
+        result.set("returnLocation", MicrocodeLocationToJS(*function.return_location));
+    else
+        result.setNull("returnLocation");
+    return result.build();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1212,6 +1383,28 @@ NAN_METHOD(Decompile) {
     info.GetReturnValue().Set(DecompiledFunctionWrapper::NewInstance(std::move(func)));
 }
 
+// generateMicrocode(address, maturity?) -> MicrocodeFunction
+NAN_METHOD(GenerateMicrocode) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+
+    ida::decompiler::MicrocodeGenerationOptions options;
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
+        if (!info[1]->IsString()) {
+            Nan::ThrowTypeError("Expected microcode maturity string");
+            return;
+        }
+        const std::string maturity_text = ToString(info[1]);
+        if (!ParseMicrocodeMaturity(maturity_text, options.maturity)) {
+            Nan::ThrowTypeError("Invalid microcode maturity");
+            return;
+        }
+    }
+
+    IDAX_UNWRAP(auto graph, ida::decompiler::generate_microcode(address, options));
+    info.GetReturnValue().Set(MicrocodeFunctionToJS(graph));
+}
+
 // registerMicrocodeFilter(matchCallback, applyCallback) -> token (BigInt)
 NAN_METHOD(RegisterMicrocodeFilter) {
     if (info.Length() < 2 || !info[0]->IsFunction() || !info[1]->IsFunction()) {
@@ -1468,6 +1661,7 @@ void InitDecompiler(v8::Local<v8::Object> target) {
     SetMethod(ns, "available",  Available);
     SetMethod(ns, "initialize", Initialize);
     SetMethod(ns, "decompile",  Decompile);
+    SetMethod(ns, "generateMicrocode", GenerateMicrocode);
     SetMethod(ns, "registerMicrocodeFilter", RegisterMicrocodeFilter);
     SetMethod(ns, "unregisterMicrocodeFilter", UnregisterMicrocodeFilter);
 

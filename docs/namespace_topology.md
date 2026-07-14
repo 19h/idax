@@ -34,7 +34,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, backend routing, request queue, events [2 enums, 5 structs, 1 class, ~42 free fns]
-|-- ida::decompiler     Decompile, pseudocode/microcode, ctree, events/cache/helpers [15 enums, 15 structs, 9 classes, event/free-fn surface]
+|-- ida::decompiler     Decompile, owned microcode graphs, ctree, events/cache/helpers [16 enums, 19 structs, 9 classes, event/free-fn surface]
  |-- ida::lines          Tagged text plus source-file address mappings     [1 enum, 1 struct, ~9 free fns, constants]
 |-- ida::ui             Messages, dialogs, wait boxes, widgets/viewers   [1 enum, 5 structs, 3 classes, widget/event free-fn surface]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 5 structs, 2 classes, ~10 free fns]
@@ -108,7 +108,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | Namespace | Primary Focus | Key Types |
 |-----------|---------------|-----------|
 | `ida::debugger` | Debugging | `ProcessState`, `BackendInfo`, `ThreadInfo`, `RegisterInfo`, `AppcallRequest`, `AppcallValue`, `AppcallExecutor`, `ScopedSubscription` |
-| `ida::decompiler` | Decompilation, including pseudocode-switch events | `ScopedSession`, `DecompiledFunction` (pseudocode+microcode), `LvarSnapshot`, `DecompileFailure`, `MaturityEvent`, `PseudocodeEvent`, `PopulatingPopupEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
+| `ida::decompiler` | Decompilation, including pseudocode-switch events | `ScopedSession`, `DecompiledFunction` (pseudocode+formatted microcode), `LvarSnapshot`, `DecompileFailure`, `MaturityEvent`, `PseudocodeEvent`, `PopulatingPopupEvent`, `MicrocodeOpcode`, `MicrocodeOperandKind`, `MicrocodeOperand`, `MicrocodeInstruction`, `MicrocodeMaturity`, `MicrocodeGenerationOptions`, `MicrocodeFunctionArgument`, `MicrocodeBlock`, `MicrocodeFunction`, `MicrocodeInsertPolicy`, `MicrocodeFunctionRole`, `MicrocodeArgumentFlag`, `MicrocodeValue`, `MicrocodeLocationPart`, `MicrocodeValueLocation`, `MicrocodeRegisterRange`, `MicrocodeMemoryRange`, `MicrocodeCallOptions`, `MicrocodeFilter`, `MicrocodeContext`, `ScopedSubscription`, `ScopedMicrocodeFilter` |
 | `ida::lines` | Tagged text/color plus source mappings | `SourceFile`, `Color`, `kColorOn`, `kColorOff`, `kColorEsc`, `kColorInv`, `kColorAddr`, `kColorAddrSize` |
 | `ida::ui` | User interface and current-widget polling | `Widget`, `Chooser`, `WaitBox`, `Progress`, `FormBuilder`, typed form bindings, `Event`, `ShowWidgetOptions`, `ScopedSubscription` |
 | `ida::graph` | Graph visualization | `Graph`, `BasicBlock`, `GraphCallback` |

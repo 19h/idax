@@ -1581,6 +1581,9 @@ void check_decompiler_surface() {
     (void)ida::decompiler::LocalVariableLocationKind::Stack;
 
     using DecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(*)(ida::Address);
+    using GenerateMicrocodeFn = ida::Result<ida::decompiler::MicrocodeFunction>(*)(
+        ida::Address,
+        const ida::decompiler::MicrocodeGenerationOptions&);
     using SavedUserLvarSettingsFn = ida::Result<std::vector<ida::decompiler::LocalVariableUserSetting>>(*)(ida::Address);
     using ApplyUserLvarSettingFn = ida::Status(*)(ida::Address, const ida::decompiler::LocalVariableUserSetting&);
     using ApplyUserLvarSettingsFn = ida::Status(*)(
@@ -1838,6 +1841,13 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOpcode::ShiftRightLogical;
     (void)ida::decompiler::MicrocodeOpcode::ShiftRightArithmetic;
     (void)ida::decompiler::MicrocodeOpcode::FloatToFloat;
+    (void)ida::decompiler::MicrocodeOpcode::SignedExtend;
+    (void)ida::decompiler::MicrocodeOpcode::Call;
+    (void)ida::decompiler::MicrocodeOpcode::IndirectCall;
+    (void)ida::decompiler::MicrocodeOpcode::Goto;
+    (void)ida::decompiler::MicrocodeOpcode::IndirectJump;
+    (void)ida::decompiler::MicrocodeOpcode::Return;
+    (void)ida::decompiler::MicrocodeOpcode::Other;
     (void)ida::decompiler::MicrocodeOperandKind::Empty;
     (void)ida::decompiler::MicrocodeOperandKind::Register;
     (void)ida::decompiler::MicrocodeOperandKind::LocalVariable;
@@ -1847,6 +1857,11 @@ void check_decompiler_surface() {
     (void)ida::decompiler::MicrocodeOperandKind::HelperReference;
     (void)ida::decompiler::MicrocodeOperandKind::BlockReference;
     (void)ida::decompiler::MicrocodeOperandKind::NestedInstruction;
+    (void)ida::decompiler::MicrocodeOperandKind::AddressReference;
+    (void)ida::decompiler::MicrocodeOperandKind::CallArguments;
+    (void)ida::decompiler::MicrocodeOperandKind::StringConstant;
+    (void)ida::decompiler::MicrocodeOperandKind::FloatingPointConstant;
+    (void)ida::decompiler::MicrocodeOperandKind::Other;
     (void)ida::decompiler::MicrocodeInsertPolicy::Tail;
     (void)ida::decompiler::MicrocodeInsertPolicy::Beginning;
     (void)ida::decompiler::MicrocodeInsertPolicy::BeforeTail;
@@ -1871,12 +1886,23 @@ void check_decompiler_surface() {
     (void)typed_operand.signed_immediate;
     (void)typed_operand.byte_width;
     (void)typed_operand.mark_user_defined_type;
+    (void)typed_operand.referenced_operand;
+    (void)typed_operand.call_arguments;
+    (void)typed_operand.call_target;
+    (void)typed_operand.text;
     ida::decompiler::MicrocodeInstruction instruction;
     (void)instruction.opcode;
     (void)instruction.left;
     (void)instruction.right;
     (void)instruction.destination;
     (void)instruction.floating_point_instruction;
+    (void)instruction.address;
+    (void)instruction.text;
+    ida::decompiler::MicrocodeGenerationOptions generation_options;
+    (void)generation_options.maturity;
+    (void)ida::decompiler::MicrocodeMaturity::Generated;
+    (void)ida::decompiler::MicrocodeMaturity::Preoptimized;
+    (void)ida::decompiler::MicrocodeMaturity::LocalVariables;
     (void)ida::decompiler::MicrocodeValueKind::Register;
     (void)ida::decompiler::MicrocodeValueKind::LocalVariable;
     (void)ida::decompiler::MicrocodeValueKind::RegisterPair;
@@ -1915,6 +1941,23 @@ void check_decompiler_surface() {
     (void)location.stack_offset;
     (void)location.static_address;
     (void)location.scattered_parts;
+    ida::decompiler::MicrocodeFunctionArgument function_argument;
+    (void)function_argument.name;
+    (void)function_argument.location;
+    (void)function_argument.byte_width;
+    ida::decompiler::MicrocodeBlock microcode_block;
+    (void)microcode_block.index;
+    (void)microcode_block.start_address;
+    (void)microcode_block.end_address;
+    (void)microcode_block.predecessors;
+    (void)microcode_block.successors;
+    (void)microcode_block.instructions;
+    ida::decompiler::MicrocodeFunction microcode_function;
+    (void)microcode_function.entry_address;
+    (void)microcode_function.maturity;
+    (void)microcode_function.arguments;
+    (void)microcode_function.return_location;
+    (void)microcode_function.blocks;
     ida::decompiler::MicrocodeValue value;
     (void)value.kind;
     (void)value.register_id;
@@ -1980,6 +2023,7 @@ void check_decompiler_surface() {
 
     (void)&ida::decompiler::available;
     (void)static_cast<DecompileFn>(&ida::decompiler::decompile);
+    (void)static_cast<GenerateMicrocodeFn>(&ida::decompiler::generate_microcode);
     (void)static_cast<SavedUserLvarSettingsFn>(&ida::decompiler::saved_user_lvar_settings);
     (void)static_cast<ApplyUserLvarSettingFn>(&ida::decompiler::apply_user_lvar_setting);
     (void)static_cast<ApplyUserLvarSettingsFn>(&ida::decompiler::apply_user_lvar_settings);

@@ -821,7 +821,8 @@ tracked in `docs/compatibility_matrix.md`.
   annotation, plus a headless Rust global report/apply adaptation backed by a
   representative dependency-free Linux/Windows corpus. Complete C++ build and
   CTest pass 26/26 in 23.07 s, the Auto Enum plugin links, and the tracked IDB
-  hash remains `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` before and after. Node native
+  Git blob object ID remains `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`
+  before and after. Node native
   build, strict declaration compilation, structural tests, and IDA 9.4
   integration pass 232/232 and 76/76. Rust formatting/all-example checks,
   library/sys/port tests, and process-main-thread IDA 9.4 integration pass
@@ -831,3 +832,24 @@ tracked in `docs/compatibility_matrix.md`.
   8 positions as already enum-typed. Generated bindgen output is byte-identical
   to the checked binding (SHA-256
   `89ab07dacbbe5a8cfb1696e800a6933fd036c67403a7febce24b50dd87978a66`).
+
+- 2026-07-14 Phase 37 Symless structure reconstruction port:
+  Added maturity-explicit owned function-level microcode graphs across C++,
+  Node, and Rust, including copied argument/return locations, CFG adjacency,
+  addressed recursive instructions, address references, call arguments, and
+  forward-compatible `Other` values. Added an interactive C++ plugin and
+  headless Rust adaptation for the explicitly bounded one-argument
+  intraprocedural workflow; neither claims full Symless parity. Complete C++
+  build and CTest pass 26/26 in 22.99 s, the Symless plugin links, and the
+  tracked IDB Git blob object ID remains
+  `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` (file SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`).
+  Node native build, strict declaration compilation, structural tests, and
+  IDA 9.4 integration pass 232/232 and 77/77. Rust formatting/all-example
+  checks, library/sys/port tests, and process-main-thread IDA 9.4 integration
+  pass 138/138, 0 sys, 3/3, and 94/94. A host-native fixture recovered exact
+  `+4/4 B` write, `+8/8 B` read, `+18/2 B` read, and `+24/1 B` read fields;
+  report mode did not create the UDT, explicit apply created 4/4 members and
+  changed argument 0, and fresh-process reopen was idempotent. Generated
+  bindgen output is byte-identical to the checked binding (SHA-256
+  `dc548a8c3f5b0c00a28db45827a5570c2530d20a9d06fa01a87416daf942a4b8`).

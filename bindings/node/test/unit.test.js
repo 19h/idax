@@ -506,6 +506,7 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'markDirtyWithCallers',
             'registerMicrocodeFilter',
             'unregisterMicrocodeFilter',
+            'generateMicrocode',
             'onMaturityChanged',
             'onFuncPrinted',
             'onRefreshPseudocode',

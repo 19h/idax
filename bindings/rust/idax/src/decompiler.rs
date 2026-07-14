@@ -138,11 +138,19 @@ pub enum MicrocodeOpcode {
     FloatDiv = 17,
     IntegerToFloat = 18,
     FloatToFloat = 19,
+    SignedExtend = 20,
+    Call = 21,
+    IndirectCall = 22,
+    Goto = 23,
+    IndirectJump = 24,
+    Return = 25,
+    Other = 26,
 }
 
 impl MicrocodeOpcode {
     fn from_raw(raw: i32) -> Self {
         match raw {
+            0 => Self::NoOperation,
             1 => Self::Move,
             2 => Self::Add,
             3 => Self::Subtract,
@@ -162,7 +170,13 @@ impl MicrocodeOpcode {
             17 => Self::FloatDiv,
             18 => Self::IntegerToFloat,
             19 => Self::FloatToFloat,
-            _ => Self::NoOperation,
+            20 => Self::SignedExtend,
+            21 => Self::Call,
+            22 => Self::IndirectCall,
+            23 => Self::Goto,
+            24 => Self::IndirectJump,
+            25 => Self::Return,
+            _ => Self::Other,
         }
     }
 }
@@ -181,11 +195,17 @@ pub enum MicrocodeOperandKind {
     NestedInstruction = 8,
     UnsignedImmediate = 9,
     SignedImmediate = 10,
+    AddressReference = 11,
+    CallArguments = 12,
+    StringConstant = 13,
+    FloatingPointConstant = 14,
+    Other = 15,
 }
 
 impl MicrocodeOperandKind {
     fn from_raw(raw: i32) -> Self {
         match raw {
+            0 => Self::Empty,
             1 => Self::Register,
             2 => Self::LocalVariable,
             3 => Self::RegisterPair,
@@ -196,7 +216,11 @@ impl MicrocodeOperandKind {
             8 => Self::NestedInstruction,
             9 => Self::UnsignedImmediate,
             10 => Self::SignedImmediate,
-            _ => Self::Empty,
+            11 => Self::AddressReference,
+            12 => Self::CallArguments,
+            13 => Self::StringConstant,
+            14 => Self::FloatingPointConstant,
+            _ => Self::Other,
         }
     }
 }
@@ -217,6 +241,10 @@ pub struct MicrocodeOperand {
     pub signed_immediate: i64,
     pub byte_width: i32,
     pub mark_user_defined_type: bool,
+    pub referenced_operand: Option<Box<MicrocodeOperand>>,
+    pub call_arguments: Vec<MicrocodeOperand>,
+    pub call_target: Address,
+    pub text: String,
 }
 
 #[derive(Debug, Clone)]
@@ -226,6 +254,142 @@ pub struct MicrocodeInstruction {
     pub right: MicrocodeOperand,
     pub destination: MicrocodeOperand,
     pub floating_point_instruction: bool,
+    pub address: Address,
+    pub text: String,
+}
+
+/// Requested and observed maturity for an owned function-level microcode graph.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum MicrocodeMaturity {
+    Generated = 1,
+    Preoptimized = 2,
+    LocallyOptimized = 3,
+    CallsAnalyzed = 4,
+    GloballyOptimized1 = 5,
+    GloballyOptimized2 = 6,
+    GloballyOptimized3 = 7,
+    LocalVariables = 8,
+}
+
+impl MicrocodeMaturity {
+    fn from_raw(raw: i32) -> Result<Self> {
+        match raw {
+            1 => Ok(Self::Generated),
+            2 => Ok(Self::Preoptimized),
+            3 => Ok(Self::LocallyOptimized),
+            4 => Ok(Self::CallsAnalyzed),
+            5 => Ok(Self::GloballyOptimized1),
+            6 => Ok(Self::GloballyOptimized2),
+            7 => Ok(Self::GloballyOptimized3),
+            8 => Ok(Self::LocalVariables),
+            _ => Err(Error::internal(format!(
+                "unknown microcode maturity returned by shim: {raw}"
+            ))),
+        }
+    }
+}
+
+/// Options for generating an SDK-independent microcode graph snapshot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MicrocodeGenerationOptions {
+    pub maturity: MicrocodeMaturity,
+}
+
+impl Default for MicrocodeGenerationOptions {
+    fn default() -> Self {
+        Self {
+            maturity: MicrocodeMaturity::Preoptimized,
+        }
+    }
+}
+
+/// Kind of ABI-level storage location for one microcode value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum MicrocodeValueLocationKind {
+    Unspecified = 0,
+    Register = 1,
+    RegisterWithOffset = 2,
+    RegisterPair = 3,
+    RegisterRelative = 4,
+    StackOffset = 5,
+    StaticAddress = 6,
+    Scattered = 7,
+}
+
+impl MicrocodeValueLocationKind {
+    fn from_raw(raw: i32) -> Result<Self> {
+        match raw {
+            0 => Ok(Self::Unspecified),
+            1 => Ok(Self::Register),
+            2 => Ok(Self::RegisterWithOffset),
+            3 => Ok(Self::RegisterPair),
+            4 => Ok(Self::RegisterRelative),
+            5 => Ok(Self::StackOffset),
+            6 => Ok(Self::StaticAddress),
+            7 => Ok(Self::Scattered),
+            _ => Err(Error::internal(format!(
+                "unknown microcode location kind returned by shim: {raw}"
+            ))),
+        }
+    }
+}
+
+/// One fragment of a scattered microcode value location.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeLocationPart {
+    pub kind: MicrocodeValueLocationKind,
+    pub register_id: i32,
+    pub second_register_id: i32,
+    pub register_offset: i32,
+    pub register_relative_offset: i64,
+    pub stack_offset: i64,
+    pub static_address: Address,
+    pub byte_offset: i32,
+    pub byte_size: i32,
+}
+
+/// Copied ABI-level storage location for a function argument or return value.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeValueLocation {
+    pub kind: MicrocodeValueLocationKind,
+    pub register_id: i32,
+    pub second_register_id: i32,
+    pub register_offset: i32,
+    pub register_relative_offset: i64,
+    pub stack_offset: i64,
+    pub static_address: Address,
+    pub scattered_parts: Vec<MicrocodeLocationPart>,
+}
+
+/// One copied function argument and its microcode storage location.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeFunctionArgument {
+    pub name: String,
+    pub location: MicrocodeValueLocation,
+    pub byte_width: i32,
+}
+
+/// One copied microcode basic block.
+#[derive(Debug, Clone)]
+pub struct MicrocodeBlock {
+    pub index: i32,
+    pub start_address: Address,
+    pub end_address: Address,
+    pub predecessors: Vec<i32>,
+    pub successors: Vec<i32>,
+    pub instructions: Vec<MicrocodeInstruction>,
+}
+
+/// Complete SDK-independent snapshot of one function-level microcode graph.
+#[derive(Debug, Clone)]
+pub struct MicrocodeFunction {
+    pub entry_address: Address,
+    pub maturity: MicrocodeMaturity,
+    pub arguments: Vec<MicrocodeFunctionArgument>,
+    pub return_location: Option<MicrocodeValueLocation>,
+    pub blocks: Vec<MicrocodeBlock>,
 }
 
 #[derive(Debug)]
@@ -1204,6 +1368,38 @@ pub fn decompile(ea: Address) -> Result<DecompiledFunction> {
     }
 }
 
+/// Generate a complete owned microcode graph for one function.
+///
+/// The returned value contains no SDK pointers and remains valid after the
+/// native microcode array used to produce it has been destroyed.
+pub fn generate_microcode(
+    function_address: Address,
+    options: MicrocodeGenerationOptions,
+) -> Result<MicrocodeFunction> {
+    unsafe {
+        let mut raw: *mut idax_sys::IdaxMicrocodeFunction = std::ptr::null_mut();
+        let ret = idax_sys::idax_decompiler_generate_microcode(
+            function_address,
+            options.maturity as i32,
+            &mut raw,
+        );
+        if ret != 0 {
+            return Err(error::consume_last_error(
+                "decompiler::generate_microcode failed",
+            ));
+        }
+        if raw.is_null() {
+            return Err(Error::internal(
+                "decompiler::generate_microcode returned a null graph",
+            ));
+        }
+
+        let parsed = microcode_function_from_ffi(&*raw);
+        idax_sys::idax_decompiler_microcode_function_free(raw);
+        parsed
+    }
+}
+
 pub fn mark_dirty(function_address: Address, close_views: bool) -> Status {
     let ret = unsafe {
         idax_sys::idax_decompiler_mark_dirty(function_address, if close_views { 1 } else { 0 })
@@ -1671,6 +1867,26 @@ unsafe fn microcode_operand_from_ffi(
         }))
     };
 
+    let referenced_operand = if raw.referenced_operand.is_null() {
+        None
+    } else {
+        Some(Box::new(unsafe {
+            microcode_operand_from_ffi(&*raw.referenced_operand)?
+        }))
+    };
+
+    let raw_call_arguments = unsafe {
+        checked_ffi_slice(
+            raw.call_arguments,
+            raw.call_argument_count,
+            "microcode call arguments",
+        )?
+    };
+    let mut call_arguments = Vec::with_capacity(raw_call_arguments.len());
+    for argument in raw_call_arguments {
+        call_arguments.push(unsafe { microcode_operand_from_ffi(argument)? });
+    }
+
     Ok(MicrocodeOperand {
         kind: MicrocodeOperandKind::from_raw(raw.kind),
         register_id: raw.register_id,
@@ -1686,6 +1902,10 @@ unsafe fn microcode_operand_from_ffi(
         signed_immediate: raw.signed_immediate,
         byte_width: raw.byte_width,
         mark_user_defined_type: raw.mark_user_defined_type != 0,
+        referenced_operand,
+        call_arguments,
+        call_target: raw.call_target,
+        text: cstr_opt(raw.text),
     })
 }
 
@@ -1698,6 +1918,137 @@ unsafe fn microcode_instruction_from_ffi(
         right: unsafe { microcode_operand_from_ffi(&raw.right)? },
         destination: unsafe { microcode_operand_from_ffi(&raw.destination)? },
         floating_point_instruction: raw.floating_point_instruction != 0,
+        address: raw.address,
+        text: cstr_opt(raw.text),
+    })
+}
+
+unsafe fn checked_ffi_slice<'a, T>(ptr: *const T, count: usize, label: &str) -> Result<&'a [T]> {
+    if count == 0 {
+        return Ok(&[]);
+    }
+    if ptr.is_null() {
+        return Err(Error::internal(format!(
+            "{label} returned a null array with a nonzero count"
+        )));
+    }
+    let element_size = std::mem::size_of::<T>();
+    if element_size != 0 && count > (isize::MAX as usize) / element_size {
+        return Err(Error::internal(format!(
+            "{label} array size exceeds Rust slice limits"
+        )));
+    }
+    Ok(unsafe { std::slice::from_raw_parts(ptr, count) })
+}
+
+unsafe fn microcode_location_from_ffi(
+    raw: &idax_sys::IdaxMicrocodeValueLocation,
+) -> Result<MicrocodeValueLocation> {
+    let raw_parts = unsafe {
+        checked_ffi_slice(
+            raw.scattered_parts,
+            raw.scattered_part_count,
+            "microcode scattered location parts",
+        )?
+    };
+    let mut scattered_parts = Vec::with_capacity(raw_parts.len());
+    for part in raw_parts {
+        scattered_parts.push(MicrocodeLocationPart {
+            kind: MicrocodeValueLocationKind::from_raw(part.kind)?,
+            register_id: part.register_id,
+            second_register_id: part.second_register_id,
+            register_offset: part.register_offset,
+            register_relative_offset: part.register_relative_offset,
+            stack_offset: part.stack_offset,
+            static_address: part.static_address,
+            byte_offset: part.byte_offset,
+            byte_size: part.byte_size,
+        });
+    }
+
+    Ok(MicrocodeValueLocation {
+        kind: MicrocodeValueLocationKind::from_raw(raw.kind)?,
+        register_id: raw.register_id,
+        second_register_id: raw.second_register_id,
+        register_offset: raw.register_offset,
+        register_relative_offset: raw.register_relative_offset,
+        stack_offset: raw.stack_offset,
+        static_address: raw.static_address,
+        scattered_parts,
+    })
+}
+
+unsafe fn microcode_function_from_ffi(
+    raw: &idax_sys::IdaxMicrocodeFunction,
+) -> Result<MicrocodeFunction> {
+    let raw_arguments = unsafe {
+        checked_ffi_slice(
+            raw.arguments,
+            raw.argument_count,
+            "microcode function arguments",
+        )?
+    };
+    let mut arguments = Vec::with_capacity(raw_arguments.len());
+    for argument in raw_arguments {
+        arguments.push(MicrocodeFunctionArgument {
+            name: cstr_opt(argument.name),
+            location: unsafe { microcode_location_from_ffi(&argument.location)? },
+            byte_width: argument.byte_width,
+        });
+    }
+
+    let return_location = if raw.has_return_location != 0 {
+        Some(unsafe { microcode_location_from_ffi(&raw.return_location)? })
+    } else {
+        None
+    };
+
+    let raw_blocks = unsafe { checked_ffi_slice(raw.blocks, raw.block_count, "microcode blocks")? };
+    let mut blocks = Vec::with_capacity(raw_blocks.len());
+    for block in raw_blocks {
+        let predecessors = unsafe {
+            checked_ffi_slice(
+                block.predecessors,
+                block.predecessor_count,
+                "microcode block predecessors",
+            )?
+        }
+        .to_vec();
+        let successors = unsafe {
+            checked_ffi_slice(
+                block.successors,
+                block.successor_count,
+                "microcode block successors",
+            )?
+        }
+        .to_vec();
+        let raw_instructions = unsafe {
+            checked_ffi_slice(
+                block.instructions,
+                block.instruction_count,
+                "microcode block instructions",
+            )?
+        };
+        let mut instructions = Vec::with_capacity(raw_instructions.len());
+        for instruction in raw_instructions {
+            instructions.push(unsafe { microcode_instruction_from_ffi(instruction)? });
+        }
+        blocks.push(MicrocodeBlock {
+            index: block.index,
+            start_address: block.start_address,
+            end_address: block.end_address,
+            predecessors,
+            successors,
+            instructions,
+        });
+    }
+
+    Ok(MicrocodeFunction {
+        entry_address: raw.entry_address,
+        maturity: MicrocodeMaturity::from_raw(raw.maturity)?,
+        arguments,
+        return_location,
+        blocks,
     })
 }
 
