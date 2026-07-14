@@ -55,7 +55,7 @@ Current overall phase status:
 - Phase 42: complete (opaque local-type declaration classification and failure-atomic ordinal-preserving forward replacement)
 - Phase 43: complete (opaque exact-member persistent informational references plus Symless report/apply/reopen integration)
 - Phase 44: complete (opaque exact operand root/member paths, processor-register evidence, and Symless report/apply/reopen integration)
-- Phase 45: in progress (Symless database-resolved indirect-call propagation)
+- Phase 45: complete (Symless database-resolved indirect-call propagation, fixed-pointer allocator discovery, and report/apply/reopen evidence)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -324,6 +324,6 @@ Current overall phase status:
 - [x] P45.1 Audit upstream `m_icall` target provenance/resolution and local owned graph/data/function contracts against both Symless adaptations.
 - [x] P45.2 Add source-equivalent database-derived memory-value propagation through move/address/load/extension/add/sub operations without conflating plain integers.
 - [x] P45.3 Follow only exact function-entry indirect targets in ordinary and allocator-root propagation, with bounded recursion, report counters, and pure tests.
-- [ ] P45.4 Add a real indirect-call fixture and report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P45.4 Add a real indirect-call fixture and report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
