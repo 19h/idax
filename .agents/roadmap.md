@@ -372,6 +372,6 @@ Current overall phase status:
 - [x] P50.1 Audit Diaphora 3.4.0 pseudocode-comment export/import and the IDAX C++/Node/C/Rust comment-location model against the pinned Hex-Rays SDK.
 - [x] P50.2 Replace incorrect/raw comment positions with a semantic opaque model, add complete persisted-comment enumeration, and mirror it across Node, generated C ABI, and safe Rust.
 - [x] P50.3 Implement byte-compatible C++ and Rust exact pseudocode-comment export/compare/absent-only apply while preserving multiple locations at one address.
-- [ ] P50.4 Add pure and real-IDA multi-location/report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P50.4 Add pure and real-IDA multi-location/report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---

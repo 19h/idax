@@ -170,4 +170,4 @@
   - 16.3.2. **Status:** P50.3 complete (F459; KB 35.115). Pure cross-language format/parser tests and isolated IDA Professional 9.4 report/apply/reopen/guard/conflict evidence pass.
 - **16.4. Release gate**
   - 16.4.1. **Action:** Synchronize public catalogs and mapping documentation, run the full C++/Node/Rust matrix plus independent bindgen/fixture checks, self-red-team the exact diff, stage only Phase 50 files, run the required staged review, commit, and push.
-  - 16.4.2. **Status:** P50.4 active. Complete validation, documentation, generated-binding identity, fixture integrity, and red-team edge probes pass (F460; KB 35.116). Exact staging, staged review, commit, and push remain; no blocker.
+  - 16.4.2. **Status:** Complete and retired. P50.4 documentation, complete regression, generated-binding/fixture integrity, red-team edge probes, and the exact 36-file staged review pass. Implementation commit `91f1bbf47b35b1f0f01af216abc0455f05068a92` is pushed to `origin/master`; no Phase 50 blocker remains.
