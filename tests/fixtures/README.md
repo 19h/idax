@@ -49,6 +49,18 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises explicit call analysis, depth limiting, argument propagation, terminal-return consensus, and idempotent prototype application
 
+### `symless_vtable_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/symless_vtable_host.c`
+- **Used by**: Symless constructor/vtable report/apply validation
+- **Key characteristics**:
+  - Exports one three-entry function-pointer table and one constructor-shaped initializer
+  - Stores the exact table address into argument zero at byte offset zero
+  - Writes deterministic 4 B, 8 B, and 1 B fields after the pointer-width table member
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises conservative table recognition, constructor-root proof, semantic class/vftable UDT materialization, method typing, and idempotent reopen
+
 ## Scenario Fixture Directories
 
 ### `loader/`

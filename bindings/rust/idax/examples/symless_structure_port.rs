@@ -5,7 +5,7 @@ mod common;
 // examples/plugin/symless_port_LICENSE.txt at the repository root.
 
 use common::{DatabaseSession, format_error, print_usage, resolve_symbol_or_address};
-use idax::address::{Address, BAD_ADDRESS};
+use idax::address::{self, Address, BAD_ADDRESS};
 #[cfg(test)]
 use idax::decompiler::MicrocodeFunctionArgument;
 use idax::decompiler::{
@@ -15,14 +15,17 @@ use idax::decompiler::{
 };
 use idax::error::ErrorCategory;
 use idax::types::TypeInfo;
-use idax::{Error, Result, database, decompiler, function, types, xref};
-use std::collections::{HashMap, HashSet, VecDeque};
+use idax::{Error, Result, data, database, decompiler, function, segment, types, xref};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+
+const MAXIMUM_VTABLE_METHODS: usize = 4096;
 
 #[derive(Debug, Clone)]
 struct Options {
     input: String,
     function: String,
     allocator_specs: Vec<AllocatorSpec>,
+    vtables: bool,
     argument_index: usize,
     structure_name: Option<String>,
     apply: bool,
@@ -36,6 +39,7 @@ impl Default for Options {
             input: String::new(),
             function: String::new(),
             allocator_specs: Vec::new(),
+            vtables: false,
             argument_index: 0,
             structure_name: None,
             apply: false,
@@ -323,6 +327,60 @@ struct AllocatorApplySummary {
     prototypes_ineligible: usize,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct VtableMember {
+    function_address: Address,
+    imported: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct ConstructorStore {
+    function_address: Address,
+    instruction_address: Address,
+    vtable_address: Address,
+    object_offset: i64,
+}
+
+#[derive(Debug, Clone)]
+struct VtableClass {
+    vtable_address: Address,
+    methods: Vec<VtableMember>,
+    constructors: Vec<Address>,
+    fields: Vec<RecoveredField>,
+}
+
+#[derive(Debug, Default)]
+struct VtableDiscovery {
+    classes: Vec<VtableClass>,
+    secondary_stores: Vec<ConstructorStore>,
+    ambiguous_constructors: Vec<Address>,
+    candidates_examined: usize,
+    candidate_tables: usize,
+    all_import_tables: usize,
+    referenced_slot_stops: usize,
+    tables_without_constructor: usize,
+    functions_analyzed: usize,
+    functions_without_argument_zero: usize,
+    graph_failures: usize,
+}
+
+#[derive(Debug, Default)]
+struct VtableApplySummary {
+    vtable_types_created: usize,
+    vtable_types_reused: usize,
+    class_types_created: usize,
+    class_types_reused: usize,
+    method_members_added: usize,
+    method_members_reused: usize,
+    class_members_added: usize,
+    class_members_reused: usize,
+    members_skipped: usize,
+    prototypes_changed: usize,
+    prototypes_already_typed: usize,
+    prototypes_ineligible: usize,
+    vtables_applied: usize,
+}
+
 fn parse_options(args: &[String]) -> Result<Options> {
     if args.len() < 2 {
         return Err(Error::validation("missing binary_file argument"));
@@ -337,13 +395,14 @@ fn parse_options(args: &[String]) -> Result<Options> {
             "-h" | "--help" => {
                 print_usage(
                     &args[0],
-                    "<binary_file> (--function <address-or-name> | --allocator <spec>...) \
+                    "<binary_file> (--function <address-or-name> | --allocator <spec>... | --vtables) \
                      [--argument <index>] [--name <type-or-prefix>] [--show <count>] \
                      [--max-depth <count>] [--apply]\n\
                      allocator spec: malloc:<locator>:<size-index>, \
                      realloc:<locator>:<size-index>, or \
                      calloc:<locator>:<count-index>:<size-index>; \
-                     locator may be a name, address, or module!import-prefix",
+                     locator may be a name, address, or module!import-prefix; \
+                     --vtables scans for exact argument-zero constructor stores",
                 );
                 std::process::exit(0);
             }
@@ -361,6 +420,7 @@ fn parse_options(args: &[String]) -> Result<Options> {
                     .ok_or_else(|| Error::validation("--allocator requires a value"))?;
                 options.allocator_specs.push(parse_allocator_spec(value)?);
             }
+            "--vtables" => options.vtables = true,
             "--argument" => {
                 index += 1;
                 options.argument_index = args
@@ -401,9 +461,12 @@ fn parse_options(args: &[String]) -> Result<Options> {
         }
         index += 1;
     }
-    if options.function.is_empty() == options.allocator_specs.is_empty() {
+    let selected_modes = usize::from(!options.function.is_empty())
+        + usize::from(!options.allocator_specs.is_empty())
+        + usize::from(options.vtables);
+    if selected_modes != 1 {
         return Err(Error::validation(
-            "select exactly one mode: --function or one or more --allocator specifications",
+            "select exactly one mode: --function, one or more --allocator specifications, or --vtables",
         ));
     }
     Ok(options)
@@ -1631,6 +1694,395 @@ fn reconstruct_allocation(
     reconstruct_allocation_with_loader(&graph, root, max_depth, analyzed_graph)
 }
 
+fn read_database_pointer(address: Address, pointer_width: usize) -> Result<Address> {
+    match pointer_width {
+        8 => data::read_qword(address),
+        4 => data::read_dword(address).map(u64::from),
+        _ => Err(Error::unsupported(
+            "vtable discovery requires a 4 B or 8 B address width",
+        )),
+    }
+}
+
+fn vtable_member_at(
+    table_address: Address,
+    member_address: Address,
+    pointer_width: usize,
+    discovery: &mut VtableDiscovery,
+) -> Result<Option<VtableMember>> {
+    if member_address != table_address && !xref::refs_to(member_address)?.is_empty() {
+        discovery.referenced_slot_stops += 1;
+        return Ok(None);
+    }
+    let Ok(pointer) = read_database_pointer(member_address, pointer_width) else {
+        return Ok(None);
+    };
+    let target = pointer & !1;
+    if function::at(target).is_ok_and(|candidate| candidate.start() == target) {
+        return Ok(Some(VtableMember {
+            function_address: target,
+            imported: false,
+        }));
+    }
+    if !address::is_mapped(target) {
+        return Ok(None);
+    }
+    let Ok(target_segment) = segment::at(target) else {
+        return Ok(None);
+    };
+    let imported = matches!(
+        target_segment.seg_type(),
+        segment::Type::External | segment::Type::Import
+    );
+    Ok(imported.then_some(VtableMember {
+        function_address: target,
+        imported: true,
+    }))
+}
+
+fn vtable_members_at(
+    table_address: Address,
+    segment_end: Address,
+    pointer_width: usize,
+    discovery: &mut VtableDiscovery,
+) -> Result<Vec<VtableMember>> {
+    let mut members = Vec::new();
+    let mut current = table_address;
+    while members.len() < MAXIMUM_VTABLE_METHODS
+        && current < segment_end
+        && pointer_width as u64 <= segment_end - current
+    {
+        let Some(member) = vtable_member_at(table_address, current, pointer_width, discovery)?
+        else {
+            break;
+        };
+        members.push(member);
+        current += pointer_width as u64;
+    }
+    Ok(members)
+}
+
+fn next_scannable_head(current: Address, end: Address) -> Result<Address> {
+    match address::next_head(current, end) {
+        Ok(next) => Ok(next),
+        Err(error) if error.category == ErrorCategory::NotFound => Ok(end),
+        Err(error) => Err(error),
+    }
+}
+
+fn scan_vtable_candidates(
+    pointer_width: usize,
+    discovery: &mut VtableDiscovery,
+) -> Result<Vec<VtableClass>> {
+    let mut candidates = Vec::new();
+    for current_segment in segment::all() {
+        if !matches!(
+            current_segment.seg_type(),
+            segment::Type::Code | segment::Type::Data
+        ) {
+            continue;
+        }
+        let mut current = current_segment.start();
+        while current < current_segment.end() {
+            if let Ok(containing) = function::at(current)
+                && let Ok(chunks) = function::chunks(containing.start())
+                && let Some(chunk) = chunks
+                    .iter()
+                    .find(|chunk| current >= chunk.start && current < chunk.end)
+            {
+                current = chunk.end;
+                continue;
+            }
+            if !address::is_loaded(current) {
+                current = next_scannable_head(current, current_segment.end())?;
+                continue;
+            }
+            discovery.candidates_examined += 1;
+            let members =
+                vtable_members_at(current, current_segment.end(), pointer_width, discovery)?;
+            if members.is_empty() {
+                current = next_scannable_head(current, current_segment.end())?;
+                continue;
+            }
+            let table_size = (members.len() * pointer_width) as u64;
+            if members.iter().all(|member| member.imported) {
+                discovery.all_import_tables += 1;
+                current += table_size;
+                continue;
+            }
+            discovery.candidate_tables += 1;
+            candidates.push(VtableClass {
+                vtable_address: current,
+                methods: members,
+                constructors: Vec::new(),
+                fields: Vec::new(),
+            });
+            current += table_size;
+        }
+    }
+    Ok(candidates)
+}
+
+struct ConstructorAnalyzer {
+    candidate_tables: BTreeSet<Address>,
+    pointer_width: usize,
+    stores: Vec<ConstructorStore>,
+}
+
+impl ConstructorAnalyzer {
+    fn operand_value(
+        &mut self,
+        state: &mut State,
+        operand: &MicrocodeOperand,
+    ) -> Result<Option<AbstractValue>> {
+        if let Some(nested) = operand.nested_instruction.as_deref() {
+            return self.process_instruction(state, nested);
+        }
+        Ok(state.value(operand).or_else(|| immediate_value(operand)))
+    }
+
+    fn process_instruction(
+        &mut self,
+        state: &mut State,
+        instruction: &MicrocodeInstruction,
+    ) -> Result<Option<AbstractValue>> {
+        let result = match instruction.opcode {
+            MicrocodeOpcode::Move | MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
+                self.operand_value(state, &instruction.left)?
+            }
+            MicrocodeOpcode::Add | MicrocodeOpcode::Subtract => {
+                let left = self.operand_value(state, &instruction.left)?;
+                let right = self.operand_value(state, &instruction.right)?;
+                match (left, right) {
+                    (
+                        Some(AbstractValue::StructurePointer(base)),
+                        Some(AbstractValue::Integer { value: delta, .. }),
+                    ) => Some(AbstractValue::StructurePointer(
+                        if instruction.opcode == MicrocodeOpcode::Subtract {
+                            base.wrapping_sub(delta)
+                        } else {
+                            base.wrapping_add(delta)
+                        },
+                    )),
+                    (
+                        Some(AbstractValue::Integer {
+                            value: base,
+                            byte_width,
+                        }),
+                        Some(AbstractValue::Integer { value: delta, .. }),
+                    ) => Some(AbstractValue::Integer {
+                        value: if instruction.opcode == MicrocodeOpcode::Subtract {
+                            base.wrapping_sub(delta)
+                        } else {
+                            base.wrapping_add(delta)
+                        },
+                        byte_width,
+                    }),
+                    _ => None,
+                }
+            }
+            MicrocodeOpcode::StoreMemory => {
+                let value = self.operand_value(state, &instruction.left)?;
+                let destination = self.operand_value(state, &instruction.destination)?;
+                if instruction.left.byte_width == self.pointer_width as i32
+                    && let Some(AbstractValue::Integer { value, .. }) = value
+                    && let Some(AbstractValue::StructurePointer(object_offset)) = destination
+                {
+                    let table = value as u64;
+                    if self.candidate_tables.contains(&table) {
+                        let store = ConstructorStore {
+                            function_address: BAD_ADDRESS,
+                            instruction_address: instruction.address,
+                            vtable_address: table,
+                            object_offset,
+                        };
+                        if !self.stores.contains(&store) {
+                            self.stores.push(store);
+                        }
+                    }
+                }
+                return Ok(None);
+            }
+            MicrocodeOpcode::Return | MicrocodeOpcode::NoOperation => return Ok(None),
+            _ => None,
+        };
+        state.assign(&instruction.destination, result);
+        Ok(result)
+    }
+
+    fn analyze(&mut self, graph: &MicrocodeFunction) -> Result<bool> {
+        let Some(argument) = graph.arguments.first() else {
+            return Ok(false);
+        };
+        let mut initial = State::default();
+        inject_value(
+            &mut initial,
+            &argument.location,
+            AbstractValue::StructurePointer(0),
+        )?;
+        let order = topological_order(graph);
+        if order.is_empty() {
+            return Err(Error::not_found("constructor graph has no nonempty blocks"));
+        }
+        let mut end_states = HashMap::<i32, State>::new();
+        for (order_index, block_position) in order.into_iter().enumerate() {
+            let block = &graph.blocks[block_position];
+            let mut state = if order_index == 0 {
+                initial.clone()
+            } else {
+                select_predecessor_state(block, &end_states)
+            };
+            for instruction in &block.instructions {
+                self.process_instruction(&mut state, instruction)?;
+            }
+            end_states.insert(block.index, state);
+        }
+        Ok(true)
+    }
+}
+
+fn classify_constructor_stores(
+    stores: Vec<ConstructorStore>,
+    discovery: &mut VtableDiscovery,
+) -> HashMap<Address, Vec<Address>> {
+    let mut zero_tables_by_function = HashMap::<Address, BTreeSet<Address>>::new();
+    for store in stores {
+        if store.object_offset == 0 {
+            zero_tables_by_function
+                .entry(store.function_address)
+                .or_default()
+                .insert(store.vtable_address);
+        } else {
+            discovery.secondary_stores.push(store);
+        }
+    }
+    let mut constructors_by_table = HashMap::<Address, Vec<Address>>::new();
+    for (function_address, tables) in zero_tables_by_function {
+        if tables.len() != 1 {
+            discovery.ambiguous_constructors.push(function_address);
+            continue;
+        }
+        constructors_by_table
+            .entry(*tables.iter().next().unwrap())
+            .or_default()
+            .push(function_address);
+    }
+    constructors_by_table
+}
+
+fn append_recovered_fields(
+    aggregate: &mut Vec<RawAccess>,
+    fields: &[RecoveredField],
+    pointer_width: usize,
+) {
+    for field in fields {
+        if field.offset < pointer_width as i64 {
+            continue;
+        }
+        if let Some(existing) = aggregate
+            .iter_mut()
+            .find(|current| current.offset == field.offset)
+        {
+            existing.byte_width = existing.byte_width.min(field.byte_width);
+            existing.reads += field.reads;
+            existing.writes += field.writes;
+            for site in &field.sites {
+                if !existing.sites.contains(site) {
+                    existing.sites.push(*site);
+                }
+            }
+        } else {
+            aggregate.push(RawAccess {
+                offset: field.offset,
+                byte_width: field.byte_width,
+                reads: field.reads,
+                writes: field.writes,
+                sites: field.sites.clone(),
+                first_seen: aggregate.len(),
+            });
+        }
+    }
+}
+
+fn discover_vtable_classes(maximum_call_depth: usize) -> Result<VtableDiscovery> {
+    let pointer_width = (database::address_bitness()? / 8) as usize;
+    let mut discovery = VtableDiscovery::default();
+    let mut candidates = scan_vtable_candidates(pointer_width, &mut discovery)?;
+    let mut function_candidates = HashMap::<Address, BTreeSet<Address>>::new();
+    for candidate in &candidates {
+        for reference in xref::data_refs_to(candidate.vtable_address)? {
+            if let Ok(containing) = function::at(reference) {
+                function_candidates
+                    .entry(containing.start())
+                    .or_default()
+                    .insert(candidate.vtable_address);
+            }
+        }
+    }
+
+    let mut graph_cache = HashMap::<Address, MicrocodeFunction>::new();
+    let mut stores = Vec::<ConstructorStore>::new();
+    for (function_address, table_addresses) in function_candidates {
+        let graph = match analyzed_graph(function_address) {
+            Ok(graph) => graph,
+            Err(_) => {
+                discovery.graph_failures += 1;
+                continue;
+            }
+        };
+        graph_cache.insert(function_address, graph.clone());
+        let mut analyzer = ConstructorAnalyzer {
+            candidate_tables: table_addresses,
+            pointer_width,
+            stores: Vec::new(),
+        };
+        match analyzer.analyze(&graph) {
+            Ok(true) => discovery.functions_analyzed += 1,
+            Ok(false) => {
+                discovery.functions_analyzed += 1;
+                discovery.functions_without_argument_zero += 1;
+                continue;
+            }
+            Err(_) => {
+                discovery.graph_failures += 1;
+                continue;
+            }
+        }
+        stores.extend(analyzer.stores.into_iter().map(|mut store| {
+            store.function_address = function_address;
+            store
+        }));
+    }
+
+    let mut constructors_by_table = classify_constructor_stores(stores, &mut discovery);
+    for mut candidate in candidates.drain(..) {
+        let Some(constructors) = constructors_by_table.remove(&candidate.vtable_address) else {
+            discovery.tables_without_constructor += 1;
+            continue;
+        };
+        candidate.constructors = constructors;
+        let mut aggregate = Vec::<RawAccess>::new();
+        for constructor in &candidate.constructors {
+            let Some(graph) = graph_cache.get(constructor) else {
+                continue;
+            };
+            match reconstruct(graph, 0, maximum_call_depth) {
+                Ok(reconstruction) => {
+                    append_recovered_fields(&mut aggregate, &reconstruction.fields, pointer_width)
+                }
+                Err(_) => discovery.graph_failures += 1,
+            }
+        }
+        candidate.fields = resolve_field_conflicts(&aggregate).0;
+        discovery.classes.push(candidate);
+    }
+    discovery
+        .classes
+        .sort_by_key(|candidate| candidate.vtable_address);
+    discovery.ambiguous_constructors.sort_unstable();
+    Ok(discovery)
+}
+
 fn member_type(byte_width: i32) -> Result<TypeInfo> {
     match byte_width {
         1 => Ok(TypeInfo::uint8()),
@@ -1933,6 +2385,283 @@ fn apply_allocator_discovery(
     Ok(summary)
 }
 
+fn vtable_type_name(prefix: &str, table_address: Address) -> String {
+    format!("{prefix}_vtable_{table_address:x}")
+}
+
+fn class_type_name(prefix: &str, table_address: Address) -> String {
+    format!("{prefix}_class_{table_address:x}")
+}
+
+fn ensure_semantic_struct(
+    name: &str,
+    is_cpp_object: bool,
+    is_vftable: bool,
+    created: &mut usize,
+    reused: &mut usize,
+) -> Result<TypeInfo> {
+    let structure = match TypeInfo::by_name(name) {
+        Ok(existing) if existing.is_struct() => {
+            *reused += 1;
+            return Ok(existing);
+        }
+        Ok(_) => {
+            return Err(Error::conflict(format!(
+                "semantic UDT name '{name}' is occupied by a non-struct"
+            )));
+        }
+        Err(error) if error.category == ErrorCategory::NotFound => {
+            *created += 1;
+            TypeInfo::create_struct()
+        }
+        Err(error) => return Err(error),
+    };
+    structure.set_udt_semantics(is_cpp_object, is_vftable)?;
+    structure.save_as(name)?;
+    TypeInfo::by_name(name)
+}
+
+fn generic_virtual_method_pointer() -> Result<TypeInfo> {
+    let object_pointer = TypeInfo::pointer_to(&TypeInfo::void_type());
+    let function = TypeInfo::function_type(
+        &TypeInfo::void_type(),
+        &[object_pointer],
+        types::CallingConvention::Unknown,
+        false,
+    )?;
+    Ok(TypeInfo::pointer_to(&function))
+}
+
+fn apply_this_prototype(
+    function_address: Address,
+    class_pointer: &TypeInfo,
+    class_name: &str,
+    summary: &mut VtableApplySummary,
+) -> Result<()> {
+    let original = match types::retrieve(function_address) {
+        Ok(original) => original,
+        Err(_) => {
+            summary.prototypes_ineligible += 1;
+            return Ok(());
+        }
+    };
+    let details = match original.function_details() {
+        Ok(details) if !details.arguments.is_empty() => details,
+        Ok(_) | Err(_) => {
+            summary.prototypes_ineligible += 1;
+            return Ok(());
+        }
+    };
+    let eligibility = argument_eligibility(&details.arguments[0].r#type, class_name)?;
+    if eligibility == ArgumentEligibility::Ineligible {
+        summary.prototypes_ineligible += 1;
+        return Ok(());
+    }
+    let mut updated = original.clone();
+    let mut changed = false;
+    if eligibility == ArgumentEligibility::Eligible {
+        updated = updated.with_function_argument_type(0, class_pointer)?;
+        changed = true;
+    }
+    if details.arguments[0].name != "this" {
+        updated = updated.with_function_argument_name(0, "this")?;
+        changed = true;
+    }
+    if changed {
+        updated.apply(function_address)?;
+        decompiler::mark_dirty(function_address, false)?;
+        summary.prototypes_changed += 1;
+    } else {
+        summary.prototypes_already_typed += 1;
+    }
+    Ok(())
+}
+
+fn populate_class_type(
+    candidate: &VtableClass,
+    class_name: &str,
+    vtable_type: &TypeInfo,
+    summary: &mut VtableApplySummary,
+) -> Result<bool> {
+    let class_type = ensure_semantic_struct(
+        class_name,
+        true,
+        false,
+        &mut summary.class_types_created,
+        &mut summary.class_types_reused,
+    )?;
+    let vtable_pointer = TypeInfo::pointer_to(vtable_type);
+    let mut occupied = class_type
+        .members()?
+        .into_iter()
+        .map(|member| {
+            let width = member
+                .storage_byte_width
+                .max((member.bit_size + 7) / 8)
+                .max(1);
+            (member.byte_offset, width, member.r#type)
+        })
+        .collect::<Vec<_>>();
+    let mut has_vtable = false;
+    for (offset, _, member_type) in &occupied {
+        if *offset != 0 {
+            continue;
+        }
+        if !same_type(member_type, &vtable_pointer)? {
+            summary.members_skipped += 1;
+            return Ok(false);
+        }
+        has_vtable = true;
+        summary.class_members_reused += 1;
+    }
+    if !has_vtable {
+        class_type.add_member("__vftable", &vtable_pointer, 0)?;
+        occupied.push((0, vtable_pointer.size().unwrap_or(1), vtable_pointer));
+        summary.class_members_added += 1;
+    }
+    for field in &candidate.fields {
+        let offset = field.offset as usize;
+        let width = field.byte_width as usize;
+        let field_type = member_type(field.byte_width)?;
+        if let Some((_, _, existing_type)) = occupied
+            .iter()
+            .find(|(member_offset, _, _)| *member_offset == offset)
+        {
+            if same_type(existing_type, &field_type)? {
+                summary.class_members_reused += 1;
+            } else {
+                summary.members_skipped += 1;
+            }
+            continue;
+        }
+        if occupied.iter().any(|(member_offset, member_width, _)| {
+            ranges_overlap(offset, width, *member_offset, *member_width)
+        }) {
+            summary.members_skipped += 1;
+            continue;
+        }
+        class_type.add_member(&format!("field_{offset:08x}"), &field_type, offset)?;
+        occupied.push((offset, width, field_type));
+        summary.class_members_added += 1;
+    }
+    class_type.set_udt_semantics(true, false)?;
+    class_type.save_as(class_name)?;
+    Ok(true)
+}
+
+fn method_pointer_type(member: &VtableMember) -> Result<TypeInfo> {
+    let Ok(method_type) = types::retrieve(member.function_address) else {
+        return generic_virtual_method_pointer();
+    };
+    if method_type.is_function() {
+        return Ok(TypeInfo::pointer_to(&method_type));
+    }
+    if method_type.is_pointer()
+        && method_type
+            .pointee_type()
+            .is_ok_and(|pointee| pointee.is_function())
+    {
+        return Ok(method_type);
+    }
+    generic_virtual_method_pointer()
+}
+
+fn vtable_layout_compatible(
+    candidate: &VtableClass,
+    vtable: &TypeInfo,
+    summary: &mut VtableApplySummary,
+) -> Result<bool> {
+    let pointer_width = (database::address_bitness()? / 8) as usize;
+    for member in vtable.members()? {
+        if member.byte_offset % pointer_width != 0 {
+            summary.members_skipped += 1;
+            return Ok(false);
+        }
+        let index = member.byte_offset / pointer_width;
+        let Some(method) = candidate.methods.get(index) else {
+            summary.members_skipped += 1;
+            return Ok(false);
+        };
+        if !same_type(&member.r#type, &method_pointer_type(method)?)? {
+            summary.members_skipped += 1;
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+fn populate_vtable_type(
+    candidate: &VtableClass,
+    vtable_name: &str,
+    summary: &mut VtableApplySummary,
+) -> Result<()> {
+    let vtable = TypeInfo::by_name(vtable_name)?;
+    let pointer_width = (database::address_bitness()? / 8) as usize;
+    let mut occupied = vtable
+        .members()?
+        .into_iter()
+        .map(|member| member.byte_offset)
+        .collect::<HashSet<_>>();
+    for (index, method) in candidate.methods.iter().enumerate() {
+        let offset = index * pointer_width;
+        if occupied.contains(&offset) {
+            summary.method_members_reused += 1;
+            continue;
+        }
+        vtable.add_member(
+            &format!("method_{offset:08x}"),
+            &method_pointer_type(method)?,
+            offset,
+        )?;
+        occupied.insert(offset);
+        summary.method_members_added += 1;
+    }
+    vtable.set_udt_semantics(false, true)?;
+    vtable.save_as(vtable_name)?;
+    TypeInfo::by_name(vtable_name)?.apply(candidate.vtable_address)?;
+    summary.vtables_applied += 1;
+    Ok(())
+}
+
+fn apply_vtable_discovery(discovery: &VtableDiscovery, prefix: &str) -> Result<VtableApplySummary> {
+    let mut summary = VtableApplySummary::default();
+    for candidate in &discovery.classes {
+        let vtable_name = vtable_type_name(prefix, candidate.vtable_address);
+        let class_name = class_type_name(prefix, candidate.vtable_address);
+        let vtable_type = ensure_semantic_struct(
+            &vtable_name,
+            false,
+            true,
+            &mut summary.vtable_types_created,
+            &mut summary.vtable_types_reused,
+        )?;
+        if !vtable_layout_compatible(candidate, &vtable_type, &mut summary)? {
+            continue;
+        }
+        if !populate_class_type(candidate, &class_name, &vtable_type, &mut summary)? {
+            continue;
+        }
+        let class_pointer = TypeInfo::pointer_to(&TypeInfo::by_name(&class_name)?);
+        let mut prototypes = candidate
+            .constructors
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
+        prototypes.extend(
+            candidate
+                .methods
+                .iter()
+                .filter(|method| !method.imported)
+                .map(|method| method.function_address),
+        );
+        for function_address in prototypes {
+            apply_this_prototype(function_address, &class_pointer, &class_name, &mut summary)?;
+        }
+        populate_vtable_type(candidate, &vtable_name, &mut summary)?;
+    }
+    Ok(summary)
+}
+
 fn default_structure_name(function_address: Address, argument_index: usize) -> String {
     format!("symless_{function_address:x}_arg{argument_index}")
 }
@@ -2114,10 +2843,120 @@ fn print_allocator_report(
     }
 }
 
+fn print_vtable_report(
+    options: &Options,
+    discovery: &VtableDiscovery,
+    prefix: &str,
+    apply_summary: Option<&VtableApplySummary>,
+) {
+    println!("Symless constructor and vtable root discovery (Rust headless adaptation)");
+    println!("input: {}", options.input);
+    println!("mode: {}", if options.apply { "apply" } else { "report" });
+    println!("type_prefix: {prefix}");
+    println!("max_depth: {}", options.max_depth);
+    println!("scan_heads_examined: {}", discovery.candidates_examined);
+    println!("candidate_tables: {}", discovery.candidate_tables);
+    println!("accepted_class_roots: {}", discovery.classes.len());
+    println!("all_import_tables: {}", discovery.all_import_tables);
+    println!("referenced_slot_stops: {}", discovery.referenced_slot_stops);
+    println!(
+        "tables_without_constructor: {}",
+        discovery.tables_without_constructor
+    );
+    println!("functions_analyzed: {}", discovery.functions_analyzed);
+    println!(
+        "functions_without_argument_zero: {}",
+        discovery.functions_without_argument_zero
+    );
+    println!("graph_failures: {}", discovery.graph_failures);
+    println!(
+        "ambiguous_constructors: {}",
+        discovery.ambiguous_constructors.len()
+    );
+    println!("secondary_stores: {}", discovery.secondary_stores.len());
+    for candidate in &discovery.classes {
+        println!(
+            "  class vtable=0x{:x} methods={} constructors={} fields={} class_type={} vtable_type={}",
+            candidate.vtable_address,
+            candidate.methods.len(),
+            candidate.constructors.len(),
+            candidate.fields.len(),
+            class_type_name(prefix, candidate.vtable_address),
+            vtable_type_name(prefix, candidate.vtable_address)
+        );
+        for constructor in &candidate.constructors {
+            println!("    constructor 0x{constructor:x} argument=0 offset=0");
+        }
+        for (index, method) in candidate.methods.iter().take(options.show).enumerate() {
+            println!(
+                "    method[{index}] 0x{:x} imported={}",
+                method.function_address, method.imported
+            );
+        }
+        for field in candidate.fields.iter().take(options.show) {
+            println!(
+                "    +0x{:x} width={} B reads={} writes={}",
+                field.offset, field.byte_width, field.reads, field.writes
+            );
+        }
+    }
+    for function_address in &discovery.ambiguous_constructors {
+        println!("  ambiguous_constructor 0x{function_address:x}");
+    }
+    for store in &discovery.secondary_stores {
+        println!(
+            "  secondary function=0x{:x} site=0x{:x} vtable=0x{:x} offset={:+#x}",
+            store.function_address,
+            store.instruction_address,
+            store.vtable_address,
+            store.object_offset
+        );
+    }
+    if let Some(summary) = apply_summary {
+        println!("vtable_types_created: {}", summary.vtable_types_created);
+        println!("vtable_types_reused: {}", summary.vtable_types_reused);
+        println!("class_types_created: {}", summary.class_types_created);
+        println!("class_types_reused: {}", summary.class_types_reused);
+        println!("method_members_added: {}", summary.method_members_added);
+        println!("method_members_reused: {}", summary.method_members_reused);
+        println!("class_members_added: {}", summary.class_members_added);
+        println!("class_members_reused: {}", summary.class_members_reused);
+        println!("members_skipped: {}", summary.members_skipped);
+        println!("prototypes_changed: {}", summary.prototypes_changed);
+        println!(
+            "prototypes_already_typed: {}",
+            summary.prototypes_already_typed
+        );
+        println!("prototypes_ineligible: {}", summary.prototypes_ineligible);
+        println!("vtables_applied: {}", summary.vtables_applied);
+    }
+}
+
 fn run() -> Result<()> {
     let args = std::env::args().collect::<Vec<_>>();
     let options = parse_options(&args)?;
     let _session = DatabaseSession::open(&options.input, true)?;
+    if options.vtables {
+        let discovery = discover_vtable_classes(options.max_depth)?;
+        let prefix = options
+            .structure_name
+            .clone()
+            .unwrap_or_else(|| "symless".to_owned());
+        if prefix.is_empty() {
+            return Err(Error::validation(
+                "class/vtable type prefix must not be empty",
+            ));
+        }
+        let apply_summary = if options.apply {
+            let summary = apply_vtable_discovery(&discovery, &prefix)?;
+            database::save()?;
+            Some(summary)
+        } else {
+            None
+        };
+        print_vtable_report(&options, &discovery, &prefix, apply_summary.as_ref());
+        return Ok(());
+    }
     if !options.allocator_specs.is_empty() {
         let seeds = resolve_allocator_specs(&options.allocator_specs)?;
         let discovery = discover_allocators(seeds)?;
@@ -2223,6 +3062,120 @@ mod tests {
             address: 0x1000,
             text: String::new(),
         }
+    }
+
+    fn constructor_graph(with_argument_zero: bool) -> MicrocodeFunction {
+        let mut shift = instruction(MicrocodeOpcode::Add);
+        shift.address = 0x1004;
+        shift.left = operand(MicrocodeOperandKind::Register, 8);
+        shift.left.register_id = 1;
+        shift.right = operand(MicrocodeOperandKind::UnsignedImmediate, 8);
+        shift.right.unsigned_immediate = 16;
+        shift.destination = operand(MicrocodeOperandKind::Register, 8);
+        shift.destination.register_id = 2;
+
+        let mut root_store = instruction(MicrocodeOpcode::StoreMemory);
+        root_store.address = 0x1008;
+        root_store.left = operand(MicrocodeOperandKind::GlobalAddress, 8);
+        root_store.left.global_address = 0x4000;
+        root_store.destination = operand(MicrocodeOperandKind::Register, 8);
+        root_store.destination.register_id = 1;
+
+        let mut secondary_store = root_store.clone();
+        secondary_store.address = 0x100c;
+        secondary_store.destination.register_id = 2;
+
+        MicrocodeFunction {
+            entry_address: 0x1000,
+            maturity: MicrocodeMaturity::Preoptimized,
+            arguments: if with_argument_zero {
+                vec![MicrocodeFunctionArgument {
+                    name: "object".to_owned(),
+                    location: MicrocodeValueLocation {
+                        kind: MicrocodeValueLocationKind::Register,
+                        register_id: 1,
+                        second_register_id: 0,
+                        register_offset: 0,
+                        register_relative_offset: 0,
+                        stack_offset: 0,
+                        static_address: BAD_ADDRESS,
+                        scattered_parts: Vec::new(),
+                    },
+                    byte_width: 8,
+                }]
+            } else {
+                Vec::new()
+            },
+            return_location: None,
+            blocks: vec![MicrocodeBlock {
+                index: 0,
+                start_address: 0x1000,
+                end_address: 0x1010,
+                predecessors: Vec::new(),
+                successors: Vec::new(),
+                instructions: vec![shift, root_store, secondary_store],
+            }],
+        }
+    }
+
+    #[test]
+    fn constructor_analyzer_requires_argument_zero_and_records_exact_offsets() {
+        let mut analyzer = ConstructorAnalyzer {
+            candidate_tables: BTreeSet::from([0x4000]),
+            pointer_width: 8,
+            stores: Vec::new(),
+        };
+        assert!(analyzer.analyze(&constructor_graph(true)).unwrap());
+        assert_eq!(analyzer.stores.len(), 2);
+        assert_eq!(analyzer.stores[0].vtable_address, 0x4000);
+        assert_eq!(analyzer.stores[0].object_offset, 0);
+        assert_eq!(analyzer.stores[1].object_offset, 16);
+
+        let mut without_argument = ConstructorAnalyzer {
+            candidate_tables: BTreeSet::from([0x4000]),
+            pointer_width: 8,
+            stores: Vec::new(),
+        };
+        assert!(!without_argument.analyze(&constructor_graph(false)).unwrap());
+        assert!(without_argument.stores.is_empty());
+    }
+
+    #[test]
+    fn constructor_store_classification_rejects_ambiguous_roots_and_reports_secondary() {
+        let stores = vec![
+            ConstructorStore {
+                function_address: 0x1000,
+                instruction_address: 0x1004,
+                vtable_address: 0x4000,
+                object_offset: 0,
+            },
+            ConstructorStore {
+                function_address: 0x1000,
+                instruction_address: 0x1008,
+                vtable_address: 0x5000,
+                object_offset: 0,
+            },
+            ConstructorStore {
+                function_address: 0x2000,
+                instruction_address: 0x2004,
+                vtable_address: 0x6000,
+                object_offset: 0,
+            },
+            ConstructorStore {
+                function_address: 0x2000,
+                instruction_address: 0x2008,
+                vtable_address: 0x7000,
+                object_offset: 16,
+            },
+        ];
+        let mut discovery = VtableDiscovery::default();
+        let constructors = classify_constructor_stores(stores, &mut discovery);
+        assert_eq!(discovery.ambiguous_constructors, vec![0x1000]);
+        assert_eq!(discovery.secondary_stores.len(), 1);
+        assert_eq!(discovery.secondary_stores[0].object_offset, 16);
+        assert_eq!(constructors.get(&0x6000), Some(&vec![0x2000]));
+        assert!(!constructors.contains_key(&0x4000));
+        assert!(!constructors.contains_key(&0x5000));
     }
 
     #[test]

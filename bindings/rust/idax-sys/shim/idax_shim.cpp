@@ -3959,6 +3959,16 @@ int idax_type_udt_details(IdaxTypeHandle ti, IdaxTypeUdtDetails** out) {
     return 0;
 }
 
+int idax_type_set_udt_semantics(IdaxTypeHandle ti,
+                                int is_cpp_object,
+                                int is_vftable) {
+    clear_error();
+    if (ti == nullptr)
+        return fail(ida::Error::validation("Type handle is null"));
+    RETURN_STATUS(static_cast<ida::type::TypeInfo*>(ti)->set_udt_semantics(
+        is_cpp_object != 0, is_vftable != 0));
+}
+
 int idax_type_member_by_name(IdaxTypeHandle ti, const char* name, IdaxTypeMember* out) {
     clear_error();
     auto r = static_cast<ida::type::TypeInfo*>(ti)->member_by_name(name ? name : "");

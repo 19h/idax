@@ -810,6 +810,44 @@ describe('Type System', () => {
         expect(arr.arrayLength()).toBe(100);
     });
 
+    it('should preserve UDT layout while changing semantic flags', () => {
+        const structure = idax.type.createStruct();
+        structure.addMember('word', idax.type.uint32(), 0);
+        structure.addMember('tail', idax.type.uint8(), 8);
+        const before = structure.udtDetails();
+        expect(before.isCppObject).toBe(false);
+        expect(before.isVftable).toBe(false);
+
+        structure.setUdtSemantics(true, false);
+        const cppObject = structure.udtDetails();
+        expect(cppObject.isCppObject).toBe(true);
+        expect(cppObject.isVftable).toBe(false);
+        expect(cppObject.totalSize).toBe(before.totalSize);
+        expect(cppObject.members.map((member) => [
+            member.name,
+            member.byteOffset,
+            member.bitSize,
+            member.type.toString(),
+        ])).toEqual(before.members.map((member) => [
+            member.name,
+            member.byteOffset,
+            member.bitSize,
+            member.type.toString(),
+        ]));
+
+        structure.setUdtSemantics(false, true);
+        const vftable = structure.udtDetails();
+        expect(vftable.isCppObject).toBe(false);
+        expect(vftable.isVftable).toBe(true);
+        expect(() => structure.setUdtSemantics(true, true)).toThrow();
+        expect(structure.udtDetails().isVftable).toBe(true);
+        structure.setUdtSemantics(false, false);
+        expect(structure.udtDetails().isVftable).toBe(false);
+        expect(() => idax.type.int32().setUdtSemantics(false, false)).toThrow();
+        expect(() => idax.type.createUnion().setUdtSemantics(true, false)).toThrow();
+        idax.type.createUnion().setUdtSemantics(false, false);
+    });
+
     it('should replace a function argument type without losing metadata', () => {
         const original = idax.type.fromDeclaration(
             'int __cdecl idax_node_proto(int selector, char *payload)',

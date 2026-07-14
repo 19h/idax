@@ -1379,3 +1379,57 @@ the recovered allocation size as a field upper bound and exclude accesses whose
 nonnegative `offset + width` exceeds it. Materialize a call-site-specific UDT,
 but keep allocator and wrapper returns generic `void*`; assigning one root UDT
 to a reusable allocator return conflates distinct allocation objects.
+
+### 35.72. Require Constructor Stores Before Treating Function-Pointer Arrays as Vtables [F416]
+Scan loaded item heads in code/data segments and interpret pointer-width runs as
+candidate vtables only while every slot targets an exact function entry or a
+mapped external symbol. Stop before a non-first slot with an incoming code or
+data reference, exclude all-import runs, and bound the member count. A candidate
+becomes a class root only when owned preoptimized microcode proves that its
+exact address is stored at pointer width into injected function argument zero at
+offset zero. Report nonzero offsets as secondary subobject evidence. If one
+function stores multiple distinct tables at offset zero, retain ambiguity;
+member count and xref frequency are not inheritance proof. Materialization must
+preserve the native UDT record while setting only C++ object/vftable semantics,
+then use named types for the class vftable pointer and virtual-method `this`
+arguments.
+
+Let `H` be scanned item heads, `P <= 4096H` inspected pointer slots, `R` the
+aggregate reference-query result size, `C` candidate-referencing functions,
+and `G` the total copied constructor-graph instructions plus edges. Candidate
+discovery is `O(H + P + R + G)` time before field reconstruction and
+`O(P + C + G)` retained space. Field reconstruction reuses the bounded
+interprocedural cost from KB 35.67. Set-based ambiguous-root grouping adds
+`O(S log S)` time and `O(S)` space for `S` proven stores.
+
+### 35.73. Do Not Synthesize Prototype Arguments from Constructor Graph Inference [F417]
+Owned microcode argument locations and applied `func_type_data_t` records are
+different evidence classes. A graph-inferred argument zero authorizes abstract
+state injection and can prove an exact vtable store. It does not supply the
+argument comments, locations, flags, spoiled registers, calling convention, or
+other prototype metadata required for a lossless type edit. Apply class-pointer
+typing only when argument zero already exists and is a generic pointer or
+pointer-width scalar; otherwise count the function as ineligible. This keeps
+discovery useful on stripped code while preventing ABI synthesis. A fixture
+with generic `void*` debug prototypes is the positive probe; a stripped fixture
+whose methods have no applied arguments is the falsification probe.
+
+### 35.74. Normalize Both Bindgen Shapes for Recursive C Records [F418]
+Libclang can expose a recursive C record completely or leave it opaque at the
+point bindgen emits Rust. With `derive_default` enabled, the complete form also
+adds layout assertions and a zeroing `Default`; the opaque form does not. A
+deterministic checked binding cannot branch on only the opaque byte pattern.
+Find the named record's preceding `repr(C)` marker and replace everything up to
+the first following FFI declaration with one canonical owned layout. Regenerate
+and compare exact bytes; current canonical SHA-256 is
+`5a91e0e932583a98f7079e32cfacc9493d1dee27e4d80c938a1b3da5b44ef949`.
+
+### 35.75. Preflight Existing Semantic UDT Layouts Before Prototype Mutation [F419]
+Generated type names reduce collision probability but do not prove structural
+compatibility. For an existing vftable UDT, require each member offset to be
+pointer-width aligned, map it to an in-range discovered method index, and
+compare its complete rendered pointer type with the current method pointer.
+Reject the candidate before class/prototype mutation on any mismatch or extra
+member. For an existing class UDT, require the offset-zero member to be the
+exact named vftable pointer. Preserve nonzero fields: exact-offset/equal-type is
+reuse, exact-offset/different-type or partial overlap is a reported skip.

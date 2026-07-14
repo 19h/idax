@@ -966,6 +966,9 @@ int idax_type_remove(uint64_t ea);
 int idax_type_member_count(IdaxTypeHandle ti, size_t* out);
 int idax_type_members(IdaxTypeHandle ti, IdaxTypeMember** out, size_t* count);
 int idax_type_udt_details(IdaxTypeHandle ti, IdaxTypeUdtDetails** out);
+int idax_type_set_udt_semantics(IdaxTypeHandle ti,
+                                int is_cpp_object,
+                                int is_vftable);
 int idax_type_member_by_name(IdaxTypeHandle ti, const char* name, IdaxTypeMember* out);
 int idax_type_member_by_offset(IdaxTypeHandle ti, size_t byte_offset, IdaxTypeMember* out);
 int idax_type_add_member(IdaxTypeHandle ti, const char* name,

@@ -897,3 +897,25 @@ tracked in `docs/compatibility_matrix.md`.
   process reuses all members and recognizes both prototypes with zero changes.
   Generated bindings are byte-identical at SHA-256
   `414fe27fd05155e75246ee686c98919c0cab40e44b02c692fe927632e925c428`.
+
+- 2026-07-14 Phase 40 Symless constructor and vtable root discovery:
+  Added metadata-preserving C++ object/vftable UDT semantics across C++, Node,
+  and Rust. Extended both Symless adaptations with bounded function-pointer
+  table scanning, exact argument-zero constructor-store proof, ambiguous-root
+  rejection, secondary-offset reporting, recovered class fields, semantic
+  class/vftable materialization, existing-layout preflight, vftable application,
+  and eligible `this` prototype typing. Complete C++ build and CTest pass 26/26
+  in 22.16 s and the six-action plugin links. Node native build, strict
+  declarations, structural tests, and IDA 9.4 integration pass 234/234 and
+  78/78. Rust formatting/all-target checks, library/sys/port tests, and
+  process-main-thread IDA 9.4 integration pass 138/138, 0 sys, 12/12, and
+  95/95. The host-native arm64 fixture (source SHA-256
+  `6002d19ff61a9a1029412e508be59445ead0ffe7df41f02b648650c702da2b4b`;
+  binary SHA-256
+  `ee4b8c55449a6163716b6ca5f86744381c4bccd153b13073c49ee53bda47fab8`)
+  yields one three-method table and one constructor with exact `+8/4 B`,
+  `+16/8 B`, and `+24/1 B` writes. First apply creates two semantic UDTs and
+  seven members, types four prototypes, and applies one vftable; fresh-process
+  reopen reuses all seven members and recognizes all four prototypes with zero
+  changes. Generated bindings are byte-identical at SHA-256
+  `5a91e0e932583a98f7079e32cfacc9493d1dee27e4d80c938a1b3da5b44ef949`.

@@ -227,6 +227,11 @@ public:
     /// Retrieve complete struct/union layout details.
     [[nodiscard]] Result<UdtDetails> udt_details() const;
 
+    /// Set high-level UDT semantics while preserving the complete layout record.
+    /// C++ object and vftable semantics are mutually exclusive. A union may
+    /// only use the neutral `false, false` state.
+    Status set_udt_semantics(bool is_cpp_object, bool is_vftable);
+
     /// Find a member by name.
     [[nodiscard]] Result<struct Member> member_by_name(std::string_view name) const;
 

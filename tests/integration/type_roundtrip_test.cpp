@@ -610,6 +610,65 @@ void test_rich_type_layout_metadata() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: metadata-preserving C++ object / vftable UDT semantics
+// ---------------------------------------------------------------------------
+void test_udt_semantics() {
+    std::cout << "--- UDT semantics ---\n";
+
+    auto semantic_struct = ida::type::TypeInfo::create_struct();
+    CHECK_OK(semantic_struct.add_member("word", ida::type::TypeInfo::uint32(), 0));
+    CHECK_OK(semantic_struct.add_member("tail", ida::type::TypeInfo::uint8(), 8));
+    auto neutral = semantic_struct.udt_details();
+    CHECK_OK(neutral);
+    CHECK(neutral && !neutral->is_cpp_object && !neutral->is_vftable);
+
+    CHECK_OK(semantic_struct.set_udt_semantics(true, false));
+    auto cpp_object = semantic_struct.udt_details();
+    CHECK_OK(cpp_object);
+    if (neutral && cpp_object) {
+        CHECK(cpp_object->is_cpp_object);
+        CHECK(!cpp_object->is_vftable);
+        CHECK(cpp_object->total_size == neutral->total_size);
+        CHECK(cpp_object->members.size() == neutral->members.size());
+        CHECK(cpp_object->members[0].name == neutral->members[0].name);
+        CHECK(cpp_object->members[0].byte_offset
+              == neutral->members[0].byte_offset);
+        CHECK(cpp_object->members[0].bit_size
+              == neutral->members[0].bit_size);
+        CHECK(cpp_object->members[0].type.to_string().value_or("")
+              == neutral->members[0].type.to_string().value_or(""));
+        CHECK(cpp_object->members[1].name == neutral->members[1].name);
+        CHECK(cpp_object->members[1].byte_offset
+              == neutral->members[1].byte_offset);
+        CHECK(cpp_object->members[1].bit_size
+              == neutral->members[1].bit_size);
+        CHECK(cpp_object->members[1].type.to_string().value_or("")
+              == neutral->members[1].type.to_string().value_or(""));
+    }
+
+    CHECK_OK(semantic_struct.set_udt_semantics(false, true));
+    auto vftable = semantic_struct.udt_details();
+    CHECK_OK(vftable);
+    CHECK(vftable && !vftable->is_cpp_object && vftable->is_vftable);
+    CHECK_ERR(semantic_struct.set_udt_semantics(true, true),
+              ida::ErrorCategory::Validation);
+    auto after_rejection = semantic_struct.udt_details();
+    CHECK_OK(after_rejection);
+    CHECK(after_rejection && !after_rejection->is_cpp_object
+          && after_rejection->is_vftable);
+    CHECK_OK(semantic_struct.set_udt_semantics(false, false));
+    auto restored = semantic_struct.udt_details();
+    CHECK_OK(restored);
+    CHECK(restored && !restored->is_cpp_object && !restored->is_vftable);
+    CHECK_ERR(ida::type::TypeInfo::int32().set_udt_semantics(false, false),
+              ida::ErrorCategory::Validation);
+    auto semantic_union = ida::type::TypeInfo::create_union();
+    CHECK_ERR(semantic_union.set_udt_semantics(true, false),
+              ida::ErrorCategory::Validation);
+    CHECK_OK(semantic_union.set_udt_semantics(false, false));
+}
+
+// ---------------------------------------------------------------------------
 // Test: struct creation, member add, member access
 // ---------------------------------------------------------------------------
 void test_struct_lifecycle() {
@@ -998,6 +1057,7 @@ int main(int argc, char* argv[]) {
     test_function_type_workflows();
     test_enum_workflows();
     test_rich_type_layout_metadata();
+    test_udt_semantics();
     test_struct_lifecycle();
     test_union_creation();
     test_save_and_lookup();

@@ -3020,6 +3020,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_type_set_udt_semantics(
+        ti: IdaxTypeHandle,
+        is_cpp_object: ::std::os::raw::c_int,
+        is_vftable: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_type_member_by_name(
         ti: IdaxTypeHandle,
         name: *const ::std::os::raw::c_char,

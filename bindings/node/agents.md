@@ -412,7 +412,7 @@ TypeInfo factory/runtime operations require an initialized IDA runtime/database;
 * `pointeeType(): TypeInfo`, `arrayElementType(): TypeInfo`, `arrayLength(): number`, `resolveTypedef(): TypeInfo`
 * `functionReturnType(): TypeInfo`, `functionArgumentTypes(): TypeInfo[]`, `functionDetails(): FunctionDetails`, `callingConvention(): CallingConvention`, `isVariadicFunction(): boolean`
 * `enumMembers(): { name: string, value: bigint, comment: string }[]`, `enumDetails(): EnumDetails`
-* `memberCount(): number`, `members(): Member[]`, `udtDetails(): UdtDetails`
+* `memberCount(): number`, `members(): Member[]`, `udtDetails(): UdtDetails`, `setUdtSemantics(isCppObject: boolean, isVftable: boolean): void`
 * `memberByName(name: string): Member`, `memberByOffset(byteOffset: number): Member`
 * `addMember(name: string, type: TypeInfo, byteOffset?: number): void`
 * `apply(address: Address): void`

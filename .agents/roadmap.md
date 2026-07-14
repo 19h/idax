@@ -50,6 +50,7 @@ Current overall phase status:
 - Phase 37: complete (bounded Symless structure reconstruction plus owned maturity-explicit microcode graphs across C++/Node/Rust)
 - Phase 38: complete (depth-bounded resolved direct-call argument/return propagation, explicit call analysis, and metadata-preserving return-type edits)
 - Phase 39: complete (declarative direct allocator/wrapper discovery, fixed-size roots, metadata-preserving argument-name edits, and report/apply/reopen evidence)
+- Phase 40: complete (exact argument-zero constructor/vtable roots, metadata-preserving UDT semantic flags, conservative semantic UDT materialization, and report/apply/reopen evidence)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -265,5 +266,14 @@ Current overall phase status:
 - [x] P39.2 Close each concrete C++/Node/Rust wrapper gap required by a bounded allocator-discovery surface, with exact SDK provenance and preservation tests.
 - [x] P39.3 Extend the C++ and Rust Symless adaptations with declarative malloc/calloc/realloc seeds, cycle-safe wrapper discovery, and fixed-size allocation-root reconstruction.
 - [x] P39.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+
+---
+
+### Phase 40 TODO Action Items (Symless Constructor and Vtable Root Discovery)
+
+- [x] P40.1 Audit Symless constructor/vtable seed discovery, root-state injection, structure inheritance, and vftable materialization against current opaque APIs and SDK contracts.
+- [x] P40.2 Close each concrete C++/Node/Rust wrapper gap required by a bounded constructor/vtable surface, with exact SDK provenance and preservation tests.
+- [x] P40.3 Extend the C++ and Rust Symless adaptations with cycle-safe constructor/vtable root discovery and conservative report/apply behavior.
+- [x] P40.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---

@@ -1329,6 +1329,72 @@ fn types_struct_creation() {
     assert_eq!(members.len(), 2);
 }
 
+fn types_udt_semantics() {
+    require_db!();
+    let structure = types::TypeInfo::create_struct();
+    structure
+        .add_member("word", &types::TypeInfo::uint32(), 0)
+        .unwrap();
+    structure
+        .add_member("tail", &types::TypeInfo::uint8(), 8)
+        .unwrap();
+    let before = structure.udt_details().unwrap();
+    assert!(!before.is_cpp_object);
+    assert!(!before.is_vftable);
+
+    structure.set_udt_semantics(true, false).unwrap();
+    let cpp_object = structure.udt_details().unwrap();
+    assert!(cpp_object.is_cpp_object);
+    assert!(!cpp_object.is_vftable);
+    assert_eq!(cpp_object.total_size, before.total_size);
+    assert_eq!(cpp_object.members.len(), before.members.len());
+    assert_eq!(cpp_object.members[0].name, before.members[0].name);
+    assert_eq!(cpp_object.members[0].bit_size, before.members[0].bit_size);
+    assert_eq!(
+        cpp_object.members[0].r#type.to_string().unwrap(),
+        before.members[0].r#type.to_string().unwrap()
+    );
+    assert_eq!(
+        cpp_object.members[1].byte_offset,
+        before.members[1].byte_offset
+    );
+    assert_eq!(cpp_object.members[1].bit_size, before.members[1].bit_size);
+    assert_eq!(
+        cpp_object.members[1].r#type.to_string().unwrap(),
+        before.members[1].r#type.to_string().unwrap()
+    );
+
+    structure.set_udt_semantics(false, true).unwrap();
+    let vftable = structure.udt_details().unwrap();
+    assert!(!vftable.is_cpp_object);
+    assert!(vftable.is_vftable);
+    assert_eq!(
+        structure
+            .set_udt_semantics(true, true)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert!(structure.udt_details().unwrap().is_vftable);
+    structure.set_udt_semantics(false, false).unwrap();
+    let restored = structure.udt_details().unwrap();
+    assert!(!restored.is_cpp_object);
+    assert!(!restored.is_vftable);
+    assert_eq!(
+        types::TypeInfo::int32()
+            .set_udt_semantics(false, false)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    let union = types::TypeInfo::create_union();
+    assert_eq!(
+        union.set_udt_semantics(true, false).unwrap_err().category,
+        ErrorCategory::Validation
+    );
+    union.set_udt_semantics(false, false).unwrap();
+}
+
 fn types_from_declaration() {
     require_db!();
     let ti = types::TypeInfo::from_declaration("int (*)(const char *, ...)").unwrap();
@@ -2020,6 +2086,7 @@ static TEST_CASES: &[TestCase] = &[
     ("types_primitive_constructors", types_primitive_constructors),
     ("types_pointer_and_array", types_pointer_and_array),
     ("types_struct_creation", types_struct_creation),
+    ("types_udt_semantics", types_udt_semantics),
     ("types_from_declaration", types_from_declaration),
     (
         "types_replace_function_argument",

@@ -1747,6 +1747,9 @@ export namespace type {
         /** Complete struct/union layout metadata. */
         udtDetails(): UdtDetails;
 
+        /** Set mutually exclusive C++ object/vftable semantics without changing layout. */
+        setUdtSemantics(isCppObject: boolean, isVftable: boolean): void;
+
         /** Look up a member by name. */
         memberByName(name: string): Member;
 

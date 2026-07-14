@@ -527,6 +527,8 @@ void check_type_surface() {
     (void)fd.return_type; (void)fd.arguments; (void)fd.calling_convention; (void)fd.variadic;
     ida::type::UdtDetails ud;
     (void)ud.total_size; (void)ud.is_union; (void)ud.is_cpp_object; (void)ud.is_vftable; (void)ud.members;
+    using SetUdtSemanticsFn = ida::Status(ida::type::TypeInfo::*)(bool, bool);
+    (void)static_cast<SetUdtSemanticsFn>(&ida::type::TypeInfo::set_udt_semantics);
     ida::type::EnumDetails ed;
     (void)ed.byte_width; (void)ed.signed_values; (void)ed.radix; (void)ed.members;
 

@@ -141,6 +141,7 @@ private:
     static NAN_METHOD(MemberCount);
     static NAN_METHOD(Members);
     static NAN_METHOD(UdtDetails);
+    static NAN_METHOD(SetUdtSemantics);
     static NAN_METHOD(MemberByName);
     static NAN_METHOD(MemberByOffset);
     static NAN_METHOD(AddMember);
@@ -319,6 +320,7 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "memberCount",    MemberCount);
     Nan::SetPrototypeMethod(tpl, "members",         Members);
     Nan::SetPrototypeMethod(tpl, "udtDetails",      UdtDetails);
+    Nan::SetPrototypeMethod(tpl, "setUdtSemantics", SetUdtSemantics);
     Nan::SetPrototypeMethod(tpl, "memberByName",    MemberByName);
     Nan::SetPrototypeMethod(tpl, "memberByOffset",  MemberByOffset);
     Nan::SetPrototypeMethod(tpl, "addMember",       AddMember);
@@ -633,6 +635,18 @@ NAN_METHOD(TypeInfoWrapper::UdtDetails) {
     SELF();
     IDAX_UNWRAP(auto details, self->type_info_.udt_details());
     info.GetReturnValue().Set(UdtDetailsToObject(details));
+}
+
+NAN_METHOD(TypeInfoWrapper::SetUdtSemantics) {
+    SELF();
+    if (info.Length() < 2 || !info[0]->IsBoolean() || !info[1]->IsBoolean()) {
+        Nan::ThrowTypeError("Expected (isCppObject, isVftable) boolean arguments");
+        return;
+    }
+    const bool is_cpp_object = Nan::To<bool>(info[0]).FromJust();
+    const bool is_vftable = Nan::To<bool>(info[1]).FromJust();
+    IDAX_CHECK_STATUS(self->type_info_.set_udt_semantics(is_cpp_object,
+                                                         is_vftable));
 }
 
 NAN_METHOD(TypeInfoWrapper::MemberByName) {

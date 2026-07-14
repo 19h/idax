@@ -1101,6 +1101,7 @@ mod types_tests {
         let _: fn(&TypeInfo, &TypeInfo) -> Result<TypeInfo> = TypeInfo::with_function_return_type;
         let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
+        let _: fn(&TypeInfo, bool, bool) -> crate::error::Status = TypeInfo::set_udt_semantics;
 
         let member = Member {
             name: "field".to_string(),

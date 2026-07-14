@@ -485,6 +485,7 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'withFunctionReturnType(replacement: TypeInfo): TypeInfo',
             'enumDetails(): EnumDetails',
             'udtDetails(): UdtDetails',
+            'setUdtSemantics(isCppObject: boolean, isVftable: boolean): void',
         ]) {
             expect(dts).toContain(signature);
         }

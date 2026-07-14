@@ -83,7 +83,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::name` | Symbol naming, filtered inventories, and address-free demangling | `ListOptions`, `Entry`, `DemangleForm` |
 | `ida::xref` | Cross-references | `Reference`, `CodeType`, `DataType` |
 | `ida::comment` | Comments | (free functions only) |
-| `ida::type` | Type system, including metadata-preserving function-argument edits | `TypeInfo`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
+| `ida::type` | Type system, including metadata-preserving prototype edits and UDT semantic mutation | `TypeInfo`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
 | `ida::entry` | Entry points | `EntryPoint` |
 | `ida::fixup` | Relocations | `Descriptor`, `CustomHandler`, `Type` |
 

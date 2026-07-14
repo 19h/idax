@@ -831,6 +831,19 @@ impl TypeInfo {
         error::int_to_status(ret, "add_member failed")
     }
 
+    /// Set mutually exclusive C++ object/vftable semantics without changing
+    /// the UDT layout, members, packing, alignment, or unrelated flags.
+    pub fn set_udt_semantics(&self, is_cpp_object: bool, is_vftable: bool) -> Status {
+        let ret = unsafe {
+            idax_sys::idax_type_set_udt_semantics(
+                self.handle,
+                is_cpp_object as i32,
+                is_vftable as i32,
+            )
+        };
+        error::int_to_status(ret, "set_udt_semantics failed")
+    }
+
     /// Apply this type at the given address.
     pub fn apply(&self, ea: Address) -> Status {
         let ret = unsafe { idax_sys::idax_type_apply(self.handle, ea) };

@@ -88,6 +88,7 @@ This section captures the intended public API semantics at a concrete level so i
 - Immutable indexed function-argument replacement that preserves the native prototype record (`with_function_argument_type`)
 - Immutable indexed function-argument renaming that preserves the native prototype record (`with_function_argument_name`)
 - Immutable function-return replacement that preserves the native prototype record (`with_function_return_type`)
+- Metadata-preserving mutually exclusive C++ object/vftable UDT semantics (`set_udt_semantics`)
 - Struct/union/member APIs with byte-based offsets
 - Apply/retrieve type operations
 - Type library access wrappers and import/export helpers

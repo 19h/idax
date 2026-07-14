@@ -765,6 +765,37 @@ Result<UdtDetails> TypeInfo::udt_details() const {
     return details;
 }
 
+Status TypeInfo::set_udt_semantics(bool is_cpp_object, bool is_vftable) {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_udt())
+        return std::unexpected(Error::validation("Type is not a struct or union"));
+    if (is_cpp_object && is_vftable) {
+        return std::unexpected(Error::validation(
+            "A UDT cannot be both a C++ object and a vftable"));
+    }
+    if (impl_->ti.is_union() && (is_cpp_object || is_vftable)) {
+        return std::unexpected(Error::validation(
+            "Union types cannot carry C++ object or vftable semantics"));
+    }
+
+    udt_type_data_t udt;
+    if (!impl_->ti.get_udt_details(&udt))
+        return std::unexpected(Error::sdk("Failed to get UDT details"));
+
+    udt.taudt_bits &= ~(TAUDT_CPPOBJ | TAUDT_VFTABLE);
+    if (is_cpp_object)
+        udt.taudt_bits |= TAUDT_CPPOBJ;
+    if (is_vftable)
+        udt.taudt_bits |= TAUDT_VFTABLE;
+
+    tinfo_t rebuilt;
+    if (!rebuilt.create_udt(udt))
+        return std::unexpected(Error::sdk("Failed to rebuild UDT semantics"));
+    impl_->ti = std::move(rebuilt);
+    return ida::ok();
+}
+
 Result<Member> TypeInfo::member_by_name(std::string_view name) const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));

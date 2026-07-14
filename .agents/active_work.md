@@ -84,3 +84,17 @@
 - **9.2. Bounded Port**
   - 9.2.1. **Boundary:** Preserve declarative direct allocator seeds, constant-size allocation roots, argument-forwarding wrappers, and explicit report/apply behavior; do not conflate constructor/vtable or indirect-dynamic discovery with allocator classification.
   - 9.2.2. **Status:** Complete (P39.2-P39.4; F415; validation synchronized). Both adaptations implement explicit seed parsing/resolution, exact direct-call classification, static roots, terminal-return-confirmed wrappers, cycle-safe heir traversal, bounded root reconstruction, and explicit generic-prototype/UDT apply. No Phase 39 blocker remains.
+
+---
+
+### 10. Symless Constructor and Vtable Root Discovery (Phase 40)
+
+- **10.1. Capability Audit**
+  - 10.1.1. **Action:** Compare upstream constructor heuristics, vtable recognition, structure-root injection, inheritance, and vftable materialization with current idax graph/xref/type surfaces and local IDA 9.3 headers.
+  - 10.1.2. **Status:** Complete (P40.1; F416; KB 35.72; decision 19.42).
+- **10.2. Opaque UDT Semantics**
+  - 10.2.1. **Action:** Add metadata-preserving C++ object/vftable UDT semantic mutation with C++/Node/Rust parity and exact native-record preservation evidence.
+  - 10.2.2. **Status:** Complete (P40.2; C++/Node/Rust preservation and runtime rejection evidence pass).
+- **10.3. Boundary**
+  - 10.3.1. **Scope:** Scan loaded code/data item heads for pointer-width tables; require exact function entries or mapped external members, no references to non-first slots, at least one non-import method, and an analyzed pointer-width store of the table into argument zero at offset zero. Treat multiple offset-zero tables for one function as ambiguous, report secondary-offset stores, and never infer inheritance from size/xref counts alone.
+  - 10.3.2. **Status:** Complete (P40.3-P40.4; F417-F419; KB 35.73-35.75). Full C++/Node/Rust validation and real report/apply/reopen evidence pass; no Phase 40 blocker remains. Indirect dynamic calls, shifted-pointer typing, forward replacement, member-TID xrefs, multi-stroff paths, and widget picking remain separate.

@@ -7,8 +7,10 @@
 /// pointer shifts, load/store recovery, predecessor-state preference,
 /// minimum-width field conflict rule, and resolved direct-call argument/return
 /// flow, static allocation roots, and return-confirmed allocator wrappers.
-/// Indirect dynamic calls, vtables, shifted-pointer typing, member xrefs, and
-/// microcode-widget workflows are outside the stated boundary. Upstream
+/// Constructor/vtable roots are accepted only after an exact argument-zero
+/// store; table-size/xref inheritance guesses are deliberately not applied.
+/// Indirect dynamic calls, shifted-pointer typing, member xrefs, and
+/// microcode-widget workflows remain outside the stated boundary. Upstream
 /// copyright/license: symless_port_LICENSE.txt.
 
 #include <ida/idax.hpp>
@@ -35,7 +37,10 @@ constexpr std::string_view kReportAction = "idax:symless:report_argument";
 constexpr std::string_view kApplyAction = "idax:symless:apply_argument";
 constexpr std::string_view kAllocatorReportAction = "idax:symless:report_allocators";
 constexpr std::string_view kAllocatorApplyAction = "idax:symless:apply_allocators";
+constexpr std::string_view kVtableReportAction = "idax:symless:report_vtables";
+constexpr std::string_view kVtableApplyAction = "idax:symless:apply_vtables";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
+constexpr std::size_t kMaximumVtableMethods = 4096;
 
 template <typename... Args>
 std::string format(const char* pattern, Args&&... args) {
@@ -245,6 +250,62 @@ struct AllocatorApplySummary {
     std::size_t prototypes_changed{0};
     std::size_t prototypes_already_typed{0};
     std::size_t prototypes_ineligible{0};
+};
+
+struct VtableMember {
+    ida::Address function_address{ida::BadAddress};
+    bool imported{false};
+};
+
+struct ConstructorStore {
+    ida::Address function_address{ida::BadAddress};
+    ida::Address instruction_address{ida::BadAddress};
+    ida::Address vtable_address{ida::BadAddress};
+    std::int64_t object_offset{0};
+
+    auto operator<=>(const ConstructorStore&) const = default;
+};
+
+struct VtableClass {
+    ida::Address vtable_address{ida::BadAddress};
+    std::vector<VtableMember> methods;
+    std::vector<ida::Address> constructors;
+    std::vector<RecoveredField> fields;
+};
+
+struct VtableDiscovery {
+    std::vector<VtableClass> classes;
+    std::vector<ConstructorStore> secondary_stores;
+    std::vector<ida::Address> ambiguous_constructors;
+    std::size_t candidates_examined{0};
+    std::size_t candidate_tables{0};
+    std::size_t all_import_tables{0};
+    std::size_t referenced_slot_stops{0};
+    std::size_t tables_without_constructor{0};
+    std::size_t functions_analyzed{0};
+    std::size_t functions_without_argument_zero{0};
+    std::size_t graph_failures{0};
+};
+
+struct VtableAnalysis {
+    VtableDiscovery discovery;
+    std::size_t maximum_call_depth{0};
+};
+
+struct VtableApplySummary {
+    std::size_t vtable_types_created{0};
+    std::size_t vtable_types_reused{0};
+    std::size_t class_types_created{0};
+    std::size_t class_types_reused{0};
+    std::size_t method_members_added{0};
+    std::size_t method_members_reused{0};
+    std::size_t class_members_added{0};
+    std::size_t class_members_reused{0};
+    std::size_t members_skipped{0};
+    std::size_t prototypes_changed{0};
+    std::size_t prototypes_already_typed{0};
+    std::size_t prototypes_ineligible{0};
+    std::size_t vtables_applied{0};
 };
 
 std::optional<Variable>
@@ -1589,6 +1650,421 @@ ida::Result<AllocationReconstruction> reconstruct_allocation(
     return output;
 }
 
+ida::Result<ida::Address> read_database_pointer(ida::Address address,
+                                                std::size_t pointer_width) {
+    if (pointer_width == 8) {
+        auto value = ida::data::read_qword(address);
+        if (!value)
+            return std::unexpected(value.error());
+        return *value;
+    }
+    if (pointer_width == 4) {
+        auto value = ida::data::read_dword(address);
+        if (!value)
+            return std::unexpected(value.error());
+        return static_cast<ida::Address>(*value);
+    }
+    return std::unexpected(ida::Error::unsupported(
+        "Vtable discovery requires a 4 B or 8 B address width"));
+}
+
+ida::Result<std::optional<VtableMember>> vtable_member_at(
+    ida::Address table_address,
+    ida::Address member_address,
+    std::size_t pointer_width,
+    VtableDiscovery& discovery) {
+    if (member_address != table_address) {
+        auto incoming = ida::xref::refs_to(member_address);
+        if (!incoming)
+            return std::unexpected(incoming.error());
+        if (!incoming->empty()) {
+            ++discovery.referenced_slot_stops;
+            return std::optional<VtableMember>{};
+        }
+    }
+
+    auto pointer = read_database_pointer(member_address, pointer_width);
+    if (!pointer)
+        return std::optional<VtableMember>{};
+    const ida::Address target = *pointer & ~ida::Address{1};
+
+    auto function = ida::function::at(target);
+    if (function && function->start() == target)
+        return VtableMember{target, false};
+
+    if (!ida::address::is_mapped(target))
+        return std::optional<VtableMember>{};
+    auto segment = ida::segment::at(target);
+    if (!segment)
+        return std::optional<VtableMember>{};
+    const bool imported = segment->type() == ida::segment::Type::External
+        || segment->type() == ida::segment::Type::Import;
+    return imported
+        ? std::optional<VtableMember>(VtableMember{target, true})
+        : std::optional<VtableMember>{};
+}
+
+ida::Result<std::vector<VtableMember>> vtable_members_at(
+    ida::Address table_address,
+    ida::Address segment_end,
+    std::size_t pointer_width,
+    VtableDiscovery& discovery) {
+    std::vector<VtableMember> members;
+    ida::Address current = table_address;
+    while (members.size() < kMaximumVtableMethods
+           && current < segment_end
+           && pointer_width <= segment_end - current) {
+        auto member = vtable_member_at(table_address, current,
+                                       pointer_width, discovery);
+        if (!member)
+            return std::unexpected(member.error());
+        if (!*member)
+            break;
+        members.push_back(**member);
+        current += pointer_width;
+    }
+    return members;
+}
+
+ida::Result<ida::Address> next_scannable_head(ida::Address current,
+                                              ida::Address end) {
+    auto next = ida::address::next_head(current, end);
+    if (next)
+        return *next;
+    if (next.error().category == ida::ErrorCategory::NotFound)
+        return end;
+    return std::unexpected(next.error());
+}
+
+ida::Result<std::vector<VtableClass>> scan_vtable_candidates(
+    std::size_t pointer_width,
+    VtableDiscovery& discovery) {
+    std::vector<VtableClass> candidates;
+    for (const auto& segment : ida::segment::all()) {
+        if (segment.type() != ida::segment::Type::Code
+            && segment.type() != ida::segment::Type::Data) {
+            continue;
+        }
+        ida::Address current = segment.start();
+        while (current < segment.end()) {
+            auto containing = ida::function::at(current);
+            if (containing) {
+                auto chunks = ida::function::chunks(containing->start());
+                if (chunks) {
+                    auto chunk = std::find_if(
+                        chunks->begin(), chunks->end(), [&](const auto& value) {
+                            return current >= value.start && current < value.end;
+                        });
+                    if (chunk != chunks->end()) {
+                        current = chunk->end;
+                        continue;
+                    }
+                }
+            }
+            if (!ida::address::is_loaded(current)) {
+                auto next = next_scannable_head(current, segment.end());
+                if (!next)
+                    return std::unexpected(next.error());
+                current = *next;
+                continue;
+            }
+
+            ++discovery.candidates_examined;
+            auto members = vtable_members_at(current, segment.end(),
+                                             pointer_width, discovery);
+            if (!members)
+                return std::unexpected(members.error());
+            if (members->empty()) {
+                auto next = next_scannable_head(current, segment.end());
+                if (!next)
+                    return std::unexpected(next.error());
+                current = *next;
+                continue;
+            }
+            const ida::AddressSize table_size =
+                static_cast<ida::AddressSize>(members->size() * pointer_width);
+            if (std::all_of(members->begin(), members->end(),
+                            [](const auto& member) { return member.imported; })) {
+                ++discovery.all_import_tables;
+                current += table_size;
+                continue;
+            }
+            ++discovery.candidate_tables;
+            VtableClass candidate;
+            candidate.vtable_address = current;
+            candidate.methods = std::move(*members);
+            candidates.push_back(std::move(candidate));
+            current += table_size;
+        }
+    }
+    return candidates;
+}
+
+struct ConstructorAnalyzer {
+    std::set<ida::Address> candidate_tables;
+    std::size_t pointer_width{0};
+    std::vector<ConstructorStore> stores;
+
+    ida::Result<std::optional<AbstractValue>> operand_value(
+        State& state,
+        const ida::decompiler::MicrocodeOperand& operand) {
+        if (operand.nested_instruction)
+            return process_instruction(state, *operand.nested_instruction);
+        auto value = state_value(state, operand);
+        return value ? value : immediate_value(operand);
+    }
+
+    ida::Result<std::optional<AbstractValue>> process_instruction(
+        State& state,
+        const ida::decompiler::MicrocodeInstruction& instruction) {
+        using Opcode = ida::decompiler::MicrocodeOpcode;
+        std::optional<AbstractValue> result;
+        switch (instruction.opcode) {
+        case Opcode::Move: {
+            auto source = operand_value(state, instruction.left);
+            if (!source)
+                return std::unexpected(source.error());
+            result = *source;
+            break;
+        }
+        case Opcode::ZeroExtend:
+        case Opcode::SignedExtend: {
+            auto source = operand_value(state, instruction.left);
+            if (!source)
+                return std::unexpected(source.error());
+            result = *source;
+            break;
+        }
+        case Opcode::Add:
+        case Opcode::Subtract: {
+            auto left = operand_value(state, instruction.left);
+            if (!left)
+                return std::unexpected(left.error());
+            auto right = operand_value(state, instruction.right);
+            if (!right)
+                return std::unexpected(right.error());
+            if (*left && *right
+                && (*right)->kind == ValueKind::Integer
+                && ((*left)->kind == ValueKind::StructurePointer
+                    || (*left)->kind == ValueKind::Integer)) {
+                const std::uint64_t base =
+                    static_cast<std::uint64_t>((*left)->value);
+                const std::uint64_t delta =
+                    static_cast<std::uint64_t>((*right)->value);
+                const std::uint64_t computed =
+                    instruction.opcode == Opcode::Subtract
+                    ? base - delta
+                    : base + delta;
+                result = AbstractValue{
+                    (*left)->kind,
+                    signed_to_width(computed,
+                                    std::max(1, instruction.destination.byte_width)),
+                    instruction.destination.byte_width};
+            }
+            break;
+        }
+        case Opcode::StoreMemory: {
+            auto value = operand_value(state, instruction.left);
+            if (!value)
+                return std::unexpected(value.error());
+            auto destination = operand_value(state, instruction.destination);
+            if (!destination)
+                return std::unexpected(destination.error());
+            if (instruction.left.byte_width
+                    == static_cast<int>(pointer_width)
+                && *value && (*value)->kind == ValueKind::Integer
+                && *destination
+                && (*destination)->kind == ValueKind::StructurePointer) {
+                const auto table = std::bit_cast<ida::Address>((*value)->value);
+                if (candidate_tables.contains(table)) {
+                    ConstructorStore store;
+                    store.instruction_address = instruction.address;
+                    store.vtable_address = table;
+                    store.object_offset = (*destination)->value;
+                    if (std::find(stores.begin(), stores.end(), store)
+                        == stores.end()) {
+                        stores.push_back(store);
+                    }
+                }
+            }
+            return std::optional<AbstractValue>{};
+        }
+        case Opcode::LoadMemory:
+        case Opcode::Call:
+        case Opcode::IndirectCall:
+            break;
+        case Opcode::Return:
+        case Opcode::NoOperation:
+            return std::optional<AbstractValue>{};
+        default:
+            break;
+        }
+        assign(state, instruction.destination, result);
+        return result;
+    }
+
+    ida::Result<bool> analyze(
+        const ida::decompiler::MicrocodeFunction& graph) {
+        if (graph.arguments.empty())
+            return false;
+        State initial;
+        auto injected = inject_value(
+            initial, graph.arguments[0].location,
+            AbstractValue{ValueKind::StructurePointer, 0, 0});
+        if (!injected)
+            return std::unexpected(injected.error());
+        const auto order = topological_order(graph);
+        if (order.empty())
+            return std::unexpected(ida::Error::not_found(
+                "Constructor graph has no nonempty blocks"));
+        std::map<int, State> end_states;
+        for (std::size_t index = 0; index < order.size(); ++index) {
+            const auto& block = graph.blocks[order[index]];
+            State state = index == 0
+                ? initial
+                : select_predecessor_state(block, end_states);
+            for (const auto& instruction : block.instructions) {
+                auto processed = process_instruction(state, instruction);
+                if (!processed)
+                    return std::unexpected(processed.error());
+            }
+            end_states[block.index] = std::move(state);
+        }
+        return true;
+    }
+};
+
+void append_recovered_fields(std::vector<RawAccess>& aggregate,
+                             const std::vector<RecoveredField>& fields,
+                             std::size_t pointer_width) {
+    for (const auto& field : fields) {
+        if (field.offset < static_cast<std::int64_t>(pointer_width))
+            continue;
+        auto existing = std::find_if(
+            aggregate.begin(), aggregate.end(), [&](const auto& current) {
+                return current.offset == field.offset;
+            });
+        if (existing == aggregate.end()) {
+            aggregate.push_back({field.offset, field.byte_width,
+                                 field.reads, field.writes, field.sites,
+                                 aggregate.size()});
+        } else {
+            existing->byte_width = std::min(existing->byte_width,
+                                             field.byte_width);
+            existing->reads += field.reads;
+            existing->writes += field.writes;
+            for (auto site : field.sites) {
+                if (std::find(existing->sites.begin(), existing->sites.end(), site)
+                    == existing->sites.end()) {
+                    existing->sites.push_back(site);
+                }
+            }
+        }
+    }
+}
+
+ida::Result<VtableDiscovery> discover_vtable_classes(
+    std::size_t maximum_call_depth) {
+    auto bitness = ida::database::address_bitness();
+    if (!bitness)
+        return std::unexpected(bitness.error());
+    const std::size_t pointer_width = static_cast<std::size_t>(*bitness / 8);
+    VtableDiscovery discovery;
+    auto candidates = scan_vtable_candidates(pointer_width, discovery);
+    if (!candidates)
+        return std::unexpected(candidates.error());
+
+    std::map<ida::Address, std::set<ida::Address>> function_candidates;
+    for (const auto& candidate : *candidates) {
+        auto references = ida::xref::data_refs_to(candidate.vtable_address);
+        if (!references)
+            return std::unexpected(references.error());
+        for (const auto& reference : *references) {
+            auto function = ida::function::at(reference.from);
+            if (function)
+                function_candidates[function->start()].insert(
+                    candidate.vtable_address);
+        }
+    }
+
+    std::map<ida::Address, ida::decompiler::MicrocodeFunction> graph_cache;
+    std::vector<ConstructorStore> stores;
+    for (const auto& [function_address, table_addresses] : function_candidates) {
+        auto graph = analyzed_graph(function_address);
+        if (!graph) {
+            ++discovery.graph_failures;
+            continue;
+        }
+        graph_cache.emplace(function_address, *graph);
+        ConstructorAnalyzer analyzer{table_addresses, pointer_width};
+        auto analyzed = analyzer.analyze(*graph);
+        if (!analyzed) {
+            ++discovery.graph_failures;
+            continue;
+        }
+        ++discovery.functions_analyzed;
+        if (!*analyzed) {
+            ++discovery.functions_without_argument_zero;
+            continue;
+        }
+        for (auto store : analyzer.stores) {
+            store.function_address = function_address;
+            stores.push_back(store);
+        }
+    }
+
+    std::map<ida::Address, std::set<ida::Address>> zero_tables_by_function;
+    for (const auto& store : stores) {
+        if (store.object_offset == 0)
+            zero_tables_by_function[store.function_address].insert(
+                store.vtable_address);
+        else
+            discovery.secondary_stores.push_back(store);
+    }
+
+    std::map<ida::Address, std::vector<ida::Address>> constructors_by_table;
+    for (const auto& [function_address, tables] : zero_tables_by_function) {
+        if (tables.size() != 1) {
+            discovery.ambiguous_constructors.push_back(function_address);
+            continue;
+        }
+        constructors_by_table[*tables.begin()].push_back(function_address);
+    }
+
+    for (auto& candidate : *candidates) {
+        auto constructors = constructors_by_table.find(candidate.vtable_address);
+        if (constructors == constructors_by_table.end()) {
+            ++discovery.tables_without_constructor;
+            continue;
+        }
+        candidate.constructors = constructors->second;
+        std::vector<RawAccess> aggregate;
+        for (ida::Address constructor : candidate.constructors) {
+            auto graph = graph_cache.find(constructor);
+            if (graph == graph_cache.end())
+                continue;
+            auto reconstruction = reconstruct(graph->second, 0,
+                                              maximum_call_depth);
+            if (!reconstruction) {
+                ++discovery.graph_failures;
+                continue;
+            }
+            append_recovered_fields(aggregate, reconstruction->fields,
+                                    pointer_width);
+        }
+        std::size_t negative = 0;
+        std::size_t conflicts = 0;
+        std::tie(candidate.fields, negative, conflicts)
+            = resolve_field_conflicts(std::move(aggregate));
+        discovery.classes.push_back(std::move(candidate));
+    }
+    std::sort(discovery.classes.begin(), discovery.classes.end(),
+              [](const auto& left, const auto& right) {
+                  return left.vtable_address < right.vtable_address;
+              });
+    return discovery;
+}
+
 ida::Result<ida::type::TypeInfo> member_type(int byte_width) {
     using TypeInfo = ida::type::TypeInfo;
     switch (byte_width) {
@@ -1961,6 +2437,354 @@ ida::Result<AllocatorApplySummary> apply_allocator_discovery(
     return summary;
 }
 
+std::string vtable_type_name(std::string_view prefix,
+                             ida::Address table_address) {
+    return format("%s_vtable_%llx", std::string(prefix).c_str(),
+                  static_cast<unsigned long long>(table_address));
+}
+
+std::string class_type_name(std::string_view prefix,
+                            ida::Address table_address) {
+    return format("%s_class_%llx", std::string(prefix).c_str(),
+                  static_cast<unsigned long long>(table_address));
+}
+
+ida::Result<ida::type::TypeInfo> ensure_semantic_struct(
+    std::string_view name,
+    bool is_cpp_object,
+    bool is_vftable,
+    std::size_t& created,
+    std::size_t& reused) {
+    auto existing = ida::type::TypeInfo::by_name(name);
+    ida::type::TypeInfo structure;
+    if (existing) {
+        if (!existing->is_struct()) {
+            return std::unexpected(ida::Error::conflict(
+                "Semantic UDT name is occupied by a non-struct",
+                std::string(name)));
+        }
+        structure = *existing;
+        ++reused;
+    } else if (existing.error().category == ida::ErrorCategory::NotFound) {
+        structure = ida::type::TypeInfo::create_struct();
+        ++created;
+    } else {
+        return std::unexpected(existing.error());
+    }
+    if (existing)
+        return structure;
+    auto semantic = structure.set_udt_semantics(is_cpp_object, is_vftable);
+    if (!semantic)
+        return std::unexpected(semantic.error());
+    auto saved = structure.save_as(name);
+    if (!saved)
+        return std::unexpected(saved.error());
+    return ida::type::TypeInfo::by_name(name);
+}
+
+ida::Result<ida::type::TypeInfo> generic_virtual_method_pointer() {
+    const auto object_pointer = ida::type::TypeInfo::pointer_to(
+        ida::type::TypeInfo::void_type());
+    auto function = ida::type::TypeInfo::function_type(
+        ida::type::TypeInfo::void_type(), {object_pointer});
+    if (!function)
+        return std::unexpected(function.error());
+    return ida::type::TypeInfo::pointer_to(*function);
+}
+
+ida::Status apply_this_prototype(
+    ida::Address function_address,
+    const ida::type::TypeInfo& class_pointer,
+    std::string_view class_name,
+    VtableApplySummary& summary) {
+    auto original = ida::type::retrieve(function_address);
+    if (!original) {
+        ++summary.prototypes_ineligible;
+        return ida::ok();
+    }
+    auto details = original->function_details();
+    if (!details || details->arguments.empty()) {
+        ++summary.prototypes_ineligible;
+        return ida::ok();
+    }
+    auto eligibility = argument_eligibility(details->arguments[0].type,
+                                            class_name);
+    if (!eligibility)
+        return std::unexpected(eligibility.error());
+    if (*eligibility == ArgumentEligibility::Ineligible) {
+        ++summary.prototypes_ineligible;
+        return ida::ok();
+    }
+
+    ida::type::TypeInfo updated = *original;
+    bool changed = false;
+    if (*eligibility == ArgumentEligibility::Eligible) {
+        auto typed = updated.with_function_argument_type(0, class_pointer);
+        if (!typed)
+            return std::unexpected(typed.error());
+        updated = std::move(*typed);
+        changed = true;
+    }
+    if (details->arguments[0].name != "this") {
+        auto named = updated.with_function_argument_name(0, "this");
+        if (!named)
+            return std::unexpected(named.error());
+        updated = std::move(*named);
+        changed = true;
+    }
+    if (!changed) {
+        ++summary.prototypes_already_typed;
+        return ida::ok();
+    }
+    auto applied = updated.apply(function_address);
+    if (!applied)
+        return std::unexpected(applied.error());
+    auto dirty = ida::decompiler::mark_dirty(function_address, false);
+    if (!dirty)
+        return std::unexpected(dirty.error());
+    ++summary.prototypes_changed;
+    return ida::ok();
+}
+
+ida::Result<bool> populate_class_type(
+    const VtableClass& candidate,
+    std::string_view class_name,
+    const ida::type::TypeInfo& vtable_type,
+    VtableApplySummary& summary) {
+    auto class_type = ensure_semantic_struct(
+        class_name, true, false,
+        summary.class_types_created, summary.class_types_reused);
+    if (!class_type)
+        return std::unexpected(class_type.error());
+    const auto vtable_pointer = ida::type::TypeInfo::pointer_to(vtable_type);
+    auto members = class_type->members();
+    if (!members)
+        return std::unexpected(members.error());
+
+    std::vector<std::tuple<std::size_t, std::size_t,
+                           ida::type::TypeInfo>> occupied;
+    bool has_vtable = false;
+    for (const auto& member : *members) {
+        const std::size_t width = std::max<std::size_t>(
+            1, std::max(member.storage_byte_width,
+                        (member.bit_size + 7) / 8));
+        occupied.emplace_back(member.byte_offset, width, member.type);
+        if (member.byte_offset != 0)
+            continue;
+        auto matches = same_type(member.type, vtable_pointer);
+        if (!matches)
+            return std::unexpected(matches.error());
+        if (!*matches) {
+            ++summary.members_skipped;
+            return false;
+        }
+        has_vtable = true;
+        ++summary.class_members_reused;
+    }
+    if (!has_vtable) {
+        auto added = class_type->add_member("__vftable", vtable_pointer, 0);
+        if (!added)
+            return std::unexpected(added.error());
+        occupied.emplace_back(0, vtable_pointer.size().value_or(1),
+                              vtable_pointer);
+        ++summary.class_members_added;
+    }
+
+    for (const auto& field : candidate.fields) {
+        const auto offset = static_cast<std::size_t>(field.offset);
+        const auto width = static_cast<std::size_t>(field.byte_width);
+        auto type = member_type(field.byte_width);
+        if (!type)
+            return std::unexpected(type.error());
+        auto exact = std::find_if(occupied.begin(), occupied.end(),
+                                  [&](const auto& range) {
+                                      return std::get<0>(range) == offset;
+                                  });
+        if (exact != occupied.end()) {
+            auto matches = same_type(std::get<2>(*exact), *type);
+            if (!matches)
+                return std::unexpected(matches.error());
+            if (*matches)
+                ++summary.class_members_reused;
+            else
+                ++summary.members_skipped;
+            continue;
+        }
+        if (std::any_of(occupied.begin(), occupied.end(),
+                        [&](const auto& range) {
+                            return ranges_overlap(offset, width,
+                                                  std::get<0>(range),
+                                                  std::get<1>(range));
+                        })) {
+            ++summary.members_skipped;
+            continue;
+        }
+        auto added = class_type->add_member(
+            format("field_%08zx", offset), *type, offset);
+        if (!added)
+            return std::unexpected(added.error());
+        occupied.emplace_back(offset, width, *type);
+        ++summary.class_members_added;
+    }
+    auto semantic = class_type->set_udt_semantics(true, false);
+    if (!semantic)
+        return std::unexpected(semantic.error());
+    auto saved = class_type->save_as(class_name);
+    if (!saved)
+        return std::unexpected(saved.error());
+    return true;
+}
+
+ida::Result<ida::type::TypeInfo> method_pointer_type(
+    const VtableMember& member) {
+    auto type = ida::type::retrieve(member.function_address);
+    if (!type)
+        return generic_virtual_method_pointer();
+    if (type->is_function())
+        return ida::type::TypeInfo::pointer_to(*type);
+    if (type->is_pointer()) {
+        auto pointee = type->pointee_type();
+        if (pointee && pointee->is_function())
+            return *type;
+    }
+    return generic_virtual_method_pointer();
+}
+
+ida::Result<bool> vtable_layout_compatible(
+    const VtableClass& candidate,
+    const ida::type::TypeInfo& vtable,
+    VtableApplySummary& summary) {
+    auto bitness = ida::database::address_bitness();
+    if (!bitness)
+        return std::unexpected(bitness.error());
+    const std::size_t pointer_width = static_cast<std::size_t>(*bitness / 8);
+    auto members = vtable.members();
+    if (!members)
+        return std::unexpected(members.error());
+    for (const auto& member : *members) {
+        if (member.byte_offset % pointer_width != 0) {
+            ++summary.members_skipped;
+            return false;
+        }
+        const std::size_t index = member.byte_offset / pointer_width;
+        if (index >= candidate.methods.size()) {
+            ++summary.members_skipped;
+            return false;
+        }
+        auto expected = method_pointer_type(candidate.methods[index]);
+        if (!expected)
+            return std::unexpected(expected.error());
+        auto matches = same_type(member.type, *expected);
+        if (!matches)
+            return std::unexpected(matches.error());
+        if (!*matches) {
+            ++summary.members_skipped;
+            return false;
+        }
+    }
+    return true;
+}
+
+ida::Status populate_vtable_type(
+    const VtableClass& candidate,
+    std::string_view vtable_name,
+    VtableApplySummary& summary) {
+    auto vtable = ida::type::TypeInfo::by_name(vtable_name);
+    if (!vtable)
+        return std::unexpected(vtable.error());
+    auto bitness = ida::database::address_bitness();
+    if (!bitness)
+        return std::unexpected(bitness.error());
+    const std::size_t pointer_width = static_cast<std::size_t>(*bitness / 8);
+    auto members = vtable->members();
+    if (!members)
+        return std::unexpected(members.error());
+    std::set<std::size_t> occupied;
+    for (const auto& member : *members)
+        occupied.insert(member.byte_offset);
+
+    for (std::size_t index = 0; index < candidate.methods.size(); ++index) {
+        const std::size_t offset = index * pointer_width;
+        if (occupied.contains(offset)) {
+            ++summary.method_members_reused;
+            continue;
+        }
+        auto type = method_pointer_type(candidate.methods[index]);
+        if (!type)
+            return std::unexpected(type.error());
+        auto added = vtable->add_member(
+            format("method_%08zx", offset), *type, offset);
+        if (!added)
+            return std::unexpected(added.error());
+        occupied.insert(offset);
+        ++summary.method_members_added;
+    }
+    auto semantic = vtable->set_udt_semantics(false, true);
+    if (!semantic)
+        return std::unexpected(semantic.error());
+    auto saved = vtable->save_as(vtable_name);
+    if (!saved)
+        return std::unexpected(saved.error());
+    auto named = ida::type::TypeInfo::by_name(vtable_name);
+    if (!named)
+        return std::unexpected(named.error());
+    auto applied = named->apply(candidate.vtable_address);
+    if (!applied)
+        return std::unexpected(applied.error());
+    ++summary.vtables_applied;
+    return ida::ok();
+}
+
+ida::Result<VtableApplySummary> apply_vtable_discovery(
+    const VtableDiscovery& discovery,
+    std::string_view prefix) {
+    VtableApplySummary summary;
+    for (const auto& candidate : discovery.classes) {
+        const auto vtable_name = vtable_type_name(prefix,
+                                                  candidate.vtable_address);
+        const auto class_name = class_type_name(prefix,
+                                                candidate.vtable_address);
+        auto vtable = ensure_semantic_struct(
+            vtable_name, false, true,
+            summary.vtable_types_created, summary.vtable_types_reused);
+        if (!vtable)
+            return std::unexpected(vtable.error());
+        auto compatible = vtable_layout_compatible(candidate, *vtable, summary);
+        if (!compatible)
+            return std::unexpected(compatible.error());
+        if (!*compatible)
+            continue;
+        auto class_ready = populate_class_type(candidate, class_name,
+                                               *vtable, summary);
+        if (!class_ready)
+            return std::unexpected(class_ready.error());
+        if (!*class_ready)
+            continue;
+        auto class_type = ida::type::TypeInfo::by_name(class_name);
+        if (!class_type)
+            return std::unexpected(class_type.error());
+        const auto class_pointer = ida::type::TypeInfo::pointer_to(*class_type);
+        std::set<ida::Address> prototypes(candidate.constructors.begin(),
+                                          candidate.constructors.end());
+        for (const auto& method : candidate.methods) {
+            if (!method.imported)
+                prototypes.insert(method.function_address);
+        }
+        for (ida::Address function_address : prototypes) {
+            auto applied = apply_this_prototype(function_address,
+                                                class_pointer,
+                                                class_name,
+                                                summary);
+            if (!applied)
+                return std::unexpected(applied.error());
+        }
+        auto populated = populate_vtable_type(candidate, vtable_name, summary);
+        if (!populated)
+            return std::unexpected(populated.error());
+    }
+    return summary;
+}
+
 std::string default_structure_name(ida::Address function_address,
                                    std::size_t argument_index) {
     return format("symless_%llx_arg%zu",
@@ -2136,6 +2960,158 @@ std::string allocator_report_text(
     return report;
 }
 
+std::string vtable_report_text(
+    const VtableAnalysis& analysis,
+    std::string_view prefix,
+    const VtableApplySummary* applied = nullptr) {
+    const auto& discovery = analysis.discovery;
+    std::string report = format(
+        "Symless constructor and vtable root discovery\n"
+        "Type prefix: %s\nMaximum call depth: %zu\n"
+        "Scan heads examined: %zu\nCandidate tables: %zu\n"
+        "Accepted class roots: %zu\nAll-import tables: %zu\n"
+        "Referenced-slot stops: %zu\nTables without constructor: %zu\n"
+        "Functions analyzed: %zu\nFunctions without argument zero: %zu\n"
+        "Graph failures: %zu\nAmbiguous constructors: %zu\n"
+        "Secondary stores: %zu\n",
+        std::string(prefix).c_str(),
+        analysis.maximum_call_depth,
+        discovery.candidates_examined,
+        discovery.candidate_tables,
+        discovery.classes.size(),
+        discovery.all_import_tables,
+        discovery.referenced_slot_stops,
+        discovery.tables_without_constructor,
+        discovery.functions_analyzed,
+        discovery.functions_without_argument_zero,
+        discovery.graph_failures,
+        discovery.ambiguous_constructors.size(),
+        discovery.secondary_stores.size());
+    for (const auto& candidate : discovery.classes) {
+        report += format(
+            "  class vtable=0x%llx methods=%zu constructors=%zu fields=%zu "
+            "class_type=%s vtable_type=%s\n",
+            static_cast<unsigned long long>(candidate.vtable_address),
+            candidate.methods.size(), candidate.constructors.size(),
+            candidate.fields.size(),
+            class_type_name(prefix, candidate.vtable_address).c_str(),
+            vtable_type_name(prefix, candidate.vtable_address).c_str());
+        for (ida::Address constructor : candidate.constructors) {
+            report += format("    constructor 0x%llx argument=0 offset=0\n",
+                             static_cast<unsigned long long>(constructor));
+        }
+        for (std::size_t index = 0; index < candidate.methods.size(); ++index) {
+            report += format("    method[%zu] 0x%llx imported=%s\n",
+                             index,
+                             static_cast<unsigned long long>(
+                                 candidate.methods[index].function_address),
+                             candidate.methods[index].imported ? "yes" : "no");
+        }
+        for (const auto& field : candidate.fields) {
+            report += format(
+                "    +0x%llx width=%d B reads=%zu writes=%zu\n",
+                static_cast<unsigned long long>(field.offset),
+                field.byte_width, field.reads, field.writes);
+        }
+    }
+    for (ida::Address function_address : discovery.ambiguous_constructors) {
+        report += format("  ambiguous constructor 0x%llx\n",
+                         static_cast<unsigned long long>(function_address));
+    }
+    for (const auto& store : discovery.secondary_stores) {
+        report += format(
+            "  secondary function=0x%llx site=0x%llx vtable=0x%llx "
+            "offset=%+lld\n",
+            static_cast<unsigned long long>(store.function_address),
+            static_cast<unsigned long long>(store.instruction_address),
+            static_cast<unsigned long long>(store.vtable_address),
+            static_cast<long long>(store.object_offset));
+    }
+    if (applied != nullptr) {
+        report += format(
+            "Vtable types created: %zu\nVtable types reused: %zu\n"
+            "Class types created: %zu\nClass types reused: %zu\n"
+            "Method members added: %zu\nMethod members reused: %zu\n"
+            "Class members added: %zu\nClass members reused: %zu\n"
+            "Members skipped: %zu\nPrototypes changed: %zu\n"
+            "Prototypes already typed: %zu\nPrototypes ineligible: %zu\n"
+            "Vtables applied: %zu\n",
+            applied->vtable_types_created,
+            applied->vtable_types_reused,
+            applied->class_types_created,
+            applied->class_types_reused,
+            applied->method_members_added,
+            applied->method_members_reused,
+            applied->class_members_added,
+            applied->class_members_reused,
+            applied->members_skipped,
+            applied->prototypes_changed,
+            applied->prototypes_already_typed,
+            applied->prototypes_ineligible,
+            applied->vtables_applied);
+    }
+    return report;
+}
+
+ida::Result<VtableAnalysis> analyze_vtable_classes() {
+    auto max_depth = ida::ui::ask_long(
+        "Maximum resolved direct-call depth from each constructor", 8);
+    if (!max_depth)
+        return std::unexpected(max_depth.error());
+    if (*max_depth < 0 || *max_depth > 100) {
+        return std::unexpected(ida::Error::validation(
+            "Maximum call depth must be in 0..100"));
+    }
+    VtableAnalysis analysis;
+    analysis.maximum_call_depth = static_cast<std::size_t>(*max_depth);
+    auto discovery = discover_vtable_classes(analysis.maximum_call_depth);
+    if (!discovery)
+        return std::unexpected(discovery.error());
+    analysis.discovery = std::move(*discovery);
+    return analysis;
+}
+
+ida::Status run_vtable_report_action() {
+    auto analysis = analyze_vtable_classes();
+    if (!analysis)
+        return std::unexpected(analysis.error());
+    const auto report = vtable_report_text(*analysis, "symless");
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
+}
+
+ida::Status run_vtable_apply_action() {
+    auto analysis = analyze_vtable_classes();
+    if (!analysis)
+        return std::unexpected(analysis.error());
+    auto prefix = ida::ui::ask_string("Class/vtable type name prefix",
+                                      "symless");
+    if (!prefix)
+        return std::unexpected(prefix.error());
+    if (prefix->empty()) {
+        return std::unexpected(ida::Error::validation(
+            "Class/vtable type prefix must not be empty"));
+    }
+    const auto preview = vtable_report_text(*analysis, *prefix);
+    auto confirmed = ida::ui::ask_yn(
+        preview
+            + "\nCreate/reuse these semantic UDTs, apply vtable types, and type eligible this arguments?",
+        false);
+    if (!confirmed)
+        return std::unexpected(confirmed.error());
+    if (!*confirmed)
+        return ida::ok();
+    auto summary = apply_vtable_discovery(analysis->discovery, *prefix);
+    if (!summary)
+        return std::unexpected(summary.error());
+    ida::ui::refresh_all_views();
+    const auto report = vtable_report_text(*analysis, *prefix, &*summary);
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
+}
+
 ida::Result<AllocatorAnalysis> analyze_configured_allocators() {
     auto text = ida::ui::ask_text(
         "Allocator specifications, one per line\n"
@@ -2301,8 +3277,8 @@ public:
         return {
             .name = "Symless Structure Reconstruction Port",
             .hotkey = "Ctrl-Alt-Shift-S",
-            .comment = "Reconstruct argument and fixed-size allocator-root structures",
-            .help = "Depth-bounded Symless call/return and allocator-wrapper adaptation over owned idax microcode graphs.",
+            .comment = "Reconstruct argument, allocator-root, and verified constructor/vtable structures",
+            .help = "Depth-bounded Symless call/return, allocator-wrapper, and exact constructor/vtable adaptation over owned idax values.",
         };
     }
 
@@ -2331,6 +3307,20 @@ public:
                              "Symless: Apply Allocator Roots",
                              "Create allocation UDTs and enrich generic allocator prototypes",
                              [] { return run_allocator_apply_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kVtableReportAction,
+                             "Symless: Report Constructor/Vtable Roots",
+                             "Discover vtables with exact argument-zero constructor stores",
+                             [] { return run_vtable_report_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kVtableApplyAction,
+                             "Symless: Apply Constructor/Vtable Roots",
+                             "Materialize semantic class/vtable UDTs and type eligible this arguments",
+                             [] { return run_vtable_apply_action(); })) {
             unregister_all();
             return false;
         }
