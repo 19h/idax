@@ -31,6 +31,8 @@ namespace {
 constexpr std::string_view kHeader = "IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg";
 constexpr std::string_view kInstructionMetadataHeader =
     "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
+constexpr std::string_view kPseudocodeCommentHeader =
+    "IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location";
 constexpr std::string_view kExportAction = "idax:diaphora:export_exact";
 constexpr std::string_view kCompareAction = "idax:diaphora:compare_exact";
 constexpr std::string_view kApplyAction = "idax:diaphora:apply_exact";
@@ -40,6 +42,12 @@ constexpr std::string_view kCompareInstructionMetadataAction =
     "idax:diaphora:compare_instruction_metadata";
 constexpr std::string_view kApplyInstructionMetadataAction =
     "idax:diaphora:apply_instruction_metadata";
+constexpr std::string_view kExportPseudocodeCommentsAction =
+    "idax:diaphora:export_pseudocode_comments";
+constexpr std::string_view kComparePseudocodeCommentsAction =
+    "idax:diaphora:compare_pseudocode_comments";
+constexpr std::string_view kApplyPseudocodeCommentsAction =
+    "idax:diaphora:apply_pseudocode_comments";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
 
 class Md5 final {
@@ -249,6 +257,70 @@ struct InstructionMetadataApplySummary {
     std::size_t forced_operands{0};
     std::size_t preserved{0};
     std::size_t failures{0};
+};
+
+enum class PseudocodePositionKind : std::uint8_t {
+    Default,
+    Argument,
+    ParenthesisOpen,
+    Assembly,
+    ElseLine,
+    DoLine,
+    Semicolon,
+    OpenBrace,
+    CloseBrace,
+    ParenthesisClose,
+    LabelColon,
+    BlockBefore,
+    BlockAfter,
+    TryLine,
+    SwitchCase,
+};
+
+struct PseudocodePosition {
+    PseudocodePositionKind kind{PseudocodePositionKind::Default};
+    std::int64_t detail{0};
+
+    bool operator==(const PseudocodePosition&) const = default;
+};
+
+struct PseudocodeCommentRecord {
+    std::size_t function_ordinal{0};
+    std::size_t instruction_ordinal{0};
+    std::int64_t function_offset{0};
+    std::size_t size{0};
+    std::string full_md5;
+    std::string relocation_md5;
+    std::string mnemonic;
+    PseudocodePosition position;
+    std::string text;
+
+    bool operator==(const PseudocodeCommentRecord&) const = default;
+};
+
+struct PseudocodeCommentManifest {
+    std::vector<FunctionRecord> functions;
+    std::vector<PseudocodeCommentRecord> comments;
+};
+
+struct EligiblePseudocodeComment {
+    std::size_t comment_index{0};
+    ida::Address function_address{ida::BadAddress};
+    ida::Address comment_address{ida::BadAddress};
+};
+
+struct PseudocodeCommentComparison {
+    MatchSummary functions;
+    std::vector<EligiblePseudocodeComment> eligible;
+    std::size_t unmatched_functions{0};
+    std::size_t guard_failures{0};
+};
+
+struct PseudocodeCommentApplySummary {
+    std::size_t comments{0};
+    std::size_t preserved{0};
+    std::size_t failures{0};
+    std::size_t saved_functions{0};
 };
 
 struct InstructionFingerprint {
@@ -613,6 +685,251 @@ ida::Result<InstructionMetadataManifest> parse_instruction_metadata_manifest(
     return manifest;
 }
 
+std::string_view pseudocode_position_name(
+    PseudocodePositionKind kind) {
+    using Kind = PseudocodePositionKind;
+    switch (kind) {
+    case Kind::Default: return "default";
+    case Kind::Argument: return "argument";
+    case Kind::ParenthesisOpen: return "parenthesis-open";
+    case Kind::Assembly: return "assembly";
+    case Kind::ElseLine: return "else-line";
+    case Kind::DoLine: return "do-line";
+    case Kind::Semicolon: return "semicolon";
+    case Kind::OpenBrace: return "open-brace";
+    case Kind::CloseBrace: return "close-brace";
+    case Kind::ParenthesisClose: return "parenthesis-close";
+    case Kind::LabelColon: return "label-colon";
+    case Kind::BlockBefore: return "block-before";
+    case Kind::BlockAfter: return "block-after";
+    case Kind::TryLine: return "try-line";
+    case Kind::SwitchCase: return "switch-case";
+    }
+    return "unknown";
+}
+
+std::int64_t pseudocode_position_detail(
+    const PseudocodePosition& position) {
+    return position.detail;
+}
+
+ida::Result<PseudocodePosition> parse_pseudocode_position(
+    std::string_view name, std::int64_t detail) {
+    using Kind = PseudocodePositionKind;
+    auto simple = [&](std::string_view expected,
+                      Kind kind) -> std::optional<PseudocodePosition> {
+        if (name == expected && detail == 0)
+            return PseudocodePosition{kind, 0};
+        return std::nullopt;
+    };
+    if (auto value = simple("default", Kind::Default)) return *value;
+    if (auto value = simple("parenthesis-open", Kind::ParenthesisOpen)) return *value;
+    if (auto value = simple("assembly", Kind::Assembly)) return *value;
+    if (auto value = simple("else-line", Kind::ElseLine)) return *value;
+    if (auto value = simple("do-line", Kind::DoLine)) return *value;
+    if (auto value = simple("semicolon", Kind::Semicolon)) return *value;
+    if (auto value = simple("open-brace", Kind::OpenBrace)) return *value;
+    if (auto value = simple("close-brace", Kind::CloseBrace)) return *value;
+    if (auto value = simple("parenthesis-close", Kind::ParenthesisClose)) return *value;
+    if (auto value = simple("label-colon", Kind::LabelColon)) return *value;
+    if (auto value = simple("block-before", Kind::BlockBefore)) return *value;
+    if (auto value = simple("block-after", Kind::BlockAfter)) return *value;
+    if (auto value = simple("try-line", Kind::TryLine)) return *value;
+    if (name == "argument") {
+        if (detail < 0 || detail > 63)
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment argument index must be in [0, 63]"));
+        return PseudocodePosition{Kind::Argument, detail};
+    }
+    if (name == "switch-case") {
+        constexpr std::int64_t maximum = 0x1fffffff;
+        if (detail < -maximum || detail > maximum)
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode switch-case comment value exceeds the supported range"));
+        return PseudocodePosition{Kind::SwitchCase, detail};
+    }
+    if (name == "default" || name == "parenthesis-open" || name == "assembly"
+        || name == "else-line" || name == "do-line" || name == "semicolon"
+        || name == "open-brace" || name == "close-brace"
+        || name == "parenthesis-close" || name == "label-colon"
+        || name == "block-before" || name == "block-after" || name == "try-line") {
+        return std::unexpected(ida::Error::validation(
+            "Simple pseudocode comment position detail must be zero"));
+    }
+    return std::unexpected(ida::Error::validation(
+        "Unknown pseudocode comment position", std::string(name)));
+}
+
+ida::Result<PseudocodePosition> to_manifest_position(
+    const ida::decompiler::CommentPosition& position) {
+    using Public = ida::decompiler::CommentPositionKind;
+    using Kind = PseudocodePositionKind;
+    Kind kind = Kind::Default;
+    switch (position.kind()) {
+    case Public::Default: kind = Kind::Default; break;
+    case Public::Argument: kind = Kind::Argument; break;
+    case Public::ParenthesisOpen: kind = Kind::ParenthesisOpen; break;
+    case Public::Assembly: kind = Kind::Assembly; break;
+    case Public::ElseLine: kind = Kind::ElseLine; break;
+    case Public::DoLine: kind = Kind::DoLine; break;
+    case Public::Semicolon: kind = Kind::Semicolon; break;
+    case Public::OpenBrace: kind = Kind::OpenBrace; break;
+    case Public::CloseBrace: kind = Kind::CloseBrace; break;
+    case Public::ParenthesisClose: kind = Kind::ParenthesisClose; break;
+    case Public::LabelColon: kind = Kind::LabelColon; break;
+    case Public::BlockBefore: kind = Kind::BlockBefore; break;
+    case Public::BlockAfter: kind = Kind::BlockAfter; break;
+    case Public::TryLine: kind = Kind::TryLine; break;
+    case Public::SwitchCase: kind = Kind::SwitchCase; break;
+    }
+    std::int64_t detail = 0;
+    if (const auto index = position.argument_index())
+        detail = static_cast<std::int64_t>(*index);
+    else if (const auto value = position.switch_case_value())
+        detail = *value;
+    return parse_pseudocode_position(pseudocode_position_name(kind), detail);
+}
+
+ida::Result<ida::decompiler::CommentPosition> to_public_position(
+    const PseudocodePosition& position) {
+    using Kind = PseudocodePositionKind;
+    using Public = ida::decompiler::CommentPosition;
+    switch (position.kind) {
+    case Kind::Default: return Public::Default;
+    case Kind::Argument: return Public::argument(
+        static_cast<std::size_t>(position.detail));
+    case Kind::ParenthesisOpen: return Public::ParenthesisOpen;
+    case Kind::Assembly: return Public::Assembly;
+    case Kind::ElseLine: return Public::ElseLine;
+    case Kind::DoLine: return Public::DoLine;
+    case Kind::Semicolon: return Public::Semicolon;
+    case Kind::OpenBrace: return Public::OpenBrace;
+    case Kind::CloseBrace: return Public::CloseBrace;
+    case Kind::ParenthesisClose: return Public::ParenthesisClose;
+    case Kind::LabelColon: return Public::LabelColon;
+    case Kind::BlockBefore: return Public::BlockBefore;
+    case Kind::BlockAfter: return Public::BlockAfter;
+    case Kind::TryLine: return Public::TryLine;
+    case Kind::SwitchCase: return Public::switch_case(position.detail);
+    }
+    return std::unexpected(ida::Error::internal(
+        "Unknown pseudocode comment position kind"));
+}
+
+std::string format_pseudocode_comment_record(
+    const PseudocodeCommentRecord& record) {
+    std::ostringstream output;
+    output << "P\t" << record.function_ordinal << '\t'
+           << record.instruction_ordinal << '\t' << record.function_offset << '\t'
+           << record.size << '\t' << record.full_md5 << '\t'
+           << record.relocation_md5 << '\t' << hex_encode(record.mnemonic) << '\t'
+           << pseudocode_position_name(record.position.kind) << '\t'
+           << pseudocode_position_detail(record.position) << '\t'
+           << hex_encode(record.text);
+    return output.str();
+}
+
+std::string format_pseudocode_comment_manifest(
+    const PseudocodeCommentManifest& manifest) {
+    std::string output(kPseudocodeCommentHeader);
+    output.push_back('\n');
+    for (const auto& function : manifest.functions) {
+        output += format_record(function);
+        output.push_back('\n');
+    }
+    for (const auto& comment : manifest.comments) {
+        output += format_pseudocode_comment_record(comment);
+        output.push_back('\n');
+    }
+    return output;
+}
+
+ida::Result<PseudocodeCommentManifest> parse_pseudocode_comment_manifest(
+    std::string_view text) {
+    std::istringstream input{std::string(text)};
+    std::string line;
+    if (!std::getline(input, line) || line != kPseudocodeCommentHeader) {
+        return std::unexpected(ida::Error::validation(
+            "Unsupported Diaphora pseudocode comment manifest header"));
+    }
+
+    std::string function_text(kHeader);
+    function_text.push_back('\n');
+    PseudocodeCommentManifest manifest;
+    std::unordered_set<std::string> comment_keys;
+    while (std::getline(input, line)) {
+        if (line.empty())
+            continue;
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+        const auto fields = split_tabs(line);
+        if (!fields.empty() && fields[0] == "F") {
+            function_text += line;
+            function_text.push_back('\n');
+            continue;
+        }
+        if (fields.size() != 11 || fields[0] != "P") {
+            return std::unexpected(ida::Error::validation(
+                "Malformed Diaphora pseudocode comment record"));
+        }
+
+        PseudocodeCommentRecord record;
+        std::int64_t position_detail = 0;
+        if (!parse_integer(fields[1], record.function_ordinal)
+            || !parse_integer(fields[2], record.instruction_ordinal)
+            || !parse_integer(fields[3], record.function_offset)
+            || !parse_integer(fields[4], record.size) || record.size == 0
+            || !parse_integer(fields[9], position_detail)) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid pseudocode comment numeric field"));
+        }
+        auto full_md5 = normalize_md5(fields[5]);
+        auto relocation_md5 = normalize_md5(fields[6]);
+        auto mnemonic = hex_decode(fields[7]);
+        auto position = parse_pseudocode_position(fields[8], position_detail);
+        auto comment = hex_decode(fields[10]);
+        if (!full_md5 || !relocation_md5 || !mnemonic || !position || !comment) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid pseudocode comment hash, position, or encoded field"));
+        }
+        if (mnemonic->find('\0') != std::string::npos
+            || comment->empty() || comment->find('\0') != std::string::npos) {
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment text is empty or contains NUL"));
+        }
+        const std::string record_key = std::to_string(record.function_ordinal)
+            + ":" + std::to_string(record.instruction_ordinal)
+            + ":" + std::string(fields[8]) + ":" + std::to_string(position_detail);
+        if (!comment_keys.insert(record_key).second) {
+            return std::unexpected(ida::Error::validation(
+                "Duplicate pseudocode comment location record"));
+        }
+        record.full_md5 = std::move(*full_md5);
+        record.relocation_md5 = std::move(*relocation_md5);
+        record.mnemonic = std::move(*mnemonic);
+        record.position = std::move(*position);
+        record.text = std::move(*comment);
+        manifest.comments.push_back(std::move(record));
+    }
+
+    auto functions = parse_manifest(function_text);
+    if (!functions)
+        return std::unexpected(functions.error());
+    manifest.functions = std::move(*functions);
+    std::unordered_set<std::size_t> ordinals;
+    for (const auto& function : manifest.functions) {
+        if (!ordinals.insert(function.ordinal).second)
+            return std::unexpected(ida::Error::validation("Duplicate function ordinal"));
+    }
+    for (const auto& comment : manifest.comments) {
+        if (!ordinals.contains(comment.function_ordinal)) {
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment references an unknown function"));
+        }
+    }
+    return manifest;
+}
+
 ida::Result<std::string> read_text_file(std::string_view path) {
     std::ifstream input(std::string(path), std::ios::binary);
     if (!input)
@@ -969,6 +1286,70 @@ ida::Result<InstructionMetadataManifest> extract_instruction_metadata_manifest()
     return manifest;
 }
 
+ida::Result<PseudocodeCommentManifest> extract_pseudocode_comment_manifest() {
+    auto available = ida::decompiler::available();
+    if (!available)
+        return std::unexpected(available.error());
+    if (!*available)
+        return std::unexpected(ida::Error::unsupported(
+            "Hex-Rays decompiler is unavailable"));
+
+    auto functions = extract_manifest();
+    if (!functions)
+        return std::unexpected(functions.error());
+    PseudocodeCommentManifest manifest;
+    manifest.functions = std::move(*functions);
+
+    for (const auto& function : manifest.functions) {
+        auto addresses = ida::function::code_addresses(function.address);
+        if (!addresses)
+            return std::unexpected(addresses.error());
+        std::sort(addresses->begin(), addresses->end());
+        std::unordered_map<ida::Address, std::size_t> ordinal_by_address;
+        ordinal_by_address.reserve(addresses->size());
+        for (std::size_t index = 0; index < addresses->size(); ++index)
+            ordinal_by_address.emplace((*addresses)[index], index);
+
+        auto decompiled = ida::decompiler::decompile(function.address);
+        if (!decompiled)
+            continue;
+        auto comments = decompiled->comments();
+        if (!comments)
+            return std::unexpected(comments.error());
+        for (const auto& comment : *comments) {
+            const auto found = ordinal_by_address.find(comment.address);
+            if (found == ordinal_by_address.end())
+                continue;
+            if (comment.text.empty() || !valid_utf8(comment.text)
+                || comment.text.find('\0') != std::string::npos) {
+                return std::unexpected(ida::Error::validation(
+                    "Persisted pseudocode comment is empty or not valid UTF-8"));
+            }
+            auto offset = relative_offset(comment.address, function.address);
+            if (!offset)
+                return std::unexpected(offset.error());
+            auto fingerprint = extract_instruction_fingerprint(comment.address);
+            if (!fingerprint)
+                return std::unexpected(fingerprint.error());
+            auto position = to_manifest_position(comment.position);
+            if (!position)
+                return std::unexpected(position.error());
+            manifest.comments.push_back({
+                function.ordinal,
+                found->second,
+                *offset,
+                fingerprint->size,
+                std::move(fingerprint->full_md5),
+                std::move(fingerprint->relocation_md5),
+                std::move(fingerprint->mnemonic),
+                std::move(*position),
+                comment.text,
+            });
+        }
+    }
+    return manifest;
+}
+
 std::string key(std::initializer_list<std::string_view> fields) {
     std::string output;
     for (const auto field : fields) {
@@ -1237,6 +1618,147 @@ std::string instruction_metadata_report(
     return output.str();
 }
 
+ida::Result<PseudocodeCommentComparison> compare_pseudocode_comments(
+    const PseudocodeCommentManifest& baseline,
+    const std::vector<FunctionRecord>& current) {
+    PseudocodeCommentComparison comparison;
+    comparison.functions = compare_records(baseline.functions, current);
+
+    std::unordered_map<std::size_t, std::size_t> baseline_by_ordinal;
+    for (std::size_t index = 0; index < baseline.functions.size(); ++index)
+        baseline_by_ordinal.emplace(baseline.functions[index].ordinal, index);
+    std::unordered_map<std::size_t, std::size_t> current_by_baseline;
+    for (const auto& match : comparison.functions.matches)
+        current_by_baseline.emplace(match.baseline, match.current);
+    std::unordered_map<std::size_t, std::vector<ida::Address>> address_cache;
+
+    for (std::size_t comment_index = 0;
+         comment_index < baseline.comments.size(); ++comment_index) {
+        const auto& comment = baseline.comments[comment_index];
+        const auto baseline_found = baseline_by_ordinal.find(comment.function_ordinal);
+        if (baseline_found == baseline_by_ordinal.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const auto match_found = current_by_baseline.find(baseline_found->second);
+        if (match_found == current_by_baseline.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const std::size_t current_index = match_found->second;
+        const auto& target_function = current[current_index];
+        auto target_address = apply_relative_offset(
+            target_function.address, comment.function_offset);
+        if (!target_address) {
+            ++comparison.guard_failures;
+            continue;
+        }
+
+        auto cached = address_cache.find(current_index);
+        if (cached == address_cache.end()) {
+            auto addresses = ida::function::code_addresses(target_function.address);
+            if (!addresses)
+                return std::unexpected(addresses.error());
+            std::sort(addresses->begin(), addresses->end());
+            cached = address_cache.emplace(current_index, std::move(*addresses)).first;
+        }
+        if (comment.instruction_ordinal >= cached->second.size()
+            || cached->second[comment.instruction_ordinal] != *target_address) {
+            ++comparison.guard_failures;
+            continue;
+        }
+        auto fingerprint = extract_instruction_fingerprint(*target_address);
+        if (!fingerprint)
+            return std::unexpected(fingerprint.error());
+        if (fingerprint->size != comment.size
+            || fingerprint->mnemonic != comment.mnemonic
+            || fingerprint->relocation_md5 != comment.relocation_md5) {
+            ++comparison.guard_failures;
+            continue;
+        }
+        comparison.eligible.push_back({
+            comment_index, target_function.address, *target_address});
+    }
+    return comparison;
+}
+
+PseudocodeCommentApplySummary apply_pseudocode_comments(
+    const PseudocodeCommentManifest& baseline,
+    const PseudocodeCommentComparison& comparison) {
+    PseudocodeCommentApplySummary summary;
+    std::unordered_map<ida::Address,
+                       std::unique_ptr<ida::decompiler::DecompiledFunction>> functions;
+    std::unordered_set<ida::Address> failed_functions;
+    std::unordered_set<ida::Address> modified_functions;
+
+    for (const auto& eligible : comparison.eligible) {
+        if (failed_functions.contains(eligible.function_address)) {
+            ++summary.failures;
+            continue;
+        }
+        auto found = functions.find(eligible.function_address);
+        if (found == functions.end()) {
+            auto decompiled = ida::decompiler::decompile(eligible.function_address);
+            if (!decompiled) {
+                failed_functions.insert(eligible.function_address);
+                ++summary.failures;
+                continue;
+            }
+            found = functions.emplace(
+                eligible.function_address,
+                std::make_unique<ida::decompiler::DecompiledFunction>(
+                    std::move(*decompiled))).first;
+        }
+
+        const auto& source = baseline.comments[eligible.comment_index];
+        auto position = to_public_position(source.position);
+        if (!position) {
+            ++summary.failures;
+            continue;
+        }
+        auto existing = found->second->get_comment(
+            eligible.comment_address, *position);
+        if (!existing) {
+            ++summary.failures;
+        } else if (!existing->empty()) {
+            ++summary.preserved;
+        } else if (found->second->set_comment(
+                       eligible.comment_address, source.text, *position)) {
+            ++summary.comments;
+            modified_functions.insert(eligible.function_address);
+        } else {
+            ++summary.failures;
+        }
+    }
+
+    for (const auto function_address : modified_functions) {
+        const auto found = functions.find(function_address);
+        if (found != functions.end() && found->second->save_comments())
+            ++summary.saved_functions;
+        else
+            ++summary.failures;
+    }
+    return summary;
+}
+
+std::string pseudocode_comment_report(
+    const PseudocodeCommentManifest& baseline,
+    const std::vector<FunctionRecord>& current,
+    const PseudocodeCommentComparison& comparison) {
+    std::ostringstream output;
+    output << "Diaphora exact pseudocode comment comparison\n"
+           << "Baseline functions: " << baseline.functions.size() << "\n"
+           << "Current functions: " << current.size() << "\n"
+           << "Unique function matches: " << comparison.functions.matches.size() << "\n"
+           << "Ambiguous baseline functions: " << comparison.functions.ambiguous << "\n"
+           << "Unmatched baseline functions: " << comparison.functions.unmatched << "\n"
+           << "Pseudocode comment records: " << baseline.comments.size() << "\n"
+           << "Eligible comment records: " << comparison.eligible.size() << "\n"
+           << "Records with unmatched functions: " << comparison.unmatched_functions << "\n"
+           << "Instruction guard failures: " << comparison.guard_failures;
+    return output.str();
+}
+
 std::string comparison_report(const MatchSummary& summary,
                               std::size_t baseline_count,
                               std::size_t current_count) {
@@ -1372,6 +1894,62 @@ ida::Status compare_instruction_metadata_action(bool apply) {
     return ida::ok();
 }
 
+ida::Status export_pseudocode_comments_action() {
+    auto path = ida::ui::ask_file(true, "*.idax-diaphora-pseudo.tsv",
+                                  "Export Diaphora Pseudocode Comment Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto manifest = extract_pseudocode_comment_manifest();
+    if (!manifest)
+        return std::unexpected(manifest.error());
+    auto written = write_text_file(
+        *path, format_pseudocode_comment_manifest(*manifest));
+    if (!written)
+        return written;
+    std::ostringstream report;
+    report << "Exported " << manifest->comments.size()
+           << " exact pseudocode comment records for "
+           << manifest->functions.size() << " functions to " << *path;
+    ida::ui::message("[diaphora-exact:idax] " + report.str() + "\n");
+    ida::ui::info(report.str());
+    return ida::ok();
+}
+
+ida::Status compare_pseudocode_comments_action(bool apply) {
+    auto path = ida::ui::ask_file(false, "*.idax-diaphora-pseudo.tsv",
+                                  "Open Diaphora Pseudocode Comment Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto text = read_text_file(*path);
+    if (!text)
+        return std::unexpected(text.error());
+    auto baseline = parse_pseudocode_comment_manifest(*text);
+    if (!baseline)
+        return std::unexpected(baseline.error());
+    auto current = extract_manifest();
+    if (!current)
+        return std::unexpected(current.error());
+    auto comparison = compare_pseudocode_comments(*baseline, *current);
+    if (!comparison)
+        return std::unexpected(comparison.error());
+    std::string report = pseudocode_comment_report(
+        *baseline, *current, *comparison);
+    if (apply) {
+        const auto applied = apply_pseudocode_comments(*baseline, *comparison);
+        std::ostringstream addition;
+        addition << "\nPseudocode comments applied: " << applied.comments
+                 << "\nExisting locations preserved: " << applied.preserved
+                 << "\nFunctions with comments saved: " << applied.saved_functions
+                 << "\nMutation failures: " << applied.failures;
+        report += addition.str();
+        if (applied.comments > 0)
+            ida::ui::refresh_all_views();
+    }
+    ida::ui::message("[diaphora-exact:idax] " + report + "\n");
+    ida::ui::info(report);
+    return ida::ok();
+}
+
 #ifndef IDAX_DIAPHORA_EXACT_CORE_TEST
 
 class DiaphoraExactPortPlugin final : public ida::plugin::Plugin {
@@ -1383,8 +1961,9 @@ public:
             .comment = "Export and compare exact Diaphora-style function fingerprints",
             .help = "A bounded Diaphora 3.4.0 adaptation using a deterministic canonical manifest. "
                     "A byte-compatible companion manifest conservatively transfers instruction "
-                    "comments and forced operands. SQLite heuristics, pseudocode, microcode, "
-                    "and chooser parity are outside this artifact.",
+                    "comments, forced operands, and exact pseudocode comment locations. SQLite "
+                    "heuristics, pseudocode/microcode similarity, and chooser parity are outside "
+                    "this artifact.",
         };
     }
 
@@ -1409,7 +1988,19 @@ public:
             && add_action(kApplyInstructionMetadataAction,
                           "Diaphora Exact: Apply Instruction Metadata",
                           "Apply only absent instruction comments and forced operands",
-                          [] { return compare_instruction_metadata_action(true); });
+                          [] { return compare_instruction_metadata_action(true); })
+            && add_action(kExportPseudocodeCommentsAction,
+                          "Diaphora Exact: Export Pseudocode Comments",
+                          "Export all exact persisted pseudocode comment locations",
+                          [] { return export_pseudocode_comments_action(); })
+            && add_action(kComparePseudocodeCommentsAction,
+                          "Diaphora Exact: Compare Pseudocode Comments",
+                          "Validate exact pseudocode comments without changing the database",
+                          [] { return compare_pseudocode_comments_action(false); })
+            && add_action(kApplyPseudocodeCommentsAction,
+                          "Diaphora Exact: Apply Pseudocode Comments",
+                          "Apply only absent exact pseudocode comment locations",
+                          [] { return compare_pseudocode_comments_action(true); });
     }
 
     ida::Status run(std::size_t) override { return export_manifest_action(); }

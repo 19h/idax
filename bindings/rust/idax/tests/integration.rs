@@ -1993,6 +1993,82 @@ fn decompiler_decompile() {
     assert!(!decl.is_empty(), "declaration should not be empty");
 }
 
+fn decompiler_pseudocode_comments() {
+    require_db!();
+    if !decompiler::available().unwrap_or(false) {
+        eprintln!("  [skipped — decompiler not available]");
+        return;
+    }
+    let f = function::by_index(0).unwrap();
+    let df = decompiler::decompile(f.start()).unwrap();
+    let address = df.entry_address().unwrap();
+    let default = decompiler::CommentPosition::Default;
+    let semicolon = decompiler::CommentPosition::Semicolon;
+    let original_default = df.get_comment(address, default).unwrap();
+    let original_semicolon = df.get_comment(address, semicolon).unwrap();
+
+    assert!(
+        df.set_comment(address, "invalid\0comment", default)
+            .is_err()
+    );
+    assert!(
+        df.set_comment(address, "", decompiler::CommentPosition::Argument(64))
+            .is_err()
+    );
+    assert!(
+        df.set_comment(
+            address,
+            "",
+            decompiler::CommentPosition::SwitchCase(-0x2000_0000),
+        )
+        .is_err()
+    );
+    assert!(
+        df.set_comment(
+            address,
+            "",
+            decompiler::CommentPosition::SwitchCase(0x2000_0000),
+        )
+        .is_err()
+    );
+
+    df.set_comment(address, "rust_default_location", default)
+        .unwrap();
+    df.set_comment(address, "rust_semicolon_location", semicolon)
+        .unwrap();
+    df.save_comments().unwrap();
+    assert_eq!(
+        df.get_comment(address, default).unwrap(),
+        "rust_default_location"
+    );
+    assert_eq!(
+        df.get_comment(address, semicolon).unwrap(),
+        "rust_semicolon_location"
+    );
+
+    let comments = df.comments().unwrap();
+    assert!(comments.iter().any(|comment| {
+        comment.address == address
+            && comment.position == default
+            && comment.text == "rust_default_location"
+    }));
+    assert!(comments.iter().any(|comment| {
+        comment.address == address
+            && comment.position == semicolon
+            && comment.text == "rust_semicolon_location"
+    }));
+    let _ = df.has_orphan_comments().unwrap();
+
+    df.set_comment(address, &original_semicolon, semicolon)
+        .unwrap();
+    df.set_comment(address, &original_default, default).unwrap();
+    df.save_comments().unwrap();
+    let restored = df.comments().unwrap();
+    assert!(!restored.iter().any(|comment| {
+        comment.text == "rust_default_location" || comment.text == "rust_semicolon_location"
+    }));
+}
+
 fn decompiler_variables() {
     require_db!();
     if !decompiler::available().unwrap_or(false) {
@@ -2582,6 +2658,10 @@ static TEST_CASES: &[TestCase] = &[
     ("lines_addr_tag_roundtrip", lines_addr_tag_roundtrip),
     ("decompiler_available", decompiler_available),
     ("decompiler_decompile", decompiler_decompile),
+    (
+        "decompiler_pseudocode_comments",
+        decompiler_pseudocode_comments,
+    ),
     ("decompiler_variables", decompiler_variables),
     ("decompiler_microcode", decompiler_microcode),
     (

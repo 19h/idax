@@ -547,6 +547,21 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         );
     });
 
+    it('should document semantic pseudocode comment positions', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        for (const declaration of [
+            "{ kind: 'argument'; index: number }",
+            "{ kind: 'switchCase'; value: number }",
+            'comments(): PseudocodeComment[]',
+            'hasOrphanComments(): boolean',
+            'removeOrphanComments(): number',
+        ]) {
+            expect(dts).toContain(declaration);
+        }
+    });
+
     it('should reject a non-boolean call-analysis option before generation', () => {
         if (!idax) return;
         expect(() => idax.decompiler.generateMicrocode(

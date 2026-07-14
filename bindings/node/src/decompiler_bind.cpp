@@ -8,6 +8,7 @@
 #include <ida/type.hpp>
 
 #include <memory>
+#include <cmath>
 #include <unordered_map>
 #include <unordered_set>
 #include <mutex>
@@ -24,6 +25,123 @@ static const char* StorageToString(ida::decompiler::VariableStorage storage) {
         case ida::decompiler::VariableStorage::Stack:    return "stack";
     }
     return "unknown";
+}
+
+static const char* CommentPositionKindToString(
+    ida::decompiler::CommentPositionKind kind) {
+    using Kind = ida::decompiler::CommentPositionKind;
+    switch (kind) {
+    case Kind::Default: return "default";
+    case Kind::Argument: return "argument";
+    case Kind::ParenthesisOpen: return "parenthesisOpen";
+    case Kind::Assembly: return "assembly";
+    case Kind::ElseLine: return "elseLine";
+    case Kind::DoLine: return "doLine";
+    case Kind::Semicolon: return "semicolon";
+    case Kind::OpenBrace: return "openBrace";
+    case Kind::CloseBrace: return "closeBrace";
+    case Kind::ParenthesisClose: return "parenthesisClose";
+    case Kind::LabelColon: return "labelColon";
+    case Kind::BlockBefore: return "blockBefore";
+    case Kind::BlockAfter: return "blockAfter";
+    case Kind::TryLine: return "tryLine";
+    case Kind::SwitchCase: return "switchCase";
+    }
+    return "default";
+}
+
+static v8::Local<v8::Value> CommentPositionToJS(
+    const ida::decompiler::CommentPosition& position) {
+    if (const auto index = position.argument_index()) {
+        return ObjectBuilder()
+            .setStr("kind", "argument")
+            .setSize("index", *index)
+            .build();
+    }
+    if (const auto value = position.switch_case_value()) {
+        return ObjectBuilder()
+            .setStr("kind", "switchCase")
+            .set("value", Nan::New(static_cast<double>(*value)))
+            .build();
+    }
+    return FromString(CommentPositionKindToString(position.kind()));
+}
+
+static ida::Result<ida::decompiler::CommentPosition> CommentPositionFromJS(
+    v8::Local<v8::Value> value) {
+    using Position = ida::decompiler::CommentPosition;
+    if (value->IsUndefined() || value->IsNull())
+        return Position::Default;
+
+    std::string kind;
+    v8::Local<v8::Object> object;
+    if (value->IsString()) {
+        kind = ToString(value);
+    } else if (value->IsObject()) {
+        object = value.As<v8::Object>();
+        v8::Local<v8::Value> kind_value;
+        if (!Nan::Get(object, FromString("kind")).ToLocal(&kind_value)
+            || !kind_value->IsString()) {
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment position object requires a string kind"));
+        }
+        kind = ToString(kind_value);
+    } else {
+        return std::unexpected(ida::Error::validation(
+            "Pseudocode comment position must be a string or object"));
+    }
+
+    if (!object.IsEmpty() && kind != "argument" && kind != "switchCase") {
+        return std::unexpected(ida::Error::validation(
+            "Pseudocode comment position object kind must be argument or switchCase"));
+    }
+
+    auto simple = [&](std::string_view expected,
+                      const Position& position) -> std::optional<Position> {
+        if (kind == expected)
+            return position;
+        return std::nullopt;
+    };
+    if (auto result = simple("default", Position::Default)) return *result;
+    if (auto result = simple("parenthesisOpen", Position::ParenthesisOpen)) return *result;
+    if (auto result = simple("assembly", Position::Assembly)) return *result;
+    if (auto result = simple("elseLine", Position::ElseLine)) return *result;
+    if (auto result = simple("doLine", Position::DoLine)) return *result;
+    if (auto result = simple("semicolon", Position::Semicolon)) return *result;
+    if (auto result = simple("openBrace", Position::OpenBrace)) return *result;
+    if (auto result = simple("closeBrace", Position::CloseBrace)) return *result;
+    if (auto result = simple("parenthesisClose", Position::ParenthesisClose)) return *result;
+    if (auto result = simple("labelColon", Position::LabelColon)) return *result;
+    if (auto result = simple("blockBefore", Position::BlockBefore)) return *result;
+    if (auto result = simple("blockAfter", Position::BlockAfter)) return *result;
+    if (auto result = simple("tryLine", Position::TryLine)) return *result;
+
+    if (!object.IsEmpty()) {
+        const char* field = kind == "argument" ? "index" : "value";
+        v8::Local<v8::Value> detail;
+        if (!Nan::Get(object, FromString(field)).ToLocal(&detail)
+            || !detail->IsNumber()) {
+            return std::unexpected(ida::Error::validation(
+                std::string("Pseudocode comment ") + kind
+                + " position requires numeric " + field));
+        }
+        const double number = Nan::To<double>(detail).FromJust();
+        if (!std::isfinite(number) || std::trunc(number) != number)
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment position detail must be an integer"));
+        if (kind == "argument") {
+            if (number < 0 || number >= 64)
+                return std::unexpected(ida::Error::validation(
+                    "Pseudocode comment argument index must be in [0, 63]"));
+            return Position::argument(static_cast<std::size_t>(number));
+        }
+        if (number < -0x1fffffff || number > 0x1fffffff)
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode switch-case comment value exceeds the supported range"));
+        return Position::switch_case(static_cast<std::int64_t>(number));
+    }
+    return std::unexpected(ida::Error::validation(
+        "Unknown pseudocode comment position kind", kind));
 }
 
 // ── LocalVariable -> JS object ──────────────────────────────────────────
@@ -739,6 +857,12 @@ public:
         Nan::SetPrototypeMethod(tpl, "captureUserLvarSettings", CaptureUserLvarSettings);
         Nan::SetPrototypeMethod(tpl, "restoreUserLvarSettings", RestoreUserLvarSettings);
         Nan::SetPrototypeMethod(tpl, "setVariableComment", SetVariableComment);
+        Nan::SetPrototypeMethod(tpl, "setComment", SetComment);
+        Nan::SetPrototypeMethod(tpl, "getComment", GetComment);
+        Nan::SetPrototypeMethod(tpl, "comments", Comments);
+        Nan::SetPrototypeMethod(tpl, "saveComments", SaveComments);
+        Nan::SetPrototypeMethod(tpl, "hasOrphanComments", HasOrphanComments);
+        Nan::SetPrototypeMethod(tpl, "removeOrphanComments", RemoveOrphanComments);
         Nan::SetPrototypeMethod(tpl, "forEachExpression", ForEachExpression);
         Nan::SetPrototypeMethod(tpl, "forEachItem", ForEachItem);
         Nan::SetPrototypeMethod(tpl, "entryAddress",   EntryAddress);
@@ -979,6 +1103,76 @@ private:
             Nan::ThrowTypeError("First argument must be a variable name (string) or index (number)");
             return;
         }
+    }
+
+    // setComment(address, text, position?)
+    static NAN_METHOD(SetComment) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        ida::Address address;
+        if (!GetAddressArg(info, 0, address)) return;
+        std::string text;
+        if (!GetStringArg(info, 1, text)) return;
+        auto parsed = CommentPositionFromJS(
+            info.Length() >= 3 ? info[2] : Nan::Undefined());
+        if (!parsed) {
+            ThrowError(parsed.error());
+            return;
+        }
+        IDAX_CHECK_STATUS(wrapper->func().set_comment(address, text, *parsed));
+    }
+
+    // getComment(address, position?) -> string
+    static NAN_METHOD(GetComment) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        ida::Address address;
+        if (!GetAddressArg(info, 0, address)) return;
+        auto parsed = CommentPositionFromJS(
+            info.Length() >= 2 ? info[1] : Nan::Undefined());
+        if (!parsed) {
+            ThrowError(parsed.error());
+            return;
+        }
+        IDAX_UNWRAP(auto text, wrapper->func().get_comment(address, *parsed));
+        info.GetReturnValue().Set(FromString(text));
+    }
+
+    // comments() -> [{ address, position, text }]
+    static NAN_METHOD(Comments) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        IDAX_UNWRAP(auto comments, wrapper->func().comments());
+        auto array = Nan::New<v8::Array>(static_cast<int>(comments.size()));
+        for (std::size_t index = 0; index < comments.size(); ++index) {
+            auto object = ObjectBuilder()
+                .setAddr("address", comments[index].address)
+                .set("position", CommentPositionToJS(comments[index].position))
+                .setStr("text", comments[index].text)
+                .build();
+            Nan::Set(array, static_cast<std::uint32_t>(index), object);
+        }
+        info.GetReturnValue().Set(array);
+    }
+
+    static NAN_METHOD(SaveComments) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        IDAX_CHECK_STATUS(wrapper->func().save_comments());
+    }
+
+    static NAN_METHOD(HasOrphanComments) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        IDAX_UNWRAP(auto has_orphans, wrapper->func().has_orphan_comments());
+        info.GetReturnValue().Set(Nan::New(has_orphans));
+    }
+
+    static NAN_METHOD(RemoveOrphanComments) {
+        auto* wrapper = Nan::ObjectWrap::Unwrap<DecompiledFunctionWrapper>(info.Holder());
+        if (!EnsureAlive(wrapper)) return;
+        IDAX_UNWRAP(auto removed, wrapper->func().remove_orphan_comments());
+        info.GetReturnValue().Set(Nan::New(removed));
     }
 
     // forEachExpression(callback) -> number visited

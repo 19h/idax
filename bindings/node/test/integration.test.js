@@ -1225,6 +1225,66 @@ describe('Decompiler', () => {
         expect(typeof avail).toBe('boolean');
     });
 
+    it('should preserve distinct pseudocode comment locations', () => {
+        if (!idax.decompiler.available()) return;
+        const funcs = idax.function.all();
+        let df;
+        for (let i = 0; i < Math.min(funcs.length, 20); i++) {
+            try {
+                df = idax.decompiler.decompile(funcs[i].start);
+                break;
+            } catch (_) {
+                // Continue past non-decompilable thunks and stubs.
+            }
+        }
+        if (!df) return;
+
+        const mappings = df.addressMap();
+        const address = mappings.length > 0 ? mappings[0].address : df.entryAddress();
+        const originalDefault = df.getComment(address, 'default');
+        const originalSemicolon = df.getComment(address, 'semicolon');
+        try {
+            expect(() => df.setComment(
+                address,
+                '',
+                { kind: 'argument', index: 64 },
+            )).toThrow(/\[0, 63\]/);
+            expect(() => df.setComment(
+                address,
+                '',
+                { kind: 'switchCase', value: 0x20000000 },
+            )).toThrow(/supported range/);
+            expect(() => df.setComment(
+                address,
+                '',
+                { kind: 'semicolon', value: 1 },
+            )).toThrow(/object kind must be argument or switchCase/);
+
+            df.setComment(address, 'node_default_location', 'default');
+            df.setComment(address, 'node_semicolon_location', 'semicolon');
+            df.saveComments();
+            expect(df.getComment(address, 'default')).toBe('node_default_location');
+            expect(df.getComment(address, 'semicolon')).toBe('node_semicolon_location');
+            const comments = df.comments();
+            expect(comments.some((comment) =>
+                comment.address === address
+                && comment.position === 'default'
+                && comment.text === 'node_default_location')).toBe(true);
+            expect(comments.some((comment) =>
+                comment.address === address
+                && comment.position === 'semicolon'
+                && comment.text === 'node_semicolon_location')).toBe(true);
+            expect(typeof df.hasOrphanComments()).toBe('boolean');
+        } finally {
+            df.setComment(address, originalSemicolon, 'semicolon');
+            df.setComment(address, originalDefault, 'default');
+            df.saveComments();
+        }
+        expect(df.comments().some((comment) =>
+            comment.text === 'node_default_location'
+            || comment.text === 'node_semicolon_location')).toBe(false);
+    });
+
     it('should decompile a function if available', () => {
         if (!idax.decompiler.available()) return;
         const funcs = idax.function.all();

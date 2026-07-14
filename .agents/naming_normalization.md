@@ -46,6 +46,8 @@ This mapping is non-exhaustive but representative of expected direction.
 | `minsn_t::modifies_d()` | `MicrocodeInstruction::modifies_destination` (Node `modifiesDestination`; Rust `modifies_destination`) |
 | `gen_microcode(...)` + `mba_t::build_graph()` + native block/operand traversal | `ida::decompiler::generate_microcode(address, options)` returning an owned `MicrocodeFunction` |
 | pre-decompile direct callees + `mba_t::analyze_calls(ACFL_GUESS)` | `MicrocodeGenerationOptions::analyze_calls` (Node: `analyzeCalls`) |
+| `treeloc_t{ea, item_preciser_t}` + `set/get_user_cmt` | `CommentPosition` + `DecompiledFunction::set_comment/get_comment(address, text?, position)` |
+| `restore_user_cmts` / `user_cmts_t` iteration | `DecompiledFunction::comments()` returning copied `PseudocodeComment` records |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |
 | `loader_t::load_file` | `ida::loader::Loader::load(file, format)` |
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |

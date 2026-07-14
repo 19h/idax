@@ -1699,6 +1699,36 @@ typedef struct IdaxLocalVariable {
     size_t   index;
 } IdaxLocalVariable;
 
+typedef enum IdaxDecompilerCommentPositionKind {
+    IDAX_DECOMPILER_COMMENT_DEFAULT = 0,
+    IDAX_DECOMPILER_COMMENT_ARGUMENT = 1,
+    IDAX_DECOMPILER_COMMENT_PARENTHESIS_OPEN = 2,
+    IDAX_DECOMPILER_COMMENT_ASSEMBLY = 3,
+    IDAX_DECOMPILER_COMMENT_ELSE_LINE = 4,
+    IDAX_DECOMPILER_COMMENT_DO_LINE = 5,
+    IDAX_DECOMPILER_COMMENT_SEMICOLON = 6,
+    IDAX_DECOMPILER_COMMENT_OPEN_BRACE = 7,
+    IDAX_DECOMPILER_COMMENT_CLOSE_BRACE = 8,
+    IDAX_DECOMPILER_COMMENT_PARENTHESIS_CLOSE = 9,
+    IDAX_DECOMPILER_COMMENT_LABEL_COLON = 10,
+    IDAX_DECOMPILER_COMMENT_BLOCK_BEFORE = 11,
+    IDAX_DECOMPILER_COMMENT_BLOCK_AFTER = 12,
+    IDAX_DECOMPILER_COMMENT_TRY_LINE = 13,
+    IDAX_DECOMPILER_COMMENT_SWITCH_CASE = 14
+} IdaxDecompilerCommentPositionKind;
+
+/** Semantic comment position. value is argument index or switch-case value only. */
+typedef struct IdaxDecompilerCommentPosition {
+    int     kind;
+    int64_t value;
+} IdaxDecompilerCommentPosition;
+
+typedef struct IdaxPseudocodeComment {
+    uint64_t address;
+    IdaxDecompilerCommentPosition position;
+    char* text;
+} IdaxPseudocodeComment;
+
 void idax_local_variable_free(IdaxLocalVariable* var);
 void idax_decompiled_variables_free(IdaxLocalVariable* vars, size_t count);
 
@@ -1725,10 +1755,17 @@ int idax_lvar_snapshot_saved_variable_count(IdaxLvarSnapshotHandle snapshot,
                                             size_t* out);
 
 int idax_decompiled_set_comment(IdaxDecompiledHandle handle, uint64_t ea,
-                                const char* text, int position);
+                                const char* text,
+                                const IdaxDecompilerCommentPosition* position);
 int idax_decompiled_get_comment(IdaxDecompiledHandle handle, uint64_t ea,
-                                int position, char** out);
+                                const IdaxDecompilerCommentPosition* position,
+                                char** out);
+int idax_decompiled_comments(IdaxDecompiledHandle handle,
+                             IdaxPseudocodeComment** out, size_t* count);
+void idax_decompiled_comments_free(IdaxPseudocodeComment* comments, size_t count);
 int idax_decompiled_save_comments(IdaxDecompiledHandle handle);
+int idax_decompiled_has_orphan_comments(IdaxDecompiledHandle handle, int* out);
+int idax_decompiled_remove_orphan_comments(IdaxDecompiledHandle handle, int* out);
 
 int idax_decompiled_line_to_address(IdaxDecompiledHandle handle,
                                     int line_number, uint64_t* out);

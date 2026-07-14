@@ -7,12 +7,15 @@ mod common;
 use common::{DatabaseSession, format_error, print_usage};
 use idax::error::ErrorCategory;
 use idax::instruction::OperandType;
-use idax::{Error, Result, comment, data, database, function, graph, instruction, name, segment};
+use idax::{
+    Error, Result, comment, data, database, decompiler, function, graph, instruction, name, segment,
+};
 use std::collections::{HashMap, HashSet};
 
 const HEADER: &str = "IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg";
 const INSTRUCTION_METADATA_HEADER: &str =
     "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
+const PSEUDOCODE_COMMENT_HEADER: &str = "IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location";
 const DECLARATION_PLACEHOLDER: &str = "__idax_diaphora_function";
 
 #[derive(Debug, Clone)]
@@ -29,6 +32,8 @@ enum Mode {
     Compare,
     ExportInstructionMetadata,
     CompareInstructionMetadata,
+    ExportPseudocodeComments,
+    ComparePseudocodeComments,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -124,6 +129,67 @@ struct InstructionMetadataApplySummary {
     forced_operands: usize,
     preserved: usize,
     failures: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum PseudocodePosition {
+    Default,
+    Argument(usize),
+    ParenthesisOpen,
+    Assembly,
+    ElseLine,
+    DoLine,
+    Semicolon,
+    OpenBrace,
+    CloseBrace,
+    ParenthesisClose,
+    LabelColon,
+    BlockBefore,
+    BlockAfter,
+    TryLine,
+    SwitchCase(i64),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PseudocodeCommentRecord {
+    function_ordinal: usize,
+    instruction_ordinal: usize,
+    function_offset: i64,
+    size: usize,
+    full_md5: String,
+    relocation_md5: String,
+    mnemonic: String,
+    position: PseudocodePosition,
+    text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PseudocodeCommentManifest {
+    functions: Vec<FunctionRecord>,
+    comments: Vec<PseudocodeCommentRecord>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct EligiblePseudocodeComment {
+    comment_index: usize,
+    function_address: u64,
+    comment_address: u64,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct PseudocodeCommentComparison {
+    functions: MatchSummary,
+    eligible: Vec<EligiblePseudocodeComment>,
+    unmatched_functions: usize,
+    guard_failures: usize,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct PseudocodeCommentApplySummary {
+    comments: usize,
+    preserved: usize,
+    failures: usize,
+    saved_functions: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -254,15 +320,21 @@ fn parse_options() -> Result<Options> {
         "--compare" => Mode::Compare,
         "--export-instruction-metadata" => Mode::ExportInstructionMetadata,
         "--compare-instruction-metadata" => Mode::CompareInstructionMetadata,
+        "--export-pseudocode-comments" => Mode::ExportPseudocodeComments,
+        "--compare-pseudocode-comments" => Mode::ComparePseudocodeComments,
         _ => {
             return Err(Error::validation(
-                "expected an exact or instruction-metadata export/compare mode",
+                "expected an exact, instruction-metadata, or pseudocode-comment export/compare mode",
             ));
         }
     };
     let mut apply = false;
     for argument in arguments {
-        if argument == "--apply" && matches!(mode, Mode::Compare | Mode::CompareInstructionMetadata)
+        if argument == "--apply"
+            && matches!(
+                mode,
+                Mode::Compare | Mode::CompareInstructionMetadata | Mode::ComparePseudocodeComments
+            )
         {
             apply = true;
         } else {
@@ -570,6 +642,237 @@ fn parse_instruction_metadata_manifest(text: &str) -> Result<InstructionMetadata
     })
 }
 
+fn pseudocode_position_name(position: PseudocodePosition) -> &'static str {
+    match position {
+        PseudocodePosition::Default => "default",
+        PseudocodePosition::Argument(_) => "argument",
+        PseudocodePosition::ParenthesisOpen => "parenthesis-open",
+        PseudocodePosition::Assembly => "assembly",
+        PseudocodePosition::ElseLine => "else-line",
+        PseudocodePosition::DoLine => "do-line",
+        PseudocodePosition::Semicolon => "semicolon",
+        PseudocodePosition::OpenBrace => "open-brace",
+        PseudocodePosition::CloseBrace => "close-brace",
+        PseudocodePosition::ParenthesisClose => "parenthesis-close",
+        PseudocodePosition::LabelColon => "label-colon",
+        PseudocodePosition::BlockBefore => "block-before",
+        PseudocodePosition::BlockAfter => "block-after",
+        PseudocodePosition::TryLine => "try-line",
+        PseudocodePosition::SwitchCase(_) => "switch-case",
+    }
+}
+
+fn pseudocode_position_detail(position: PseudocodePosition) -> i64 {
+    match position {
+        PseudocodePosition::Argument(index) => index as i64,
+        PseudocodePosition::SwitchCase(value) => value,
+        _ => 0,
+    }
+}
+
+fn parse_pseudocode_position(name: &str, detail: i64) -> Result<PseudocodePosition> {
+    let simple = |position| {
+        if detail == 0 {
+            Ok(position)
+        } else {
+            Err(Error::validation(
+                "simple pseudocode comment position detail must be zero",
+            ))
+        }
+    };
+    match name {
+        "default" => simple(PseudocodePosition::Default),
+        "argument" if (0..=63).contains(&detail) => {
+            Ok(PseudocodePosition::Argument(detail as usize))
+        }
+        "argument" => Err(Error::validation(
+            "pseudocode comment argument index must be in [0, 63]",
+        )),
+        "parenthesis-open" => simple(PseudocodePosition::ParenthesisOpen),
+        "assembly" => simple(PseudocodePosition::Assembly),
+        "else-line" => simple(PseudocodePosition::ElseLine),
+        "do-line" => simple(PseudocodePosition::DoLine),
+        "semicolon" => simple(PseudocodePosition::Semicolon),
+        "open-brace" => simple(PseudocodePosition::OpenBrace),
+        "close-brace" => simple(PseudocodePosition::CloseBrace),
+        "parenthesis-close" => simple(PseudocodePosition::ParenthesisClose),
+        "label-colon" => simple(PseudocodePosition::LabelColon),
+        "block-before" => simple(PseudocodePosition::BlockBefore),
+        "block-after" => simple(PseudocodePosition::BlockAfter),
+        "try-line" => simple(PseudocodePosition::TryLine),
+        "switch-case" if (-0x1fff_ffff..=0x1fff_ffff).contains(&detail) => {
+            Ok(PseudocodePosition::SwitchCase(detail))
+        }
+        "switch-case" => Err(Error::validation(
+            "pseudocode switch-case comment value exceeds the supported range",
+        )),
+        _ => Err(Error::validation(format!(
+            "unknown pseudocode comment position: {name}"
+        ))),
+    }
+}
+
+fn to_manifest_position(position: decompiler::CommentPosition) -> Result<PseudocodePosition> {
+    let value = match position {
+        decompiler::CommentPosition::Default => PseudocodePosition::Default,
+        decompiler::CommentPosition::Argument(index) => PseudocodePosition::Argument(index),
+        decompiler::CommentPosition::ParenthesisOpen => PseudocodePosition::ParenthesisOpen,
+        decompiler::CommentPosition::Assembly => PseudocodePosition::Assembly,
+        decompiler::CommentPosition::ElseLine => PseudocodePosition::ElseLine,
+        decompiler::CommentPosition::DoLine => PseudocodePosition::DoLine,
+        decompiler::CommentPosition::Semicolon => PseudocodePosition::Semicolon,
+        decompiler::CommentPosition::OpenBrace => PseudocodePosition::OpenBrace,
+        decompiler::CommentPosition::CloseBrace => PseudocodePosition::CloseBrace,
+        decompiler::CommentPosition::ParenthesisClose => PseudocodePosition::ParenthesisClose,
+        decompiler::CommentPosition::LabelColon => PseudocodePosition::LabelColon,
+        decompiler::CommentPosition::BlockBefore => PseudocodePosition::BlockBefore,
+        decompiler::CommentPosition::BlockAfter => PseudocodePosition::BlockAfter,
+        decompiler::CommentPosition::TryLine => PseudocodePosition::TryLine,
+        decompiler::CommentPosition::SwitchCase(value) => PseudocodePosition::SwitchCase(value),
+    };
+    parse_pseudocode_position(
+        pseudocode_position_name(value),
+        pseudocode_position_detail(value),
+    )
+}
+
+fn to_public_position(position: PseudocodePosition) -> decompiler::CommentPosition {
+    match position {
+        PseudocodePosition::Default => decompiler::CommentPosition::Default,
+        PseudocodePosition::Argument(index) => decompiler::CommentPosition::Argument(index),
+        PseudocodePosition::ParenthesisOpen => decompiler::CommentPosition::ParenthesisOpen,
+        PseudocodePosition::Assembly => decompiler::CommentPosition::Assembly,
+        PseudocodePosition::ElseLine => decompiler::CommentPosition::ElseLine,
+        PseudocodePosition::DoLine => decompiler::CommentPosition::DoLine,
+        PseudocodePosition::Semicolon => decompiler::CommentPosition::Semicolon,
+        PseudocodePosition::OpenBrace => decompiler::CommentPosition::OpenBrace,
+        PseudocodePosition::CloseBrace => decompiler::CommentPosition::CloseBrace,
+        PseudocodePosition::ParenthesisClose => decompiler::CommentPosition::ParenthesisClose,
+        PseudocodePosition::LabelColon => decompiler::CommentPosition::LabelColon,
+        PseudocodePosition::BlockBefore => decompiler::CommentPosition::BlockBefore,
+        PseudocodePosition::BlockAfter => decompiler::CommentPosition::BlockAfter,
+        PseudocodePosition::TryLine => decompiler::CommentPosition::TryLine,
+        PseudocodePosition::SwitchCase(value) => decompiler::CommentPosition::SwitchCase(value),
+    }
+}
+
+fn format_pseudocode_comment_record(record: &PseudocodeCommentRecord) -> String {
+    format!(
+        "P\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        record.function_ordinal,
+        record.instruction_ordinal,
+        record.function_offset,
+        record.size,
+        record.full_md5,
+        record.relocation_md5,
+        hex_encode(&record.mnemonic),
+        pseudocode_position_name(record.position),
+        pseudocode_position_detail(record.position),
+        hex_encode(&record.text),
+    )
+}
+
+fn format_pseudocode_comment_manifest(manifest: &PseudocodeCommentManifest) -> String {
+    let mut output = format!("{PSEUDOCODE_COMMENT_HEADER}\n");
+    for function in &manifest.functions {
+        output.push_str(&format_record(function));
+        output.push('\n');
+    }
+    for comment in &manifest.comments {
+        output.push_str(&format_pseudocode_comment_record(comment));
+        output.push('\n');
+    }
+    output
+}
+
+fn parse_pseudocode_comment_manifest(text: &str) -> Result<PseudocodeCommentManifest> {
+    let mut lines = text.lines();
+    if lines.next() != Some(PSEUDOCODE_COMMENT_HEADER) {
+        return Err(Error::validation(
+            "unsupported Diaphora pseudocode comment manifest header",
+        ));
+    }
+    let mut function_text = format!("{HEADER}\n");
+    let mut comments = Vec::new();
+    let mut comment_keys = HashSet::new();
+    for line in lines.filter(|line| !line.is_empty()) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.first() == Some(&"F") {
+            function_text.push_str(line);
+            function_text.push('\n');
+            continue;
+        }
+        if fields.len() != 11 || fields[0] != "P" {
+            return Err(Error::validation(
+                "malformed Diaphora pseudocode comment record",
+            ));
+        }
+        let parse_usize = |field: &str, label: &str| {
+            field
+                .parse::<usize>()
+                .map_err(|_| Error::validation(format!("invalid {label}")))
+        };
+        let function_ordinal = parse_usize(fields[1], "function ordinal")?;
+        let instruction_ordinal = parse_usize(fields[2], "instruction ordinal")?;
+        let function_offset = fields[3]
+            .parse::<i64>()
+            .map_err(|_| Error::validation("invalid pseudocode comment function offset"))?;
+        let size = parse_usize(fields[4], "instruction size")?;
+        if size == 0 {
+            return Err(Error::validation("invalid instruction size"));
+        }
+        let full_md5 = fields[5].to_ascii_lowercase();
+        let relocation_md5 = fields[6].to_ascii_lowercase();
+        if !valid_md5(&full_md5) || !valid_md5(&relocation_md5) {
+            return Err(Error::validation("invalid pseudocode comment MD5 field"));
+        }
+        let mnemonic = hex_decode(fields[7])?;
+        let position_detail = fields[9]
+            .parse::<i64>()
+            .map_err(|_| Error::validation("invalid pseudocode comment position detail"))?;
+        let position = parse_pseudocode_position(fields[8], position_detail)?;
+        let comment = hex_decode(fields[10])?;
+        if mnemonic.contains('\0') || comment.is_empty() || comment.contains('\0') {
+            return Err(Error::validation(
+                "pseudocode comment text is empty or contains NUL",
+            ));
+        }
+        if !comment_keys.insert((function_ordinal, instruction_ordinal, position)) {
+            return Err(Error::validation(
+                "duplicate pseudocode comment location record",
+            ));
+        }
+        comments.push(PseudocodeCommentRecord {
+            function_ordinal,
+            instruction_ordinal,
+            function_offset,
+            size,
+            full_md5,
+            relocation_md5,
+            mnemonic,
+            position,
+            text: comment,
+        });
+    }
+    let functions = parse_manifest(&function_text)?;
+    let ordinals: HashSet<_> = functions.iter().map(|function| function.ordinal).collect();
+    if ordinals.len() != functions.len() {
+        return Err(Error::validation("duplicate function ordinal"));
+    }
+    if comments
+        .iter()
+        .any(|comment| !ordinals.contains(&comment.function_ordinal))
+    {
+        return Err(Error::validation(
+            "pseudocode comment references an unknown function",
+        ));
+    }
+    Ok(PseudocodeCommentManifest {
+        functions,
+        comments,
+    })
+}
+
 fn normalized_operand_type(op_type: OperandType) -> bool {
     matches!(
         op_type,
@@ -821,6 +1124,55 @@ fn extract_instruction_metadata_manifest() -> Result<InstructionMetadataManifest
     Ok(InstructionMetadataManifest {
         functions,
         instructions,
+    })
+}
+
+fn extract_pseudocode_comment_manifest() -> Result<PseudocodeCommentManifest> {
+    if !decompiler::available()? {
+        return Err(Error::unsupported("Hex-Rays decompiler is unavailable"));
+    }
+    let functions = extract_manifest()?;
+    let mut comments = Vec::new();
+    for function_record in &functions {
+        let mut addresses = function::code_addresses(function_record.address)?;
+        addresses.sort_unstable();
+        let ordinal_by_address: HashMap<_, _> = addresses
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(ordinal, address)| (address, ordinal))
+            .collect();
+        let decompiled = match decompiler::decompile(function_record.address) {
+            Ok(decompiled) => decompiled,
+            Err(_) => continue,
+        };
+        for comment in decompiled.comments()? {
+            let Some(instruction_ordinal) = ordinal_by_address.get(&comment.address).copied()
+            else {
+                continue;
+            };
+            if comment.text.is_empty() || comment.text.contains('\0') {
+                return Err(Error::validation(
+                    "persisted pseudocode comment is empty or contains NUL",
+                ));
+            }
+            let fingerprint = extract_instruction_fingerprint(comment.address)?;
+            comments.push(PseudocodeCommentRecord {
+                function_ordinal: function_record.ordinal,
+                instruction_ordinal,
+                function_offset: relative_offset(comment.address, function_record.address)?,
+                size: fingerprint.size,
+                full_md5: fingerprint.full_md5,
+                relocation_md5: fingerprint.relocation_md5,
+                mnemonic: fingerprint.mnemonic,
+                position: to_manifest_position(comment.position)?,
+                text: comment.text,
+            });
+        }
+    }
+    Ok(PseudocodeCommentManifest {
+        functions,
+        comments,
     })
 }
 
@@ -1116,6 +1468,151 @@ fn instruction_metadata_report(
     )
 }
 
+fn compare_pseudocode_comments(
+    baseline: &PseudocodeCommentManifest,
+    current: &[FunctionRecord],
+) -> Result<PseudocodeCommentComparison> {
+    let functions = compare_records(&baseline.functions, current);
+    let baseline_by_ordinal: HashMap<_, _> = baseline
+        .functions
+        .iter()
+        .enumerate()
+        .map(|(index, function)| (function.ordinal, index))
+        .collect();
+    let current_by_baseline: HashMap<_, _> = functions
+        .matches
+        .iter()
+        .map(|matched| (matched.baseline, matched.current))
+        .collect();
+    let mut address_cache: HashMap<usize, Vec<u64>> = HashMap::new();
+    let mut eligible = Vec::new();
+    let mut unmatched_functions = 0usize;
+    let mut guard_failures = 0usize;
+
+    for (comment_index, comment) in baseline.comments.iter().enumerate() {
+        let Some(baseline_index) = baseline_by_ordinal.get(&comment.function_ordinal) else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let Some(current_index) = current_by_baseline.get(baseline_index).copied() else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let target_function = &current[current_index];
+        let target_address =
+            match apply_relative_offset(target_function.address, comment.function_offset) {
+                Ok(address) => address,
+                Err(_) => {
+                    guard_failures += 1;
+                    continue;
+                }
+            };
+        if let std::collections::hash_map::Entry::Vacant(entry) = address_cache.entry(current_index)
+        {
+            let mut addresses = function::code_addresses(target_function.address)?;
+            addresses.sort_unstable();
+            entry.insert(addresses);
+        }
+        if address_cache[&current_index].get(comment.instruction_ordinal) != Some(&target_address) {
+            guard_failures += 1;
+            continue;
+        }
+        let fingerprint = extract_instruction_fingerprint(target_address)?;
+        if fingerprint.size != comment.size
+            || fingerprint.mnemonic != comment.mnemonic
+            || fingerprint.relocation_md5 != comment.relocation_md5
+        {
+            guard_failures += 1;
+            continue;
+        }
+        eligible.push(EligiblePseudocodeComment {
+            comment_index,
+            function_address: target_function.address,
+            comment_address: target_address,
+        });
+    }
+
+    Ok(PseudocodeCommentComparison {
+        functions,
+        eligible,
+        unmatched_functions,
+        guard_failures,
+    })
+}
+
+fn apply_pseudocode_comments(
+    baseline: &PseudocodeCommentManifest,
+    comparison: &PseudocodeCommentComparison,
+) -> PseudocodeCommentApplySummary {
+    let mut summary = PseudocodeCommentApplySummary::default();
+    let mut functions = HashMap::new();
+    let mut failed_functions = HashSet::new();
+    let mut modified_functions = HashSet::new();
+
+    for eligible in &comparison.eligible {
+        if failed_functions.contains(&eligible.function_address) {
+            summary.failures += 1;
+            continue;
+        }
+        if let std::collections::hash_map::Entry::Vacant(entry) =
+            functions.entry(eligible.function_address)
+        {
+            match decompiler::decompile(eligible.function_address) {
+                Ok(decompiled) => {
+                    entry.insert(decompiled);
+                }
+                Err(_) => {
+                    failed_functions.insert(eligible.function_address);
+                    summary.failures += 1;
+                    continue;
+                }
+            }
+        }
+        let decompiled = &functions[&eligible.function_address];
+        let source = &baseline.comments[eligible.comment_index];
+        let position = to_public_position(source.position);
+        match decompiled.get_comment(eligible.comment_address, position) {
+            Ok(existing) if !existing.is_empty() => summary.preserved += 1,
+            Ok(_) => match decompiled.set_comment(eligible.comment_address, &source.text, position)
+            {
+                Ok(()) => {
+                    summary.comments += 1;
+                    modified_functions.insert(eligible.function_address);
+                }
+                Err(_) => summary.failures += 1,
+            },
+            Err(_) => summary.failures += 1,
+        }
+    }
+
+    for function_address in modified_functions {
+        match functions[&function_address].save_comments() {
+            Ok(()) => summary.saved_functions += 1,
+            Err(_) => summary.failures += 1,
+        }
+    }
+    summary
+}
+
+fn pseudocode_comment_report(
+    baseline: &PseudocodeCommentManifest,
+    current: &[FunctionRecord],
+    comparison: &PseudocodeCommentComparison,
+) -> String {
+    format!(
+        "Diaphora exact pseudocode comment comparison\nBaseline functions: {}\nCurrent functions: {}\nUnique function matches: {}\nAmbiguous baseline functions: {}\nUnmatched baseline functions: {}\nPseudocode comment records: {}\nEligible comment records: {}\nRecords with unmatched functions: {}\nInstruction guard failures: {}",
+        baseline.functions.len(),
+        current.len(),
+        comparison.functions.matches.len(),
+        comparison.functions.ambiguous,
+        comparison.functions.unmatched,
+        baseline.comments.len(),
+        comparison.eligible.len(),
+        comparison.unmatched_functions,
+        comparison.guard_failures,
+    )
+}
+
 fn comparison_report(
     summary: &MatchSummary,
     baseline_count: usize,
@@ -1233,6 +1730,50 @@ fn run(options: &Options) -> Result<()> {
                 );
             }
         }
+        Mode::ExportPseudocodeComments => {
+            let manifest = extract_pseudocode_comment_manifest()?;
+            std::fs::write(
+                &options.manifest,
+                format_pseudocode_comment_manifest(&manifest),
+            )
+            .map_err(|error| {
+                Error::internal(format!(
+                    "failed writing pseudocode comment manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            println!(
+                "Exported {} exact pseudocode comment records for {} functions to {}",
+                manifest.comments.len(),
+                manifest.functions.len(),
+                options.manifest
+            );
+        }
+        Mode::ComparePseudocodeComments => {
+            let text = std::fs::read_to_string(&options.manifest).map_err(|error| {
+                Error::not_found(format!(
+                    "failed reading pseudocode comment manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            let baseline = parse_pseudocode_comment_manifest(&text)?;
+            let current = extract_manifest()?;
+            let comparison = compare_pseudocode_comments(&baseline, &current)?;
+            println!(
+                "{}",
+                pseudocode_comment_report(&baseline, &current, &comparison)
+            );
+            if options.apply {
+                let applied = apply_pseudocode_comments(&baseline, &comparison);
+                if applied.comments > 0 {
+                    database::save()?;
+                }
+                println!(
+                    "Pseudocode comments applied: {}\nExisting locations preserved: {}\nFunctions with comments saved: {}\nMutation failures: {}",
+                    applied.comments, applied.preserved, applied.saved_functions, applied.failures,
+                );
+            }
+        }
     }
     Ok(())
 }
@@ -1243,7 +1784,7 @@ fn main() {
         Err(error) => {
             print_usage(
                 "diaphora_exact_port",
-                "<input> --export <manifest> | <input> --compare <manifest> [--apply] | <input> --export-instruction-metadata <manifest> | <input> --compare-instruction-metadata <manifest> [--apply]",
+                "<input> --export <manifest> | <input> --compare <manifest> [--apply] | <input> --export-instruction-metadata <manifest> | <input> --compare-instruction-metadata <manifest> [--apply] | <input> --export-pseudocode-comments <manifest> | <input> --compare-pseudocode-comments <manifest> [--apply]",
             );
             eprintln!("error: {}", format_error(&error));
             std::process::exit(2);
@@ -1409,6 +1950,109 @@ mod tests {
                 &nul_metadata
             ))
             .is_err()
+        );
+    }
+
+    #[test]
+    fn pseudocode_comment_manifest_preserves_multiple_locations_byte_stably() {
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let first = PseudocodeCommentRecord {
+            function_ordinal: 0,
+            instruction_ordinal: 2,
+            function_offset: 7,
+            size: 5,
+            full_md5: "c".repeat(32),
+            relocation_md5: "d".repeat(32),
+            mnemonic: "mov".to_owned(),
+            position: PseudocodePosition::Default,
+            text: "default\tcomment".to_owned(),
+        };
+        let mut second = first.clone();
+        second.position = PseudocodePosition::Semicolon;
+        second.text = "semicolon\nλ".to_owned();
+        let expected = PseudocodeCommentManifest {
+            functions: vec![function],
+            comments: vec![first, second],
+        };
+        let encoded = format_pseudocode_comment_manifest(&expected);
+        assert!(encoded.starts_with(&format!("{PSEUDOCODE_COMMENT_HEADER}\nF\t")));
+        assert!(encoded.contains(concat!(
+            "P\t0\t2\t7\t5\tcccccccccccccccccccccccccccccccc\t",
+            "dddddddddddddddddddddddddddddddd\t6d6f76\tdefault\t0\t",
+            "64656661756c7409636f6d6d656e74\n",
+        )));
+        assert!(encoded.contains("\tsemicolon\t0\t73656d69636f6c6f6e0acebb\n"));
+        let decoded = parse_pseudocode_comment_manifest(&encoded).unwrap();
+        assert_eq!(decoded, expected);
+        assert_eq!(decoded.comments[0].instruction_ordinal, 2);
+        assert_eq!(decoded.comments[1].instruction_ordinal, 2);
+        assert_ne!(decoded.comments[0].position, decoded.comments[1].position);
+        assert_eq!(format_pseudocode_comment_manifest(&decoded), encoded);
+    }
+
+    #[test]
+    fn pseudocode_comment_decoder_rejects_malformed_locations_and_records() {
+        assert_eq!(
+            parse_pseudocode_position("argument", 63).unwrap(),
+            PseudocodePosition::Argument(63)
+        );
+        assert!(parse_pseudocode_position("argument", 64).is_err());
+        assert_eq!(
+            parse_pseudocode_position("switch-case", -0x1fff_ffff).unwrap(),
+            PseudocodePosition::SwitchCase(-0x1fff_ffff)
+        );
+        assert_eq!(
+            parse_pseudocode_position("switch-case", 0x1fff_ffff).unwrap(),
+            PseudocodePosition::SwitchCase(0x1fff_ffff)
+        );
+        assert!(parse_pseudocode_position("switch-case", -0x2000_0000).is_err());
+        assert!(parse_pseudocode_position("switch-case", 0x2000_0000).is_err());
+        assert!(parse_pseudocode_position("semicolon", 1).is_err());
+        assert!(parse_pseudocode_position("unknown", 0).is_err());
+
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let manifest = PseudocodeCommentManifest {
+            functions: vec![function],
+            comments: vec![PseudocodeCommentRecord {
+                function_ordinal: 0,
+                instruction_ordinal: 0,
+                function_offset: 0,
+                size: 1,
+                full_md5: "c".repeat(32),
+                relocation_md5: "d".repeat(32),
+                mnemonic: "ret".to_owned(),
+                position: PseudocodePosition::Default,
+                text: "comment".to_owned(),
+            }],
+        };
+        let encoded = format_pseudocode_comment_manifest(&manifest);
+        let record_start = encoded.find("P\t").unwrap();
+        let duplicate = format!("{encoded}{}", &encoded[record_start..]);
+        assert!(parse_pseudocode_comment_manifest(&duplicate).is_err());
+
+        let mut unknown_function = encoded.clone();
+        unknown_function.replace_range(record_start..record_start + 4, "P\t1\t");
+        assert!(parse_pseudocode_comment_manifest(&unknown_function).is_err());
+
+        let mut invalid_hash = encoded.clone();
+        let hash_start = invalid_hash[record_start..]
+            .find(&"c".repeat(32))
+            .map(|offset| record_start + offset)
+            .unwrap();
+        invalid_hash.replace_range(hash_start..hash_start + 1, "g");
+        assert!(parse_pseudocode_comment_manifest(&invalid_hash).is_err());
+
+        let mut empty = manifest.clone();
+        empty.comments[0].text.clear();
+        assert!(
+            parse_pseudocode_comment_manifest(&format_pseudocode_comment_manifest(&empty)).is_err()
+        );
+        let mut nul = manifest;
+        nul.comments[0].text = "x\0y".to_owned();
+        assert!(
+            parse_pseudocode_comment_manifest(&format_pseudocode_comment_manifest(&nul)).is_err()
         );
     }
 

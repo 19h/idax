@@ -33,11 +33,162 @@ Result<Instruction> from_raw_insn(const void* raw_insn);
 
 namespace ida::decompiler {
 
+const CommentPosition CommentPosition::Default{
+    CommentPositionKind::Default, 0};
+const CommentPosition CommentPosition::ParenthesisOpen{
+    CommentPositionKind::ParenthesisOpen, 0};
+const CommentPosition CommentPosition::Assembly{
+    CommentPositionKind::Assembly, 0};
+const CommentPosition CommentPosition::ElseLine{
+    CommentPositionKind::ElseLine, 0};
+const CommentPosition CommentPosition::DoLine{
+    CommentPositionKind::DoLine, 0};
+const CommentPosition CommentPosition::Semicolon{
+    CommentPositionKind::Semicolon, 0};
+const CommentPosition CommentPosition::OpenBrace{
+    CommentPositionKind::OpenBrace, 0};
+const CommentPosition CommentPosition::CloseBrace{
+    CommentPositionKind::CloseBrace, 0};
+const CommentPosition CommentPosition::ParenthesisClose{
+    CommentPositionKind::ParenthesisClose, 0};
+const CommentPosition CommentPosition::LabelColon{
+    CommentPositionKind::LabelColon, 0};
+const CommentPosition CommentPosition::BlockBefore{
+    CommentPositionKind::BlockBefore, 0};
+const CommentPosition CommentPosition::BlockAfter{
+    CommentPositionKind::BlockAfter, 0};
+const CommentPosition CommentPosition::TryLine{
+    CommentPositionKind::TryLine, 0};
+
+Result<CommentPosition> CommentPosition::argument(std::size_t zero_based_index) {
+    if (zero_based_index >= 64) {
+        return std::unexpected(Error::validation(
+            "Pseudocode comment argument index must be in [0, 63]"));
+    }
+    return CommentPosition(CommentPositionKind::Argument,
+                           static_cast<std::int64_t>(zero_based_index));
+}
+
+Result<CommentPosition> CommentPosition::switch_case(std::int64_t value) {
+    constexpr std::int64_t kMaximumMagnitude = 0x1fffffff;
+    if (value < -kMaximumMagnitude || value > kMaximumMagnitude) {
+        return std::unexpected(Error::validation(
+            "Pseudocode switch-case comment value exceeds the supported range"));
+    }
+    return CommentPosition(CommentPositionKind::SwitchCase, value);
+}
+
+std::optional<std::size_t> CommentPosition::argument_index() const noexcept {
+    if (kind_ != CommentPositionKind::Argument)
+        return std::nullopt;
+    return static_cast<std::size_t>(detail_);
+}
+
+std::optional<std::int64_t> CommentPosition::switch_case_value() const noexcept {
+    if (kind_ != CommentPositionKind::SwitchCase)
+        return std::nullopt;
+    return detail_;
+}
+
 // ── Availability ────────────────────────────────────────────────────────
 
 static bool s_hexrays_initialized = false;
 
 namespace {
+
+Result<item_preciser_t> to_sdk_comment_position(const CommentPosition& position) {
+    switch (position.kind()) {
+    case CommentPositionKind::Default: return ITP_EMPTY;
+    case CommentPositionKind::ParenthesisOpen: return ITP_BRACE1;
+    case CommentPositionKind::Assembly: return ITP_ASM;
+    case CommentPositionKind::ElseLine: return ITP_ELSE;
+    case CommentPositionKind::DoLine: return ITP_DO;
+    case CommentPositionKind::Semicolon: return ITP_SEMI;
+    case CommentPositionKind::OpenBrace: return ITP_CURLY1;
+    case CommentPositionKind::CloseBrace: return ITP_CURLY2;
+    case CommentPositionKind::ParenthesisClose: return ITP_BRACE2;
+    case CommentPositionKind::LabelColon: return ITP_COLON;
+    case CommentPositionKind::BlockBefore: return ITP_BLOCK1;
+    case CommentPositionKind::BlockAfter: return ITP_BLOCK2;
+    case CommentPositionKind::TryLine: return ITP_TRY;
+    case CommentPositionKind::Argument: {
+        const auto index = position.argument_index();
+        if (!index || *index >= 64)
+            return std::unexpected(Error::validation(
+                "Invalid pseudocode comment argument location"));
+        return static_cast<item_preciser_t>(
+            static_cast<int>(ITP_ARG1) + static_cast<int>(*index));
+    }
+    case CommentPositionKind::SwitchCase: {
+        const auto value = position.switch_case_value();
+        constexpr std::int64_t kMaximumMagnitude = 0x1fffffff;
+        if (!value || *value < -kMaximumMagnitude || *value > kMaximumMagnitude)
+            return std::unexpected(Error::validation(
+                "Invalid pseudocode switch-case comment location"));
+        const auto magnitude = static_cast<unsigned>(
+            *value < 0 ? -*value : *value);
+        unsigned encoded = static_cast<unsigned>(ITP_CASE) | magnitude;
+        if (*value < 0)
+            encoded |= static_cast<unsigned>(ITP_SIGN);
+        return static_cast<item_preciser_t>(encoded);
+    }
+    }
+    return std::unexpected(Error::internal("Unknown pseudocode comment position kind"));
+}
+
+Result<CommentPosition> from_sdk_comment_position(item_preciser_t raw) {
+    const int value = static_cast<int>(raw);
+    if (value >= static_cast<int>(ITP_ARG1)
+        && value <= static_cast<int>(ITP_ARG64)) {
+        return CommentPosition::argument(
+            static_cast<std::size_t>(value - static_cast<int>(ITP_ARG1)));
+    }
+    switch (raw) {
+    case ITP_EMPTY: return CommentPosition::Default;
+    case ITP_BRACE1: return CommentPosition::ParenthesisOpen;
+    case ITP_ASM: return CommentPosition::Assembly;
+    case ITP_ELSE: return CommentPosition::ElseLine;
+    case ITP_DO: return CommentPosition::DoLine;
+    case ITP_SEMI: return CommentPosition::Semicolon;
+    case ITP_CURLY1: return CommentPosition::OpenBrace;
+    case ITP_CURLY2: return CommentPosition::CloseBrace;
+    case ITP_BRACE2: return CommentPosition::ParenthesisClose;
+    case ITP_COLON: return CommentPosition::LabelColon;
+    case ITP_BLOCK1: return CommentPosition::BlockBefore;
+    case ITP_BLOCK2: return CommentPosition::BlockAfter;
+    case ITP_TRY: return CommentPosition::TryLine;
+    default: break;
+    }
+
+    const unsigned encoded = static_cast<unsigned>(value);
+    if ((encoded & 0x80000000U) == 0
+        && (encoded & static_cast<unsigned>(ITP_CASE)) != 0) {
+        constexpr unsigned kMagnitudeMask = 0x1fffffffU;
+        const unsigned magnitude = encoded & kMagnitudeMask;
+        const bool negative = (encoded & static_cast<unsigned>(ITP_SIGN)) != 0;
+        if (negative && magnitude == 0) {
+            return std::unexpected(Error::unsupported(
+                "Negative-zero switch-case comment location is not representable"));
+        }
+        const std::int64_t case_value = negative
+            ? -static_cast<std::int64_t>(magnitude)
+            : static_cast<std::int64_t>(magnitude);
+        return CommentPosition::switch_case(case_value);
+    }
+    return std::unexpected(Error::unsupported(
+        "Unknown persisted pseudocode comment location",
+        std::to_string(value)));
+}
+
+std::pair<unsigned, std::int64_t> comment_position_sort_key(
+    const CommentPosition& position) {
+    std::int64_t detail = 0;
+    if (const auto index = position.argument_index())
+        detail = static_cast<std::int64_t>(*index);
+    else if (const auto value = position.switch_case_value())
+        detail = *value;
+    return {static_cast<unsigned>(position.kind()), detail};
+}
 
 std::mutex g_hexrays_lifecycle_mutex;
 std::size_t g_scoped_session_count = 0;
@@ -4682,9 +4833,16 @@ Status DecompiledFunction::set_comment(Address ea, std::string_view text,
                                        CommentPosition pos) {
     CHECK_IMPL();
 
+    if (text.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation(
+            "Pseudocode comment cannot contain embedded NUL bytes"));
+    auto sdk_position = to_sdk_comment_position(pos);
+    if (!sdk_position)
+        return std::unexpected(sdk_position.error());
+
     treeloc_t loc;
     loc.ea = ea;
-    loc.itp = static_cast<item_preciser_t>(static_cast<int>(pos));
+    loc.itp = *sdk_position;
 
     if (text.empty()) {
         impl_->cfunc->set_user_cmt(loc, nullptr);
@@ -4699,14 +4857,55 @@ Result<std::string> DecompiledFunction::get_comment(Address ea,
                                                      CommentPosition pos) const {
     CHECK_IMPL();
 
+    auto sdk_position = to_sdk_comment_position(pos);
+    if (!sdk_position)
+        return std::unexpected(sdk_position.error());
+
     treeloc_t loc;
     loc.ea = ea;
-    loc.itp = static_cast<item_preciser_t>(static_cast<int>(pos));
+    loc.itp = *sdk_position;
 
     const char* cmt = impl_->cfunc->get_user_cmt(loc, RETRIEVE_ALWAYS);
     if (cmt == nullptr)
         return std::string{};
     return std::string(cmt);
+}
+
+Result<std::vector<PseudocodeComment>> DecompiledFunction::comments() const {
+    CHECK_IMPL();
+
+    user_cmts_t* restored = restore_user_cmts(impl_->cfunc->entry_ea);
+    if (restored == nullptr)
+        return std::vector<PseudocodeComment>{};
+    const auto release = [](user_cmts_t* comments) {
+        if (comments != nullptr)
+            user_cmts_free(comments);
+    };
+    std::unique_ptr<user_cmts_t, decltype(release)> owner(restored, release);
+
+    std::vector<PseudocodeComment> result;
+    result.reserve(user_cmts_size(restored));
+    for (auto iterator = user_cmts_begin(restored), end = user_cmts_end(restored);
+         iterator != end; iterator = user_cmts_next(iterator)) {
+        const treeloc_t& location = user_cmts_first(iterator);
+        auto position = from_sdk_comment_position(location.itp);
+        if (!position)
+            return std::unexpected(position.error());
+        const citem_cmt_t& comment = user_cmts_second(iterator);
+        if (comment.empty())
+            continue;
+        result.push_back({location.ea, std::move(*position), comment.c_str()});
+    }
+    std::sort(result.begin(), result.end(), [](const auto& left, const auto& right) {
+        if (left.address != right.address)
+            return left.address < right.address;
+        const auto left_key = comment_position_sort_key(left.position);
+        const auto right_key = comment_position_sort_key(right.position);
+        if (left_key != right_key)
+            return left_key < right_key;
+        return left.text < right.text;
+    });
+    return result;
 }
 
 Status DecompiledFunction::save_comments() const {
@@ -5095,11 +5294,18 @@ Status DecompilerView::set_comment(Address address,
 }
 
 Result<std::string> DecompilerView::get_comment(Address address,
-                                                CommentPosition pos) const {
+                                                 CommentPosition pos) const {
     auto function = decompiled_function();
     if (!function)
         return std::unexpected(function.error());
     return function->get_comment(address, pos);
+}
+
+Result<std::vector<PseudocodeComment>> DecompilerView::comments() const {
+    auto function = decompiled_function();
+    if (!function)
+        return std::unexpected(function.error());
+    return function->comments();
 }
 
 Status DecompilerView::save_comments() const {

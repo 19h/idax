@@ -96,7 +96,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
-| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, user comments, pseudocode-switch/popup events, address mapping |
+| **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, semantic persisted-comment positions/enumeration, pseudocode-switch/popup events, address mapping |
 | **Lines** | `ida::lines` | Tagged text/color helpers plus copied half-open source-file address mappings |
 | **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, stable widget/current-widget and custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks, switch-table metadata |

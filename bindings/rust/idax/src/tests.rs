@@ -1323,8 +1323,41 @@ mod decompiler_tests {
             DecompilerView::set_variable_comment_by_name;
         let _: fn(&DecompilerView, usize, &str) -> Status =
             DecompilerView::set_variable_comment_by_index;
+        let _: fn(&DecompiledFunction, Address, &str, CommentPosition) -> Status =
+            DecompiledFunction::set_comment;
+        let _: fn(&DecompiledFunction, Address, CommentPosition) -> Result<String> =
+            DecompiledFunction::get_comment;
+        let _: fn(&DecompiledFunction) -> Result<Vec<PseudocodeComment>> =
+            DecompiledFunction::comments;
+        let _: fn(&DecompiledFunction) -> Status = DecompiledFunction::save_comments;
+        let _: fn(&DecompiledFunction) -> Result<bool> = DecompiledFunction::has_orphan_comments;
+        let _: fn(&DecompiledFunction) -> Result<usize> =
+            DecompiledFunction::remove_orphan_comments;
         let _: fn(&LvarSnapshot) -> Result<bool> = LvarSnapshot::empty;
         let _: fn(&LvarSnapshot) -> Result<usize> = LvarSnapshot::saved_variable_count;
+    }
+
+    #[test]
+    fn test_semantic_comment_position_values() {
+        assert_eq!(CommentPosition::default(), CommentPosition::Default);
+        assert_eq!(CommentPosition::Argument(0), CommentPosition::Argument(0));
+        assert_ne!(CommentPosition::Argument(0), CommentPosition::Argument(63));
+        assert_eq!(
+            CommentPosition::SwitchCase(-0x1fff_ffff),
+            CommentPosition::SwitchCase(-0x1fff_ffff),
+        );
+        assert_eq!(
+            CommentPosition::SwitchCase(0x1fff_ffff),
+            CommentPosition::SwitchCase(0x1fff_ffff),
+        );
+
+        let copied = PseudocodeComment {
+            address: 0x401000,
+            position: CommentPosition::Semicolon,
+            text: "semantic".to_owned(),
+        };
+        assert_eq!(copied.position, CommentPosition::Semicolon);
+        assert_eq!(copied.text, "semantic");
     }
 
     #[test]

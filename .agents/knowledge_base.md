@@ -1771,3 +1771,46 @@ Phase 49 selects only ordinary/repeatable instruction comments and forced operan
 - Parser/arithmetic containment includes positive and negative signed offsets, `INT64_MIN`, address overflow/underflow, malformed length prefixes, zero-length forced text, invalid UTF-8/NUL, invalid hashes, metadata-free records, duplicate/unsorted operands, duplicate records, and unknown function ordinals.
 - The tracked fixture remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
 - Falsification probes are any reduced suite count, generated-binding delta, malformed-record acceptance/panic, offset wraparound, report-mode target IDB creation, incorrect first/reopen mutation counts, guard-negative acceptance, or tracked fixture mutation.
+
+### 35.112. Semantic Pseudocode Comment Locations [F456]
+
+Persisted Hex-Rays comments are identified by an address and `item_preciser_t`, not by address alone. The public wrapper must model: default; zero-based argument separator `0..63`; opening parenthesis; assembly, else, do, semicolon; opening/closing curly brace; closing parenthesis; label colon; block-before/block-after; try; and bounded signed switch-case value. Conversion to SDK `ITP_*` values belongs only in `src/decompiler.cpp`.
+
+- Assumption A50.1: the pinned local SDK enum and case-bit comments define the ABI used to compile IDAX. Falsify by compiling against a supported SDK whose named `ITP_*` constants or switch-case encoding differ; dependent result: internal conversion and live comment placement only, while the semantic public model remains stable.
+- Switch-case magnitude must not consume `ITP_SIGN` or `ITP_CASE`; require absolute value `<= 0x1fffffff`. Argument index must be `0..63`. Reject all invalid semantic combinations before calling Hex-Rays.
+- Stress probes: compile-time/internal equality against every named SDK constant; all 64 argument endpoints; positive/negative/zero/max switch cases; out-of-range rejection; semicolon enumeration/readback at SDK value `69`; no public raw integer input in C++, Node, or safe Rust.
+
+### 35.113. Multi-Location Pseudocode Comment Persistence [F457]
+
+Copied enumeration must return every nonempty persisted `(address, semantic location, UTF-8 text)` entry in deterministic address/location order and free the restored SDK map with `user_cmts_free`. A Diaphora adaptation may correct the upstream same-address overwrite only if its format is explicitly marked as an IDAX companion rather than SQLite interchange.
+
+- Assumption A50.2: `restore_user_cmts(function_entry)` is the authoritative persisted source for export and fresh-process readback. Falsify if a saved comment visible through `cfunc_t::get_user_cmt` is absent from the restored map after `save_user_cmts`; dependent result: enumeration/export persistence only.
+- Complexity: enumeration is `O(C)` time and `O(C)` copied space for persisted comments `C`; indexed manifest validation/apply is expected `O(I + C)` time and space after instruction indexing.
+- Stress probes: two distinct locations at one address survive enumeration/export/apply/reopen; report mode does not save; existing target location is preserved; unknown/malformed locations are rejected; orphan removal is never implicit.
+
+### 35.114. Semantic Position Cross-Binding Invariants [F458]
+
+- Public C++, Node, and safe Rust APIs accept only semantic locations. The C ABI carries a closed kind plus signed detail and validates every combination; native `item_preciser_t` integers and `treeloc_t` remain implementation-private.
+- Persisted enumeration restores the SDK map, copies every nonempty `(address, location, text)` record, rejects unknown/corrupt native locations, sorts deterministically by address/kind/detail/text, and releases the SDK allocation with `user_cmts_free()`.
+- Valid parameter domains are argument index `0..63` and switch-case value `[-0x1fffffff, 0x1fffffff]`. Simple positions require zero detail; comment text rejects embedded NUL. C output pointers/counts and orphan-query outputs are null-validated.
+- Initialized-host evidence proves SDK semicolon value `69`: a default and semicolon comment at one address both persist, read back exactly, and enumerate independently through C++, Node, and Rust. Every test restores the prior database values after the probe.
+- Complexity: semantic conversion is `O(1)` time/space; copied enumeration is `O(C log C)` time due to deterministic sort and `O(C)` output space for `C` persisted comments.
+- Falsification probes: any raw public integer escape, accepted out-of-range/detail mismatch, lost same-address entry, unsorted repeated enumeration, save-free report mutation, orphan auto-deletion, allocation leak, binding mismatch, or generated-binding byte delta.
+
+### 35.115. Exact Pseudocode-Comment Companion Invariants [F459]
+
+- Header: `IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location`. Every `P` record has 11 tab-separated fields: function ordinal, instruction ordinal, signed function-relative offset, decoded size, full MD5 provenance, relocation-light MD5 guard, hex mnemonic, canonical semantic position name, signed position detail, and hex UTF-8 comment text.
+- Canonical position names are `default`, `argument`, `parenthesis-open`, `assembly`, `else-line`, `do-line`, `semicolon`, `open-brace`, `close-brace`, `parenthesis-close`, `label-colon`, `block-before`, `block-after`, `try-line`, and `switch-case`. Simple detail is zero; argument detail is `0..63`; switch-case detail is `[-0x1fffffff, 0x1fffffff]`.
+- Export includes only persisted nonempty comments whose address is an exact sorted function code head. Per-function decompilation failures and non-instruction/orphan locations are omitted; malformed persisted locations/text fail extraction. The artifact does not claim SQLite interchange or pseudocode similarity.
+- Comparison is read-only and requires a globally unique Phase 48 function match plus exact Phase 49 instruction ordinal/offset/size/mnemonic/relocation-hash agreement. Apply decompiles each eligible target function once, preserves every nonempty target location, writes only absent locations, and calls `save_comments()` once per modified function. It never removes or relocates orphans.
+- Complexity: extraction is `O(F + I + C log C)` time and `O(F + I + C)` working/output space for functions `F`, code heads `I`, and persisted comments `C`; indexed comparison/apply is expected `O(F + I + C)` time and space.
+- Live envelope: 22/22 unique functions, two same-instruction semantic records, `2` first writes/one saved function, `0` reopen writes/`2` preserves, byte-identical SHA-256 `5e8a42dc99e28d57f6b7843d29292ce39c9ed8b387fa6d517ddfa93cb030ba23`; one altered guard gives `1` eligible/`1` failure; one target-owned conflict gives `1` write/`1` preserve.
+- Falsification probes: address-key collapse, record-order nondeterminism, report-created IDB, overwrite of any nonempty target, missing per-function save, reopen write, guard-negative acceptance, malformed position acceptance, implicit orphan deletion, cross-language byte mismatch, or tracked-fixture mutation.
+
+### 35.116. Phase 50 Complete Validation and ABI Boundary [F460]
+
+- Release envelope: C++ full build plus 27/27 CTest; Node build, strict TypeScript examples, 240/240 structural checks, and 85/85 checks against the SDK-matched IDA 9.3 runtime; focused Node semantic-comment persistence/enumeration against IDA 9.4; Rust format/all-target, 140/140 library, 0 sys, 12/12 Diaphora, 20/20 Symless, and 102/102 process-main-thread IDA 9.4 checks.
+- Generated C bindings have independent byte identity at SHA-256 `1c22d8ded3ccd9d08b22f2cce200fb4df4fedc744b89518cc1d0b1ceb370d279`. Tracked fixture executable/IDB SHA-256 values and IDB blob remain `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`, `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`, and `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
+- Red-team containment requires explicit C++-kind-to-C-kind mapping, C argument range checks before `size_t` conversion, null-save rejection, strict parameter-object shapes in Node, and construction/readback probes for all 64 argument positions.
+- Assumption A50.3: the reproducible full-Node failure in `data::string_literals()` when a binary compiled with pinned SDK 9.3 headers is forced onto IDA 9.4 is a cross-minor ABI/layout mismatch outside Phase 50. Falsify by rebuilding the identical Node suite with matching IDA 9.4 SDK headers and reproducing the same `get_strlist_item()`-adjacent vector corruption; dependent result: only claims of full cross-minor Node runtime compatibility. Exact cause is otherwise unknown.
+- Falsification probes are any reduced suite count, semantic position/raw-integer leak, generated-binding delta, same-address location loss, non-idempotent reopen, malformed-input acceptance, guard-negative acceptance, target overwrite, report mutation, tracked-fixture mutation, or claim that the 9.3-header/9.4-runtime full Node probe passed.

@@ -248,6 +248,13 @@ and relocation-light MD5. Compare is non-mutating; explicit apply fills only
 absent slots and preserves every nonempty target value. C++ and Rust emit the
 same versioned tab/hex representation.
 
+The `IDAX_DIAPHORA_PSEUDOCODE_COMMENTS` companion carries one record per
+persisted semantic tree location. It preserves multiple locations at one
+instruction address, validates the same unique-function and exact-instruction
+guards, and applies only to absent target locations. Modified decompiled
+functions are saved explicitly; orphan deletion is never implicit. C++ and
+Rust emit the same canonical location names and tab/hex bytes.
+
 Neither manifest is a Diaphora SQLite database. SQLite schema interchange, the
 complete heuristic/ratio/multimatch engine, referent name/type propagation,
 pseudocode and microcode similarity, raw function flags, program definitions
@@ -256,8 +263,8 @@ remain separate audited surfaces. The upstream copyright, adaptation notice,
 and complete AGPL text are retained in
 `plugin/diaphora_port_LICENSE.txt`.
 
-The Rust adaptation provides byte-compatible headless function and instruction
-metadata export/compare/apply:
+The Rust adaptation provides byte-compatible headless function, instruction
+metadata, and pseudocode-comment export/compare/apply:
 
 ```bash
 cargo run -p idax --example diaphora_exact_port -- <input> --export baseline.idax-diaphora.tsv
@@ -266,6 +273,9 @@ cargo run -p idax --example diaphora_exact_port -- <input> --compare baseline.id
 cargo run -p idax --example diaphora_exact_port -- <input> --export-instruction-metadata baseline.idax-diaphora-instructions.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-instruction-metadata baseline.idax-diaphora-instructions.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-instruction-metadata baseline.idax-diaphora-instructions.tsv --apply
+cargo run -p idax --example diaphora_exact_port -- <input> --export-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv --apply
 ```
 
 ### `plugin/symless_structure_port_plugin.cpp` — Symless Structure Reconstruction Port

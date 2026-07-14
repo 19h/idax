@@ -475,15 +475,20 @@ ida::decompiler::for_each_expression(df, [&](auto expr) {
 // cf->set_user_cmt(loc, "note");
 // cf->save_user_cmts();
 
-// idax:
-df.set_comment(ea, "note");
+// idax — semantic position; no raw item_preciser_t:
+df.set_comment(ea, "note", ida::decompiler::CommentPosition::Semicolon);
 df.save_comments();
 
-auto cmt = df.get_comment(ea);  // -> Result<string>
-df.set_comment(ea, "");         // remove
+auto cmt = df.get_comment(
+    ea, ida::decompiler::CommentPosition::Semicolon); // -> Result<string>
+auto all = df.comments();        // copied persisted (address, position, text)
+df.set_comment(ea, "", ida::decompiler::CommentPosition::Semicolon); // remove
 df.save_comments();
 
-// Orphan comment cleanup workflow:
+auto arg0 = ida::decompiler::CommentPosition::argument(0); // Result, range 0..63
+auto case7 = ida::decompiler::CommentPosition::switch_case(7);
+
+// Orphan cleanup is explicit and is never performed by comments():
 auto has_orphans = df.has_orphan_comments();     // -> Result<bool>
 auto removed = df.remove_orphan_comments();      // -> Result<int>
 df.save_comments();

@@ -1111,3 +1111,51 @@ tracked in `docs/compatibility_matrix.md`.
   fresh-process reopen adds zero and reuses all four. The reopened IDB SHA-256
   is `724fdf034ae9a5aa93f56280894d1e08e97bcf34bd88970cf41a53ae434fa61c`.
   The tracked executable/IDB hashes and IDB blob remain unchanged.
+
+- 2026-07-14 Phase 48 Diaphora exact-function adaptation:
+  Added deterministic C++ and Rust exact-function manifests, canonical CFG
+  metrics, RFC 1321 hashes, unique-only tiered matching, and conservative
+  name/declaration/comment application. Closed encoded operand byte positions
+  and function-declaration readback across C++, Node, generated C, and Rust.
+  Complete validation passed C++ 27/27, Node 239/239 structural plus 84/84
+  initialized checks, Rust 139/139 library plus 0 sys plus 7/7 Diaphora plus
+  20/20 Symless plus 101/101 initialized checks, and independent generated
+  binding identity. Two 22-record exports were byte-identical at SHA-256
+  `4263b3eafdb75fcb009e3c565f341a72cf6abe222c34554d9908fc65caa0d08a`;
+  first apply changed one name and one repeatable comment, while reopen changed
+  zero and preserved exact readback.
+
+- 2026-07-14 Phase 49 Diaphora exact instruction metadata:
+  Added byte-compatible C++ and Rust companion manifests for ordinary and
+  repeatable comments plus forced operands, with strict parsing, checked signed
+  offsets, unique-function alignment, exact instruction guards, and absent-only
+  mutation. Complete validation passed C++ 27/27, Node 239/239 structural plus
+  84/84 initialized checks, Rust 139/139 library plus 0 sys plus 10/10 Diaphora
+  plus 20/20 Symless plus 101/101 initialized checks, and independent binding
+  identity. The 22-function/9-instruction manifest SHA-256 was
+  `d7dbebeb499f1f14cbe378b2af9e77f06f5f65fd7f2d853b2806755382d996d6`;
+  first apply wrote one ordinary comment, one repeatable comment, and one forced
+  operand, reopen wrote zero, and one altered relocation hash rejected exactly
+  one record.
+
+- 2026-07-14 Phase 50 semantic pseudocode-comment locations:
+  Replaced incorrect/raw comment preciser integers with opaque semantic C++,
+  Node, C, and Rust models; added deterministic copied persisted-comment
+  enumeration; and added byte-compatible exact C++/Rust Diaphora companion
+  transfer preserving multiple locations at one instruction. Full C++ build
+  and CTest pass 27/27 in 22.91 s. Node native build, strict examples, and
+  structural tests pass 240/240; the full ABI-matched IDA 9.3 suite passes
+  85/85, and a focused IDA 9.4 default/semicolon persistence, enumeration, and
+  malformed-object probe passes. Rust formatting/all-target, library/sys,
+  Diaphora, Symless, and process-main-thread IDA 9.4 checks pass 140/140, 0,
+  12/12, 20/20, and 102/102. Independent bindgen output is byte-identical at
+  SHA-256 `1c22d8ded3ccd9d08b22f2cce200fb4df4fedc744b89518cc1d0b1ceb370d279`.
+  Isolated two-location apply writes `2`, reopen writes `0` and preserves `2`,
+  and export remains byte-identical at SHA-256
+  `5e8a42dc99e28d57f6b7843d29292ce39c9ed8b387fa6d517ddfa93cb030ba23`.
+  One altered guard rejects one record, and a target-owned conflict is
+  preserved. The tracked executable/IDB hashes and IDB blob remain unchanged.
+  A diagnostic full Node run using SDK 9.3 headers with runtime 9.4 stops in
+  pre-existing `data::string_literals()` after `get_strlist_item()` corrupts
+  vector state; exact cause is unknown without matching 9.4 headers, so this is
+  excluded from the ABI-matched compatibility envelope.

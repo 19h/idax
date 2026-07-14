@@ -1655,6 +1655,20 @@ void check_decompiler_surface() {
         ida::decompiler::DecompiledFunction::*)(std::size_t) const;
     using HasOrphanCommentsFn = ida::Result<bool>(ida::decompiler::DecompiledFunction::*)() const;
     using RemoveOrphanCommentsFn = ida::Result<int>(ida::decompiler::DecompiledFunction::*)();
+    using SetCommentFn = ida::Status(ida::decompiler::DecompiledFunction::*)(
+        ida::Address, std::string_view, ida::decompiler::CommentPosition);
+    using GetCommentFn = ida::Result<std::string>(ida::decompiler::DecompiledFunction::*)(
+        ida::Address, ida::decompiler::CommentPosition) const;
+    using CommentsFn = ida::Result<std::vector<ida::decompiler::PseudocodeComment>>(
+        ida::decompiler::DecompiledFunction::*)() const;
+    using CommentArgumentFn = ida::Result<ida::decompiler::CommentPosition>(*)(std::size_t);
+    using CommentSwitchCaseFn = ida::Result<ida::decompiler::CommentPosition>(*)(std::int64_t);
+    using CommentKindFn = ida::decompiler::CommentPositionKind(
+        ida::decompiler::CommentPosition::*)() const noexcept;
+    using CommentArgumentIndexFn = std::optional<std::size_t>(
+        ida::decompiler::CommentPosition::*)() const noexcept;
+    using CommentSwitchCaseValueFn = std::optional<std::int64_t>(
+        ida::decompiler::CommentPosition::*)() const noexcept;
     using DecompilerViewFunctionNameFn = ida::Result<std::string>(ida::decompiler::DecompilerView::*)() const;
     using DecompilerViewDecompileFn = ida::Result<ida::decompiler::DecompiledFunction>(ida::decompiler::DecompilerView::*)() const;
     using DecompilerViewRenameVariableFn = ida::Status(ida::decompiler::DecompilerView::*)(std::string_view, std::string_view) const;
@@ -1679,6 +1693,8 @@ void check_decompiler_surface() {
     using DecompilerViewGetCommentFn = ida::Result<std::string>(ida::decompiler::DecompilerView::*)(
         ida::Address,
         ida::decompiler::CommentPosition) const;
+    using DecompilerViewCommentsFn = ida::Result<std::vector<ida::decompiler::PseudocodeComment>>(
+        ida::decompiler::DecompilerView::*)() const;
     using DecompilerViewStatusFn = ida::Status(ida::decompiler::DecompilerView::*)() const;
     using ViewFromHostFn = ida::Result<ida::decompiler::DecompilerView>(*)(void*);
     using ViewForFunctionFn = ida::Result<ida::decompiler::DecompilerView>(*)(ida::Address);
@@ -2086,8 +2102,21 @@ void check_decompiler_surface() {
     (void)static_cast<SetVariableCommentByNameFn>(&ida::decompiler::DecompiledFunction::set_variable_comment);
     (void)static_cast<SetVariableCommentByIndexFn>(&ida::decompiler::DecompiledFunction::set_variable_comment);
     (void)static_cast<VariableByIndexFn>(&ida::decompiler::DecompiledFunction::variable);
+    (void)static_cast<SetCommentFn>(&ida::decompiler::DecompiledFunction::set_comment);
+    (void)static_cast<GetCommentFn>(&ida::decompiler::DecompiledFunction::get_comment);
+    (void)static_cast<CommentsFn>(&ida::decompiler::DecompiledFunction::comments);
     (void)static_cast<HasOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::has_orphan_comments);
     (void)static_cast<RemoveOrphanCommentsFn>(&ida::decompiler::DecompiledFunction::remove_orphan_comments);
+    (void)static_cast<CommentArgumentFn>(&ida::decompiler::CommentPosition::argument);
+    (void)static_cast<CommentSwitchCaseFn>(&ida::decompiler::CommentPosition::switch_case);
+    (void)static_cast<CommentKindFn>(&ida::decompiler::CommentPosition::kind);
+    (void)static_cast<CommentArgumentIndexFn>(&ida::decompiler::CommentPosition::argument_index);
+    (void)static_cast<CommentSwitchCaseValueFn>(&ida::decompiler::CommentPosition::switch_case_value);
+    ida::decompiler::PseudocodeComment pseudocode_comment;
+    (void)pseudocode_comment.address;
+    (void)pseudocode_comment.position;
+    (void)pseudocode_comment.text;
+    (void)ida::decompiler::CommentPositionKind::SwitchCase;
     (void)static_cast<ExprCallArgCountFn>(&ida::decompiler::ExpressionView::call_argument_count);
     (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::call_callee);
     (void)static_cast<ExprCallArgFn>(&ida::decompiler::ExpressionView::call_argument);
@@ -2172,6 +2201,7 @@ void check_decompiler_surface() {
     (void)static_cast<DecompilerViewSetVariableCommentByIndexFn>(&ida::decompiler::DecompilerView::set_variable_comment);
     (void)static_cast<DecompilerViewSetCommentFn>(&ida::decompiler::DecompilerView::set_comment);
     (void)static_cast<DecompilerViewGetCommentFn>(&ida::decompiler::DecompilerView::get_comment);
+    (void)static_cast<DecompilerViewCommentsFn>(&ida::decompiler::DecompilerView::comments);
     (void)static_cast<DecompilerViewStatusFn>(&ida::decompiler::DecompilerView::save_comments);
     (void)static_cast<DecompilerViewStatusFn>(&ida::decompiler::DecompilerView::refresh);
 

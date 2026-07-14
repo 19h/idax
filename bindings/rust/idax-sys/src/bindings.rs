@@ -5156,6 +5156,83 @@ impl Default for IdaxLocalVariable {
         }
     }
 }
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_DEFAULT:
+    IdaxDecompilerCommentPositionKind = 0;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_ARGUMENT:
+    IdaxDecompilerCommentPositionKind = 1;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_PARENTHESIS_OPEN:
+    IdaxDecompilerCommentPositionKind = 2;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_ASSEMBLY:
+    IdaxDecompilerCommentPositionKind = 3;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_ELSE_LINE:
+    IdaxDecompilerCommentPositionKind = 4;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_DO_LINE:
+    IdaxDecompilerCommentPositionKind = 5;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_SEMICOLON:
+    IdaxDecompilerCommentPositionKind = 6;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_OPEN_BRACE:
+    IdaxDecompilerCommentPositionKind = 7;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_CLOSE_BRACE:
+    IdaxDecompilerCommentPositionKind = 8;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_PARENTHESIS_CLOSE:
+    IdaxDecompilerCommentPositionKind = 9;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_LABEL_COLON:
+    IdaxDecompilerCommentPositionKind = 10;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_BLOCK_BEFORE:
+    IdaxDecompilerCommentPositionKind = 11;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_BLOCK_AFTER:
+    IdaxDecompilerCommentPositionKind = 12;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_TRY_LINE:
+    IdaxDecompilerCommentPositionKind = 13;
+pub const IdaxDecompilerCommentPositionKind_IDAX_DECOMPILER_COMMENT_SWITCH_CASE:
+    IdaxDecompilerCommentPositionKind = 14;
+pub type IdaxDecompilerCommentPositionKind = ::std::os::raw::c_uint;
+#[doc = " Semantic comment position. value is argument index or switch-case value only."]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxDecompilerCommentPosition {
+    pub kind: ::std::os::raw::c_int,
+    pub value: i64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDecompilerCommentPosition"]
+        [::std::mem::size_of::<IdaxDecompilerCommentPosition>() - 16usize];
+    ["Alignment of IdaxDecompilerCommentPosition"]
+        [::std::mem::align_of::<IdaxDecompilerCommentPosition>() - 8usize];
+    ["Offset of field: IdaxDecompilerCommentPosition::kind"]
+        [::std::mem::offset_of!(IdaxDecompilerCommentPosition, kind) - 0usize];
+    ["Offset of field: IdaxDecompilerCommentPosition::value"]
+        [::std::mem::offset_of!(IdaxDecompilerCommentPosition, value) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxPseudocodeComment {
+    pub address: u64,
+    pub position: IdaxDecompilerCommentPosition,
+    pub text: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxPseudocodeComment"][::std::mem::size_of::<IdaxPseudocodeComment>() - 32usize];
+    ["Alignment of IdaxPseudocodeComment"]
+        [::std::mem::align_of::<IdaxPseudocodeComment>() - 8usize];
+    ["Offset of field: IdaxPseudocodeComment::address"]
+        [::std::mem::offset_of!(IdaxPseudocodeComment, address) - 0usize];
+    ["Offset of field: IdaxPseudocodeComment::position"]
+        [::std::mem::offset_of!(IdaxPseudocodeComment, position) - 8usize];
+    ["Offset of field: IdaxPseudocodeComment::text"]
+        [::std::mem::offset_of!(IdaxPseudocodeComment, text) - 24usize];
+};
+impl Default for IdaxPseudocodeComment {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 unsafe extern "C" {
     pub fn idax_local_variable_free(var: *mut IdaxLocalVariable);
 }
@@ -5235,19 +5312,41 @@ unsafe extern "C" {
         handle: IdaxDecompiledHandle,
         ea: u64,
         text: *const ::std::os::raw::c_char,
-        position: ::std::os::raw::c_int,
+        position: *const IdaxDecompilerCommentPosition,
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_decompiled_get_comment(
         handle: IdaxDecompiledHandle,
         ea: u64,
-        position: ::std::os::raw::c_int,
+        position: *const IdaxDecompilerCommentPosition,
         out: *mut *mut ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_decompiled_comments(
+        handle: IdaxDecompiledHandle,
+        out: *mut *mut IdaxPseudocodeComment,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_comments_free(comments: *mut IdaxPseudocodeComment, count: usize);
+}
+unsafe extern "C" {
     pub fn idax_decompiled_save_comments(handle: IdaxDecompiledHandle) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_has_orphan_comments(
+        handle: IdaxDecompiledHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_remove_orphan_comments(
+        handle: IdaxDecompiledHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_decompiled_line_to_address(

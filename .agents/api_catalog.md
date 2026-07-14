@@ -250,4 +250,10 @@ This section captures the intended public API semantics at a concrete level so i
 - Node `function.declaration(address, nameOverride?)`, generated C `idax_function_declaration`, and Rust `function::declaration(address, Option<&str>)` return owned UTF-8 copies with the same error semantics.
 - Conservative import treats successful nonempty target readback as metadata to preserve.
 
+### 17.31 Semantic Persisted Pseudocode Comments
+- `CommentPosition` models default, argument separator `0..63`, every named Hex-Rays inner/outer location, and signed switch-case values in `[-0x1fffffff, 0x1fffffff]` without exposing `item_preciser_t`.
+- `PseudocodeComment` owns one persisted `(Address, CommentPosition, std::string)` record; `DecompiledFunction::comments()` and `DecompilerView::comments()` enumerate all nonempty records deterministically.
+- `set_comment`/`get_comment` use semantic positions, reject embedded NUL, and require explicit `save_comments()` persistence. `has_orphan_comments()` and `remove_orphan_comments()` remain explicit operations; enumeration and import never delete orphans.
+- Node uses semantic strings or `{ kind: 'argument'|'switchCase', ... }`; the C ABI uses a validated kind/detail pair; safe Rust uses `CommentPosition` variants and owned `PseudocodeComment` values.
+
 ---

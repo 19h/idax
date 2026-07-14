@@ -2444,6 +2444,32 @@ export namespace decompiler {
         savedVariableCount(): number;
     }
 
+    type SimplePseudocodeCommentPosition =
+        | 'default'
+        | 'parenthesisOpen'
+        | 'assembly'
+        | 'elseLine'
+        | 'doLine'
+        | 'semicolon'
+        | 'openBrace'
+        | 'closeBrace'
+        | 'parenthesisClose'
+        | 'labelColon'
+        | 'blockBefore'
+        | 'blockAfter'
+        | 'tryLine';
+
+    type PseudocodeCommentPosition =
+        | SimplePseudocodeCommentPosition
+        | { kind: 'argument'; index: number }
+        | { kind: 'switchCase'; value: number };
+
+    interface PseudocodeComment {
+        address: Address;
+        position: PseudocodeCommentPosition;
+        text: string;
+    }
+
     /**
      * A decompiled function. Returned by `decompile()`. Holds a reference
      * to the underlying Hex-Rays cfunc_t and supports pseudocode access,
@@ -2489,6 +2515,28 @@ export namespace decompiler {
         setVariableComment(name: string, comment: string): void;
         /** Set a persistent local-variable comment by 0-based index. */
         setVariableComment(index: number, comment: string): void;
+
+        /** Set or remove a pseudocode comment at one semantic location. */
+        setComment(
+            address: Address,
+            text: string,
+            position?: PseudocodeCommentPosition,
+        ): void;
+
+        /** Read a pseudocode comment at one semantic location. */
+        getComment(address: Address, position?: PseudocodeCommentPosition): string;
+
+        /** Enumerate copied persisted pseudocode comments. */
+        comments(): PseudocodeComment[];
+
+        /** Persist in-memory pseudocode comment changes. */
+        saveComments(): void;
+
+        /** Whether persisted/in-memory pseudocode comments contain orphans. */
+        hasOrphanComments(): boolean;
+
+        /** Explicitly remove orphan pseudocode comments; returns removed count. */
+        removeOrphanComments(): number;
 
         /** Visit ctree expressions synchronously. */
         forEachExpression(callback: (expression: ExpressionInfo) => VisitAction): number;

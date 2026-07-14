@@ -157,6 +157,86 @@ void test_instruction_metadata_manifest() {
         format_instruction_metadata_manifest(nul_metadata)));
 }
 
+void test_pseudocode_comment_manifest() {
+    PseudocodeCommentManifest manifest;
+    manifest.functions.push_back(record(0, 0x123, 'a', 'b'));
+    PseudocodeCommentRecord first{
+        .function_ordinal = 0,
+        .instruction_ordinal = 2,
+        .function_offset = 7,
+        .size = 5,
+        .full_md5 = std::string(32, 'c'),
+        .relocation_md5 = std::string(32, 'd'),
+        .mnemonic = "mov",
+        .position = {PseudocodePositionKind::Default, 0},
+        .text = "default\tcomment",
+    };
+    auto second = first;
+    second.position = {PseudocodePositionKind::Semicolon, 0};
+    second.text = "semicolon\n\xce\xbb";
+    manifest.comments = {first, second};
+
+    const std::string encoded = format_pseudocode_comment_manifest(manifest);
+    CHECK(encoded.starts_with(
+        "IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location\nF\t"));
+    CHECK(encoded.find(
+        "P\t0\t2\t7\t5\tcccccccccccccccccccccccccccccccc\t"
+        "dddddddddddddddddddddddddddddddd\t6d6f76\tdefault\t0\t"
+        "64656661756c7409636f6d6d656e74\n") != std::string::npos);
+    CHECK(encoded.find("\tsemicolon\t0\t73656d69636f6c6f6e0acebb\n")
+          != std::string::npos);
+    auto decoded = parse_pseudocode_comment_manifest(encoded);
+    CHECK(decoded.has_value());
+    if (decoded) {
+        CHECK(decoded->functions.size() == 1);
+        CHECK(decoded->comments == manifest.comments);
+        CHECK(decoded->comments[0].instruction_ordinal
+              == decoded->comments[1].instruction_ordinal);
+        CHECK(decoded->comments[0].position
+              != decoded->comments[1].position);
+        CHECK(format_pseudocode_comment_manifest(*decoded) == encoded);
+    }
+
+    auto argument = parse_pseudocode_position("argument", 63);
+    CHECK(argument && argument->kind == PseudocodePositionKind::Argument
+          && argument->detail == 63);
+    CHECK(!parse_pseudocode_position("argument", 64));
+    auto case_minimum = parse_pseudocode_position("switch-case", -0x1fffffff);
+    CHECK(case_minimum && case_minimum->kind == PseudocodePositionKind::SwitchCase
+          && case_minimum->detail == -0x1fffffff);
+    auto case_maximum = parse_pseudocode_position("switch-case", 0x1fffffff);
+    CHECK(case_maximum && case_maximum->kind == PseudocodePositionKind::SwitchCase
+          && case_maximum->detail == 0x1fffffff);
+    CHECK(!parse_pseudocode_position("switch-case", -0x20000000));
+    CHECK(!parse_pseudocode_position("switch-case", 0x20000000));
+    CHECK(!parse_pseudocode_position("semicolon", 1));
+    CHECK(!parse_pseudocode_position("unknown", 0));
+
+    const auto record_start = encoded.find("P\t");
+    CHECK(record_start != std::string::npos);
+    if (record_start != std::string::npos) {
+        const auto record_end = encoded.find('\n', record_start);
+        CHECK(record_end != std::string::npos);
+        if (record_end != std::string::npos) {
+            std::string duplicate = encoded;
+            duplicate += encoded.substr(record_start, record_end - record_start + 1);
+            CHECK(!parse_pseudocode_comment_manifest(duplicate));
+        }
+        std::string unknown_function = encoded;
+        unknown_function.replace(record_start, 4, "P\t1\t");
+        CHECK(!parse_pseudocode_comment_manifest(unknown_function));
+    }
+
+    auto empty = manifest;
+    empty.comments[0].text.clear();
+    CHECK(!parse_pseudocode_comment_manifest(
+        format_pseudocode_comment_manifest(empty)));
+    auto nul = manifest;
+    nul.comments[0].text = std::string("x\0y", 3);
+    CHECK(!parse_pseudocode_comment_manifest(
+        format_pseudocode_comment_manifest(nul)));
+}
+
 void test_instruction_offsets() {
     CHECK(relative_offset(0x120, 0x100) == 0x20);
     CHECK(relative_offset(0xf0, 0x100) == -0x10);
@@ -213,6 +293,7 @@ int main() {
     test_md5();
     test_manifest();
     test_instruction_metadata_manifest();
+    test_pseudocode_comment_manifest();
     test_instruction_offsets();
     test_metrics_and_prefix();
     test_matching();

@@ -21,7 +21,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 | Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
 | Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | closed | No remaining source-defined gap in the audited boundary: depth-bounded resolved direct/database-derived indirect calls, allocator/wrapper/fixed roots, exact constructor/vtable and RTTI/data-alias reachability, static virtual-method roots, shifted arguments, forward replacement, persistent member references, exact operand paths, and explicit register/stack microcode-root before/after injection are implemented. Runtime object-dependent dispatch is absent upstream and is not a parity requirement |
-| Diaphora 3.4.0 | `examples/plugin/diaphora_exact_port_plugin.cpp`, `bindings/rust/idax/examples/diaphora_exact_port.rs` | exact-fingerprint and conservative instruction-metadata slices closed | SQLite interchange, complete heuristic/ratio/multimatch matching, referent name/type propagation, pseudocode/microcode similarity, raw function flags, type/definition import, compilation units, callgraph matching, and chooser UI remain independent audited surfaces |
+| Diaphora 3.4.0 | `examples/plugin/diaphora_exact_port_plugin.cpp`, `bindings/rust/idax/examples/diaphora_exact_port.rs` | exact fingerprints, conservative instruction metadata, and exact multi-location pseudocode-comment transfer closed | SQLite interchange, complete heuristic/ratio/multimatch matching, referent name/type propagation, pseudocode/microcode similarity, raw function flags, type/definition import, compilation units, callgraph matching, and chooser UI remain independent audited surfaces |
 
 ## Notes
 
@@ -51,7 +51,10 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   conservative apply. Its companion instruction manifest adds ordinary and
   repeatable comments plus forced operand text, aligned only after a unique
   function match and exact relative-offset/ordinal/size/mnemonic/relocation-
-  hash guards. Both versioned tab/hex formats are byte-compatible between the
+  hash guards. A second companion preserves every semantic pseudocode-comment
+  location at an exact instruction, including multiple locations at one
+  address, and saves only modified decompiled functions without implicit
+  orphan deletion. All three versioned tab/hex formats are byte-compatible between the
   C++ and Rust adaptations and explicitly are not native Diaphora SQLite
   interchange.
 - The Symless adaptation preserves the source-audited CPU-state and field

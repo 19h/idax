@@ -31,6 +31,8 @@ Environment requirements:
 - `IDASDK` is required for all profiles (headers + ida-cmake bootstrap).
 - `IDADIR` (or platform auto-discovery) is required for full integration-test
   coverage. Without a runtime install, integration tests are skipped by CMake.
+- Full runtime claims require SDK headers and IDA runtime from the same minor
+  release. Cross-minor runs are diagnostic probes, not compatibility rows.
 - Appcall runtime-path validation is tracked separately in
   `docs/appcall_runtime_validation.md`.
 

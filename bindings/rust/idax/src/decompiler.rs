@@ -43,6 +43,114 @@ impl Maturity {
     }
 }
 
+/// Semantic location of a persisted pseudocode comment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum CommentPosition {
+    #[default]
+    Default,
+    Argument(usize),
+    ParenthesisOpen,
+    Assembly,
+    ElseLine,
+    DoLine,
+    Semicolon,
+    OpenBrace,
+    CloseBrace,
+    ParenthesisClose,
+    LabelColon,
+    BlockBefore,
+    BlockAfter,
+    TryLine,
+    SwitchCase(i64),
+}
+
+impl CommentPosition {
+    fn to_raw(self) -> Result<idax_sys::IdaxDecompilerCommentPosition> {
+        let (kind, value) = match self {
+            Self::Default => (0, 0),
+            Self::Argument(index) => {
+                if index >= 64 {
+                    return Err(Error::validation(
+                        "pseudocode comment argument index must be in [0, 63]",
+                    ));
+                }
+                let value = i64::try_from(index)
+                    .map_err(|_| Error::validation("comment argument index overflow"))?;
+                (1, value)
+            }
+            Self::ParenthesisOpen => (2, 0),
+            Self::Assembly => (3, 0),
+            Self::ElseLine => (4, 0),
+            Self::DoLine => (5, 0),
+            Self::Semicolon => (6, 0),
+            Self::OpenBrace => (7, 0),
+            Self::CloseBrace => (8, 0),
+            Self::ParenthesisClose => (9, 0),
+            Self::LabelColon => (10, 0),
+            Self::BlockBefore => (11, 0),
+            Self::BlockAfter => (12, 0),
+            Self::TryLine => (13, 0),
+            Self::SwitchCase(value) => {
+                if !(-0x1fff_ffff..=0x1fff_ffff).contains(&value) {
+                    return Err(Error::validation(
+                        "pseudocode switch-case comment value exceeds the supported range",
+                    ));
+                }
+                (14, value)
+            }
+        };
+        Ok(idax_sys::IdaxDecompilerCommentPosition { kind, value })
+    }
+
+    fn from_raw(raw: idax_sys::IdaxDecompilerCommentPosition) -> Result<Self> {
+        let simple = |position| {
+            if raw.value == 0 {
+                Ok(position)
+            } else {
+                Err(Error::validation(
+                    "simple pseudocode comment position has nonzero value",
+                ))
+            }
+        };
+        match raw.kind {
+            0 => simple(Self::Default),
+            1 => {
+                let index = usize::try_from(raw.value)
+                    .map_err(|_| Error::validation("invalid comment argument index"))?;
+                if index >= 64 {
+                    return Err(Error::validation("invalid comment argument index"));
+                }
+                Ok(Self::Argument(index))
+            }
+            2 => simple(Self::ParenthesisOpen),
+            3 => simple(Self::Assembly),
+            4 => simple(Self::ElseLine),
+            5 => simple(Self::DoLine),
+            6 => simple(Self::Semicolon),
+            7 => simple(Self::OpenBrace),
+            8 => simple(Self::CloseBrace),
+            9 => simple(Self::ParenthesisClose),
+            10 => simple(Self::LabelColon),
+            11 => simple(Self::BlockBefore),
+            12 => simple(Self::BlockAfter),
+            13 => simple(Self::TryLine),
+            14 if (-0x1fff_ffff..=0x1fff_ffff).contains(&raw.value) => {
+                Ok(Self::SwitchCase(raw.value))
+            }
+            14 => Err(Error::validation("invalid switch-case comment value")),
+            _ => Err(Error::unsupported("unknown pseudocode comment position")),
+        }
+    }
+}
+
+/// One copied persisted pseudocode comment.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PseudocodeComment {
+    pub address: Address,
+    pub position: CommentPosition,
+    pub text: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(i32)]
 pub enum ItemType {
@@ -904,17 +1012,21 @@ impl DecompiledFunction {
         error::int_to_status(ret, "set_variable_comment_by_index failed")
     }
 
-    pub fn set_comment(&self, ea: Address, text: &str, position: i32) -> Status {
+    pub fn set_comment(&self, ea: Address, text: &str, position: CommentPosition) -> Status {
         let c = CString::new(text).map_err(|_| Error::validation("invalid text"))?;
-        let ret =
-            unsafe { idax_sys::idax_decompiled_set_comment(self.handle, ea, c.as_ptr(), position) };
+        let raw_position = position.to_raw()?;
+        let ret = unsafe {
+            idax_sys::idax_decompiled_set_comment(self.handle, ea, c.as_ptr(), &raw_position)
+        };
         error::int_to_status(ret, "set_comment failed")
     }
 
-    pub fn get_comment(&self, ea: Address, position: i32) -> Result<String> {
+    pub fn get_comment(&self, ea: Address, position: CommentPosition) -> Result<String> {
+        let raw_position = position.to_raw()?;
         unsafe {
             let mut ptr: *mut c_char = std::ptr::null_mut();
-            let ret = idax_sys::idax_decompiled_get_comment(self.handle, ea, position, &mut ptr);
+            let ret =
+                idax_sys::idax_decompiled_get_comment(self.handle, ea, &raw_position, &mut ptr);
             if ret != 0 {
                 return Err(error::consume_last_error("get_comment failed"));
             }
@@ -922,9 +1034,69 @@ impl DecompiledFunction {
         }
     }
 
+    pub fn comments(&self) -> Result<Vec<PseudocodeComment>> {
+        unsafe {
+            let mut ptr: *mut idax_sys::IdaxPseudocodeComment = std::ptr::null_mut();
+            let mut count = 0usize;
+            let ret = idax_sys::idax_decompiled_comments(self.handle, &mut ptr, &mut count);
+            if ret != 0 {
+                return Err(error::consume_last_error("comments failed"));
+            }
+            if count == 0 {
+                return Ok(Vec::new());
+            }
+            if ptr.is_null() {
+                return Err(Error::internal("comments returned a null array"));
+            }
+            let converted = (|| {
+                let mut comments = Vec::with_capacity(count);
+                for raw in std::slice::from_raw_parts(ptr, count) {
+                    let position = CommentPosition::from_raw(raw.position)?;
+                    if raw.text.is_null() {
+                        return Err(Error::internal("comment text is null"));
+                    }
+                    let text = CStr::from_ptr(raw.text)
+                        .to_str()
+                        .map_err(|_| Error::validation("comment text is not UTF-8"))?
+                        .to_owned();
+                    comments.push(PseudocodeComment {
+                        address: raw.address,
+                        position,
+                        text,
+                    });
+                }
+                Ok(comments)
+            })();
+            idax_sys::idax_decompiled_comments_free(ptr, count);
+            converted
+        }
+    }
+
     pub fn save_comments(&self) -> Status {
         let ret = unsafe { idax_sys::idax_decompiled_save_comments(self.handle) };
         error::int_to_status(ret, "save_comments failed")
+    }
+
+    pub fn has_orphan_comments(&self) -> Result<bool> {
+        let mut out = 0;
+        let ret = unsafe { idax_sys::idax_decompiled_has_orphan_comments(self.handle, &mut out) };
+        if ret != 0 {
+            Err(error::consume_last_error("has_orphan_comments failed"))
+        } else {
+            Ok(out != 0)
+        }
+    }
+
+    pub fn remove_orphan_comments(&self) -> Result<usize> {
+        let mut out = 0;
+        let ret =
+            unsafe { idax_sys::idax_decompiled_remove_orphan_comments(self.handle, &mut out) };
+        if ret != 0 {
+            Err(error::consume_last_error("remove_orphan_comments failed"))
+        } else {
+            usize::try_from(out)
+                .map_err(|_| Error::internal("negative orphan comment removal count"))
+        }
     }
 
     pub fn entry_address(&self) -> Result<Address> {

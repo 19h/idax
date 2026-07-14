@@ -2234,52 +2234,123 @@ void test_decompiler_comments(ida::Address fn_ea) {
     CHECK_HAS_VALUE(decomp);
     if (!decomp) return;
 
+    for (std::size_t index = 0; index < 64; ++index) {
+        auto argument = ida::decompiler::CommentPosition::argument(index);
+        CHECK_OK(argument);
+        if (argument) {
+            CHECK(argument->kind() == ida::decompiler::CommentPositionKind::Argument);
+            CHECK(argument->argument_index() == index);
+            CHECK(!argument->switch_case_value().has_value());
+        }
+    }
+    auto argument_last = ida::decompiler::CommentPosition::argument(63);
+    CHECK_OK(argument_last);
+    if (argument_last)
+        CHECK(argument_last->argument_index() == 63);
+    CHECK_ERR(ida::decompiler::CommentPosition::argument(64),
+              ida::ErrorCategory::Validation);
+
+    constexpr std::int64_t maximum_case_magnitude = 0x1fffffff;
+    auto case_minimum = ida::decompiler::CommentPosition::switch_case(
+        -maximum_case_magnitude);
+    CHECK_OK(case_minimum);
+    if (case_minimum) {
+        CHECK(case_minimum->kind() == ida::decompiler::CommentPositionKind::SwitchCase);
+        CHECK(case_minimum->switch_case_value() == -maximum_case_magnitude);
+        CHECK(!case_minimum->argument_index().has_value());
+    }
+    auto case_maximum = ida::decompiler::CommentPosition::switch_case(
+        maximum_case_magnitude);
+    CHECK_OK(case_maximum);
+    if (case_maximum)
+        CHECK(case_maximum->switch_case_value() == maximum_case_magnitude);
+    CHECK_ERR(ida::decompiler::CommentPosition::switch_case(
+                  -maximum_case_magnitude - 1),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::decompiler::CommentPosition::switch_case(
+                  maximum_case_magnitude + 1),
+              ida::ErrorCategory::Validation);
+
     ida::Address comment_ea = fn_ea;
     auto amap = decomp->address_map();
     if (amap && !amap->empty())
         comment_ea = amap->front().address;
 
-    // Set a default-position comment.
+    auto original_default = decomp->get_comment(comment_ea);
+    CHECK_OK(original_default);
+    auto original_semicolon = decomp->get_comment(
+        comment_ea, ida::decompiler::CommentPosition::Semicolon);
+    CHECK_OK(original_semicolon);
+    if (!original_default || !original_semicolon)
+        return;
+
+    CHECK_ERR(decomp->set_comment(
+                  comment_ea,
+                  std::string_view{"invalid\0comment", 15}),
+              ida::ErrorCategory::Validation);
+
+    // Persist two distinct tree locations at the same address.
     CHECK_OK(decomp->set_comment(comment_ea, "test_hardening_comment"));
-
-    auto got = decomp->get_comment(comment_ea);
-    CHECK_OK(got);
-    if (got) {
-        CHECK(*got == "test_hardening_comment");
-    }
-
-    // Save comments
-    CHECK_OK(decomp->save_comments());
-
-    // Set/get a semicolon-position comment to exercise non-default positions.
     CHECK_OK(decomp->set_comment(comment_ea,
                                  "test_hardening_comment_semicolon",
                                  ida::decompiler::CommentPosition::Semicolon));
+    CHECK_OK(decomp->save_comments());
+
+    auto got = decomp->get_comment(comment_ea);
+    CHECK_OK(got);
+    if (got)
+        CHECK(*got == "test_hardening_comment");
 
     auto semi = decomp->get_comment(comment_ea,
                                     ida::decompiler::CommentPosition::Semicolon);
     CHECK_OK(semi);
-    if (semi) {
-        // Some SDK backends may normalize position-specific comments.
-        CHECK(semi->empty() || *semi == "test_hardening_comment_semicolon");
+    if (semi)
+        CHECK(*semi == "test_hardening_comment_semicolon");
+
+    auto persisted = decomp->comments();
+    CHECK_OK(persisted);
+    if (persisted) {
+        bool found_default = false;
+        bool found_semicolon = false;
+        for (const auto& comment : *persisted) {
+            if (comment.address != comment_ea)
+                continue;
+            if (comment.position == ida::decompiler::CommentPosition::Default
+                && comment.text == "test_hardening_comment") {
+                found_default = true;
+            }
+            if (comment.position == ida::decompiler::CommentPosition::Semicolon
+                && comment.text == "test_hardening_comment_semicolon") {
+                found_semicolon = true;
+            }
+        }
+        CHECK(found_default);
+        CHECK(found_semicolon);
     }
 
-    // Remove position-specific comment.
+    // Restore both prior values rather than altering a pre-populated fixture.
     CHECK_OK(decomp->set_comment(comment_ea,
-                                 "",
+                                 *original_semicolon,
                                  ida::decompiler::CommentPosition::Semicolon));
-
-    // Remove default comment.
-    CHECK_OK(decomp->set_comment(comment_ea, ""));
+    CHECK_OK(decomp->set_comment(comment_ea, *original_default));
 
     auto empty = decomp->get_comment(comment_ea);
     CHECK_OK(empty);
     if (empty) {
-        CHECK(empty->empty());
+        CHECK(*empty == *original_default);
     }
 
     // Save the removals.
     CHECK_OK(decomp->save_comments());
+
+    auto after_removal = decomp->comments();
+    CHECK_OK(after_removal);
+    if (after_removal) {
+        for (const auto& comment : *after_removal) {
+            CHECK(comment.text != "test_hardening_comment");
+            CHECK(comment.text != "test_hardening_comment_semicolon");
+        }
+    }
 
     // Orphan-comment workflow coverage.
     auto has_orphans = decomp->has_orphan_comments();

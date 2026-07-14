@@ -1274,13 +1274,74 @@ struct VisitOptions {
 
 // ── User comment position ───────────────────────────────────────────────
 
+/// Semantic kind of a persisted pseudocode comment location.
+enum class CommentPositionKind : std::uint8_t {
+    Default,
+    Argument,
+    ParenthesisOpen,
+    Assembly,
+    ElseLine,
+    DoLine,
+    Semicolon,
+    OpenBrace,
+    CloseBrace,
+    ParenthesisClose,
+    LabelColon,
+    BlockBefore,
+    BlockAfter,
+    TryLine,
+    SwitchCase,
+};
+
 /// Where a user comment attaches relative to a ctree item.
-enum class CommentPosition : int {
-    Default     = 0,    ///< End-of-line comment at the item's address.
-    Semicolon   = 259,  ///< Comment at the semicolon.
-    OpenBrace   = 260,  ///< Comment at the opening brace.
-    CloseBrace  = 261,  ///< Comment at the closing brace.
-    ElseLine    = 258,  ///< Comment at the else line.
+///
+/// This is a semantic value: native Hex-Rays item-preciser integers are never
+/// exposed. Use argument() and switch_case() for parameterized locations.
+class CommentPosition {
+public:
+    CommentPosition() = default;
+
+    static const CommentPosition Default;
+    static const CommentPosition ParenthesisOpen;
+    static const CommentPosition Assembly;
+    static const CommentPosition ElseLine;
+    static const CommentPosition DoLine;
+    static const CommentPosition Semicolon;
+    static const CommentPosition OpenBrace;
+    static const CommentPosition CloseBrace;
+    static const CommentPosition ParenthesisClose;
+    static const CommentPosition LabelColon;
+    static const CommentPosition BlockBefore;
+    static const CommentPosition BlockAfter;
+    static const CommentPosition TryLine;
+
+    /// Attach at a zero-based call argument separator (0..63).
+    static Result<CommentPosition> argument(std::size_t zero_based_index);
+
+    /// Attach at a signed switch-case value representable by Hex-Rays.
+    static Result<CommentPosition> switch_case(std::int64_t value);
+
+    [[nodiscard]] CommentPositionKind kind() const noexcept { return kind_; }
+    [[nodiscard]] std::optional<std::size_t> argument_index() const noexcept;
+    [[nodiscard]] std::optional<std::int64_t> switch_case_value() const noexcept;
+
+    bool operator==(const CommentPosition&) const = default;
+
+private:
+    constexpr CommentPosition(CommentPositionKind kind, std::int64_t detail) noexcept
+        : kind_(kind), detail_(detail) {}
+
+    CommentPositionKind kind_{CommentPositionKind::Default};
+    std::int64_t detail_{0};
+};
+
+/// One copied persisted pseudocode comment.
+struct PseudocodeComment {
+    Address address{BadAddress};
+    CommentPosition position;
+    std::string text;
+
+    bool operator==(const PseudocodeComment&) const = default;
 };
 
 // ── Address mapping entry ───────────────────────────────────────────────
@@ -1390,6 +1451,9 @@ public:
     Result<std::string> get_comment(Address ea,
                                     CommentPosition pos = CommentPosition::Default) const;
 
+    /// Enumerate every persisted comment with copied semantic locations.
+    [[nodiscard]] Result<std::vector<PseudocodeComment>> comments() const;
+
     /// Save all user-defined comments to the database.
     Status save_comments() const;
 
@@ -1478,6 +1542,9 @@ public:
     /// Get user comment for represented function pseudocode.
     [[nodiscard]] Result<std::string> get_comment(Address address,
                                                   CommentPosition pos = CommentPosition::Default) const;
+
+    /// Enumerate every persisted comment for the represented function.
+    [[nodiscard]] Result<std::vector<PseudocodeComment>> comments() const;
 
     /// Persist user comments.
     Status save_comments() const;

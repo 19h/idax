@@ -6495,23 +6495,183 @@ int idax_lvar_snapshot_saved_variable_count(IdaxLvarSnapshotHandle snapshot,
     return 0;
 }
 
+static ida::Result<ida::decompiler::CommentPosition> comment_position_from_ffi(
+    const IdaxDecompilerCommentPosition* position) {
+    using Position = ida::decompiler::CommentPosition;
+    if (position == nullptr)
+        return std::unexpected(ida::Error::validation(
+            "Pseudocode comment position is null"));
+
+    auto simple = [&](Position value) -> ida::Result<Position> {
+        if (position->value != 0)
+            return std::unexpected(ida::Error::validation(
+                "Simple pseudocode comment position must have value zero"));
+        return value;
+    };
+    switch (position->kind) {
+    case IDAX_DECOMPILER_COMMENT_DEFAULT: return simple(Position::Default);
+    case IDAX_DECOMPILER_COMMENT_ARGUMENT:
+        if (position->value < 0 || position->value >= 64)
+            return std::unexpected(ida::Error::validation(
+                "Pseudocode comment argument index must be in [0, 63]"));
+        return Position::argument(static_cast<std::size_t>(position->value));
+    case IDAX_DECOMPILER_COMMENT_PARENTHESIS_OPEN:
+        return simple(Position::ParenthesisOpen);
+    case IDAX_DECOMPILER_COMMENT_ASSEMBLY: return simple(Position::Assembly);
+    case IDAX_DECOMPILER_COMMENT_ELSE_LINE: return simple(Position::ElseLine);
+    case IDAX_DECOMPILER_COMMENT_DO_LINE: return simple(Position::DoLine);
+    case IDAX_DECOMPILER_COMMENT_SEMICOLON: return simple(Position::Semicolon);
+    case IDAX_DECOMPILER_COMMENT_OPEN_BRACE: return simple(Position::OpenBrace);
+    case IDAX_DECOMPILER_COMMENT_CLOSE_BRACE: return simple(Position::CloseBrace);
+    case IDAX_DECOMPILER_COMMENT_PARENTHESIS_CLOSE:
+        return simple(Position::ParenthesisClose);
+    case IDAX_DECOMPILER_COMMENT_LABEL_COLON: return simple(Position::LabelColon);
+    case IDAX_DECOMPILER_COMMENT_BLOCK_BEFORE: return simple(Position::BlockBefore);
+    case IDAX_DECOMPILER_COMMENT_BLOCK_AFTER: return simple(Position::BlockAfter);
+    case IDAX_DECOMPILER_COMMENT_TRY_LINE: return simple(Position::TryLine);
+    case IDAX_DECOMPILER_COMMENT_SWITCH_CASE:
+        return Position::switch_case(position->value);
+    default:
+        return std::unexpected(ida::Error::validation(
+            "Unknown pseudocode comment position kind",
+            std::to_string(position->kind)));
+    }
+}
+
+static IdaxDecompilerCommentPosition comment_position_to_ffi(
+    const ida::decompiler::CommentPosition& position) {
+    IdaxDecompilerCommentPosition result{};
+    using Kind = ida::decompiler::CommentPositionKind;
+    switch (position.kind()) {
+    case Kind::Default: result.kind = IDAX_DECOMPILER_COMMENT_DEFAULT; break;
+    case Kind::Argument: result.kind = IDAX_DECOMPILER_COMMENT_ARGUMENT; break;
+    case Kind::ParenthesisOpen:
+        result.kind = IDAX_DECOMPILER_COMMENT_PARENTHESIS_OPEN;
+        break;
+    case Kind::Assembly: result.kind = IDAX_DECOMPILER_COMMENT_ASSEMBLY; break;
+    case Kind::ElseLine: result.kind = IDAX_DECOMPILER_COMMENT_ELSE_LINE; break;
+    case Kind::DoLine: result.kind = IDAX_DECOMPILER_COMMENT_DO_LINE; break;
+    case Kind::Semicolon: result.kind = IDAX_DECOMPILER_COMMENT_SEMICOLON; break;
+    case Kind::OpenBrace: result.kind = IDAX_DECOMPILER_COMMENT_OPEN_BRACE; break;
+    case Kind::CloseBrace: result.kind = IDAX_DECOMPILER_COMMENT_CLOSE_BRACE; break;
+    case Kind::ParenthesisClose:
+        result.kind = IDAX_DECOMPILER_COMMENT_PARENTHESIS_CLOSE;
+        break;
+    case Kind::LabelColon: result.kind = IDAX_DECOMPILER_COMMENT_LABEL_COLON; break;
+    case Kind::BlockBefore:
+        result.kind = IDAX_DECOMPILER_COMMENT_BLOCK_BEFORE;
+        break;
+    case Kind::BlockAfter: result.kind = IDAX_DECOMPILER_COMMENT_BLOCK_AFTER; break;
+    case Kind::TryLine: result.kind = IDAX_DECOMPILER_COMMENT_TRY_LINE; break;
+    case Kind::SwitchCase:
+        result.kind = IDAX_DECOMPILER_COMMENT_SWITCH_CASE;
+        break;
+    }
+    if (const auto index = position.argument_index())
+        result.value = static_cast<std::int64_t>(*index);
+    else if (const auto value = position.switch_case_value())
+        result.value = *value;
+    return result;
+}
+
 int idax_decompiled_set_comment(IdaxDecompiledHandle handle, uint64_t ea,
-                                const char* text, int position) {
+                                const char* text,
+                                const IdaxDecompilerCommentPosition* position) {
+    clear_error();
+    if (handle == nullptr || text == nullptr)
+        return fail(ida::Error::validation("Comment handle/text is null"));
+    auto parsed = comment_position_from_ffi(position);
+    if (!parsed) return fail(parsed.error());
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
-    RETURN_STATUS(df->set_comment(ea, text,
-        static_cast<ida::decompiler::CommentPosition>(position)));
+    auto status = df->set_comment(ea, text, *parsed);
+    return status ? 0 : fail(status.error());
 }
 
 int idax_decompiled_get_comment(IdaxDecompiledHandle handle, uint64_t ea,
-                                int position, char** out) {
+                                const IdaxDecompilerCommentPosition* position,
+                                char** out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Comment handle/output is null"));
+    auto parsed = comment_position_from_ffi(position);
+    if (!parsed) return fail(parsed.error());
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
-    RETURN_RESULT_STRING(df->get_comment(ea,
-        static_cast<ida::decompiler::CommentPosition>(position)));
+    auto result = df->get_comment(ea, *parsed);
+    if (!result) return fail(result.error());
+    *out = dup_string(*result);
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+void idax_decompiled_comments_free(IdaxPseudocodeComment* comments, size_t count) {
+    if (comments == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index) {
+        std::free(comments[index].text);
+        comments[index].text = nullptr;
+    }
+    std::free(comments);
+}
+
+int idax_decompiled_comments(IdaxDecompiledHandle handle,
+                             IdaxPseudocodeComment** out, size_t* count) {
+    clear_error();
+    if (handle == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Comment handle/output is null"));
+    *out = nullptr;
+    *count = 0;
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto result = df->comments();
+    if (!result) return fail(result.error());
+    if (result->empty())
+        return 0;
+
+    auto* copied = static_cast<IdaxPseudocodeComment*>(
+        std::calloc(result->size(), sizeof(IdaxPseudocodeComment)));
+    if (copied == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < result->size(); ++index) {
+        copied[index].address = (*result)[index].address;
+        copied[index].position = comment_position_to_ffi((*result)[index].position);
+        copied[index].text = dup_string((*result)[index].text);
+        if (copied[index].text == nullptr) {
+            idax_decompiled_comments_free(copied, result->size());
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    *out = copied;
+    *count = result->size();
+    return 0;
 }
 
 int idax_decompiled_save_comments(IdaxDecompiledHandle handle) {
+    if (handle == nullptr)
+        return fail(ida::Error::validation("Comment handle is null"));
     auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
     RETURN_STATUS(df->save_comments());
+}
+
+int idax_decompiled_has_orphan_comments(IdaxDecompiledHandle handle, int* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Orphan comment handle/output is null"));
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto result = df->has_orphan_comments();
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_decompiled_remove_orphan_comments(IdaxDecompiledHandle handle, int* out) {
+    clear_error();
+    if (handle == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Orphan comment handle/output is null"));
+    auto* df = static_cast<ida::decompiler::DecompiledFunction*>(handle);
+    auto result = df->remove_orphan_comments();
+    if (!result) return fail(result.error());
+    *out = *result;
+    return 0;
 }
 
 int idax_decompiled_line_to_address(IdaxDecompiledHandle handle,

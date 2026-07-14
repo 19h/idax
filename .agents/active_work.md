@@ -155,3 +155,19 @@
 - **15.3. Adaptation and validation**
   - 15.3.1. **Status:** P49.3 complete (F454; KB 35.110). Byte-compatible C++/Rust companion manifests, strict parsers, unique-function/instruction guards, and absent-only apply are implemented; focused pure tests and real-IDA positive/negative/reopen evidence pass.
   - 15.3.2. **Status:** Complete and retired. P49.4 documentation, complete regression, generated-binding/fixture integrity, post-red-team edge probes, and exact 12-file staged review pass. Implementation commit `60278f6d2683e6ac9c947af2e8b3684797c11684` is pushed to `origin/master`; no Phase 49 blocker remains.
+
+---
+
+### 16. Diaphora Pseudocode Comment Location Closure (Phase 50)
+
+- **16.1. Source and wrapper audit**
+  - 16.1.1. **Status:** P50.1 complete (F456-F457; KB 35.112-35.113). Pinned SDK `item_preciser_t` values and Diaphora persisted-comment flow are mapped; current C++ positions are numerically incorrect, safe Rust exposes unchecked raw integers, Node omits the surface, and upstream collapses same-address locations.
+- **16.2. Selected boundary**
+  - 16.2.1. **Constraint:** Model default, 64 argument separators, all named inner/outer positions, and bounded signed switch-case locations semantically; enumerate copied persisted `(address, location, text)` records; preserve multiple locations per address; never expose `treeloc_t` or raw `item_preciser_t`.
+  - 16.2.2. **Status:** P50.2 complete (F458; KB 35.114). C++/Node/C/Rust semantic position and copied enumeration surfaces pass structural and initialized-host validation; generated C bindings are reproducible.
+- **16.3. Exact companion adaptation**
+  - 16.3.1. **Action:** Add deterministic C++ and Rust exact pseudocode-comment companion serialization, unique-function plus exact-instruction validation, multi-location preservation, report-only comparison, and explicit absent-only apply.
+  - 16.3.2. **Status:** P50.3 complete (F459; KB 35.115). Pure cross-language format/parser tests and isolated IDA Professional 9.4 report/apply/reopen/guard/conflict evidence pass.
+- **16.4. Release gate**
+  - 16.4.1. **Action:** Synchronize public catalogs and mapping documentation, run the full C++/Node/Rust matrix plus independent bindgen/fixture checks, self-red-team the exact diff, stage only Phase 50 files, run the required staged review, commit, and push.
+  - 16.4.2. **Status:** P50.4 active. Complete validation, documentation, generated-binding identity, fixture integrity, and red-team edge probes pass (F460; KB 35.116). Exact staging, staged review, commit, and push remain; no blocker.
