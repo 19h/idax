@@ -154,4 +154,4 @@
   - 15.2.2. **Status:** P49.2 complete (F453; KB 35.109; decision 19.53). Existing opaque APIs are sufficient; exact instruction ordinary/repeatable comments and forced operand text are selected.
 - **15.3. Adaptation and validation**
   - 15.3.1. **Status:** P49.3 complete (F454; KB 35.110). Byte-compatible C++/Rust companion manifests, strict parsers, unique-function/instruction guards, and absent-only apply are implemented; focused pure tests and real-IDA positive/negative/reopen evidence pass.
-  - 15.3.2. **Status:** P49.4 active (F455; KB 35.111). Documentation, complete C++/Node/Rust regression, independent generated-binding identity, tracked-fixture integrity, and post-red-team parser/arithmetic tests pass; exact staged review, commit, and push remain. No blocker.
+  - 15.3.2. **Status:** Complete and retired. P49.4 documentation, complete regression, generated-binding/fixture integrity, post-red-team edge probes, and exact 12-file staged review pass. Implementation commit `60278f6d2683e6ac9c947af2e8b3684797c11684` is pushed to `origin/master`; no Phase 49 blocker remains.

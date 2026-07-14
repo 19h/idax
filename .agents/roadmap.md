@@ -363,6 +363,6 @@ Current overall phase status:
 - [x] P49.1 Audit the remaining Diaphora 3.4.0 SQLite schema/export/import and high-confidence heuristic consumers against the Phase 48 canonical record and current opaque C++/Node/Rust surfaces.
 - [x] P49.2 Select and document the next independently testable source-defined boundary, closing every concrete wrapper/binding gap it requires.
 - [x] P49.3 Implement the bounded C++ and Rust adaptations with exact format/matching/mutation semantics and explicit exclusions.
-- [ ] P49.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+- [x] P49.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
