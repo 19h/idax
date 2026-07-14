@@ -29,9 +29,17 @@
 namespace {
 
 constexpr std::string_view kHeader = "IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg";
+constexpr std::string_view kInstructionMetadataHeader =
+    "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
 constexpr std::string_view kExportAction = "idax:diaphora:export_exact";
 constexpr std::string_view kCompareAction = "idax:diaphora:compare_exact";
 constexpr std::string_view kApplyAction = "idax:diaphora:apply_exact";
+constexpr std::string_view kExportInstructionMetadataAction =
+    "idax:diaphora:export_instruction_metadata";
+constexpr std::string_view kCompareInstructionMetadataAction =
+    "idax:diaphora:compare_instruction_metadata";
+constexpr std::string_view kApplyInstructionMetadataAction =
+    "idax:diaphora:apply_instruction_metadata";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
 
 class Md5 final {
@@ -199,6 +207,56 @@ struct ApplySummary {
     std::size_t comments{0};
     std::size_t preserved{0};
     std::size_t failures{0};
+};
+
+struct ForcedOperandMetadata {
+    std::size_t index{0};
+    std::string text;
+
+    bool operator==(const ForcedOperandMetadata&) const = default;
+};
+
+struct InstructionMetadataRecord {
+    std::size_t function_ordinal{0};
+    std::size_t instruction_ordinal{0};
+    std::int64_t function_offset{0};
+    std::size_t size{0};
+    std::string full_md5;
+    std::string relocation_md5;
+    std::string mnemonic;
+    std::string comment;
+    std::string repeatable_comment;
+    std::vector<ForcedOperandMetadata> forced_operands;
+
+    bool operator==(const InstructionMetadataRecord&) const = default;
+};
+
+struct InstructionMetadataManifest {
+    std::vector<FunctionRecord> functions;
+    std::vector<InstructionMetadataRecord> instructions;
+};
+
+struct InstructionMetadataComparison {
+    MatchSummary functions;
+    std::vector<std::pair<std::size_t, ida::Address>> eligible;
+    std::size_t unmatched_functions{0};
+    std::size_t guard_failures{0};
+};
+
+struct InstructionMetadataApplySummary {
+    std::size_t comments{0};
+    std::size_t repeatable_comments{0};
+    std::size_t forced_operands{0};
+    std::size_t preserved{0};
+    std::size_t failures{0};
+};
+
+struct InstructionFingerprint {
+    std::size_t size{0};
+    std::string full_md5;
+    std::string relocation_md5;
+    std::string mnemonic;
+    std::vector<std::size_t> operand_indices;
 };
 
 std::string hex_encode(std::string_view input) {
@@ -380,6 +438,181 @@ std::string format_manifest(const std::vector<FunctionRecord>& records) {
     return output;
 }
 
+std::string format_forced_operands(
+    const std::vector<ForcedOperandMetadata>& operands) {
+    std::string output;
+    for (const auto& operand : operands) {
+        output += std::to_string(operand.index);
+        output.push_back(':');
+        output += std::to_string(operand.text.size());
+        output.push_back(':');
+        output += operand.text;
+    }
+    return output;
+}
+
+ida::Result<std::vector<ForcedOperandMetadata>> parse_forced_operands(
+    std::string_view payload) {
+    std::vector<ForcedOperandMetadata> operands;
+    std::size_t cursor = 0;
+    std::optional<std::size_t> previous_index;
+    while (cursor < payload.size()) {
+        const std::size_t index_end = payload.find(':', cursor);
+        if (index_end == std::string_view::npos || index_end == cursor)
+            return std::unexpected(ida::Error::validation("Malformed forced operand index"));
+        std::size_t operand_index = 0;
+        if (!parse_integer(payload.substr(cursor, index_end - cursor), operand_index)
+            || operand_index > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+            return std::unexpected(ida::Error::validation("Invalid forced operand index"));
+        }
+
+        cursor = index_end + 1;
+        const std::size_t length_end = payload.find(':', cursor);
+        if (length_end == std::string_view::npos || length_end == cursor)
+            return std::unexpected(ida::Error::validation("Malformed forced operand length"));
+        std::size_t text_size = 0;
+        if (!parse_integer(payload.substr(cursor, length_end - cursor), text_size))
+            return std::unexpected(ida::Error::validation("Invalid forced operand length"));
+        cursor = length_end + 1;
+        if (text_size == 0 || text_size > payload.size() - cursor)
+            return std::unexpected(ida::Error::validation("Truncated forced operand text"));
+        std::string text(payload.substr(cursor, text_size));
+        if (!valid_utf8(text) || text.find('\0') != std::string::npos)
+            return std::unexpected(ida::Error::validation("Forced operand text is not UTF-8"));
+        if (previous_index && operand_index <= *previous_index)
+            return std::unexpected(ida::Error::validation(
+                "Forced operand indices are duplicate or unsorted"));
+        operands.push_back({operand_index, std::move(text)});
+        previous_index = operand_index;
+        cursor += text_size;
+    }
+    return operands;
+}
+
+std::string format_instruction_metadata_record(
+    const InstructionMetadataRecord& record) {
+    std::ostringstream output;
+    output << "I\t" << record.function_ordinal << '\t'
+           << record.instruction_ordinal << '\t' << record.function_offset << '\t'
+           << record.size << '\t' << record.full_md5 << '\t'
+           << record.relocation_md5 << '\t' << hex_encode(record.mnemonic) << '\t'
+           << hex_encode(record.comment) << '\t'
+           << hex_encode(record.repeatable_comment) << '\t'
+           << hex_encode(format_forced_operands(record.forced_operands));
+    return output.str();
+}
+
+std::string format_instruction_metadata_manifest(
+    const InstructionMetadataManifest& manifest) {
+    std::string output(kInstructionMetadataHeader);
+    output.push_back('\n');
+    for (const auto& function : manifest.functions) {
+        output += format_record(function);
+        output.push_back('\n');
+    }
+    for (const auto& instruction : manifest.instructions) {
+        output += format_instruction_metadata_record(instruction);
+        output.push_back('\n');
+    }
+    return output;
+}
+
+ida::Result<InstructionMetadataManifest> parse_instruction_metadata_manifest(
+    std::string_view text) {
+    std::istringstream input{std::string(text)};
+    std::string line;
+    if (!std::getline(input, line) || line != kInstructionMetadataHeader) {
+        return std::unexpected(ida::Error::validation(
+            "Unsupported Diaphora instruction metadata manifest header"));
+    }
+
+    std::string function_text(kHeader);
+    function_text.push_back('\n');
+    InstructionMetadataManifest manifest;
+    std::unordered_set<std::string> instruction_keys;
+    while (std::getline(input, line)) {
+        if (line.empty())
+            continue;
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+        const auto fields = split_tabs(line);
+        if (!fields.empty() && fields[0] == "F") {
+            function_text += line;
+            function_text.push_back('\n');
+            continue;
+        }
+        if (fields.size() != 11 || fields[0] != "I") {
+            return std::unexpected(ida::Error::validation(
+                "Malformed Diaphora instruction metadata record"));
+        }
+
+        InstructionMetadataRecord record;
+        if (!parse_integer(fields[1], record.function_ordinal)
+            || !parse_integer(fields[2], record.instruction_ordinal)
+            || !parse_integer(fields[3], record.function_offset)
+            || !parse_integer(fields[4], record.size) || record.size == 0) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid instruction metadata numeric field"));
+        }
+        auto full_md5 = normalize_md5(fields[5]);
+        auto relocation_md5 = normalize_md5(fields[6]);
+        auto mnemonic = hex_decode(fields[7]);
+        auto comment = hex_decode(fields[8]);
+        auto repeatable_comment = hex_decode(fields[9]);
+        auto forced_payload = hex_decode(fields[10]);
+        if (!full_md5 || !relocation_md5 || !mnemonic || !comment
+            || !repeatable_comment || !forced_payload) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid instruction metadata hash or encoded field"));
+        }
+        auto forced_operands = parse_forced_operands(*forced_payload);
+        if (!forced_operands)
+            return std::unexpected(forced_operands.error());
+        if (mnemonic->find('\0') != std::string::npos
+            || comment->find('\0') != std::string::npos
+            || repeatable_comment->find('\0') != std::string::npos) {
+            return std::unexpected(ida::Error::validation(
+                "Instruction metadata text contains NUL"));
+        }
+        if (comment->empty() && repeatable_comment->empty()
+            && forced_operands->empty()) {
+            return std::unexpected(ida::Error::validation(
+                "Instruction metadata record contains no metadata"));
+        }
+
+        const std::string record_key = std::to_string(record.function_ordinal)
+            + ":" + std::to_string(record.instruction_ordinal);
+        if (!instruction_keys.insert(record_key).second) {
+            return std::unexpected(ida::Error::validation(
+                "Duplicate instruction metadata record"));
+        }
+        record.full_md5 = std::move(*full_md5);
+        record.relocation_md5 = std::move(*relocation_md5);
+        record.mnemonic = std::move(*mnemonic);
+        record.comment = std::move(*comment);
+        record.repeatable_comment = std::move(*repeatable_comment);
+        record.forced_operands = std::move(*forced_operands);
+        manifest.instructions.push_back(std::move(record));
+    }
+
+    auto functions = parse_manifest(function_text);
+    if (!functions)
+        return std::unexpected(functions.error());
+    manifest.functions = std::move(*functions);
+    std::unordered_set<std::size_t> ordinals;
+    for (const auto& function : manifest.functions) {
+        if (!ordinals.insert(function.ordinal).second)
+            return std::unexpected(ida::Error::validation("Duplicate function ordinal"));
+    }
+    for (const auto& instruction : manifest.instructions) {
+        if (!ordinals.contains(instruction.function_ordinal)) {
+            return std::unexpected(ida::Error::validation(
+                "Instruction metadata references an unknown function"));
+        }
+    }
+    return manifest;
+}
+
 ida::Result<std::string> read_text_file(std::string_view path) {
     std::ifstream input(std::string(path), std::ios::binary);
     if (!input)
@@ -555,6 +788,187 @@ ida::Result<std::vector<FunctionRecord>> extract_manifest() {
     return records;
 }
 
+ida::Result<std::int64_t> relative_offset(ida::Address address,
+                                          ida::Address function_start) {
+    if (address >= function_start) {
+        const std::uint64_t magnitude = address - function_start;
+        if (magnitude > static_cast<std::uint64_t>(
+                            std::numeric_limits<std::int64_t>::max())) {
+            return std::unexpected(ida::Error::validation(
+                "Instruction offset exceeds signed manifest range"));
+        }
+        return static_cast<std::int64_t>(magnitude);
+    }
+    const std::uint64_t magnitude = function_start - address;
+    if (magnitude > static_cast<std::uint64_t>(
+                        std::numeric_limits<std::int64_t>::max())) {
+        return std::unexpected(ida::Error::validation(
+            "Instruction offset exceeds signed manifest range"));
+    }
+    return -static_cast<std::int64_t>(magnitude);
+}
+
+ida::Result<ida::Address> apply_relative_offset(ida::Address function_start,
+                                                std::int64_t offset) {
+    if (offset >= 0) {
+        const auto magnitude = static_cast<std::uint64_t>(offset);
+        if (magnitude > std::numeric_limits<ida::Address>::max() - function_start)
+            return std::unexpected(ida::Error::validation("Instruction address overflow"));
+        return function_start + magnitude;
+    }
+    const auto magnitude = static_cast<std::uint64_t>(-(offset + 1)) + 1U;
+    if (magnitude > function_start)
+        return std::unexpected(ida::Error::validation("Instruction address underflow"));
+    return function_start - magnitude;
+}
+
+ida::Result<InstructionFingerprint> extract_instruction_fingerprint(
+    ida::Address address) {
+    auto instruction = ida::instruction::decode(address);
+    if (!instruction)
+        return std::unexpected(instruction.error());
+    if (instruction->size() == 0
+        || instruction->size() > std::numeric_limits<std::size_t>::max()) {
+        return std::unexpected(ida::Error::validation("Invalid decoded instruction size"));
+    }
+    const std::size_t size = static_cast<std::size_t>(instruction->size());
+    auto bytes = ida::data::read_bytes(address, instruction->size());
+    if (!bytes)
+        return std::unexpected(bytes.error());
+    if (bytes->size() != size)
+        return std::unexpected(ida::Error::sdk("Instruction byte read was truncated"));
+
+    std::vector<OperandEncoding> operand_encodings;
+    const std::size_t operand_limit = std::min<std::size_t>(
+        2, instruction->operands().size());
+    operand_encodings.reserve(operand_limit);
+    for (std::size_t index = 0; index < operand_limit; ++index) {
+        const auto& operand = instruction->operands()[index];
+        operand_encodings.push_back({
+            normalized_operand_type(operand.type()),
+            operand.encoded_value_byte_offset(),
+            operand.secondary_encoded_value_byte_offset(),
+        });
+    }
+    auto normalized_size = normalized_prefix_size(size, operand_encodings);
+    if (!normalized_size)
+        return std::unexpected(normalized_size.error());
+
+    Md5 full_hash;
+    Md5 relocation_hash;
+    full_hash.update(*bytes);
+    relocation_hash.update(bytes->data(), *normalized_size);
+    InstructionFingerprint fingerprint;
+    fingerprint.size = size;
+    fingerprint.full_md5 = full_hash.finish_hex();
+    fingerprint.relocation_md5 = relocation_hash.finish_hex();
+    fingerprint.mnemonic = instruction->mnemonic();
+    if (!valid_utf8(fingerprint.mnemonic))
+        return std::unexpected(ida::Error::validation("Instruction mnemonic is not UTF-8"));
+    for (const auto& operand : instruction->operands()) {
+        if (operand.index() < 0)
+            return std::unexpected(ida::Error::validation("Negative operand index"));
+        fingerprint.operand_indices.push_back(
+            static_cast<std::size_t>(operand.index()));
+    }
+    return fingerprint;
+}
+
+ida::Result<std::string> optional_comment(ida::Address address, bool repeatable) {
+    auto value = ida::comment::get(address, repeatable);
+    if (value)
+        return *value;
+    if (value.error().category == ida::ErrorCategory::NotFound)
+        return std::string{};
+    return std::unexpected(value.error());
+}
+
+ida::Result<InstructionMetadataManifest> extract_instruction_metadata_manifest() {
+    auto functions = extract_manifest();
+    if (!functions)
+        return std::unexpected(functions.error());
+    InstructionMetadataManifest manifest;
+    manifest.functions = std::move(*functions);
+
+    for (const auto& function : manifest.functions) {
+        auto addresses = ida::function::code_addresses(function.address);
+        if (!addresses)
+            return std::unexpected(addresses.error());
+        std::sort(addresses->begin(), addresses->end());
+        for (std::size_t instruction_ordinal = 0;
+             instruction_ordinal < addresses->size(); ++instruction_ordinal) {
+            const ida::Address address = (*addresses)[instruction_ordinal];
+            auto decoded = ida::instruction::decode(address);
+            if (!decoded)
+                return std::unexpected(decoded.error());
+            auto comment = optional_comment(address, false);
+            if (!comment)
+                return std::unexpected(comment.error());
+            auto repeatable_comment = optional_comment(address, true);
+            if (!repeatable_comment)
+                return std::unexpected(repeatable_comment.error());
+            std::vector<ForcedOperandMetadata> forced_operands;
+            for (const auto& operand : decoded->operands()) {
+                if (operand.index() < 0)
+                    return std::unexpected(ida::Error::validation("Negative operand index"));
+                auto forced = ida::instruction::get_forced_operand(
+                    address, operand.index());
+                if (forced && !forced->empty()) {
+                    forced_operands.push_back({
+                        static_cast<std::size_t>(operand.index()), std::move(*forced)});
+                } else if (!forced
+                           && forced.error().category != ida::ErrorCategory::NotFound) {
+                    return std::unexpected(forced.error());
+                }
+            }
+            std::sort(forced_operands.begin(), forced_operands.end(),
+                      [](const auto& left, const auto& right) {
+                          return left.index < right.index;
+                      });
+            if (std::adjacent_find(
+                    forced_operands.begin(), forced_operands.end(),
+                    [](const auto& left, const auto& right) {
+                        return left.index == right.index;
+                    }) != forced_operands.end()) {
+                return std::unexpected(ida::Error::validation(
+                    "Duplicate decoded operand index"));
+            }
+            if (comment->empty() && repeatable_comment->empty()
+                && forced_operands.empty()) {
+                continue;
+            }
+            if (!valid_utf8(*comment) || !valid_utf8(*repeatable_comment)) {
+                return std::unexpected(ida::Error::validation(
+                    "Instruction comment is not UTF-8"));
+            }
+            for (const auto& forced : forced_operands) {
+                if (!valid_utf8(forced.text))
+                    return std::unexpected(ida::Error::validation(
+                        "Forced operand text is not UTF-8"));
+            }
+            auto offset = relative_offset(address, function.address);
+            if (!offset)
+                return std::unexpected(offset.error());
+            auto fingerprint = extract_instruction_fingerprint(address);
+            if (!fingerprint)
+                return std::unexpected(fingerprint.error());
+            manifest.instructions.push_back({
+                function.ordinal,
+                instruction_ordinal,
+                *offset,
+                fingerprint->size,
+                std::move(fingerprint->full_md5),
+                std::move(fingerprint->relocation_md5),
+                std::move(fingerprint->mnemonic),
+                std::move(*comment),
+                std::move(*repeatable_comment),
+                std::move(forced_operands),
+            });
+        }
+    }
+    return manifest;
+}
+
 std::string key(std::initializer_list<std::string_view> fields) {
     std::string output;
     for (const auto field : fields) {
@@ -683,6 +1097,146 @@ ApplySummary apply_metadata(const std::vector<FunctionRecord>& baseline,
     return summary;
 }
 
+ida::Result<InstructionMetadataComparison> compare_instruction_metadata(
+    const InstructionMetadataManifest& baseline,
+    const std::vector<FunctionRecord>& current) {
+    InstructionMetadataComparison comparison;
+    comparison.functions = compare_records(baseline.functions, current);
+
+    std::unordered_map<std::size_t, std::size_t> baseline_by_ordinal;
+    for (std::size_t index = 0; index < baseline.functions.size(); ++index)
+        baseline_by_ordinal.emplace(baseline.functions[index].ordinal, index);
+    std::unordered_map<std::size_t, std::size_t> current_by_baseline;
+    for (const auto& match : comparison.functions.matches)
+        current_by_baseline.emplace(match.baseline, match.current);
+    std::unordered_map<std::size_t, std::vector<ida::Address>> address_cache;
+
+    for (std::size_t metadata_index = 0;
+         metadata_index < baseline.instructions.size(); ++metadata_index) {
+        const auto& metadata = baseline.instructions[metadata_index];
+        const auto baseline_found = baseline_by_ordinal.find(metadata.function_ordinal);
+        if (baseline_found == baseline_by_ordinal.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const auto match_found = current_by_baseline.find(baseline_found->second);
+        if (match_found == current_by_baseline.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const std::size_t current_index = match_found->second;
+        const auto& target_function = current[current_index];
+        auto target_address = apply_relative_offset(
+            target_function.address, metadata.function_offset);
+        if (!target_address) {
+            ++comparison.guard_failures;
+            continue;
+        }
+
+        auto cached = address_cache.find(current_index);
+        if (cached == address_cache.end()) {
+            auto addresses = ida::function::code_addresses(target_function.address);
+            if (!addresses)
+                return std::unexpected(addresses.error());
+            std::sort(addresses->begin(), addresses->end());
+            cached = address_cache.emplace(current_index, std::move(*addresses)).first;
+        }
+        if (metadata.instruction_ordinal >= cached->second.size()
+            || cached->second[metadata.instruction_ordinal] != *target_address) {
+            ++comparison.guard_failures;
+            continue;
+        }
+        auto fingerprint = extract_instruction_fingerprint(*target_address);
+        if (!fingerprint)
+            return std::unexpected(fingerprint.error());
+        if (fingerprint->size != metadata.size
+            || fingerprint->mnemonic != metadata.mnemonic
+            || fingerprint->relocation_md5 != metadata.relocation_md5) {
+            ++comparison.guard_failures;
+            continue;
+        }
+        bool operands_valid = true;
+        for (const auto& forced : metadata.forced_operands) {
+            if (std::find(fingerprint->operand_indices.begin(),
+                          fingerprint->operand_indices.end(),
+                          forced.index) == fingerprint->operand_indices.end()) {
+                operands_valid = false;
+                break;
+            }
+        }
+        if (!operands_valid) {
+            ++comparison.guard_failures;
+            continue;
+        }
+        comparison.eligible.emplace_back(metadata_index, *target_address);
+    }
+    return comparison;
+}
+
+InstructionMetadataApplySummary apply_instruction_metadata(
+    const InstructionMetadataManifest& baseline,
+    const InstructionMetadataComparison& comparison) {
+    InstructionMetadataApplySummary summary;
+    for (const auto& [metadata_index, target_address] : comparison.eligible) {
+        const auto& metadata = baseline.instructions[metadata_index];
+        auto apply_comment_slot = [&](std::string_view source,
+                                      bool repeatable,
+                                      std::size_t& changed) {
+            if (source.empty())
+                return;
+            auto existing = ida::comment::get(target_address, repeatable);
+            if (existing && !existing->empty()) {
+                ++summary.preserved;
+            } else if (!existing
+                       && existing.error().category != ida::ErrorCategory::NotFound) {
+                ++summary.failures;
+            } else if (ida::comment::set(target_address, source, repeatable)) {
+                ++changed;
+            } else {
+                ++summary.failures;
+            }
+        };
+        apply_comment_slot(metadata.comment, false, summary.comments);
+        apply_comment_slot(metadata.repeatable_comment, true,
+                           summary.repeatable_comments);
+
+        for (const auto& forced : metadata.forced_operands) {
+            auto existing = ida::instruction::get_forced_operand(
+                target_address, static_cast<int>(forced.index));
+            if (existing && !existing->empty()) {
+                ++summary.preserved;
+            } else if (!existing
+                       && existing.error().category != ida::ErrorCategory::NotFound) {
+                ++summary.failures;
+            } else if (ida::instruction::set_forced_operand(
+                           target_address, static_cast<int>(forced.index), forced.text)) {
+                ++summary.forced_operands;
+            } else {
+                ++summary.failures;
+            }
+        }
+    }
+    return summary;
+}
+
+std::string instruction_metadata_report(
+    const InstructionMetadataManifest& baseline,
+    const std::vector<FunctionRecord>& current,
+    const InstructionMetadataComparison& comparison) {
+    std::ostringstream output;
+    output << "Diaphora exact instruction metadata comparison\n"
+           << "Baseline functions: " << baseline.functions.size() << "\n"
+           << "Current functions: " << current.size() << "\n"
+           << "Unique function matches: " << comparison.functions.matches.size() << "\n"
+           << "Ambiguous baseline functions: " << comparison.functions.ambiguous << "\n"
+           << "Unmatched baseline functions: " << comparison.functions.unmatched << "\n"
+           << "Metadata records: " << baseline.instructions.size() << "\n"
+           << "Eligible instruction records: " << comparison.eligible.size() << "\n"
+           << "Records with unmatched functions: " << comparison.unmatched_functions << "\n"
+           << "Instruction guard failures: " << comparison.guard_failures;
+    return output.str();
+}
+
 std::string comparison_report(const MatchSummary& summary,
                               std::size_t baseline_count,
                               std::size_t current_count) {
@@ -759,6 +1313,65 @@ ida::Status compare_manifest_action(bool apply) {
     return ida::ok();
 }
 
+ida::Status export_instruction_metadata_action() {
+    auto path = ida::ui::ask_file(true, "*.idax-diaphora-insn.tsv",
+                                  "Export Diaphora Instruction Metadata Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto manifest = extract_instruction_metadata_manifest();
+    if (!manifest)
+        return std::unexpected(manifest.error());
+    auto written = write_text_file(
+        *path, format_instruction_metadata_manifest(*manifest));
+    if (!written)
+        return written;
+    std::ostringstream report;
+    report << "Exported " << manifest->instructions.size()
+           << " instruction metadata records for " << manifest->functions.size()
+           << " functions to " << *path;
+    ida::ui::message("[diaphora-exact:idax] " + report.str() + "\n");
+    ida::ui::info(report.str());
+    return ida::ok();
+}
+
+ida::Status compare_instruction_metadata_action(bool apply) {
+    auto path = ida::ui::ask_file(false, "*.idax-diaphora-insn.tsv",
+                                  "Open Diaphora Instruction Metadata Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto text = read_text_file(*path);
+    if (!text)
+        return std::unexpected(text.error());
+    auto baseline = parse_instruction_metadata_manifest(*text);
+    if (!baseline)
+        return std::unexpected(baseline.error());
+    auto current = extract_manifest();
+    if (!current)
+        return std::unexpected(current.error());
+    auto comparison = compare_instruction_metadata(*baseline, *current);
+    if (!comparison)
+        return std::unexpected(comparison.error());
+    std::string report = instruction_metadata_report(
+        *baseline, *current, *comparison);
+    if (apply) {
+        const auto applied = apply_instruction_metadata(*baseline, *comparison);
+        std::ostringstream addition;
+        addition << "\nOrdinary comments applied: " << applied.comments
+                 << "\nRepeatable comments applied: " << applied.repeatable_comments
+                 << "\nForced operands applied: " << applied.forced_operands
+                 << "\nExisting metadata preserved: " << applied.preserved
+                 << "\nMutation failures: " << applied.failures;
+        report += addition.str();
+        if (applied.comments + applied.repeatable_comments
+                + applied.forced_operands > 0) {
+            ida::ui::refresh_all_views();
+        }
+    }
+    ida::ui::message("[diaphora-exact:idax] " + report + "\n");
+    ida::ui::info(report);
+    return ida::ok();
+}
+
 #ifndef IDAX_DIAPHORA_EXACT_CORE_TEST
 
 class DiaphoraExactPortPlugin final : public ida::plugin::Plugin {
@@ -769,7 +1382,9 @@ public:
             .hotkey = "Ctrl-Alt-Shift-D",
             .comment = "Export and compare exact Diaphora-style function fingerprints",
             .help = "A bounded Diaphora 3.4.0 adaptation using a deterministic canonical manifest. "
-                    "SQLite heuristics, pseudocode, microcode, and chooser parity are outside this artifact.",
+                    "A byte-compatible companion manifest conservatively transfers instruction "
+                    "comments and forced operands. SQLite heuristics, pseudocode, microcode, "
+                    "and chooser parity are outside this artifact.",
         };
     }
 
@@ -782,7 +1397,19 @@ public:
                           [] { return compare_manifest_action(false); })
             && add_action(kApplyAction, "Diaphora Exact: Apply Conservative Metadata",
                           "Apply only absent names, declarations, and repeatable comments",
-                          [] { return compare_manifest_action(true); });
+                          [] { return compare_manifest_action(true); })
+            && add_action(kExportInstructionMetadataAction,
+                          "Diaphora Exact: Export Instruction Metadata",
+                          "Export exact instruction comments and forced operands",
+                          [] { return export_instruction_metadata_action(); })
+            && add_action(kCompareInstructionMetadataAction,
+                          "Diaphora Exact: Compare Instruction Metadata",
+                          "Validate instruction metadata without changing the database",
+                          [] { return compare_instruction_metadata_action(false); })
+            && add_action(kApplyInstructionMetadataAction,
+                          "Diaphora Exact: Apply Instruction Metadata",
+                          "Apply only absent instruction comments and forced operands",
+                          [] { return compare_instruction_metadata_action(true); });
     }
 
     ida::Status run(std::size_t) override { return export_manifest_action(); }

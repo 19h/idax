@@ -141,3 +141,17 @@
 - **14.4. Adaptation and validation**
   - 14.4.1. **Status:** P48.3 complete; C++ plugin/Rust headless artifacts, pure tests, and first live report/apply/reopen evidence pass (F450; KB 35.106).
   - 14.4.2. **Status:** Complete and retired. P48.4 implementation, documentation, full C++/Node/Rust validation, generated-binding identity, tracked-fixture integrity, and the exact 38-file staged review pass. Implementation commit `444ca5354e899a3734edb8a84c67ea7eb43d2fd5` is pushed to `origin/master`; no Phase 48 blocker remains.
+
+---
+
+### 15. Diaphora SQLite and Heuristic Parity Continuation (Phase 49)
+
+- **15.1. Source Audit**
+  - 15.1.1. **Action:** Enumerate every remaining Diaphora 3.4.0 SQLite function/instruction/basic-block/callgraph field, high-confidence heuristic predicate, and import-side mutation; map each to the Phase 48 manifest and opaque IDAX surfaces.
+  - 15.1.2. **Status:** Complete (P49.1; F452; KB 35.108). The source remains pinned at tag 3.4.0 commit `84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`; 13 tables/41 indices and all 50 coupled heuristics are inventoried.
+- **15.2. Boundary Constraint**
+  - 15.2.1. **Constraint:** Select only a source-defined surface whose persistence, matching, ambiguity, and mutation contracts can be reproduced and falsified without silently approximating SQLite, pseudocode/microcode, type-library, compilation-unit, callgraph, or chooser behavior.
+  - 15.2.2. **Status:** P49.2 complete (F453; KB 35.109; decision 19.53). Existing opaque APIs are sufficient; exact instruction ordinary/repeatable comments and forced operand text are selected.
+- **15.3. Adaptation and validation**
+  - 15.3.1. **Status:** P49.3 complete (F454; KB 35.110). Byte-compatible C++/Rust companion manifests, strict parsers, unique-function/instruction guards, and absent-only apply are implemented; focused pure tests and real-IDA positive/negative/reopen evidence pass.
+  - 15.3.2. **Status:** P49.4 active (F455; KB 35.111). Documentation, complete C++/Node/Rust regression, independent generated-binding identity, tracked-fixture integrity, and post-red-team parser/arithmetic tests pass; exact staged review, commit, and push remain. No blocker.

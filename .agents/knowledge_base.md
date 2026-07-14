@@ -1738,3 +1738,36 @@ The C++ wrapper's printable applied declaration is the authoritative read-side p
 - Both manifest readers reject odd-length/non-hex text and invalid decoded UTF-8. The C++ reader additionally validates overlong sequences, surrogate encodings, truncation, and code points above U+10FFFF before metadata can reach IDA.
 - The tracked fixture remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
 - Falsification probes are any reduced test count, generated-binding byte delta, malformed-input acceptance/panic, ABI field-order mismatch, declaration readback failure, out-of-bounds present encoded position, or tracked fixture mutation.
+
+### 35.108. Diaphora SQLite/Heuristic Coupling Boundary [F452]
+
+The native database is not merely a serialization alternative for the Phase 48 manifest. Function, instruction, basic-block, callgraph, constant, program-data, and compilation-unit relations feed 50 ordered SQL heuristics plus a stateful ratio/tie-break/multimatch engine. A predicate-only subset that omits normalized assembly/pseudocode/microcode, MD-index, deep bonuses, category thresholds, and prior-match state is a new matcher, not Diaphora heuristic parity.
+
+- Assumption A49.1: native Diaphora ratio/category parity requires the ordered SQL candidates and `check_ratio`/`deep_ratio`/multimatch state together. Falsify with an upstream contract or test corpus proving a named heuristic's final category is independent of all omitted ratio and prior-match inputs; dependent result: heuristic work remains outside the selected Phase 49 slice.
+- Stress probes: enumerate all 50 rule types/categories/flags and predicate dependencies from the pinned module; require any future heuristic artifact to reproduce candidate SQL, default threshold `0.5`, ratio rounding, deep bonuses, one-to-one replacement, and multimatch handling before claiming parity.
+
+### 35.109. Exact Instruction-Metadata Manifest Boundary [F453]
+
+Phase 49 selects only ordinary/repeatable instruction comments and forced operand text from native `instructions` import. Each metadata-bearing source instruction is keyed by its uniquely matched function plus function-relative byte offset and guarded by equal decoded size, mnemonic, and relocation-light MD5. Existing target comments/forced operands are never replaced.
+
+- Assumption A49.2: within a globally unique Phase 48 function match, equal relative byte offset, decoded size, mnemonic, and relocation-light MD5 identify the same instruction-level metadata site. Falsify with a transformed function where all guards agree but semantic instruction identity differs; dependent result: instruction metadata transfer only.
+- Assumption A49.3: `NotFound` or an empty forced-operand/comment readback denotes an absent target slot, while a nonempty readback denotes state to preserve. Falsify with an SDK case where a present user value reads as absent; dependent result: conservative apply eligibility only.
+- Complexity: extraction is `O(I * O)` time and `O(M * O)` serialized space for instructions `I`, decoded operands `O`, and metadata-bearing instructions `M`; indexed validation/apply is expected `O(I + M * O)` time and `O(I + M)` working space.
+- Exclusions: referent names/types, pseudocode comments/tree positions, raw function flags, SQLite files, heuristic ratios, basic-block/instruction graph interchange, and nonexact assembly-diff alignment remain separate surfaces.
+
+### 35.110. Exact Instruction-Metadata Live Invariants [F454]
+
+- The companion header is `IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset`; every `I` record has 11 tab-separated fields, and forced operands use ordered `<index>:<UTF-8-byte-length>:<text>` payloads before whole-field hexadecimal encoding. C++ and Rust must emit identical bytes for the same database.
+- Full MD5 is preserved as source provenance. Target eligibility is deliberately guarded by unique Phase 48 function alignment plus instruction ordinal, signed relative byte offset, decoded size, mnemonic, and relocation-light MD5; it does not require equal full MD5 because relocation-bearing bytes may differ.
+- Comparison/export never persist a target mutation. Explicit apply writes only absent ordinary/repeatable comments and absent forced operand slots; every nonempty readback is preserved. A fresh process must report zero further writes.
+- Assumption A49.4: function code-address enumeration is deterministic and its sorted ordinal remains stable whenever the offset/size/mnemonic/relocation-hash identity remains stable. Falsify with two equivalent IDA analyses whose sorted instruction membership differs while all other guards identify the intended site; dependent result: instruction metadata eligibility only.
+- Stress probes: byte-identical repeated export; malformed UTF-8/NUL/hash/range/duplicate/reference rejection; signed positive/negative offset and overflow/underflow tests; exact first-apply counts; zero-write reopen; byte-identical reopened export; one valid altered relocation hash producing exactly one guard failure.
+- Live reference envelope: 22 function records, 9 instruction records, manifest SHA-256 `d7dbebeb499f1f14cbe378b2af9e77f06f5f65fd7f2d853b2806755382d996d6`, first apply `1/1/1` comment/repeatable/forced writes with eight preserved values, reopen `0/0/0` writes with eleven preserved values, and negative control `8` eligible plus `1` guard failure.
+
+### 35.111. Phase 49 Complete Validation Envelope [F455]
+
+- C++ must build the plugin and pass 27/27 CTest targets; Node must pass native build, strict example declaration compilation, 239/239 structural checks, and 84/84 initialized-host checks; Rust must pass formatting/all-target checks, 139/139 library tests, 0 sys tests, 10/10 Diaphora tests, 20/20 Symless regressions, and 101/101 initialized-host checks.
+- An independent clean bindgen output must be byte-identical to the checked file at SHA-256 `8d2dd609c7abcf64f14744bd725355e8e2ffb0a6af6fa39abe96d31f4b424d1b`; Phase 49 has no public wrapper, C ABI, Node, or safe-Rust surface delta.
+- Parser/arithmetic containment includes positive and negative signed offsets, `INT64_MIN`, address overflow/underflow, malformed length prefixes, zero-length forced text, invalid UTF-8/NUL, invalid hashes, metadata-free records, duplicate/unsorted operands, duplicate records, and unknown function ordinals.
+- The tracked fixture remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
+- Falsification probes are any reduced suite count, generated-binding delta, malformed-record acceptance/panic, offset wraparound, report-mode target IDB creation, incorrect first/reopen mutation counts, guard-negative acceptance, or tracked fixture mutation.

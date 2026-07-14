@@ -7,10 +7,12 @@ mod common;
 use common::{DatabaseSession, format_error, print_usage};
 use idax::error::ErrorCategory;
 use idax::instruction::OperandType;
-use idax::{Error, Result, data, database, function, graph, instruction, name, segment};
+use idax::{Error, Result, comment, data, database, function, graph, instruction, name, segment};
 use std::collections::{HashMap, HashSet};
 
 const HEADER: &str = "IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg";
+const INSTRUCTION_METADATA_HEADER: &str =
+    "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
 const DECLARATION_PLACEHOLDER: &str = "__idax_diaphora_function";
 
 #[derive(Debug, Clone)]
@@ -25,6 +27,8 @@ struct Options {
 enum Mode {
     Export,
     Compare,
+    ExportInstructionMetadata,
+    CompareInstructionMetadata,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -77,6 +81,58 @@ struct ApplySummary {
     comments: usize,
     preserved: usize,
     failures: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ForcedOperandMetadata {
+    index: usize,
+    text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct InstructionMetadataRecord {
+    function_ordinal: usize,
+    instruction_ordinal: usize,
+    function_offset: i64,
+    size: usize,
+    full_md5: String,
+    relocation_md5: String,
+    mnemonic: String,
+    comment: String,
+    repeatable_comment: String,
+    forced_operands: Vec<ForcedOperandMetadata>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct InstructionMetadataManifest {
+    functions: Vec<FunctionRecord>,
+    instructions: Vec<InstructionMetadataRecord>,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct InstructionMetadataComparison {
+    functions: MatchSummary,
+    eligible: Vec<(usize, u64)>,
+    unmatched_functions: usize,
+    guard_failures: usize,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct InstructionMetadataApplySummary {
+    comments: usize,
+    repeatable_comments: usize,
+    forced_operands: usize,
+    preserved: usize,
+    failures: usize,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct InstructionFingerprint {
+    size: usize,
+    full_md5: String,
+    relocation_md5: String,
+    mnemonic: String,
+    operand_indices: Vec<usize>,
 }
 
 struct Md5 {
@@ -196,11 +252,18 @@ fn parse_options() -> Result<Options> {
     let mode = match mode_token.as_str() {
         "--export" => Mode::Export,
         "--compare" => Mode::Compare,
-        _ => return Err(Error::validation("expected --export or --compare")),
+        "--export-instruction-metadata" => Mode::ExportInstructionMetadata,
+        "--compare-instruction-metadata" => Mode::CompareInstructionMetadata,
+        _ => {
+            return Err(Error::validation(
+                "expected an exact or instruction-metadata export/compare mode",
+            ));
+        }
     };
     let mut apply = false;
     for argument in arguments {
-        if argument == "--apply" && mode == Mode::Compare {
+        if argument == "--apply" && matches!(mode, Mode::Compare | Mode::CompareInstructionMetadata)
+        {
             apply = true;
         } else {
             return Err(Error::validation(format!(
@@ -327,6 +390,184 @@ fn parse_manifest(text: &str) -> Result<Vec<FunctionRecord>> {
         });
     }
     Ok(records)
+}
+
+fn format_forced_operands(operands: &[ForcedOperandMetadata]) -> String {
+    let mut output = String::new();
+    for operand in operands {
+        output.push_str(&operand.index.to_string());
+        output.push(':');
+        output.push_str(&operand.text.len().to_string());
+        output.push(':');
+        output.push_str(&operand.text);
+    }
+    output
+}
+
+fn parse_prefixed_usize(payload: &[u8], cursor: &mut usize, label: &str) -> Result<usize> {
+    let relative_end = payload[*cursor..]
+        .iter()
+        .position(|byte| *byte == b':')
+        .ok_or_else(|| Error::validation(format!("malformed {label}")))?;
+    if relative_end == 0 {
+        return Err(Error::validation(format!("malformed {label}")));
+    }
+    let end = *cursor + relative_end;
+    let text = std::str::from_utf8(&payload[*cursor..end])
+        .map_err(|_| Error::validation(format!("invalid {label}")))?;
+    let value = text
+        .parse::<usize>()
+        .map_err(|_| Error::validation(format!("invalid {label}")))?;
+    *cursor = end + 1;
+    Ok(value)
+}
+
+fn parse_forced_operands(payload: &str) -> Result<Vec<ForcedOperandMetadata>> {
+    let payload = payload.as_bytes();
+    let mut cursor = 0usize;
+    let mut previous_index = None;
+    let mut operands = Vec::new();
+    while cursor < payload.len() {
+        let index = parse_prefixed_usize(payload, &mut cursor, "forced operand index")?;
+        let text_size = parse_prefixed_usize(payload, &mut cursor, "forced operand length")?;
+        if index > i32::MAX as usize {
+            return Err(Error::validation("invalid forced operand index"));
+        }
+        if text_size == 0 || text_size > payload.len() - cursor {
+            return Err(Error::validation("truncated forced operand text"));
+        }
+        if previous_index.is_some_and(|previous| index <= previous) {
+            return Err(Error::validation(
+                "forced operand indices are duplicate or unsorted",
+            ));
+        }
+        let text = String::from_utf8(payload[cursor..cursor + text_size].to_vec())
+            .map_err(|_| Error::validation("forced operand text is not UTF-8"))?;
+        if text.contains('\0') {
+            return Err(Error::validation("forced operand text contains NUL"));
+        }
+        operands.push(ForcedOperandMetadata { index, text });
+        previous_index = Some(index);
+        cursor += text_size;
+    }
+    Ok(operands)
+}
+
+fn format_instruction_metadata_record(record: &InstructionMetadataRecord) -> String {
+    format!(
+        "I\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        record.function_ordinal,
+        record.instruction_ordinal,
+        record.function_offset,
+        record.size,
+        record.full_md5,
+        record.relocation_md5,
+        hex_encode(&record.mnemonic),
+        hex_encode(&record.comment),
+        hex_encode(&record.repeatable_comment),
+        hex_encode(&format_forced_operands(&record.forced_operands)),
+    )
+}
+
+fn format_instruction_metadata_manifest(manifest: &InstructionMetadataManifest) -> String {
+    let mut output = format!("{INSTRUCTION_METADATA_HEADER}\n");
+    for function in &manifest.functions {
+        output.push_str(&format_record(function));
+        output.push('\n');
+    }
+    for instruction in &manifest.instructions {
+        output.push_str(&format_instruction_metadata_record(instruction));
+        output.push('\n');
+    }
+    output
+}
+
+fn parse_instruction_metadata_manifest(text: &str) -> Result<InstructionMetadataManifest> {
+    let mut lines = text.lines();
+    if lines.next() != Some(INSTRUCTION_METADATA_HEADER) {
+        return Err(Error::validation(
+            "unsupported Diaphora instruction metadata manifest header",
+        ));
+    }
+    let mut function_text = format!("{HEADER}\n");
+    let mut instructions = Vec::new();
+    let mut instruction_keys = HashSet::new();
+    for line in lines.filter(|line| !line.is_empty()) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.first() == Some(&"F") {
+            function_text.push_str(line);
+            function_text.push('\n');
+            continue;
+        }
+        if fields.len() != 11 || fields[0] != "I" {
+            return Err(Error::validation(
+                "malformed Diaphora instruction metadata record",
+            ));
+        }
+        let parse_usize = |field: &str, label: &str| {
+            field
+                .parse::<usize>()
+                .map_err(|_| Error::validation(format!("invalid {label}")))
+        };
+        let function_ordinal = parse_usize(fields[1], "function ordinal")?;
+        let instruction_ordinal = parse_usize(fields[2], "instruction ordinal")?;
+        let function_offset = fields[3]
+            .parse::<i64>()
+            .map_err(|_| Error::validation("invalid instruction function offset"))?;
+        let size = parse_usize(fields[4], "instruction size")?;
+        if size == 0 {
+            return Err(Error::validation("invalid instruction size"));
+        }
+        let full_md5 = fields[5].to_ascii_lowercase();
+        let relocation_md5 = fields[6].to_ascii_lowercase();
+        if !valid_md5(&full_md5) || !valid_md5(&relocation_md5) {
+            return Err(Error::validation("invalid instruction metadata MD5 field"));
+        }
+        let mnemonic = hex_decode(fields[7])?;
+        let comment = hex_decode(fields[8])?;
+        let repeatable_comment = hex_decode(fields[9])?;
+        let forced_operands = parse_forced_operands(&hex_decode(fields[10])?)?;
+        if mnemonic.contains('\0') || comment.contains('\0') || repeatable_comment.contains('\0') {
+            return Err(Error::validation("instruction metadata text contains NUL"));
+        }
+        if comment.is_empty() && repeatable_comment.is_empty() && forced_operands.is_empty() {
+            return Err(Error::validation(
+                "instruction metadata record contains no metadata",
+            ));
+        }
+        if !instruction_keys.insert((function_ordinal, instruction_ordinal)) {
+            return Err(Error::validation("duplicate instruction metadata record"));
+        }
+        instructions.push(InstructionMetadataRecord {
+            function_ordinal,
+            instruction_ordinal,
+            function_offset,
+            size,
+            full_md5,
+            relocation_md5,
+            mnemonic,
+            comment,
+            repeatable_comment,
+            forced_operands,
+        });
+    }
+    let functions = parse_manifest(&function_text)?;
+    let ordinals: HashSet<_> = functions.iter().map(|function| function.ordinal).collect();
+    if ordinals.len() != functions.len() {
+        return Err(Error::validation("duplicate function ordinal"));
+    }
+    if instructions
+        .iter()
+        .any(|instruction| !ordinals.contains(&instruction.function_ordinal))
+    {
+        return Err(Error::validation(
+            "instruction metadata references an unknown function",
+        ));
+    }
+    Ok(InstructionMetadataManifest {
+        functions,
+        instructions,
+    })
 }
 
 fn normalized_operand_type(op_type: OperandType) -> bool {
@@ -470,6 +711,117 @@ fn extract_manifest() -> Result<Vec<FunctionRecord>> {
         .enumerate()
         .map(|(ordinal, function_value)| extract_record(function_value, ordinal, image_base))
         .collect()
+}
+
+fn relative_offset(address: u64, function_start: u64) -> Result<i64> {
+    let difference = i128::from(address) - i128::from(function_start);
+    i64::try_from(difference)
+        .map_err(|_| Error::validation("instruction offset exceeds signed manifest range"))
+}
+
+fn apply_relative_offset(function_start: u64, offset: i64) -> Result<u64> {
+    if offset >= 0 {
+        function_start
+            .checked_add(offset as u64)
+            .ok_or_else(|| Error::validation("instruction address overflow"))
+    } else {
+        function_start
+            .checked_sub(offset.unsigned_abs())
+            .ok_or_else(|| Error::validation("instruction address underflow"))
+    }
+}
+
+fn extract_instruction_fingerprint(address: u64) -> Result<InstructionFingerprint> {
+    let decoded = instruction::decode(address)?;
+    let size = usize::try_from(decoded.size())
+        .map_err(|_| Error::validation("instruction size overflows usize"))?;
+    let bytes = data::read_bytes(address, decoded.size())?;
+    if bytes.len() != size {
+        return Err(Error::sdk("instruction byte read was truncated"));
+    }
+    let operands: Vec<_> = decoded
+        .operands()
+        .iter()
+        .take(2)
+        .map(|operand| {
+            (
+                normalized_operand_type(operand.op_type()),
+                operand.encoded_value_byte_offset(),
+                operand.secondary_encoded_value_byte_offset(),
+            )
+        })
+        .collect();
+    let prefix_size = normalized_prefix_size(size, &operands)?;
+    let mut full_hash = Md5::new();
+    let mut relocation_hash = Md5::new();
+    full_hash.update(&bytes);
+    relocation_hash.update(&bytes[..prefix_size]);
+    let operand_indices = decoded
+        .operands()
+        .iter()
+        .map(|operand| {
+            usize::try_from(operand.index())
+                .map_err(|_| Error::validation("negative operand index"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(InstructionFingerprint {
+        size,
+        full_md5: full_hash.finish_hex(),
+        relocation_md5: relocation_hash.finish_hex(),
+        mnemonic: decoded.mnemonic().to_owned(),
+        operand_indices,
+    })
+}
+
+fn extract_instruction_metadata_manifest() -> Result<InstructionMetadataManifest> {
+    let functions = extract_manifest()?;
+    let mut instructions = Vec::new();
+    for function_record in &functions {
+        let mut addresses = function::code_addresses(function_record.address)?;
+        addresses.sort_unstable();
+        for (instruction_ordinal, address) in addresses.iter().copied().enumerate() {
+            let decoded = instruction::decode(address)?;
+            let comment = optional_text(comment::get(address, false))?;
+            let repeatable_comment = optional_text(comment::get(address, true))?;
+            let mut forced_operands = Vec::new();
+            for operand in decoded.operands() {
+                let index = usize::try_from(operand.index())
+                    .map_err(|_| Error::validation("negative operand index"))?;
+                let text =
+                    optional_text(instruction::get_forced_operand(address, operand.index()))?;
+                if !text.is_empty() {
+                    forced_operands.push(ForcedOperandMetadata { index, text });
+                }
+            }
+            forced_operands.sort_by_key(|operand| operand.index);
+            if forced_operands
+                .windows(2)
+                .any(|pair| pair[0].index == pair[1].index)
+            {
+                return Err(Error::validation("duplicate decoded operand index"));
+            }
+            if comment.is_empty() && repeatable_comment.is_empty() && forced_operands.is_empty() {
+                continue;
+            }
+            let fingerprint = extract_instruction_fingerprint(address)?;
+            instructions.push(InstructionMetadataRecord {
+                function_ordinal: function_record.ordinal,
+                instruction_ordinal,
+                function_offset: relative_offset(address, function_record.address)?,
+                size: fingerprint.size,
+                full_md5: fingerprint.full_md5,
+                relocation_md5: fingerprint.relocation_md5,
+                mnemonic: fingerprint.mnemonic,
+                comment,
+                repeatable_comment,
+                forced_operands,
+            });
+        }
+    }
+    Ok(InstructionMetadataManifest {
+        functions,
+        instructions,
+    })
 }
 
 fn match_key(record: &FunctionRecord, tier: MatchTier) -> String {
@@ -617,6 +969,153 @@ fn apply_metadata(
     summary
 }
 
+fn compare_instruction_metadata(
+    baseline: &InstructionMetadataManifest,
+    current: &[FunctionRecord],
+) -> Result<InstructionMetadataComparison> {
+    let functions = compare_records(&baseline.functions, current);
+    let baseline_by_ordinal: HashMap<_, _> = baseline
+        .functions
+        .iter()
+        .enumerate()
+        .map(|(index, function)| (function.ordinal, index))
+        .collect();
+    let current_by_baseline: HashMap<_, _> = functions
+        .matches
+        .iter()
+        .map(|matched| (matched.baseline, matched.current))
+        .collect();
+    let mut address_cache: HashMap<usize, Vec<u64>> = HashMap::new();
+    let mut eligible = Vec::new();
+    let mut unmatched_functions = 0usize;
+    let mut guard_failures = 0usize;
+
+    for (metadata_index, metadata) in baseline.instructions.iter().enumerate() {
+        let Some(baseline_index) = baseline_by_ordinal.get(&metadata.function_ordinal) else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let Some(current_index) = current_by_baseline.get(baseline_index).copied() else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let target_function = &current[current_index];
+        let target_address =
+            match apply_relative_offset(target_function.address, metadata.function_offset) {
+                Ok(address) => address,
+                Err(_) => {
+                    guard_failures += 1;
+                    continue;
+                }
+            };
+        if let std::collections::hash_map::Entry::Vacant(entry) = address_cache.entry(current_index)
+        {
+            let mut addresses = function::code_addresses(target_function.address)?;
+            addresses.sort_unstable();
+            entry.insert(addresses);
+        }
+        let addresses = &address_cache[&current_index];
+        if addresses.get(metadata.instruction_ordinal) != Some(&target_address) {
+            guard_failures += 1;
+            continue;
+        }
+        let fingerprint = extract_instruction_fingerprint(target_address)?;
+        if fingerprint.size != metadata.size
+            || fingerprint.mnemonic != metadata.mnemonic
+            || fingerprint.relocation_md5 != metadata.relocation_md5
+            || metadata
+                .forced_operands
+                .iter()
+                .any(|forced| !fingerprint.operand_indices.contains(&forced.index))
+        {
+            guard_failures += 1;
+            continue;
+        }
+        eligible.push((metadata_index, target_address));
+    }
+
+    Ok(InstructionMetadataComparison {
+        functions,
+        eligible,
+        unmatched_functions,
+        guard_failures,
+    })
+}
+
+fn apply_instruction_metadata(
+    baseline: &InstructionMetadataManifest,
+    comparison: &InstructionMetadataComparison,
+) -> InstructionMetadataApplySummary {
+    let mut summary = InstructionMetadataApplySummary::default();
+    for (metadata_index, target_address) in &comparison.eligible {
+        let metadata = &baseline.instructions[*metadata_index];
+        for (source, repeatable) in [
+            (metadata.comment.as_str(), false),
+            (metadata.repeatable_comment.as_str(), true),
+        ] {
+            if source.is_empty() {
+                continue;
+            }
+            match comment::get(*target_address, repeatable) {
+                Ok(existing) if !existing.is_empty() => summary.preserved += 1,
+                Ok(_) => match comment::set(*target_address, source, repeatable) {
+                    Ok(()) if repeatable => summary.repeatable_comments += 1,
+                    Ok(()) => summary.comments += 1,
+                    Err(_) => summary.failures += 1,
+                },
+                Err(error) if error.category == ErrorCategory::NotFound => {
+                    match comment::set(*target_address, source, repeatable) {
+                        Ok(()) if repeatable => summary.repeatable_comments += 1,
+                        Ok(()) => summary.comments += 1,
+                        Err(_) => summary.failures += 1,
+                    }
+                }
+                Err(_) => summary.failures += 1,
+            }
+        }
+
+        for forced in &metadata.forced_operands {
+            let index = forced.index as i32;
+            match instruction::get_forced_operand(*target_address, index) {
+                Ok(existing) if !existing.is_empty() => summary.preserved += 1,
+                Ok(_) => {
+                    match instruction::set_forced_operand(*target_address, index, &forced.text) {
+                        Ok(()) => summary.forced_operands += 1,
+                        Err(_) => summary.failures += 1,
+                    }
+                }
+                Err(error) if error.category == ErrorCategory::NotFound => {
+                    match instruction::set_forced_operand(*target_address, index, &forced.text) {
+                        Ok(()) => summary.forced_operands += 1,
+                        Err(_) => summary.failures += 1,
+                    }
+                }
+                Err(_) => summary.failures += 1,
+            }
+        }
+    }
+    summary
+}
+
+fn instruction_metadata_report(
+    baseline: &InstructionMetadataManifest,
+    current: &[FunctionRecord],
+    comparison: &InstructionMetadataComparison,
+) -> String {
+    format!(
+        "Diaphora exact instruction metadata comparison\nBaseline functions: {}\nCurrent functions: {}\nUnique function matches: {}\nAmbiguous baseline functions: {}\nUnmatched baseline functions: {}\nMetadata records: {}\nEligible instruction records: {}\nRecords with unmatched functions: {}\nInstruction guard failures: {}",
+        baseline.functions.len(),
+        current.len(),
+        comparison.functions.matches.len(),
+        comparison.functions.ambiguous,
+        comparison.functions.unmatched,
+        baseline.instructions.len(),
+        comparison.eligible.len(),
+        comparison.unmatched_functions,
+        comparison.guard_failures,
+    )
+}
+
 fn comparison_report(
     summary: &MatchSummary,
     baseline_count: usize,
@@ -686,6 +1185,54 @@ fn run(options: &Options) -> Result<()> {
                 );
             }
         }
+        Mode::ExportInstructionMetadata => {
+            let manifest = extract_instruction_metadata_manifest()?;
+            std::fs::write(
+                &options.manifest,
+                format_instruction_metadata_manifest(&manifest),
+            )
+            .map_err(|error| {
+                Error::internal(format!(
+                    "failed writing instruction metadata manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            println!(
+                "Exported {} instruction metadata records for {} functions to {}",
+                manifest.instructions.len(),
+                manifest.functions.len(),
+                options.manifest
+            );
+        }
+        Mode::CompareInstructionMetadata => {
+            let text = std::fs::read_to_string(&options.manifest).map_err(|error| {
+                Error::not_found(format!(
+                    "failed reading instruction metadata manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            let baseline = parse_instruction_metadata_manifest(&text)?;
+            let current = extract_manifest()?;
+            let comparison = compare_instruction_metadata(&baseline, &current)?;
+            println!(
+                "{}",
+                instruction_metadata_report(&baseline, &current, &comparison)
+            );
+            if options.apply {
+                let applied = apply_instruction_metadata(&baseline, &comparison);
+                if applied.comments + applied.repeatable_comments + applied.forced_operands > 0 {
+                    database::save()?;
+                }
+                println!(
+                    "Ordinary comments applied: {}\nRepeatable comments applied: {}\nForced operands applied: {}\nExisting metadata preserved: {}\nMutation failures: {}",
+                    applied.comments,
+                    applied.repeatable_comments,
+                    applied.forced_operands,
+                    applied.preserved,
+                    applied.failures,
+                );
+            }
+        }
     }
     Ok(())
 }
@@ -696,7 +1243,7 @@ fn main() {
         Err(error) => {
             print_usage(
                 "diaphora_exact_port",
-                "<input> --export <manifest> | <input> --compare <manifest> [--apply]",
+                "<input> --export <manifest> | <input> --compare <manifest> [--apply] | <input> --export-instruction-metadata <manifest> | <input> --compare-instruction-metadata <manifest> [--apply]",
             );
             eprintln!("error: {}", format_error(&error));
             std::process::exit(2);
@@ -760,6 +1307,121 @@ mod tests {
         assert!(hex_decode("0g").is_err());
         assert!(hex_decode("λλ").is_err());
         assert!(hex_decode("ff").is_err());
+    }
+
+    #[test]
+    fn instruction_metadata_manifest_roundtrip_is_byte_stable() {
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let expected = InstructionMetadataManifest {
+            functions: vec![function],
+            instructions: vec![InstructionMetadataRecord {
+                function_ordinal: 0,
+                instruction_ordinal: 2,
+                function_offset: 7,
+                size: 5,
+                full_md5: "c".repeat(32),
+                relocation_md5: "d".repeat(32),
+                mnemonic: "mov".to_owned(),
+                comment: "ordinary\tcomment".to_owned(),
+                repeatable_comment: "repeatable\nλ".to_owned(),
+                forced_operands: vec![
+                    ForcedOperandMetadata {
+                        index: 0,
+                        text: "forced one".to_owned(),
+                    },
+                    ForcedOperandMetadata {
+                        index: 2,
+                        text: "forced λ".to_owned(),
+                    },
+                ],
+            }],
+        };
+        let encoded = format_instruction_metadata_manifest(&expected);
+        assert!(encoded.starts_with(&format!("{INSTRUCTION_METADATA_HEADER}\nF\t")));
+        let expected_instruction_line = concat!(
+            "I\t0\t2\t7\t5\tcccccccccccccccccccccccccccccccc\t",
+            "dddddddddddddddddddddddddddddddd\t6d6f76\t",
+            "6f7264696e61727909636f6d6d656e74\t72657065617461626c650acebb\t",
+            "303a31303a666f72636564206f6e65323a393a666f7263656420cebb\n",
+        );
+        assert!(encoded.contains(expected_instruction_line));
+        let decoded = parse_instruction_metadata_manifest(&encoded).unwrap();
+        assert_eq!(decoded, expected);
+        assert_eq!(format_instruction_metadata_manifest(&decoded), encoded);
+    }
+
+    #[test]
+    fn instruction_metadata_decoder_rejects_malformed_or_duplicate_operands() {
+        assert!(parse_forced_operands("0:0:").is_err());
+        assert!(parse_forced_operands("0:2:x").is_err());
+        assert!(parse_forced_operands("0:1:\0").is_err());
+        assert!(parse_forced_operands("1:1:x1:1:y").is_err());
+        assert!(parse_forced_operands("2:1:x1:1:y").is_err());
+
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let manifest = InstructionMetadataManifest {
+            functions: vec![function],
+            instructions: vec![InstructionMetadataRecord {
+                function_ordinal: 0,
+                instruction_ordinal: 0,
+                function_offset: 0,
+                size: 1,
+                full_md5: "c".repeat(32),
+                relocation_md5: "d".repeat(32),
+                mnemonic: "ret".to_owned(),
+                comment: "comment".to_owned(),
+                repeatable_comment: String::new(),
+                forced_operands: Vec::new(),
+            }],
+        };
+        let encoded = format_instruction_metadata_manifest(&manifest);
+        let record_start = encoded.find("I\t").unwrap();
+        let duplicate = format!("{encoded}{}", &encoded[record_start..]);
+        assert!(parse_instruction_metadata_manifest(&duplicate).is_err());
+
+        let mut unknown_function = encoded.clone();
+        unknown_function.replace_range(record_start..record_start + 4, "I\t1\t");
+        assert!(parse_instruction_metadata_manifest(&unknown_function).is_err());
+
+        let mut invalid_hash = encoded.clone();
+        let hash_start = invalid_hash[record_start..]
+            .find(&"c".repeat(32))
+            .map(|offset| record_start + offset)
+            .unwrap();
+        invalid_hash.replace_range(hash_start..hash_start + 1, "g");
+        assert!(parse_instruction_metadata_manifest(&invalid_hash).is_err());
+
+        let mut empty_metadata = manifest.clone();
+        empty_metadata.instructions[0].comment.clear();
+        assert!(
+            parse_instruction_metadata_manifest(&format_instruction_metadata_manifest(
+                &empty_metadata
+            ))
+            .is_err()
+        );
+
+        let mut nul_metadata = manifest;
+        nul_metadata.instructions[0].comment = "x\0y".to_owned();
+        assert!(
+            parse_instruction_metadata_manifest(&format_instruction_metadata_manifest(
+                &nul_metadata
+            ))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn signed_instruction_offsets_roundtrip() {
+        assert_eq!(relative_offset(0x120, 0x100).unwrap(), 0x20);
+        assert_eq!(relative_offset(0xf0, 0x100).unwrap(), -0x10);
+        assert_eq!(apply_relative_offset(0x100, 0x20).unwrap(), 0x120);
+        assert_eq!(apply_relative_offset(0x100, -0x10).unwrap(), 0xf0);
+        assert!(apply_relative_offset(0, -1).is_err());
+        assert!(apply_relative_offset(u64::MAX, 1).is_err());
+        assert_eq!(apply_relative_offset(1_u64 << 63, i64::MIN).unwrap(), 0);
+        assert!(relative_offset(u64::MAX, 0).is_err());
     }
 
     #[test]
