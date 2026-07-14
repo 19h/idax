@@ -481,6 +481,7 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'name(): string',
             'declaration(declaratorName?: string): string',
             'functionDetails(): FunctionDetails',
+            'withFunctionReturnType(replacement: TypeInfo): TypeInfo',
             'enumDetails(): EnumDetails',
             'udtDetails(): UdtDetails',
         ]) {
@@ -518,6 +519,24 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(typeof idax.decompiler.ScopedSession).toBe('function');
         expect(typeof idax.decompiler.ScopedSession.prototype.valid).toBe('function');
         expect(typeof idax.decompiler.ScopedSession.prototype.close).toBe('function');
+    });
+
+    it('should document call-analysis microcode generation options', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('analyzeCalls?: boolean');
+        expect(dts).toContain(
+            'maturityOrOptions?: MicrocodeMaturity | MicrocodeGenerationOptions',
+        );
+    });
+
+    it('should reject a non-boolean call-analysis option before generation', () => {
+        if (!idax) return;
+        expect(() => idax.decompiler.generateMicrocode(
+            0n,
+            { analyzeCalls: 'yes' },
+        )).toThrow(/analyzeCalls must be boolean/);
     });
 
     it('should validate onPopulatingPopup callback argument shape', () => {

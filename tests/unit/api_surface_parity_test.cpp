@@ -544,6 +544,8 @@ void check_type_surface() {
     using FunctionDetailsFn = ida::Result<ida::type::FunctionDetails>(ida::type::TypeInfo::*)() const;
     using WithFunctionArgumentTypeFn = ida::Result<ida::type::TypeInfo>(
         ida::type::TypeInfo::*)(std::size_t, const ida::type::TypeInfo&) const;
+    using WithFunctionReturnTypeFn = ida::Result<ida::type::TypeInfo>(
+        ida::type::TypeInfo::*)(const ida::type::TypeInfo&) const;
     using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
     using VariadicFn = ida::Result<bool>(ida::type::TypeInfo::*)() const;
     using EnumMembersFn = ida::Result<std::vector<ida::type::EnumMember>>(ida::type::TypeInfo::*)() const;
@@ -582,6 +584,8 @@ void check_type_surface() {
     (void)static_cast<FunctionDetailsFn>(&ida::type::TypeInfo::function_details);
     (void)static_cast<WithFunctionArgumentTypeFn>(
         &ida::type::TypeInfo::with_function_argument_type);
+    (void)static_cast<WithFunctionReturnTypeFn>(
+        &ida::type::TypeInfo::with_function_return_type);
     (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);
     (void)static_cast<VariadicFn>(&ida::type::TypeInfo::is_variadic_function);
     (void)static_cast<EnumMembersFn>(&ida::type::TypeInfo::enum_members);
@@ -1900,6 +1904,8 @@ void check_decompiler_surface() {
     (void)instruction.text;
     ida::decompiler::MicrocodeGenerationOptions generation_options;
     (void)generation_options.maturity;
+    (void)generation_options.analyze_calls;
+    static_assert(!ida::decompiler::MicrocodeGenerationOptions{}.analyze_calls);
     (void)ida::decompiler::MicrocodeMaturity::Generated;
     (void)ida::decompiler::MicrocodeMaturity::Preoptimized;
     (void)ida::decompiler::MicrocodeMaturity::LocalVariables;

@@ -389,6 +389,27 @@ void test_function_type_workflows() {
             if (original_after)
                 CHECK(original_after->arguments[0].type.is_signed());
 
+            auto return_edited = named_fn->with_function_return_type(
+                ida::type::TypeInfo::uint64());
+            CHECK_OK(return_edited);
+            if (return_edited) {
+                auto return_details = return_edited->function_details();
+                CHECK_OK(return_details);
+                if (return_details) {
+                    CHECK(return_details->return_type.is_integer());
+                    CHECK(!return_details->return_type.is_signed());
+                    CHECK(return_details->arguments.size() == before->arguments.size());
+                    CHECK(return_details->arguments[0].name == before->arguments[0].name);
+                    CHECK(return_details->arguments[1].name == before->arguments[1].name);
+                    CHECK(return_details->calling_convention == before->calling_convention);
+                    CHECK(return_details->variadic == before->variadic);
+                }
+            }
+            auto original_return = named_fn->function_return_type();
+            CHECK_OK(original_return);
+            if (original_return)
+                CHECK(original_return->is_signed());
+
             auto pointer = ida::type::TypeInfo::pointer_to(*named_fn);
             auto edited_pointer = pointer.with_function_argument_type(1, replacement);
             CHECK_OK(edited_pointer);
@@ -402,6 +423,16 @@ void test_function_type_workflows() {
                     CHECK(pointer_details->arguments[1].type.is_integer());
                 }
             }
+            auto return_edited_pointer = pointer.with_function_return_type(
+                ida::type::TypeInfo::uint64());
+            CHECK_OK(return_edited_pointer);
+            if (return_edited_pointer) {
+                CHECK(return_edited_pointer->is_pointer());
+                auto pointer_details = return_edited_pointer->function_details();
+                CHECK_OK(pointer_details);
+                if (pointer_details)
+                    CHECK(!pointer_details->return_type.is_signed());
+            }
         }
 
         CHECK_ERR(named_fn->with_function_argument_type(2, replacement),
@@ -410,6 +441,9 @@ void test_function_type_workflows() {
 
     CHECK_ERR(ida::type::TypeInfo::int32().with_function_argument_type(
                   0, ida::type::TypeInfo::uint32()),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::type::TypeInfo::int32().with_function_return_type(
+                  ida::type::TypeInfo::uint32()),
               ida::ErrorCategory::Validation);
 }
 

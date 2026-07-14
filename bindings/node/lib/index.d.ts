@@ -1715,6 +1715,9 @@ export namespace type {
         /** Return a copy with one argument type replaced and prototype metadata preserved. */
         withFunctionArgumentType(index: number, replacement: TypeInfo): TypeInfo;
 
+        /** Return a copy with its return type replaced and prototype metadata preserved. */
+        withFunctionReturnType(replacement: TypeInfo): TypeInfo;
+
         /** For function types: the calling convention. */
         callingConvention(): CallingConvention;
 
@@ -2536,6 +2539,11 @@ export namespace decompiler {
         | 'globallyOptimized1' | 'globallyOptimized2' | 'globallyOptimized3'
         | 'localVariables';
 
+    interface MicrocodeGenerationOptions {
+        maturity?: MicrocodeMaturity;
+        analyzeCalls?: boolean;
+    }
+
     type MicrocodeValueLocationKind =
         | 'unspecified' | 'register' | 'registerWithOffset' | 'registerPair'
         | 'registerRelative' | 'stackOffset' | 'staticAddress' | 'scattered';
@@ -2626,7 +2634,7 @@ export namespace decompiler {
     /** Generate a native-lifetime-independent function-level microcode graph. */
     function generateMicrocode(
         address: Address,
-        maturity?: MicrocodeMaturity,
+        maturityOrOptions?: MicrocodeMaturity | MicrocodeGenerationOptions,
     ): MicrocodeFunction;
 
     /** Register a microcode filter callback pair. */

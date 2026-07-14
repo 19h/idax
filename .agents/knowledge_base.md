@@ -1306,3 +1306,44 @@ larger than every conflicting field, and reject negative offsets before UDT
 materialization. This yields expected `O(B^2 + I*D + F^2)` worst-case time for
 `B` blocks, `I` instructions, maximum nested depth `D`, and recovered field
 candidates `F`, with `O(B*S + F)` storage for saved block states of size `S`.
+
+### 35.67. Bound Interprocedural Structure Flow by Context and ABI Evidence [F411]
+For each resolved direct call, evaluate copied call operands in caller state,
+inject tracked structure pointers into the corresponding copied callee argument
+locations, and inspect terminal callee states through the copied return location.
+Use an explicit maximum call depth, an active-context set for recursion cycles,
+and a completed-context set for repeated `(function, injected argument values)`
+work. A returned structure value is usable only when all observed terminal
+values agree. Report shifted propagation sites but mutate only zero-shift
+arguments/returns until shifted-pointer metadata has its own opaque API. When
+changing a return type, copy the complete native `func_type_data_t`, replace
+only `rettype`, and rebuild the direct function or function-pointer type; public
+function summaries do not contain enough ABI metadata for reconstruction.
+
+For `C` distinct analyzed contexts, context `c` having `B_c` blocks, `I_c`
+instructions, maximum recursive operand depth `D`, `F` raw field candidates,
+and `P` propagated prototype sites, the current stable-predecessor traversal,
+linear site deduplication, and overlap resolution require
+`O(sum_c(B_c^2 + I_c*D) + F^2 + P^2)` time. Graph/state retention requires
+`O(G + sum_c(B_c*S_c) + F + P)` space, where `G` is the cached owned-graph
+size and `S_c` is the maximum saved state size in context `c`. The explicit
+call-depth bound limits path length, while context deduplication bounds repeated
+work for identical function/structure-offset injections.
+
+### 35.68. Request Call Information Explicitly for Preoptimized Interprocedural Graphs [F412]
+At `MMAT_PREOPTIMIZED`, a direct call can remain an unknown instruction whose
+address operand is copied but whose `mop_f` call-argument payload is absent.
+When a consumer requires call arguments, build the graph, pre-decompile exact
+direct callees to populate their prototypes, then call
+`mba_t::analyze_calls(ACFL_GUESS)` before copying the owned graph. Expose this
+as an explicit graph-generation option and leave it false by default: resolving
+call information is a semantic enrichment beyond a raw maturity snapshot.
+
+### 35.69. Use Three-Way Terminal Return Consensus [F413]
+Classify terminal return evidence as absent, agreed structure, or conflicting.
+All scalar/unknown terminals mean absent and do not increment the conflict
+count. Identical structure-pointer shifts at every terminal mean agreed and may
+flow back to the caller. Differing structure shifts, or any mixture of
+structure and non-structure values, mean conflicting and must not propagate.
+This avoids both false conflicts on ordinary helpers and unsound propagation
+from path-dependent returns.

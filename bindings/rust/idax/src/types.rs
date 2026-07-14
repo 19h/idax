@@ -572,6 +572,16 @@ impl TypeInfo {
         Self::from_out_handle(ret, out, "with_function_argument_type failed")
     }
 
+    /// Return a copy with the function return type replaced while preserving
+    /// argument metadata, locations, calling convention, and function flags.
+    pub fn with_function_return_type(&self, replacement: &TypeInfo) -> Result<Self> {
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = unsafe {
+            idax_sys::idax_type_with_function_return_type(self.handle, replacement.handle, &mut out)
+        };
+        Self::from_out_handle(ret, out, "with_function_return_type failed")
+    }
+
     pub fn function_details(&self) -> Result<FunctionDetails> {
         let mut raw: *mut idax_sys::IdaxTypeFunctionDetails = std::ptr::null_mut();
         let ret = unsafe { idax_sys::idax_type_function_details(self.handle, &mut raw) };

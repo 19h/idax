@@ -233,24 +233,26 @@ cargo run -p idax --example auto_enum_port -- <idb> --apply
 
 Bounded port of `<userhome>/Downloads/plo/symless-main` to the opaque owned
 microcode graph and type APIs. The interactive plugin has separate report and
-apply actions for one selected function argument. It preserves intraprocedural
-register/stack propagation, nested instruction evaluation, pointer add/sub,
-load/store width recovery, topological predecessor-state preference, and the
-upstream minimum-width overlap rule. Apply creates or reuses a named UDT and
-changes only an eligible scalar-pointer or pointer-width integral argument.
+apply actions for one selected function argument. It preserves register/stack
+propagation, nested instruction evaluation, pointer add/sub, load/store width
+recovery, topological predecessor-state preference, and the upstream
+minimum-width overlap rule. It also follows resolved direct calls with an
+explicit maximum depth, active-cycle rejection, completed-context reuse, ABI
+argument injection, and conservative terminal-return consensus. Apply creates
+or reuses a named UDT and changes eligible zero-shift arguments and returns.
 
-This is not a full Symless parity claim: interprocedural propagation,
-allocator/wrapper discovery, constructors/vtables, shifted-pointer types,
-forward local-type replacement/flags, member-TID xrefs, multi-element stroff
-paths, and microcode-widget operand selection remain outside this port. The
-upstream MIT notice is retained in `plugin/symless_port_LICENSE.txt`.
+This is not a full Symless parity claim: allocator/wrapper discovery,
+indirect dynamic calls, constructors/vtables, shifted-pointer types, forward
+local-type replacement/flags, member-TID xrefs, multi-element stroff paths,
+and microcode-widget operand selection remain outside this port. The upstream
+MIT notice is retained in `plugin/symless_port_LICENSE.txt`.
 
 The Rust adaptation (`symless_structure_port`) is report-only by default and
 requires `--apply` before saving the UDT/prototype mutation:
 
 ```bash
-cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0
-cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0 --name recovered_type --apply
+cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0 --max-depth 8
+cargo run -p idax --example symless_structure_port -- <idb> --function <address-or-name> --argument 0 --max-depth 8 --name recovered_type --apply
 ```
 
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)

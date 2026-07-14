@@ -332,6 +332,9 @@ enum class MicrocodeMaturity : int {
 /// Options for generation of an owned function-level microcode graph.
 struct MicrocodeGenerationOptions {
     MicrocodeMaturity maturity{MicrocodeMaturity::Preoptimized};
+    /// Resolve call argument lists and calling conventions before copying.
+    /// May decompile direct callees and invoke Hex-Rays call analysis.
+    bool analyze_calls{false};
 };
 
 /// Placement policy for emitted microcode instructions.

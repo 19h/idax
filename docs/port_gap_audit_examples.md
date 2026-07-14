@@ -20,7 +20,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 | Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
-| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for the explicit intraprocedural one-argument boundary. Full Symless additionally requires interprocedural call/return flow, allocators, constructors/vtables, shifted pointers, forward-type flags, member xrefs, multi-stroff paths, and a microcode-widget picker |
+| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct-call argument/return propagation. Full Symless additionally requires allocator/wrapper discovery, indirect dynamic calls, constructors/vtables, shifted pointers, forward-type flags, member xrefs, multi-stroff paths, and a microcode-widget picker |
 
 ## Notes
 
@@ -45,8 +45,10 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   Rust adaptation covers the deterministic global pass; selected-call cursor
   state remains an interactive C++ host concern.
 - The Symless adaptation preserves the source-audited CPU-state and field
-  conflict rules for one function argument over an owned preoptimized
-  microcode graph. Report mode is non-mutating; mutation requires the C++
-  apply action or Rust `--apply`. The audited full-parity surfaces remain
-  explicitly separate rather than being approximated.
+  conflict rules for one function argument over owned preoptimized microcode
+  graphs. It follows resolved direct calls with an explicit depth bound,
+  context-cycle/repetition guards, ABI argument injection, and terminal-return
+  consensus. Report mode is non-mutating; mutation requires the C++ apply
+  action or Rust `--apply`. The audited full-parity surfaces remain explicitly
+  separate rather than being approximated.
 - This file replaces the previous per-port gap audit documents.

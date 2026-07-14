@@ -38,6 +38,17 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises prototype matching without platform-specific committed binaries
 
+### `symless_interprocedural_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/symless_interprocedural_host.c`
+- **Used by**: Symless direct-call argument/return report/apply validation
+- **Key characteristics**:
+  - Exports one root, one field-reading callee, and one identity-return callee
+  - Uses a volatile observation to retain the identity call under optimization
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises explicit call analysis, depth limiting, argument propagation, terminal-return consensus, and idempotent prototype application
+
 ## Scenario Fixture Directories
 
 ### `loader/`

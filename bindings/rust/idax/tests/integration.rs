@@ -1361,6 +1361,18 @@ fn types_replace_function_argument() {
             .is_signed()
     );
 
+    let return_edited = original
+        .with_function_return_type(&types::TypeInfo::uint64())
+        .unwrap();
+    let return_after = return_edited.function_details().unwrap();
+    assert!(return_after.return_type.is_integer());
+    assert!(!return_after.return_type.is_signed());
+    assert_eq!(return_after.arguments[0].name, before.arguments[0].name);
+    assert_eq!(return_after.arguments[1].name, before.arguments[1].name);
+    assert_eq!(return_after.calling_convention, before.calling_convention);
+    assert_eq!(return_after.variadic, before.variadic);
+    assert!(original.function_return_type().unwrap().is_signed());
+
     let pointer = types::TypeInfo::pointer_to(&original);
     let edited_pointer = pointer
         .with_function_argument_type(1, &types::TypeInfo::uint32())
@@ -1370,6 +1382,16 @@ fn types_replace_function_argument() {
         edited_pointer.function_details().unwrap().arguments[1]
             .r#type
             .is_integer()
+    );
+    let return_edited_pointer = pointer
+        .with_function_return_type(&types::TypeInfo::uint64())
+        .unwrap();
+    assert!(return_edited_pointer.is_pointer());
+    assert!(
+        !return_edited_pointer
+            .function_return_type()
+            .unwrap()
+            .is_signed()
     );
 }
 
@@ -1484,7 +1506,10 @@ fn decompiler_owned_microcode_graph() {
     }
 
     let f = function::by_index(0).unwrap();
-    let options = decompiler::MicrocodeGenerationOptions::default();
+    let options = decompiler::MicrocodeGenerationOptions {
+        analyze_calls: true,
+        ..Default::default()
+    };
     let graph = decompiler::generate_microcode(f.start(), options).unwrap();
     assert_eq!(graph.maturity, decompiler::MicrocodeMaturity::Preoptimized);
     assert_eq!(graph.entry_address, f.start());

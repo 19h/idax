@@ -34,7 +34,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, backend routing, request queue, events [2 enums, 5 structs, 1 class, ~42 free fns]
-|-- ida::decompiler     Decompile, owned microcode graphs, ctree, events/cache/helpers [16 enums, 19 structs, 9 classes, event/free-fn surface]
+|-- ida::decompiler     Decompile, owned/call-analyzed microcode graphs, ctree, events/cache/helpers [16 enums, 19 structs, 9 classes, event/free-fn surface]
  |-- ida::lines          Tagged text plus source-file address mappings     [1 enum, 1 struct, ~9 free fns, constants]
 |-- ida::ui             Messages, dialogs, wait boxes, widgets/viewers   [1 enum, 5 structs, 3 classes, widget/event free-fn surface]
 |-- ida::graph          Graph objects, viewers, flow charts, layouts     [2 enums, 5 structs, 2 classes, ~10 free fns]

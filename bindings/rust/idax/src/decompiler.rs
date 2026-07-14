@@ -294,12 +294,14 @@ impl MicrocodeMaturity {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MicrocodeGenerationOptions {
     pub maturity: MicrocodeMaturity,
+    pub analyze_calls: bool,
 }
 
 impl Default for MicrocodeGenerationOptions {
     fn default() -> Self {
         Self {
             maturity: MicrocodeMaturity::Preoptimized,
+            analyze_calls: false,
         }
     }
 }
@@ -1381,6 +1383,7 @@ pub fn generate_microcode(
         let ret = idax_sys::idax_decompiler_generate_microcode(
             function_address,
             options.maturity as i32,
+            i32::from(options.analyze_calls),
             &mut raw,
         );
         if ret != 0 {

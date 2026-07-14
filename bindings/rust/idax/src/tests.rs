@@ -1096,6 +1096,7 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<FunctionDetails> = TypeInfo::function_details;
         let _: fn(&TypeInfo, usize, &TypeInfo) -> Result<TypeInfo> =
             TypeInfo::with_function_argument_type;
+        let _: fn(&TypeInfo, &TypeInfo) -> Result<TypeInfo> = TypeInfo::with_function_return_type;
         let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
 
@@ -1198,6 +1199,7 @@ mod decompiler_tests {
             MicrocodeGenerationOptions::default().maturity,
             MicrocodeMaturity::Preoptimized
         );
+        assert!(!MicrocodeGenerationOptions::default().analyze_calls);
         assert_eq!(MicrocodeOpcode::SignedExtend as i32, 20);
         assert_eq!(MicrocodeOpcode::Other as i32, 26);
         assert_eq!(MicrocodeOperandKind::AddressReference as i32, 11);

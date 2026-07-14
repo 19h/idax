@@ -197,6 +197,12 @@ public:
     with_function_argument_type(std::size_t index,
                                 const TypeInfo& replacement) const;
 
+    /// Return a copy with the function return type replaced.
+    /// Preserves argument names/locations/flags and all other prototype metadata.
+    /// Accepts direct function types and function-pointer types.
+    [[nodiscard]] Result<TypeInfo>
+    with_function_return_type(const TypeInfo& replacement) const;
+
     [[nodiscard]] Result<CallingConvention> calling_convention() const;
     [[nodiscard]] Result<bool> is_variadic_function() const;
     [[nodiscard]] Result<std::vector<EnumMember>> enum_members() const;

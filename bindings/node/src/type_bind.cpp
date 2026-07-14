@@ -130,6 +130,7 @@ private:
     static NAN_METHOD(FunctionReturnType);
     static NAN_METHOD(FunctionArgumentTypes);
     static NAN_METHOD(WithFunctionArgumentType);
+    static NAN_METHOD(WithFunctionReturnType);
     static NAN_METHOD(FunctionDetails);
     static NAN_METHOD(CallingConventionMethod);
     static NAN_METHOD(IsVariadicFunction);
@@ -306,6 +307,7 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "functionReturnType",    FunctionReturnType);
     Nan::SetPrototypeMethod(tpl, "functionArgumentTypes", FunctionArgumentTypes);
     Nan::SetPrototypeMethod(tpl, "withFunctionArgumentType", WithFunctionArgumentType);
+    Nan::SetPrototypeMethod(tpl, "withFunctionReturnType", WithFunctionReturnType);
     Nan::SetPrototypeMethod(tpl, "functionDetails",       FunctionDetails);
     Nan::SetPrototypeMethod(tpl, "callingConvention",     CallingConventionMethod);
     Nan::SetPrototypeMethod(tpl, "isVariadicFunction",    IsVariadicFunction);
@@ -537,6 +539,24 @@ NAN_METHOD(TypeInfoWrapper::WithFunctionArgumentType) {
     IDAX_UNWRAP(auto result,
                 self->type_info_.with_function_argument_type(index,
                                                               replacement->typeInfo()));
+    info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(result)));
+}
+
+NAN_METHOD(TypeInfoWrapper::WithFunctionReturnType) {
+    SELF();
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("Expected a replacement TypeInfo argument");
+        return;
+    }
+    auto* replacement = TypeInfoWrapper::Unwrap(info[0]);
+    if (replacement == nullptr) {
+        Nan::ThrowTypeError("Argument must be a TypeInfo object");
+        return;
+    }
+
+    IDAX_UNWRAP(auto result,
+                self->type_info_.with_function_return_type(
+                    replacement->typeInfo()));
     info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(result)));
 }
 

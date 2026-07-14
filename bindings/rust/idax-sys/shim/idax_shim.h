@@ -941,6 +941,9 @@ int idax_type_with_function_argument_type(IdaxTypeHandle ti,
                                           size_t index,
                                           IdaxTypeHandle replacement,
                                           IdaxTypeHandle* out);
+int idax_type_with_function_return_type(IdaxTypeHandle ti,
+                                        IdaxTypeHandle replacement,
+                                        IdaxTypeHandle* out);
 int idax_type_function_details(IdaxTypeHandle ti, IdaxTypeFunctionDetails** out);
 int idax_type_calling_convention(IdaxTypeHandle ti, int* out);
 int idax_type_is_variadic_function(IdaxTypeHandle ti, int* out);
@@ -1825,6 +1828,7 @@ typedef struct IdaxMicrocodeFunction {
 
 int idax_decompiler_generate_microcode(uint64_t function_address,
                                        int maturity,
+                                       int analyze_calls,
                                        IdaxMicrocodeFunction** out);
 void idax_decompiler_microcode_function_free(IdaxMicrocodeFunction* function);
 

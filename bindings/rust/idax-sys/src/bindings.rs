@@ -2924,6 +2924,13 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_type_with_function_return_type(
+        ti: IdaxTypeHandle,
+        replacement: IdaxTypeHandle,
+        out: *mut IdaxTypeHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_type_function_details(
         ti: IdaxTypeHandle,
         out: *mut *mut IdaxTypeFunctionDetails,
@@ -5540,6 +5547,7 @@ unsafe extern "C" {
     pub fn idax_decompiler_generate_microcode(
         function_address: u64,
         maturity: ::std::os::raw::c_int,
+        analyze_calls: ::std::os::raw::c_int,
         out: *mut *mut IdaxMicrocodeFunction,
     ) -> ::std::os::raw::c_int;
 }

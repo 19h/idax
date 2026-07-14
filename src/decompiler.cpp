@@ -4911,6 +4911,38 @@ generate_microcode(Address function_address,
         }
     }
 
+    if (options.analyze_calls && !native->callinfo_built()) {
+        // Match Symless's call-analysis preparation: decompile direct callees
+        // referenced by still-unknown calls so their inferred prototypes are
+        // available before Hex-Rays constructs mcallinfo_t argument lists.
+        for (int block_index = 0; block_index < native->qty; ++block_index) {
+            mblock_t* block = native->get_mblock(block_index);
+            if (block == nullptr)
+                continue;
+            for (minsn_t* instruction = block->head;
+                 instruction != nullptr;
+                 instruction = instruction->next) {
+                if (!instruction->is_unknown_call()
+                    || instruction->l.t != mop_v) {
+                    continue;
+                }
+                func_t* callee = ::get_func(instruction->l.g);
+                if (callee == nullptr || callee->start_ea != instruction->l.g)
+                    continue;
+                hexrays_failure_t callee_failure;
+                (void)::decompile_func(callee,
+                                       &callee_failure,
+                                       DECOMP_NO_WAIT);
+            }
+        }
+        const int analyzed_calls = native->analyze_calls(ACFL_GUESS);
+        if (analyzed_calls < 0) {
+            return std::unexpected(Error::sdk(
+                "Microcode call analysis failed",
+                std::to_string(function->start_ea)));
+        }
+    }
+
     MicrocodeFunction result;
     result.entry_address = native->entry_ea == BADADDR
         ? BadAddress

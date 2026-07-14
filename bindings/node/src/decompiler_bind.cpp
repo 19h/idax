@@ -1383,20 +1383,42 @@ NAN_METHOD(Decompile) {
     info.GetReturnValue().Set(DecompiledFunctionWrapper::NewInstance(std::move(func)));
 }
 
-// generateMicrocode(address, maturity?) -> MicrocodeFunction
+// generateMicrocode(address, maturityOrOptions?) -> MicrocodeFunction
 NAN_METHOD(GenerateMicrocode) {
     ida::Address address;
     if (!GetAddressArg(info, 0, address)) return;
 
     ida::decompiler::MicrocodeGenerationOptions options;
     if (info.Length() > 1 && !info[1]->IsUndefined()) {
-        if (!info[1]->IsString()) {
-            Nan::ThrowTypeError("Expected microcode maturity string");
-            return;
-        }
-        const std::string maturity_text = ToString(info[1]);
-        if (!ParseMicrocodeMaturity(maturity_text, options.maturity)) {
-            Nan::ThrowTypeError("Invalid microcode maturity");
+        if (info[1]->IsString()) {
+            const std::string maturity_text = ToString(info[1]);
+            if (!ParseMicrocodeMaturity(maturity_text, options.maturity)) {
+                Nan::ThrowTypeError("Invalid microcode maturity");
+                return;
+            }
+        } else if (info[1]->IsObject()) {
+            auto object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
+            auto maturity_value = Nan::Get(
+                object, Nan::New("maturity").ToLocalChecked()).ToLocalChecked();
+            if (!maturity_value->IsUndefined()) {
+                if (!maturity_value->IsString()
+                    || !ParseMicrocodeMaturity(ToString(maturity_value),
+                                               options.maturity)) {
+                    Nan::ThrowTypeError("Invalid microcode maturity");
+                    return;
+                }
+            }
+            auto analyze_value = Nan::Get(
+                object, Nan::New("analyzeCalls").ToLocalChecked()).ToLocalChecked();
+            if (!analyze_value->IsUndefined()) {
+                if (!analyze_value->IsBoolean()) {
+                    Nan::ThrowTypeError("analyzeCalls must be boolean");
+                    return;
+                }
+                options.analyze_calls = Nan::To<bool>(analyze_value).FromJust();
+            }
+        } else {
+            Nan::ThrowTypeError("Expected microcode maturity string or options object");
             return;
         }
     }

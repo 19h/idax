@@ -853,3 +853,25 @@ tracked in `docs/compatibility_matrix.md`.
   changed argument 0, and fresh-process reopen was idempotent. Generated
   bindgen output is byte-identical to the checked binding (SHA-256
   `dc548a8c3f5b0c00a28db45827a5570c2530d20a9d06fa01a87416daf942a4b8`).
+
+- 2026-07-14 Phase 38 Symless interprocedural structure propagation:
+  Added metadata-preserving function-return replacement and explicit default-off
+  call analysis across C++, Node, and Rust. Extended both Symless adaptations
+  with depth-bounded resolved direct-call argument injection, active/repeated
+  context guards, conservative terminal-return consensus, propagated-site
+  reporting, and zero-shift-only argument/return mutation. Complete C++ build
+  and CTest pass 26/26 in 23.00 s, the plugin links, and the tracked fixture
+  remains Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` with SHA-256
+  `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b`.
+  Node native build, strict declarations, structural tests, and IDA 9.4
+  integration pass 234/234 and 77/77. Rust formatting/all-example checks,
+  library/sys/port tests, and process-main-thread IDA 9.4 integration pass
+  138/138, 0 sys, 6/6, and 94/94. A host-native arm64 fixture (source SHA-256
+  `3f6c0a873a5c58ddc20a49286d03ebd95935626bff6c296822dc50aa41adb382`;
+  binary SHA-256
+  `c35d86971a29a8bb54da74170b39ee3bb6018db95891e04de41cd7220d1dd635`)
+  follows 2 calls/3 functions and recovers exact `+4/4 B`, `+8/8 B`, and
+  `+24/1 B` reads; depth zero omits the callee-only field. First apply creates
+  3/3 members and types 3/3 arguments plus 1/1 return; fresh-process reopen is
+  idempotent. Generated bindings are byte-identical at SHA-256
+  `6a14f8a22c18ecd8576773854a99b96c8463631860aafbd76a0449900dd2b0e4`.

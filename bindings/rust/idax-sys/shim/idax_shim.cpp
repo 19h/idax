@@ -3681,6 +3681,20 @@ int idax_type_with_function_argument_type(IdaxTypeHandle ti,
     return 0;
 }
 
+int idax_type_with_function_return_type(IdaxTypeHandle ti,
+                                        IdaxTypeHandle replacement,
+                                        IdaxTypeHandle* out) {
+    clear_error();
+    if (ti == nullptr || replacement == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Type handle or output pointer is null"));
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)->with_function_return_type(
+        *static_cast<ida::type::TypeInfo*>(replacement));
+    if (!result) return fail(result.error());
+    *out = new ida::type::TypeInfo(std::move(*result));
+    return 0;
+}
+
 int idax_type_function_details(IdaxTypeHandle ti, IdaxTypeFunctionDetails** out) {
     clear_error();
     if (out == nullptr) {
@@ -6976,6 +6990,7 @@ void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction) {
 
 int idax_decompiler_generate_microcode(uint64_t function_address,
                                        int maturity,
+                                       int analyze_calls,
                                        IdaxMicrocodeFunction** out) {
     clear_error();
     if (out == nullptr)
@@ -6984,6 +6999,7 @@ int idax_decompiler_generate_microcode(uint64_t function_address,
 
     ida::decompiler::MicrocodeGenerationOptions options;
     options.maturity = static_cast<ida::decompiler::MicrocodeMaturity>(maturity);
+    options.analyze_calls = analyze_calls != 0;
     auto result = ida::decompiler::generate_microcode(function_address, options);
     if (!result)
         return fail(result.error());

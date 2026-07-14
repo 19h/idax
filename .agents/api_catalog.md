@@ -86,6 +86,7 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.9 `ida::type`
 - `TypeInfo` value object with constructor helpers (primitive/pointer/array/function)
 - Immutable indexed function-argument replacement that preserves the native prototype record (`with_function_argument_type`)
+- Immutable function-return replacement that preserves the native prototype record (`with_function_return_type`)
 - Struct/union/member APIs with byte-based offsets
 - Apply/retrieve type operations
 - Type library access wrappers and import/export helpers
@@ -199,7 +200,8 @@ This section captures the intended public API semantics at a concrete level so i
 - `MicrocodeContext` typed block/introspection read-back (`instruction`, `instruction_at_index`, `last_emitted_instruction`)
 - Maturity-explicit owned function graph generation (`generate_microcode`) with
   copied argument/return locations, CFG adjacency, addressed recursive
-  instructions/operands, and C++/Node/Rust value parity
+  instructions/operands, optional call-information analysis, and C++/Node/Rust
+  value parity
 
 ### 17.23 `ida::storage` (advanced)
 - Opaque node abstraction
