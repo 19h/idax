@@ -29,6 +29,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Custom format invocation: `render_custom_data`, `scan_custom_data`, and
   `analyze_custom_data` with opaque `CustomDataFormatContext`; callback state is
   retained until explicit unregister and exceptions do not cross the SDK ABI
+- Shared string inventory: copied `StringListOptions`/`StringLiteral` values,
+  explicit configure/rebuild/clear operations, and owned enumeration results
 - Search helpers: binary pattern and typed immediate searches
 
 ### 17.3 `ida::segment`
@@ -61,6 +63,13 @@ This section captures the intended public API semantics at a concrete level so i
 - Properties: public/weak/auto/user name states
 - Demangling forms: short/long/full for both address-owned names and arbitrary
   in-memory mangled symbols
+- Filtered copied inventories through `ListOptions`, preserving user-defined
+  and auto-generated origin metadata across C++, Node, and Rust
+
+### 17.6.1 `ida::lines`
+- Tagged-text color helpers and address-tag encoding/decoding
+- Copied source-file metadata with half-open `address::Range` values
+- Checked add/query/remove operations without borrowed SDK filenames
 
 ### 17.7 `ida::xref`
 - Unified xref object model

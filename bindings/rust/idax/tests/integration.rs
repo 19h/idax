@@ -13,7 +13,7 @@
 use std::io::Write;
 use std::panic::{self, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, Once};
+use std::sync::{Arc, Mutex, Once, OnceLock};
 
 use idax::address::{Address, BAD_ADDRESS};
 use idax::error::{ErrorCategory, Status};
@@ -28,6 +28,7 @@ use idax::{
 
 static INIT: Once = Once::new();
 static INIT_OK: AtomicBool = AtomicBool::new(false);
+static FIXTURE_COPY: OnceLock<std::path::PathBuf> = OnceLock::new();
 
 /// Path to the test fixture, resolved relative to the workspace root.
 fn fixture_path() -> String {
@@ -41,10 +42,17 @@ fn fixture_path() -> String {
         .unwrap()
         .parent() // repo root
         .unwrap();
-    repo_root
-        .join("tests/fixtures/simple_appcall_linux64")
-        .to_string_lossy()
-        .into_owned()
+    let source = repo_root.join("tests/fixtures/simple_appcall_linux64");
+    let directory =
+        std::env::temp_dir().join(format!("idax_rust_integration_{}", std::process::id()));
+    if directory.exists() {
+        std::fs::remove_dir_all(&directory).expect("remove stale integration directory");
+    }
+    std::fs::create_dir_all(&directory).expect("create integration directory");
+    let copy = directory.join("simple_appcall_linux64");
+    std::fs::copy(source, &copy).expect("copy integration fixture");
+    let _ = FIXTURE_COPY.set(copy.clone());
+    copy.to_string_lossy().into_owned()
 }
 
 fn ensure_init() {
@@ -688,6 +696,97 @@ fn data_read_word_dword_qword() {
     assert_eq!(d & 0xff, 0x7f);
     let q = data::read_qword(bounds.start).unwrap();
     assert_eq!(q & 0xff, 0x7f);
+}
+
+fn data_string_list_and_source_metadata() {
+    require_db!();
+
+    let inventory = name::all(&name::ListOptions::default()).unwrap();
+    assert!(!inventory.is_empty());
+    assert!(inventory.iter().any(|entry| entry.name == "main"));
+
+    struct StringOptionsRestore(data::StringListOptions);
+    impl Drop for StringOptionsRestore {
+        fn drop(&mut self) {
+            let _ = data::configure_string_list(&self.0);
+        }
+    }
+
+    let original = data::string_list_options().unwrap();
+    let _restore = StringOptionsRestore(original);
+
+    let empty = data::StringListOptions {
+        string_types: Vec::new(),
+        ..Default::default()
+    };
+    assert_eq!(
+        data::configure_string_list(&empty).unwrap_err().category,
+        ErrorCategory::Validation
+    );
+
+    let configured = data::StringListOptions {
+        string_types: vec![0, 1],
+        minimum_length: 5,
+        only_7bit: true,
+        ignore_instructions: false,
+        display_only_existing_strings: false,
+    };
+    data::configure_string_list(&configured).unwrap();
+    assert_eq!(data::string_list_options().unwrap(), configured);
+
+    let literals = data::string_literals(false).unwrap();
+    assert!(!literals.is_empty());
+    assert!(literals.iter().all(|literal| {
+        literal.address != BAD_ADDRESS
+            && literal.byte_length > 0
+            && matches!(literal.string_type, 0 | 1)
+            && !literal.text.is_empty()
+    }));
+    assert!(
+        literals
+            .iter()
+            .any(|literal| literal.text.contains("ref4: entered with %d"))
+    );
+    data::rebuild_string_list().unwrap();
+    data::clear_string_list().unwrap();
+
+    let last = segment::last().unwrap();
+    let base = last
+        .end()
+        .checked_add(0xffff)
+        .expect("temporary source segment address overflow")
+        & !0xffff;
+    segment::create(
+        base,
+        base + 0x1000,
+        "__idax_rust_source_metadata",
+        "DATA",
+        segment::Type::Data,
+    )
+    .unwrap();
+    struct SourceCleanup(Address);
+    impl Drop for SourceCleanup {
+        fn drop(&mut self) {
+            let _ = lines::remove_source_file(self.0 + 0x120);
+            let _ = segment::remove(self.0);
+        }
+    }
+    let _cleanup = SourceCleanup(base);
+
+    let range = idax::address::Range::new(base + 0x100, base + 0x180);
+    lines::add_source_file(range, "/src/network/transport.cpp").unwrap();
+    let source = lines::source_file_at(base + 0x120).unwrap();
+    assert_eq!(source.filename, "/src/network/transport.cpp");
+    assert_eq!(source.range, range);
+    assert_eq!(
+        lines::source_file_at(range.end).unwrap_err().category,
+        ErrorCategory::NotFound
+    );
+    lines::remove_source_file(base + 0x120).unwrap();
+    assert_eq!(
+        lines::source_file_at(base + 0x120).unwrap_err().category,
+        ErrorCategory::NotFound
+    );
 }
 
 fn data_patch_and_revert() {
@@ -1713,6 +1812,10 @@ static TEST_CASES: &[TestCase] = &[
     ("data_read_byte", data_read_byte),
     ("data_read_bytes", data_read_bytes),
     ("data_read_word_dword_qword", data_read_word_dword_qword),
+    (
+        "data_string_list_and_source_metadata",
+        data_string_list_and_source_metadata,
+    ),
     ("data_patch_and_revert", data_patch_and_revert),
     (
         "data_element_definition_units",
@@ -1845,6 +1948,11 @@ fn panic_message(payload: &(dyn std::any::Any + Send)) -> &str {
 fn close_session() -> Result<(), String> {
     if INIT_OK.swap(false, Ordering::AcqRel) {
         database::close(false).map_err(|error| error.to_string())?;
+    }
+    if let Some(copy) = FIXTURE_COPY.get() {
+        if let Some(directory) = copy.parent() {
+            std::fs::remove_dir_all(directory).map_err(|error| error.to_string())?;
+        }
     }
     Ok(())
 }

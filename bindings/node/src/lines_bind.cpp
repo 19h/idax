@@ -52,7 +52,57 @@ static bool StringToColor(const std::string& s, ida::lines::Color& out) {
     return false;
 }
 
+bool GetSourceRange(Nan::NAN_METHOD_ARGS_TYPE info,
+                    ida::address::Range& out) {
+    if (info.Length() < 1 || !info[0]->IsObject()) {
+        Nan::ThrowTypeError("Source-file range must be an object");
+        return false;
+    }
+    auto object = info[0].As<v8::Object>();
+    auto start = Nan::Get(object, FromString("start")).ToLocalChecked();
+    auto end = Nan::Get(object, FromString("end")).ToLocalChecked();
+    if (!ToAddress(start, out.start) || !ToAddress(end, out.end)) {
+        Nan::ThrowTypeError(
+            "Source-file range start and end must be addresses");
+        return false;
+    }
+    return true;
+}
+
 // ── NAN methods ─────────────────────────────────────────────────────────
+
+// addSourceFile(range, filename)
+NAN_METHOD(AddSourceFile) {
+    ida::address::Range range;
+    std::string filename;
+    if (!GetSourceRange(info, range)
+        || !GetStringArg(info, 1, filename)) return;
+    IDAX_CHECK_STATUS(ida::lines::add_source_file(range, filename));
+    info.GetReturnValue().SetUndefined();
+}
+
+// sourceFileAt(address) -> SourceFile
+NAN_METHOD(SourceFileAt) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    IDAX_UNWRAP(auto source_file, ida::lines::source_file_at(address));
+    auto range = ObjectBuilder()
+        .setAddr("start", source_file.range.start)
+        .setAddr("end", source_file.range.end)
+        .build();
+    info.GetReturnValue().Set(ObjectBuilder()
+        .setStr("filename", source_file.filename)
+        .set("range", range)
+        .build());
+}
+
+// removeSourceFile(address)
+NAN_METHOD(RemoveSourceFile) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    IDAX_CHECK_STATUS(ida::lines::remove_source_file(address));
+    info.GetReturnValue().SetUndefined();
+}
 
 // colstr(text: string, color: number|string) -> string
 NAN_METHOD(Colstr) {
@@ -153,6 +203,9 @@ void InitLines(v8::Local<v8::Object> target) {
     auto ns = CreateNamespace(target, "lines");
 
     // Functions
+    SetMethod(ns, "addSourceFile",    AddSourceFile);
+    SetMethod(ns, "sourceFileAt",     SourceFileAt);
+    SetMethod(ns, "removeSourceFile", RemoveSourceFile);
     SetMethod(ns, "colstr",        Colstr);
     SetMethod(ns, "tagRemove",     TagRemove);
     SetMethod(ns, "tagAdvance",    TagAdvance);

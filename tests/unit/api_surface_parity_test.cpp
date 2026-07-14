@@ -131,6 +131,27 @@ void check_data_surface() {
     (void)static_cast<ReadTypedFn>(&ida::data::read_typed);
     (void)static_cast<WriteTypedFn>(&ida::data::write_typed);
 
+    ida::data::StringListOptions string_options;
+    (void)string_options.string_types;
+    (void)string_options.minimum_length;
+    (void)string_options.only_7bit;
+    (void)string_options.ignore_instructions;
+    (void)string_options.display_only_existing_strings;
+    ida::data::StringLiteral string_literal;
+    (void)string_literal.address;
+    (void)string_literal.byte_length;
+    (void)string_literal.string_type;
+    (void)string_literal.text;
+    using StringOptionsFn = ida::Result<ida::data::StringListOptions>(*)();
+    using ConfigureStringsFn = ida::Status(*)(const ida::data::StringListOptions&);
+    using StringListLifecycleFn = ida::Status(*)();
+    using StringLiteralsFn = ida::Result<std::vector<ida::data::StringLiteral>>(*)(bool);
+    (void)static_cast<StringOptionsFn>(&ida::data::string_list_options);
+    (void)static_cast<ConfigureStringsFn>(&ida::data::configure_string_list);
+    (void)static_cast<StringListLifecycleFn>(&ida::data::rebuild_string_list);
+    (void)static_cast<StringListLifecycleFn>(&ida::data::clear_string_list);
+    (void)static_cast<StringLiteralsFn>(&ida::data::string_literals);
+
     using PatchByteFn = ida::Status(*)(ida::Address, std::uint8_t);
     (void)static_cast<PatchByteFn>(&ida::data::patch_byte);
 
@@ -228,6 +249,22 @@ void check_data_surface() {
     (void)static_cast<RenderCustomFn>(&ida::data::render_custom_data);
     (void)static_cast<ScanCustomFn>(&ida::data::scan_custom_data);
     (void)static_cast<AnalyzeCustomFn>(&ida::data::analyze_custom_data);
+}
+
+// ─── ida::lines ─────────────────────────────────────────────────────────
+
+void check_lines_surface() {
+    ida::lines::SourceFile source;
+    (void)source.filename;
+    (void)source.range;
+
+    using AddSourceFileFn = ida::Status(*)(const ida::address::Range&,
+                                            std::string_view);
+    using SourceFileAtFn = ida::Result<ida::lines::SourceFile>(*)(ida::Address);
+    using RemoveSourceFileFn = ida::Status(*)(ida::Address);
+    (void)static_cast<AddSourceFileFn>(&ida::lines::add_source_file);
+    (void)static_cast<SourceFileAtFn>(&ida::lines::source_file_at);
+    (void)static_cast<RemoveSourceFileFn>(&ida::lines::remove_source_file);
 }
 
 // ─── ida::segment ───────────────────────────────────────────────────────
@@ -2171,12 +2208,13 @@ int main() {
     surface_check::check_event_surface();      namespaces_verified++;
     surface_check::check_decompiler_surface(); namespaces_verified++;
     surface_check::check_storage_surface();    namespaces_verified++;
+    surface_check::check_lines_surface();      namespaces_verified++;
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 28, "all 28 namespace surfaces verified");
+    CHECK(namespaces_verified == 29, "all 29 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (28 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (29 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

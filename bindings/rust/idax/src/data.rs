@@ -13,6 +13,37 @@ use std::ffi::{CStr, CString, c_void};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, Mutex, OnceLock};
 
+/// Owned snapshot of IDA's process-global string-list configuration.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StringListOptions {
+    pub string_types: Vec<i32>,
+    pub minimum_length: i64,
+    pub only_7bit: bool,
+    pub ignore_instructions: bool,
+    pub display_only_existing_strings: bool,
+}
+
+impl Default for StringListOptions {
+    fn default() -> Self {
+        Self {
+            string_types: vec![0],
+            minimum_length: 5,
+            only_7bit: true,
+            ignore_instructions: false,
+            display_only_existing_strings: false,
+        }
+    }
+}
+
+/// Owned string-list entry. `byte_length` is measured in octets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StringLiteral {
+    pub address: Address,
+    pub byte_length: AddressSize,
+    pub string_type: i32,
+    pub text: String,
+}
+
 /// Semantic typed value used by `read_typed` and `write_typed`.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TypedValue {
@@ -215,6 +246,96 @@ pub fn read_string(address: Address, max_length: AddressSize) -> Result<String> 
             return Err(error::consume_last_error("read_string failed"));
         }
         error::cstr_to_string_free(out, "read_string returned null")
+    }
+}
+
+/// Return a copied snapshot of IDA's shared string-list configuration.
+pub fn string_list_options() -> Result<StringListOptions> {
+    unsafe {
+        let mut raw = idax_sys::IdaxDataStringListOptions::default();
+        let ret = idax_sys::idax_data_string_list_options(&mut raw);
+        if ret != 0 {
+            return Err(error::consume_last_error("string_list_options failed"));
+        }
+        let string_types = if raw.string_types.is_null() || raw.string_type_count == 0 {
+            Vec::new()
+        } else {
+            std::slice::from_raw_parts(raw.string_types, raw.string_type_count).to_vec()
+        };
+        let options = StringListOptions {
+            string_types,
+            minimum_length: raw.minimum_length,
+            only_7bit: raw.only_7bit != 0,
+            ignore_instructions: raw.ignore_instructions != 0,
+            display_only_existing_strings: raw.display_only_existing_strings != 0,
+        };
+        idax_sys::idax_data_string_list_options_free(&mut raw);
+        Ok(options)
+    }
+}
+
+/// Replace IDA's shared string-list configuration and rebuild the cache.
+pub fn configure_string_list(options: &StringListOptions) -> Status {
+    let pointer = if options.string_types.is_empty() {
+        std::ptr::null()
+    } else {
+        options.string_types.as_ptr()
+    };
+    let ret = unsafe {
+        idax_sys::idax_data_configure_string_list(
+            pointer,
+            options.string_types.len(),
+            options.minimum_length,
+            options.only_7bit as i32,
+            options.ignore_instructions as i32,
+            options.display_only_existing_strings as i32,
+        )
+    };
+    error::int_to_status(ret, "configure_string_list failed")
+}
+
+/// Rebuild IDA's cached string list using the shared configuration.
+pub fn rebuild_string_list() -> Status {
+    let ret = unsafe { idax_sys::idax_data_rebuild_string_list() };
+    error::int_to_status(ret, "rebuild_string_list failed")
+}
+
+/// Clear IDA's persisted string-list cache.
+pub fn clear_string_list() -> Status {
+    let ret = unsafe { idax_sys::idax_data_clear_string_list() };
+    error::int_to_status(ret, "clear_string_list failed")
+}
+
+/// Enumerate copied string-list entries, optionally rebuilding first.
+pub fn string_literals(rebuild: bool) -> Result<Vec<StringLiteral>> {
+    unsafe {
+        let mut raw: *mut idax_sys::IdaxDataStringLiteral = std::ptr::null_mut();
+        let mut count = 0usize;
+        let ret = idax_sys::idax_data_string_literals(rebuild as i32, &mut raw, &mut count);
+        if ret != 0 {
+            return Err(error::consume_last_error("string_literals failed"));
+        }
+        if count != 0 && raw.is_null() {
+            return Err(Error::internal(
+                "string_literals returned a null array with a nonzero count",
+            ));
+        }
+        let mut literals = Vec::with_capacity(count);
+        for index in 0..count {
+            let item = &*raw.add(index);
+            if item.text.is_null() {
+                idax_sys::idax_data_string_literals_free(raw, count);
+                return Err(Error::internal("string literal text pointer is null"));
+            }
+            literals.push(StringLiteral {
+                address: item.address,
+                byte_length: item.byte_length,
+                string_type: item.string_type,
+                text: CStr::from_ptr(item.text).to_string_lossy().into_owned(),
+            });
+        }
+        idax_sys::idax_data_string_literals_free(raw, count);
+        Ok(literals)
     }
 }
 

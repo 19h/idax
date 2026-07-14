@@ -691,7 +691,21 @@ mod search_tests {
 
 #[cfg(test)]
 mod lines_tests {
+    use crate::address::{Address, Range};
+    use crate::error::{Result, Status};
     use crate::lines::*;
+
+    #[test]
+    fn test_source_file_types_and_signatures() {
+        let _: fn(Range, &str) -> Status = add_source_file;
+        let _: fn(Address) -> Result<SourceFile> = source_file_at;
+        let _: fn(Address) -> Status = remove_source_file;
+        let source = SourceFile {
+            filename: "/src/example.cpp".to_owned(),
+            range: Range::new(0x1000, 0x1100),
+        };
+        assert!(source.range.contains(0x1080));
+    }
 
     #[test]
     fn test_color_enum_values() {
@@ -884,6 +898,26 @@ mod data_tests {
     use crate::address::{Address, AddressSize};
     use crate::data::*;
     use crate::error::{Result, Status};
+
+    #[test]
+    fn test_string_list_types_and_signatures() {
+        let options = StringListOptions::default();
+        assert_eq!(options.string_types, vec![0]);
+        assert_eq!(options.minimum_length, 5);
+        let literal = StringLiteral {
+            address: 0x1000,
+            byte_length: 6,
+            string_type: 0,
+            text: "hello".to_owned(),
+        };
+        assert_eq!(literal.byte_length, 6);
+
+        let _: fn() -> Result<StringListOptions> = string_list_options;
+        let _: fn(&StringListOptions) -> Status = configure_string_list;
+        let _: fn() -> Status = rebuild_string_list;
+        let _: fn() -> Status = clear_string_list;
+        let _: fn(bool) -> Result<Vec<StringLiteral>> = string_literals;
+    }
 
     #[test]
     fn test_element_definition_function_signatures() {
@@ -1314,6 +1348,14 @@ mod name_tests {
     #[test]
     fn test_arbitrary_demangle_signature() {
         let _: fn(&str, DemangleForm) -> Result<String> = name::demangle;
+    }
+
+    #[test]
+    fn test_name_inventory_signature() {
+        let options = name::ListOptions::default();
+        assert!(options.include_user_defined);
+        assert!(options.include_auto_generated);
+        let _: fn(&name::ListOptions) -> Result<Vec<name::Entry>> = name::all;
     }
 }
 

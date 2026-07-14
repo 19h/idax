@@ -18,6 +18,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | idapcode | `examples/plugin/idapcode_port_plugin.cpp`, `bindings/rust/idax/examples/idapcode_headless_port.rs` | closed | None for audited wrapper scope; Sleigh remains an explicit external runtime and language-selection policy |
 | lifter | `examples/plugin/lifter_port_plugin.cpp` | closed | None for audited lifter-class migration scope |
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
+| IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 
 ## Notes
 
@@ -33,4 +34,8 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 - Intelligent Function Inliner preserves the original scoring constants and
   `FUNC_OUTLINE` mutation semantics; its Rust command is report-only unless
   `--apply` is specified.
+- IDAMagicStrings preserves source-path/language detection, first-token and
+  blacklist filtering, one-function rarity, scoped-class evidence, and
+  confirmed rename modes without adding Python, NLTK, or Qt dependencies to
+  the core wrapper.
 - This file replaces the previous per-port gap audit documents.

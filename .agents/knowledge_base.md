@@ -1177,3 +1177,53 @@ memory-shaped operand but not whether the instruction writes it. Preserve
 `isRead`/`isWritten` in every Node snapshot. Do not infer write direction from
 the existence of a data reference, because reference kind and operand access
 mode are distinct properties.
+
+### 35.54. String Discovery Is a Configured Global Cache [F396, F397]
+`data::read_string` materializes text only when an address is already known;
+it is not a substitute for IDA's `strlist.hpp` inventory. The native inventory
+stores address, octet length, and string type in a process-global cache whose
+shared options are also used by the Strings window. Consumers must rebuild it
+explicitly after configuration. Expose copied `StringListOptions` and
+`StringLiteral` values, validate type codes in `0..255` and represent the
+minimum length as a checked signed value. Callers that need temporary settings
+must snapshot and restore both options and the rebuilt list.
+
+On IDA 9.3, `build_strlist` prepends one zero bookkeeping byte to the shared
+`strtypes` vector: a requested `{0,1}` becomes raw `{0,0,1}`, `{1}` becomes
+raw `{0,1}`, and the initial one-byte-only configuration is raw `{0,0}`
+[F398]. Remove exactly that leading element in copied public options. Do not
+deduplicate later zero values because zero is the actual one-byte C-string type.
+
+### 35.55. Source-File Metadata Is a Half-Open Address Mapping [F396]
+`lines.hpp` represents one source file occurrence as a filename associated with
+`[start, end)`. One filename may own multiple ranges, but one address can map to
+only one file. Return an owned filename plus `address::Range`; treat a missing
+mapping as `NotFound`; validate non-empty, non-overflowing ranges before add;
+and remove by an address inside the mapped range. Never retain the borrowed
+`const char*` returned by `get_sourcefile`.
+
+### 35.56. Binding Inventories Must Preserve Origin Filters [F399]
+The C++ `name::all(ListOptions)` inventory can include user-defined names,
+auto-generated names, or both over a half-open address range. A binding that
+exposes only `all_user_defined` loses class/scope evidence used by real ports.
+Mirror the filter object and copied `Entry` origin booleans through the C ABI;
+keep `all_user_defined` as a convenience specialization rather than the only
+safe inventory.
+
+### 35.57. Idalib Integration Inputs Must Be Disposable [F400]
+Opening the repository's adjacent input/IDB pair directly allows a successful
+test to rewrite serialized analysis or cache state even after logical test
+mutations are reversed. CTest must create a unique temporary directory per
+target, copy both the raw fixture and its `.i64` when present, pass only the
+copy to the executable, and remove the directory after execution. Validate
+isolation by comparing the tracked fixture hash before and after the complete
+suite, not by relying on a clean logical close.
+
+### 35.58. IDAMagicStrings Counts Observations, Not Display Rows [F401]
+The original no-NLTK candidate pass consumes both copied name inventory and
+string-list evidence. Its source-language denominator counts a source string
+once when it has at least one data reference, even if that string produces
+multiple chooser rows, and counts each mapped debug address separately. The
+ordered language map resolves common C-family extensions to `C/C++`; only the
+distinct `.c++` extension reaches `C++`. Keep report rows, observation counts,
+and candidate evidence as separate data flows.

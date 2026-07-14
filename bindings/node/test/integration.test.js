@@ -12,13 +12,20 @@
 
 const { describe, it, expect, beforeAll } = require('./harness');
 
-const binaryPath = process.argv[2];
+const inputBinaryPath = process.argv[2];
 
-if (!binaryPath) {
+if (!inputBinaryPath) {
     console.log('Usage: node test/integration.test.js <binary_path>');
     console.log('Skipping integration tests (no binary specified)');
     process.exit(0);
 }
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const fixtureDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'idax-node-integration-'));
+const binaryPath = path.join(fixtureDirectory, path.basename(inputBinaryPath));
+fs.copyFileSync(inputBinaryPath, binaryPath);
 
 let idax;
 
@@ -27,6 +34,7 @@ try {
 } catch (e) {
     console.log('Native addon not built — skipping integration tests');
     console.log(`Error: ${e.message}`);
+    fs.rmSync(fixtureDirectory, { recursive: true, force: true });
     process.exit(0);
 }
 
@@ -416,6 +424,53 @@ describe('Data Access', () => {
         expect(typeof q).toBe('bigint');
     });
 
+    it('should configure and enumerate the shared string list', () => {
+        const original = idax.data.stringListOptions();
+        try {
+            expect(typeof original.minimumLength).toBe('bigint');
+            expect(Array.isArray(original.stringTypes)).toBe(true);
+
+            let invalidError;
+            try {
+                idax.data.configureStringList({ stringTypes: [] });
+            } catch (error) {
+                invalidError = error;
+            }
+            expect(invalidError).toBeDefined();
+            expect(invalidError.category).toBe('Validation');
+
+            const configured = {
+                stringTypes: [0, 1],
+                minimumLength: 5n,
+                only7Bit: true,
+                ignoreInstructions: false,
+                displayOnlyExistingStrings: false,
+            };
+            idax.data.configureStringList(configured);
+            const roundtrip = idax.data.stringListOptions();
+            expect(roundtrip.stringTypes.join(',')).toBe('0,1');
+            expect(roundtrip.minimumLength).toBe(5n);
+            expect(roundtrip.only7Bit).toBe(true);
+            expect(roundtrip.ignoreInstructions).toBe(false);
+            expect(roundtrip.displayOnlyExistingStrings).toBe(false);
+
+            const literals = idax.data.stringLiterals(false);
+            expect(Array.isArray(literals)).toBe(true);
+            expect(literals.length).toBeGreaterThan(0);
+            const known = literals.find(
+                literal => literal.text.includes('ref4: entered with %d'),
+            );
+            expect(known).toBeDefined();
+            expect(typeof known.address).toBe('bigint');
+            expect(typeof known.byteLength).toBe('bigint');
+            expect(known.stringType).toBe(0);
+            idax.data.rebuildStringList();
+            idax.data.clearStringList();
+        } finally {
+            idax.data.configureStringList(original);
+        }
+    });
+
     it('should define element arrays with processor-sized extended reals', () => {
         const last = idax.segment.last();
         const start = (last.end + 0xffffn) & ~0xffffn;
@@ -722,6 +777,49 @@ describe('Type System', () => {
 // ── Lines / Color Tags ──────────────────────────────────────────────────
 
 describe('Lines / Color Tags', () => {
+    it('should manage half-open source-file mappings', () => {
+        const last = idax.segment.last();
+        const base = (last.end + 0xffffn) & ~0xffffn;
+        const range = { start: base + 0x100n, end: base + 0x180n };
+        let mappingAdded = false;
+        let segmentCreated = false;
+        try {
+            idax.segment.create(
+                base,
+                base + 0x1000n,
+                '__idax_node_source_metadata',
+                'DATA',
+                'data',
+            );
+            segmentCreated = true;
+            idax.lines.addSourceFile(range, '/src/network/transport.cpp');
+            mappingAdded = true;
+            const source = idax.lines.sourceFileAt(base + 0x120n);
+            expect(source.filename).toBe('/src/network/transport.cpp');
+            expect(source.range.start).toBe(range.start);
+            expect(source.range.end).toBe(range.end);
+
+            let endError;
+            try { idax.lines.sourceFileAt(range.end); } catch (error) { endError = error; }
+            expect(endError).toBeDefined();
+            expect(endError.category).toBe('NotFound');
+
+            idax.lines.removeSourceFile(base + 0x120n);
+            mappingAdded = false;
+            let removedError;
+            try { idax.lines.sourceFileAt(base + 0x120n); } catch (error) { removedError = error; }
+            expect(removedError).toBeDefined();
+            expect(removedError.category).toBe('NotFound');
+        } finally {
+            if (mappingAdded) {
+                try { idax.lines.removeSourceFile(base + 0x120n); } catch (_) { /* cleanup */ }
+            }
+            if (segmentCreated) {
+                try { idax.segment.remove(base); } catch (_) { /* cleanup */ }
+            }
+        }
+    });
+
     it('should create and strip color tags', () => {
         const tagged = idax.lines.colstr('hello', 0x20); // Keyword
         expect(typeof tagged).toBe('string');
@@ -1047,6 +1145,7 @@ describe('IDB Change-Tracking Events', () => {
 describe('Cleanup', () => {
     it('should close database', () => {
         idax.database.close(false);
+        fs.rmSync(fixtureDirectory, { recursive: true, force: true });
     });
 });
 

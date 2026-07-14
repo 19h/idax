@@ -354,6 +354,14 @@ Result<uint16_t> original_word(Address ea);
 Result<uint32_t> original_dword(Address ea);
 Result<uint64_t> original_qword(Address ea);
 
+struct StringListOptions;
+struct StringLiteral;
+Result<StringListOptions> string_list_options();
+Status configure_string_list(const StringListOptions& options);
+Status rebuild_string_list();
+Status clear_string_list();
+Result<std::vector<StringLiteral>> string_literals(bool rebuild = true);
+
 Status define_byte(Address ea, AddressSize count = 1);
 Status define_word(Address ea, AddressSize count = 1);
 Status define_dword(Address ea, AddressSize count = 1);
@@ -452,6 +460,12 @@ enum class DemangleForm {
   Long,
   Full,
 };
+
+struct ListOptions;
+struct Entry;
+Result<std::vector<Entry>> all(const ListOptions& options = {});
+Result<std::vector<Entry>> all_user_defined(Address start = BadAddress,
+                                            Address end = BadAddress);
 
 Status set(Address ea, std::string_view name);
 Status force_set(Address ea, std::string_view name);
@@ -1058,6 +1072,24 @@ class Node {
 };
 
 }  // namespace ida::storage
+```
+
+#### 21.5.22 `ida::lines` source metadata
+
+```cpp
+namespace ida::lines {
+
+struct SourceFile {
+  std::string filename;
+  ida::address::Range range;
+};
+
+Status add_source_file(const ida::address::Range& range,
+                       std::string_view filename);
+Result<SourceFile> source_file_at(Address address);
+Status remove_source_file(Address address);
+
+}  // namespace ida::lines
 ```
 
 ### 21.6 Refined implementation phasing (interface-first)

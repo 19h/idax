@@ -49,6 +49,29 @@ bool GetAddressSizeArg(Nan::NAN_METHOD_ARGS_TYPE info,
     return GetExactAddressSize(info[index], label, out);
 }
 
+bool GetExactSignedInt64(v8::Local<v8::Value> value,
+                         const char* label,
+                         std::int64_t& out) {
+    if (value->IsBigInt()) {
+        bool lossless = false;
+        out = value.As<v8::BigInt>()->Int64Value(&lossless);
+        if (lossless)
+            return true;
+    } else if (value->IsNumber()) {
+        const double number = Nan::To<double>(value).FromJust();
+        if (std::isfinite(number) && std::trunc(number) == number
+            && number >= -kMaximumSafeInteger
+            && number <= kMaximumSafeInteger) {
+            out = static_cast<std::int64_t>(number);
+            return true;
+        }
+    }
+    Nan::ThrowRangeError((std::string(label)
+                          + " must be an exact signed 64-bit integer")
+                             .c_str());
+    return false;
+}
+
 bool GetCustomDataId(v8::Local<v8::Value> value,
                      const char* label,
                      std::uint16_t& out,
@@ -231,6 +254,95 @@ v8::Local<v8::Array> CustomDataFormatInfosToArray(
     return array;
 }
 
+v8::Local<v8::Object> StringListOptionsToObject(
+        const ida::data::StringListOptions& options) {
+    auto types = Nan::New<v8::Array>(
+        static_cast<int>(options.string_types.size()));
+    for (std::size_t index = 0; index < options.string_types.size(); ++index) {
+        Nan::Set(types, static_cast<std::uint32_t>(index),
+                 Nan::New(options.string_types[index]));
+    }
+    return ObjectBuilder()
+        .set("stringTypes", types)
+        .set("minimumLength", v8::BigInt::New(
+            v8::Isolate::GetCurrent(), options.minimum_length))
+        .setBool("only7Bit", options.only_7bit)
+        .setBool("ignoreInstructions", options.ignore_instructions)
+        .setBool("displayOnlyExistingStrings",
+                 options.display_only_existing_strings)
+        .build();
+}
+
+bool GetOptionalBooleanProperty(v8::Local<v8::Object> object,
+                                const char* name,
+                                bool& out) {
+    auto value = GetProperty(object, name);
+    if (value->IsUndefined() || value->IsNull())
+        return true;
+    if (!value->IsBoolean()) {
+        Nan::ThrowTypeError((std::string("Expected boolean property: ") + name)
+                                .c_str());
+        return false;
+    }
+    out = Nan::To<bool>(value).FromJust();
+    return true;
+}
+
+bool GetStringListOptions(Nan::NAN_METHOD_ARGS_TYPE info,
+                          ida::data::StringListOptions& out) {
+    if (info.Length() < 1 || !info[0]->IsObject()) {
+        Nan::ThrowTypeError("String-list options must be an object");
+        return false;
+    }
+    auto object = info[0].As<v8::Object>();
+    auto types_value = GetProperty(object, "stringTypes");
+    if (!types_value->IsUndefined() && !types_value->IsNull()) {
+        if (!types_value->IsArray()) {
+            Nan::ThrowTypeError("String-list stringTypes must be an array");
+            return false;
+        }
+        auto types = types_value.As<v8::Array>();
+        out.string_types.clear();
+        out.string_types.reserve(types->Length());
+        for (std::uint32_t index = 0; index < types->Length(); ++index) {
+            auto value = Nan::Get(types, index).ToLocalChecked();
+            if (!value->IsInt32()) {
+                Nan::ThrowTypeError(
+                    "String-list stringTypes entries must be int32 values");
+                return false;
+            }
+            out.string_types.push_back(Nan::To<std::int32_t>(value).FromJust());
+        }
+    }
+
+    auto minimum_length = GetProperty(object, "minimumLength");
+    if (!minimum_length->IsUndefined() && !minimum_length->IsNull()
+        && !GetExactSignedInt64(minimum_length, "String-list minimumLength",
+                                out.minimum_length)) {
+        return false;
+    }
+    return GetOptionalBooleanProperty(object, "only7Bit", out.only_7bit)
+        && GetOptionalBooleanProperty(object, "ignoreInstructions",
+                                      out.ignore_instructions)
+        && GetOptionalBooleanProperty(object, "displayOnlyExistingStrings",
+                                      out.display_only_existing_strings);
+}
+
+v8::Local<v8::Array> StringLiteralsToArray(
+        const std::vector<ida::data::StringLiteral>& literals) {
+    auto array = Nan::New<v8::Array>(static_cast<int>(literals.size()));
+    for (std::size_t index = 0; index < literals.size(); ++index) {
+        const auto& literal = literals[index];
+        Nan::Set(array, static_cast<std::uint32_t>(index), ObjectBuilder()
+            .setAddr("address", literal.address)
+            .setAddressSize("byteLength", literal.byte_length)
+            .setInt("stringType", literal.string_type)
+            .setStr("text", literal.text)
+            .build());
+    }
+    return array;
+}
+
 } // namespace
 
 // ── Read family ────────────────────────────────────────────────────────
@@ -299,6 +411,39 @@ NAN_METHOD(ReadString) {
     IDAX_UNWRAP(auto text, ida::data::read_string(addr, maxLength, stringType,
                                                     conversionFlags));
     info.GetReturnValue().Set(FromString(text));
+}
+
+// stringListOptions() -> StringListOptions
+NAN_METHOD(StringListOptions) {
+    IDAX_UNWRAP(auto options, ida::data::string_list_options());
+    info.GetReturnValue().Set(StringListOptionsToObject(options));
+}
+
+// configureStringList(options)
+NAN_METHOD(ConfigureStringList) {
+    ida::data::StringListOptions options;
+    if (!GetStringListOptions(info, options)) return;
+    IDAX_CHECK_STATUS(ida::data::configure_string_list(options));
+    info.GetReturnValue().SetUndefined();
+}
+
+// rebuildStringList()
+NAN_METHOD(RebuildStringList) {
+    IDAX_CHECK_STATUS(ida::data::rebuild_string_list());
+    info.GetReturnValue().SetUndefined();
+}
+
+// clearStringList()
+NAN_METHOD(ClearStringList) {
+    IDAX_CHECK_STATUS(ida::data::clear_string_list());
+    info.GetReturnValue().SetUndefined();
+}
+
+// stringLiterals(rebuild?) -> StringLiteral[]
+NAN_METHOD(StringLiterals) {
+    const bool rebuild = GetOptionalBool(info, 0, true);
+    IDAX_UNWRAP(auto literals, ida::data::string_literals(rebuild));
+    info.GetReturnValue().Set(StringLiteralsToArray(literals));
 }
 
 // ── Write family ───────────────────────────────────────────────────────
@@ -1102,6 +1247,11 @@ void InitData(v8::Local<v8::Object> target) {
     SetMethod(ns, "readQword",  ReadQword);
     SetMethod(ns, "readBytes",  ReadBytes);
     SetMethod(ns, "readString", ReadString);
+    SetMethod(ns, "stringListOptions", StringListOptions);
+    SetMethod(ns, "configureStringList", ConfigureStringList);
+    SetMethod(ns, "rebuildStringList", RebuildStringList);
+    SetMethod(ns, "clearStringList", ClearStringList);
+    SetMethod(ns, "stringLiterals", StringLiterals);
 
     // Write
     SetMethod(ns, "writeByte",  WriteByte);

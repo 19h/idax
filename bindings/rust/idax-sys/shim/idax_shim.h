@@ -448,6 +448,38 @@ int idax_data_read_qword(uint64_t ea, uint64_t* out);
 int idax_data_read_bytes(uint64_t ea, uint64_t count, uint8_t** out, size_t* out_len);
 int idax_data_read_string(uint64_t ea, uint64_t max_len, char** out);
 
+typedef struct IdaxDataStringListOptions {
+    int32_t* string_types;
+    size_t string_type_count;
+    int64_t minimum_length;
+    int only_7bit;
+    int ignore_instructions;
+    int display_only_existing_strings;
+} IdaxDataStringListOptions;
+
+typedef struct IdaxDataStringLiteral {
+    uint64_t address;
+    uint64_t byte_length;
+    int32_t string_type;
+    char* text;
+} IdaxDataStringLiteral;
+
+int idax_data_string_list_options(IdaxDataStringListOptions* out);
+void idax_data_string_list_options_free(IdaxDataStringListOptions* options);
+int idax_data_configure_string_list(const int32_t* string_types,
+                                    size_t string_type_count,
+                                    int64_t minimum_length,
+                                    int only_7bit,
+                                    int ignore_instructions,
+                                    int display_only_existing_strings);
+int idax_data_rebuild_string_list(void);
+int idax_data_clear_string_list(void);
+int idax_data_string_literals(int rebuild,
+                              IdaxDataStringLiteral** out,
+                              size_t* count);
+void idax_data_string_literals_free(IdaxDataStringLiteral* literals,
+                                    size_t count);
+
 typedef enum IdaxDataTypedValueKind {
     IDAX_DATA_TYPED_UNSIGNED_INTEGER = 0,
     IDAX_DATA_TYPED_SIGNED_INTEGER = 1,
@@ -668,6 +700,9 @@ typedef struct IdaxNameEntry {
     int      auto_generated;
 } IdaxNameEntry;
 
+int idax_name_all(uint64_t start, uint64_t end,
+                  int include_user_defined, int include_auto_generated,
+                  IdaxNameEntry** out, size_t* count);
 int idax_name_all_user_defined(uint64_t start, uint64_t end,
                                IdaxNameEntry** out, size_t* count);
 void idax_name_entries_free(IdaxNameEntry* entries, size_t count);
@@ -2153,6 +2188,18 @@ int idax_ui_unsubscribe(uint64_t token);
 /* ═══════════════════════════════════════════════════════════════════════════
  * Lines (ida::lines)
  * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef struct IdaxLinesSourceFile {
+    char* filename;
+    uint64_t start;
+    uint64_t end;
+} IdaxLinesSourceFile;
+
+int idax_lines_add_source_file(uint64_t start, uint64_t end,
+                               const char* filename);
+int idax_lines_source_file_at(uint64_t address, IdaxLinesSourceFile* out);
+void idax_lines_source_file_free(IdaxLinesSourceFile* source_file);
+int idax_lines_remove_source_file(uint64_t address);
 
 int idax_lines_colstr(const char* text, uint8_t color, char** out);
 int idax_lines_tag_remove(const char* tagged_text, char** out);

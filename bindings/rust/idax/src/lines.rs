@@ -4,8 +4,53 @@
 //! in text output (pseudocode, disassembly, listing lines). This module
 //! provides utilities for creating, parsing, and stripping these tags.
 
-use crate::error::{self};
+use crate::address::{Address, Range};
+use crate::error::{self, Error, Result, Status};
 use std::ffi::CString;
+
+/// Owned source-file mapping covering a half-open address range.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SourceFile {
+    pub filename: String,
+    pub range: Range,
+}
+
+/// Associate a half-open address range with one source filename.
+pub fn add_source_file(range: Range, filename: &str) -> Status {
+    let filename = CString::new(filename)
+        .map_err(|_| Error::validation("source filename contains an interior null"))?;
+    let ret =
+        unsafe { idax_sys::idax_lines_add_source_file(range.start, range.end, filename.as_ptr()) };
+    error::int_to_status(ret, "add_source_file failed")
+}
+
+/// Return the source filename and complete mapped range containing `address`.
+pub fn source_file_at(address: Address) -> Result<SourceFile> {
+    unsafe {
+        let mut raw = idax_sys::IdaxLinesSourceFile::default();
+        let ret = idax_sys::idax_lines_source_file_at(address, &mut raw);
+        if ret != 0 {
+            return Err(error::consume_last_error("source_file_at failed"));
+        }
+        if raw.filename.is_null() {
+            return Err(Error::internal("source_file_at returned a null filename"));
+        }
+        let source_file = SourceFile {
+            filename: std::ffi::CStr::from_ptr(raw.filename)
+                .to_string_lossy()
+                .into_owned(),
+            range: Range::new(raw.start, raw.end),
+        };
+        idax_sys::idax_lines_source_file_free(&mut raw);
+        Ok(source_file)
+    }
+}
+
+/// Remove the source-file mapping containing `address`.
+pub fn remove_source_file(address: Address) -> Status {
+    let ret = unsafe { idax_sys::idax_lines_remove_source_file(address) };
+    error::int_to_status(ret, "remove_source_file failed")
+}
 
 /// Color constants corresponding to the SDK's `COLOR_*` / `SCOLOR_*` values.
 ///

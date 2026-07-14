@@ -182,6 +182,27 @@ cargo run -p idax --example intelligent_inliner_port -- <idb> --show 20
 cargo run -p idax --example intelligent_inliner_port -- <idb> --apply
 ```
 
+### `plugin/magic_strings_port_plugin.cpp` — IDAMagicStrings Port
+
+Port of `<userhome>/Downloads/plo/idamagicstrings-master/IDAMagicStrings.py`
+to idax data, lines, name, xref, function, chooser, graph, and action APIs. It
+preserves the original non-NLTK path: one-byte/two-byte string discovery,
+source filename and language evidence, first-token candidate extraction,
+blacklist and one-function rarity filtering, scoped class hierarchies, and
+false-positive marking. Three actions separate analysis from confirmed
+candidate and source-derived renames; proposed identifiers are sanitized and
+only `sub_*` functions are changed.
+
+The Rust adaptation (`magic_strings_port`) is report-only by default. Candidate
+and source fallback mutations require separate explicit flags, and simultaneous
+application gives a candidate priority over a source name for the same
+function:
+
+```bash
+cargo run -p idax --example magic_strings_port -- <idb> --show 20
+cargo run -p idax --example magic_strings_port -- <idb> --apply-candidates --apply-sources
+```
+
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
 
 Port probe of `<userhome>/dev/lifter` focused on plugin-shell workflows that

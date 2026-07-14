@@ -901,6 +901,116 @@ Result<std::string> read_string(Address ea,
     return ida::detail::to_string(out);
 }
 
+Result<StringListOptions> string_list_options() {
+    const strwinsetup_t* options = ::get_strlist_options();
+    if (options == nullptr) {
+        return std::unexpected(Error::sdk(
+            "get_strlist_options returned null"));
+    }
+
+    StringListOptions snapshot;
+    const std::size_t first_type = !options->strtypes.empty()
+        && options->strtypes.front() == 0 ? 1 : 0;
+    snapshot.string_types.reserve(options->strtypes.size() - first_type);
+    for (std::size_t index = first_type; index < options->strtypes.size(); ++index) {
+        snapshot.string_types.push_back(
+            static_cast<std::int32_t>(options->strtypes[index]));
+    }
+    snapshot.minimum_length = static_cast<std::int64_t>(options->minlen);
+    snapshot.only_7bit = options->only_7bit != 0;
+    snapshot.ignore_instructions = options->ignore_heads != 0;
+    snapshot.display_only_existing_strings =
+        options->display_only_existing_strings != 0;
+    return snapshot;
+}
+
+Status configure_string_list(const StringListOptions& options) {
+    if (options.string_types.empty()) {
+        return std::unexpected(Error::validation(
+            "String-list string_types cannot be empty"));
+    }
+    if (options.minimum_length < 0
+        || static_cast<std::uint64_t>(options.minimum_length)
+            > static_cast<std::uint64_t>(std::numeric_limits<sval_t>::max())) {
+        return std::unexpected(Error::validation(
+            "String-list minimum_length is outside the SDK range",
+            std::to_string(options.minimum_length)));
+    }
+
+    bytevec_t string_types;
+    string_types.reserve(options.string_types.size());
+    for (const std::int32_t string_type : options.string_types) {
+        if (string_type < 0 || string_type > 0xff) {
+            return std::unexpected(Error::validation(
+                "String-list type code must be in 0..255",
+                std::to_string(string_type)));
+        }
+        string_types.push_back(static_cast<uchar>(string_type));
+    }
+
+    const strwinsetup_t* shared = ::get_strlist_options();
+    if (shared == nullptr) {
+        return std::unexpected(Error::sdk(
+            "get_strlist_options returned null"));
+    }
+
+    // The SDK exposes this process-global configuration as const in C++, while
+    // its official IDAPython Strings.setup adapter mutates the same object.
+    // Keep that cast inside the opaque semantic boundary.
+    auto* mutable_options = const_cast<strwinsetup_t*>(shared);
+    mutable_options->strtypes.swap(string_types);
+    mutable_options->minlen = static_cast<sval_t>(options.minimum_length);
+    mutable_options->only_7bit = options.only_7bit ? 1 : 0;
+    mutable_options->ignore_heads = options.ignore_instructions ? 1 : 0;
+    mutable_options->display_only_existing_strings =
+        options.display_only_existing_strings ? 1 : 0;
+    ::build_strlist();
+    return ida::ok();
+}
+
+Status rebuild_string_list() {
+    ::build_strlist();
+    return ida::ok();
+}
+
+Status clear_string_list() {
+    ::clear_strlist();
+    return ida::ok();
+}
+
+Result<std::vector<StringLiteral>> string_literals(bool rebuild) {
+    if (rebuild)
+        ::build_strlist();
+
+    const std::size_t count = ::get_strlist_qty();
+    std::vector<StringLiteral> literals;
+    literals.reserve(count);
+    for (std::size_t index = 0; index < count; ++index) {
+        string_info_t info;
+        if (!::get_strlist_item(&info, index)) {
+            return std::unexpected(Error::sdk(
+                "get_strlist_item failed", std::to_string(index)));
+        }
+        if (info.ea == BADADDR || info.length < 0) {
+            return std::unexpected(Error::sdk(
+                "String-list item contains invalid metadata",
+                std::to_string(index)));
+        }
+        auto text = read_string(static_cast<Address>(info.ea),
+                                static_cast<AddressSize>(info.length),
+                                static_cast<std::int32_t>(info.type));
+        if (!text)
+            return std::unexpected(text.error());
+        literals.push_back({
+            .address = static_cast<Address>(info.ea),
+            .byte_length = static_cast<AddressSize>(info.length),
+            .string_type = static_cast<std::int32_t>(info.type),
+            .text = std::move(*text),
+        });
+    }
+    return literals;
+}
+
 Result<TypedValue> read_typed(Address address, const ida::type::TypeInfo& type_info) {
     return read_typed_impl(address, type_info, 0);
 }

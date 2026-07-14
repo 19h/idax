@@ -9,6 +9,71 @@
 
 namespace ida::lines {
 
+Status add_source_file(const ida::address::Range& range,
+                       std::string_view filename) {
+    if (range.empty() || range.start == BadAddress || range.end == BadAddress) {
+        return std::unexpected(Error::validation(
+            "Source-file range must be a valid non-empty half-open range"));
+    }
+    if (filename.empty()) {
+        return std::unexpected(Error::validation(
+            "Source filename cannot be empty"));
+    }
+    if (filename.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Source filename cannot contain null bytes"));
+    }
+    const std::string owned_filename(filename);
+    if (!::add_sourcefile(static_cast<ea_t>(range.start),
+                          static_cast<ea_t>(range.end),
+                          owned_filename.c_str())) {
+        return std::unexpected(Error::sdk(
+            "add_sourcefile failed", owned_filename));
+    }
+    return ida::ok();
+}
+
+Result<SourceFile> source_file_at(Address address) {
+    if (address == BadAddress) {
+        return std::unexpected(Error::validation(
+            "Source-file query address cannot be BadAddress"));
+    }
+    range_t bounds;
+    const char* filename = ::get_sourcefile(static_cast<ea_t>(address), &bounds);
+    if (filename == nullptr) {
+        return std::unexpected(Error::not_found(
+            "Source-file mapping not found", std::to_string(address)));
+    }
+    if (bounds.empty() || bounds.start_ea == BADADDR || bounds.end_ea == BADADDR) {
+        return std::unexpected(Error::sdk(
+            "Source-file mapping contains an invalid range",
+            std::to_string(address)));
+    }
+    return SourceFile{
+        .filename = std::string(filename),
+        .range = {
+            .start = static_cast<Address>(bounds.start_ea),
+            .end = static_cast<Address>(bounds.end_ea),
+        },
+    };
+}
+
+Status remove_source_file(Address address) {
+    if (address == BadAddress) {
+        return std::unexpected(Error::validation(
+            "Source-file removal address cannot be BadAddress"));
+    }
+    if (::get_sourcefile(static_cast<ea_t>(address), nullptr) == nullptr) {
+        return std::unexpected(Error::not_found(
+            "Source-file mapping not found", std::to_string(address)));
+    }
+    if (!::del_sourcefile(static_cast<ea_t>(address))) {
+        return std::unexpected(Error::sdk(
+            "del_sourcefile failed", std::to_string(address)));
+    }
+    return ida::ok();
+}
+
 // ── Color tag manipulation ──────────────────────────────────────────────
 
 std::string colstr(std::string_view text, Color color) {

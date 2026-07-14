@@ -88,7 +88,11 @@ function(idax_add_integration_test TEST_NAME SOURCE_FILE)
     if(IDA_INSTALL_DIR)
         add_test(
             NAME ${TEST_NAME}
-            COMMAND ${TARGET_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
+            COMMAND ${CMAKE_COMMAND}
+                "-DIDAX_TEST_EXECUTABLE=$<TARGET_FILE:${TARGET_NAME}>"
+                "-DIDAX_TEST_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
+                "-DIDAX_TEST_NAME=${TEST_NAME}"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/run_with_temp_fixture.cmake"
         )
         set_tests_properties(${TEST_NAME} PROPERTIES
             ENVIRONMENT "IDADIR=${IDA_INSTALL_DIR}"
@@ -116,6 +120,7 @@ idax_add_integration_test(codedump_parity_host_gates        codedump_parity_host
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)
+idax_add_integration_test(string_source_metadata           string_source_metadata_test.cpp)
 idax_add_integration_test(cross_domain_torture             cross_domain_torture_test.cpp)
 idax_add_integration_test(type_data_comment_torture        type_data_comment_torture_test.cpp)
 idax_add_integration_test(operand_function_torture         operand_function_torture_test.cpp)

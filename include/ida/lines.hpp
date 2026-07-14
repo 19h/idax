@@ -11,11 +11,30 @@
 #ifndef IDAX_LINES_HPP
 #define IDAX_LINES_HPP
 
+#include <ida/address.hpp>
+#include <ida/error.hpp>
+
 #include <cstdint>
 #include <string>
 #include <string_view>
 
 namespace ida::lines {
+
+/// Owned source-file mapping returned by IDA's source metadata store.
+struct SourceFile {
+    std::string filename;
+    ida::address::Range range;
+};
+
+/// Associate a half-open address range with one source filename.
+Status add_source_file(const ida::address::Range& range,
+                       std::string_view filename);
+
+/// Return the source filename and complete mapped range containing `address`.
+Result<SourceFile> source_file_at(Address address);
+
+/// Remove the source-file mapping containing `address`.
+Status remove_source_file(Address address);
 
 // ── Color constants ─────────────────────────────────────────────────────
 //

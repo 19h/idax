@@ -1303,6 +1303,111 @@ unsafe extern "C" {
         out: *mut *mut ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDataStringListOptions {
+    pub string_types: *mut i32,
+    pub string_type_count: usize,
+    pub minimum_length: i64,
+    pub only_7bit: ::std::os::raw::c_int,
+    pub ignore_instructions: ::std::os::raw::c_int,
+    pub display_only_existing_strings: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDataStringListOptions"]
+        [::std::mem::size_of::<IdaxDataStringListOptions>() - 40usize];
+    ["Alignment of IdaxDataStringListOptions"]
+        [::std::mem::align_of::<IdaxDataStringListOptions>() - 8usize];
+    ["Offset of field: IdaxDataStringListOptions::string_types"]
+        [::std::mem::offset_of!(IdaxDataStringListOptions, string_types) - 0usize];
+    ["Offset of field: IdaxDataStringListOptions::string_type_count"]
+        [::std::mem::offset_of!(IdaxDataStringListOptions, string_type_count) - 8usize];
+    ["Offset of field: IdaxDataStringListOptions::minimum_length"]
+        [::std::mem::offset_of!(IdaxDataStringListOptions, minimum_length) - 16usize];
+    ["Offset of field: IdaxDataStringListOptions::only_7bit"]
+        [::std::mem::offset_of!(IdaxDataStringListOptions, only_7bit) - 24usize];
+    ["Offset of field: IdaxDataStringListOptions::ignore_instructions"]
+        [::std::mem::offset_of!(IdaxDataStringListOptions, ignore_instructions) - 28usize];
+    ["Offset of field: IdaxDataStringListOptions::display_only_existing_strings"][::std::mem::offset_of!(
+        IdaxDataStringListOptions,
+        display_only_existing_strings
+    ) - 32usize];
+};
+impl Default for IdaxDataStringListOptions {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDataStringLiteral {
+    pub address: u64,
+    pub byte_length: u64,
+    pub string_type: i32,
+    pub text: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDataStringLiteral"][::std::mem::size_of::<IdaxDataStringLiteral>() - 32usize];
+    ["Alignment of IdaxDataStringLiteral"]
+        [::std::mem::align_of::<IdaxDataStringLiteral>() - 8usize];
+    ["Offset of field: IdaxDataStringLiteral::address"]
+        [::std::mem::offset_of!(IdaxDataStringLiteral, address) - 0usize];
+    ["Offset of field: IdaxDataStringLiteral::byte_length"]
+        [::std::mem::offset_of!(IdaxDataStringLiteral, byte_length) - 8usize];
+    ["Offset of field: IdaxDataStringLiteral::string_type"]
+        [::std::mem::offset_of!(IdaxDataStringLiteral, string_type) - 16usize];
+    ["Offset of field: IdaxDataStringLiteral::text"]
+        [::std::mem::offset_of!(IdaxDataStringLiteral, text) - 24usize];
+};
+impl Default for IdaxDataStringLiteral {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_data_string_list_options(
+        out: *mut IdaxDataStringListOptions,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_string_list_options_free(options: *mut IdaxDataStringListOptions);
+}
+unsafe extern "C" {
+    pub fn idax_data_configure_string_list(
+        string_types: *const i32,
+        string_type_count: usize,
+        minimum_length: i64,
+        only_7bit: ::std::os::raw::c_int,
+        ignore_instructions: ::std::os::raw::c_int,
+        display_only_existing_strings: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_rebuild_string_list() -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_clear_string_list() -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_string_literals(
+        rebuild: ::std::os::raw::c_int,
+        out: *mut *mut IdaxDataStringLiteral,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_data_string_literals_free(literals: *mut IdaxDataStringLiteral, count: usize);
+}
 pub const IdaxDataTypedValueKind_IDAX_DATA_TYPED_UNSIGNED_INTEGER: IdaxDataTypedValueKind = 0;
 pub const IdaxDataTypedValueKind_IDAX_DATA_TYPED_SIGNED_INTEGER: IdaxDataTypedValueKind = 1;
 pub const IdaxDataTypedValueKind_IDAX_DATA_TYPED_FLOATING_POINT: IdaxDataTypedValueKind = 2;
@@ -2004,6 +2109,16 @@ impl Default for IdaxNameEntry {
             s.assume_init()
         }
     }
+}
+unsafe extern "C" {
+    pub fn idax_name_all(
+        start: u64,
+        end: u64,
+        include_user_defined: ::std::os::raw::c_int,
+        include_auto_generated: ::std::os::raw::c_int,
+        out: *mut *mut IdaxNameEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_name_all_user_defined(
@@ -6424,6 +6539,52 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_ui_unsubscribe(token: u64) -> ::std::os::raw::c_int;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxLinesSourceFile {
+    pub filename: *mut ::std::os::raw::c_char,
+    pub start: u64,
+    pub end: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxLinesSourceFile"][::std::mem::size_of::<IdaxLinesSourceFile>() - 24usize];
+    ["Alignment of IdaxLinesSourceFile"][::std::mem::align_of::<IdaxLinesSourceFile>() - 8usize];
+    ["Offset of field: IdaxLinesSourceFile::filename"]
+        [::std::mem::offset_of!(IdaxLinesSourceFile, filename) - 0usize];
+    ["Offset of field: IdaxLinesSourceFile::start"]
+        [::std::mem::offset_of!(IdaxLinesSourceFile, start) - 8usize];
+    ["Offset of field: IdaxLinesSourceFile::end"]
+        [::std::mem::offset_of!(IdaxLinesSourceFile, end) - 16usize];
+};
+impl Default for IdaxLinesSourceFile {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_lines_add_source_file(
+        start: u64,
+        end: u64,
+        filename: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_lines_source_file_at(
+        address: u64,
+        out: *mut IdaxLinesSourceFile,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_lines_source_file_free(source_file: *mut IdaxLinesSourceFile);
+}
+unsafe extern "C" {
+    pub fn idax_lines_remove_source_file(address: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_lines_colstr(

@@ -38,6 +38,7 @@
 #include <search.hpp>
 #include <segregs.hpp>
 #include <segment.hpp>
+#include <strlist.hpp>
 #include <typeinf.hpp>
 #include <ua.hpp>
 #include <xref.hpp>

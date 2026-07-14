@@ -351,7 +351,9 @@ describe('Data Namespace Structure', () => {
     });
 
     const EXPECTED_FUNCTIONS = [
-        'readByte', 'readWord', 'readDword', 'readQword', 'readBytes',
+        'readByte', 'readWord', 'readDword', 'readQword', 'readBytes', 'readString',
+        'stringListOptions', 'configureStringList', 'rebuildStringList',
+        'clearStringList', 'stringLiterals',
         'writeByte', 'writeWord', 'writeDword', 'writeQword', 'writeBytes',
         'patchByte', 'patchWord', 'patchDword',
         'revertPatch', 'originalByte',
@@ -521,9 +523,23 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
 
     it('should have lines functions', () => {
         if (!idax) return;
-        for (const fn of ['colstr', 'tagRemove', 'tagAdvance', 'tagStrlen', 'makeAddrTag', 'decodeAddrTag']) {
+        for (const fn of [
+            'addSourceFile', 'sourceFileAt', 'removeSourceFile',
+            'colstr', 'tagRemove', 'tagAdvance', 'tagStrlen',
+            'makeAddrTag', 'decodeAddrTag',
+        ]) {
             expect(typeof idax.lines[fn]).toBe('function');
         }
+    });
+
+    it('should declare owned string-list and source-file metadata', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('interface StringListOptions');
+        expect(dts).toContain('function stringLiterals(rebuild?: boolean): StringLiteral[]');
+        expect(dts).toContain('interface SourceFileRange');
+        expect(dts).toContain('function sourceFileAt(address: Address): SourceFile');
     });
 
     it('should have diagnostics functions', () => {

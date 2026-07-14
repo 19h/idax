@@ -1983,6 +1983,120 @@ int idax_data_read_string(uint64_t ea, uint64_t max_len, char** out) {
     RETURN_RESULT_STRING(ida::data::read_string(ea, max_len));
 }
 
+int idax_data_string_list_options(IdaxDataStringListOptions* out) {
+    clear_error();
+    if (out == nullptr) {
+        return fail(ida::Error::validation(
+            "String-list options output pointer is null"));
+    }
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::data::string_list_options();
+    if (!result)
+        return fail(result.error());
+
+    if (!result->string_types.empty()) {
+        out->string_types = static_cast<int32_t*>(
+            std::malloc(result->string_types.size() * sizeof(int32_t)));
+        if (out->string_types == nullptr)
+            return fail(ida::Error::internal("malloc failed"));
+        std::memcpy(out->string_types,
+                    result->string_types.data(),
+                    result->string_types.size() * sizeof(int32_t));
+        out->string_type_count = result->string_types.size();
+    }
+    out->minimum_length = result->minimum_length;
+    out->only_7bit = result->only_7bit ? 1 : 0;
+    out->ignore_instructions = result->ignore_instructions ? 1 : 0;
+    out->display_only_existing_strings =
+        result->display_only_existing_strings ? 1 : 0;
+    return 0;
+}
+
+void idax_data_string_list_options_free(IdaxDataStringListOptions* options) {
+    if (options == nullptr)
+        return;
+    std::free(options->string_types);
+    std::memset(options, 0, sizeof(*options));
+}
+
+int idax_data_configure_string_list(const int32_t* string_types,
+                                    size_t string_type_count,
+                                    int64_t minimum_length,
+                                    int only_7bit,
+                                    int ignore_instructions,
+                                    int display_only_existing_strings) {
+    clear_error();
+    if (string_type_count != 0 && string_types == nullptr) {
+        return fail(ida::Error::validation(
+            "String-list type array pointer is null"));
+    }
+    ida::data::StringListOptions options;
+    options.string_types.clear();
+    if (string_type_count != 0) {
+        options.string_types.assign(string_types,
+                                    string_types + string_type_count);
+    }
+    options.minimum_length = minimum_length;
+    options.only_7bit = only_7bit != 0;
+    options.ignore_instructions = ignore_instructions != 0;
+    options.display_only_existing_strings =
+        display_only_existing_strings != 0;
+    RETURN_STATUS(ida::data::configure_string_list(options));
+}
+
+int idax_data_rebuild_string_list(void) {
+    RETURN_STATUS(ida::data::rebuild_string_list());
+}
+
+int idax_data_clear_string_list(void) {
+    RETURN_STATUS(ida::data::clear_string_list());
+}
+
+int idax_data_string_literals(int rebuild,
+                              IdaxDataStringLiteral** out,
+                              size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr) {
+        return fail(ida::Error::validation(
+            "String-list output pointer is null"));
+    }
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::data::string_literals(rebuild != 0);
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+
+    auto* literals = static_cast<IdaxDataStringLiteral*>(
+        std::calloc(result->size(), sizeof(IdaxDataStringLiteral)));
+    if (literals == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < result->size(); ++index) {
+        const auto& literal = (*result)[index];
+        literals[index].address = literal.address;
+        literals[index].byte_length = literal.byte_length;
+        literals[index].string_type = literal.string_type;
+        literals[index].text = dup_string(literal.text);
+        if (literals[index].text == nullptr) {
+            idax_data_string_literals_free(literals, result->size());
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    *out = literals;
+    *count = result->size();
+    return 0;
+}
+
+void idax_data_string_literals_free(IdaxDataStringLiteral* literals,
+                                    size_t count) {
+    if (literals == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        std::free(literals[index].text);
+    std::free(literals);
+}
+
 int idax_data_read_typed(uint64_t ea, void* type, IdaxDataTypedValue* out) {
     clear_error();
     if (type == nullptr || out == nullptr) {
@@ -2640,17 +2754,20 @@ int idax_name_resolve(const char* name, uint64_t context, uint64_t* out) {
     RETURN_RESULT_VALUE(ida::name::resolve(name, context));
 }
 
-int idax_name_all_user_defined(uint64_t start, uint64_t end,
-                               IdaxNameEntry** out, size_t* count) {
+static int return_name_entries(ida::Result<std::vector<ida::name::Entry>> result,
+                               IdaxNameEntry** out,
+                               size_t* count) {
     clear_error();
-    auto r = ida::name::all_user_defined(start, end);
-    if (!r) return fail(r.error());
-    auto& entries = *r;
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Name inventory output is null"));
+    *out = nullptr;
+    *count = 0;
+    if (!result)
+        return fail(result.error());
+    auto& entries = *result;
     *count = entries.size();
-    if (entries.empty()) {
-        *out = nullptr;
+    if (entries.empty())
         return 0;
-    }
     *out = static_cast<IdaxNameEntry*>(std::calloc(entries.size(), sizeof(IdaxNameEntry)));
     if (*out == nullptr) return fail(ida::Error::internal("malloc failed"));
 
@@ -2667,6 +2784,23 @@ int idax_name_all_user_defined(uint64_t start, uint64_t end,
         (*out)[i].auto_generated = entries[i].auto_generated ? 1 : 0;
     }
     return 0;
+}
+
+int idax_name_all(uint64_t start, uint64_t end,
+                  int include_user_defined, int include_auto_generated,
+                  IdaxNameEntry** out, size_t* count) {
+    ida::name::ListOptions options;
+    options.start = start;
+    options.end = end;
+    options.include_user_defined = include_user_defined != 0;
+    options.include_auto_generated = include_auto_generated != 0;
+    return return_name_entries(ida::name::all(options), out, count);
+}
+
+int idax_name_all_user_defined(uint64_t start, uint64_t end,
+                               IdaxNameEntry** out, size_t* count) {
+    return return_name_entries(
+        ida::name::all_user_defined(start, end), out, count);
 }
 
 void idax_name_entries_free(IdaxNameEntry* entries, size_t count) {
@@ -8384,6 +8518,41 @@ int idax_ui_unsubscribe(uint64_t token) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Lines
 // ═══════════════════════════════════════════════════════════════════════════
+
+int idax_lines_add_source_file(uint64_t start, uint64_t end,
+                               const char* filename) {
+    clear_error();
+    if (filename == nullptr)
+        return fail(ida::Error::validation("Source filename pointer is null"));
+    RETURN_STATUS(ida::lines::add_source_file({start, end}, filename));
+}
+
+int idax_lines_source_file_at(uint64_t address, IdaxLinesSourceFile* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Source-file output pointer is null"));
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::lines::source_file_at(address);
+    if (!result)
+        return fail(result.error());
+    out->filename = dup_string(result->filename);
+    if (out->filename == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    out->start = result->range.start;
+    out->end = result->range.end;
+    return 0;
+}
+
+void idax_lines_source_file_free(IdaxLinesSourceFile* source_file) {
+    if (source_file == nullptr)
+        return;
+    std::free(source_file->filename);
+    std::memset(source_file, 0, sizeof(*source_file));
+}
+
+int idax_lines_remove_source_file(uint64_t address) {
+    RETURN_STATUS(ida::lines::remove_source_file(address));
+}
 
 int idax_lines_colstr(const char* text, uint8_t color, char** out) {
     clear_error();

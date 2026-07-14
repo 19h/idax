@@ -15,12 +15,14 @@ This mapping is non-exhaustive but representative of expected direction.
 | `insn.get_canon_feature()` + `CF_USEn` / `CF_CHGn` | `Operand::is_read()` / `Operand::is_written()` (Node `isRead` / `isWritten`; Rust `is_read` / `is_written`) |
 | `create_insn(ea)` | `ida::instruction::create(address)` |
 | `get_byte(ea)` | `ida::data::read_byte(address)` |
+| `get_strlist_options()` / `build_strlist()` / `get_strlist_item()` | `ida::data::string_list_options()` / `configure_string_list()` / `string_literals()` |
 | `put_byte(ea, v)` | `ida::data::write_byte(address, value)` |
 | `patch_byte(ea, v)` | `ida::data::patch_byte(address, value)` |
 | `del_items(ea, ...)` | `ida::data::undefine(address, size)` |
 | `set_name(ea, name, flags)` | `ida::name::set(address, name, options)` |
 | `force_name(ea, name, flags)` | `ida::name::force_set(address, name, options)` |
 | `get_name_ea(from, name)` | `ida::name::resolve(name, context)` |
+| `get_nlist_*` iteration | `ida::name::all(options)` |
 | `add_cref(from, to, type)` | `ida::xref::add_code_ref(from, to, type)` |
 | `add_dref(from, to, type)` | `ida::xref::add_data_ref(from, to, type)` |
 | `get_first_cref_from(ea)` loop | `for (auto x : ida::xref::refs_from(ea))` |
@@ -28,6 +30,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `find_text(...)` | `ida::search::text(options)` |
 | `auto_wait()` | `ida::analysis::wait()` |
 | `plan_ea(ea)` | `ida::analysis::schedule_reanalysis(address)` |
+| `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |
 | `loader_t::load_file` | `ida::loader::Loader::load(file, format)` |
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |

@@ -45,6 +45,7 @@ Current overall phase status:
 - Phase 32: complete (scoped hotkey lifecycle, deterministic action ownership, callback exception barriers, and DriverBuddy migration)
 - Phase 33: complete (forward-compatible raw-plus-optional-typed processor profiles across C++/Node/Rust, corrected current-SDK ID provenance, exact conversion/equivalence evidence, and idapcode migration closure)
 - Phase 34: complete (Intelligent Function Inliner real-plugin port plus Node/Rust decoded-operand access-mode parity)
+- Phase 35: complete (IDAMagicStrings real-plugin port plus string-list/source-file/name-inventory parity and disposable native integration fixtures)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -215,3 +216,12 @@ Current overall phase status:
 - [x] P34.2 Preserve decoded-operand read/write access through Node and the Rust C ABI, with exact declarations/accessors/tests.
 - [x] P34.3 Port the real plugin as a C++ action and a headless Rust adaptation with deterministic report/apply behavior.
 - [x] P34.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.
+
+---
+
+### Phase 35 TODO Action Items (IDAMagicStrings Port)
+
+- [x] P35.1 Audit the original string/source/candidate/class workflow against current C++/Node/Rust wrapper coverage.
+- [x] P35.2 Add opaque configurable string-list snapshots and source-file range metadata with exact cross-binding evidence.
+- [x] P35.3 Port the complete non-NLTK analysis and rename workflows to an interactive C++ plugin and headless Rust adaptation.
+- [x] P35.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.

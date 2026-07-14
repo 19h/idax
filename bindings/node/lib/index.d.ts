@@ -1137,6 +1137,32 @@ export namespace comment {
 
 export namespace data {
 
+    /** Owned snapshot of IDA's process-global string-list configuration. */
+    interface StringListOptions {
+        stringTypes: number[];
+        minimumLength: bigint;
+        only7Bit: boolean;
+        ignoreInstructions: boolean;
+        displayOnlyExistingStrings: boolean;
+    }
+
+    /** Fields accepted when replacing the shared string-list configuration. */
+    interface StringListConfiguration {
+        stringTypes?: readonly number[];
+        minimumLength?: number | bigint;
+        only7Bit?: boolean;
+        ignoreInstructions?: boolean;
+        displayOnlyExistingStrings?: boolean;
+    }
+
+    /** Owned string-list entry; byteLength is measured in octets. */
+    interface StringLiteral {
+        address: Address;
+        byteLength: AddressSize;
+        stringType: number;
+        text: string;
+    }
+
     // ── Read ────────────────────────────────────────────────────────────
 
     /** Read a single byte (uint8). */
@@ -1156,6 +1182,21 @@ export namespace data {
 
     /** Read a string at the address. */
     function readString(address: Address, maxLength?: number, stringType?: number, conversionFlags?: number): string;
+
+    /** Return a copied snapshot of the shared string-list configuration. */
+    function stringListOptions(): StringListOptions;
+
+    /** Replace the shared string-list configuration and rebuild its cache. */
+    function configureStringList(options: StringListConfiguration): void;
+
+    /** Rebuild the cached string list using the shared configuration. */
+    function rebuildStringList(): void;
+
+    /** Clear IDA's persisted string-list cache. */
+    function clearStringList(): void;
+
+    /** Enumerate copied string-list entries, rebuilding by default. */
+    function stringLiterals(rebuild?: boolean): StringLiteral[];
 
     // ── Write ───────────────────────────────────────────────────────────
 
@@ -2174,6 +2215,25 @@ export namespace lumina {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export namespace lines {
+
+    interface SourceFileRange {
+        start: Address;
+        end: Address;
+    }
+
+    interface SourceFile {
+        filename: string;
+        range: SourceFileRange;
+    }
+
+    /** Associate a half-open address range with one source filename. */
+    function addSourceFile(range: SourceFileRange, filename: string): void;
+
+    /** Return the source filename and complete mapped range containing an address. */
+    function sourceFileAt(address: Address): SourceFile;
+
+    /** Remove the source-file mapping containing an address. */
+    function removeSourceFile(address: Address): void;
 
     /** Named color constants for use with colstr(). */
     const Color: {

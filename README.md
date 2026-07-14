@@ -76,13 +76,13 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
 | **Addresses** | `ida::address` | Predicates, item traversal, range iteration, predicate search |
-| **Byte access** | `ida::data` | Read/write/patch bytes, typed values, checked fixed-width arrays through 512 bits, processor-aware tbyte/packed-real definitions, owned custom type/format registration and creation, string extraction, binary pattern search |
+| **Byte access** | `ida::data` | Read/write/patch bytes, typed values, checked fixed-width arrays through 512 bits, processor-aware tbyte/packed-real definitions, owned custom type/format registration and creation, configurable copied string-list inventory, binary pattern search |
 | **Database** | `ida::database` | Open/save/close, metadata, snapshots, file/memory transfer |
 | **Paths** | `ida::path` | Portable basename/dirname/directory helpers for plugin workflows |
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |
 | **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototype export/apply |
 | **Instructions** | `ida::instruction` | Decode/create, operand access/read-write metadata, representation controls, xref conveniences |
-| **Names** | `ida::name` | Set/get/force/remove, address-based or arbitrary-symbol demangling, resolution, properties |
+| **Names** | `ida::name` | Set/get/force/remove, filtered copied inventories, address-based or arbitrary-symbol demangling, resolution, properties |
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
@@ -97,7 +97,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
 | **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, user comments, pseudocode-switch/popup events, address mapping |
-| **Lines** | `ida::lines` | Tagged text/color helpers for pseudocode and listing output |
+| **Lines** | `ida::lines` | Tagged text/color helpers plus copied half-open source-file address mappings |
 | **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, stable widget/current-widget and custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks, switch-table metadata |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
@@ -418,7 +418,7 @@ tests/
     fixtures/           # Test binaries and pre-analysed databases
 
 examples/
-    plugin/             # Plugin examples (quickstart + ports including abyss/idapcode/intelligent-inliner)
+    plugin/             # Plugin examples (quickstart + ports including abyss/idapcode/intelligent-inliner/magic-strings)
     loader/             # Custom ELF loader example
     procmod/            # Custom processor module example
     full/               # Real-world full ports (e.g. JBC)

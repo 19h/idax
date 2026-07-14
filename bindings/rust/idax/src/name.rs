@@ -118,6 +118,52 @@ pub fn resolve(name: &str, context: Address) -> Result<Address> {
     }
 }
 
+unsafe fn entries_from_ffi(entries_ptr: *mut idax_sys::IdaxNameEntry, count: usize) -> Vec<Entry> {
+    if entries_ptr.is_null() || count == 0 {
+        return Vec::new();
+    }
+    let mut out = Vec::with_capacity(count);
+    let entries = unsafe { std::slice::from_raw_parts(entries_ptr, count) };
+    for entry in entries {
+        out.push(Entry {
+            address: entry.address,
+            name: if entry.name.is_null() {
+                String::new()
+            } else {
+                unsafe {
+                    std::ffi::CStr::from_ptr(entry.name)
+                        .to_string_lossy()
+                        .into_owned()
+                }
+            },
+            user_defined: entry.user_defined != 0,
+            auto_generated: entry.auto_generated != 0,
+        });
+    }
+    unsafe { idax_sys::idax_name_entries_free(entries_ptr, count) };
+    out
+}
+
+/// Enumerate names using explicit range and origin filters.
+pub fn all(options: &ListOptions) -> Result<Vec<Entry>> {
+    unsafe {
+        let mut entries_ptr: *mut idax_sys::IdaxNameEntry = std::ptr::null_mut();
+        let mut count = 0usize;
+        let ret = idax_sys::idax_name_all(
+            options.start,
+            options.end,
+            options.include_user_defined as i32,
+            options.include_auto_generated as i32,
+            &mut entries_ptr,
+            &mut count,
+        );
+        if ret != 0 {
+            return Err(error::consume_last_error("name::all failed"));
+        }
+        Ok(entries_from_ffi(entries_ptr, count))
+    }
+}
+
 /// Enumerate only user-defined names, optionally in `[start, end)`.
 pub fn all_user_defined(start: Address, end: Address) -> Result<Vec<Entry>> {
     unsafe {
@@ -127,28 +173,7 @@ pub fn all_user_defined(start: Address, end: Address) -> Result<Vec<Entry>> {
         if ret != 0 {
             return Err(error::consume_last_error("name::all_user_defined failed"));
         }
-        if entries_ptr.is_null() || count == 0 {
-            return Ok(Vec::new());
-        }
-
-        let mut out = Vec::with_capacity(count);
-        let entries = std::slice::from_raw_parts(entries_ptr, count);
-        for entry in entries {
-            out.push(Entry {
-                address: entry.address,
-                name: if entry.name.is_null() {
-                    String::new()
-                } else {
-                    std::ffi::CStr::from_ptr(entry.name)
-                        .to_string_lossy()
-                        .into_owned()
-                },
-                user_defined: entry.user_defined != 0,
-                auto_generated: entry.auto_generated != 0,
-            });
-        }
-        idax_sys::idax_name_entries_free(entries_ptr, count);
-        Ok(out)
+        Ok(entries_from_ffi(entries_ptr, count))
     }
 }
 

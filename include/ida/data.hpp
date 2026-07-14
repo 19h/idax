@@ -62,6 +62,26 @@ struct TypedValue {
     std::vector<TypedValue> elements;
 };
 
+/// Configuration for IDA's process-global, explicitly rebuilt string list.
+///
+/// String type codes use IDA's stable byte-sized string-type encoding. Common
+/// values are 0 for one-byte C strings and 1 for two-byte C strings.
+struct StringListOptions {
+    std::vector<std::int32_t> string_types{0};
+    std::int64_t minimum_length{5};
+    bool only_7bit{true};
+    bool ignore_instructions{false};
+    bool display_only_existing_strings{false};
+};
+
+/// Owned string-list entry. `byte_length` is measured in octets.
+struct StringLiteral {
+    Address address{BadAddress};
+    AddressSize byte_length{0};
+    std::int32_t string_type{0};
+    std::string text;
+};
+
 /// Opaque custom-data type identifier. Zero is reserved for standard types.
 struct CustomDataTypeId {
     std::uint16_t value{0};
@@ -175,6 +195,23 @@ Result<std::string> read_string(Address address,
                                 AddressSize max_length = 0,
                                 std::int32_t string_type = 0,
                                 int conversion_flags = 0);
+
+/// Return a copied snapshot of the shared string-list configuration.
+Result<StringListOptions> string_list_options();
+
+/// Replace the shared string-list configuration and rebuild the cache.
+///
+/// This intentionally affects IDA's process-global Strings-window state.
+Status configure_string_list(const StringListOptions& options);
+
+/// Rebuild IDA's string-list cache using its current shared configuration.
+Status rebuild_string_list();
+
+/// Clear IDA's persisted string-list cache.
+Status clear_string_list();
+
+/// Enumerate copied string-list entries, optionally rebuilding first.
+Result<std::vector<StringLiteral>> string_literals(bool rebuild = true);
 
 /// Materialize a value at \\p address using the given semantic \\p type.
 ///

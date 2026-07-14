@@ -794,3 +794,20 @@ tracked in `docs/compatibility_matrix.md`.
   outline markers. Generated bindgen output is byte-identical to the checked
   binding, `git diff --check` passes, and the mutable repository fixture is
   clean.
+
+- 2026-07-14 Phase 35 IDAMagicStrings port:
+  Added copied configurable string-list inventory and copied half-open
+  source-file mappings across C++, Node, and Rust, including normalization of
+  IDA 9.3's one leading `strtypes` bookkeeping byte. Closed safe Rust's missing
+  filtered `name::all` inventory, then added interactive C++ and headless Rust
+  adaptations of the original non-NLTK analysis and explicit rename workflow.
+  Complete C++ build and CTest pass 26/26 in 22.63 s, including the dedicated
+  `string_source_metadata` target, and the C++ plugin links. The disposable
+  CTest runner leaves the tracked fixture hash unchanged before/after the
+  complete suite. Node native build,
+  strict example declaration compilation, structural tests, and IDA integration
+  pass 230/230 and 74/74. Rust formatting/example checks pass, library tests pass
+  136/136 plus 0 sys tests, pure port tests pass 3/3, and process-main-thread
+  IDA 9.4 integration passes 91/91. On an isolated stripped Mach-O, report mode
+  found one `sub_* -> uniqueHandler` candidate without mutation, explicit apply
+  renamed 1/1 with zero failures, and a fresh reopen retained the name.
