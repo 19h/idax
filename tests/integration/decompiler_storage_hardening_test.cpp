@@ -643,6 +643,15 @@ void test_owned_microcode_graph(ida::Address fn_ea) {
             if (instruction.address != ida::BadAddress)
                 ++addressed_count;
             CHECK(!instruction.text.empty());
+            if (instruction.opcode
+                == ida::decompiler::MicrocodeOpcode::StoreMemory) {
+                CHECK(!instruction.modifies_destination);
+            }
+            if (instruction.opcode == ida::decompiler::MicrocodeOpcode::Move
+                && instruction.destination.kind
+                    != ida::decompiler::MicrocodeOperandKind::Empty) {
+                CHECK(instruction.modifies_destination);
+            }
         }
     }
     CHECK(instruction_count > 0);

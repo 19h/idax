@@ -6874,6 +6874,7 @@ ida::Status fill_microcode_instruction(IdaxMicrocodeInstruction* out,
     std::memset(out, 0, sizeof(*out));
     out->opcode = static_cast<int>(instruction.opcode);
     out->floating_point_instruction = instruction.floating_point_instruction ? 1 : 0;
+    out->modifies_destination = instruction.modifies_destination ? 1 : 0;
     out->address = instruction.address;
     out->text = dup_string(instruction.text);
     if (out->text == nullptr && !instruction.text.empty())

@@ -1936,6 +1936,7 @@ void check_decompiler_surface() {
     (void)instruction.right;
     (void)instruction.destination;
     (void)instruction.floating_point_instruction;
+    (void)instruction.modifies_destination;
     (void)instruction.address;
     (void)instruction.text;
     ida::decompiler::MicrocodeGenerationOptions generation_options;

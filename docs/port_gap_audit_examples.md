@@ -20,7 +20,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
 | Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
-| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | bounded/closed | None for depth-bounded resolved direct and database-derived indirect-call argument/return propagation, declarative allocator/wrapper/fixed-root discovery including fixed-pointer wrappers, exact argument-zero constructor/vtable roots, direct-first/two-pointer-RTTI/data-alias table reachability, statically seeded non-import virtual methods, exact shifted propagated arguments, ordinal-preserving local structure-forward replacement, persistent informational references to exact recovered members, or source-ordered exact operand struct-offset paths. Full upstream parity additionally requires runtime-only/object-dependent indirect dispatch and a microcode-widget picker |
+| Symless | `examples/plugin/symless_structure_port_plugin.cpp`, `bindings/rust/idax/examples/symless_structure_port.rs` | closed | No remaining source-defined gap in the audited boundary: depth-bounded resolved direct/database-derived indirect calls, allocator/wrapper/fixed roots, exact constructor/vtable and RTTI/data-alias reachability, static virtual-method roots, shifted arguments, forward replacement, persistent member references, exact operand paths, and explicit register/stack microcode-root before/after injection are implemented. Runtime object-dependent dispatch is absent upstream and is not a parity requirement |
 
 ## Notes
 
@@ -49,7 +49,8 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   graphs. It follows resolved direct calls and exact database-derived indirect
   targets with an explicit depth bound, context-cycle/repetition guards, ABI
   argument injection, and terminal-return consensus. Plain integers and
-  runtime/object-dependent targets remain unresolved. Declarative allocator
+  runtime/object-dependent targets remain unresolved because the audited
+  upstream resolves only database-derived indirect targets. Declarative allocator
   mode adds exact direct-call verification plus one bounded fixed-slot reference
   hop, bounded malloc/calloc/realloc constants, terminal call-token wrapper
   confirmation, cycle-safe heir traversal, and call-site-specific UDTs. Report
@@ -68,7 +69,10 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   label, recursively crosses only exact pointer-valued data aliases, and still
   requires an exact final table store into argument zero. Each accepted
   non-import method is a deduplicated argument-zero field-propagation root.
-  Mutation requires the C++ apply action or Rust `--apply`. Runtime-only object
-  dispatch and the microcode-widget picker remain explicitly separate rather
-  than being approximated.
+  Interactive C++ actions enumerate readable register/stack candidates in a
+  modal chooser and inject the selected source before or writable destination
+  after its exact owned instruction path. Rust exposes deterministic
+  `--list-microcode-roots` and `--microcode-root <index>` equivalents. Mutation
+  requires the C++ apply action or Rust `--apply`. Runtime object dispatch is a
+  novel analysis outside the audited upstream rather than an omitted port path.
 - This file replaces the previous per-port gap audit documents.

@@ -164,7 +164,7 @@ fn patch_bindgen_output(path: &Path) {
     // opaque at this point. Normalize both shapes to the public C definition
     // and deliberately omit generated layout assertions/Default code so the
     // checked binding is byte-stable across those parser variants.
-    let replacement = "#[repr(C)]\n#[derive(Debug, Copy, Clone)]\npub struct IdaxMicrocodeInstruction {\n    pub opcode: ::std::os::raw::c_int,\n    pub left: IdaxMicrocodeOperand,\n    pub right: IdaxMicrocodeOperand,\n    pub destination: IdaxMicrocodeOperand,\n    pub floating_point_instruction: ::std::os::raw::c_int,\n    pub address: u64,\n    pub text: *mut ::std::os::raw::c_char,\n}\n";
+    let replacement = "#[repr(C)]\n#[derive(Debug, Copy, Clone)]\npub struct IdaxMicrocodeInstruction {\n    pub opcode: ::std::os::raw::c_int,\n    pub left: IdaxMicrocodeOperand,\n    pub right: IdaxMicrocodeOperand,\n    pub destination: IdaxMicrocodeOperand,\n    pub floating_point_instruction: ::std::os::raw::c_int,\n    pub modifies_destination: ::std::os::raw::c_int,\n    pub address: u64,\n    pub text: *mut ::std::os::raw::c_char,\n}\n";
 
     let mut patched = String::with_capacity(text.len());
     patched.push_str(&text[..start]);

@@ -315,6 +315,8 @@ struct MicrocodeInstruction {
     MicrocodeOperand right{};
     MicrocodeOperand destination{};
     bool floating_point_instruction{false};
+    /// True when executing this instruction modifies its destination operand.
+    bool modifies_destination{false};
     Address address{BadAddress};
     std::string text{};
 };

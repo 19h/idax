@@ -12,8 +12,9 @@
 /// store; table-size/xref inheritance guesses are deliberately not applied.
 /// Propagated arguments preserve exact shifted-parent metadata; shifted
 /// returns remain excluded as in the upstream generation path. Runtime-only
-/// runtime-only object-dependent virtual dispatch and microcode-widget
-/// workflows remain outside the stated boundary.
+/// Runtime-only object-dependent virtual dispatch remains outside the stated
+/// boundary. Register/stack microcode roots are selected from an owned graph
+/// and injected before/after their exact private instruction path.
 /// Exact compatible recovered
 /// fields receive persistent member-TID informational references and the first
 /// source-ordered field per machine operand receives an exact two-component
@@ -23,6 +24,7 @@
 #include <ida/idax.hpp>
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <charconv>
 #include <cstdint>
@@ -48,6 +50,8 @@ constexpr std::string_view kAllocatorReportAction = "idax:symless:report_allocat
 constexpr std::string_view kAllocatorApplyAction = "idax:symless:apply_allocators";
 constexpr std::string_view kVtableReportAction = "idax:symless:report_vtables";
 constexpr std::string_view kVtableApplyAction = "idax:symless:apply_vtables";
+constexpr std::string_view kMicrocodeRootReportAction = "idax:symless:report_microcode_root";
+constexpr std::string_view kMicrocodeRootApplyAction = "idax:symless:apply_microcode_root";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
 constexpr std::size_t kMaximumVtableMethods = 4096;
 
@@ -90,6 +94,34 @@ struct Variable {
     std::int64_t offset{0};
 
     auto operator<=>(const Variable&) const = default;
+};
+
+struct OwnedInstructionPath {
+    int block_index{0};
+    std::size_t top_level_index{0};
+    std::vector<unsigned char> nested_operands;
+
+    auto operator<=>(const OwnedInstructionPath&) const = default;
+};
+
+struct MicrocodeRootCandidate {
+    std::size_t ordinal{0};
+    ida::Address function_address{ida::BadAddress};
+    ida::Address instruction_address{ida::BadAddress};
+    std::size_t sub_index{0};
+    OwnedInstructionPath path;
+    Variable variable;
+    int operand_index{0};
+    std::vector<std::size_t> operand_components;
+    int byte_width{0};
+    bool inject_after{false};
+    std::string variable_name;
+    std::string instruction_text;
+};
+
+struct SelectedMicrocodeRoot {
+    MicrocodeRootCandidate candidate;
+    std::int64_t shift{0};
 };
 
 struct State {
@@ -140,6 +172,7 @@ struct Reconstruction {
     std::size_t argument_index{0};
     std::string argument_name;
     ida::decompiler::MicrocodeValueLocation argument_location;
+    std::optional<SelectedMicrocodeRoot> microcode_root;
     std::vector<RecoveredField> fields;
     std::size_t instructions_processed{0};
     std::size_t blocks_processed{0};
@@ -155,6 +188,7 @@ struct Reconstruction {
     std::size_t repeated_contexts{0};
     std::size_t unresolved_calls{0};
     std::size_t return_conflicts{0};
+    std::size_t root_injections{0};
     std::vector<struct PropagationSite> propagation_sites;
     std::vector<struct ReturnSite> return_sites;
 };
@@ -392,6 +426,157 @@ variable_for_operand(const ida::decompiler::MicrocodeOperand& operand) {
     default:
         return std::nullopt;
     }
+}
+
+std::string selectable_variable_name(
+    const ida::decompiler::MicrocodeOperand& operand) {
+    if (!operand.text.empty())
+        return ida::lines::tag_remove(operand.text);
+    if (operand.kind
+        == ida::decompiler::MicrocodeOperandKind::Register) {
+        return format("mreg:%d", operand.register_id);
+    }
+    return format("stk:%+lld", static_cast<long long>(operand.stack_offset));
+}
+
+struct SelectableOperandLeaf {
+    Variable variable;
+    int byte_width{0};
+    bool inject_after{false};
+    std::string name;
+    std::vector<std::size_t> components;
+};
+
+void collect_selectable_operand_leaves(
+    const ida::decompiler::MicrocodeOperand& operand,
+    bool inject_after,
+    std::vector<std::size_t> components,
+    std::vector<SelectableOperandLeaf>& leaves) {
+    using Kind = ida::decompiler::MicrocodeOperandKind;
+    if (operand.kind == Kind::Register
+        || operand.kind == Kind::StackVariable) {
+        auto variable = variable_for_operand(operand);
+        if (variable) {
+            leaves.push_back({*variable, operand.byte_width, inject_after,
+                              selectable_variable_name(operand),
+                              std::move(components)});
+        }
+        return;
+    }
+    if (operand.kind == Kind::RegisterPair) {
+        const int component_width = std::max(1, operand.byte_width / 2);
+        auto low_components = components;
+        low_components.push_back(0);
+        leaves.push_back({Variable{VariableKind::Register,
+                                   operand.register_id, 0},
+                          component_width, inject_after,
+                          format("mreg:%d", operand.register_id),
+                          std::move(low_components)});
+        components.push_back(1);
+        leaves.push_back({Variable{VariableKind::Register,
+                                   operand.second_register_id, 0},
+                          component_width, inject_after,
+                          format("mreg:%d", operand.second_register_id),
+                          std::move(components)});
+        return;
+    }
+    if (operand.kind == Kind::AddressReference
+        && operand.referenced_operand) {
+        components.push_back(0);
+        collect_selectable_operand_leaves(
+            *operand.referenced_operand, false,
+            std::move(components), leaves);
+        return;
+    }
+    if (operand.kind == Kind::CallArguments) {
+        for (std::size_t index = 0;
+             index < operand.call_arguments.size();
+             ++index) {
+            auto argument_components = components;
+            argument_components.push_back(index);
+            collect_selectable_operand_leaves(
+                operand.call_arguments[index], false,
+                std::move(argument_components), leaves);
+        }
+    }
+}
+
+void enumerate_microcode_instruction_roots(
+    ida::Address function_address,
+    const ida::decompiler::MicrocodeInstruction& instruction,
+    OwnedInstructionPath path,
+    std::size_t& next_sub_index,
+    std::vector<MicrocodeRootCandidate>& candidates) {
+    const std::array<const ida::decompiler::MicrocodeOperand*, 3> operands{
+        &instruction.left, &instruction.right, &instruction.destination};
+    for (std::size_t operand_index = 0;
+         operand_index < operands.size();
+         ++operand_index) {
+        const auto& operand = *operands[operand_index];
+        if (!operand.nested_instruction)
+            continue;
+        auto nested_path = path;
+        nested_path.nested_operands.push_back(
+            static_cast<unsigned char>(operand_index));
+        enumerate_microcode_instruction_roots(
+            function_address, *operand.nested_instruction,
+            std::move(nested_path), next_sub_index, candidates);
+    }
+
+    const std::size_t sub_index = next_sub_index++;
+    for (std::size_t operand_index = 0;
+         operand_index < operands.size();
+         ++operand_index) {
+        const auto& operand = *operands[operand_index];
+        std::vector<SelectableOperandLeaf> leaves;
+        collect_selectable_operand_leaves(
+            operand,
+            operand_index == 2 && instruction.modifies_destination,
+            {}, leaves);
+        for (auto& leaf : leaves) {
+            candidates.push_back(MicrocodeRootCandidate{
+                .ordinal = candidates.size(),
+                .function_address = function_address,
+                .instruction_address = instruction.address,
+                .sub_index = sub_index,
+                .path = path,
+                .variable = leaf.variable,
+                .operand_index = static_cast<int>(operand_index),
+                .operand_components = std::move(leaf.components),
+                .byte_width = leaf.byte_width,
+                .inject_after = leaf.inject_after,
+                .variable_name = std::move(leaf.name),
+                .instruction_text = ida::lines::tag_remove(instruction.text),
+            });
+        }
+    }
+}
+
+std::vector<MicrocodeRootCandidate> enumerate_microcode_roots(
+    const ida::decompiler::MicrocodeFunction& graph) {
+    std::vector<MicrocodeRootCandidate> candidates;
+    for (const auto& block : graph.blocks) {
+        std::size_t next_sub_index = 0;
+        ida::Address previous_top_address = ida::BadAddress;
+        for (std::size_t top_index = 0;
+             top_index < block.instructions.size();
+             ++top_index) {
+            const auto& instruction = block.instructions[top_index];
+            if (top_index == 0
+                || instruction.address != previous_top_address) {
+                next_sub_index = 0;
+            }
+            OwnedInstructionPath path{
+                .block_index = block.index,
+                .top_level_index = top_index,
+            };
+            enumerate_microcode_instruction_roots(
+                graph.entry_address, instruction, std::move(path),
+                next_sub_index, candidates);
+            previous_top_address = instruction.address;
+        }
+    }
+    return candidates;
 }
 
 std::int64_t signed_to_width(std::uint64_t value, int byte_width) {
@@ -1495,10 +1680,17 @@ struct InterproceduralAnalyzer {
     explicit InterproceduralAnalyzer(
         std::size_t max_depth,
         Loader loader,
-        std::optional<ida::Address> allocation_call = std::nullopt)
+        std::optional<ida::Address> allocation_call = std::nullopt,
+        std::optional<SelectedMicrocodeRoot> selected_root = std::nullopt)
         : loader_(std::move(loader)),
           max_depth(max_depth),
-          allocation_call(allocation_call) {}
+          allocation_call(allocation_call),
+          selected_root(std::move(selected_root)) {}
+
+    struct PreparedOperand {
+        bool nested{false};
+        std::optional<AbstractValue> value;
+    };
 
     static ContextKey context_key(
         ida::Address function_address,
@@ -1545,7 +1737,10 @@ struct InterproceduralAnalyzer {
     ida::Result<std::optional<AbstractValue>> operand_value(
         State& state,
         const ida::decompiler::MicrocodeOperand& operand,
-        std::size_t depth) {
+        std::size_t depth,
+        const PreparedOperand* prepared = nullptr) {
+        if (prepared != nullptr && prepared->nested)
+            return prepared->value;
         if (operand.nested_instruction)
             return process_instruction(state, *operand.nested_instruction, depth);
         if (auto address = address_of_global_value(
@@ -1559,7 +1754,8 @@ struct InterproceduralAnalyzer {
     ida::Result<std::optional<AbstractValue>> process_call(
         State& state,
         const ida::decompiler::MicrocodeInstruction& instruction,
-        std::size_t depth) {
+        std::size_t depth,
+        const PreparedOperand* prepared_right = nullptr) {
         using Opcode = ida::decompiler::MicrocodeOpcode;
         if (allocation_call == instruction.address) {
             return std::optional<AbstractValue>(AbstractValue{
@@ -1592,7 +1788,8 @@ struct InterproceduralAnalyzer {
         std::optional<ida::Address> target;
         bool database_resolved_indirect = false;
         if (instruction.opcode == Opcode::IndirectCall) {
-            auto offset = operand_value(state, instruction.right, depth);
+            auto offset = operand_value(
+                state, instruction.right, depth, prepared_right);
             if (!offset)
                 return std::unexpected(offset.error());
             if (*offset && (*offset)->kind == ValueKind::DatabaseValue) {
@@ -1645,9 +1842,50 @@ struct InterproceduralAnalyzer {
     ida::Result<std::optional<AbstractValue>> process_instruction(
         State& state,
         const ida::decompiler::MicrocodeInstruction& instruction,
-        std::size_t depth) {
+        std::size_t depth,
+        const OwnedInstructionPath* path = nullptr,
+        ida::Address graph_entry = ida::BadAddress) {
         using Opcode = ida::decompiler::MicrocodeOpcode;
+        const auto prepare = [&](
+            const ida::decompiler::MicrocodeOperand& operand,
+            unsigned char operand_index)
+            -> ida::Result<PreparedOperand> {
+            if (!operand.nested_instruction)
+                return PreparedOperand{};
+            std::optional<OwnedInstructionPath> nested_path;
+            if (path != nullptr) {
+                nested_path = *path;
+                nested_path->nested_operands.push_back(operand_index);
+            }
+            auto value = process_instruction(
+                state, *operand.nested_instruction, depth,
+                nested_path ? &*nested_path : nullptr, graph_entry);
+            if (!value)
+                return std::unexpected(value.error());
+            return PreparedOperand{true, *value};
+        };
+        auto prepared_left = prepare(instruction.left, 0);
+        if (!prepared_left)
+            return std::unexpected(prepared_left.error());
+        auto prepared_right = prepare(instruction.right, 1);
+        if (!prepared_right)
+            return std::unexpected(prepared_right.error());
+        auto prepared_destination = prepare(instruction.destination, 2);
+        if (!prepared_destination)
+            return std::unexpected(prepared_destination.error());
+
+        const bool selected_instruction = selected_root
+            && graph_entry == selected_root->candidate.function_address
+            && path != nullptr
+            && *path == selected_root->candidate.path;
+        if (selected_instruction && !selected_root->candidate.inject_after) {
+            state.values[selected_root->candidate.variable] = AbstractValue{
+                ValueKind::StructurePointer, selected_root->shift, 0};
+            ++root_injections;
+        }
+
         std::optional<AbstractValue> result;
+        bool assign_destination = true;
         switch (instruction.opcode) {
         case Opcode::Move: {
             if (instruction.left.kind
@@ -1663,7 +1901,8 @@ struct InterproceduralAnalyzer {
                            instruction.destination.byte_width)) {
                 result = *address;
             } else {
-                auto value = operand_value(state, instruction.left, depth);
+                auto value = operand_value(
+                    state, instruction.left, depth, &*prepared_left);
                 if (!value)
                     return std::unexpected(value.error());
                 result = *value;
@@ -1678,7 +1917,8 @@ struct InterproceduralAnalyzer {
         }
         case Opcode::ZeroExtend:
         case Opcode::SignedExtend: {
-            auto source = operand_value(state, instruction.left, depth);
+            auto source = operand_value(
+                state, instruction.left, depth, &*prepared_left);
             if (!source)
                 return std::unexpected(source.error());
             if (*source && is_scalar_value(**source)) {
@@ -1694,10 +1934,12 @@ struct InterproceduralAnalyzer {
         }
         case Opcode::Add:
         case Opcode::Subtract: {
-            auto left = operand_value(state, instruction.left, depth);
+            auto left = operand_value(
+                state, instruction.left, depth, &*prepared_left);
             if (!left)
                 return std::unexpected(left.error());
-            auto right = operand_value(state, instruction.right, depth);
+            auto right = operand_value(
+                state, instruction.right, depth, &*prepared_right);
             if (!right)
                 return std::unexpected(right.error());
             if (*left && *right
@@ -1733,7 +1975,8 @@ struct InterproceduralAnalyzer {
             break;
         }
         case Opcode::LoadMemory: {
-            auto pointer = operand_value(state, instruction.right, depth);
+            auto pointer = operand_value(
+                state, instruction.right, depth, &*prepared_right);
             if (!pointer)
                 return std::unexpected(pointer.error());
             record_access(raw_accesses, *pointer,
@@ -1753,10 +1996,13 @@ struct InterproceduralAnalyzer {
             break;
         }
         case Opcode::StoreMemory: {
-            auto value = operand_value(state, instruction.left, depth);
+            auto value = operand_value(
+                state, instruction.left, depth, &*prepared_left);
             if (!value)
                 return std::unexpected(value.error());
-            auto pointer = operand_value(state, instruction.destination, depth);
+            auto pointer = operand_value(
+                state, instruction.destination, depth,
+                &*prepared_destination);
             if (!pointer)
                 return std::unexpected(pointer.error());
             record_access(raw_accesses, *pointer,
@@ -1764,11 +2010,13 @@ struct InterproceduralAnalyzer {
                           instruction.left.byte_width,
                           instruction.address, true,
                           next_observation_order++);
-            return std::optional<AbstractValue>{};
+            assign_destination = false;
+            break;
         }
         case Opcode::Call:
         case Opcode::IndirectCall: {
-            auto called = process_call(state, instruction, depth);
+            auto called = process_call(
+                state, instruction, depth, &*prepared_right);
             if (!called)
                 return std::unexpected(called.error());
             result = *called;
@@ -1781,7 +2029,13 @@ struct InterproceduralAnalyzer {
             ++unsupported_instructions;
             break;
         }
-        assign(state, instruction.destination, result);
+        if (assign_destination)
+            assign(state, instruction.destination, result);
+        if (selected_instruction && selected_root->candidate.inject_after) {
+            state.values[selected_root->candidate.variable] = AbstractValue{
+                ValueKind::StructurePointer, selected_root->shift, 0};
+            ++root_injections;
+        }
         return result;
     }
 
@@ -1836,9 +2090,17 @@ struct InterproceduralAnalyzer {
             State state = order_index == 0
                 ? initial
                 : select_predecessor_state(block, end_states);
-            for (const auto& instruction : block.instructions) {
+            for (std::size_t instruction_index = 0;
+                 instruction_index < block.instructions.size();
+                 ++instruction_index) {
+                const auto& instruction = block.instructions[instruction_index];
+                const OwnedInstructionPath path{
+                    .block_index = block.index,
+                    .top_level_index = instruction_index,
+                };
                 ++instructions_processed;
-                auto processed = process_instruction(state, instruction, depth);
+                auto processed = process_instruction(
+                    state, instruction, depth, &path, graph.entry_address);
                 if (!processed) {
                     active_contexts.erase(key);
                     return std::unexpected(processed.error());
@@ -1902,6 +2164,7 @@ struct InterproceduralAnalyzer {
     Loader loader_;
     std::size_t max_depth{0};
     std::optional<ida::Address> allocation_call;
+    std::optional<SelectedMicrocodeRoot> selected_root;
     std::map<ida::Address, ida::decompiler::MicrocodeFunction> graph_cache;
     std::set<ContextKey> active_contexts;
     std::map<ContextKey, std::optional<AbstractValue>> completed_contexts;
@@ -1920,6 +2183,7 @@ struct InterproceduralAnalyzer {
     std::size_t repeated_contexts{0};
     std::size_t unresolved_calls{0};
     std::size_t return_conflicts{0};
+    std::size_t root_injections{0};
     std::size_t next_observation_order{0};
 };
 
@@ -2043,6 +2307,81 @@ ida::Result<Reconstruction> reconstruct(
     output.repeated_contexts = analyzer.repeated_contexts;
     output.unresolved_calls = analyzer.unresolved_calls;
     output.return_conflicts = analyzer.return_conflicts;
+    output.root_injections = analyzer.root_injections;
+    output.propagation_sites = std::move(analyzer.propagation_sites);
+    output.return_sites = std::move(analyzer.return_sites);
+    std::tie(output.fields,
+             output.negative_accesses,
+             output.conflict_discards) = resolve_field_conflicts(
+                 std::move(analyzer.raw_accesses));
+    attach_operand_observations(
+        output.fields, std::move(analyzer.operand_observations));
+    return output;
+}
+
+ida::Result<Reconstruction> reconstruct_microcode_root(
+    const ida::decompiler::MicrocodeFunction& graph,
+    const SelectedMicrocodeRoot& root,
+    std::size_t max_depth) {
+    using Maturity = ida::decompiler::MicrocodeMaturity;
+    if (graph.maturity != Maturity::Preoptimized) {
+        return std::unexpected(ida::Error::validation(
+            "Symless microcode-root reconstruction requires preoptimized microcode"));
+    }
+    if (root.candidate.function_address != graph.entry_address) {
+        return std::unexpected(ida::Error::validation(
+            "Selected microcode root belongs to another function"));
+    }
+    const auto candidates = enumerate_microcode_roots(graph);
+    const bool exists = std::any_of(
+        candidates.begin(), candidates.end(),
+        [&](const MicrocodeRootCandidate& candidate) {
+            return candidate.path == root.candidate.path
+                && candidate.variable == root.candidate.variable
+                && candidate.operand_index == root.candidate.operand_index
+                && candidate.operand_components
+                    == root.candidate.operand_components
+                && candidate.inject_after == root.candidate.inject_after;
+        });
+    if (!exists) {
+        return std::unexpected(ida::Error::validation(
+            "Selected microcode root is not present in the copied graph"));
+    }
+    InterproceduralAnalyzer analyzer(
+        max_depth,
+        [](ida::Address address) {
+            ida::decompiler::MicrocodeGenerationOptions options;
+            options.maturity = ida::decompiler::MicrocodeMaturity::Preoptimized;
+            options.analyze_calls = true;
+            return ida::decompiler::generate_microcode(address, options);
+        },
+        std::nullopt, root);
+    auto analyzed = analyzer.analyze_graph(graph, {}, 0);
+    if (!analyzed)
+        return std::unexpected(analyzed.error());
+    if (analyzer.root_injections != 1) {
+        return std::unexpected(ida::Error::internal(
+            "Selected microcode root was not injected exactly once"));
+    }
+
+    Reconstruction output;
+    output.function_address = graph.entry_address;
+    output.argument_name = root.candidate.variable_name;
+    output.microcode_root = root;
+    output.max_depth = max_depth;
+    output.functions_processed = analyzer.functions_processed;
+    output.blocks_processed = analyzer.blocks_processed;
+    output.instructions_processed = analyzer.instructions_processed;
+    output.unsupported_instructions = analyzer.unsupported_instructions;
+    output.calls_followed = analyzer.calls_followed;
+    output.database_resolved_indirect_calls
+        = analyzer.database_resolved_indirect_calls;
+    output.depth_skips = analyzer.depth_skips;
+    output.cycle_skips = analyzer.cycle_skips;
+    output.repeated_contexts = analyzer.repeated_contexts;
+    output.unresolved_calls = analyzer.unresolved_calls;
+    output.return_conflicts = analyzer.return_conflicts;
+    output.root_injections = analyzer.root_injections;
     output.propagation_sites = std::move(analyzer.propagation_sites);
     output.return_sites = std::move(analyzer.return_sites);
     std::tie(output.fields,
@@ -3071,24 +3410,26 @@ ida::Result<ApplySummary> apply_reconstruction(
         return std::unexpected(ida::Error::not_found(
             "No nonnegative structure fields were recovered"));
     }
-    auto root_type = ida::type::retrieve(reconstruction.function_address);
-    if (!root_type)
-        return std::unexpected(root_type.error());
-    auto root_details = root_type->function_details();
-    if (!root_details)
-        return std::unexpected(root_details.error());
-    if (reconstruction.argument_index >= root_details->arguments.size()) {
-        return std::unexpected(ida::Error::validation(
-            "Function type has fewer arguments than copied microcode"));
-    }
-    auto root_eligibility = argument_eligibility(
-        root_details->arguments[reconstruction.argument_index].type,
-        structure_name);
-    if (!root_eligibility)
-        return std::unexpected(root_eligibility.error());
-    if (*root_eligibility == ArgumentEligibility::Ineligible) {
-        return std::unexpected(ida::Error::validation(
-            "Selected argument is not a pointer or pointer-width integral scalar"));
+    if (!reconstruction.microcode_root) {
+        auto root_type = ida::type::retrieve(reconstruction.function_address);
+        if (!root_type)
+            return std::unexpected(root_type.error());
+        auto root_details = root_type->function_details();
+        if (!root_details)
+            return std::unexpected(root_details.error());
+        if (reconstruction.argument_index >= root_details->arguments.size()) {
+            return std::unexpected(ida::Error::validation(
+                "Function type has fewer arguments than copied microcode"));
+        }
+        auto root_eligibility = argument_eligibility(
+            root_details->arguments[reconstruction.argument_index].type,
+            structure_name);
+        if (!root_eligibility)
+            return std::unexpected(root_eligibility.error());
+        if (*root_eligibility == ArgumentEligibility::Ineligible) {
+            return std::unexpected(ida::Error::validation(
+                "Selected argument is not a pointer or pointer-width integral scalar"));
+        }
     }
 
     ApplySummary summary;
@@ -3116,7 +3457,8 @@ ida::Result<ApplySummary> apply_reconstruction(
     const auto pointer = ida::type::TypeInfo::pointer_to(*structure);
 
     for (const auto& site : reconstruction.propagation_sites) {
-        const bool is_root = site.function_address == reconstruction.function_address
+        const bool is_root = !reconstruction.microcode_root
+            && site.function_address == reconstruction.function_address
             && site.argument_index == reconstruction.argument_index;
         if (site.shift < std::numeric_limits<std::int32_t>::min()
             || site.shift > std::numeric_limits<std::int32_t>::max()) {
@@ -3754,17 +4096,40 @@ std::string default_structure_name(ida::Address function_address,
                   argument_index);
 }
 
+std::string default_microcode_root_structure_name(
+    const MicrocodeRootCandidate& candidate) {
+    return format("symless_%llx_micro%zu",
+                  static_cast<unsigned long long>(candidate.function_address),
+                  candidate.ordinal);
+}
+
 std::string report_text(const Reconstruction& reconstruction,
                         std::string_view structure_name,
                         const ApplySummary* applied = nullptr) {
+    const std::string root_description = reconstruction.microcode_root
+        ? format(
+            "Microcode root: #%zu 0x%llx.%zu %s %s width=%d B shift=%+lld\n",
+            reconstruction.microcode_root->candidate.ordinal,
+            static_cast<unsigned long long>(
+                reconstruction.microcode_root->candidate.instruction_address),
+            reconstruction.microcode_root->candidate.sub_index,
+            reconstruction.microcode_root->candidate.variable_name.c_str(),
+            reconstruction.microcode_root->candidate.inject_after
+                ? "destination/after" : "source/before",
+            reconstruction.microcode_root->candidate.byte_width,
+            static_cast<long long>(reconstruction.microcode_root->shift))
+        : format("Argument: %zu (%s)\n",
+                 reconstruction.argument_index,
+                 reconstruction.argument_name.c_str());
     std::string report = format(
         "Symless depth-bounded structure reconstruction\n"
-        "Function: 0x%llx\nArgument: %zu (%s)\n"
+        "Function: 0x%llx\n%s"
         "Proposed structure: %s\nMaximum call depth: %zu\n"
         "Functions: %zu\nCalls followed: %zu\n"
         "Database-resolved indirect calls: %zu\n"
         "Depth skips: %zu\nCycle skips: %zu\n"
         "Repeated contexts: %zu\nUnresolved calls: %zu\n"
+        "Root injections: %zu\n"
         "Return conflicts: %zu\nBlocks: %zu\nInstructions: %zu\n"
         "Recovered fields: %zu\nUnsupported instructions: %zu\n"
         "Negative accesses: %zu\nConflict discards: %zu\n"
@@ -3772,8 +4137,7 @@ std::string report_text(const Reconstruction& reconstruction,
         "Member-reference candidates: %zu\n"
         "Operand struct-offset candidates: %zu\n",
         static_cast<unsigned long long>(reconstruction.function_address),
-        reconstruction.argument_index,
-        reconstruction.argument_name.c_str(),
+        root_description.c_str(),
         std::string(structure_name).c_str(),
         reconstruction.max_depth,
         reconstruction.functions_processed,
@@ -3783,6 +4147,7 @@ std::string report_text(const Reconstruction& reconstruction,
         reconstruction.cycle_skips,
         reconstruction.repeated_contexts,
         reconstruction.unresolved_calls,
+        reconstruction.root_injections,
         reconstruction.return_conflicts,
         reconstruction.blocks_processed,
         reconstruction.instructions_processed,
@@ -4264,6 +4629,161 @@ ida::Status run_allocator_apply_action() {
     return ida::ok();
 }
 
+class MicrocodeRootChooser final : public ida::ui::Chooser {
+public:
+    explicit MicrocodeRootChooser(
+        const std::vector<MicrocodeRootCandidate>& candidates)
+        : Chooser({
+            .title = "Symless: Select Microcode Structure Root",
+            .columns = {
+                {"#", 6, ida::ui::ColumnFormat::Decimal},
+                {"Address", 16, ida::ui::ColumnFormat::Address},
+                {"Sub", 6, ida::ui::ColumnFormat::Decimal},
+                {"Block", 7, ida::ui::ColumnFormat::Decimal},
+                {"Variable", 18, ida::ui::ColumnFormat::Plain},
+                {"Role", 18, ida::ui::ColumnFormat::Plain},
+                {"Width", 7, ida::ui::ColumnFormat::Decimal},
+                {"Instruction", 60, ida::ui::ColumnFormat::Plain},
+            },
+            .modal = true,
+            .can_refresh = false,
+        }), candidates_(candidates) {}
+
+    std::size_t count() const override { return candidates_.size(); }
+
+    ida::ui::Row row(std::size_t index) const override {
+        const auto& candidate = candidates_.at(index);
+        return {.columns = {
+            std::to_string(candidate.ordinal),
+            format("0x%llx", static_cast<unsigned long long>(
+                candidate.instruction_address)),
+            std::to_string(candidate.sub_index),
+            std::to_string(candidate.path.block_index),
+            candidate.variable_name,
+            candidate.inject_after ? "destination/after" : "source/before",
+            std::to_string(candidate.byte_width),
+            candidate.instruction_text,
+        }};
+    }
+
+    ida::Address address_for(std::size_t index) const override {
+        return candidates_.at(index).instruction_address;
+    }
+
+private:
+    const std::vector<MicrocodeRootCandidate>& candidates_;
+};
+
+ida::Result<std::optional<Reconstruction>>
+analyze_current_microcode_root() {
+    auto cursor = ida::ui::screen_address();
+    if (!cursor)
+        return std::unexpected(cursor.error());
+    auto function = ida::function::at(*cursor);
+    if (!function)
+        return std::unexpected(function.error());
+    ida::decompiler::MicrocodeGenerationOptions options;
+    options.maturity = ida::decompiler::MicrocodeMaturity::Preoptimized;
+    options.analyze_calls = true;
+    auto graph = ida::decompiler::generate_microcode(function->start(), options);
+    if (!graph)
+        return std::unexpected(graph.error());
+    auto candidates = enumerate_microcode_roots(*graph);
+    if (candidates.empty()) {
+        return std::unexpected(ida::Error::not_found(
+            "Current function has no selectable register/stack microcode operands"));
+    }
+    std::size_t default_selection = 0;
+    for (std::size_t index = 0; index < candidates.size(); ++index) {
+        if (candidates[index].instruction_address >= *cursor) {
+            default_selection = index;
+            break;
+        }
+    }
+    MicrocodeRootChooser chooser(candidates);
+    auto selected = chooser.show(default_selection);
+    if (!selected)
+        return std::unexpected(selected.error());
+    if (!*selected)
+        return std::optional<Reconstruction>{};
+    if (**selected >= candidates.size()) {
+        return std::unexpected(ida::Error::internal(
+            "Microcode root chooser returned an invalid row"));
+    }
+    auto shift = ida::ui::ask_long(
+        "Initial signed byte shift associated with the selected structure pointer",
+        0);
+    if (!shift)
+        return std::unexpected(shift.error());
+    auto max_depth = ida::ui::ask_long(
+        "Maximum resolved call depth (0 = current function only)", 8);
+    if (!max_depth)
+        return std::unexpected(max_depth.error());
+    if (*max_depth < 0 || *max_depth > 100) {
+        return std::unexpected(ida::Error::validation(
+            "Maximum call depth must be in 0..100"));
+    }
+    const SelectedMicrocodeRoot root{
+        .candidate = candidates[**selected],
+        .shift = static_cast<std::int64_t>(*shift),
+    };
+    auto reconstruction = reconstruct_microcode_root(
+        *graph, root, static_cast<std::size_t>(*max_depth));
+    if (!reconstruction)
+        return std::unexpected(reconstruction.error());
+    return std::optional<Reconstruction>(std::move(*reconstruction));
+}
+
+ida::Status run_microcode_root_report_action() {
+    auto reconstruction = analyze_current_microcode_root();
+    if (!reconstruction)
+        return std::unexpected(reconstruction.error());
+    if (!*reconstruction)
+        return ida::ok();
+    const auto& root = (*reconstruction)->microcode_root->candidate;
+    const auto name = default_microcode_root_structure_name(root);
+    const auto report = report_text(**reconstruction, name);
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
+}
+
+ida::Status run_microcode_root_apply_action() {
+    auto reconstruction = analyze_current_microcode_root();
+    if (!reconstruction)
+        return std::unexpected(reconstruction.error());
+    if (!*reconstruction)
+        return ida::ok();
+    const auto& root = (*reconstruction)->microcode_root->candidate;
+    auto name = ida::ui::ask_string(
+        "Named structure type to create or reuse",
+        default_microcode_root_structure_name(root));
+    if (!name)
+        return std::unexpected(name.error());
+    if (name->empty()) {
+        return std::unexpected(ida::Error::validation(
+            "Structure name must not be empty"));
+    }
+    const auto preview = report_text(**reconstruction, *name);
+    auto confirmed = ida::ui::ask_yn(
+        preview
+            + "\nApply this structure and eligible propagated prototype sites?",
+        false);
+    if (!confirmed)
+        return std::unexpected(confirmed.error());
+    if (!*confirmed)
+        return ida::ok();
+    auto summary = apply_reconstruction(**reconstruction, *name);
+    if (!summary)
+        return std::unexpected(summary.error());
+    ida::ui::refresh_all_views();
+    const auto report = report_text(
+        **reconstruction, *name, &*summary);
+    ida::ui::message("[symless:idax]\n" + report);
+    ida::ui::info(report);
+    return ida::ok();
+}
+
 ida::Result<Reconstruction> reconstruct_current_argument() {
     auto cursor = ida::ui::screen_address();
     if (!cursor)
@@ -4350,8 +4870,8 @@ public:
         return {
             .name = "Symless Structure Reconstruction Port",
             .hotkey = "Ctrl-Alt-Shift-S",
-            .comment = "Reconstruct argument, allocator-root, and verified constructor/vtable structures",
-            .help = "Depth-bounded Symless call/return, allocator-wrapper, and exact constructor/vtable adaptation over owned idax values.",
+            .comment = "Reconstruct argument, selected microcode, allocator, and verified constructor/vtable roots",
+            .help = "Depth-bounded Symless call/return, exact owned microcode-root, allocator-wrapper, and constructor/vtable adaptation.",
         };
     }
 
@@ -4394,6 +4914,20 @@ public:
                              "Symless: Apply Constructor/Vtable Roots",
                              "Materialize semantic class/vtable UDTs and type eligible this arguments",
                              [] { return run_vtable_apply_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kMicrocodeRootReportAction,
+                             "Symless: Report Selected Microcode Root",
+                             "Select a register/stack operand and analyze it without mutation",
+                             [] { return run_microcode_root_report_action(); })) {
+            unregister_all();
+            return false;
+        }
+        if (!register_action(kMicrocodeRootApplyAction,
+                             "Symless: Apply Selected Microcode Root",
+                             "Select and inject an exact register/stack structure root",
+                             [] { return run_microcode_root_apply_action(); })) {
             unregister_all();
             return false;
         }

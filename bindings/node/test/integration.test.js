@@ -1329,11 +1329,21 @@ describe('Decompiler', () => {
         expect(instructions.length).toBeGreaterThan(0);
         expect(typeof instructions[0].address).toBe('bigint');
         expect(typeof instructions[0].text).toBe('string');
+        expect(typeof instructions[0].modifiesDestination).toBe('boolean');
         expect(typeof instructions[0].left.text).toBe('string');
         expect(typeof instructions[0].left.processorRegisterId).toBe('number');
         expect(typeof instructions[0].right.processorRegisterId).toBe('number');
         expect(typeof instructions[0].destination.processorRegisterId).toBe('number');
         expect(Array.isArray(instructions[0].left.callArguments)).toBe(true);
+        for (const instruction of instructions) {
+            if (instruction.opcode === 'storeMemory') {
+                expect(instruction.modifiesDestination).toBe(false);
+            }
+            if (instruction.opcode === 'move'
+                && instruction.destination.kind !== 'empty') {
+                expect(instruction.modifiesDestination).toBe(true);
+            }
+        }
 
         expect(() => idax.decompiler.generateMicrocode(
             graph.entryAddress,

@@ -2567,6 +2567,7 @@ export namespace decompiler {
         right: MicrocodeOperand;
         destination: MicrocodeOperand;
         floatingPointInstruction: boolean;
+        modifiesDestination: boolean;
         address: Address;
         text: string;
     }

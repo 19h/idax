@@ -337,3 +337,12 @@ Current overall phase status:
 - [x] P46.4 Add pure and real-IDA RTTI report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
 
 ---
+
+### Phase 47 TODO Action Items (Symless Microcode Operand Root Selection)
+
+- [x] P47.1 Audit upstream microcode operand enumeration, recursive instruction indexing, destination classification, and before/after root injection against the current owned graph and UI surfaces.
+- [x] P47.2 Preserve exact destination-modification metadata across C++, Node, generated C ABI, and safe Rust with structural and live copy evidence.
+- [x] P47.3 Add deterministic register/stack root enumeration, modal C++ selection, explicit Rust headless selection, and exact root-function-scoped before/after injection to both Symless adaptations.
+- [x] P47.4 Add pure and real-IDA report/apply/reopen evidence, synchronize protocol records/documentation, run complete validation, staged review, and push.
+
+---

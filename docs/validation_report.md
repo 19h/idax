@@ -1088,3 +1088,26 @@ tracked in `docs/compatibility_matrix.md`.
   The original direct-table fixture remains the negative control with one
   direct load, zero RTTI fallback/load, three methods, and unchanged fields.
   Tracked executable/IDB hashes and IDB blob remain unchanged.
+
+- 2026-07-14 Phase 47 Symless microcode operand root selection:
+  Added copied `minsn_t::modifies_d()` semantics across C++, Node, generated C
+  ABI, and safe Rust, then used one depth-first execution traversal for exact
+  register/stack root enumeration and private-path before/after injection. The
+  C++ adaptation exposes a modal chooser; the Rust adaptation exposes stable
+  headless list/select options. Full C++ build and CTest pass 26/26 in 22.58 s;
+  Node native build, strict declarations, structural tests, and ABI-matched
+  IDA Professional 9.4 integration pass 238/238 and 82/82. Rust formatting and
+  all-target checks, library/sys/Symless tests, and process-main-thread IDA 9.4
+  integration pass 139/139, 0 sys, 20/20, and 99/99. Two independent clean
+  bindgen outputs are byte-identical to the checked file at SHA-256
+  `865f53507d8dd44ef7b2033eccb901f3bf26bf21e0653c8528c493e3692c7b3f`.
+  The fresh arm64 root-selection fixture (source SHA-256
+  `e9eac89ea492d197048d0f7e34c357824626fc5433adb11b3d44297831ea73c3`;
+  executable SHA-256
+  `465efd22b8d7ab90130428b2b70ea794c694bb0d3b0a23f131939cb1673785c1`)
+  lists 18 readable candidates. Candidate zero is `x0.8{2}` at
+  `0x100000460.0`, injects exactly once before execution, and recovers four
+  exact fields. First apply adds four members, references, and operand paths;
+  fresh-process reopen adds zero and reuses all four. The reopened IDB SHA-256
+  is `724fdf034ae9a5aa93f56280894d1e08e97bcf34bd88970cf41a53ae434fa61c`.
+  The tracked executable/IDB hashes and IDB blob remain unchanged.

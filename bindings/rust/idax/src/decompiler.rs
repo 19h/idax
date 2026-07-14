@@ -255,6 +255,7 @@ pub struct MicrocodeInstruction {
     pub right: MicrocodeOperand,
     pub destination: MicrocodeOperand,
     pub floating_point_instruction: bool,
+    pub modifies_destination: bool,
     pub address: Address,
     pub text: String,
 }
@@ -1923,6 +1924,7 @@ unsafe fn microcode_instruction_from_ffi(
         right: unsafe { microcode_operand_from_ffi(&raw.right)? },
         destination: unsafe { microcode_operand_from_ffi(&raw.destination)? },
         floating_point_instruction: raw.floating_point_instruction != 0,
+        modifies_destination: raw.modifies_destination != 0,
         address: raw.address,
         text: cstr_opt(raw.text),
     })

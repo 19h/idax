@@ -16,7 +16,7 @@ use idax::decompiler::{
 use idax::error::ErrorCategory;
 use idax::types::TypeInfo;
 use idax::{
-    Error, Result, data, database, decompiler, function, instruction, segment, types, xref,
+    Error, Result, data, database, decompiler, function, instruction, lines, segment, types, xref,
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 
@@ -29,6 +29,9 @@ struct Options {
     allocator_specs: Vec<AllocatorSpec>,
     vtables: bool,
     argument_index: usize,
+    microcode_root: Option<usize>,
+    list_microcode_roots: bool,
+    root_shift: i64,
     structure_name: Option<String>,
     apply: bool,
     show: usize,
@@ -43,6 +46,9 @@ impl Default for Options {
             allocator_specs: Vec::new(),
             vtables: false,
             argument_index: 0,
+            microcode_root: None,
+            list_microcode_roots: false,
+            root_shift: 0,
             structure_name: None,
             apply: false,
             show: 40,
@@ -183,6 +189,35 @@ enum Variable {
     Stack(i64),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+struct OwnedInstructionPath {
+    block_index: i32,
+    top_level_index: usize,
+    nested_operands: Vec<u8>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct MicrocodeRootCandidate {
+    ordinal: usize,
+    function_address: Address,
+    instruction_address: Address,
+    sub_index: usize,
+    path: OwnedInstructionPath,
+    variable: Variable,
+    operand_index: usize,
+    operand_components: Vec<usize>,
+    byte_width: i32,
+    inject_after: bool,
+    variable_name: String,
+    instruction_text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SelectedMicrocodeRoot {
+    candidate: MicrocodeRootCandidate,
+    shift: i64,
+}
+
 #[derive(Debug, Clone, Default)]
 struct State {
     values: HashMap<Variable, AbstractValue>,
@@ -253,6 +288,7 @@ struct Reconstruction {
     argument_index: usize,
     argument_name: String,
     argument_location: MicrocodeValueLocation,
+    microcode_root: Option<SelectedMicrocodeRoot>,
     fields: Vec<RecoveredField>,
     instructions_processed: usize,
     blocks_processed: usize,
@@ -268,6 +304,7 @@ struct Reconstruction {
     repeated_contexts: usize,
     unresolved_calls: usize,
     return_conflicts: usize,
+    root_injections: usize,
     propagation_sites: Vec<PropagationSite>,
     return_sites: Vec<ReturnSite>,
 }
@@ -459,7 +496,8 @@ fn parse_options(args: &[String]) -> Result<Options> {
                 print_usage(
                     &args[0],
                     "<binary_file> (--function <address-or-name> | --allocator <spec>... | --vtables) \
-                     [--argument <index>] [--name <type-or-prefix>] [--show <count>] \
+                     [--argument <index> | --microcode-root <candidate-index> | --list-microcode-roots] \
+                     [--root-shift <signed-bytes>] [--name <type-or-prefix>] [--show <count>] \
                      [--max-depth <count>] [--apply]\n\
                      allocator spec: malloc:<locator>:<size-index>, \
                      realloc:<locator>:<size-index>, or \
@@ -491,6 +529,24 @@ fn parse_options(args: &[String]) -> Result<Options> {
                     .ok_or_else(|| Error::validation("--argument requires a value"))?
                     .parse::<usize>()
                     .map_err(|_| Error::validation("invalid --argument value"))?;
+            }
+            "--microcode-root" => {
+                index += 1;
+                options.microcode_root = Some(
+                    args.get(index)
+                        .ok_or_else(|| Error::validation("--microcode-root requires a value"))?
+                        .parse::<usize>()
+                        .map_err(|_| Error::validation("invalid --microcode-root value"))?,
+                );
+            }
+            "--list-microcode-roots" => options.list_microcode_roots = true,
+            "--root-shift" => {
+                index += 1;
+                options.root_shift = args
+                    .get(index)
+                    .ok_or_else(|| Error::validation("--root-shift requires a value"))?
+                    .parse::<i64>()
+                    .map_err(|_| Error::validation("invalid --root-shift value"))?;
             }
             "--name" => {
                 index += 1;
@@ -531,6 +587,21 @@ fn parse_options(args: &[String]) -> Result<Options> {
         return Err(Error::validation(
             "select exactly one mode: --function, one or more --allocator specifications, or --vtables",
         ));
+    }
+    if (options.microcode_root.is_some() || options.list_microcode_roots)
+        && options.function.is_empty()
+    {
+        return Err(Error::validation(
+            "--microcode-root and --list-microcode-roots require --function",
+        ));
+    }
+    if options.microcode_root.is_some() && options.list_microcode_roots {
+        return Err(Error::validation(
+            "--microcode-root and --list-microcode-roots are mutually exclusive",
+        ));
+    }
+    if options.root_shift != 0 && options.microcode_root.is_none() {
+        return Err(Error::validation("--root-shift requires --microcode-root"));
     }
     Ok(options)
 }
@@ -603,6 +674,164 @@ fn variable_for_operand(operand: &MicrocodeOperand) -> Option<Variable> {
         MicrocodeOperandKind::StackVariable => Some(Variable::Stack(operand.stack_offset)),
         _ => None,
     }
+}
+
+fn selectable_variable_name(operand: &MicrocodeOperand) -> String {
+    if !operand.text.is_empty() {
+        return lines::tag_remove(&operand.text);
+    }
+    match operand.kind {
+        MicrocodeOperandKind::Register => format!("mreg:{}", operand.register_id),
+        MicrocodeOperandKind::StackVariable => format!("stk:{:+}", operand.stack_offset),
+        _ => String::new(),
+    }
+}
+
+#[derive(Debug)]
+struct SelectableOperandLeaf {
+    variable: Variable,
+    byte_width: i32,
+    inject_after: bool,
+    name: String,
+    components: Vec<usize>,
+}
+
+fn collect_selectable_operand_leaves(
+    operand: &MicrocodeOperand,
+    inject_after: bool,
+    mut components: Vec<usize>,
+    leaves: &mut Vec<SelectableOperandLeaf>,
+) {
+    match operand.kind {
+        MicrocodeOperandKind::Register | MicrocodeOperandKind::StackVariable => {
+            if let Some(variable) = variable_for_operand(operand) {
+                leaves.push(SelectableOperandLeaf {
+                    variable,
+                    byte_width: operand.byte_width,
+                    inject_after,
+                    name: selectable_variable_name(operand),
+                    components,
+                });
+            }
+        }
+        MicrocodeOperandKind::RegisterPair => {
+            let component_width = (operand.byte_width / 2).max(1);
+            let mut low_components = components.clone();
+            low_components.push(0);
+            leaves.push(SelectableOperandLeaf {
+                variable: Variable::Register(operand.register_id),
+                byte_width: component_width,
+                inject_after,
+                name: format!("mreg:{}", operand.register_id),
+                components: low_components,
+            });
+            components.push(1);
+            leaves.push(SelectableOperandLeaf {
+                variable: Variable::Register(operand.second_register_id),
+                byte_width: component_width,
+                inject_after,
+                name: format!("mreg:{}", operand.second_register_id),
+                components,
+            });
+        }
+        MicrocodeOperandKind::AddressReference => {
+            if let Some(referenced) = operand.referenced_operand.as_deref() {
+                components.push(0);
+                collect_selectable_operand_leaves(referenced, false, components, leaves);
+            }
+        }
+        MicrocodeOperandKind::CallArguments => {
+            for (index, argument) in operand.call_arguments.iter().enumerate() {
+                let mut argument_components = components.clone();
+                argument_components.push(index);
+                collect_selectable_operand_leaves(argument, false, argument_components, leaves);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn enumerate_microcode_instruction_roots(
+    function_address: Address,
+    instruction: &MicrocodeInstruction,
+    path: &OwnedInstructionPath,
+    next_sub_index: &mut usize,
+    candidates: &mut Vec<MicrocodeRootCandidate>,
+) {
+    let operands = [
+        &instruction.left,
+        &instruction.right,
+        &instruction.destination,
+    ];
+    for (operand_index, operand) in operands.iter().enumerate() {
+        let Some(nested) = operand.nested_instruction.as_deref() else {
+            continue;
+        };
+        let mut nested_path = path.clone();
+        nested_path.nested_operands.push(operand_index as u8);
+        enumerate_microcode_instruction_roots(
+            function_address,
+            nested,
+            &nested_path,
+            next_sub_index,
+            candidates,
+        );
+    }
+
+    let sub_index = *next_sub_index;
+    *next_sub_index += 1;
+    for (operand_index, operand) in operands.iter().enumerate() {
+        let mut leaves = Vec::new();
+        collect_selectable_operand_leaves(
+            operand,
+            operand_index == 2 && instruction.modifies_destination,
+            Vec::new(),
+            &mut leaves,
+        );
+        for leaf in leaves {
+            candidates.push(MicrocodeRootCandidate {
+                ordinal: candidates.len(),
+                function_address,
+                instruction_address: instruction.address,
+                sub_index,
+                path: path.clone(),
+                variable: leaf.variable,
+                operand_index,
+                operand_components: leaf.components,
+                byte_width: leaf.byte_width,
+                inject_after: leaf.inject_after,
+                variable_name: leaf.name,
+                instruction_text: lines::tag_remove(&instruction.text),
+            });
+        }
+    }
+}
+
+fn enumerate_microcode_roots(graph: &MicrocodeFunction) -> Vec<MicrocodeRootCandidate> {
+    let mut candidates = Vec::new();
+    for block in &graph.blocks {
+        let mut next_sub_index = 0usize;
+        let mut previous_top_address = BAD_ADDRESS;
+        for (top_level_index, instruction) in block.instructions.iter().enumerate() {
+            if top_level_index == 0 || instruction.address != previous_top_address {
+                next_sub_index = 0;
+            }
+            let path = OwnedInstructionPath {
+                block_index: block.index,
+                top_level_index,
+                nested_operands: Vec::new(),
+            };
+            enumerate_microcode_instruction_roots(
+                graph.entry_address,
+                instruction,
+                &path,
+                &mut next_sub_index,
+                &mut candidates,
+            );
+            previous_top_address = instruction.address;
+        }
+    }
+    candidates
 }
 
 fn signed_to_width(value: i128, byte_width: i32) -> i64 {
@@ -1527,10 +1756,17 @@ fn discover_allocators(seeds: Vec<ResolvedAllocator>) -> Result<AllocatorDiscove
     Ok(discovery)
 }
 
+#[derive(Debug, Clone, Copy, Default)]
+struct PreparedOperand {
+    nested: bool,
+    value: Option<AbstractValue>,
+}
+
 struct InterproceduralAnalyzer<F> {
     loader: F,
     max_depth: usize,
     allocation_call: Option<Address>,
+    selected_root: Option<SelectedMicrocodeRoot>,
     graph_cache: HashMap<Address, MicrocodeFunction>,
     active_contexts: HashSet<ContextKey>,
     completed_contexts: HashMap<ContextKey, Option<AbstractValue>>,
@@ -1549,6 +1785,7 @@ struct InterproceduralAnalyzer<F> {
     repeated_contexts: usize,
     unresolved_calls: usize,
     return_conflicts: usize,
+    root_injections: usize,
     next_observation_order: usize,
 }
 
@@ -1561,6 +1798,7 @@ where
             loader,
             max_depth,
             allocation_call: None,
+            selected_root: None,
             graph_cache: HashMap::new(),
             active_contexts: HashSet::new(),
             completed_contexts: HashMap::new(),
@@ -1579,6 +1817,7 @@ where
             repeated_contexts: 0,
             unresolved_calls: 0,
             return_conflicts: 0,
+            root_injections: 0,
             next_observation_order: 0,
         }
     }
@@ -1586,6 +1825,16 @@ where
     fn new_for_allocation(max_depth: usize, call_address: Address, loader: F) -> Self {
         let mut analyzer = Self::new(max_depth, loader);
         analyzer.allocation_call = Some(call_address);
+        analyzer
+    }
+
+    fn new_for_microcode_root(
+        max_depth: usize,
+        selected_root: SelectedMicrocodeRoot,
+        loader: F,
+    ) -> Self {
+        let mut analyzer = Self::new(max_depth, loader);
+        analyzer.selected_root = Some(selected_root);
         analyzer
     }
 
@@ -1656,11 +1905,50 @@ where
         Ok(state.value(operand).or_else(|| immediate_value(operand)))
     }
 
+    fn operand_value_prepared(
+        &mut self,
+        state: &mut State,
+        operand: &MicrocodeOperand,
+        depth: usize,
+        prepared: PreparedOperand,
+    ) -> Result<Option<AbstractValue>> {
+        if prepared.nested {
+            return Ok(prepared.value);
+        }
+        self.operand_value(state, operand, depth)
+    }
+
+    fn prepare_operand(
+        &mut self,
+        state: &mut State,
+        operand: &MicrocodeOperand,
+        depth: usize,
+        path: Option<&OwnedInstructionPath>,
+        graph_entry: Address,
+        operand_index: u8,
+    ) -> Result<PreparedOperand> {
+        let Some(nested) = operand.nested_instruction.as_deref() else {
+            return Ok(PreparedOperand::default());
+        };
+        let nested_path = path.map(|path| {
+            let mut nested_path = path.clone();
+            nested_path.nested_operands.push(operand_index);
+            nested_path
+        });
+        let value =
+            self.process_instruction_at(state, nested, depth, nested_path.as_ref(), graph_entry)?;
+        Ok(PreparedOperand {
+            nested: true,
+            value,
+        })
+    }
+
     fn process_call(
         &mut self,
         state: &mut State,
         instruction: &MicrocodeInstruction,
         depth: usize,
+        prepared_right: PreparedOperand,
     ) -> Result<Option<AbstractValue>> {
         if self.allocation_call == Some(instruction.address) {
             return Ok(Some(AbstractValue::StructurePointer(0)));
@@ -1686,7 +1974,7 @@ where
         }
         let database_resolved_indirect = instruction.opcode == MicrocodeOpcode::IndirectCall;
         let target = if database_resolved_indirect {
-            match self.operand_value(state, &instruction.right, depth)? {
+            match self.operand_value_prepared(state, &instruction.right, depth, prepared_right)? {
                 Some(value @ AbstractValue::DatabaseValue { .. }) => unsigned_scalar(value),
                 _ => None,
             }
@@ -1741,6 +2029,41 @@ where
         instruction: &MicrocodeInstruction,
         depth: usize,
     ) -> Result<Option<AbstractValue>> {
+        self.process_instruction_at(state, instruction, depth, None, BAD_ADDRESS)
+    }
+
+    fn process_instruction_at(
+        &mut self,
+        state: &mut State,
+        instruction: &MicrocodeInstruction,
+        depth: usize,
+        path: Option<&OwnedInstructionPath>,
+        graph_entry: Address,
+    ) -> Result<Option<AbstractValue>> {
+        let prepared_left =
+            self.prepare_operand(state, &instruction.left, depth, path, graph_entry, 0)?;
+        let prepared_right =
+            self.prepare_operand(state, &instruction.right, depth, path, graph_entry, 1)?;
+        let prepared_destination =
+            self.prepare_operand(state, &instruction.destination, depth, path, graph_entry, 2)?;
+        let selected_instruction = self.selected_root.as_ref().is_some_and(|selected| {
+            graph_entry == selected.candidate.function_address
+                && path == Some(&selected.candidate.path)
+        });
+        if selected_instruction
+            && self
+                .selected_root
+                .as_ref()
+                .is_some_and(|selected| !selected.candidate.inject_after)
+        {
+            let selected = self.selected_root.as_ref().unwrap();
+            state.values.insert(
+                selected.candidate.variable,
+                AbstractValue::StructurePointer(selected.shift),
+            );
+            self.root_injections += 1;
+        }
+        let mut assign_destination = true;
         let result = match instruction.opcode {
             MicrocodeOpcode::Move => {
                 let value = if instruction.left.kind == MicrocodeOperandKind::GlobalAddress {
@@ -1753,7 +2076,7 @@ where
                 {
                     Some(address)
                 } else {
-                    self.operand_value(state, &instruction.left, depth)?
+                    self.operand_value_prepared(state, &instruction.left, depth, prepared_left)?
                 };
                 match value {
                     Some(AbstractValue::Integer { value, .. }) => Some(AbstractValue::Integer {
@@ -1773,7 +2096,7 @@ where
                 }
             }
             MicrocodeOpcode::ZeroExtend | MicrocodeOpcode::SignedExtend => {
-                match self.operand_value(state, &instruction.left, depth)? {
+                match self.operand_value_prepared(state, &instruction.left, depth, prepared_left)? {
                     Some(value @ AbstractValue::Integer { .. })
                     | Some(value @ AbstractValue::DatabaseValue { .. }) => {
                         let database_derived = matches!(value, AbstractValue::DatabaseValue { .. });
@@ -1799,8 +2122,10 @@ where
                 }
             }
             MicrocodeOpcode::Add | MicrocodeOpcode::Subtract => {
-                let left = self.operand_value(state, &instruction.left, depth)?;
-                let right = self.operand_value(state, &instruction.right, depth)?;
+                let left =
+                    self.operand_value_prepared(state, &instruction.left, depth, prepared_left)?;
+                let right =
+                    self.operand_value_prepared(state, &instruction.right, depth, prepared_right)?;
                 match (left, right) {
                     (
                         Some(AbstractValue::StructurePointer(offset)),
@@ -1861,7 +2186,8 @@ where
                 }
             }
             MicrocodeOpcode::LoadMemory => {
-                let pointer = self.operand_value(state, &instruction.right, depth)?;
+                let pointer =
+                    self.operand_value_prepared(state, &instruction.right, depth, prepared_right)?;
                 record_access(
                     &mut self.raw_accesses,
                     pointer,
@@ -1881,8 +2207,14 @@ where
                 }
             }
             MicrocodeOpcode::StoreMemory => {
-                let _ = self.operand_value(state, &instruction.left, depth)?;
-                let pointer = self.operand_value(state, &instruction.destination, depth)?;
+                let _ =
+                    self.operand_value_prepared(state, &instruction.left, depth, prepared_left)?;
+                let pointer = self.operand_value_prepared(
+                    state,
+                    &instruction.destination,
+                    depth,
+                    prepared_destination,
+                )?;
                 record_access(
                     &mut self.raw_accesses,
                     pointer,
@@ -1893,10 +2225,11 @@ where
                     self.next_observation_order,
                 );
                 self.next_observation_order += 1;
-                return Ok(None);
+                assign_destination = false;
+                None
             }
             MicrocodeOpcode::Call | MicrocodeOpcode::IndirectCall => {
-                self.process_call(state, instruction, depth)?
+                self.process_call(state, instruction, depth, prepared_right)?
             }
             MicrocodeOpcode::Return | MicrocodeOpcode::NoOperation => None,
             _ => {
@@ -1904,7 +2237,22 @@ where
                 None
             }
         };
-        state.assign(&instruction.destination, result);
+        if assign_destination {
+            state.assign(&instruction.destination, result);
+        }
+        if selected_instruction
+            && self
+                .selected_root
+                .as_ref()
+                .is_some_and(|selected| selected.candidate.inject_after)
+        {
+            let selected = self.selected_root.as_ref().unwrap();
+            state.values.insert(
+                selected.candidate.variable,
+                AbstractValue::StructurePointer(selected.shift),
+            );
+            self.root_injections += 1;
+        }
         Ok(result)
     }
 
@@ -1960,9 +2308,20 @@ where
                 } else {
                     select_predecessor_state(block, &end_states)
                 };
-                for instruction in &block.instructions {
+                for (instruction_index, instruction) in block.instructions.iter().enumerate() {
+                    let path = OwnedInstructionPath {
+                        block_index: block.index,
+                        top_level_index: instruction_index,
+                        nested_operands: Vec::new(),
+                    };
                     self.instructions_processed += 1;
-                    let _ = self.process_instruction(&mut state, instruction, depth)?;
+                    let _ = self.process_instruction_at(
+                        &mut state,
+                        instruction,
+                        depth,
+                        Some(&path),
+                        graph.entry_address,
+                    )?;
                 }
                 end_states.insert(block.index, state);
             }
@@ -2124,6 +2483,7 @@ where
         argument_index,
         argument_name: argument.name.clone(),
         argument_location: argument.location.clone(),
+        microcode_root: None,
         fields,
         instructions_processed: analyzer.instructions_processed,
         blocks_processed: analyzer.blocks_processed,
@@ -2139,6 +2499,7 @@ where
         repeated_contexts: analyzer.repeated_contexts,
         unresolved_calls: analyzer.unresolved_calls,
         return_conflicts: analyzer.return_conflicts,
+        root_injections: analyzer.root_injections,
         propagation_sites: analyzer.propagation_sites,
         return_sites: analyzer.return_sites,
     })
@@ -2150,6 +2511,102 @@ fn reconstruct(
     max_depth: usize,
 ) -> Result<Reconstruction> {
     reconstruct_with_loader(graph, argument_index, max_depth, |address| {
+        decompiler::generate_microcode(
+            address,
+            MicrocodeGenerationOptions {
+                maturity: MicrocodeMaturity::Preoptimized,
+                analyze_calls: true,
+            },
+        )
+    })
+}
+
+fn reconstruct_microcode_root_with_loader<F>(
+    graph: &MicrocodeFunction,
+    root: &SelectedMicrocodeRoot,
+    max_depth: usize,
+    loader: F,
+) -> Result<Reconstruction>
+where
+    F: FnMut(Address) -> Result<MicrocodeFunction>,
+{
+    if graph.maturity != MicrocodeMaturity::Preoptimized {
+        return Err(Error::validation(
+            "Symless microcode-root reconstruction requires preoptimized microcode",
+        ));
+    }
+    if root.candidate.function_address != graph.entry_address {
+        return Err(Error::validation(
+            "selected microcode root belongs to another function",
+        ));
+    }
+    let exists = enumerate_microcode_roots(graph)
+        .into_iter()
+        .any(|candidate| {
+            candidate.path == root.candidate.path
+                && candidate.variable == root.candidate.variable
+                && candidate.operand_index == root.candidate.operand_index
+                && candidate.operand_components == root.candidate.operand_components
+                && candidate.inject_after == root.candidate.inject_after
+        });
+    if !exists {
+        return Err(Error::validation(
+            "selected microcode root is not present in the copied graph",
+        ));
+    }
+    let mut analyzer =
+        InterproceduralAnalyzer::new_for_microcode_root(max_depth, root.clone(), loader);
+    analyzer.analyze_graph(graph, &[], 0)?;
+    if analyzer.root_injections != 1 {
+        return Err(Error::internal(
+            "selected microcode root was not injected exactly once",
+        ));
+    }
+    let (mut fields, negative_accesses, conflict_discards) =
+        resolve_field_conflicts(&analyzer.raw_accesses);
+    attach_operand_observations(&mut fields, &analyzer.operand_observations);
+    Ok(Reconstruction {
+        function_address: graph.entry_address,
+        argument_index: 0,
+        argument_name: root.candidate.variable_name.clone(),
+        argument_location: MicrocodeValueLocation {
+            kind: MicrocodeValueLocationKind::Unspecified,
+            register_id: 0,
+            second_register_id: 0,
+            register_offset: 0,
+            register_relative_offset: 0,
+            stack_offset: 0,
+            static_address: BAD_ADDRESS,
+            scattered_parts: Vec::new(),
+        },
+        microcode_root: Some(root.clone()),
+        fields,
+        instructions_processed: analyzer.instructions_processed,
+        blocks_processed: analyzer.blocks_processed,
+        unsupported_instructions: analyzer.unsupported_instructions,
+        negative_accesses,
+        conflict_discards,
+        max_depth,
+        functions_processed: analyzer.functions_processed,
+        calls_followed: analyzer.calls_followed,
+        database_resolved_indirect_calls: analyzer.database_resolved_indirect_calls,
+        depth_skips: analyzer.depth_skips,
+        cycle_skips: analyzer.cycle_skips,
+        repeated_contexts: analyzer.repeated_contexts,
+        unresolved_calls: analyzer.unresolved_calls,
+        return_conflicts: analyzer.return_conflicts,
+        root_injections: analyzer.root_injections,
+        propagation_sites: analyzer.propagation_sites,
+        return_sites: analyzer.return_sites,
+    })
+}
+
+fn reconstruct_microcode_root(
+    graph: &MicrocodeFunction,
+    root: &SelectedMicrocodeRoot,
+    max_depth: usize,
+) -> Result<Reconstruction> {
+    reconstruct_microcode_root_with_loader(graph, root, max_depth, |address| {
         decompiler::generate_microcode(
             address,
             MicrocodeGenerationOptions {
@@ -3142,18 +3599,20 @@ fn apply_reconstruction(
             "no nonnegative structure fields were recovered",
         ));
     }
-    let root_type = types::retrieve(reconstruction.function_address)?;
-    let root_details = root_type.function_details()?;
-    let root_argument = root_details
-        .arguments
-        .get(reconstruction.argument_index)
-        .ok_or_else(|| Error::validation("function type has fewer arguments than microcode"))?;
-    if argument_eligibility(&root_argument.r#type, structure_name, 0)?
-        == ArgumentEligibility::Ineligible
-    {
-        return Err(Error::validation(
-            "selected argument is not a pointer or pointer-width integral scalar",
-        ));
+    if reconstruction.microcode_root.is_none() {
+        let root_type = types::retrieve(reconstruction.function_address)?;
+        let root_details = root_type.function_details()?;
+        let root_argument = root_details
+            .arguments
+            .get(reconstruction.argument_index)
+            .ok_or_else(|| Error::validation("function type has fewer arguments than microcode"))?;
+        if argument_eligibility(&root_argument.r#type, structure_name, 0)?
+            == ArgumentEligibility::Ineligible
+        {
+            return Err(Error::validation(
+                "selected argument is not a pointer or pointer-width integral scalar",
+            ));
+        }
     }
     let mut summary = ApplySummary::default();
     let structure = ensure_structure(structure_name, &reconstruction.fields, &mut summary)?;
@@ -3177,7 +3636,8 @@ fn apply_reconstruction(
     let pointer = TypeInfo::pointer_to(&structure);
 
     for site in &reconstruction.propagation_sites {
-        let is_root = site.function_address == reconstruction.function_address
+        let is_root = reconstruction.microcode_root.is_none()
+            && site.function_address == reconstruction.function_address
             && site.argument_index == reconstruction.argument_index;
         if i32::try_from(site.shift).is_err() {
             summary.arguments_skipped_shifted += 1;
@@ -3695,6 +4155,13 @@ fn default_structure_name(function_address: Address, argument_index: usize) -> S
     format!("symless_{function_address:x}_arg{argument_index}")
 }
 
+fn default_microcode_root_structure_name(candidate: &MicrocodeRootCandidate) -> String {
+    format!(
+        "symless_{:x}_micro{}",
+        candidate.function_address, candidate.ordinal
+    )
+}
+
 fn print_report(
     options: &Options,
     reconstruction: &Reconstruction,
@@ -3705,12 +4172,29 @@ fn print_report(
     println!("input: {}", options.input);
     println!("mode: {}", if options.apply { "apply" } else { "report" });
     println!("function: 0x{:x}", reconstruction.function_address);
-    println!("argument_index: {}", reconstruction.argument_index);
-    println!("argument_name: {}", reconstruction.argument_name);
-    println!(
-        "argument_location: {:?}",
-        reconstruction.argument_location.kind
-    );
+    if let Some(root) = &reconstruction.microcode_root {
+        println!("microcode_root_index: {}", root.candidate.ordinal);
+        println!(
+            "microcode_root: 0x{:x}.{} {} {} width={} B shift={:+}",
+            root.candidate.instruction_address,
+            root.candidate.sub_index,
+            root.candidate.variable_name,
+            if root.candidate.inject_after {
+                "destination/after"
+            } else {
+                "source/before"
+            },
+            root.candidate.byte_width,
+            root.shift
+        );
+    } else {
+        println!("argument_index: {}", reconstruction.argument_index);
+        println!("argument_name: {}", reconstruction.argument_name);
+        println!(
+            "argument_location: {:?}",
+            reconstruction.argument_location.kind
+        );
+    }
     println!("structure_name: {structure_name}");
     println!("max_depth: {}", reconstruction.max_depth);
     println!(
@@ -3727,6 +4211,7 @@ fn print_report(
     println!("repeated_contexts: {}", reconstruction.repeated_contexts);
     println!("unresolved_calls: {}", reconstruction.unresolved_calls);
     println!("return_conflicts: {}", reconstruction.return_conflicts);
+    println!("root_injections: {}", reconstruction.root_injections);
     println!("blocks_processed: {}", reconstruction.blocks_processed);
     println!(
         "instructions_processed: {}",
@@ -3848,6 +4333,30 @@ fn print_report(
             summary.returns_skipped_shifted
         );
         println!("returns_ineligible: {}", summary.returns_ineligible);
+    }
+}
+
+fn print_microcode_roots(options: &Options, candidates: &[MicrocodeRootCandidate]) {
+    println!("Symless selectable microcode roots (Rust headless adaptation)");
+    println!("input: {}", options.input);
+    println!("function: {}", options.function);
+    println!("candidate_count: {}", candidates.len());
+    for candidate in candidates.iter().take(options.show) {
+        println!(
+            "  #{} 0x{:x}.{} block={} variable={} role={} width={} B instruction={}",
+            candidate.ordinal,
+            candidate.instruction_address,
+            candidate.sub_index,
+            candidate.path.block_index,
+            candidate.variable_name,
+            if candidate.inject_after {
+                "destination/after"
+            } else {
+                "source/before"
+            },
+            candidate.byte_width,
+            candidate.instruction_text
+        );
     }
 }
 
@@ -4224,11 +4733,40 @@ fn run() -> Result<()> {
             analyze_calls: true,
         },
     )?;
-    let reconstruction = reconstruct(&graph, options.argument_index, options.max_depth)?;
-    let structure_name = options
-        .structure_name
-        .clone()
-        .unwrap_or_else(|| default_structure_name(function_address, options.argument_index));
+    let candidates = enumerate_microcode_roots(&graph);
+    if options.list_microcode_roots {
+        if options.apply {
+            return Err(Error::validation(
+                "--list-microcode-roots cannot be combined with --apply",
+            ));
+        }
+        print_microcode_roots(&options, &candidates);
+        return Ok(());
+    }
+    let reconstruction = if let Some(candidate_index) = options.microcode_root {
+        let candidate = candidates.get(candidate_index).ok_or_else(|| {
+            Error::validation(format!(
+                "microcode root index {candidate_index} is outside 0..{}",
+                candidates.len()
+            ))
+        })?;
+        reconstruct_microcode_root(
+            &graph,
+            &SelectedMicrocodeRoot {
+                candidate: candidate.clone(),
+                shift: options.root_shift,
+            },
+            options.max_depth,
+        )?
+    } else {
+        reconstruct(&graph, options.argument_index, options.max_depth)?
+    };
+    let structure_name = options.structure_name.clone().unwrap_or_else(|| {
+        reconstruction.microcode_root.as_ref().map_or_else(
+            || default_structure_name(function_address, options.argument_index),
+            |root| default_microcode_root_structure_name(&root.candidate),
+        )
+    });
     let apply_summary = if options.apply {
         let summary = apply_reconstruction(&reconstruction, &structure_name)?;
         database::save()?;
@@ -4287,6 +4825,7 @@ mod tests {
             right: operand(MicrocodeOperandKind::Empty, 0),
             destination: operand(MicrocodeOperandKind::Empty, 0),
             floating_point_instruction: false,
+            modifies_destination: false,
             address: 0x1000,
             text: String::new(),
         }
@@ -4344,6 +4883,170 @@ mod tests {
                 instructions: vec![shift, root_store, secondary_store],
             }],
         }
+    }
+
+    fn graph_with_instructions(instructions: Vec<MicrocodeInstruction>) -> MicrocodeFunction {
+        MicrocodeFunction {
+            entry_address: 0x1000,
+            maturity: MicrocodeMaturity::Preoptimized,
+            arguments: Vec::new(),
+            return_location: None,
+            blocks: vec![MicrocodeBlock {
+                index: 0,
+                start_address: 0x1000,
+                end_address: 0x1100,
+                predecessors: Vec::new(),
+                successors: Vec::new(),
+                instructions,
+            }],
+        }
+    }
+
+    #[test]
+    fn microcode_root_enumeration_uses_execution_order_and_modification_metadata() {
+        let mut nested = instruction(MicrocodeOpcode::Move);
+        nested.left = operand(MicrocodeOperandKind::Register, 8);
+        nested.left.register_id = 9;
+        nested.destination = operand(MicrocodeOperandKind::Register, 8);
+        nested.destination.register_id = 10;
+        nested.modifies_destination = true;
+
+        let mut parent = instruction(MicrocodeOpcode::Add);
+        parent.left = operand(MicrocodeOperandKind::Register, 8);
+        parent.left.register_id = 1;
+        parent.right = operand(MicrocodeOperandKind::NestedInstruction, 8);
+        parent.right.nested_instruction = Some(Box::new(nested));
+        parent.destination = operand(MicrocodeOperandKind::Register, 8);
+        parent.destination.register_id = 2;
+        parent.modifies_destination = true;
+
+        let mut store = instruction(MicrocodeOpcode::StoreMemory);
+        store.address = 0x1004;
+        store.left = operand(MicrocodeOperandKind::UnsignedImmediate, 4);
+        store.left.unsigned_immediate = 1;
+        store.destination = operand(MicrocodeOperandKind::Register, 8);
+        store.destination.register_id = 2;
+        store.modifies_destination = false;
+
+        let candidates = enumerate_microcode_roots(&graph_with_instructions(vec![parent, store]));
+        assert_eq!(candidates.len(), 5);
+        assert_eq!(candidates[0].variable, Variable::Register(9));
+        assert_eq!(candidates[0].sub_index, 0);
+        assert!(!candidates[0].inject_after);
+        assert_eq!(candidates[1].variable, Variable::Register(10));
+        assert_eq!(candidates[1].sub_index, 0);
+        assert!(candidates[1].inject_after);
+        assert_eq!(candidates[2].variable, Variable::Register(1));
+        assert_eq!(candidates[2].sub_index, 1);
+        assert!(!candidates[2].inject_after);
+        assert_eq!(candidates[3].variable, Variable::Register(2));
+        assert_eq!(candidates[3].sub_index, 1);
+        assert!(candidates[3].inject_after);
+        assert_eq!(candidates[4].variable, Variable::Register(2));
+        assert_eq!(candidates[4].sub_index, 0);
+        assert!(!candidates[4].inject_after);
+    }
+
+    #[test]
+    fn microcode_root_enumeration_descends_supported_composite_operands() {
+        let mut call = instruction(MicrocodeOpcode::Call);
+        call.left = operand(MicrocodeOperandKind::RegisterPair, 8);
+        call.left.register_id = 3;
+        call.left.second_register_id = 4;
+        call.destination = operand(MicrocodeOperandKind::CallArguments, 0);
+        let mut register_argument = operand(MicrocodeOperandKind::Register, 8);
+        register_argument.register_id = 5;
+        let mut stack_argument = operand(MicrocodeOperandKind::StackVariable, 8);
+        stack_argument.stack_offset = -16;
+        call.destination.call_arguments = vec![register_argument, stack_argument];
+        call.modifies_destination = true;
+
+        let candidates = enumerate_microcode_roots(&graph_with_instructions(vec![call]));
+        assert_eq!(candidates.len(), 4);
+        assert_eq!(candidates[0].variable, Variable::Register(3));
+        assert_eq!(candidates[0].operand_components, vec![0]);
+        assert_eq!(candidates[1].variable, Variable::Register(4));
+        assert_eq!(candidates[1].operand_components, vec![1]);
+        assert_eq!(candidates[2].variable, Variable::Register(5));
+        assert_eq!(candidates[2].operand_components, vec![0]);
+        assert!(!candidates[2].inject_after);
+        assert_eq!(candidates[3].variable, Variable::Stack(-16));
+        assert_eq!(candidates[3].operand_components, vec![1]);
+        assert!(!candidates[3].inject_after);
+    }
+
+    #[test]
+    fn parent_source_root_is_injected_after_nested_instruction_execution() {
+        let mut nested = instruction(MicrocodeOpcode::Move);
+        nested.left = operand(MicrocodeOperandKind::UnsignedImmediate, 8);
+        nested.left.unsigned_immediate = 5;
+        nested.destination = operand(MicrocodeOperandKind::Register, 8);
+        nested.destination.register_id = 1;
+        nested.modifies_destination = true;
+
+        let mut parent = instruction(MicrocodeOpcode::Add);
+        parent.left = operand(MicrocodeOperandKind::Register, 8);
+        parent.left.register_id = 1;
+        parent.right = operand(MicrocodeOperandKind::NestedInstruction, 8);
+        parent.right.nested_instruction = Some(Box::new(nested));
+        parent.destination = operand(MicrocodeOperandKind::Register, 8);
+        parent.destination.register_id = 2;
+        parent.modifies_destination = true;
+
+        let mut store = instruction(MicrocodeOpcode::StoreMemory);
+        store.address = 0x1004;
+        store.left = operand(MicrocodeOperandKind::UnsignedImmediate, 4);
+        store.left.unsigned_immediate = 1;
+        store.destination = operand(MicrocodeOperandKind::Register, 8);
+        store.destination.register_id = 2;
+
+        let graph = graph_with_instructions(vec![parent, store]);
+        let candidates = enumerate_microcode_roots(&graph);
+        let candidate = candidates
+            .iter()
+            .find(|candidate| {
+                candidate.path.top_level_index == 0
+                    && candidate.path.nested_operands.is_empty()
+                    && candidate.variable == Variable::Register(1)
+            })
+            .unwrap()
+            .clone();
+        let reconstruction = reconstruct_microcode_root_with_loader(
+            &graph,
+            &SelectedMicrocodeRoot {
+                candidate,
+                shift: 0,
+            },
+            0,
+            |_| Err(Error::not_found("test loader is unused")),
+        )
+        .unwrap();
+        assert_eq!(reconstruction.root_injections, 1);
+        assert_eq!(reconstruction.fields.len(), 1);
+        assert_eq!(reconstruction.fields[0].offset, 5);
+        assert_eq!(reconstruction.fields[0].byte_width, 4);
+        assert_eq!(reconstruction.fields[0].writes, 1);
+
+        let nested_destination = candidates
+            .into_iter()
+            .find(|candidate| {
+                candidate.path.nested_operands == vec![1]
+                    && candidate.variable == Variable::Register(1)
+                    && candidate.inject_after
+            })
+            .unwrap();
+        let after_reconstruction = reconstruct_microcode_root_with_loader(
+            &graph,
+            &SelectedMicrocodeRoot {
+                candidate: nested_destination,
+                shift: 0,
+            },
+            0,
+            |_| Err(Error::not_found("test loader is unused")),
+        )
+        .unwrap();
+        assert_eq!(after_reconstruction.root_injections, 1);
+        assert_eq!(after_reconstruction.fields[0].offset, 5);
     }
 
     #[test]

@@ -5435,6 +5435,7 @@ pub struct IdaxMicrocodeInstruction {
     pub right: IdaxMicrocodeOperand,
     pub destination: IdaxMicrocodeOperand,
     pub floating_point_instruction: ::std::os::raw::c_int,
+    pub modifies_destination: ::std::os::raw::c_int,
     pub address: u64,
     pub text: *mut ::std::os::raw::c_char,
 }

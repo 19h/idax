@@ -2030,6 +2030,17 @@ fn decompiler_owned_microcode_graph() {
         let _ = operand.processor_register_id;
     }
 
+    for instruction in graph.blocks.iter().flat_map(|block| &block.instructions) {
+        if instruction.opcode == decompiler::MicrocodeOpcode::StoreMemory {
+            assert!(!instruction.modifies_destination);
+        }
+        if instruction.opcode == decompiler::MicrocodeOpcode::Move
+            && instruction.destination.kind != decompiler::MicrocodeOperandKind::Empty
+        {
+            assert!(instruction.modifies_destination);
+        }
+    }
+
     let second = decompiler::generate_microcode(f.start(), options).unwrap();
     assert!(!second.blocks.is_empty());
     assert!(

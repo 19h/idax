@@ -523,6 +523,7 @@ Result<MicrocodeInstruction> parse_sdk_instruction(const minsn_t* minsn) {
     result.destination = *dest_res;
 
     result.floating_point_instruction = minsn->is_fpinsn();
+    result.modifies_destination = minsn->modifies_d();
     result.address = minsn->ea == BADADDR
         ? BadAddress
         : static_cast<Address>(minsn->ea);

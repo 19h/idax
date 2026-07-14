@@ -313,6 +313,7 @@ static v8::Local<v8::Object> MicrocodeInstructionToJS(const ida::decompiler::Mic
         .set("right", MicrocodeOperandToJS(instruction.right))
         .set("destination", MicrocodeOperandToJS(instruction.destination))
         .setBool("floatingPointInstruction", instruction.floating_point_instruction)
+        .setBool("modifiesDestination", instruction.modifies_destination)
         .setAddr("address", instruction.address)
         .setStr("text", instruction.text)
         .build();

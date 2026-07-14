@@ -235,4 +235,9 @@ This section captures the intended public API semantics at a concrete level so i
 - `MicrocodeOperand::processor_register_id` carries the owned processor-register identity derived from a register microoperand and its width, enabling exact source-audited machine-operand correlation.
 - C++/Node/Rust parity includes copied path readback, exact added/reused state, signed deltas, and unavailable-register sentinel `-1`.
 
+### 17.28 Owned Microcode Destination Semantics
+- `MicrocodeInstruction::modifies_destination` copies the SDK instruction's destination-modification result without exposing `minsn_t` or a callback-scoped lifetime.
+- Node `modifiesDestination` and Rust `modifies_destination` preserve the same boolean through the owned graph and recursive nested-instruction transfer.
+- Store-address operands remain readable sources, while true result destinations can be identified for exact after-instruction state injection.
+
 ---

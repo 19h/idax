@@ -1801,6 +1801,7 @@ typedef struct IdaxMicrocodeInstruction {
     IdaxMicrocodeOperand right;
     IdaxMicrocodeOperand destination;
     int floating_point_instruction;
+    int modifies_destination;
     uint64_t address;
     char* text;
 } IdaxMicrocodeInstruction;

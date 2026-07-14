@@ -1658,3 +1658,40 @@ For a candidate whose first function pointer is at address `T`, upstream load di
 - No wrapper header, compiled wrapper source, Node surface, Rust library, C shim, or generated binding changes are required; the two adaptations consume existing opaque values.
 - The original direct-table fixture is the fallback negative control: it must report one direct load, zero RTTI fallback/load, zero aliases followed, three methods, and unchanged `+8/4 B`, `+16/8 B`, `+24/1 B` fields.
 - Complete evidence is C++ 26/26, Node 238 structural plus 82 live, Rust 139 library plus 0 sys plus 17 Symless plus 99 live, strict/all-target checks, generated-binding identity at `3a143a13309725ed66c5ebce1dd5199fafcc30ea8a0d92b33404c9fef66d7a13`, and unchanged tracked fixture hashes/blob. Any reduced count, binding delta, direct-path fallback, or tracked fixture mutation falsifies the no-public-API conclusion.
+
+### 35.97. Exact Microcode Operand Root Model [F441]
+
+For each top-level owned microinstruction, visit nested left, right, and destination instructions recursively before the parent, then assign monotonically increasing sub-indices in execution order. At each instruction, expose register and stack operands from left, right, and destination; the destination is an after-instruction root only when copied `modifies_destination` is true, otherwise it is a before-instruction source root. Inject the selected structure-pointer value only in the selected graph entry context, before or after the exact address/sub-index, and reuse the existing depth-bounded interprocedural propagation thereafter.
+
+- Assumption A47.1: owned nested operand recursion preserves the SDK left/right/destination tree used by upstream flattening. Falsify with a nested graph whose candidate sequence differs from SDK depth-first execution order; dependent results: candidate identity and exact injection only.
+- Assumption A47.2: stack offsets and microregister IDs uniquely identify state locations within one generated preoptimized graph. Falsify with two distinct SDK locations copied to the same owned identity; dependent result: selected root state only.
+- Stress probes: a store destination must remain a source root, a move destination must be an after root, a nested source must receive a lower sub-index than its parent, the same `(EA, sub-index)` in a followed callee must not trigger root injection, and disabling follow-calls must retain root-function fields while excluding callee-only fields.
+- Complexity: enumeration is `O(I + O)` time and `O(D + C)` auxiliary space for `I` recursive instructions, `O` visited operands, nesting depth `D`, and emitted candidates `C`; injection adds `O(1)` matching work per processed instruction before existing graph/depth/context bounds.
+
+### 35.98. Picker Display Index and Execution Index Must Share One Traversal [F442]
+
+Do not compute candidate indices while rendering operands independently from analysis. Flatten nested left/right/destination instructions depth-first, assign the parent index only after all nested descendants, and use that same private instruction path for before/after injection. Display `(EA, sub-index)` for upstream familiarity, but do not use it as the sole internal identity because consecutive same-EA instructions and malformed/upstream-mismatched display indices can collide.
+
+- Assumption A47.3: SDK microcode execution order for nested `mop_d` operands is the audited `flatten_minsn()` left/right/destination depth-first order. Falsify by comparing a host trace or SDK contract showing a different order; dependent results: nested candidate numbering and injection timing only.
+- Stress probe: construct a parent with a register left operand and nested right operand. The nested candidates and instruction must precede the parent-left candidate's injection point, and selecting either must affect only its private path even if both render with the same address.
+
+### 35.99. Phase 47 Live Selection and Persistence Boundary [F443]
+
+- Picker-facing operand and instruction strings must remove IDA color tags from a copy; raw owned text remains available unchanged to other consumers.
+- Required report invariants for the arm64 `inspect_fields` fixture are 18 candidates, candidate zero at `0x100000460.0` as `x0.8{2}` source/before, exactly one root injection, four recovered fields at `+4/4 B`, `+8/8 B`, `+18/2 B`, and `+24/1 B`, and zero propagation sites for the local selected root.
+- Required persistence transitions are one structure/four members/four references/four operand paths added on first apply, then zero creation/addition and four reuses in a distinct process. Root argument change counters remain zero because an arbitrary selected microregister is not evidence that a function prototype argument has that type.
+- Falsification probes are tagged/control-byte candidate output, destination/after classification for the store address, injection count other than one, any lost/extra field, any root argument mutation, reopen additions, or reuse below four.
+
+### 35.100. Dynamic Object Dispatch Is Not an Upstream Parity Requirement [F444]
+
+Upstream has one indirect-call resolution rule: the `m_icall` right operand must carry database-memory provenance and equal an exact function entry. Structure-derived values do not satisfy that class. Vtables contribute statically enumerated argument-zero method roots, not runtime dispatch edges. With Phases 45 and 46 complete, no source-defined runtime object-dispatch behavior remains to port.
+
+- Assumption A47.4: the audited Symless checkout at the recorded file hashes is the target upstream source of truth. Falsify with another target revision containing an object-derived indirect-target resolver; dependent result: only the parity-closure classification.
+- Risk boundary: a novel virtual-dispatch analysis would need explicit object-state, table-offset, table-member, ambiguity, and call-graph policies plus independent soundness evidence. Its absence does not reduce fidelity to the audited upstream implementation.
+
+### 35.101. Phase 47 Cross-Language Regression and ABI Boundary [F445]
+
+- Complete evidence is C++ 26/26 in 22.58 s; Node 238 structural plus 82 live; Rust 139 library plus 0 sys plus 20 Symless plus 99 live; strict TypeScript, Rust format/all-target, and generated-binding identity checks also pass.
+- `IdaxMicrocodeInstruction` has the same ordered `modifies_destination` field in the C header, normalized bindgen output, and safe transfer. Two independent clean outputs and the checked file have SHA-256 `865f53507d8dd44ef7b2033eccb901f3bf26bf21e0653c8528c493e3692c7b3f`.
+- The tracked fixture executable remains SHA-256 `af23d4fde7d2b5ebe20385f5aa8c23221988fd1bdbab777c18daf8c9d9543f80`; its adjacent IDB remains SHA-256 `ce6d678f484d681a5bc147dab49c272e3a7f9883b3c15c41974ec52cb95a431b` and Git blob `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd`.
+- Falsification probes are any reduced test count, generated-binding byte delta, ABI field-order mismatch, tracked fixture mutation, candidate count other than 18, root injection count other than one, first-apply count other than four, or reopen addition/reuse other than zero/four.

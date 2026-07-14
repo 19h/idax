@@ -41,6 +41,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `get_udm_tid(index)` + `add_dref(source, member_tid, dr_I | XREF_USER)` | `TypeInfo::member_references(byte_offset)` / `ensure_member_reference(byte_offset, source_address)` |
 | `op_stroff(ea, n, [struct_tid, member_tid], 2, delta)` / `get_stroff_path(...)` | `ida::instruction::ensure_operand_struct_member_offset(address, index, structure_name, member_byte_offset, delta)` / `operand_struct_offset_path(address, index)` |
 | `ida_hexrays::mreg2reg(mreg, width)` | `MicrocodeOperand::processor_register_id` (Node `processorRegisterId`; Rust `processor_register_id`) |
+| `minsn_t::modifies_d()` | `MicrocodeInstruction::modifies_destination` (Node `modifiesDestination`; Rust `modifies_destination`) |
 | `gen_microcode(...)` + `mba_t::build_graph()` + native block/operand traversal | `ida::decompiler::generate_microcode(address, options)` returning an owned `MicrocodeFunction` |
 | pre-decompile direct callees + `mba_t::analyze_calls(ACFL_GUESS)` | `MicrocodeGenerationOptions::analyze_calls` (Node: `analyzeCalls`) |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |

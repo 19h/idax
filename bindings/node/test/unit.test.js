@@ -316,6 +316,7 @@ describe('Instruction Namespace Structure', () => {
         expect(dts).toContain('memberNames: string[]');
         expect(dts).toContain('function ensureOperandStructMemberOffset(');
         expect(dts).toContain('processorRegisterId: number');
+        expect(dts).toContain('modifiesDestination: boolean');
     });
 });
 
