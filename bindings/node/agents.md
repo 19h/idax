@@ -409,7 +409,7 @@ TypeInfo factory/runtime operations require an initialized IDA runtime/database;
 ### `TypeInfo` Class Methods
 * `isVoid(): boolean`, `isInteger()`, `isFloatingPoint()`, `isPointer()`, `isArray()`, `isFunction()`, `isStruct()`, `isUnion()`, `isEnum()`, `isTypedef()`, `isBool()`, `isChar()`, `isUnsignedChar()`, `isSigned()`, `kind()`, `name()`
 * `size(): number`, `toString(): string`, `declaration(declaratorName?: string): string`
-* `pointeeType(): TypeInfo`, `arrayElementType(): TypeInfo`, `arrayLength(): number`, `resolveTypedef(): TypeInfo`
+* `pointeeType(): TypeInfo`, `pointerDetails(): PointerDetails`, `withShiftedParent(parent: TypeInfo, byteDelta: number): TypeInfo`, `arrayElementType(): TypeInfo`, `arrayLength(): number`, `resolveTypedef(): TypeInfo`
 * `functionReturnType(): TypeInfo`, `functionArgumentTypes(): TypeInfo[]`, `functionDetails(): FunctionDetails`, `callingConvention(): CallingConvention`, `isVariadicFunction(): boolean`
 * `enumMembers(): { name: string, value: bigint, comment: string }[]`, `enumDetails(): EnumDetails`
 * `memberCount(): number`, `members(): Member[]`, `udtDetails(): UdtDetails`, `setUdtSemantics(isCppObject: boolean, isVftable: boolean): void`

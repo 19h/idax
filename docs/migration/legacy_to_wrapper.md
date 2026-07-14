@@ -123,6 +123,28 @@ auto ptr = ida::type::TypeInfo::pointer_to(ida::type::TypeInfo::int32());
 auto arr = ida::type::TypeInfo::array_of(ida::type::TypeInfo::uint8(), 256);
 ```
 
+### Shifted-pointer metadata
+
+```cpp
+// Legacy:
+// ptr_type_data_t details;
+// pointer.get_ptr_details(&details);
+// details.taptr_bits |= TAPTR_SHIFTED;
+// details.parent = parent;
+// details.delta = 8;
+// shifted.create_ptr(details);
+
+// idax: copied metadata in, opaque copy out.
+auto parent = ida::type::TypeInfo::by_name("object");
+auto pointer = ida::type::TypeInfo::pointer_to(*parent);
+auto shifted = pointer.with_shifted_parent(*parent, 8);
+auto details = shifted->pointer_details();
+// details->shifted_parent, details->shift_delta == 8, details->is_shifted
+```
+
+The delta is a nonzero signed 32-bit byte offset. The parent must be a struct.
+The source pointer remains unchanged.
+
 ### Struct creation and member access
 
 ```cpp

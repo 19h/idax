@@ -3614,6 +3614,51 @@ int idax_type_pointee_type(IdaxTypeHandle ti, IdaxTypeHandle* out) {
     return 0;
 }
 
+int idax_type_pointer_details(IdaxTypeHandle ti, IdaxTypePointerDetails** out) {
+    clear_error();
+    if (ti == nullptr || out == nullptr) {
+        return fail(ida::Error::validation(
+            ti == nullptr ? "Type handle is null" : "Output pointer is null"));
+    }
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)->pointer_details();
+    if (!result)
+        return fail(result.error());
+
+    auto* details = static_cast<IdaxTypePointerDetails*>(
+        std::calloc(1, sizeof(IdaxTypePointerDetails)));
+    if (details == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    details->pointee_type = new ida::type::TypeInfo(result->pointee_type);
+    if (result->shifted_parent) {
+        details->shifted_parent = new ida::type::TypeInfo(*result->shifted_parent);
+    }
+    details->shift_delta = result->shift_delta;
+    details->is_shifted = result->is_shifted ? 1 : 0;
+    *out = details;
+    return 0;
+}
+
+int idax_type_with_shifted_parent(IdaxTypeHandle ti,
+                                  IdaxTypeHandle parent,
+                                  int64_t byte_delta,
+                                  IdaxTypeHandle* out) {
+    clear_error();
+    if (ti == nullptr || parent == nullptr || out == nullptr) {
+        return fail(ida::Error::validation(
+            ti == nullptr ? "Type handle is null"
+                : parent == nullptr ? "Parent type handle is null"
+                                    : "Output pointer is null"));
+    }
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)->with_shifted_parent(
+        *static_cast<ida::type::TypeInfo*>(parent), byte_delta);
+    if (!result)
+        return fail(result.error());
+    *out = new ida::type::TypeInfo(std::move(*result));
+    return 0;
+}
+
 int idax_type_array_element_type(IdaxTypeHandle ti, IdaxTypeHandle* out) {
     clear_error();
     auto r = static_cast<ida::type::TypeInfo*>(ti)->array_element_type();
@@ -4131,6 +4176,16 @@ void idax_type_udt_details_free(IdaxTypeUdtDetails* details) {
         details->members = nullptr;
     }
     details->member_count = 0;
+    std::free(details);
+}
+
+void idax_type_pointer_details_free(IdaxTypePointerDetails* details) {
+    if (details == nullptr)
+        return;
+    delete static_cast<ida::type::TypeInfo*>(details->pointee_type);
+    delete static_cast<ida::type::TypeInfo*>(details->shifted_parent);
+    details->pointee_type = nullptr;
+    details->shifted_parent = nullptr;
     std::free(details);
 }
 

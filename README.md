@@ -275,6 +275,16 @@ st.add_member("flags",  ida::type::TypeInfo::uint32());
 st.add_member("buffer", ida::type::TypeInfo::array_of(ida::type::TypeInfo::uint8(), 256));
 st.save_as("packet_header");
 
+// Preserve exact IDA shifted-pointer metadata without exposing ptr_type_data_t.
+auto packet = ida::type::TypeInfo::by_name("packet_header");
+if (packet) {
+    auto shifted = ida::type::TypeInfo::pointer_to(*packet)
+        .with_shifted_parent(*packet, 8);
+    if (shifted) {
+        auto details = shifted->pointer_details(); // parent + signed byte delta
+    }
+}
+
 // Parse from C declaration
 auto parsed = ida::type::TypeInfo::from_declaration("int (*callback)(void*, size_t)");
 ```

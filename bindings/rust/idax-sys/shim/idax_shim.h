@@ -878,6 +878,13 @@ typedef struct IdaxTypeUdtDetails {
     size_t          member_count;
 } IdaxTypeUdtDetails;
 
+typedef struct IdaxTypePointerDetails {
+    IdaxTypeHandle pointee_type;
+    IdaxTypeHandle shifted_parent;
+    int32_t        shift_delta;
+    int            is_shifted;
+} IdaxTypePointerDetails;
+
 IdaxTypeHandle idax_type_void(void);
 IdaxTypeHandle idax_type_int8(void);
 IdaxTypeHandle idax_type_int16(void);
@@ -930,6 +937,11 @@ int idax_type_to_string(IdaxTypeHandle ti, char** out);
 int idax_type_name(IdaxTypeHandle ti, char** out);
 int idax_type_declaration(IdaxTypeHandle ti, const char* declarator_name, char** out);
 int idax_type_pointee_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
+int idax_type_pointer_details(IdaxTypeHandle ti, IdaxTypePointerDetails** out);
+int idax_type_with_shifted_parent(IdaxTypeHandle ti,
+                                  IdaxTypeHandle parent,
+                                  int64_t byte_delta,
+                                  IdaxTypeHandle* out);
 int idax_type_array_element_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
 int idax_type_array_length(IdaxTypeHandle ti, size_t* out);
 int idax_type_resolve_typedef(IdaxTypeHandle ti, IdaxTypeHandle* out);
@@ -995,6 +1007,7 @@ void idax_type_members_free(IdaxTypeMember* members, size_t count);
 void idax_type_function_details_free(IdaxTypeFunctionDetails* details);
 void idax_type_enum_details_free(IdaxTypeEnumDetails* details);
 void idax_type_udt_details_free(IdaxTypeUdtDetails* details);
+void idax_type_pointer_details_free(IdaxTypePointerDetails* details);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Entry (ida::entry)

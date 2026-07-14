@@ -919,3 +919,24 @@ tracked in `docs/compatibility_matrix.md`.
   reopen reuses all seven members and recognizes all four prototypes with zero
   changes. Generated bindings are byte-identical at SHA-256
   `5a91e0e932583a98f7079e32cfacc9493d1dee27e4d80c938a1b3da5b44ef949`.
+
+- 2026-07-14 Phase 41 Symless shifted-pointer metadata:
+  Added copied exact pointer details and immutable metadata-preserving shifted
+  parent/delta construction across C++, Node, generated C ABI, and safe Rust.
+  Extended both Symless adaptations to apply proven nonzero argument shifts,
+  recognize exact parent/delta metadata on reopen, preserve mismatched complex
+  pointers, and continue excluding shifted returns. Full C++ build and CTest
+  pass 26/26 in 22.40 s; the Symless plugin links. Node native build, strict
+  example declarations, structural tests, and IDA 9.4 integration pass 234/234
+  and 79/79. Rust format/all-target checks, library/sys/port tests, and
+  process-main-thread IDA 9.4 integration pass 138/138, 0 sys, 12/12, and
+  96/96. The host-native arm64 fixture (source SHA-256
+  `51077b3f7811c4d8f7d185d7fe2bd23bdefdceaa8736b0b726790acfa13b4c12`;
+  binary SHA-256
+  `f2d9e2cb641377ead4d855a4d994768cabbabd53e33f015500b32bef0df5306b`)
+  yields root shift `0 B`, callee shift `+8 B`, and exact `+4/4 B`, `+8/8 B`,
+  and `+24/1 B` fields. First apply creates one UDT/three members and changes two
+  arguments including one shifted argument; fresh-process reopen reuses all
+  members and recognizes both arguments with zero mutation. Generated bindings
+  are byte-identical at SHA-256
+  `4b0958634a70f67ce68945a13a9d89c27ed9bd7b0d3a1fcdb451a1dc9a3f484c`.

@@ -123,6 +123,8 @@ private:
     static NAN_METHOD(Declaration);
 
     static NAN_METHOD(PointeeType);
+    static NAN_METHOD(PointerDetails);
+    static NAN_METHOD(WithShiftedParent);
     static NAN_METHOD(ArrayElementType);
     static NAN_METHOD(ArrayLength);
     static NAN_METHOD(ResolveTypedef);
@@ -230,6 +232,20 @@ static v8::Local<v8::Object> UdtDetailsToObject(const ida::type::UdtDetails& det
         .build();
 }
 
+static v8::Local<v8::Object> PointerDetailsToObject(
+    const ida::type::PointerDetails& details) {
+    ObjectBuilder object;
+    object.set("pointeeType", TypeInfoWrapper::NewInstance(details.pointee_type));
+    if (details.shifted_parent)
+        object.set("shiftedParent", TypeInfoWrapper::NewInstance(*details.shifted_parent));
+    else
+        object.setNull("shiftedParent");
+    return object
+        .setInt("shiftDelta", details.shift_delta)
+        .setBool("isShifted", details.is_shifted)
+        .build();
+}
+
 static bool GetParseDeclarationsOptions(Nan::NAN_METHOD_ARGS_TYPE info,
                                         int idx,
                                         ida::type::ParseDeclarationsOptions& out) {
@@ -302,6 +318,8 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "declaration",      Declaration);
 
     Nan::SetPrototypeMethod(tpl, "pointeeType",         PointeeType);
+    Nan::SetPrototypeMethod(tpl, "pointerDetails",      PointerDetails);
+    Nan::SetPrototypeMethod(tpl, "withShiftedParent",   WithShiftedParent);
     Nan::SetPrototypeMethod(tpl, "arrayElementType",    ArrayElementType);
     Nan::SetPrototypeMethod(tpl, "arrayLength",         ArrayLength);
     Nan::SetPrototypeMethod(tpl, "resolveTypedef",      ResolveTypedef);
@@ -489,6 +507,30 @@ NAN_METHOD(TypeInfoWrapper::PointeeType) {
     SELF();
     IDAX_UNWRAP(auto ti, self->type_info_.pointee_type());
     info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(ti)));
+}
+
+NAN_METHOD(TypeInfoWrapper::PointerDetails) {
+    SELF();
+    IDAX_UNWRAP(auto details, self->type_info_.pointer_details());
+    info.GetReturnValue().Set(PointerDetailsToObject(details));
+}
+
+NAN_METHOD(TypeInfoWrapper::WithShiftedParent) {
+    SELF();
+    if (info.Length() < 2 || !info[1]->IsInt32()) {
+        Nan::ThrowTypeError("Expected (parent TypeInfo, signed 32-bit byte delta) arguments");
+        return;
+    }
+    auto* parent = TypeInfoWrapper::Unwrap(info[0]);
+    if (parent == nullptr) {
+        Nan::ThrowTypeError("First argument must be a TypeInfo object");
+        return;
+    }
+    const auto delta = static_cast<std::int64_t>(
+        Nan::To<std::int32_t>(info[1]).FromJust());
+    IDAX_UNWRAP(auto shifted,
+                self->type_info_.with_shifted_parent(parent->typeInfo(), delta));
+    info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(shifted)));
 }
 
 NAN_METHOD(TypeInfoWrapper::ArrayElementType) {

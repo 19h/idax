@@ -803,6 +803,34 @@ describe('Type System', () => {
         expect(ptr.isPointer()).toBe(true);
     });
 
+    it('should preserve exact shifted-pointer metadata immutably', () => {
+        const structure = idax.type.createStruct();
+        structure.addMember('head', idax.type.uint64(), 0);
+        structure.addMember('tail', idax.type.uint32(), 8);
+        structure.saveAs('idax_node_shifted_pointer_parent');
+        const parent = idax.type.byName('idax_node_shifted_pointer_parent');
+        const pointer = idax.type.pointerTo(parent);
+
+        expect(pointer.pointerDetails().isShifted).toBe(false);
+        expect(pointer.pointerDetails().shiftedParent).toBeNull();
+        expect(pointer.pointerDetails().shiftDelta).toBe(0);
+
+        const shifted = pointer.withShiftedParent(parent, 8);
+        const details = shifted.pointerDetails();
+        expect(details.isShifted).toBe(true);
+        expect(details.shiftDelta).toBe(8);
+        expect(details.shiftedParent.toString()).toBe(parent.toString());
+        expect(details.pointeeType.toString()).toBe(parent.toString());
+        expect(pointer.pointerDetails().isShifted).toBe(false);
+        expect(shifted.withShiftedParent(parent, -4).pointerDetails().shiftDelta).toBe(-4);
+
+        expect(() => pointer.withShiftedParent(parent, 0)).toThrow();
+        expect(() => pointer.withShiftedParent(parent, 2147483648)).toThrow();
+        expect(() => idax.type.uint32().withShiftedParent(parent, 8)).toThrow();
+        expect(() => pointer.withShiftedParent(idax.type.uint32(), 8)).toThrow();
+        expect(() => idax.type.uint32().pointerDetails()).toThrow();
+    });
+
     it('should create array type', () => {
         const elem = idax.type.uint8();
         const arr = idax.type.arrayOf(elem, 100);

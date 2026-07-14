@@ -480,6 +480,8 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
             'kind(): TypeKind',
             'name(): string',
             'declaration(declaratorName?: string): string',
+            'pointerDetails(): PointerDetails',
+            'withShiftedParent(parent: TypeInfo, byteDelta: number): TypeInfo',
             'functionDetails(): FunctionDetails',
             'withFunctionArgumentName(index: number, name: string): TypeInfo',
             'withFunctionReturnType(replacement: TypeInfo): TypeInfo',

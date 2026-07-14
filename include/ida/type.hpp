@@ -7,6 +7,7 @@
 #include <ida/error.hpp>
 #include <ida/address.hpp>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -17,6 +18,7 @@ namespace ida::type {
 class TypeInfo;
 struct FunctionArgument;
 struct FunctionDetails;
+struct PointerDetails;
 struct UdtDetails;
 struct EnumDetails;
 
@@ -176,6 +178,15 @@ public:
     /// For pointer types, return the pointee type.
     [[nodiscard]] Result<TypeInfo> pointee_type() const;
 
+    /// Return copied pointer metadata, including an explicit shifted parent/delta.
+    [[nodiscard]] Result<PointerDetails> pointer_details() const;
+
+    /// Return a pointer copy marked `__shifted(parent, byte_delta)`.
+    /// The parent must be a struct and the nonzero delta must fit signed 32 bits.
+    [[nodiscard]] Result<TypeInfo>
+    with_shifted_parent(const TypeInfo& parent,
+                        std::int64_t byte_delta) const;
+
     /// For array types, return the array element type.
     [[nodiscard]] Result<TypeInfo> array_element_type() const;
 
@@ -272,6 +283,13 @@ struct Member {
     bool is_gap{false};
     bool is_bitfield{false};
     std::string comment;
+};
+
+struct PointerDetails {
+    TypeInfo pointee_type;
+    std::optional<TypeInfo> shifted_parent;
+    std::int32_t shift_delta{0};
+    bool is_shifted{false};
 };
 
 struct FunctionArgument {

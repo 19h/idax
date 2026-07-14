@@ -9,8 +9,10 @@
 /// flow, static allocation roots, and return-confirmed allocator wrappers.
 /// Constructor/vtable roots are accepted only after an exact argument-zero
 /// store; table-size/xref inheritance guesses are deliberately not applied.
-/// Indirect dynamic calls, shifted-pointer typing, member xrefs, and
-/// microcode-widget workflows remain outside the stated boundary. Upstream
+/// Propagated arguments preserve exact shifted-parent metadata; shifted
+/// returns remain excluded as in the upstream generation path. Indirect
+/// dynamic calls, member xrefs, and microcode-widget workflows remain outside
+/// the stated boundary. Upstream
 /// copyright/license: symless_port_LICENSE.txt.
 
 #include <ida/idax.hpp>
@@ -22,6 +24,7 @@
 #include <cstdio>
 #include <functional>
 #include <deque>
+#include <limits>
 #include <map>
 #include <optional>
 #include <set>
@@ -234,6 +237,9 @@ struct ApplySummary {
     std::size_t arguments_changed{0};
     std::size_t arguments_already_typed{0};
     std::size_t arguments_skipped_shifted{0};
+    std::size_t arguments_shifted_changed{0};
+    std::size_t arguments_shifted_already_typed{0};
+    std::size_t arguments_shifted_ineligible{0};
     std::size_t arguments_ineligible{0};
     std::size_t returns_changed{0};
     std::size_t returns_already_typed{0};
@@ -2159,8 +2165,12 @@ ida::Result<ida::type::TypeInfo> ensure_structure(
 
 ida::Result<ArgumentEligibility> argument_eligibility(
     const ida::type::TypeInfo& argument_type,
-    std::string_view structure_name) {
+    std::string_view structure_name,
+    std::int64_t expected_shift = 0) {
     if (argument_type.is_pointer()) {
+        auto pointer = argument_type.pointer_details();
+        if (!pointer)
+            return std::unexpected(pointer.error());
         auto pointee = argument_type.pointee_type();
         if (!pointee)
             return std::unexpected(pointee.error());
@@ -2168,8 +2178,29 @@ ida::Result<ArgumentEligibility> argument_eligibility(
         if (!resolved)
             return std::unexpected(resolved.error());
         auto name = resolved->name();
-        if (resolved->is_struct() && name && *name == structure_name)
-            return ArgumentEligibility::AlreadyTyped;
+        if (resolved->is_struct() && name && *name == structure_name) {
+            if (expected_shift == 0) {
+                return pointer->is_shifted
+                    ? ArgumentEligibility::Ineligible
+                    : ArgumentEligibility::AlreadyTyped;
+            }
+            if (expected_shift < std::numeric_limits<std::int32_t>::min()
+                || expected_shift > std::numeric_limits<std::int32_t>::max()
+                || !pointer->is_shifted || !pointer->shifted_parent
+                || pointer->shift_delta != expected_shift) {
+                return ArgumentEligibility::Ineligible;
+            }
+            auto parent = pointer->shifted_parent->resolve_typedef();
+            if (!parent)
+                return std::unexpected(parent.error());
+            auto parent_name = parent->name();
+            return parent->is_struct() && parent_name
+                    && *parent_name == structure_name
+                ? ArgumentEligibility::AlreadyTyped
+                : ArgumentEligibility::Ineligible;
+        }
+        if (pointer->is_shifted)
+            return ArgumentEligibility::Ineligible;
         if (resolved->is_struct() || resolved->is_union()
             || resolved->is_array() || resolved->is_function()) {
             return ArgumentEligibility::Ineligible;
@@ -2228,9 +2259,17 @@ ida::Result<ApplySummary> apply_reconstruction(
     for (const auto& site : reconstruction.propagation_sites) {
         const bool is_root = site.function_address == reconstruction.function_address
             && site.argument_index == reconstruction.argument_index;
-        if (site.shift != 0) {
+        if (site.shift < std::numeric_limits<std::int32_t>::min()
+            || site.shift > std::numeric_limits<std::int32_t>::max()) {
             ++summary.arguments_skipped_shifted;
             continue;
+        }
+        ida::type::TypeInfo site_pointer = pointer;
+        if (site.shift != 0) {
+            auto shifted = pointer.with_shifted_parent(*structure, site.shift);
+            if (!shifted)
+                return std::unexpected(shifted.error());
+            site_pointer = std::move(*shifted);
         }
         auto original = ida::type::retrieve(site.function_address);
         if (!original)
@@ -2240,16 +2279,19 @@ ida::Result<ApplySummary> apply_reconstruction(
             return std::unexpected(details.error());
         if (site.argument_index >= details->arguments.size()) {
             ++summary.arguments_ineligible;
+            if (site.shift != 0)
+                ++summary.arguments_shifted_ineligible;
             continue;
         }
         auto eligibility = argument_eligibility(
             details->arguments[site.argument_index].type,
-            structure_name);
+            structure_name,
+            site.shift);
         if (!eligibility)
             return std::unexpected(eligibility.error());
         if (*eligibility == ArgumentEligibility::Eligible) {
             auto updated = original->with_function_argument_type(
-                site.argument_index, pointer);
+                site.argument_index, site_pointer);
             if (!updated)
                 return std::unexpected(updated.error());
             auto applied = updated->apply(site.function_address);
@@ -2259,12 +2301,18 @@ ida::Result<ApplySummary> apply_reconstruction(
             if (!dirty)
                 return std::unexpected(dirty.error());
             ++summary.arguments_changed;
+            if (site.shift != 0)
+                ++summary.arguments_shifted_changed;
             summary.argument_changed |= is_root;
         } else if (*eligibility == ArgumentEligibility::AlreadyTyped) {
             ++summary.arguments_already_typed;
+            if (site.shift != 0)
+                ++summary.arguments_shifted_already_typed;
             summary.argument_already_typed |= is_root;
         } else {
             ++summary.arguments_ineligible;
+            if (site.shift != 0)
+                ++summary.arguments_shifted_ineligible;
         }
     }
 
@@ -2849,7 +2897,11 @@ std::string report_text(const Reconstruction& reconstruction,
             "Members reused: %zu\nMembers skipped: %zu\n"
             "Argument changed: %s\nArgument already typed: %s\n"
             "Arguments changed: %zu\nArguments already typed: %zu\n"
-            "Arguments shifted/skipped: %zu\nArguments ineligible: %zu\n"
+            "Arguments shifted/changed: %zu\n"
+            "Arguments shifted/already typed: %zu\n"
+            "Arguments shifted/ineligible: %zu\n"
+            "Arguments shifted/unrepresentable: %zu\n"
+            "Arguments ineligible: %zu\n"
             "Returns changed: %zu\nReturns already typed: %zu\n"
             "Returns shifted/skipped: %zu\nReturns ineligible: %zu\n",
             applied->structure_created ? "yes" : "no",
@@ -2860,6 +2912,9 @@ std::string report_text(const Reconstruction& reconstruction,
             applied->argument_already_typed ? "yes" : "no",
             applied->arguments_changed,
             applied->arguments_already_typed,
+            applied->arguments_shifted_changed,
+            applied->arguments_shifted_already_typed,
+            applied->arguments_shifted_ineligible,
             applied->arguments_skipped_shifted,
             applied->arguments_ineligible,
             applied->returns_changed,
@@ -3255,7 +3310,7 @@ ida::Status run_apply_action() {
     }
     const std::string preview = report_text(*reconstruction, *name);
     auto confirmed = ida::ui::ask_yn(
-        preview + "\nApply this structure and eligible zero-shift prototype sites?",
+        preview + "\nApply this structure and eligible exact-shift prototype sites?",
         false);
     if (!confirmed)
         return std::unexpected(confirmed.error());

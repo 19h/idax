@@ -36,6 +36,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |
 | copy `func_type_data_t`, edit `rettype`, `create_func(...)` | `TypeInfo::with_function_return_type(replacement)` |
 | copy `udt_type_data_t`, edit `TAUDT_CPPOBJ`/`TAUDT_VFTABLE`, `create_udt(...)` | `TypeInfo::set_udt_semantics(is_cpp_object, is_vftable)` |
+| `get_ptr_details`, set `TAPTR_SHIFTED`/`parent`/`delta`, `create_ptr(...)` | `TypeInfo::pointer_details()` / `with_shifted_parent(parent, byte_delta)` |
 | `gen_microcode(...)` + `mba_t::build_graph()` + native block/operand traversal | `ida::decompiler::generate_microcode(address, options)` returning an owned `MicrocodeFunction` |
 | pre-decompile direct callees + `mba_t::analyze_calls(ACFL_GUESS)` | `MicrocodeGenerationOptions::analyze_calls` (Node: `analyzeCalls`) |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |

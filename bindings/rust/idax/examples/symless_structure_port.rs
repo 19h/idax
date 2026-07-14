@@ -308,6 +308,9 @@ struct ApplySummary {
     arguments_changed: usize,
     arguments_already_typed: usize,
     arguments_skipped_shifted: usize,
+    arguments_shifted_changed: usize,
+    arguments_shifted_already_typed: usize,
+    arguments_shifted_ineligible: usize,
     arguments_ineligible: usize,
     returns_changed: usize,
     returns_already_typed: usize,
@@ -2169,11 +2172,39 @@ fn ensure_structure(
 fn argument_eligibility(
     argument_type: &TypeInfo,
     structure_name: &str,
+    expected_shift: i64,
 ) -> Result<ArgumentEligibility> {
     if argument_type.is_pointer() {
+        let pointer = argument_type.pointer_details()?;
         let pointee = argument_type.pointee_type()?.resolve_typedef()?;
         if pointee.is_struct() && pointee.name().is_ok_and(|name| name == structure_name) {
-            return Ok(ArgumentEligibility::AlreadyTyped);
+            if expected_shift == 0 {
+                return Ok(if pointer.is_shifted {
+                    ArgumentEligibility::Ineligible
+                } else {
+                    ArgumentEligibility::AlreadyTyped
+                });
+            }
+            if i32::try_from(expected_shift).is_err()
+                || !pointer.is_shifted
+                || pointer.shift_delta as i64 != expected_shift
+            {
+                return Ok(ArgumentEligibility::Ineligible);
+            }
+            let Some(parent) = pointer.shifted_parent else {
+                return Ok(ArgumentEligibility::Ineligible);
+            };
+            let parent = parent.resolve_typedef()?;
+            return Ok(
+                if parent.is_struct() && parent.name().is_ok_and(|name| name == structure_name) {
+                    ArgumentEligibility::AlreadyTyped
+                } else {
+                    ArgumentEligibility::Ineligible
+                },
+            );
+        }
+        if pointer.is_shifted {
+            return Ok(ArgumentEligibility::Ineligible);
         }
         if pointee.is_struct() || pointee.is_union() || pointee.is_array() || pointee.is_function()
         {
@@ -2208,7 +2239,7 @@ fn apply_reconstruction(
         .arguments
         .get(reconstruction.argument_index)
         .ok_or_else(|| Error::validation("function type has fewer arguments than microcode"))?;
-    if argument_eligibility(&root_argument.r#type, structure_name)?
+    if argument_eligibility(&root_argument.r#type, structure_name, 0)?
         == ArgumentEligibility::Ineligible
     {
         return Err(Error::validation(
@@ -2222,35 +2253,52 @@ fn apply_reconstruction(
     for site in &reconstruction.propagation_sites {
         let is_root = site.function_address == reconstruction.function_address
             && site.argument_index == reconstruction.argument_index;
-        if site.shift != 0 {
+        if i32::try_from(site.shift).is_err() {
             summary.arguments_skipped_shifted += 1;
             continue;
         }
+        let site_pointer = if site.shift == 0 {
+            pointer.clone()
+        } else {
+            pointer.with_shifted_parent(&structure, site.shift)?
+        };
         let original = types::retrieve(site.function_address)?;
         let details = original.function_details()?;
         let Some(argument) = details.arguments.get(site.argument_index) else {
             summary.arguments_ineligible += 1;
+            if site.shift != 0 {
+                summary.arguments_shifted_ineligible += 1;
+            }
             continue;
         };
-        match argument_eligibility(&argument.r#type, structure_name)? {
+        match argument_eligibility(&argument.r#type, structure_name, site.shift)? {
             ArgumentEligibility::Eligible => {
                 original
-                    .with_function_argument_type(site.argument_index, &pointer)?
+                    .with_function_argument_type(site.argument_index, &site_pointer)?
                     .apply(site.function_address)?;
                 decompiler::mark_dirty(site.function_address, false)?;
                 summary.arguments_changed += 1;
+                if site.shift != 0 {
+                    summary.arguments_shifted_changed += 1;
+                }
                 if is_root {
                     summary.argument_changed = true;
                 }
             }
             ArgumentEligibility::AlreadyTyped => {
                 summary.arguments_already_typed += 1;
+                if site.shift != 0 {
+                    summary.arguments_shifted_already_typed += 1;
+                }
                 if is_root {
                     summary.argument_already_typed = true;
                 }
             }
             ArgumentEligibility::Ineligible => {
                 summary.arguments_ineligible += 1;
+                if site.shift != 0 {
+                    summary.arguments_shifted_ineligible += 1;
+                }
             }
         }
     }
@@ -2262,7 +2310,7 @@ fn apply_reconstruction(
         }
         let original = types::retrieve(site.function_address)?;
         let return_type = original.function_return_type()?;
-        match argument_eligibility(&return_type, structure_name)? {
+        match argument_eligibility(&return_type, structure_name, 0)? {
             ArgumentEligibility::Eligible => {
                 original
                     .with_function_return_type(&pointer)?
@@ -2452,7 +2500,7 @@ fn apply_this_prototype(
             return Ok(());
         }
     };
-    let eligibility = argument_eligibility(&details.arguments[0].r#type, class_name)?;
+    let eligibility = argument_eligibility(&details.arguments[0].r#type, class_name, 0)?;
     if eligibility == ArgumentEligibility::Ineligible {
         summary.prototypes_ineligible += 1;
         return Ok(());
@@ -2748,7 +2796,19 @@ fn print_report(
             summary.arguments_already_typed
         );
         println!(
-            "arguments_skipped_shifted: {}",
+            "arguments_shifted_changed: {}",
+            summary.arguments_shifted_changed
+        );
+        println!(
+            "arguments_shifted_already_typed: {}",
+            summary.arguments_shifted_already_typed
+        );
+        println!(
+            "arguments_shifted_ineligible: {}",
+            summary.arguments_shifted_ineligible
+        );
+        println!(
+            "arguments_shifted_unrepresentable: {}",
             summary.arguments_skipped_shifted
         );
         println!("arguments_ineligible: {}", summary.arguments_ineligible);

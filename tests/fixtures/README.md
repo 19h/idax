@@ -61,6 +61,17 @@
   - Generated executable and IDB live in a temporary directory and are not tracked
   - Exercises conservative table recognition, constructor-root proof, semantic class/vftable UDT materialization, method typing, and idempotent reopen
 
+### `symless_shifted_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/symless_shifted_host.c`
+- **Used by**: Symless shifted-propagated-argument report/apply validation
+- **Key characteristics**:
+  - Exports one root and one non-inlined callee receiving `root + 8 B`
+  - Recovers deterministic fields at `+4 B`/4 B, `+8 B`/8 B, and `+24 B`/1 B
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises exact shifted-parent/delta prototype application and idempotent reopen
+
 ## Scenario Fixture Directories
 
 ### `loader/`

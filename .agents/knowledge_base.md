@@ -1433,3 +1433,37 @@ Reject the candidate before class/prototype mutation on any mismatch or extra
 member. For an existing class UDT, require the offset-zero member to be the
 exact named vftable pointer. Preserve nonzero fields: exact-offset/equal-type is
 reuse, exact-offset/different-type or partial overlap is a reported skip.
+
+### 35.76. Compare Shifted Pointer Parent and Delta Explicitly [F420]
+Do not use native pointer equality to recognize `__shifted` types:
+`ptr_type_data_t::operator==` omits `parent`, `delta`, and `taptr_bits`. Copy
+pointer details into owned values and require all of: shifted property present,
+nonempty struct parent, exact named parent identity, and exact signed 32-bit
+byte delta. To construct a shifted pointer, copy the complete existing pointer
+record, set only `TAPTR_SHIFTED`, `parent`, and `delta`, and rebuild an opaque
+value. This preserves pointee, closure, based-pointer width, qualifiers, and
+unrelated pointer attribute bits.
+
+For Symless application, use the already-proven propagated argument shift as
+the delta. Type an existing generic argument only; recognize an exact prior
+shift as idempotent and preserve any incompatible complex pointer. Continue to
+exclude shifted returns because upstream explicitly treats them as error-prone
+and the current evidence does not establish a return-parent contract.
+
+### 35.77. Apply Only Evidence-Backed Shifted Argument Types [F421]
+For every propagated argument site, use the abstract-state shift already
+derived from analyzed call arguments. A zero shift selects the ordinary named
+structure pointer. A nonzero shift is eligible only when representable as a
+signed 32-bit byte delta; construct it by copying that pointer record and
+setting the named parent/delta. Existing shifted types are idempotent only when
+pointee name, shifted state, parent name, and delta all match. Any shifted
+pointer with a different parent/delta and any other complex pointer is
+ineligible and remains unchanged. Shifted returns remain excluded.
+
+Let `S` be propagation sites and `L` the aggregate length of resolved type-name
+chains. Eligibility and pointer construction require `O(S + L)` time and
+`O(1)` auxiliary space per site, excluding opaque type-copy storage. The
+interprocedural reconstruction bound remains KB 35.67; this phase adds no graph
+traversal. The falsification probes are a mismatched parent, mismatched signed
+delta, delta outside `[-2^31, 2^31-1] B`, and fresh-process reopen after exact
+application.

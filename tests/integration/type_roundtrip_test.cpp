@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -129,6 +130,82 @@ void test_composite_factories() {
     auto arr_sz = arr.size();
     CHECK_OK(arr_sz);
     if (arr_sz) CHECK(*arr_sz == 40);  // 10 * 4
+}
+
+// ---------------------------------------------------------------------------
+// Test: exact, immutable shifted-pointer metadata
+// ---------------------------------------------------------------------------
+void test_shifted_pointer_metadata() {
+    std::cout << "--- shifted-pointer metadata ---\n";
+
+    auto parent = ida::type::TypeInfo::create_struct();
+    CHECK_OK(parent.add_member("head", ida::type::TypeInfo::uint64(), 0));
+    CHECK_OK(parent.add_member("tail", ida::type::TypeInfo::uint32(), 8));
+    CHECK_OK(parent.save_as("idax_shifted_pointer_parent"));
+    auto named_parent = ida::type::TypeInfo::by_name("idax_shifted_pointer_parent");
+    CHECK_OK(named_parent);
+    if (!named_parent)
+        return;
+
+    auto pointer = ida::type::TypeInfo::pointer_to(*named_parent);
+    auto neutral = pointer.pointer_details();
+    CHECK_OK(neutral);
+    if (neutral) {
+        CHECK(!neutral->is_shifted);
+        CHECK(!neutral->shifted_parent.has_value());
+        CHECK(neutral->shift_delta == 0);
+        CHECK(neutral->pointee_type.to_string().value_or("")
+              == named_parent->to_string().value_or(""));
+    }
+
+    auto shifted = pointer.with_shifted_parent(*named_parent, 8);
+    CHECK_OK(shifted);
+    if (shifted) {
+        auto details = shifted->pointer_details();
+        CHECK_OK(details);
+        if (details) {
+            CHECK(details->is_shifted);
+            CHECK(details->shift_delta == 8);
+            CHECK(details->shifted_parent.has_value());
+            if (details->shifted_parent) {
+                CHECK(details->shifted_parent->to_string().value_or("")
+                      == named_parent->to_string().value_or(""));
+            }
+            CHECK(details->pointee_type.to_string().value_or("")
+                  == named_parent->to_string().value_or(""));
+        }
+        CHECK(shifted->size().value_or(0) == pointer.size().value_or(1));
+
+        auto negative = shifted->with_shifted_parent(*named_parent, -4);
+        CHECK_OK(negative);
+        if (negative) {
+            auto negative_details = negative->pointer_details();
+            CHECK_OK(negative_details);
+            CHECK(negative_details && negative_details->is_shifted);
+            CHECK(negative_details && negative_details->shift_delta == -4);
+        }
+    }
+
+    // Copy-producing operations and rejected inputs must not alter the source.
+    auto source_after = pointer.pointer_details();
+    CHECK_OK(source_after);
+    CHECK(source_after && !source_after->is_shifted);
+    CHECK(source_after && source_after->shift_delta == 0);
+
+    CHECK_ERR(pointer.with_shifted_parent(*named_parent, 0),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(pointer.with_shifted_parent(
+                  *named_parent,
+                  static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::max()) + 1),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::type::TypeInfo::uint32().with_shifted_parent(*named_parent, 8),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(pointer.with_shifted_parent(ida::type::TypeInfo::uint32(), 8),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(pointer.with_shifted_parent(ida::type::TypeInfo::create_union(), 8),
+              ida::ErrorCategory::Validation);
+    CHECK_ERR(ida::type::TypeInfo::uint32().pointer_details(),
+              ida::ErrorCategory::Validation);
 }
 
 // ---------------------------------------------------------------------------
@@ -1051,6 +1128,7 @@ int main(int argc, char* argv[]) {
 
     test_primitive_factories();
     test_composite_factories();
+    test_shifted_pointer_metadata();
     test_type_decomposition_helpers();
     test_from_declaration();
     test_parse_declarations();

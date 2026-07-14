@@ -527,6 +527,8 @@ void check_type_surface() {
     (void)fd.return_type; (void)fd.arguments; (void)fd.calling_convention; (void)fd.variadic;
     ida::type::UdtDetails ud;
     (void)ud.total_size; (void)ud.is_union; (void)ud.is_cpp_object; (void)ud.is_vftable; (void)ud.members;
+    ida::type::PointerDetails pd;
+    (void)pd.pointee_type; (void)pd.shifted_parent; (void)pd.shift_delta; (void)pd.is_shifted;
     using SetUdtSemanticsFn = ida::Status(ida::type::TypeInfo::*)(bool, bool);
     (void)static_cast<SetUdtSemanticsFn>(&ida::type::TypeInfo::set_udt_semantics);
     ida::type::EnumDetails ed;
@@ -560,6 +562,9 @@ void check_type_surface() {
     using TypeKindFn = ida::type::TypeKind(ida::type::TypeInfo::*)() const;
     using IsTypedefFn = bool(ida::type::TypeInfo::*)() const;
     using PointeeTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
+    using PointerDetailsFn = ida::Result<ida::type::PointerDetails>(ida::type::TypeInfo::*)() const;
+    using WithShiftedParentFn = ida::Result<ida::type::TypeInfo>(
+        ida::type::TypeInfo::*)(const ida::type::TypeInfo&, std::int64_t) const;
     using ArrayElementTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using ArrayLengthFn = ida::Result<std::size_t>(ida::type::TypeInfo::*)() const;
     using ResolveTypedefFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
@@ -602,6 +607,8 @@ void check_type_surface() {
     (void)static_cast<TypeKindFn>(&ida::type::TypeInfo::kind);
     (void)static_cast<IsTypedefFn>(&ida::type::TypeInfo::is_typedef);
     (void)static_cast<PointeeTypeFn>(&ida::type::TypeInfo::pointee_type);
+    (void)static_cast<PointerDetailsFn>(&ida::type::TypeInfo::pointer_details);
+    (void)static_cast<WithShiftedParentFn>(&ida::type::TypeInfo::with_shifted_parent);
     (void)static_cast<ArrayElementTypeFn>(&ida::type::TypeInfo::array_element_type);
     (void)static_cast<ArrayLengthFn>(&ida::type::TypeInfo::array_length);
     (void)static_cast<ResolveTypedefFn>(&ida::type::TypeInfo::resolve_typedef);

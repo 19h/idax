@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <limits>
 #include <map>
 #include <queue>
 #include <set>
@@ -378,6 +379,64 @@ Result<TypeInfo> TypeInfo::pointee_type() const {
 
     TypeInfo result;
     TypeInfoAccess::get(result)->ti = pointee;
+    return result;
+}
+
+Result<PointerDetails> TypeInfo::pointer_details() const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_ptr())
+        return std::unexpected(Error::validation("Type is not a pointer"));
+
+    ptr_type_data_t pointer;
+    if (!impl_->ti.get_ptr_details(&pointer))
+        return std::unexpected(Error::sdk("Failed to get pointer details"));
+
+    PointerDetails result;
+    TypeInfoAccess::get(result.pointee_type)->ti = pointer.obj_type;
+    if (pointer.parent.present()) {
+        TypeInfo parent;
+        TypeInfoAccess::get(parent)->ti = pointer.parent;
+        result.shifted_parent = std::move(parent);
+    }
+    result.shift_delta = pointer.delta;
+    result.is_shifted = impl_->ti.is_shifted_ptr()
+        || (pointer.taptr_bits & TAPTR_SHIFTED) != 0;
+    return result;
+}
+
+Result<TypeInfo> TypeInfo::with_shifted_parent(
+    const TypeInfo& parent,
+    std::int64_t byte_delta) const {
+    if (!impl_ || !parent.impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!impl_->ti.is_ptr())
+        return std::unexpected(Error::validation("Type is not a pointer"));
+    if (!parent.impl_->ti.is_struct()) {
+        return std::unexpected(Error::validation(
+            "Shifted pointer parent must be a struct"));
+    }
+    if (byte_delta == 0
+        || byte_delta < std::numeric_limits<std::int32_t>::min()
+        || byte_delta > std::numeric_limits<std::int32_t>::max()) {
+        return std::unexpected(Error::validation(
+            "Shifted pointer delta must be a nonzero signed 32-bit byte offset"));
+    }
+
+    ptr_type_data_t pointer;
+    if (!impl_->ti.get_ptr_details(&pointer))
+        return std::unexpected(Error::sdk("Failed to get pointer details"));
+    pointer.taptr_bits |= TAPTR_SHIFTED;
+    pointer.parent = parent.impl_->ti;
+    pointer.delta = static_cast<std::int32_t>(byte_delta);
+
+    tinfo_t rebuilt;
+    if (!rebuilt.create_ptr(pointer, impl_->ti.get_realtype())) {
+        return std::unexpected(Error::sdk(
+            "Failed to rebuild shifted pointer type"));
+    }
+    TypeInfo result;
+    TypeInfoAccess::get(result)->ti = std::move(rebuilt);
     return result;
 }
 

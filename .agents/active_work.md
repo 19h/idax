@@ -97,4 +97,15 @@
   - 10.2.2. **Status:** Complete (P40.2; C++/Node/Rust preservation and runtime rejection evidence pass).
 - **10.3. Boundary**
   - 10.3.1. **Scope:** Scan loaded code/data item heads for pointer-width tables; require exact function entries or mapped external members, no references to non-first slots, at least one non-import method, and an analyzed pointer-width store of the table into argument zero at offset zero. Treat multiple offset-zero tables for one function as ambiguous, report secondary-offset stores, and never infer inheritance from size/xref counts alone.
-  - 10.3.2. **Status:** Complete (P40.3-P40.4; F417-F419; KB 35.73-35.75). Full C++/Node/Rust validation and real report/apply/reopen evidence pass; no Phase 40 blocker remains. Indirect dynamic calls, shifted-pointer typing, forward replacement, member-TID xrefs, multi-stroff paths, and widget picking remain separate.
+  - 10.3.2. **Status:** Complete (P40.3-P40.4; F417-F419; KB 35.73-35.75). Full C++/Node/Rust validation and real report/apply/reopen evidence pass; no Phase 40 blocker remains. Phase 41 closes shifted propagated-argument typing; indirect dynamic calls, forward replacement, member-TID xrefs, multi-stroff paths, and widget picking remain separate.
+
+---
+
+### 11. Symless Shifted-Pointer Metadata (Phase 41)
+
+- **11.1. Capability Audit**
+  - 11.1.1. **Action:** Compare upstream `shift_ptr`/argument eligibility and virtual-method shifted `this` construction with `ptr_type_data_t`, current prototype edits, and cross-binding type snapshots.
+  - 11.1.2. **Status:** Complete (P41.1; F420; KB 35.76; decision 19.44).
+- **11.2. Boundary**
+  - 11.2.1. **Scope:** Preserve the complete existing pointer record, add only an explicit named parent plus signed 32-bit nonzero delta, expose copied parent/delta introspection, and type only already-propagated argument sites whose generic type is eligible. Keep shifted returns excluded and do not infer a shift from unrelated operand formatting.
+  - 11.2.2. **Status:** P41.2-P41.3 complete. C++/Node/Rust exact metadata tests pass; both Symless adaptations type evidence-backed shifted arguments and preserve mismatches/shifted returns. P41.4 complete-matrix validation, documentation synchronization, staged review, and push are in progress.

@@ -1317,6 +1317,90 @@ fn types_pointer_and_array() {
     assert!(elem.is_integer());
 }
 
+fn types_shifted_pointer_metadata() {
+    require_db!();
+    let structure = types::TypeInfo::create_struct();
+    structure
+        .add_member("head", &types::TypeInfo::uint64(), 0)
+        .unwrap();
+    structure
+        .add_member("tail", &types::TypeInfo::uint32(), 8)
+        .unwrap();
+    structure
+        .save_as("idax_rust_shifted_pointer_parent")
+        .unwrap();
+    let parent = types::TypeInfo::by_name("idax_rust_shifted_pointer_parent").unwrap();
+    let pointer = types::TypeInfo::pointer_to(&parent);
+
+    let neutral = pointer.pointer_details().unwrap();
+    assert!(!neutral.is_shifted);
+    assert!(neutral.shifted_parent.is_none());
+    assert_eq!(neutral.shift_delta, 0);
+    assert_eq!(
+        neutral.pointee_type.to_string().unwrap(),
+        parent.to_string().unwrap()
+    );
+
+    let shifted = pointer.with_shifted_parent(&parent, 8).unwrap();
+    let details = shifted.pointer_details().unwrap();
+    assert!(details.is_shifted);
+    assert_eq!(details.shift_delta, 8);
+    assert_eq!(
+        details.shifted_parent.unwrap().to_string().unwrap(),
+        parent.to_string().unwrap()
+    );
+    assert_eq!(
+        details.pointee_type.to_string().unwrap(),
+        parent.to_string().unwrap()
+    );
+    assert!(!pointer.pointer_details().unwrap().is_shifted);
+    assert_eq!(
+        shifted
+            .with_shifted_parent(&parent, -4)
+            .unwrap()
+            .pointer_details()
+            .unwrap()
+            .shift_delta,
+        -4
+    );
+
+    assert_eq!(
+        pointer
+            .with_shifted_parent(&parent, 0)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        pointer
+            .with_shifted_parent(&parent, i64::from(i32::MAX) + 1)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        types::TypeInfo::uint32()
+            .with_shifted_parent(&parent, 8)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        pointer
+            .with_shifted_parent(&types::TypeInfo::uint32(), 8)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    assert_eq!(
+        types::TypeInfo::uint32()
+            .pointer_details()
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+}
+
 fn types_struct_creation() {
     require_db!();
     let s = types::TypeInfo::create_struct();
@@ -2085,6 +2169,10 @@ static TEST_CASES: &[TestCase] = &[
     ("entry_count_and_enumerate", entry_count_and_enumerate),
     ("types_primitive_constructors", types_primitive_constructors),
     ("types_pointer_and_array", types_pointer_and_array),
+    (
+        "types_shifted_pointer_metadata",
+        types_shifted_pointer_metadata,
+    ),
     ("types_struct_creation", types_struct_creation),
     ("types_udt_semantics", types_udt_semantics),
     ("types_from_declaration", types_from_declaration),

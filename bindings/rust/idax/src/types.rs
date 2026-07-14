@@ -148,6 +148,15 @@ pub struct UdtDetails {
     pub members: Vec<Member>,
 }
 
+/// Complete pointer metadata, including an exact shifted parent and byte delta.
+#[derive(Debug, Clone)]
+pub struct PointerDetails {
+    pub pointee_type: TypeInfo,
+    pub shifted_parent: Option<TypeInfo>,
+    pub shift_delta: i32,
+    pub is_shifted: bool,
+}
+
 /// Enum metadata and members.
 #[derive(Debug, Clone)]
 pub struct EnumDetails {
@@ -497,6 +506,57 @@ impl TypeInfo {
         let mut out: *mut c_void = std::ptr::null_mut();
         let ret = unsafe { idax_sys::idax_type_pointee_type(self.handle, &mut out) };
         Self::from_out_handle(ret, out, "pointee_type failed")
+    }
+
+    pub fn pointer_details(&self) -> Result<PointerDetails> {
+        let mut raw: *mut idax_sys::IdaxTypePointerDetails = std::ptr::null_mut();
+        let ret = unsafe { idax_sys::idax_type_pointer_details(self.handle, &mut raw) };
+        if ret != 0 || raw.is_null() {
+            return Err(error::consume_last_error("pointer_details failed"));
+        }
+
+        let result = unsafe {
+            let details = &mut *raw;
+            if details.pointee_type.is_null() {
+                idax_sys::idax_type_pointer_details_free(raw);
+                return Err(Error::internal(
+                    "pointer_details returned a null pointee handle",
+                ));
+            }
+            let pointee_type = TypeInfo::from_raw(details.pointee_type);
+            details.pointee_type = std::ptr::null_mut();
+            let shifted_parent = if details.shifted_parent.is_null() {
+                None
+            } else {
+                let parent = TypeInfo::from_raw(details.shifted_parent);
+                details.shifted_parent = std::ptr::null_mut();
+                Some(parent)
+            };
+            let result = PointerDetails {
+                pointee_type,
+                shifted_parent,
+                shift_delta: details.shift_delta,
+                is_shifted: details.is_shifted != 0,
+            };
+            idax_sys::idax_type_pointer_details_free(raw);
+            result
+        };
+        Ok(result)
+    }
+
+    /// Return a pointer copy shifted relative to `parent` by a nonzero signed
+    /// 32-bit byte delta.
+    pub fn with_shifted_parent(&self, parent: &TypeInfo, byte_delta: i64) -> Result<Self> {
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = unsafe {
+            idax_sys::idax_type_with_shifted_parent(
+                self.handle,
+                parent.handle,
+                byte_delta,
+                &mut out,
+            )
+        };
+        Self::from_out_handle(ret, out, "with_shifted_parent failed")
     }
 
     pub fn array_element_type(&self) -> Result<Self> {

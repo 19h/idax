@@ -2741,6 +2741,37 @@ impl Default for IdaxTypeUdtDetails {
         }
     }
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxTypePointerDetails {
+    pub pointee_type: IdaxTypeHandle,
+    pub shifted_parent: IdaxTypeHandle,
+    pub shift_delta: i32,
+    pub is_shifted: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxTypePointerDetails"][::std::mem::size_of::<IdaxTypePointerDetails>() - 24usize];
+    ["Alignment of IdaxTypePointerDetails"]
+        [::std::mem::align_of::<IdaxTypePointerDetails>() - 8usize];
+    ["Offset of field: IdaxTypePointerDetails::pointee_type"]
+        [::std::mem::offset_of!(IdaxTypePointerDetails, pointee_type) - 0usize];
+    ["Offset of field: IdaxTypePointerDetails::shifted_parent"]
+        [::std::mem::offset_of!(IdaxTypePointerDetails, shifted_parent) - 8usize];
+    ["Offset of field: IdaxTypePointerDetails::shift_delta"]
+        [::std::mem::offset_of!(IdaxTypePointerDetails, shift_delta) - 16usize];
+    ["Offset of field: IdaxTypePointerDetails::is_shifted"]
+        [::std::mem::offset_of!(IdaxTypePointerDetails, is_shifted) - 20usize];
+};
+impl Default for IdaxTypePointerDetails {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 unsafe extern "C" {
     pub fn idax_type_void() -> IdaxTypeHandle;
 }
@@ -2884,6 +2915,20 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_type_pointee_type(
         ti: IdaxTypeHandle,
+        out: *mut IdaxTypeHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_pointer_details(
+        ti: IdaxTypeHandle,
+        out: *mut *mut IdaxTypePointerDetails,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_with_shifted_parent(
+        ti: IdaxTypeHandle,
+        parent: IdaxTypeHandle,
+        byte_delta: i64,
         out: *mut IdaxTypeHandle,
     ) -> ::std::os::raw::c_int;
 }
@@ -3112,6 +3157,9 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_type_udt_details_free(details: *mut IdaxTypeUdtDetails);
+}
+unsafe extern "C" {
+    pub fn idax_type_pointer_details_free(details: *mut IdaxTypePointerDetails);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

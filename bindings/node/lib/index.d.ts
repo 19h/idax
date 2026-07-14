@@ -1639,6 +1639,13 @@ export namespace type {
         members: Member[];
     }
 
+    interface PointerDetails {
+        pointeeType: TypeInfo;
+        shiftedParent: TypeInfo | null;
+        shiftDelta: number;
+        isShifted: boolean;
+    }
+
     interface EnumDetails {
         byteWidth: number;
         signedValues: boolean;
@@ -1695,6 +1702,12 @@ export namespace type {
         // ── Pointer / Array ─────────────────────────────────────────────
         /** For pointer types: the pointed-to type. */
         pointeeType(): TypeInfo;
+
+        /** Complete pointer metadata, including an exact shifted parent and signed byte delta. */
+        pointerDetails(): PointerDetails;
+
+        /** Return a pointer copy marked as shifted relative to a struct parent. */
+        withShiftedParent(parent: TypeInfo, byteDelta: number): TypeInfo;
 
         /** For array types: the element type. */
         arrayElementType(): TypeInfo;

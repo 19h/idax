@@ -1044,7 +1044,8 @@ mod types_tests {
     use crate::error::Result;
     use crate::types::{
         self, CallingConvention, EnumDetails, EnumRadix, FunctionArgument, FunctionDetails, Member,
-        ParseDeclarationsOptions, ParseDeclarationsReport, TypeInfo, TypeKind, UdtDetails,
+        ParseDeclarationsOptions, ParseDeclarationsReport, PointerDetails, TypeInfo, TypeKind,
+        UdtDetails,
     };
 
     #[test]
@@ -1093,6 +1094,8 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<TypeKind> = TypeInfo::kind;
         let _: fn(&TypeInfo) -> Result<String> = TypeInfo::name;
         let _: fn(&TypeInfo, Option<&str>) -> Result<String> = TypeInfo::declaration;
+        let _: fn(&TypeInfo) -> Result<PointerDetails> = TypeInfo::pointer_details;
+        let _: fn(&TypeInfo, &TypeInfo, i64) -> Result<TypeInfo> = TypeInfo::with_shifted_parent;
         let _: fn(&TypeInfo) -> Result<FunctionDetails> = TypeInfo::function_details;
         let _: fn(&TypeInfo, usize, &TypeInfo) -> Result<TypeInfo> =
             TypeInfo::with_function_argument_type;
