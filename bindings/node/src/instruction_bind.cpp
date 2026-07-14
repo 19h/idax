@@ -197,6 +197,34 @@ NAN_METHOD(SetOperandOffset) {
     IDAX_CHECK_STATUS(ida::instruction::set_operand_offset(addr, n, base));
 }
 
+// setOperandEnum(address, n, enumName, serial?)
+NAN_METHOD(SetOperandEnum) {
+    ida::Address addr;
+    if (!GetAddressArg(info, 0, addr)) return;
+    int n = GetOptionalInt(info, 1, 0);
+    std::string enumName;
+    if (!GetStringArg(info, 2, enumName)) return;
+    int serial = GetOptionalInt(info, 3, 0);
+    if (serial < 0 || serial > 255) {
+        Nan::ThrowRangeError("Enum serial must be in 0..255");
+        return;
+    }
+    IDAX_CHECK_STATUS(ida::instruction::set_operand_enum(
+        addr, n, enumName, static_cast<std::uint8_t>(serial)));
+}
+
+// operandEnum(address, n) -> { name, serial }
+NAN_METHOD(OperandEnum) {
+    ida::Address addr;
+    if (!GetAddressArg(info, 0, addr)) return;
+    int n = GetOptionalInt(info, 1, 0);
+    IDAX_UNWRAP(auto value, ida::instruction::operand_enum(addr, n));
+    info.GetReturnValue().Set(ObjectBuilder()
+        .setStr("name", value.name)
+        .setInt("serial", value.serial)
+        .build());
+}
+
 // setOperandStructOffset(address, n, structName_or_structId, delta?)
 // Overloaded: if arg 2 is string → by name, if number/BigInt → by id
 NAN_METHOD(SetOperandStructOffset) {
@@ -479,6 +507,8 @@ void InitInstruction(v8::Local<v8::Object> target) {
     SetMethod(ns, "setOperandFloat",     SetOperandFloat);
     SetMethod(ns, "setOperandFormat",    SetOperandFormat);
     SetMethod(ns, "setOperandOffset",    SetOperandOffset);
+    SetMethod(ns, "setOperandEnum",      SetOperandEnum);
+    SetMethod(ns, "operandEnum",         OperandEnum);
 
     // Struct offset operations
     SetMethod(ns, "setOperandStructOffset",      SetOperandStructOffset);

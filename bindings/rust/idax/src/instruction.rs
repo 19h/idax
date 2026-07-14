@@ -83,6 +83,13 @@ pub struct StructOffsetPath {
     pub delta: AddressDelta,
 }
 
+/// Copied metadata for a named enum operand representation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OperandEnum {
+    pub name: String,
+    pub serial: u8,
+}
+
 // ---------------------------------------------------------------------------
 // Operand value object
 // ---------------------------------------------------------------------------
@@ -357,6 +364,30 @@ pub fn set_operand_format(
 pub fn set_operand_offset(address: Address, n: i32, base: Address) -> Status {
     let ret = unsafe { idax_sys::idax_instruction_set_operand_offset(address, n, base) };
     error::int_to_status(ret, "set_operand_offset failed")
+}
+
+/// Apply a named enum representation to one operand, or all operands for `n == -1`.
+pub fn set_operand_enum(address: Address, n: i32, enum_name: &str, serial: u8) -> Status {
+    let enum_name =
+        CString::new(enum_name).map_err(|_| Error::validation("enum name contains a NUL byte"))?;
+    let ret = unsafe {
+        idax_sys::idax_instruction_set_operand_enum(address, n, enum_name.as_ptr(), serial)
+    };
+    error::int_to_status(ret, "set_operand_enum failed")
+}
+
+/// Read the copied enum name and serial for an operand representation.
+pub fn operand_enum(address: Address, n: i32) -> Result<OperandEnum> {
+    unsafe {
+        let mut name: *mut std::ffi::c_char = std::ptr::null_mut();
+        let mut serial: u8 = 0;
+        let ret = idax_sys::idax_instruction_operand_enum(address, n, &mut name, &mut serial);
+        if ret != 0 {
+            return Err(error::consume_last_error("operand_enum failed"));
+        }
+        let name = error::cstr_to_string_free(name, "operand_enum returned a null name")?;
+        Ok(OperandEnum { name, serial })
+    }
 }
 
 /// Set operand as a structure member offset by structure name.

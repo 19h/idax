@@ -46,6 +46,7 @@ Current overall phase status:
 - Phase 33: complete (forward-compatible raw-plus-optional-typed processor profiles across C++/Node/Rust, corrected current-SDK ID provenance, exact conversion/equivalence evidence, and idapcode migration closure)
 - Phase 34: complete (Intelligent Function Inliner real-plugin port plus Node/Rust decoded-operand access-mode parity)
 - Phase 35: complete (IDAMagicStrings real-plugin port plus string-list/source-file/name-inventory parity and disposable native integration fixtures)
+- Phase 36: complete (Auto Enum port plus metadata-preserving function-argument type edits and named operand-enum representations)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -225,3 +226,12 @@ Current overall phase status:
 - [x] P35.2 Add opaque configurable string-list snapshots and source-file range metadata with exact cross-binding evidence.
 - [x] P35.3 Port the complete non-NLTK analysis and rename workflows to an interactive C++ plugin and headless Rust adaptation.
 - [x] P35.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.
+
+---
+
+### Phase 36 TODO Action Items (Auto Enum Port)
+
+- [x] P36.1 Audit the original global-prototype and per-call specialization workflows against current C++/Node/Rust wrapper coverage and authoritative SDK contracts.
+- [x] P36.2 Add metadata-preserving function-argument type replacement and named operand-enum representation/readback with C++/Node/Rust parity.
+- [x] P36.3 Port the Auto Enum analysis and explicit annotation workflows to an interactive C++ plugin and headless Rust adaptation.
+- [x] P36.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.

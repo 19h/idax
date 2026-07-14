@@ -64,6 +64,12 @@ struct StructOffsetPath {
     AddressDelta               delta{0};
 };
 
+/// Copied metadata for a named enum operand representation.
+struct OperandEnum {
+    std::string  name;
+    std::uint8_t serial{0};
+};
+
 // ── Operand value object ────────────────────────────────────────────────
 
 class Operand {
@@ -172,6 +178,17 @@ Status set_operand_format(Address address, int n, OperandFormat format, Address 
 
 /// Set operand as an offset reference. \p base is the offset base (0 for auto).
 Status set_operand_offset(Address address, int n, Address base = 0);
+
+/// Set one operand (or all operands when n is -1) to a named enum representation.
+/// The enum must exist in the local type library. Native type IDs remain private.
+Status set_operand_enum(Address address,
+                        int n,
+                        std::string_view enum_name,
+                        std::uint8_t serial = 0);
+
+/// Read the copied name and serial of an operand's enum representation.
+/// Passing -1 queries whichever operand carries the representation.
+Result<OperandEnum> operand_enum(Address address, int n);
 
 /// Set operand to display as a structure member offset by structure name.
 ///

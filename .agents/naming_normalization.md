@@ -14,6 +14,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `decode_insn(insn*, ea)` | `ida::instruction::decode(address)` |
 | `insn.get_canon_feature()` + `CF_USEn` / `CF_CHGn` | `Operand::is_read()` / `Operand::is_written()` (Node `isRead` / `isWritten`; Rust `is_read` / `is_written`) |
 | `create_insn(ea)` | `ida::instruction::create(address)` |
+| `op_enum(ea, n, tid, serial)` / `get_enum_id(...)` | `ida::instruction::set_operand_enum(address, index, enum_name, serial)` / `operand_enum(address, index)` |
 | `get_byte(ea)` | `ida::data::read_byte(address)` |
 | `get_strlist_options()` / `build_strlist()` / `get_strlist_item()` | `ida::data::string_list_options()` / `configure_string_list()` / `string_literals()` |
 | `put_byte(ea, v)` | `ida::data::write_byte(address, value)` |
@@ -31,6 +32,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `auto_wait()` | `ida::analysis::wait()` |
 | `plan_ea(ea)` | `ida::analysis::schedule_reanalysis(address)` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
+| copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | `loader_t::accept_file` | `ida::loader::Loader::accept(file)` |
 | `loader_t::load_file` | `ida::loader::Loader::load(file, format)` |
 | `plugin_t::init/run/term` | `ida::plugin::Plugin` lifecycle methods |

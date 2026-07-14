@@ -1,7 +1,7 @@
 # agents.md - IDA SDK Intuitive Wrapper Program
 
-Last updated: 2026-02-16
-Status: Implementation substantially complete; 16/16 tests passing; release candidate ready
+Last updated: 2026-07-14
+Status: Implementation substantially complete; 26/26 native tests passing; release candidate ready
 Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper over the IDA SDK for first-time users while preserving full power for expert workflows.
 
 ---
@@ -117,14 +117,14 @@ If any of the above changes and the corresponding file is not updated immediatel
 
 Program-level:
 - Architecture definition: complete
-- Implementation: complete — all core domains implemented; 16/16 test targets passing (232/232 smoke checks + 15 dedicated integration/unit suites); release candidate ready
+- Implementation: complete — all core domains implemented; 26/26 native test targets, 232/232 Node structural checks, and 93/93 Rust initialized-host checks passing; release candidate ready
 - Documentation baseline file: complete
 - Build system: working (CMake + ida-cmake, C++23, static library, install/export/CPack packaging)
 - Test infrastructure: working (idalib-based integration tests with real IDA dylibs; compile-only API surface parity check)
 
 Phase completion estimates:
-- Phase 0-10: All ~100% complete
-- Phase 11: ~100% complete (Abyss port API gap closure — 18 gaps closed, lines/decompiler/ui domains expanded, abyss_port_plugin complete)
+- Phase 0-21 and 23-36: complete
+- Phase 22: ~99% complete; remaining evidence requires interactive modal-form and clipboard hosts
 - See `.agents/roadmap.md` for detailed phase status
 
 Blocker status:

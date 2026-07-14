@@ -354,6 +354,9 @@ void check_instruction_surface() {
     ida::instruction::StructOffsetPath stroff_path;
     (void)stroff_path.structure_ids;
     (void)stroff_path.delta;
+    ida::instruction::OperandEnum operand_enum;
+    (void)operand_enum.name;
+    (void)operand_enum.serial;
 
     ida::instruction::Operand operand;
     (void)operand.is_read();
@@ -378,7 +381,13 @@ void check_instruction_surface() {
     using InstructionStructOffsetPathFn = ida::Result<ida::instruction::StructOffsetPath>(*)(ida::Address,
                                                                                                int);
     using InstructionStructOffsetPathNamesFn = ida::Result<std::vector<std::string>>(*)(ida::Address,
-                                                                                          int);
+                                                                                        int);
+    using InstructionSetOperandEnumFn = ida::Status(*)(ida::Address,
+                                                       int,
+                                                       std::string_view,
+                                                       std::uint8_t);
+    using InstructionOperandEnumFn = ida::Result<ida::instruction::OperandEnum>(*)(ida::Address,
+                                                                                    int);
     using InstructionOperandTextFn = ida::Result<std::string>(*)(ida::Address, int);
     using InstructionOperandByteWidthFn = ida::Result<int>(*)(ida::Address, int);
     using InstructionOperandRegisterNameFn = ida::Result<std::string>(*)(ida::Address, int);
@@ -386,6 +395,8 @@ void check_instruction_surface() {
     using InstructionPredicateFn = bool(*)(ida::Address);
 
     (void)static_cast<InstructionSetOperandFormatFn>(&ida::instruction::set_operand_format);
+    (void)static_cast<InstructionSetOperandEnumFn>(&ida::instruction::set_operand_enum);
+    (void)static_cast<InstructionOperandEnumFn>(&ida::instruction::operand_enum);
     (void)static_cast<InstructionSetOperandStructOffsetByNameFn>(
         &ida::instruction::set_operand_struct_offset);
     (void)static_cast<InstructionSetOperandStructOffsetByIdFn>(
@@ -531,6 +542,8 @@ void check_type_surface() {
     using FunctionReturnTypeFn = ida::Result<ida::type::TypeInfo>(ida::type::TypeInfo::*)() const;
     using FunctionArgsFn = ida::Result<std::vector<ida::type::TypeInfo>>(ida::type::TypeInfo::*)() const;
     using FunctionDetailsFn = ida::Result<ida::type::FunctionDetails>(ida::type::TypeInfo::*)() const;
+    using WithFunctionArgumentTypeFn = ida::Result<ida::type::TypeInfo>(
+        ida::type::TypeInfo::*)(std::size_t, const ida::type::TypeInfo&) const;
     using CallingConventionFn = ida::Result<ida::type::CallingConvention>(ida::type::TypeInfo::*)() const;
     using VariadicFn = ida::Result<bool>(ida::type::TypeInfo::*)() const;
     using EnumMembersFn = ida::Result<std::vector<ida::type::EnumMember>>(ida::type::TypeInfo::*)() const;
@@ -567,6 +580,8 @@ void check_type_surface() {
     (void)static_cast<FunctionReturnTypeFn>(&ida::type::TypeInfo::function_return_type);
     (void)static_cast<FunctionArgsFn>(&ida::type::TypeInfo::function_argument_types);
     (void)static_cast<FunctionDetailsFn>(&ida::type::TypeInfo::function_details);
+    (void)static_cast<WithFunctionArgumentTypeFn>(
+        &ida::type::TypeInfo::with_function_argument_type);
     (void)static_cast<CallingConventionFn>(&ida::type::TypeInfo::calling_convention);
     (void)static_cast<VariadicFn>(&ida::type::TypeInfo::is_variadic_function);
     (void)static_cast<EnumMembersFn>(&ida::type::TypeInfo::enum_members);

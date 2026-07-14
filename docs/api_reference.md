@@ -14,14 +14,14 @@ Public headers:
 | `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers, prototype export/application |
-| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls (including struct-offset helpers), xref conveniences; Node and Rust snapshots preserve both access-mode booleans |
+| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls including opaque named enum apply/readback and struct-offset helpers, xref conveniences; Node and Rust snapshots preserve both access-mode booleans |
 | `include/ida/name.hpp` | Set/get/force/remove names, filtered copied inventories, address-based and arbitrary-symbol demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
-| `include/ida/type.hpp` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
+| `include/ida/type.hpp` | Type construction, structs/unions/members, metadata-preserving indexed function-argument replacement, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
 | `include/ida/plugin.hpp` | Plugin base class, wrapper-owned action registration/activation, move-only `ScopedHotkey`, counted wrapper-managed menu/toolbar attachment with deterministic detach errors, popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |

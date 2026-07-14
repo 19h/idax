@@ -553,6 +553,25 @@ impl TypeInfo {
         Ok(out)
     }
 
+    /// Return a copy with one function argument type replaced while preserving
+    /// names, locations, calling convention, and all unaffected metadata.
+    pub fn with_function_argument_type(
+        &self,
+        index: usize,
+        replacement: &TypeInfo,
+    ) -> Result<Self> {
+        let mut out: *mut c_void = std::ptr::null_mut();
+        let ret = unsafe {
+            idax_sys::idax_type_with_function_argument_type(
+                self.handle,
+                index,
+                replacement.handle,
+                &mut out,
+            )
+        };
+        Self::from_out_handle(ret, out, "with_function_argument_type failed")
+    }
+
     pub fn function_details(&self) -> Result<FunctionDetails> {
         let mut raw: *mut idax_sys::IdaxTypeFunctionDetails = std::ptr::null_mut();
         let ret = unsafe { idax_sys::idax_type_function_details(self.handle, &mut raw) };

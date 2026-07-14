@@ -19,6 +19,7 @@ Detailed historical churn was intentionally removed to keep the audit concise.
 | lifter | `examples/plugin/lifter_port_plugin.cpp` | closed | None for audited lifter-class migration scope |
 | Intelligent Function Inliner | `examples/plugin/intelligent_inliner_port_plugin.cpp`, `bindings/rust/idax/examples/intelligent_inliner_port.rs` | closed | None; Phase 34 preserves processor-reported operand access modes through Node and Rust |
 | IDAMagicStrings | `examples/plugin/magic_strings_port_plugin.cpp`, `bindings/rust/idax/examples/magic_strings_port.rs` | closed | None for the original non-NLTK workflow; Phase 35 adds copied string-list/source metadata and safe Rust full-name inventory |
+| Auto Enum | `examples/plugin/auto_enum_port_plugin.cpp`, `bindings/rust/idax/examples/auto_enum_port.rs` | closed | None for the audited wrapper scope; Phase 36 adds metadata-preserving argument edits and opaque named operand-enum apply/readback. The embedded corpus is representative rather than exhaustive |
 
 ## Notes
 
@@ -38,4 +39,8 @@ Detailed historical churn was intentionally removed to keep the audit concise.
   blacklist filtering, one-function rarity, scoped-class evidence, and
   confirmed rename modes without adding Python, NLTK, or Qt dependencies to
   the core wrapper.
+- Auto Enum preserves global prototype enrichment and interactive
+  selector-dependent operand annotation without exposing native type IDs. The
+  Rust adaptation covers the deterministic global pass; selected-call cursor
+  state remains an interactive C++ host concern.
 - This file replaces the previous per-port gap audit documents.

@@ -396,6 +396,10 @@ int idax_instruction_set_operand_float(uint64_t ea, int n);
 int idax_instruction_set_operand_format(uint64_t ea, int n, int format,
                                         uint64_t base);
 int idax_instruction_set_operand_offset(uint64_t ea, int n, uint64_t base);
+int idax_instruction_set_operand_enum(uint64_t ea, int n,
+                                      const char* enum_name, uint8_t serial);
+int idax_instruction_operand_enum(uint64_t ea, int n,
+                                  char** out_name, uint8_t* out_serial);
 int idax_instruction_set_operand_struct_offset_by_name(uint64_t ea, int n,
                                                        const char* structure_name,
                                                        int64_t delta);
@@ -933,6 +937,10 @@ int idax_type_function_return_type(IdaxTypeHandle ti, IdaxTypeHandle* out);
 int idax_type_function_argument_types(IdaxTypeHandle ti,
                                       IdaxTypeHandle** out,
                                       size_t* count);
+int idax_type_with_function_argument_type(IdaxTypeHandle ti,
+                                          size_t index,
+                                          IdaxTypeHandle replacement,
+                                          IdaxTypeHandle* out);
 int idax_type_function_details(IdaxTypeHandle ti, IdaxTypeFunctionDetails** out);
 int idax_type_calling_convention(IdaxTypeHandle ti, int* out);
 int idax_type_is_variadic_function(IdaxTypeHandle ti, int* out);

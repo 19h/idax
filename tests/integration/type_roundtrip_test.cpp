@@ -359,6 +359,58 @@ void test_function_type_workflows() {
     CHECK(!invalid_cc.has_value());
     if (!invalid_cc)
         CHECK(invalid_cc.error().category == ida::ErrorCategory::Validation);
+
+    auto named_fn = ida::type::TypeInfo::from_declaration(
+        "int __cdecl idax_proto(int selector, char *payload)");
+    CHECK_OK(named_fn);
+    if (named_fn) {
+        auto before = named_fn->function_details();
+        CHECK_OK(before);
+
+        auto replacement = ida::type::TypeInfo::uint32();
+        auto edited = named_fn->with_function_argument_type(0, replacement);
+        CHECK_OK(edited);
+        if (before && edited) {
+            auto after = edited->function_details();
+            CHECK_OK(after);
+            if (after) {
+                CHECK(after->arguments.size() == before->arguments.size());
+                CHECK(after->arguments.size() == 2);
+                CHECK(after->arguments[0].name == before->arguments[0].name);
+                CHECK(after->arguments[1].name == before->arguments[1].name);
+                CHECK(after->arguments[0].type.is_integer());
+                CHECK(after->arguments[1].type.is_pointer());
+                CHECK(after->calling_convention == before->calling_convention);
+                CHECK(after->variadic == before->variadic);
+            }
+
+            auto original_after = named_fn->function_details();
+            CHECK_OK(original_after);
+            if (original_after)
+                CHECK(original_after->arguments[0].type.is_signed());
+
+            auto pointer = ida::type::TypeInfo::pointer_to(*named_fn);
+            auto edited_pointer = pointer.with_function_argument_type(1, replacement);
+            CHECK_OK(edited_pointer);
+            if (edited_pointer) {
+                CHECK(edited_pointer->is_pointer());
+                auto pointer_details = edited_pointer->function_details();
+                CHECK_OK(pointer_details);
+                if (pointer_details) {
+                    CHECK(pointer_details->arguments[0].name == before->arguments[0].name);
+                    CHECK(pointer_details->arguments[1].name == before->arguments[1].name);
+                    CHECK(pointer_details->arguments[1].type.is_integer());
+                }
+            }
+        }
+
+        CHECK_ERR(named_fn->with_function_argument_type(2, replacement),
+                  ida::ErrorCategory::Validation);
+    }
+
+    CHECK_ERR(ida::type::TypeInfo::int32().with_function_argument_type(
+                  0, ida::type::TypeInfo::uint32()),
+              ida::ErrorCategory::Validation);
 }
 
 // ---------------------------------------------------------------------------

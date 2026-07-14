@@ -772,6 +772,11 @@ export namespace instruction {
         delta: AddressDelta;
     }
 
+    interface OperandEnum {
+        name: string;
+        serial: number;
+    }
+
     // ── Decode / create ─────────────────────────────────────────────────
 
     /** Decode the instruction at the given address (read-only). */
@@ -808,6 +813,12 @@ export namespace instruction {
 
     /** Set operand n to an offset from an optional base address. */
     function setOperandOffset(address: Address, n?: number, base?: Address): void;
+
+    /** Apply a named enum representation; n=-1 selects all operands. */
+    function setOperandEnum(address: Address, n: number, enumName: string, serial?: number): void;
+
+    /** Read the copied enum name and serial for an operand. */
+    function operandEnum(address: Address, n?: number): OperandEnum;
 
     // ── Struct offset operations ────────────────────────────────────────
 
@@ -1700,6 +1711,9 @@ export namespace type {
 
         /** For function types: the argument types. */
         functionArgumentTypes(): TypeInfo[];
+
+        /** Return a copy with one argument type replaced and prototype metadata preserved. */
+        withFunctionArgumentType(index: number, replacement: TypeInfo): TypeInfo;
 
         /** For function types: the calling convention. */
         callingConvention(): CallingConvention;

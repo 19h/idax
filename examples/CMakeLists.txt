@@ -41,6 +41,8 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/driverbuddy_port_plugin.cpp
     plugin/intelligent_inliner_port_plugin.cpp
     plugin/magic_strings_port_plugin.cpp
+    plugin/auto_enum_port_plugin.cpp
+    plugin/auto_enum_port_LICENSE.txt
     plugin/codedump_parity_probe_plugin.cpp
     plugin/idapcode_port_plugin.cpp
     plugin/driverbuddy_wdf_slots.inc
@@ -155,6 +157,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_magic_strings_port_plugin
         SOURCES plugin/magic_strings_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_auto_enum_port_plugin
+        SOURCES plugin/auto_enum_port_plugin.cpp
         LIBRARIES idax::idax
     )
 

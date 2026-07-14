@@ -489,6 +489,62 @@ fn instruction_operand_access_modes() {
     );
 }
 
+fn instruction_operand_enum_roundtrip() {
+    require_db!();
+    let enum_type = types::TypeInfo::enum_type(
+        &[
+            types::EnumMember {
+                name: "IDAX_RUST_ZERO".to_string(),
+                value: 0,
+                comment: String::new(),
+            },
+            types::EnumMember {
+                name: "IDAX_RUST_ONE".to_string(),
+                value: 1,
+                comment: String::new(),
+            },
+        ],
+        4,
+        false,
+    )
+    .unwrap();
+    enum_type.save_as("idax_rust_operand_enum").unwrap();
+
+    let candidate = function::all().find_map(|function| {
+        function::code_addresses(function.start())
+            .ok()?
+            .into_iter()
+            .find_map(|address| {
+                let decoded = instruction::decode(address).ok()?;
+                decoded
+                    .operands()
+                    .iter()
+                    .find(|operand| operand.is_immediate() && operand.value() != 0)
+                    .map(|operand| (address, operand.index()))
+            })
+    });
+    let Some((address, index)) = candidate else {
+        eprintln!("  [skipped — no immediate operand]");
+        return;
+    };
+
+    instruction::set_operand_enum(address, index, "idax_rust_operand_enum", 0).unwrap();
+    let exact = instruction::operand_enum(address, index).unwrap();
+    assert_eq!(exact.name, "idax_rust_operand_enum");
+    assert_eq!(exact.serial, 0);
+    assert_eq!(
+        instruction::operand_enum(address, -1).unwrap().name,
+        "idax_rust_operand_enum"
+    );
+    instruction::clear_operand_representation(address, index).unwrap();
+    assert_eq!(
+        instruction::operand_enum(address, index)
+            .unwrap_err()
+            .category,
+        ErrorCategory::NotFound
+    );
+}
+
 fn instruction_classification() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -1282,6 +1338,41 @@ fn types_from_declaration() {
     );
 }
 
+fn types_replace_function_argument() {
+    require_db!();
+    let original = types::TypeInfo::from_declaration(
+        "int __cdecl idax_rust_proto(int selector, char *payload)",
+    )
+    .unwrap();
+    let before = original.function_details().unwrap();
+    let edited = original
+        .with_function_argument_type(0, &types::TypeInfo::uint32())
+        .unwrap();
+    let after = edited.function_details().unwrap();
+    assert_eq!(after.arguments.len(), before.arguments.len());
+    assert_eq!(after.arguments[0].name, before.arguments[0].name);
+    assert_eq!(after.arguments[1].name, before.arguments[1].name);
+    assert!(after.arguments[1].r#type.is_pointer());
+    assert_eq!(after.calling_convention, before.calling_convention);
+    assert_eq!(after.variadic, before.variadic);
+    assert!(
+        original.function_details().unwrap().arguments[0]
+            .r#type
+            .is_signed()
+    );
+
+    let pointer = types::TypeInfo::pointer_to(&original);
+    let edited_pointer = pointer
+        .with_function_argument_type(1, &types::TypeInfo::uint32())
+        .unwrap();
+    assert!(edited_pointer.is_pointer());
+    assert!(
+        edited_pointer.function_details().unwrap().arguments[1]
+            .r#type
+            .is_integer()
+    );
+}
+
 fn types_parse_declarations() {
     require_db!();
     let report = types::parse_declarations(
@@ -1788,6 +1879,10 @@ static TEST_CASES: &[TestCase] = &[
         "instruction_operand_access_modes",
         instruction_operand_access_modes,
     ),
+    (
+        "instruction_operand_enum_roundtrip",
+        instruction_operand_enum_roundtrip,
+    ),
     ("instruction_classification", instruction_classification),
     ("instruction_code_refs", instruction_code_refs),
     ("instruction_next_prev", instruction_next_prev),
@@ -1831,6 +1926,10 @@ static TEST_CASES: &[TestCase] = &[
     ("types_pointer_and_array", types_pointer_and_array),
     ("types_struct_creation", types_struct_creation),
     ("types_from_declaration", types_from_declaration),
+    (
+        "types_replace_function_argument",
+        types_replace_function_argument,
+    ),
     ("types_parse_declarations", types_parse_declarations),
     ("types_retrieve_at_function", types_retrieve_at_function),
     ("types_local_type_count", types_local_type_count),

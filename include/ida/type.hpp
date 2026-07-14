@@ -189,6 +189,14 @@ public:
     [[nodiscard]] Result<TypeInfo> function_return_type() const;
     [[nodiscard]] Result<std::vector<TypeInfo>> function_argument_types() const;
     [[nodiscard]] Result<FunctionDetails> function_details() const;
+
+    /// Return a copy with one function argument type replaced.
+    /// Preserves argument names/locations/flags and all other prototype metadata.
+    /// Accepts direct function types and function-pointer types.
+    [[nodiscard]] Result<TypeInfo>
+    with_function_argument_type(std::size_t index,
+                                const TypeInfo& replacement) const;
+
     [[nodiscard]] Result<CallingConvention> calling_convention() const;
     [[nodiscard]] Result<bool> is_variadic_function() const;
     [[nodiscard]] Result<std::vector<EnumMember>> enum_members() const;

@@ -259,6 +259,43 @@ describe('Instructions', () => {
         expect(sawWrittenMemory).toBe(true);
     });
 
+    it('should apply and read back a named operand enum', () => {
+        idax.type.parseDeclarations(
+            'enum idax_node_operand_enum { IDAX_NODE_ZERO = 0, IDAX_NODE_ONE = 1 };',
+        );
+
+        let candidate = null;
+        for (const func of idax.function.all()) {
+            for (const address of idax.function.codeAddresses(func.start)) {
+                const decoded = idax.instruction.decode(address);
+                const operand = decoded.operands.find(
+                    value => value.type === 'immediate' && value.value !== 0n,
+                );
+                if (operand) {
+                    candidate = { address, index: operand.index };
+                    break;
+                }
+            }
+            if (candidate) break;
+        }
+        if (!candidate) return;
+
+        try {
+            idax.instruction.setOperandEnum(
+                candidate.address,
+                candidate.index,
+                'idax_node_operand_enum',
+            );
+            const exact = idax.instruction.operandEnum(candidate.address, candidate.index);
+            expect(exact.name).toBe('idax_node_operand_enum');
+            expect(exact.serial).toBe(0);
+            const any = idax.instruction.operandEnum(candidate.address, -1);
+            expect(any.name).toBe('idax_node_operand_enum');
+        } finally {
+            idax.instruction.clearOperandRepresentation(candidate.address, candidate.index);
+        }
+    });
+
     it('should get instruction text', () => {
         const funcs = idax.function.all();
         const text = idax.instruction.text(funcs[0].start);
@@ -771,6 +808,28 @@ describe('Type System', () => {
         const arr = idax.type.arrayOf(elem, 100);
         expect(arr.isArray()).toBe(true);
         expect(arr.arrayLength()).toBe(100);
+    });
+
+    it('should replace a function argument type without losing metadata', () => {
+        const original = idax.type.fromDeclaration(
+            'int __cdecl idax_node_proto(int selector, char *payload)',
+        );
+        const before = original.functionDetails();
+        const edited = original.withFunctionArgumentType(0, idax.type.uint32());
+        const after = edited.functionDetails();
+
+        expect(after.arguments.length).toBe(before.arguments.length);
+        expect(after.arguments[0].name).toBe(before.arguments[0].name);
+        expect(after.arguments[1].name).toBe(before.arguments[1].name);
+        expect(after.arguments[1].type.isPointer()).toBe(true);
+        expect(after.callingConvention).toBe(before.callingConvention);
+        expect(after.variadic).toBe(before.variadic);
+        expect(original.functionDetails().arguments[0].type.isSigned()).toBe(true);
+
+        const pointer = idax.type.pointerTo(original);
+        const editedPointer = pointer.withFunctionArgumentType(1, idax.type.uint32());
+        expect(editedPointer.isPointer()).toBe(true);
+        expect(editedPointer.functionDetails().arguments[1].type.isInteger()).toBe(true);
     });
 });
 

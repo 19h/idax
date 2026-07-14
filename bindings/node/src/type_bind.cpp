@@ -129,6 +129,7 @@ private:
 
     static NAN_METHOD(FunctionReturnType);
     static NAN_METHOD(FunctionArgumentTypes);
+    static NAN_METHOD(WithFunctionArgumentType);
     static NAN_METHOD(FunctionDetails);
     static NAN_METHOD(CallingConventionMethod);
     static NAN_METHOD(IsVariadicFunction);
@@ -304,6 +305,7 @@ NAN_MODULE_INIT(TypeInfoWrapper::Init) {
 
     Nan::SetPrototypeMethod(tpl, "functionReturnType",    FunctionReturnType);
     Nan::SetPrototypeMethod(tpl, "functionArgumentTypes", FunctionArgumentTypes);
+    Nan::SetPrototypeMethod(tpl, "withFunctionArgumentType", WithFunctionArgumentType);
     Nan::SetPrototypeMethod(tpl, "functionDetails",       FunctionDetails);
     Nan::SetPrototypeMethod(tpl, "callingConvention",     CallingConventionMethod);
     Nan::SetPrototypeMethod(tpl, "isVariadicFunction",    IsVariadicFunction);
@@ -517,6 +519,25 @@ NAN_METHOD(TypeInfoWrapper::FunctionArgumentTypes) {
                  TypeInfoWrapper::NewInstance(std::move(argTypes[i])));
     }
     info.GetReturnValue().Set(arr);
+}
+
+NAN_METHOD(TypeInfoWrapper::WithFunctionArgumentType) {
+    SELF();
+    if (info.Length() < 2 || !info[0]->IsUint32()) {
+        Nan::ThrowTypeError("Expected (non-negative argument index, TypeInfo) arguments");
+        return;
+    }
+    const auto index = static_cast<std::size_t>(Nan::To<std::uint32_t>(info[0]).FromJust());
+    auto* replacement = TypeInfoWrapper::Unwrap(info[1]);
+    if (replacement == nullptr) {
+        Nan::ThrowTypeError("Second argument must be a TypeInfo object");
+        return;
+    }
+
+    IDAX_UNWRAP(auto result,
+                self->type_info_.with_function_argument_type(index,
+                                                              replacement->typeInfo()));
+    info.GetReturnValue().Set(TypeInfoWrapper::NewInstance(std::move(result)));
 }
 
 NAN_METHOD(TypeInfoWrapper::FunctionDetails) {

@@ -1559,6 +1559,32 @@ int idax_instruction_set_operand_offset(uint64_t ea, int n, uint64_t base) {
     RETURN_STATUS(ida::instruction::set_operand_offset(ea, n, base));
 }
 
+int idax_instruction_set_operand_enum(uint64_t ea,
+                                      int n,
+                                      const char* enum_name,
+                                      uint8_t serial) {
+    RETURN_STATUS(ida::instruction::set_operand_enum(
+        ea, n, enum_name == nullptr ? "" : enum_name, serial));
+}
+
+int idax_instruction_operand_enum(uint64_t ea,
+                                  int n,
+                                  char** out_name,
+                                  uint8_t* out_serial) {
+    clear_error();
+    if (out_name == nullptr || out_serial == nullptr)
+        return fail(ida::Error::validation("Output pointer is null"));
+    *out_name = nullptr;
+    *out_serial = 0;
+    auto result = ida::instruction::operand_enum(ea, n);
+    if (!result) return fail(result.error());
+    *out_name = dup_string(result->name);
+    if (*out_name == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    *out_serial = result->serial;
+    return 0;
+}
+
 int idax_instruction_set_operand_struct_offset_by_name(uint64_t ea,
                                                        int n,
                                                        const char* structure_name,
@@ -3637,6 +3663,21 @@ int idax_type_function_argument_types(IdaxTypeHandle ti,
         handles[i] = new ida::type::TypeInfo(args[i]);
     }
     *out = handles;
+    return 0;
+}
+
+int idax_type_with_function_argument_type(IdaxTypeHandle ti,
+                                          size_t index,
+                                          IdaxTypeHandle replacement,
+                                          IdaxTypeHandle* out) {
+    clear_error();
+    if (ti == nullptr || replacement == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Type handle or output pointer is null"));
+    *out = nullptr;
+    auto result = static_cast<ida::type::TypeInfo*>(ti)->with_function_argument_type(
+        index, *static_cast<ida::type::TypeInfo*>(replacement));
+    if (!result) return fail(result.error());
+    *out = new ida::type::TypeInfo(std::move(*result));
     return 0;
 }
 

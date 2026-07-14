@@ -55,6 +55,7 @@ This section captures the intended public API semantics at a concrete level so i
   (`isRead`/`isWritten`), and Rust (`is_read`/`is_written`) snapshots
 - Struct-offset operand helpers (`set_operand_struct_offset`, `set_operand_based_struct_offset`)
 - Struct-offset readback/introspection helpers (`operand_struct_offset_path`, `operand_struct_offset_path_names`)
+- Named enum representation helpers (`set_operand_enum`, `operand_enum`) with copied names/serials and no public TIDs
 - Xref conveniences for refs-from and flow semantics
 
 ### 17.6 `ida::name`
@@ -84,6 +85,7 @@ This section captures the intended public API semantics at a concrete level so i
 
 ### 17.9 `ida::type`
 - `TypeInfo` value object with constructor helpers (primitive/pointer/array/function)
+- Immutable indexed function-argument replacement that preserves the native prototype record (`with_function_argument_type`)
 - Struct/union/member APIs with byte-based offsets
 - Apply/retrieve type operations
 - Type library access wrappers and import/export helpers

@@ -811,3 +811,23 @@ tracked in `docs/compatibility_matrix.md`.
   IDA 9.4 integration passes 91/91. On an isolated stripped Mach-O, report mode
   found one `sub_* -> uniqueHandler` candidate without mutation, explicit apply
   renamed 1/1 with zero failures, and a fresh reopen retained the name.
+
+- 2026-07-14 Phase 36 Auto Enum port:
+  Added immutable metadata-preserving indexed function-argument replacement
+  and opaque named operand-enum representation/readback across C++, Node, and
+  Rust. The public all-operands index `-1` is translated to native `OPND_ALL`
+  (`0x0F`) only at the SDK boundary. Added an interactive C++ port preserving
+  global imported-prototype enrichment and cursor-selected selector-dependent
+  annotation, plus a headless Rust global report/apply adaptation backed by a
+  representative dependency-free Linux/Windows corpus. Complete C++ build and
+  CTest pass 26/26 in 23.07 s, the Auto Enum plugin links, and the tracked IDB
+  hash remains `84ff142e9cd6c39dbd22d94c7d164b2db48c64dd` before and after. Node native
+  build, strict declaration compilation, structural tests, and IDA 9.4
+  integration pass 232/232 and 76/76. Rust formatting/all-example checks,
+  library/sys/port tests, and process-main-thread IDA 9.4 integration pass
+  137/137, 0 sys, 2/2, and 93/93. On a disposable host-native fixture, report
+  mode found 6 imports/8 candidate arguments without mutation, apply changed
+  6 functions/8 arguments with zero failures, and a fresh reopen observed all
+  8 positions as already enum-typed. Generated bindgen output is byte-identical
+  to the checked binding (SHA-256
+  `89ab07dacbbe5a8cfb1696e800a6933fd036c67403a7febce24b50dd87978a66`).

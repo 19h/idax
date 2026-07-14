@@ -14,7 +14,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
 |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~29 free fns]
- |-- ida::instruction    Decode/create, operands, representation         [1 enum, 2 classes, ~25 free fns]
+ |-- ida::instruction    Decode/create, operands, representation         [1 enum, 1 struct, 2 classes, ~27 free fns]
  |
  |-- ida::name           Set/get/force/remove, inventories, demangling   [1 enum, 2 structs, ~13 free fns]
  |-- ida::xref           Unified refs, typed code/data categories        [3 enums, 1 struct, ~10 free fns]
@@ -74,7 +74,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
-| `ida::instruction` | Instruction decoding and processor-reported operand access modes | `Instruction`, `Operand`, `OperandType` |
+| `ida::instruction` | Instruction decoding, processor-reported operand access modes, and named enum representations | `Instruction`, `Operand`, `OperandType`, `OperandEnum` |
 
 ### Metadata Domains (read/write)
 
@@ -83,7 +83,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::name` | Symbol naming, filtered inventories, and address-free demangling | `ListOptions`, `Entry`, `DemangleForm` |
 | `ida::xref` | Cross-references | `Reference`, `CodeType`, `DataType` |
 | `ida::comment` | Comments | (free functions only) |
-| `ida::type` | Type system | `TypeInfo`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
+| `ida::type` | Type system, including metadata-preserving function-argument edits | `TypeInfo`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
 | `ida::entry` | Entry points | `EntryPoint` |
 | `ida::fixup` | Relocations | `Descriptor`, `CustomHandler`, `Type` |
 

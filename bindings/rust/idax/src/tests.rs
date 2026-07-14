@@ -1024,6 +1024,19 @@ mod instruction_tests {
         let _: fn(&Operand) -> bool = Operand::is_read;
         let _: fn(&Operand) -> bool = Operand::is_written;
     }
+
+    #[test]
+    fn test_operand_enum_signatures() {
+        let value = OperandEnum {
+            name: "sample".to_string(),
+            serial: 2,
+        };
+        assert_eq!(value.name, "sample");
+        assert_eq!(value.serial, 2);
+        let _: fn(crate::address::Address, i32, &str, u8) -> crate::error::Status =
+            set_operand_enum;
+        let _: fn(crate::address::Address, i32) -> crate::error::Result<OperandEnum> = operand_enum;
+    }
 }
 
 #[cfg(test)]
@@ -1081,6 +1094,8 @@ mod types_tests {
         let _: fn(&TypeInfo) -> Result<String> = TypeInfo::name;
         let _: fn(&TypeInfo, Option<&str>) -> Result<String> = TypeInfo::declaration;
         let _: fn(&TypeInfo) -> Result<FunctionDetails> = TypeInfo::function_details;
+        let _: fn(&TypeInfo, usize, &TypeInfo) -> Result<TypeInfo> =
+            TypeInfo::with_function_argument_type;
         let _: fn(&TypeInfo) -> Result<EnumDetails> = TypeInfo::enum_details;
         let _: fn(&TypeInfo) -> Result<UdtDetails> = TypeInfo::udt_details;
 

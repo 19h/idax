@@ -331,6 +331,65 @@ Status set_operand_offset(Address ea, int n, Address base) {
     return ida::ok();
 }
 
+Status set_operand_enum(Address ea,
+                        int n,
+                        std::string_view enum_name,
+                        std::uint8_t serial) {
+    if (ea == BadAddress)
+        return std::unexpected(Error::validation("Address must not be BadAddress"));
+    if (n < -1 || n >= UA_MAXOP)
+        return std::unexpected(Error::validation("Operand index out of range",
+                                                 std::to_string(n)));
+    if (enum_name.empty())
+        return std::unexpected(Error::validation("Enum name must not be empty"));
+    if (enum_name.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation("Enum name must not contain NUL bytes"));
+
+    const std::string name(enum_name);
+    tinfo_t type;
+    if (!type.get_named_type(get_idati(), name.c_str()))
+        return std::unexpected(Error::not_found("Enum type not found", name));
+    if (!type.is_enum())
+        return std::unexpected(Error::validation("Named type is not an enum", name));
+
+    const tid_t tid = get_named_type_tid(name.c_str());
+    if (tid == BADNODE || tid == BADADDR)
+        return std::unexpected(Error::not_found("Enum type has no local identity", name));
+    const int sdk_operand = n == -1 ? OPND_ALL : n;
+    if (!op_enum(ea, sdk_operand, tid, serial)) {
+        return std::unexpected(Error::sdk("op_enum failed",
+                                          std::to_string(ea) + ":" + std::to_string(n)));
+    }
+    return ida::ok();
+}
+
+Result<OperandEnum> operand_enum(Address ea, int n) {
+    if (ea == BadAddress)
+        return std::unexpected(Error::validation("Address must not be BadAddress"));
+    if (n < -1 || n >= UA_MAXOP)
+        return std::unexpected(Error::validation("Operand index out of range",
+                                                 std::to_string(n)));
+
+    uchar serial = 0;
+    const int sdk_operand = n == -1 ? OPND_ALL : n;
+    const tid_t tid = get_enum_id(&serial, ea, sdk_operand);
+    if (tid == BADNODE || tid == BADADDR) {
+        return std::unexpected(Error::not_found("Operand has no enum representation",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+
+    qstring name;
+    if (!get_tid_name(&name, tid) || name.empty()) {
+        return std::unexpected(Error::not_found("Operand enum name is unavailable",
+                                                std::to_string(ea) + ":" + std::to_string(n)));
+    }
+
+    OperandEnum result;
+    result.name = ida::detail::to_string(name);
+    result.serial = static_cast<std::uint8_t>(serial);
+    return result;
+}
+
 Status set_operand_struct_offset(Address ea,
                                  int n,
                                  std::string_view structure_name,

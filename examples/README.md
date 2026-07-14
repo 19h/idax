@@ -203,6 +203,32 @@ cargo run -p idax --example magic_strings_port -- <idb> --show 20
 cargo run -p idax --example magic_strings_port -- <idb> --apply-candidates --apply-sources
 ```
 
+### `plugin/auto_enum_port_plugin.cpp` — Auto Enum Port
+
+Port of `<userhome>/Downloads/plo/auto-enum-main` to idax import, type,
+instruction, decompiler, plugin-action, and refresh APIs. The global action
+matches imported functions by normalized name, matches arguments by name with
+positional fallback, creates named `ENUM_<id>` local enum types, and replaces
+only eligible integral argument types while preserving the remaining function
+prototype metadata. The local action starts from the decompiler call at the
+cursor and applies selector-dependent enum display to the target operand.
+
+The embedded corpus is a representative dependency-free Linux/Windows subset covering
+file flags, address families/socket types, memory protection/mapping, `prctl`,
+access modes, socket levels, and selected `socket`/`setsockopt`/`prctl`
+specializations plus Windows `OpenProcess` access rights. The table-driven engine does not depend on Python or JSON and
+does not claim coverage for omitted source-corpus entries.
+The upstream MIT notice is retained in `plugin/auto_enum_port_LICENSE.txt`.
+
+The Rust adaptation (`auto_enum_port`) covers the deterministic global workflow.
+It reports without mutation by default; `--apply` creates the enum types,
+applies revised imported prototypes, and saves the database:
+
+```bash
+cargo run -p idax --example auto_enum_port -- <idb> --show 20
+cargo run -p idax --example auto_enum_port -- <idb> --apply
+```
+
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
 
 Port probe of `<userhome>/dev/lifter` focused on plugin-shell workflows that

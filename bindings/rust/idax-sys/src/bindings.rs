@@ -1115,6 +1115,22 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_instruction_set_operand_enum(
+        ea: u64,
+        n: ::std::os::raw::c_int,
+        enum_name: *const ::std::os::raw::c_char,
+        serial: u8,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_instruction_operand_enum(
+        ea: u64,
+        n: ::std::os::raw::c_int,
+        out_name: *mut *mut ::std::os::raw::c_char,
+        out_serial: *mut u8,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_instruction_set_operand_struct_offset_by_name(
         ea: u64,
         n: ::std::os::raw::c_int,
@@ -2897,6 +2913,14 @@ unsafe extern "C" {
         ti: IdaxTypeHandle,
         out: *mut *mut IdaxTypeHandle,
         count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_with_function_argument_type(
+        ti: IdaxTypeHandle,
+        index: usize,
+        replacement: IdaxTypeHandle,
+        out: *mut IdaxTypeHandle,
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {

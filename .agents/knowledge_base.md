@@ -1227,3 +1227,36 @@ multiple chooser rows, and counts each mapped debug address separately. The
 ordered language map resolves common C-family extensions to `C/C++`; only the
 distinct `.c++` extension reaches `C++`. Keep report rows, observation counts,
 and candidate evidence as separate data flows.
+
+### 35.59. Function-Argument Type Replacement Is a Metadata-Preserving Copy [F402, F403]
+A function prototype is richer than its public return/argument-type summary:
+SDK records also carry names, comments, locations, flags, return location,
+spoiled registers, and calling-convention details. Replace one argument type by
+copying `func_type_data_t`, changing only the indexed `funcarg_t::type`, and
+rebuilding the function type. Re-wrap it as a pointer when the input was a
+function pointer. Return a new opaque `TypeInfo`; do not expose native type or
+location structures. Validate the argument index and replacement type first.
+
+### 35.60. Named Operand Enums Need Opaque TID Resolution and Readback [F402, F403]
+SDK `op_enum(ea, n, tid, serial)` applies a local enum to one operand or
+`OPND_ALL`; `get_enum_id` returns the associated TID and serial. Resolve the
+public enum name to a local named type internally, verify that it is an enum,
+and keep the TID private. Return a copied enum name and serial for readback.
+Treat absence as `NotFound` and reject invalid addresses, operand indexes,
+names, and serial values before dispatch.
+
+### 35.61. Normalize the All-Operands Sentinel at the Wrapper Boundary [F404]
+Public APIs use `-1` for all operands, matching the IDAPython workflow audited
+for Auto Enum. Native `bytes.hpp` instead defines `OPND_ALL` as `0x0F`. Accept
+only `-1` or an ordinary `0..UA_MAXOP-1` index, translate `-1` immediately
+before `op_enum`/`get_enum_id`, and never expose the native mask constant.
+
+### 35.62. Separate Headless Prototype Enrichment from Cursor-Selected Ctree Mutation [F405]
+Auto Enum's import pass depends only on copied import/type inventories and is
+deterministic under idalib, so a headless adaptation can report first and apply
+only on request. Its local specialization pass begins at the selected
+decompiler call and needs callback-scoped child-expression navigation. Keep
+that operation in an interactive C++ action instead of reconstructing cursor
+state or call operands from Rust's flat expression snapshots. A disposable
+host-native fixture supplies reproducible report/apply/reopen evidence for the
+headless global path; C++ link and primitive runtime tests cover the local path.

@@ -28,6 +28,16 @@
   - Small and portable so host/runtime debugger checks can be repeated quickly
   - Avoids architecture-mismatch ambiguity during Appcall validation
 
+### `auto_enum_port_host.c` -> temporary host-native executable
+
+- **Format**: Host-native executable built on demand
+- **Source**: `tests/fixtures/auto_enum_port_host.c`
+- **Used by**: Auto Enum headless report/apply validation
+- **Key characteristics**:
+  - Imports representative file, socket, and memory-management APIs
+  - Generated executable and IDB live in a temporary directory and are not tracked
+  - Exercises prototype matching without platform-specific committed binaries
+
 ## Scenario Fixture Directories
 
 ### `loader/`

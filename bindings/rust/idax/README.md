@@ -124,7 +124,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 |--------|--------|-----------------|
 | [`segment`] | Segments | CRUD (`at`, `by_name`, `by_index`, `create`, `remove`), properties (`set_name`, `set_permissions`, `set_bitness`, `resize`, `move`), traversal (`next`, `prev`), comments |
 | [`function`] | Functions | CRUD, chunks (`chunks`, `add_tail`, `remove_tail`), stack frames (`frame`, `frame_variable_by_name`, `define_stack_variable`), prototype application (`set_prototype`, `apply_decl`), register variables, callers/callees, `item_addresses`, `code_addresses` |
-| [`instruction`] | Instructions | `decode`, `create`, `text`, operand snapshots including `is_read`/`is_written`, introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), formatting (`set_operand_hex`, `set_operand_offset`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
+| [`instruction`] | Instructions | `decode`, `create`, `text`, operand snapshots including `is_read`/`is_written`, introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), formatting (`set_operand_hex`, `set_operand_offset`, named `set_operand_enum`/`operand_enum`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
 | [`data`] | Byte-level I/O | Read/write/patch/originals, fixed-width and processor-aware definitions, owned custom type/format lifecycle, configurable copied string-list options/literals, byte-length string/structure definitions and `undefine`, `find_binary_pattern` |
 | [`name`] | Naming | `get`, `set`, `force_set`, `remove`, filtered `all`/`all_user_defined` inventories, address-based `demangled`, arbitrary-symbol `demangle`, `resolve`, properties (`is_public`, `is_weak`) |
 | [`xref`] | Cross-references | `refs_from`, `refs_to`, code/data ref variants, range variants, `add_code`, `add_data`, `remove_code`, `remove_data` |
@@ -138,7 +138,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
+| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), metadata-preserving `with_function_argument_type`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
 
 ### Advanced
 

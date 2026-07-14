@@ -288,6 +288,7 @@ describe('Instruction Namespace Structure', () => {
     const EXPECTED_FUNCTIONS = [
         'decode', 'create', 'text',
         'setOperandHex', 'setOperandDecimal',
+        'setOperandEnum', 'operandEnum',
         'operandText', 'operandByteWidth',
         'codeRefsFrom', 'dataRefsFrom', 'callTargets',
         'isCall', 'isReturn', 'isJump',
@@ -307,6 +308,8 @@ describe('Instruction Namespace Structure', () => {
         const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
         expect(dts).toContain('isRead: boolean');
         expect(dts).toContain('isWritten: boolean');
+        expect(dts).toContain('withFunctionArgumentType(index: number, replacement: TypeInfo): TypeInfo');
+        expect(dts).toContain('function operandEnum(address: Address, n?: number): OperandEnum');
     });
 });
 

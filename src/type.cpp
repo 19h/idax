@@ -506,6 +506,44 @@ Result<FunctionDetails> TypeInfo::function_details() const {
     return details;
 }
 
+Result<TypeInfo>
+TypeInfo::with_function_argument_type(std::size_t index,
+                                      const TypeInfo& replacement) const {
+    if (!impl_)
+        return std::unexpected(Error::internal("TypeInfo has null impl"));
+    if (!replacement.impl_)
+        return std::unexpected(Error::internal("Replacement TypeInfo has null impl"));
+    if (!replacement.impl_->ti.present())
+        return std::unexpected(Error::validation("Replacement type is not present"));
+
+    const bool is_pointer = impl_->ti.is_ptr();
+    auto function_type = as_function_type(impl_->ti);
+    if (!function_type)
+        return std::unexpected(function_type.error());
+
+    func_type_data_t function_data;
+    if (!function_type->get_func_details(&function_data))
+        return std::unexpected(Error::sdk("Failed to get function details"));
+    if (index >= function_data.size())
+        return std::unexpected(Error::validation("Function argument index out of range",
+                                                 std::to_string(index)));
+
+    function_data[index].type = replacement.impl_->ti;
+    tinfo_t rebuilt_function;
+    if (!rebuilt_function.create_func(function_data))
+        return std::unexpected(Error::sdk("Failed to rebuild function type",
+                                          std::to_string(index)));
+
+    TypeInfo result;
+    if (is_pointer) {
+        if (!result.impl_->ti.create_ptr(rebuilt_function))
+            return std::unexpected(Error::sdk("Failed to rebuild function pointer type"));
+    } else {
+        result.impl_->ti = rebuilt_function;
+    }
+    return result;
+}
+
 Result<CallingConvention> TypeInfo::calling_convention() const {
     if (!impl_)
         return std::unexpected(Error::internal("TypeInfo has null impl"));
