@@ -226,6 +226,31 @@ describe('Instructions', () => {
         expect(typeof insn.size).toBe('bigint');
     });
 
+    it('should preserve operand access modes', () => {
+        let sawRead = false;
+        let sawWritten = false;
+        let sawWrittenMemory = false;
+
+        for (const func of idax.function.all()) {
+            for (const address of idax.function.codeAddresses(func.start)) {
+                const decoded = idax.instruction.decode(address);
+                for (const operand of decoded.operands) {
+                    expect(typeof operand.isRead).toBe('boolean');
+                    expect(typeof operand.isWritten).toBe('boolean');
+                    sawRead ||= operand.isRead;
+                    sawWritten ||= operand.isWritten;
+                    sawWrittenMemory ||= operand.isMemory && operand.isWritten;
+                }
+                if (sawRead && sawWritten && sawWrittenMemory) break;
+            }
+            if (sawRead && sawWritten && sawWrittenMemory) break;
+        }
+
+        expect(sawRead).toBe(true);
+        expect(sawWritten).toBe(true);
+        expect(sawWrittenMemory).toBe(true);
+    });
+
     it('should get instruction text', () => {
         const funcs = idax.function.all();
         const text = idax.instruction.text(funcs[0].start);
@@ -872,6 +897,10 @@ describe('Decompiler', () => {
 
                     const nativeInstruction = context.instruction();
                     expect(typeof nativeInstruction.mnemonic).toBe('string');
+                    for (const operand of nativeInstruction.operands) {
+                        expect(typeof operand.isRead).toBe('boolean');
+                        expect(typeof operand.isWritten).toBe('boolean');
+                    }
                     return true;
                 },
                 (context) => {

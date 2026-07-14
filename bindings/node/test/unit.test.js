@@ -300,6 +300,14 @@ describe('Instruction Namespace Structure', () => {
             expect(typeof insn[fn]).toBe('function');
         });
     }
+
+    it('should declare operand access-mode metadata', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('isRead: boolean');
+        expect(dts).toContain('isWritten: boolean');
+    });
 });
 
 // ── Name, Comment, XRef Namespace Functions ─────────────────────────────

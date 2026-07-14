@@ -14,7 +14,7 @@ Public headers:
 | `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
 | `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers, prototype export/application |
-| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls (including struct-offset helpers), xref conveniences |
+| `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls (including struct-offset helpers), xref conveniences; Node and Rust snapshots preserve both access-mode booleans |
 | `include/ida/name.hpp` | Set/get/force/remove names, address-based and arbitrary-symbol demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |

@@ -78,6 +78,8 @@ v8::Local<v8::Object> OperandToObject(const ida::instruction::Operand& op) {
         .setInt("byteWidth", op.byte_width())
         .setStr("registerName", op.register_name())
         .setStr("registerCategory", RegisterCategoryToString(op.register_category()))
+        .setBool("isRead", op.is_read())
+        .setBool("isWritten", op.is_written())
         .build();
 }
 

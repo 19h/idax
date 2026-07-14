@@ -365,6 +365,8 @@ typedef struct IdaxOperand {
     int      byte_width;
     char*    register_name;  /**< malloc'd */
     int      register_category; /**< ida::instruction::RegisterCategory as int */
+    int      is_read;        /**< processor canonical feature marks operand used */
+    int      is_written;     /**< processor canonical feature marks operand changed */
 } IdaxOperand;
 
 /** Flat C representation of a decoded instruction. */

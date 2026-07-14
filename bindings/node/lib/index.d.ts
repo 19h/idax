@@ -754,6 +754,8 @@ export namespace instruction {
         byteWidth: number;
         registerName: string;
         registerCategory: RegisterCategory;
+        isRead: boolean;
+        isWritten: boolean;
     }
 
     interface Instruction {

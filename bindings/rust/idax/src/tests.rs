@@ -984,6 +984,12 @@ mod instruction_tests {
         assert_eq!(RegisterCategory::Vector as i32, 4);
         assert_eq!(RegisterCategory::Other as i32, 8);
     }
+
+    #[test]
+    fn test_operand_access_mode_signatures() {
+        let _: fn(&Operand) -> bool = Operand::is_read;
+        let _: fn(&Operand) -> bool = Operand::is_written;
+    }
 }
 
 #[cfg(test)]

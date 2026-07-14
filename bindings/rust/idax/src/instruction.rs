@@ -98,6 +98,8 @@ pub struct Operand {
     byte_width: i32,
     reg_name: String,
     reg_class: RegisterCategory,
+    read: bool,
+    written: bool,
 }
 
 impl Operand {
@@ -139,6 +141,14 @@ impl Operand {
     }
     pub fn register_category(&self) -> RegisterCategory {
         self.reg_class
+    }
+    /// Whether the processor module marks this operand as read/used.
+    pub fn is_read(&self) -> bool {
+        self.read
+    }
+    /// Whether the processor module marks this operand as changed/written.
+    pub fn is_written(&self) -> bool {
+        self.written
     }
     pub fn is_vector_register(&self) -> bool {
         self.reg_class == RegisterCategory::Vector
@@ -230,6 +240,8 @@ pub(crate) unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Re
                     error::cstr_to_string(op.register_name, "reg name").unwrap_or_default()
                 },
                 reg_class,
+                read: op.is_read != 0,
+                written: op.is_written != 0,
             });
         }
     }

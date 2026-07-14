@@ -44,6 +44,7 @@ Current overall phase status:
 - Phase 31: complete (opaque custom data type/format registration and creation lifecycle)
 - Phase 32: complete (scoped hotkey lifecycle, deterministic action ownership, callback exception barriers, and DriverBuddy migration)
 - Phase 33: complete (forward-compatible raw-plus-optional-typed processor profiles across C++/Node/Rust, corrected current-SDK ID provenance, exact conversion/equivalence evidence, and idapcode migration closure)
+- Phase 34: complete (Intelligent Function Inliner real-plugin port plus Node/Rust decoded-operand access-mode parity)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -205,3 +206,12 @@ Current overall phase status:
 - [x] P33.2 Add normalized C++ processor profiles and correct typed-ID conversion without breaking legacy source references.
 - [x] P33.3 Add Node/Rust parity, migrate idapcode adaptations, and add exact conversion plus real-IDA equivalence coverage.
 - [x] P33.4 Synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records and run complete validation.
+
+---
+
+### Phase 34 TODO Action Items (Intelligent Function Inliner Port)
+
+- [x] P34.1 Audit the original IDAPython scoring/mutation workflow against C++ and Rust wrapper coverage.
+- [x] P34.2 Preserve decoded-operand read/write access through Node and the Rust C ABI, with exact declarations/accessors/tests.
+- [x] P34.3 Port the real plugin as a C++ action and a headless Rust adaptation with deterministic report/apply behavior.
+- [x] P34.4 Add real-IDA evidence, synchronize API/coverage/port/docs/findings/knowledge/decision/ledger/active-work records, and run complete validation.

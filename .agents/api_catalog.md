@@ -49,6 +49,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Decode/create operations with explicit DB mutation distinction
 - `Instruction` view object (mnemonic, size, flow)
 - `Operand` view object with typed categories and representation controls
+- Processor-reported operand read/write access preserved in C++, Node
+  (`isRead`/`isWritten`), and Rust (`is_read`/`is_written`) snapshots
 - Struct-offset operand helpers (`set_operand_struct_offset`, `set_operand_based_struct_offset`)
 - Struct-offset readback/introspection helpers (`operand_struct_offset_path`, `operand_struct_offset_path_names`)
 - Xref conveniences for refs-from and flow semantics

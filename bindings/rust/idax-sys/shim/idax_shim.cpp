@@ -1477,6 +1477,8 @@ void fill_instruction(IdaxInstruction* out, const ida::instruction::Instruction&
             out->operands[i].byte_width     = ops[i].byte_width();
             out->operands[i].register_name  = dup_string(ops[i].register_name());
             out->operands[i].register_category = static_cast<int>(ops[i].register_category());
+            out->operands[i].is_read        = ops[i].is_read() ? 1 : 0;
+            out->operands[i].is_written     = ops[i].is_written() ? 1 : 0;
         }
     }
 }

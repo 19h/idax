@@ -776,3 +776,21 @@ tracked in `docs/compatibility_matrix.md`.
   pass 132/132 plus 0 sys tests, and process-main-thread IDA 9.4 integration
   passes 89/89. The generated bindgen output is byte-identical to the checked
   binding, `git diff --check` passes, and the mutable fixture is restored.
+
+- 2026-07-14 Phase 34 Intelligent Function Inliner port:
+  Preserved decoded-operand read/write access through Node's ordinary and
+  decompiler callback snapshots plus Rust's C transfer and safe value model.
+  Added an interactive C++ plugin action and a headless Rust report/apply
+  adaptation of the original scoring workflow. The port marks selected
+  functions with the SDK's `FUNC_OUTLINE` attribute; it does not rewrite
+  machine instructions. Complete C++ build and CTest pass 25/25 in 21.48 s,
+  and the plugin links. Node native build and strict example declaration
+  compilation pass, structural tests pass 223/223, and IDA 9.4 integration
+  passes 72/72. Rust formatting and example checks pass, library tests pass
+  133/133 plus 0 sys tests, the scoring unit passes 1/1, and process-main-thread
+  IDA 9.4 integration passes 90/90. On an isolated fixture copy, report mode
+  selected 5/18 processed functions without mutation, apply mode changed all
+  five with zero failures, and a fresh reopen observed all five persisted
+  outline markers. Generated bindgen output is byte-identical to the checked
+  binding, `git diff --check` passes, and the mutable repository fixture is
+  clean.

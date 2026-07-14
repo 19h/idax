@@ -74,7 +74,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::path` | Portable path helpers | (free functions only) |
 | `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
 | `ida::function` | Function analysis | `Function`, `StackFrame`, `Chunk` |
-| `ida::instruction` | Instruction decoding | `Instruction`, `Operand`, `OperandType` |
+| `ida::instruction` | Instruction decoding and processor-reported operand access modes | `Instruction`, `Operand`, `OperandType` |
 
 ### Metadata Domains (read/write)
 

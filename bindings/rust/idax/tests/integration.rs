@@ -449,6 +449,38 @@ fn instruction_operands() {
     }
 }
 
+fn instruction_operand_access_modes() {
+    require_db!();
+    let mut saw_read = false;
+    let mut saw_written = false;
+    let mut saw_written_memory = false;
+
+    for function in function::all() {
+        let addresses = function::code_addresses(function.start()).unwrap();
+        for address in addresses {
+            let decoded = instruction::decode(address).unwrap();
+            for operand in decoded.operands() {
+                saw_read |= operand.is_read();
+                saw_written |= operand.is_written();
+                saw_written_memory |= operand.is_memory() && operand.is_written();
+            }
+            if saw_read && saw_written && saw_written_memory {
+                break;
+            }
+        }
+        if saw_read && saw_written && saw_written_memory {
+            break;
+        }
+    }
+
+    assert!(saw_read, "expected a processor-marked read operand");
+    assert!(saw_written, "expected a processor-marked written operand");
+    assert!(
+        saw_written_memory,
+        "expected a processor-marked written memory operand"
+    );
+}
+
 fn instruction_classification() {
     require_db!();
     let f = function::by_index(0).unwrap();
@@ -1653,6 +1685,10 @@ static TEST_CASES: &[TestCase] = &[
     ("instruction_decode_first", instruction_decode_first),
     ("instruction_text", instruction_text),
     ("instruction_operands", instruction_operands),
+    (
+        "instruction_operand_access_modes",
+        instruction_operand_access_modes,
+    ),
     ("instruction_classification", instruction_classification),
     ("instruction_code_refs", instruction_code_refs),
     ("instruction_next_prev", instruction_next_prev),

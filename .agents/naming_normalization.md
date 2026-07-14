@@ -12,6 +12,7 @@ This mapping is non-exhaustive but representative of expected direction.
 | `del_func(ea)` | `ida::function::remove(address)` |
 | `get_func_name(qstring*, ea)` | `function.name()` / `ida::function::name_at(address)` |
 | `decode_insn(insn*, ea)` | `ida::instruction::decode(address)` |
+| `insn.get_canon_feature()` + `CF_USEn` / `CF_CHGn` | `Operand::is_read()` / `Operand::is_written()` (Node `isRead` / `isWritten`; Rust `is_read` / `is_written`) |
 | `create_insn(ea)` | `ida::instruction::create(address)` |
 | `get_byte(ea)` | `ida::data::read_byte(address)` |
 | `put_byte(ea, v)` | `ida::data::write_byte(address, value)` |

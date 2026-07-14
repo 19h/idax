@@ -280,6 +280,8 @@ class Operand {
   bool is_register() const;
   bool is_immediate() const;
   bool is_memory() const;
+  bool is_read() const;
+  bool is_written() const;
 
   Result<uint16_t> register_id() const;
   Result<uint64_t> immediate_value() const;

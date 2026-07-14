@@ -162,6 +162,26 @@ The plugin keeps DriverBuddy's core workflows:
 - For WDF targets, builds/applies a `WDFFUNCTIONS` type over the dispatch table
   using idax type APIs (strict parity mode uses the full 440 historical slots).
 
+### `plugin/intelligent_inliner_port_plugin.cpp` — Intelligent Function Inliner Port
+
+Port of `<userhome>/Downloads/intelligent-function-inliner.py` to idax function,
+graph, instruction, xref, type, progress-UI, action, and decompiler-cache APIs.
+It preserves the original `<7`-instruction strict rule and score threshold/weights,
+skips thunk/library/non-returning/variadic functions, detects processor-marked
+memory writes, and sets `FUNC_OUTLINE` on selected functions. The SDK defines
+this marker as “outlined code, not a real function”; the original uses it as its
+inline-candidate signal, and the port does not rewrite binary code. The
+interactive pass is cancellable and reports exact skip/change/failure counts.
+
+The Rust adaptation (`intelligent_inliner_port`) provides the same analysis in
+headless form. It reports without mutation by default; `--apply` sets the markers,
+invalidates available decompiler caches, and saves the database. Example:
+
+```bash
+cargo run -p idax --example intelligent_inliner_port -- <idb> --show 20
+cargo run -p idax --example intelligent_inliner_port -- <idb> --apply
+```
+
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
 
 Port probe of `<userhome>/dev/lifter` focused on plugin-shell workflows that

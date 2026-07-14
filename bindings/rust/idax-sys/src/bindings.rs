@@ -972,10 +972,14 @@ pub struct IdaxOperand {
     pub register_name: *mut ::std::os::raw::c_char,
     #[doc = "< ida::instruction::RegisterCategory as int"]
     pub register_category: ::std::os::raw::c_int,
+    #[doc = "< processor canonical feature marks operand used"]
+    pub is_read: ::std::os::raw::c_int,
+    #[doc = "< processor canonical feature marks operand changed"]
+    pub is_written: ::std::os::raw::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxOperand"][::std::mem::size_of::<IdaxOperand>() - 56usize];
+    ["Size of IdaxOperand"][::std::mem::size_of::<IdaxOperand>() - 64usize];
     ["Alignment of IdaxOperand"][::std::mem::align_of::<IdaxOperand>() - 8usize];
     ["Offset of field: IdaxOperand::index"][::std::mem::offset_of!(IdaxOperand, index) - 0usize];
     ["Offset of field: IdaxOperand::type_"][::std::mem::offset_of!(IdaxOperand, type_) - 4usize];
@@ -990,6 +994,10 @@ const _: () = {
         [::std::mem::offset_of!(IdaxOperand, register_name) - 40usize];
     ["Offset of field: IdaxOperand::register_category"]
         [::std::mem::offset_of!(IdaxOperand, register_category) - 48usize];
+    ["Offset of field: IdaxOperand::is_read"]
+        [::std::mem::offset_of!(IdaxOperand, is_read) - 52usize];
+    ["Offset of field: IdaxOperand::is_written"]
+        [::std::mem::offset_of!(IdaxOperand, is_written) - 56usize];
 };
 impl Default for IdaxOperand {
     fn default() -> Self {

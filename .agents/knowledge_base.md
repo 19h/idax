@@ -1167,3 +1167,13 @@ as an absent typed value rather than an invalid enum cast or metadata failure.
 Retain `ProcessorId::Mcore = 77` only as a documented source-compatibility
 artifact until a breaking API revision; never produce it from current SDK
 normalization.
+
+### 35.53. Operand Access Modes Must Survive Binding Transfer [F395]
+C++ decoded operands retain the active processor module's canonical read/write
+classification (`idp.hpp` `CF_USE1..8` / `CF_CHG1..8`). The Rust flat transfer and both Node instruction-object
+converters previously omitted both booleans, so a consumer could identify a
+memory-shaped operand but not whether the instruction writes it. Preserve
+`is_read`/`is_written` in `IdaxOperand` and safe Rust, and expose
+`isRead`/`isWritten` in every Node snapshot. Do not infer write direction from
+the existence of a data reference, because reference kind and operand access
+mode are distinct properties.

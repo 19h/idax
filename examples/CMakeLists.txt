@@ -39,6 +39,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/ida_names_port_widget.cpp
     plugin/abyss_port_plugin.cpp
     plugin/driverbuddy_port_plugin.cpp
+    plugin/intelligent_inliner_port_plugin.cpp
     plugin/codedump_parity_probe_plugin.cpp
     plugin/idapcode_port_plugin.cpp
     plugin/driverbuddy_wdf_slots.inc
@@ -143,6 +144,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_driverbuddy_port_plugin
         SOURCES plugin/driverbuddy_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_intelligent_inliner_port_plugin
+        SOURCES plugin/intelligent_inliner_port_plugin.cpp
         LIBRARIES idax::idax
     )
 

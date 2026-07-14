@@ -42,6 +42,7 @@ Legend:
 | `examples/plugin/decompiler_plugin.cpp` | `bindings/rust/idax/examples/decompiler_plugin.rs` (`Adapted`) | `bindings/node/examples/complexity_metrics.ts` (`Adapted`) | Complexity analysis workflow via decompiler |
 | `examples/plugin/driverbuddy_port_plugin.cpp` | `bindings/rust/idax/examples/driverbuddy_port_plugin.rs` (`Adapted`) | `bindings/node/examples/binary_forensics.ts` (`Adapted`) | Headless driver fingerprinting/IOCTL scan subset |
 | `examples/plugin/ida_names_port_plugin.cpp` | `bindings/rust/idax/examples/ida_names_port_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless title-derivation report (demangled-short fallback to raw) |
+| `examples/plugin/intelligent_inliner_port_plugin.cpp` | `bindings/rust/idax/examples/intelligent_inliner_port.rs` (`Adapted`) | `N/A (plugin host-constrained)` | Exact scoring report; explicit `--apply` persists `FUNC_OUTLINE` markers |
 | `examples/plugin/qtform_renderer_plugin.cpp` | `bindings/rust/idax/examples/qtform_renderer_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Headless parser/report for form-declaration markup; plugin-host "Test in ask_form" uses idax markup-only `ask_form` |
 | `examples/plugin/storage_metadata_plugin.cpp` | `bindings/rust/idax/examples/storage_metadata_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Fingerprint collection + netnode persistence |
 | `examples/plugin/deep_analysis_plugin.cpp` | `bindings/rust/idax/examples/deep_analysis_plugin.rs` (`Adapted`) | `N/A (host-constrained)` | Security-oriented audit report adaptation |
@@ -69,6 +70,7 @@ Legend:
 | `bindings/rust/idax/examples/storage_metadata_plugin.rs` | Pass | `cargo run -p idax --example storage_metadata_plugin -- <idb>` |
 | `bindings/rust/idax/examples/deep_analysis_plugin.rs` | Pass | `cargo run -p idax --example deep_analysis_plugin -- <idb> --max-scan 1000` |
 | `bindings/rust/idax/examples/ida_names_port_plugin.rs` | Pass | `cargo run -p idax --example ida_names_port_plugin -- <idb> --limit 5` |
+| `bindings/rust/idax/examples/intelligent_inliner_port.rs` | Pass | `cargo run -p idax --example intelligent_inliner_port -- <idb> --show 5`; isolated-copy `--apply` changed 5/5 candidates and reopen observed 5/5 already outlined |
 | `bindings/rust/idax/examples/qtform_renderer_plugin.rs` | Pass | `cargo run -p idax --example qtform_renderer_plugin -- --sample --ask-form-test` |
 | `bindings/rust/idax/examples/jbc_full_loader.rs` | Pass | Synthetic `.jbc` fixture generated at runtime (`/tmp/idax_phase19_sample.jbc`); header/plan output validated |
 | `bindings/rust/idax/examples/jbc_full_procmod.rs` | Pass | Synthetic `.jbc` fixture generated at runtime; code-section decode path validated (`pushi/loads/call/jmp/ret`) |

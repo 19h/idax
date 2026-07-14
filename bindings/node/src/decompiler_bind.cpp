@@ -181,6 +181,8 @@ static v8::Local<v8::Object> InstructionOperandToJS(const ida::instruction::Oper
         .setInt("byteWidth", operand.byte_width())
         .setStr("registerName", operand.register_name())
         .setStr("registerCategory", InstructionRegisterCategoryToString(operand.register_category()))
+        .setBool("isRead", operand.is_read())
+        .setBool("isWritten", operand.is_written())
         .build();
 }
 
