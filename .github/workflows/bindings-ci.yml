@@ -385,6 +385,7 @@ jobs:
           $env:IDAUSR = "$pwd\idax_empty_user"
           New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
           $env:IDAX_RUST_EXAMPLE_TRACE = "1"
+          $env:IDAX_RUST_DISABLE_ANALYSIS = "1"
           $testBin = (Resolve-Path "..\..\tests\fixtures\simple_appcall_linux64.i64").Path
 
           function Invoke-RustExample {

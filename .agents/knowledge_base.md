@@ -1914,3 +1914,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - The Node integration test searches for `ref4: entered with %d`; that literal is compiled into `tests/fixtures/simple_appcall_linux64`. The test harness itself copies the supplied binary to a temporary directory, so a workflow-side copy is redundant.
 - Assumption A55.9: the checked-in Linux ELF remains analyzable as input data by IDA 9.3 on Linux and macOS runners. Falsify with either runner failing database import before the string-list assertion; dependent result: Unix Node integration fixture portability only.
 - Replacing the input path changes neither algorithmic complexity nor persistent repository state: the harness copy and IDA import remain `O(B)` time and space for fixture size `B` bytes.
+
+### 35.132. Windows Rust Preanalyzed-IDB Smoke Isolation [F476]
+
+- Decision 19.18's `IDAX_RUST_DISABLE_ANALYSIS=1` is required in the Windows Rust example step, not merely implemented in the shared helper. Without the environment assignment, `DatabaseSession::open(input, true)` retains auto-analysis and the live runner exits inside `database::open` before Rust error formatting.
+- The smoke input is an existing analyzed `.i64` database. Disabling auto-analysis for this CI-only invocation isolates wrapper read/list behavior from the separately known Windows headless analysis/open instability while retaining library initialization, database open, enumeration, output, and close coverage.
+- Assumption A55.10: IDA 9.3 can open the checked preanalyzed fixture when `open_database` receives `auto_analysis=false`. Falsify if the next Windows run still exits before `database::open ok`; dependent result: Windows Rust runtime-smoke recovery only.
+- The toggle changes one Boolean argument and skips an analysis wait: `O(1)` control overhead and no additional space.
