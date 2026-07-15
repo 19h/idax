@@ -1907,3 +1907,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - The canonical checked output already uses LF, so normalization removes a host distinction without changing declarations. A synthetic Windows-form fixture verifies marker discovery, canonical replacement, retained FFI declaration, and zero carriage returns.
 - Assumption A55.8: bindgen emits either LF or CRLF and does not use bare carriage returns. Falsify with generated output containing another line separator; dependent result: post-processor portability only.
 - For generated length `N` bytes, normalization and rewrite remain `O(N)` time and `O(N)` space.
+
+### 35.131. Binding Integration Fixtures Must Match Test Contracts [F475]
+
+- A real-IDA integration invocation must use a binary containing every fixture-specific symbol or literal asserted by the test. Host utilities such as `/bin/ls` are suitable only for generic analysis contracts.
+- The Node integration test searches for `ref4: entered with %d`; that literal is compiled into `tests/fixtures/simple_appcall_linux64`. The test harness itself copies the supplied binary to a temporary directory, so a workflow-side copy is redundant.
+- Assumption A55.9: the checked-in Linux ELF remains analyzable as input data by IDA 9.3 on Linux and macOS runners. Falsify with either runner failing database import before the string-list assertion; dependent result: Unix Node integration fixture portability only.
+- Replacing the input path changes neither algorithmic complexity nor persistent repository state: the harness copy and IDA import remain `O(B)` time and space for fixture size `B` bytes.

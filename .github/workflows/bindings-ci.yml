@@ -191,9 +191,8 @@ jobs:
           else
             export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
           fi
-          cp /bin/ls ./test_bin
           echo "Running Node.js integration tests..."
-          node test/integration.test.js ./test_bin
+          node test/integration.test.js ../../tests/fixtures/simple_appcall_linux64
 
       - name: Run Node examples (Windows)
         if: runner.os == 'Windows'
