@@ -65,6 +65,7 @@ sdist.exclude = [
     "**/*.pyc",
     "ida-installer/**",
     "ida-sdk/**",
+    "third-party/**",
 ]
 
 [tool.scikit-build.cmake.define]
