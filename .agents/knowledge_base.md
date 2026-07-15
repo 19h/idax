@@ -1954,3 +1954,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Do not enable `IDA_USE_STATIC_RUNTIME` merely to preserve `/MT`: the published 9.4 Windows archive splits `ida.lib`/`idalib.lib` into `x64_win_64` and `pro.lib` into `x64_win_64_s`, while the package's `_s` suffix selection expects all import libraries under one directory.
 - Assumption A56.3: the Node addon and Rust `cc` shim continue compiling with static CRT on supported Windows runners. Falsify with verbose compile metadata showing `/MD` for either consumer; dependent result: the default static-runtime selection only. An explicit parent value remains authoritative.
 - Runtime selection adds `O(1)` configure state and no runtime cost.
+
+### 35.137. IDA 9.4 Cross-Platform Release Evidence [F482]
+
+- Final commit `54a6334901c5bd33a08c8dd39dff447750d7aa8c` passes Bindings 6/6, Validation 6/6, and Integrations 3/3: 15/15 configured Linux, macOS arm64, and Windows jobs.
+- Every complete log contains evidence for the exact SDK commit, IDA Professional 9.4 installation, and active named IDA product selection. Boundary-aware canonical-ID scans report zero unmasked license identifiers in all 15 logs.
+- Assumption A56.4: the three triggered workflows cover every release-significant job configured for this push. Falsify by enumerating another non-skipped job in the workflow definitions or Actions run set for the same commit; dependent result: the 15/15 matrix-completeness claim only.
+- Log auditing is `O(N)` time for total log size `N` and `O(1)` auxiliary matching state apart from input buffering.
