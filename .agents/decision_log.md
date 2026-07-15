@@ -1255,3 +1255,10 @@
   - **19.59.2. Evidence:** Both `open_database(..., true)` and `open_database(..., false)` exit code 1 before wrapper error propagation after successful IDA initialization. The latter run explicitly confirms the analysis-disable toggle was consumed.
   - **19.59.3. Scope:** This supersedes decision 19.18.3 and decision 19.22 for automated Windows example execution only. Trace/analysis controls remain available for diagnostics; no library or public API behavior changes.
   - **19.59.4. Reopening condition:** Restore the gate only after a supported Windows runner/runtime opens and closes a controlled fixture with zero exit status and produces actionable diagnostics on failure.
+
+- **19.60. Decision D-IDA-9-4-CI-RELEASE-ALIGNMENT**: Move installer, SDK, and CMake acquisition as one exact release set
+  - **19.60.1. Runtime:** Use IDA 9.4 HCLI assets for Windows x64, Linux x64, macOS arm64, and macOS x64 in every install block.
+  - **19.60.2. SDK:** Pin all workflow checkouts and the FetchContent fallback to official commit `6929db6868a524496eb66e76e4ec6c9d720a0594`; do not follow the moving `releases/9.4.0` branch.
+  - **19.60.3. Package migration:** Support both legacy bootstrap entry points and the 9.4 `idasdkConfig.cmake` package. Resolve Git checkouts to their `src` SDK root and retain opaque IDAX target construction through `find_package(idasdk)`.
+  - **19.60.4. Fallback integrity:** Fetch the exact commit archive with required SHA-256 `6ba645ef8fb5663d45d28c7a48da274e22a5929ddbfbc69cd4be34a4d7ee9895`, because generic clone-then-checkout is not reliable after the release branch moves.
+  - **19.60.5. Validation:** Require exact-SHA configure/build evidence, no-environment archive configure evidence, 4/4 YAML parsing, selector regression, structural zero legacy refs, exact staged review, and live cross-platform Actions evidence.

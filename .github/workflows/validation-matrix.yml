@@ -12,7 +12,7 @@ permissions:
 
 env:
   IDA_SDK_REPO: HexRaysSA/ida-sdk
-  IDA_SDK_REF: d5db59ab4e9d2ae92038e9520082affd0da6fe20 # v9.3
+  IDA_SDK_REF: 6929db6868a524496eb66e76e4ec6c9d720a0594 # IDA 9.4.0 release patch
   BUILD_TYPE: RelWithDebInfo
   IDAX_BUILD_EXAMPLES: ON
   IDAX_BUILD_EXAMPLE_ADDONS: ON
@@ -90,14 +90,14 @@ jobs:
           echo "Selected active named IDA product license"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64win.exe"
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64win.exe"
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64linux.run"
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64linux.run"
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             if [[ "$(uname -m)" == "arm64" ]]; then
-              ASSET_KEY="release/9.3/ida-pro/ida-pro_93_armmac.app.zip"
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_armmac.app.zip"
             else
-              ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64mac.app.zip"
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64mac.app.zip"
             fi
           fi
           
@@ -119,14 +119,14 @@ jobs:
           SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
           if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
             echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
-          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ]]; then
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/src/cmake/idasdkConfig.cmake" ]]; then
             echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
           elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
             echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
-          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ]]; then
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/cmake/idasdkConfig.cmake" ]]; then
             echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
           else
-            echo "error: unable to locate SDK bootstrap.cmake in SDK checkout"
+            echo "error: unable to locate SDK CMake entry point in SDK checkout"
             exit 1
           fi
 

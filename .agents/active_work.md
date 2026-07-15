@@ -76,3 +76,12 @@
   - 9.2.2. **Impact:** `origin/master` and fresh clones are sanitized, but GitHub still serves the former tip by exact object ID; both PR refs and all four fork default branches retain contaminated history (F466; KB 35.122).
   - 9.2.3. **Mitigation:** GitHub Support must dereference the PRs, garbage-collect server objects, and invalidate cached views. Fork owners must rewrite or delete their copies. These are external account actions and cannot be inferred from repository write authority.
   - 9.2.4. **Status:** Blocked on explicit authorization for the Support request and external fork-owner coordination; unrelated local implementation work remains isolated in the primary worktree.
+
+---
+
+### 10. IDA 9.4 CI Release Alignment (Phase 56)
+
+- **10.1. SDK/runtime release set**
+  - 10.1.1. **Action:** Pin every CI and FetchContent SDK source to `6929db6868a524496eb66e76e4ec6c9d720a0594` and update every HCLI installer asset to IDA 9.4.
+  - 10.1.2. **Evidence target:** Verify the official commit identity and 9.4 SDK CMake entry-point layout, parse all workflows, run selector tests, configure against the pinned SDK, exact-review, push, and observe the triggered GitHub Actions runs.
+  - 10.1.3. **Status:** P56.1-P56.2 complete; P56.3 exact review, push, and live Actions verification active with no blocker.

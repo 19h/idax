@@ -8,13 +8,13 @@ if(NOT DEFINED ENV{IDASDK} OR "$ENV{IDASDK}" STREQUAL "")
     
     FetchContent_Declare(
         ida_sdk
-        GIT_REPOSITORY https://github.com/HexRaysSA/ida-sdk.git
-        GIT_TAG        main
-        GIT_SHALLOW    TRUE
-        GIT_SUBMODULES_RECURSE TRUE
+        URL https://github.com/HexRaysSA/ida-sdk/archive/6929db6868a524496eb66e76e4ec6c9d720a0594.tar.gz
+        URL_HASH SHA256=6ba645ef8fb5663d45d28c7a48da274e22a5929ddbfbc69cd4be34a4d7ee9895
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     
-    # We use Populate directly because ida-sdk has no root CMakeLists.txt.
+    # Populate directly because ida-sdk is consumed as a package, not added as
+    # a second top-level project.
     # To suppress CMP0169 warning on newer CMake versions:
     if(POLICY CMP0169)
         cmake_policy(SET CMP0169 OLD)
@@ -32,6 +32,8 @@ endif()
 # IDASDK may point either to an SDK root that contains `ida-cmake/`, or to
 # a GitHub checkout root where SDK contents live under `src/`.
 set(IDASDK_BOOTSTRAP_ROOT "$ENV{IDASDK}")
+set(IDASDK_BOOTSTRAP_FILE "")
+set(IDASDK_PACKAGE_DIR "")
 
 if(NOT IDASDK_BOOTSTRAP_ROOT)
     message(FATAL_ERROR "IDASDK is not set. Set IDASDK to your IDA SDK path.")
@@ -47,18 +49,31 @@ elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/src/ida-cmake/bootstrap.cmake")
 elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/src/cmake/bootstrap.cmake")
     set(IDASDK_BOOTSTRAP_ROOT "${IDASDK_BOOTSTRAP_ROOT}/src")
     set(IDASDK_BOOTSTRAP_FILE "${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/cmake/idasdkConfig.cmake")
+    set(IDASDK_PACKAGE_DIR "${IDASDK_BOOTSTRAP_ROOT}/cmake")
+elseif(EXISTS "${IDASDK_BOOTSTRAP_ROOT}/src/cmake/idasdkConfig.cmake")
+    set(IDASDK_BOOTSTRAP_ROOT "${IDASDK_BOOTSTRAP_ROOT}/src")
+    set(IDASDK_PACKAGE_DIR "${IDASDK_BOOTSTRAP_ROOT}/cmake")
 else()
     message(FATAL_ERROR
-        "Could not find ida-cmake bootstrap under IDASDK='${IDASDK_BOOTSTRAP_ROOT}'.\n"
+        "Could not find an IDA SDK CMake entry point under IDASDK='${IDASDK_BOOTSTRAP_ROOT}'.\n"
         "Expected one of:\n"
         "  ${IDASDK_BOOTSTRAP_ROOT}/ida-cmake/bootstrap.cmake\n"
         "  ${IDASDK_BOOTSTRAP_ROOT}/cmake/bootstrap.cmake\n"
         "  ${IDASDK_BOOTSTRAP_ROOT}/src/ida-cmake/bootstrap.cmake\n"
-        "  ${IDASDK_BOOTSTRAP_ROOT}/src/cmake/bootstrap.cmake")
+        "  ${IDASDK_BOOTSTRAP_ROOT}/src/cmake/bootstrap.cmake\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/cmake/idasdkConfig.cmake\n"
+        "  ${IDASDK_BOOTSTRAP_ROOT}/src/cmake/idasdkConfig.cmake")
 endif()
 
 set(ENV{IDASDK} "${IDASDK_BOOTSTRAP_ROOT}")
-include("${IDASDK_BOOTSTRAP_FILE}")
+if(IDASDK_BOOTSTRAP_FILE)
+    include("${IDASDK_BOOTSTRAP_FILE}")
+else()
+    list(PREPEND CMAKE_PREFIX_PATH "${IDASDK_PACKAGE_DIR}")
+    set(idasdk_DIR "${IDASDK_PACKAGE_DIR}" CACHE PATH
+        "Directory containing idasdkConfig.cmake" FORCE)
+endif()
 
 # Set IDABIN to build artifacts in a local idax folder instead of vendored ida-sdk
 if(NOT DEFINED IDABIN)

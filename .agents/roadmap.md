@@ -407,3 +407,11 @@ Current overall phase status:
 - [x] P55.3 Validate selector positives/negatives, YAML structure, path hygiene, exact staged scope, commit and push, then remove the completed Phase 55/section 7 active-work entry.
 
 ---
+
+### Phase 56 TODO Action Items (IDA 9.4 CI Release Alignment)
+
+- [x] P56.1 Verify the requested SDK commit against the official repository and audit every CI/runtime/FetchContent version source.
+- [x] P56.2 Pin the SDK to `6929db6868a524496eb66e76e4ec6c9d720a0594` and update all HCLI installer assets to IDA 9.4.
+- [ ] P56.3 Run focused local validation, exact staged review, commit/push, verify live Actions, synchronize closure records, and remove Phase 56 from active work.
+
+---

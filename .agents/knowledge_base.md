@@ -1936,3 +1936,13 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Audit tooling must report per-job counts and redact context before display; it must not print a candidate identifier while determining whether masking failed.
 - Assumption A55.12: HCLI's canonical identifier is a standalone token rather than a substring of a longer hexadecimal identifier. Falsify with official HCLI output embedding the license ID in an adjacent hexadecimal token; dependent result: leakage-audit sensitivity only.
 - For total log size `N` bytes, the boundary-aware scan remains `O(N)` time and `O(1)` auxiliary regex state apart from input buffering.
+
+### 35.135. IDA 9.4 SDK Package and Acquisition Model [F479-F480]
+
+- Release-align all five HCLI install blocks to IDA 9.4 assets and all four workflow SDK refs to exact official commit `6929db6868a524496eb66e76e4ec6c9d720a0594`. The same commit must govern the no-environment CMake fallback.
+- The 9.4 checkout uses `src/cmake/idasdkConfig.cmake`; it does not contain the 9.3-era `bootstrap.cmake`. Resolve the checkout root to `src`, place its `cmake` directory in `CMAKE_PREFIX_PATH`, set `idasdk_DIR`, and retain `find_package(idasdk REQUIRED)` as the target-definition boundary.
+- A generic clone-then-checkout is not sufficient once the release branch moves away from the requested object. Use exact-object checkout in Actions and the official commit archive for FetchContent. Verify the archive with SHA-256 `6ba645ef8fb5663d45d28c7a48da274e22a5929ddbfbc69cd4be34a4d7ee9895` before extraction.
+- Assumption A56.1: HCLI 9.4 asset keys retain the established `release/9.4/ida-pro/ida-pro_94_<platform>` convention. Falsify when any live `hcli download` call reports the key absent; dependent result: CI installer acquisition only.
+- Assumption A56.2: `actions/checkout@v4` performs an explicit fetch for the supplied immutable SHA, matching the locally successful `git fetch --depth=1 origin <SHA>`. Falsify if a live checkout cannot materialize that SHA; dependent result: workflow SDK acquisition only. The archive fallback remains independently verified.
+- Primary provenance: [official SDK commit](https://github.com/HexRaysSA/ida-sdk/commit/6929db6868a524496eb66e76e4ec6c9d720a0594), its `src/cmake/idasdkConfig.cmake`, and the HCLI direct-download key syntax documented by Hex-Rays.
+- Acquisition and resolution add `O(S)` download/extraction time and space for SDK archive size `S`; version selection and entry-point probing remain `O(1)`.
