@@ -1643,7 +1643,7 @@ ida::Result<AllocatorDiscovery> discover_allocators(
                 const bool exists = std::any_of(
                     discovery.wrappers.begin(), discovery.wrappers.end(),
                     [&](const auto& current) {
-                        return current.function_address == caller
+                        return current.function_address == heir.address
                             && current.allocator == heir;
                     });
                 if (!exists) {

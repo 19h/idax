@@ -1114,7 +1114,7 @@ private:
         std::string text;
         if (!GetStringArg(info, 1, text)) return;
         auto parsed = CommentPositionFromJS(
-            info.Length() >= 3 ? info[2] : Nan::Undefined());
+            info.Length() >= 3 ? info[2] : Nan::Undefined().As<v8::Value>());
         if (!parsed) {
             ThrowError(parsed.error());
             return;
@@ -1129,7 +1129,7 @@ private:
         ida::Address address;
         if (!GetAddressArg(info, 0, address)) return;
         auto parsed = CommentPositionFromJS(
-            info.Length() >= 2 ? info[1] : Nan::Undefined());
+            info.Length() >= 2 ? info[1] : Nan::Undefined().As<v8::Value>());
         if (!parsed) {
             ThrowError(parsed.error());
             return;

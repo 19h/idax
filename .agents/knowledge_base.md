@@ -1886,3 +1886,24 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - All 15 `Install IDA Pro` steps succeed and advance to SDK resolution. The installed edition detail is IDA Professional 9.3, both applicable license files download, and later HCLI output renders the selected identifier as `***`.
 - All 15 complete logs were scanned for the canonical grouped license-ID expression; observed unmasked matches: `0`.
 - Assumption A55.5: GitHub's recorded step conclusions and retrieved complete job logs are faithful to the executed runner streams. Falsify with a raw log archive containing an unmasked canonical identifier or an install step whose conclusion differs from the API result; dependent result: live CI evidence only.
+
+### 35.128. Structured-Binding Lambda Portability [F472]
+
+- Avoid referencing an enclosing structured-binding name from a nested lambda in code compiled by the release matrix's AppleClang 15. In the observed wrapper-deduplication case, the compiler rejects the reference even under C++23.
+- Prefer an equivalent ordinary object already in scope. `ResolvedAllocator heir.address` is initialized from `caller` immediately before the predicate, so it preserves equality semantics without structured-binding capture.
+- Assumption A55.6: `heir.address` remains initialized from the loop's `caller` before the predicate. Falsify by changing that initializer; dependent result: semantic equivalence of this substitution only.
+- Complexity remains `O(W)` time for `W` discovered wrappers and `O(1)` predicate space; no control-flow or collection change occurs.
+
+### 35.129. Node V8 Type and Windows Macro Portability [F473]
+
+- Optional V8 arguments must present one exact `v8::Local<v8::Value>` type to helper functions. Use `Nan::Undefined().As<v8::Value>()` for the missing arm rather than relying on conditional-operator conversion between `Local<Value>` and `Local<Primitive>`.
+- The Node native target includes Windows headers outside IDAX's core compile envelope. Define `NOMINMAX` privately for that target so `std::numeric_limits<T>::max()` remains a C++ member call on MSVC.
+- Assumption A55.7: NAN/Node retains `Local<Primitive>::As<Value>()` and the Windows `min`/`max` suppression contract. Falsify with a supported Node/NAN version that removes the conversion or ignores `NOMINMAX`; dependent result: binding compile portability only.
+- Complexity and runtime behavior are unchanged: two compile-time conversions and one preprocessor definition add `O(1)` build state.
+
+### 35.130. Bindgen Line-Ending Normalization [F474]
+
+- Treat generated Rust bindings as textual interchange with platform-dependent line endings. Normalize `\r\n` to `\n` before locating/replacing the recursive microcode instruction region.
+- The canonical checked output already uses LF, so normalization removes a host distinction without changing declarations. A synthetic Windows-form fixture verifies marker discovery, canonical replacement, retained FFI declaration, and zero carriage returns.
+- Assumption A55.8: bindgen emits either LF or CRLF and does not use bare carriage returns. Falsify with generated output containing another line separator; dependent result: post-processor portability only.
+- For generated length `N` bytes, normalization and rewrite remain `O(N)` time and `O(N)` space.
