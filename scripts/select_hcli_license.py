@@ -31,27 +31,57 @@ class LicenseRow:
 
 def _parse_rows(output: str) -> list[LicenseRow]:
     rows: list[LicenseRow] = []
-    for source_index, raw_line in enumerate(output.splitlines()):
-        line = ANSI_ESCAPE_PATTERN.sub("", raw_line)
-        delimiter = "│" if "│" in line else "|" if "|" in line else None
-        if delimiter is None:
-            continue
+    pending_columns: list[str] | None = None
+    pending_source_index = 0
 
-        columns = [column.strip() for column in line.split(delimiter)]
-        if len(columns) < 6:
-            continue
-        license_id, edition, license_type, status = columns[1:5]
-        if not LICENSE_ID_PATTERN.fullmatch(license_id):
-            continue
+    def finish_pending() -> None:
+        nonlocal pending_columns
+        if pending_columns is None:
+            return
+        license_id, edition, license_type, status = pending_columns
         rows.append(
             LicenseRow(
                 license_id=license_id,
                 edition=edition,
                 license_type=license_type,
                 status=status,
-                source_index=source_index,
+                source_index=pending_source_index,
             )
         )
+        pending_columns = None
+
+    for source_index, raw_line in enumerate(output.splitlines()):
+        line = ANSI_ESCAPE_PATTERN.sub("", raw_line)
+        delimiter = "│" if "│" in line else "|" if "|" in line else None
+        if delimiter is None:
+            finish_pending()
+            continue
+
+        columns = [column.strip() for column in line.split(delimiter)]
+        if len(columns) < 6:
+            finish_pending()
+            continue
+
+        row_columns = columns[1:5]
+        license_id = row_columns[0]
+        if LICENSE_ID_PATTERN.fullmatch(license_id):
+            finish_pending()
+            pending_columns = row_columns
+            pending_source_index = source_index
+            continue
+
+        if license_id:
+            finish_pending()
+            continue
+
+        if pending_columns is not None:
+            for column_index, fragment in enumerate(row_columns[1:], start=1):
+                if fragment:
+                    pending_columns[column_index] = (
+                        f"{pending_columns[column_index]} {fragment}".strip()
+                    )
+
+    finish_pending()
     return rows
 
 

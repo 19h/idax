@@ -1863,3 +1863,11 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Assumption A55.2: the selected identifier contains no whitespace and the hosted runner implements the documented `add-mask` command before HCLI emits it. Falsify if a live post-change Actions log exposes the unredacted selected identifier; dependent result: log redaction only, not semantic license selection.
 - Complexity: one constant-size mask registration per job, `O(1)` time and space relative to the license table.
 - Primary provenance: [GitHub Actions workflow command for masking values](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands?tool=bash#masking-a-value-in-a-log).
+
+### 35.125. HCLI Rich-Table Continuation Rows [F469]
+
+- HCLI 0.18.5 builds its license output with Rich `Table` columns `ID`, `Edition`, `Type`, `Status`, `Expiration`, and `Addons`. The ID is non-wrapping, but the other cells may wrap when stdout is captured and Rich uses its default 80-column non-terminal width.
+- Parse an ID-bearing physical line as the start of a logical row. Append nonempty fragments from subsequent blank-ID `│`/`|` lines to the corresponding column, separated by one space, and finalize at the next ID-bearing line or non-row boundary. Apply eligibility only after finalization.
+- Assumption A55.3: eligible `named` and `Active` values fit without Rich's ellipsis at the supported renderer width, and edition wrapping occurs at word boundaries. Falsify with captured HCLI output that ellipsizes one of those eligibility fields; dependent result: text-parser compatibility only. A future structured HCLI output mode should supersede table parsing.
+- Complexity remains `O(N + L log L)` time and `O(L)` space; continuation folding visits each rendered fragment once.
+- Primary implementation provenance: `ida-hcli` 0.18.5 `hcli.commands.license.list._display_licenses_table` and `hcli.lib.console`, inspected from the package executed by the workflows.

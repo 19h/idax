@@ -46,6 +46,20 @@ class SelectHcliLicenseTests(unittest.TestCase):
         )
         self.assertEqual(select_license_id(output), "96-0000-0000-30")
 
+    def test_reconstructs_wrapped_rich_rows(self) -> None:
+        output = """
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ ID              ┃ Edition    ┃ Type     ┃ Status    ┃ Expiration ┃ Addons    ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━┩
+│ 96-0000-0000-31 │ IDA Teams  │ computer │ To_Activ… │ Never      │ None      │
+│                 │ Server     │          │           │            │           │
+│ 96-0000-0000-32 │ IDA        │ named    │ Active    │ 2027-02-06 │ 12        │
+│                 │ Ultimate   │          │           │            │ decompil… │
+│                 │            │          │           │            │ + TEAMS   │
+└─────────────────┴────────────┴──────────┴───────────┴────────────┴───────────┘
+"""
+        self.assertEqual(select_license_id(output), "96-0000-0000-32")
+
     def test_rejects_inactive_non_named_free_and_malformed_rows(self) -> None:
         output = """
 │ not-an-id        │ IDA Ultimate     │ named    │ Active      │ Never │ None │
