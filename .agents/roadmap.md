@@ -380,6 +380,6 @@ Current overall phase status:
 
 - [x] P51.1 Audit every `.agents/active_work.md` entry against roadmap and ledger completion evidence.
 - [x] P51.2 Remove all completed/retired entries and make same-update removal an explicit non-negotiable protocol rule.
-- [ ] P51.3 Synchronize protocol records, run exact staged review, commit and push, then remove the Phase 51 maintenance item from active work.
+- [x] P51.3 Synchronize protocol records, run exact staged review, commit and push, then remove the Phase 51 maintenance item from active work.
 
 ---

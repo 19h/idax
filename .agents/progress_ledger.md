@@ -2629,3 +2629,8 @@
 - **16.215. Phase 51 Active-Work State Hygiene Start**
   - 16.215.1. User correction identified that completed work must be removed, not marked complete or retired, in `.agents/active_work.md`. Audit confirmed seven stale completed sections: Phases 39, 40, 43, 44, 48, 49, and 50; every corresponding roadmap item is checked and terminal ledger evidence exists (F461; KB 35.117).
   - 16.215.2. Removed those seven historical sections, retained the six genuinely active/queued/blocked groups, and added an explicit atomic-removal rule to `AGENTS.md` and the active-work tracking policy. P51.1-P51.2 are complete; P51.3 exact staged review, push, and maintenance-item removal remain active with no blocker.
+  - 16.215.3. The exact six-file staged review completed without findings and created correction commit `c9729e42b1d91393f8ae73b614c0a1bce0696946`, which is pushed to `origin/master`. The temporary Phase 51 section is removed from `.agents/active_work.md` in this closure update; P51.1-P51.3 are complete.
+
+- **16.216. Phase 51 Active-Work State Hygiene Complete**
+  - 16.216.1. `.agents/active_work.md` now contains only the six current active, queued, or blocked work groups. Completed phase history remains exclusively in the roadmap, Progress Ledger, findings, and Knowledge Base.
+  - 16.216.2. `AGENTS.md` and KB 35.117 require atomic active-entry removal in the same update that records completion. Correction commit `c9729e42b1d91393f8ae73b614c0a1bce0696946` is pushed; the Phase 51 maintenance entry is absent from active work.

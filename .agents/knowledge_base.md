@@ -1819,6 +1819,6 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 
 - `.agents/active_work.md` is a projection of current active, queued, and blocked state only. It must not duplicate completed or retired phase history from `.agents/progress_ledger.md`.
 - A work item ceases to be active when its completion evidence and roadmap transition are recorded. The same closure update must remove its active-work entry; a later cleanup is a protocol violation.
-- The 2026-07-15 audit removed completed Phases 39, 40, 43, 44, 48, 49, and 50 after confirming every corresponding roadmap item was checked. Six ongoing/blocked groups remain, plus Phase 51 only until the correction commit is pushed.
+- The 2026-07-15 audit removed completed Phases 39, 40, 43, 44, 48, 49, and 50 after confirming every corresponding roadmap item was checked. Six ongoing/blocked groups remain. The temporary Phase 51 maintenance entry was removed immediately after its reviewed correction commit was pushed.
 - Assumption A51.1: roadmap checkboxes and terminal ledger entries are authoritative for classifying the seven removed phases. Falsification probe: any unchecked P39, P40, P43, P44, P48, P49, or P50 item, or any active mitigation/action absent from the six retained groups. Dependent result: only the stale-entry classification and removal set.
 - Structural probe: reject any active-work heading or status containing `Complete`, `Completed`, or `retired`; compare each closure transition against a same-commit deletion from `.agents/active_work.md`.
