@@ -1871,3 +1871,18 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Assumption A55.3: eligible `named` and `Active` values fit without Rich's ellipsis at the supported renderer width, and edition wrapping occurs at word boundaries. Falsify with captured HCLI output that ellipsizes one of those eligibility fields; dependent result: text-parser compatibility only. A future structured HCLI output mode should supersede table parsing.
 - Complexity remains `O(N + L log L)` time and `O(L)` space; continuation folding visits each rendered fragment once.
 - Primary implementation provenance: `ida-hcli` 0.18.5 `hcli.commands.license.list._display_licenses_table` and `hcli.lib.console`, inspected from the package executed by the workflows.
+
+### 35.126. CI SDK/Runtime Release Alignment [F470]
+
+- IDA installation assets are fixed at 9.3, but the SDK checkout previously followed `HexRaysSA/ida-sdk` default `main`. Upstream commit `772a43ba70118b4ec5325a69c8a3d85d50c96cd8` replaced the former `ida-cmake` submodule with an in-tree package in June 2026, so current `main` no longer satisfies IDAX's bootstrap discovery.
+- All five workflow SDK checkouts must use exact official `v9.3` commit `d5db59ab4e9d2ae92038e9520082affd0da6fe20`, including recursive submodules. This matches the installed runtime and removes default-branch drift.
+- Assumption A55.4: GitHub continues serving the immutable commit and its public `src/cmake` submodule dependency. Falsify if checkout at that object fails or `src/cmake/bootstrap.cmake` is absent after recursive checkout; dependent result: CI acquisition only. The local version-alignment requirement is independent.
+- Complexity: one constant `ref` input at each of five checkout sites, `O(1)` workflow overhead.
+- Primary provenance: [official v9.3 SDK commit](https://github.com/HexRaysSA/ida-sdk/commit/d5db59ab4e9d2ae92038e9520082affd0da6fe20) and [official in-tree CMake migration](https://github.com/HexRaysSA/ida-sdk/commit/772a43ba70118b4ec5325a69c8a3d85d50c96cd8).
+
+### 35.127. Live HCLI Selector and Mask Evidence [F471]
+
+- Workflow commit `9317dd4b3fe1b7b3f4fddfa7da8f0f90d621fe9f` executes 15 install jobs: six Bindings, six Validation, and three Integrations jobs distributed across Linux, macOS, and Windows.
+- All 15 `Install IDA Pro` steps succeed and advance to SDK resolution. The installed edition detail is IDA Professional 9.3, both applicable license files download, and later HCLI output renders the selected identifier as `***`.
+- All 15 complete logs were scanned for the canonical grouped license-ID expression; observed unmasked matches: `0`.
+- Assumption A55.5: GitHub's recorded step conclusions and retrieved complete job logs are faithful to the executed runner streams. Falsify with a raw log archive containing an unmasked canonical identifier or an install step whose conclusion differs from the API result; dependent result: live CI evidence only.

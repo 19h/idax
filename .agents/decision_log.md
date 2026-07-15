@@ -1244,3 +1244,8 @@
   - **19.57.3. Determinism:** Rank supported edition families and preserve source order within equal priority. Emit only the chosen ID on stdout for command substitution and a non-sensitive error on failure.
   - **19.57.4. Confidentiality:** Register the selected identifier with GitHub Actions `add-mask` immediately after selection and before HCLI can repeat it; never log the full entitlement table or identifier from workflow-authored diagnostics.
   - **19.57.5. Validation:** Unit-test the observed server-first table shape plus malformed/no-match cases; run a structural workflow audit proving all install sites call the shared selector and mask the result.
+
+- **19.58. Decision D-CI-IDA-RELEASE-LOCK**: Match the SDK commit to the installed IDA runtime release
+  - **19.58.1. Version set:** The 9.3 installer assets and SDK must move as one explicit release set; never combine a fixed runtime asset with an unpinned SDK default branch.
+  - **19.58.2. Pin:** Use exact official `v9.3` commit `d5db59ab4e9d2ae92038e9520082affd0da6fe20` at every SDK checkout and retain recursive submodule checkout for its build helper.
+  - **19.58.3. Upgrade rule:** A later IDA release requires one reviewed change covering asset keys, SDK commit, compiler/runtime compatibility, and complete cross-platform evidence.

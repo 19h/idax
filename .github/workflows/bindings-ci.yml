@@ -12,6 +12,7 @@ permissions:
 
 env:
   IDA_SDK_REPO: HexRaysSA/ida-sdk
+  IDA_SDK_REF: d5db59ab4e9d2ae92038e9520082affd0da6fe20 # v9.3
   BUILD_TYPE: Release
 
 jobs:
@@ -45,6 +46,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ env.IDA_SDK_REPO }}
+          ref: ${{ env.IDA_SDK_REF }}
           path: ida-sdk
           submodules: recursive
 
@@ -224,6 +226,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ env.IDA_SDK_REPO }}
+          ref: ${{ env.IDA_SDK_REF }}
           path: ida-sdk
           submodules: recursive
 
