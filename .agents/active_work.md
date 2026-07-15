@@ -82,5 +82,7 @@
   - 9.1.1. **Action:** Remove identity-bearing absolute host paths from tracked text and binary artifacts, replacing them with semantic non-absolute tokens.
   - 9.1.2. **Status:** P54.1-P54.2 complete (F465; KB 35.121; decision 19.56); current-tree and isolated IDA-open probes pass.
 - **9.2. History and closure**
-  - 9.2.1. **Action:** Validate exact staged scope, push the sanitized tree, remove identity-bearing paths from reachable history, verify remote refs, and remove this Phase 54 entry in the same closure update.
-  - 9.2.2. **Status:** Active; unrelated local implementation work remains isolated in the primary worktree.
+  - 9.2.1. **Action:** Submit the documented GitHub sensitive-data purge request for two affected PR refs and cached objects; coordinate rewritten-history adoption with the four affected fork owners; reverify that an old object ID is no longer fetchable.
+  - 9.2.2. **Impact:** `origin/master` and fresh clones are sanitized, but GitHub still serves the former tip by exact object ID; both PR refs and all four fork default branches retain contaminated history (F466; KB 35.122).
+  - 9.2.3. **Mitigation:** GitHub Support must dereference the PRs, garbage-collect server objects, and invalidate cached views. Fork owners must rewrite or delete their copies. These are external account actions and cannot be inferred from repository write authority.
+  - 9.2.4. **Status:** Blocked on explicit authorization for the Support request and external fork-owner coordination; unrelated local implementation work remains isolated in the primary worktree.
