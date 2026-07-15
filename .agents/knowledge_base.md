@@ -1929,3 +1929,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Decision 19.59 removes only the non-diagnostic Windows headless example execution. Reopen that gate when a supported runner/runtime combination reaches `database::open ok` and closes the database with a zero exit status.
 - Assumption A55.11: compile/unit coverage is sufficient for the Windows-specific HCLI/compiler scope, while runtime semantics remain exercised on Unix. Falsify with a Windows-only ABI defect that passes release linking and 140 unit tests but fails on a supported headless runtime; dependent result: Phase 55 Windows binding coverage boundary.
 - Removing two redundant example launches reduces CI runtime by the duration of those processes; build/test complexity is otherwise unchanged.
+
+### 35.134. License-Identifier Log Audit Boundaries [F478]
+
+- Scan logs with `(?<![0-9A-Fa-f])[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}(?![0-9A-Fa-f])`, not the unbounded grouped expression. The right boundary prevents a matching prefix within a longer hexadecimal UUID token.
+- Audit tooling must report per-job counts and redact context before display; it must not print a candidate identifier while determining whether masking failed.
+- Assumption A55.12: HCLI's canonical identifier is a standalone token rather than a substring of a longer hexadecimal identifier. Falsify with official HCLI output embedding the license ID in an adjacent hexadecimal token; dependent result: leakage-audit sensitivity only.
+- For total log size `N` bytes, the boundary-aware scan remains `O(N)` time and `O(1)` auxiliary regex state apart from input buffering.

@@ -404,6 +404,6 @@ Current overall phase status:
 
 - [x] P55.1 Reclassify the cross-platform HCLI installation failure from missing entitlement to incorrect first-ID parsing using the observed license table and all workflow call sites.
 - [x] P55.2 Add one tested selector for active named installable IDA product licenses and replace every positional workflow selector.
-- [ ] P55.3 Validate selector positives/negatives, YAML structure, path hygiene, exact staged scope, commit and push, then remove the completed Phase 55/section 7 active-work entry.
+- [x] P55.3 Validate selector positives/negatives, YAML structure, path hygiene, exact staged scope, commit and push, then remove the completed Phase 55/section 7 active-work entry.
 
 ---
