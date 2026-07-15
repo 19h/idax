@@ -1,7 +1,7 @@
 # agents.md - IDA SDK Intuitive Wrapper Program
 
-Last updated: 2026-07-14
-Status: Implementation substantially complete; 26/26 native tests passing; release candidate ready
+Last updated: 2026-07-15
+Status: Implementation substantially complete; 27/27 native CTest targets passing; release candidate ready
 Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper over the IDA SDK for first-time users while preserving full power for expert workflows.
 
 ---
@@ -49,6 +49,7 @@ Each `.agents/` file uses hierarchical numbered sections. To add a new entry:
    - The corresponding entry in `.agents/progress_ledger.md`
 6. Any blocker must be captured with impact and mitigation plan in `.agents/active_work.md`.
 7. Any design change must be captured in `.agents/decision_log.md` with rationale.
+8. `.agents/active_work.md` must contain only active, queued, or blocked work. Remove an item in the same protocol update that records its completion; completed and retired work belongs in `.agents/progress_ledger.md`, not `.agents/active_work.md`.
 
 MANDATORY UPDATE PROTOCOL (must always be followed):
 - Step 1: Update task checkbox/status in `.agents/roadmap.md` as soon as it changes.
@@ -56,6 +57,7 @@ MANDATORY UPDATE PROTOCOL (must always be followed):
 - Step 3: If a technical insight was discovered, add it to `.agents/findings.md` AND `.agents/knowledge_base.md`.
 - Step 4: If architecture changed, add it to `.agents/decision_log.md`.
 - Step 5: If blocked, add/update `.agents/active_work.md` with next action.
+- Step 6: When work completes or is retired, remove it from `.agents/active_work.md` in the same closure update.
 
 ---
 

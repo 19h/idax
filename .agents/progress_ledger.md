@@ -2625,3 +2625,7 @@
   - 16.214.2. Added byte-compatible C++ and Rust exact pseudocode-comment companion manifests with one record per semantic tree location, unique function matching, exact instruction guards, report purity, target-preserving absent-only apply, and no implicit orphan deletion (F457, F459; KB 35.113, 35.115).
   - 16.214.3. Complete C++/Node/Rust regression, all 64 argument factories, independent bindgen identity, tracked-fixture immutability, and isolated same-address report/apply/reopen/guard/conflict evidence pass (F458-F460; KB 35.114-35.116).
   - 16.214.4. Implementation commit `91f1bbf47b35b1f0f01af216abc0455f05068a92` is pushed; all Phase 50 roadmap items are complete and the active-work entry is retired.
+
+- **16.215. Phase 51 Active-Work State Hygiene Start**
+  - 16.215.1. User correction identified that completed work must be removed, not marked complete or retired, in `.agents/active_work.md`. Audit confirmed seven stale completed sections: Phases 39, 40, 43, 44, 48, 49, and 50; every corresponding roadmap item is checked and terminal ledger evidence exists (F461; KB 35.117).
+  - 16.215.2. Removed those seven historical sections, retained the six genuinely active/queued/blocked groups, and added an explicit atomic-removal rule to `AGENTS.md` and the active-work tracking policy. P51.1-P51.2 are complete; P51.3 exact staged review, push, and maintenance-item removal remain active with no blocker.
