@@ -1,0 +1,519 @@
+{
+  "schema_version": 1,
+  "authoritative_umbrella": "include/ida/idax.hpp",
+  "completion_states": ["planned", "partial", "implemented", "validated"],
+  "shared": [
+    {
+      "name": "error",
+      "header": "include/ida/error.hpp",
+      "status": "implemented",
+      "native_source": "common.cpp",
+      "binding_module": "module",
+      "bound_types": [
+        "ConflictError", "ErrorCategory", "ErrorInfo", "IdaxError",
+        "InternalError", "NotFoundError", "SdkError", "UnsupportedError",
+        "ValidationError"
+      ]
+    },
+    {
+      "name": "core",
+      "header": "include/ida/core.hpp",
+      "status": "implemented",
+      "native_source": "core_bind.cpp",
+      "bound_types": ["OperationOptions", "RangeOptions", "WaitOptions"]
+    }
+  ],
+  "domains": [
+    {
+      "name": "address",
+      "header": "include/ida/address.hpp",
+      "status": "implemented",
+      "native_source": "address_bind.cpp",
+      "bound_functions": [
+        "code_items", "data_items", "find_first", "find_next", "is_code",
+        "is_data", "is_head", "is_loaded", "is_mapped", "is_tail",
+        "is_unknown", "item_end", "item_size", "item_start", "items",
+        "next_defined", "next_head", "next_mapped", "next_not_tail",
+        "prev_defined", "prev_head", "prev_mapped", "prev_not_tail",
+        "unknown_bytes"
+      ],
+      "bound_types": ["ItemRange", "Predicate", "PredicateRange", "Range"]
+    },
+    {
+      "name": "analysis",
+      "header": "include/ida/analysis.hpp",
+      "status": "implemented",
+      "native_source": "analysis_bind.cpp",
+      "bound_functions": [
+        "cancel", "is_enabled", "is_idle", "revert_decisions", "schedule",
+        "schedule_code", "schedule_function", "schedule_range",
+        "schedule_reanalysis", "schedule_reanalysis_range", "set_enabled",
+        "wait", "wait_range"
+      ]
+    },
+    {
+      "name": "comment",
+      "header": "include/ida/comment.hpp",
+      "status": "implemented",
+      "native_source": "comment_bind.cpp",
+      "bound_functions": [
+        "add_anterior", "add_posterior", "anterior_lines", "append",
+        "clear_anterior", "clear_posterior", "get", "get_anterior",
+        "get_posterior", "posterior_lines", "remove", "remove_anterior_line",
+        "remove_posterior_line", "render", "set", "set_anterior",
+        "set_anterior_lines", "set_posterior", "set_posterior_lines"
+      ]
+    },
+    {
+      "name": "data",
+      "header": "include/ida/data.hpp",
+      "status": "implemented",
+      "native_source": "data_bind.cpp",
+      "bound_functions": [
+        "analyze_custom_data", "attach_custom_data_format",
+        "attach_custom_data_format_to_standard_types", "clear_string_list",
+        "configure_string_list", "custom_data_at", "custom_data_format",
+        "custom_data_formats", "custom_data_item_size", "custom_data_type",
+        "custom_data_types", "define_byte", "define_custom",
+        "define_custom_inferred", "define_double", "define_dword",
+        "define_float", "define_oword", "define_packed_real", "define_qword",
+        "define_string", "define_struct", "define_tbyte", "define_word",
+        "define_yword", "define_zword", "detach_custom_data_format",
+        "detach_custom_data_format_from_standard_types", "find_binary_pattern",
+        "find_custom_data_format", "find_custom_data_type",
+        "is_custom_data_format_attached",
+        "is_custom_data_format_attached_to_standard_types", "original_byte",
+        "original_dword", "original_qword", "original_word",
+        "packed_real_element_size", "patch_byte", "patch_bytes", "patch_dword",
+        "patch_qword", "patch_word", "read_byte", "read_bytes", "read_dword",
+        "read_qword", "read_string", "read_typed", "read_word",
+        "rebuild_string_list", "register_custom_data_format",
+        "register_custom_data_type", "render_custom_data", "revert_patch",
+        "revert_patches", "scan_custom_data", "standard_custom_data_formats",
+        "string_list_options", "string_literals", "tbyte_element_size",
+        "undefine", "unregister_custom_data_format",
+        "unregister_custom_data_type", "write_byte", "write_bytes",
+        "write_dword", "write_qword", "write_typed", "write_word"
+      ],
+      "bound_types": [
+        "CustomDataFormatContext", "CustomDataFormatDefinition",
+        "CustomDataFormatId", "CustomDataFormatInfo", "CustomDataItemInfo",
+        "CustomDataTypeDefinition", "CustomDataTypeId", "CustomDataTypeInfo",
+        "StringListOptions", "StringLiteral", "TypedValue", "TypedValueKind"
+      ]
+    },
+    {
+      "name": "database",
+      "header": "include/ida/database.hpp",
+      "status": "implemented",
+      "native_source": "database_bind.cpp",
+      "bound_functions": [
+        "abi_name", "address_bitness", "address_bounds", "address_span",
+        "close", "compiler_info", "file_to_database", "file_type_name",
+        "idb_path", "image_base", "import_modules", "init", "input_file_path",
+        "input_md5", "is_big_endian", "is_snapshot_database",
+        "loader_format_name", "max_address", "memory_to_database", "min_address",
+        "open", "open_binary", "open_non_binary", "processor", "processor_id",
+        "processor_id_from_raw", "processor_name", "processor_profile", "save",
+        "set_address_bitness", "set_snapshot_description", "snapshots"
+      ],
+      "bound_types": [
+        "CompilerInfo", "ImportModule", "ImportSymbol", "LoadIntent",
+        "OpenMode", "PluginLoadPolicy", "ProcessorId", "ProcessorProfile",
+        "RuntimeOptions", "Snapshot"
+      ]
+    },
+    {
+      "name": "debugger",
+      "header": "include/ida/debugger.hpp",
+      "status": "implemented",
+      "native_source": "debugger_bind.cpp",
+      "bound_functions": [
+        "add_breakpoint", "appcall", "appcall_with_executor", "attach",
+        "available_backends", "cleanup_appcall", "current_backend",
+        "current_thread_id", "detach", "has_breakpoint", "instruction_pointer",
+        "is_custom_register", "is_floating_register", "is_integer_register",
+        "is_request_running", "load_backend", "on_breakpoint_changed",
+        "on_breakpoint_hit", "on_exception", "on_library_loaded",
+        "on_library_unloaded", "on_process_exited", "on_process_started",
+        "on_process_suspended", "on_thread_exited", "on_thread_started",
+        "on_trace", "read_memory", "register_executor", "register_info",
+        "register_value", "remove_breakpoint", "request_attach", "request_resume",
+        "request_resume_thread", "request_run_to", "request_select_thread",
+        "request_start", "request_step_into", "request_step_out",
+        "request_step_over", "request_suspend", "request_suspend_thread", "resume",
+        "resume_thread", "run_requests", "run_to", "select_thread",
+        "set_register", "stack_pointer", "start", "state", "step_into",
+        "step_out", "step_over", "suspend", "suspend_thread", "terminate",
+        "thread_count", "thread_id_at", "thread_name_at", "threads",
+        "unregister_executor", "unsubscribe", "write_memory"
+      ],
+      "bound_types": [
+        "AppcallExecutor", "AppcallOptions", "AppcallRequest", "AppcallResult",
+        "AppcallValue", "AppcallValueKind", "BackendInfo", "BreakpointChange",
+        "ExceptionInfo", "ModuleInfo", "ProcessState", "RegisterInfo",
+        "ScopedSubscription", "ThreadInfo"
+      ]
+    },
+    {
+      "name": "decompiler",
+      "header": "include/ida/decompiler.hpp",
+      "status": "implemented",
+      "native_sources": [
+        "decompiler_bind.cpp", "decompiler_ctree_bind.cpp",
+        "decompiler_microcode_bind.cpp"
+      ],
+      "bound_functions": [
+        "apply_user_lvar_setting", "apply_user_lvar_settings", "available",
+        "collect_referenced_types", "current_view", "decompile",
+        "for_each_expression", "for_each_item", "generate_microcode", "initialize",
+        "is_expression", "is_statement", "item_at_position", "item_type_name",
+        "mark_dirty", "mark_dirty_with_callers", "on_create_hint",
+        "on_curpos_changed", "on_func_printed", "on_maturity_changed",
+        "on_populating_popup", "on_refresh_pseudocode", "on_switch_pseudocode",
+        "pseudocode_header_line_count", "raw_pseudocode_lines",
+        "register_microcode_filter", "saved_user_lvar_settings",
+        "set_pseudocode_line", "unregister_microcode_filter", "unsubscribe",
+        "view_for_function", "view_from_host"
+      ],
+      "bound_types": [
+        "AddressMapping", "CommentPosition", "CommentPositionKind",
+        "CtreeItemView", "CtreeVisitor", "CursorPositionEvent",
+        "DecompileFailure", "DecompiledFunction", "DecompilerView",
+        "ExpressionView", "HintRequestEvent", "HintResult", "ItemAtPosition",
+        "ItemType", "LocalVariable", "LocalVariableLocationKind",
+        "LocalVariableLocator", "LocalVariableUserSetting", "LvarSnapshot",
+        "Maturity", "MaturityEvent", "MicrocodeApplyResult",
+        "MicrocodeArgumentFlag", "MicrocodeBlock", "MicrocodeCallOptions",
+        "MicrocodeCallingConvention", "MicrocodeContext", "MicrocodeFilter",
+        "MicrocodeFunction", "MicrocodeFunctionArgument", "MicrocodeFunctionRole",
+        "MicrocodeGenerationOptions", "MicrocodeInsertPolicy",
+        "MicrocodeInstruction", "MicrocodeLocationPart", "MicrocodeMaturity",
+        "MicrocodeMemoryRange", "MicrocodeOpcode", "MicrocodeOperand",
+        "MicrocodeOperandKind", "MicrocodeRegisterRange", "MicrocodeValue",
+        "MicrocodeValueKind", "MicrocodeValueLocation",
+        "MicrocodeValueLocationKind", "PopulatingPopupEvent",
+        "PseudocodeComment", "PseudocodeEvent", "ReferencedTypeCollection",
+        "ScopedMicrocodeFilter", "ScopedSession", "ScopedSubscription",
+        "StatementView", "VariableStorage", "VisitAction", "VisitOptions"
+      ]
+    },
+    {
+      "name": "diagnostics",
+      "header": "include/ida/diagnostics.hpp",
+      "status": "implemented",
+      "native_source": "diagnostics_bind.cpp",
+      "bound_functions": [
+        "assert_invariant", "enrich", "log", "log_level",
+        "performance_counters", "reset_performance_counters", "set_log_level"
+      ],
+      "bound_types": ["LogLevel", "PerformanceCounters"]
+    },
+    {
+      "name": "entry",
+      "header": "include/ida/entry.hpp",
+      "status": "implemented",
+      "native_source": "entry_bind.cpp",
+      "bound_functions": [
+        "add", "by_index", "by_ordinal", "clear_forwarder", "count",
+        "forwarder", "rename", "set_forwarder"
+      ],
+      "bound_types": ["EntryPoint"]
+    },
+    {
+      "name": "event",
+      "header": "include/ida/event.hpp",
+      "status": "implemented",
+      "native_source": "event_bind.cpp",
+      "bound_functions": [
+        "on_byte_patched", "on_code_created", "on_comment_changed",
+        "on_data_created", "on_event", "on_event_filtered",
+        "on_extra_comment_changed", "on_function_added", "on_function_deleted",
+        "on_function_updated", "on_item_type_changed", "on_items_destroyed",
+        "on_local_types_changed", "on_operand_type_changed", "on_renamed",
+        "on_segment_added", "on_segment_deleted", "on_segment_moved", "unsubscribe"
+      ],
+      "bound_types": [
+        "Event", "EventKind", "ExtraCommentChangedEvent", "ExtraCommentPlacement",
+        "ItemCreatedEvent", "ItemsDestroyedEvent", "LocalTypeChangeKind",
+        "LocalTypesChangedEvent", "ScopedSubscription", "SegmentMovedEvent"
+      ]
+    },
+    {
+      "name": "fixup",
+      "header": "include/ida/fixup.hpp",
+      "status": "implemented",
+      "native_source": "fixup_bind.cpp",
+      "bound_functions": [
+        "all", "at", "contains", "exists", "find_custom", "first",
+        "in_range", "next", "prev", "register_custom", "remove", "set",
+        "unregister_custom"
+      ],
+      "bound_types": [
+        "CustomHandler", "Descriptor", "FixupRange", "HandlerProperty", "Type"
+      ]
+    },
+    {
+      "name": "function",
+      "header": "include/ida/function.hpp",
+      "status": "implemented",
+      "native_source": "function_bind.cpp",
+      "bound_functions": [
+        "add_register_variable", "add_tail", "all", "apply_decl", "at",
+        "by_index", "callees", "callers", "chunk_count", "chunks",
+        "code_addresses", "comment", "count", "create", "declaration",
+        "define_stack_variable", "find_register_variable", "frame",
+        "frame_variable_by_name", "frame_variable_by_offset",
+        "has_register_variables", "is_outlined", "item_addresses", "name_at",
+        "reanalyze", "register_variables", "remove", "remove_register_variable",
+        "remove_tail", "rename_register_variable", "set_comment", "set_end",
+        "set_outlined", "set_prototype", "set_start", "sp_delta_at",
+        "tail_chunks", "update"
+      ],
+      "bound_types": [
+        "Chunk", "FrameVariable", "Function", "FunctionRange",
+        "RegisterVariable", "StackFrame"
+      ]
+    },
+    {
+      "name": "graph",
+      "header": "include/ida/graph.hpp",
+      "status": "implemented",
+      "native_source": "graph_bind.cpp",
+      "bound_functions": [
+        "activate_graph_viewer", "close_graph_viewer", "flowchart",
+        "flowchart_for_ranges", "has_graph_viewer", "is_graph_viewer_visible",
+        "refresh_graph", "show_graph", "switch_table"
+      ],
+      "bound_types": [
+        "BasicBlock", "BlockType", "Edge", "EdgeInfo", "Graph",
+        "GraphCallback", "Layout", "NodeInfo", "SwitchTable"
+      ]
+    },
+    {
+      "name": "instruction",
+      "header": "include/ida/instruction.hpp",
+      "status": "implemented",
+      "native_source": "instruction_bind.cpp",
+      "bound_functions": [
+        "call_targets", "clear_operand_representation", "code_refs_from",
+        "create", "data_refs_from", "decode",
+        "ensure_operand_struct_member_offset", "get_forced_operand",
+        "has_fall_through", "is_call", "is_conditional_jump", "is_jump",
+        "is_return", "jump_targets", "next", "operand_byte_width",
+        "operand_enum", "operand_register_category", "operand_register_name",
+        "operand_struct_offset_path", "operand_struct_offset_path_names",
+        "operand_text", "prev", "set_forced_operand",
+        "set_operand_based_struct_offset", "set_operand_binary",
+        "set_operand_character", "set_operand_decimal", "set_operand_enum",
+        "set_operand_float", "set_operand_format", "set_operand_hex",
+        "set_operand_octal", "set_operand_offset", "set_operand_stack_variable",
+        "set_operand_struct_offset", "text", "toggle_operand_negate",
+        "toggle_operand_sign"
+      ],
+      "bound_types": [
+        "Instruction", "Operand", "OperandEnum", "OperandFormat",
+        "OperandType", "RegisterCategory", "StructOffsetPath"
+      ]
+    },
+    {
+      "name": "lines",
+      "header": "include/ida/lines.hpp",
+      "status": "implemented",
+      "native_source": "lines_bind.cpp",
+      "bound_functions": [
+        "add_source_file", "colstr", "decode_addr_tag", "make_addr_tag",
+        "remove_source_file", "source_file_at", "tag_advance", "tag_remove",
+        "tag_strlen"
+      ],
+      "bound_types": ["Color", "SourceFile"]
+    },
+    {
+      "name": "loader",
+      "header": "include/ida/loader.hpp",
+      "status": "implemented",
+      "native_source": "loader_bind.cpp",
+      "bound_functions": [
+        "abort_load", "create_filename_comment", "decode_load_flags",
+        "encode_load_flags", "file_to_database", "memory_to_database",
+        "set_processor"
+      ],
+      "bound_types": [
+        "AcceptResult", "ArchiveMemberRequest", "ArchiveMemberResult",
+        "InputFile", "LoadFlags", "LoadRequest", "Loader", "LoaderOptions",
+        "MoveSegmentRequest", "OutputFile", "SaveRequest"
+      ]
+    },
+    {
+      "name": "lumina",
+      "header": "include/ida/lumina.hpp",
+      "status": "implemented",
+      "native_source": "lumina_bind.cpp",
+      "bound_functions": [
+        "close_all_connections", "close_connection", "has_connection", "pull",
+        "push"
+      ],
+      "bound_types": ["BatchResult", "Feature", "OperationCode", "PushMode"]
+    },
+    {
+      "name": "name",
+      "header": "include/ida/name.hpp",
+      "status": "implemented",
+      "native_source": "name_bind.cpp",
+      "bound_functions": [
+        "all", "all_user_defined", "demangled", "force_set", "get",
+        "is_auto_generated", "is_public", "is_user_defined",
+        "is_valid_identifier", "is_weak", "remove", "resolve",
+        "sanitize_identifier", "set", "set_public", "set_weak"
+      ],
+      "bound_types": ["DemangleForm", "Entry", "ListOptions"]
+    },
+    {
+      "name": "path",
+      "header": "include/ida/path.hpp",
+      "status": "implemented",
+      "native_source": "path_bind.cpp",
+      "bound_functions": ["basename", "dirname", "is_directory"]
+    },
+    {
+      "name": "plugin",
+      "header": "include/ida/plugin.hpp",
+      "status": "implemented",
+      "native_source": "plugin_bind.cpp",
+      "bound_functions": [
+        "activate_action", "attach_to_menu", "attach_to_popup",
+        "attach_to_toolbar", "decompiler_view_host", "detach_from_menu",
+        "detach_from_popup", "detach_from_toolbar", "register_action",
+        "register_hotkey", "unregister_action", "widget_host",
+        "with_decompiler_view_host", "with_widget_host"
+      ],
+      "bound_types": [
+        "Action", "ActionContext", "ExportFlags", "HostHandle", "Info",
+        "Plugin", "ScopedHotkey", "TypeRef"
+      ]
+    },
+    {
+      "name": "processor",
+      "header": "include/ida/processor.hpp",
+      "status": "implemented",
+      "native_source": "processor_bind.cpp",
+      "bound_functions": [],
+      "bound_types": [
+        "AnalyzeDetails", "AnalyzeOperand", "AnalyzeOperandKind",
+        "AssemblerInfo", "EmulateResult", "InstructionDescriptor",
+        "InstructionFeature", "OutputContext", "OutputInstructionResult",
+        "OutputOperandResult", "OutputToken", "OutputTokenKind", "Processor",
+        "ProcessorFlag", "ProcessorInfo", "RegisterInfo", "SwitchCase",
+        "SwitchDescription", "SwitchTableKind"
+      ]
+    },
+    {
+      "name": "search",
+      "header": "include/ida/search.hpp",
+      "status": "implemented",
+      "native_source": "search_bind.cpp",
+      "bound_functions": [
+        "binary_pattern", "immediate", "next_code", "next_data",
+        "next_defined", "next_error", "next_unknown", "text"
+      ],
+      "bound_types": [
+        "BinaryPatternOptions", "Direction", "ImmediateOptions", "TextOptions"
+      ]
+    },
+    {
+      "name": "segment",
+      "header": "include/ida/segment.hpp",
+      "status": "implemented",
+      "native_source": "segment_bind.cpp",
+      "bound_functions": [
+        "all", "at", "by_index", "by_name", "comment", "count", "create",
+        "first", "last", "move", "next", "prev", "remove", "resize",
+        "set_bitness", "set_class", "set_comment",
+        "set_default_segment_register", "set_default_segment_register_for_all",
+        "set_name", "set_permissions", "set_type"
+      ],
+      "bound_types": ["Permissions", "Segment", "SegmentRange", "Type"]
+    },
+    {
+      "name": "storage",
+      "header": "include/ida/storage.hpp",
+      "status": "implemented",
+      "native_source": "storage_bind.cpp",
+      "bound_functions": [],
+      "bound_types": ["Node"]
+    },
+    {
+      "name": "type",
+      "header": "include/ida/type.hpp",
+      "status": "implemented",
+      "native_source": "type_bind.cpp",
+      "bound_functions": [
+        "apply_named_type", "declarations_for_ordinals", "ensure_named_type",
+        "import_type", "load_type_library", "local_type_count",
+        "local_type_name", "parse_declarations", "remove_type",
+        "render_named_declarations", "render_ordinal_declarations",
+        "render_type_graph", "retrieve", "retrieve_operand",
+        "unload_type_library"
+      ],
+      "bound_types": [
+        "CallingConvention", "EnumDetails", "EnumMember", "EnumRadix",
+        "FunctionArgument", "FunctionDetails", "Member",
+        "ParseDeclarationsOptions", "ParseDeclarationsReport",
+        "PointerDetails", "TypeDeclaration", "TypeGraphOptions", "TypeInfo",
+        "TypeKind", "TypeRenderOptions", "UdtDetails", "UsedMemberOffsets"
+      ]
+    },
+    {
+      "name": "ui",
+      "header": "include/ida/ui.hpp",
+      "status": "implemented",
+      "native_sources": ["ui_bind.cpp", "ui_events_bind.cpp"],
+      "bound_functions": [
+        "activate_widget", "ask_address", "ask_file", "ask_form", "ask_long",
+        "ask_string", "ask_text", "ask_yn", "attach_dynamic_action",
+        "attach_registered_action", "clipboard_backend", "close_custom_viewer",
+        "close_widget", "copy_to_clipboard", "create_custom_viewer",
+        "create_widget", "current_widget", "custom_viewer_current_line",
+        "custom_viewer_jump_to_line", "custom_viewer_line_count", "find_widget",
+        "form_address", "form_bitset", "form_builder", "form_int", "form_path",
+        "form_radio", "form_sval", "form_text", "info", "is_widget_visible",
+        "jump_to", "message", "on_current_widget_changed", "on_cursor_changed",
+        "on_database_closed", "on_database_inited", "on_event",
+        "on_event_filtered", "on_popup_ready", "on_ready_to_run",
+        "on_rendering_info", "on_screen_ea_changed", "on_view_activated",
+        "on_view_closed", "on_view_created", "on_view_deactivated",
+        "on_widget_closing", "on_widget_invisible", "on_widget_visible",
+        "read_clipboard", "refresh_all_views", "refresh_custom_viewer",
+        "register_timer", "screen_address", "selection",
+        "set_custom_viewer_lines", "show_widget", "unregister_timer",
+        "unsubscribe", "user_directory", "warning", "widget_host",
+        "widget_type", "with_widget_host"
+      ],
+      "bound_types": [
+        "Chooser", "ChooserOptions", "Column", "ColumnFormat", "DockPosition",
+        "Event", "EventKind", "FormAddressBinding", "FormBinding",
+        "FormBuilder", "FormIntBinding", "FormPathBinding", "FormSvalBinding",
+        "FormTextBinding", "FormU16Binding", "LineRenderEntry", "PopupEvent",
+        "Progress", "RenderingEvent", "Row", "RowStyle", "ScopedSubscription",
+        "ShowWidgetOptions", "WaitBox", "Widget", "WidgetType"
+      ]
+    },
+    {
+      "name": "xref",
+      "header": "include/ida/xref.hpp",
+      "status": "implemented",
+      "native_source": "xref_bind.cpp",
+      "bound_functions": [
+        "add_code", "add_data", "code_refs_from", "code_refs_from_range",
+        "code_refs_to", "code_refs_to_range", "data_refs_from",
+        "data_refs_from_range", "data_refs_to", "data_refs_to_range",
+        "is_call", "is_data", "is_data_read", "is_data_write", "is_flow",
+        "is_jump", "refs_from", "refs_from_range", "refs_to", "refs_to_range",
+        "remove_code", "remove_data"
+      ],
+      "bound_types": [
+        "CodeType", "DataType", "Reference", "ReferenceRange", "ReferenceType"
+      ]
+    }
+  ]
+}

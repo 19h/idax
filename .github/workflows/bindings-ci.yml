@@ -399,3 +399,147 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:IDAUSR | Out-Null
           Write-Host "Building Rust integration tests (runtime executes on Unix; Windows coverage is compile-only)..."
           cargo test --release --test integration --no-run
+
+  build-python:
+    name: Python Bindings - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            msvc_arch: ''
+          - os: windows-latest
+            msvc_arch: x64
+          - os: macos-14
+            msvc_arch: ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout IDA SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          ref: ${{ env.IDA_SDK_REF }}
+          path: ida-sdk
+          submodules: recursive
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install IDA Pro
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
+        shell: bash
+        run: |
+          LICENSE_OUTPUT=$(uvx --from ida-hcli hcli --disable-updates license list)
+          LICENSE_ID=$(printf '%s\n' "$LICENSE_OUTPUT" | python3 scripts/select_hcli_license.py)
+          echo "::add-mask::$LICENSE_ID"
+          echo "Selected active named IDA product license"
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64win.exe"
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64linux.run"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            if [[ "$(uname -m)" == "arm64" ]]; then
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_armmac.app.zip"
+            else
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64mac.app.zip"
+            fi
+          fi
+
+          mkdir -p ./ida-installer
+          uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
+
+          INSTALLER_FILE=$(python3 -c "import glob; files=sorted(glob.glob('ida-installer/*')); print(files[0] if files else '')")
+          if [[ -z "$INSTALLER_FILE" ]]; then
+            echo "error: no installer file found in ./ida-installer"
+            ls -la ./ida-installer
+            exit 1
+          fi
+          echo "Using installer file: $INSTALLER_FILE"
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
+
+      - name: Resolve IDASDK and IDADIR paths
+        shell: bash
+        run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/src/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK CMake entry point in SDK checkout"
+            exit 1
+          fi
+
+          IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
+          if [[ "$RUNNER_OS" == "macOS" && -f "$IDADIR/Contents/MacOS/libida.dylib" ]]; then
+            IDADIR="$IDADIR/Contents/MacOS"
+          fi
+          echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "$IDADIR" >> "$GITHUB_PATH"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "DYLD_LIBRARY_PATH=$IDADIR:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            echo "DYLD_FALLBACK_LIBRARY_PATH=$IDADIR:$DYLD_FALLBACK_LIBRARY_PATH" >> "$GITHUB_ENV"
+          else
+            echo "LD_LIBRARY_PATH=$IDADIR:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
+
+      - name: Build editable Python package
+        shell: bash
+        run: |
+          uv sync --extra test
+          uv pip install --reinstall -e .
+
+      - name: Run Python pure, type, and declaration gates
+        shell: bash
+        run: |
+          uv run pytest -q -m "not ida_runtime"
+          uv run mypy
+          uv run python scripts/check_python_api_manifest.py
+          uv run python -m py_compile bindings/python/examples/*.py scripts/check_python_distribution.py
+
+      - name: Build and inspect Python distributions
+        shell: bash
+        run: |
+          uv build
+          uv run python scripts/check_python_distribution.py
+
+      - name: Run initialized IDA Python tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          RUNTIME_DIR="$RUNNER_TEMP/idax-python-runtime"
+          mkdir -p "$RUNTIME_DIR"
+          cp tests/fixtures/simple_appcall_linux64 "$RUNTIME_DIR/fixture"
+          (
+            cd "$RUNTIME_DIR"
+            "$IDADIR/idat" -A -B fixture >/dev/null
+          )
+          IDAX_PYTHON_REQUIRE_DECOMPILER=1 \
+          IDAX_PYTHON_RUNTIME_FIXTURE="$RUNTIME_DIR/fixture" \
+            uv run pytest -q -m ida_runtime
+
+      - name: Record Windows initialized-host boundary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "Windows Python native build, pure tests, typing, declaration audit, and archive inspection pass; initialized idalib execution remains disabled under the established nondiagnostic Windows headless boundary."

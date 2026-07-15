@@ -236,6 +236,12 @@ if(IDAX_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+# ── Python bindings (optional) ──────────────────────────────────────────
+option(IDAX_BUILD_PYTHON "Build the idax CPython extension" OFF)
+if(IDAX_BUILD_PYTHON)
+    add_subdirectory(bindings/python)
+endif()
+
 # ── Install / packaging ──────────────────────────────────────────────────
 include(GNUInstallDirs)
 

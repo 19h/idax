@@ -1,0 +1,41 @@
+"""Cross-reference descriptors, enumeration, and mutation."""
+
+from ._native.xref import (
+    CodeType,
+    DataType,
+    Reference,
+    ReferenceRange,
+    ReferenceType,
+    add_code,
+    add_data,
+    code_refs_from,
+    code_refs_from_range,
+    code_refs_to,
+    code_refs_to_range,
+    data_refs_from,
+    data_refs_from_range,
+    data_refs_to,
+    data_refs_to_range,
+    is_call,
+    is_data,
+    is_data_read,
+    is_data_write,
+    is_flow,
+    is_jump,
+    refs_from,
+    refs_from_range,
+    refs_to,
+    refs_to_range,
+    remove_code,
+    remove_data,
+)
+
+__all__ = [
+    "CodeType", "DataType", "Reference", "ReferenceRange", "ReferenceType",
+    "add_code", "add_data", "code_refs_from", "code_refs_from_range",
+    "code_refs_to", "code_refs_to_range", "data_refs_from",
+    "data_refs_from_range", "data_refs_to", "data_refs_to_range", "is_call",
+    "is_data", "is_data_read", "is_data_write", "is_flow", "is_jump",
+    "refs_from", "refs_from_range", "refs_to", "refs_to_range",
+    "remove_code", "remove_data",
+]

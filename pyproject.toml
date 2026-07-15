@@ -1,0 +1,84 @@
+[build-system]
+requires = [
+    "scikit-build-core>=1.0,<2",
+    "pybind11>=3.0.1,<4",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "idax"
+version = "0.1.0"
+description = "Idiomatic Python bindings for the opaque idax IDA SDK wrapper"
+readme = "bindings/python/README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["bindings/python/LICENSE"]
+authors = [{ name = "Kenan Sulayman" }]
+keywords = ["ida", "ida-pro", "reverse-engineering", "disassembler", "binary-analysis"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Typing :: Typed",
+]
+[project.urls]
+Homepage = "https://github.com/19h/idax"
+Repository = "https://github.com/19h/idax"
+Issues = "https://github.com/19h/idax/issues"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8,<10",
+    "mypy>=1.17,<2",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.27"
+ninja.version = ">=1.11"
+cmake.build-type = "Release"
+install.components = ["python"]
+wheel.packages = ["bindings/python/src/idax"]
+wheel.reproducible = true
+sdist.include = [
+    "CMakeLists.txt",
+    "VERSION",
+    "cmake/**",
+    "include/**",
+    "src/**",
+    "bindings/python/CMakeLists.txt",
+    "bindings/python/LICENSE",
+    "bindings/python/*.json",
+    "bindings/python/*.md",
+    "bindings/python/examples/*.py",
+    "bindings/python/src/idax/*.py",
+    "bindings/python/src/idax/*.pyi",
+    "bindings/python/src/idax/py.typed",
+    "bindings/python/src/native/*.cpp",
+    "bindings/python/src/native/*.hpp",
+    "bindings/python/tests/*.py",
+]
+sdist.exclude = [
+    "**/__pycache__/**",
+    "**/*.pyc",
+]
+
+[tool.scikit-build.cmake.define]
+IDAX_BUILD_PYTHON = true
+IDAX_BUILD_TESTS = false
+IDAX_BUILD_EXAMPLES = false
+
+[tool.pytest.ini_options]
+testpaths = ["bindings/python/tests"]
+addopts = "-ra --strict-config --strict-markers"
+markers = [
+    "ida_runtime: requires an installed IDA runtime and an explicit fixture",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+packages = ["idax"]
+mypy_path = "bindings/python/src"

@@ -76,3 +76,12 @@
   - 9.2.2. **Impact:** `origin/master` and fresh clones are sanitized, but GitHub still serves the former tip by exact object ID; both PR refs and all four fork default branches retain contaminated history (F466; KB 35.122).
   - 9.2.3. **Mitigation:** GitHub Support must dereference the PRs, garbage-collect server objects, and invalidate cached views. Fork owners must rewrite or delete their copies. These are external account actions and cannot be inferred from repository write authority.
   - 9.2.4. **Status:** Blocked on explicit authorization for the Support request and external fork-owner coordination; unrelated local implementation work remains isolated in the primary worktree.
+
+---
+
+### 10. Full Python Binding (Phase 57)
+
+- **10.2. End-to-end implementation**
+  - 10.2.1. **Action:** Run complete final validation, exact staged review, commit/push, live cross-platform Actions verification, and closure synchronization for the complete 27-domain binding surface.
+  - 10.2.2. **Evidence target:** Fail-closed symbol manifest, pure and initialized-host tests, strict stubs, examples/docs, wheel/sdist inspection, lifecycle/callback stress tests, and Linux/macOS/Windows CI.
+  - 10.2.3. **Status:** P57.7 active. Exact-SDK local build, pure, type, manifest, package, privacy, and independent IDA 9.4 runtime gates pass (progress 16.223.17). Exact-SDK decompiler host evidence is blocked locally by a Hex-Rays magic suffix `5` SDK versus suffix `4` installed-plugin mismatch (F498; KB 35.151); exact staged review and the unchanged strict compatible-host CI tranche remain.

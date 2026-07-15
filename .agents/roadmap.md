@@ -415,3 +415,15 @@ Current overall phase status:
 - [x] P56.3 Run focused local validation, exact staged review, commit/push, verify live Actions, synchronize closure records, and remove Phase 56 from active work.
 
 ---
+
+### Phase 57 TODO Action Items (Full Python Binding)
+
+- [x] P57.1 Derive a symbol-level inventory from every public IDAX header; document Python naming, ownership, error, threading, callback, ABI, packaging, and compatibility contracts.
+- [x] P57.2 Implement and validate the pybind11/scikit-build-core foundation, structured errors, shared values, runtime lifecycle, and the core `address`, `database`, `path`, `analysis`, and `diagnostics` modules.
+- [x] P57.3 Implement database-model parity for `segment`, `function`, `instruction`, `data`, `name`, `xref`, `comment`, `search`, `entry`, `fixup`, `type`, `storage`, `lines`, `event`, and `lumina`.
+- [x] P57.4 Implement advanced parity for `decompiler`, `debugger`, and `graph`, including opaque resources, value graphs, callbacks, and lifecycle semantics.
+- [x] P57.5 Implement authoring/host parity for `plugin`, `loader`, `processor`, and `ui`, including Python subclass trampolines, GIL-safe callbacks, registration ownership, and deterministic teardown.
+- [x] P57.6 Complete public modules, strict type stubs, docstrings/reference/tutorials/examples, compatibility aliases, symbol-manifest enforcement, wheel/sdist metadata, and cross-platform CI.
+- [ ] P57.7 Run complete pure/native/package/type/real-IDA/lifecycle/callback/cross-platform validation, exact staged review, commit/push, synchronize closure records, and remove Phase 57 from active work.
+
+---

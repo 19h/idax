@@ -1961,3 +1961,143 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Every complete log contains evidence for the exact SDK commit, IDA Professional 9.4 installation, and active named IDA product selection. Boundary-aware canonical-ID scans report zero unmasked license identifiers in all 15 logs.
 - Assumption A56.4: the three triggered workflows cover every release-significant job configured for this push. Falsify by enumerating another non-skipped job in the workflow definitions or Actions run set for the same commit; dependent result: the 15/15 matrix-completeness claim only.
 - Log auditing is `O(N)` time for total log size `N` and `O(1)` auxiliary matching state apart from input buffering.
+
+### 35.138. Full Python Binding Boundary and Completion Model [F483]
+
+- The authoritative scope is all 27 public IDAX domains plus shared `Error`, address aliases/sentinel, and core option values. Node/Rust implementations are semantic comparators, not sources that may narrow the C++ surface.
+- Use a direct pybind11 extension so `std::expected`, move-only RAII classes, iterators, `std::function` callbacks, subclassable plugin/loader/processor interfaces, and copied C++ values cross one ownership boundary. The Rust C shim remains an implementation reference but its malloc/free and opaque-handle ABI is not the Python public contract.
+- Public Python is a typed package of snake-case domain modules backed by private `idax._native`. Copied snapshots behave as Python value objects; resources expose deterministic close/context management; callbacks acquire the GIL and remain rooted for their registration lifetime.
+- A domain-complete claim requires six independent artifacts: native registrations, public exports, type stubs, documentation, structural parity evidence, and applicable initialized-host evidence. A full-complete claim additionally requires every manifest symbol to be terminal and cross-platform build/package evidence.
+- Assumption A57.1: a CPython-specific pybind11 extension can be imported by the ABI-matched IDAPython or external idalib interpreter while resolving the installed IDA runtime libraries. Falsify with an ABI-matched local build that links but fails import before module initialization; dependent result: extension/distribution architecture only.
+- Assumption A57.2: the current 27-domain public header set is the complete intended Python scope. Falsify by finding a public declaration reachable from `ida/idax.hpp` that is absent from the coverage inventory; dependent result: parity manifest completeness. The inventory gate must fail closed on such drift.
+- With `S` authoritative public symbols, manifest verification is `O(S)` time and space; generated typing/documentation work is also linear in emitted symbol count apart from compiler template costs.
+
+### 35.139. Python Package License Metadata [F484]
+
+- Modern core metadata represents the license through the SPDX `project.license` expression and `project.license-files` glob. Do not duplicate it with a deprecated `License ::` classifier: current scikit-build-core metadata validation rejects that combination.
+- Falsification probe: isolated wheel metadata preparation must pass without a license configuration warning or error and the built wheel must contain the declared MIT license file.
+- Metadata validation is `O(M)` in project metadata size `M` and has no runtime cost.
+
+### 35.140. Native Wheel Artifact and Minimum-Version Typing Gates [F485-F486]
+
+- `install(TARGETS)` component assignment is artifact-specific. A module library on Unix/macOS follows the `LIBRARY` group, a Windows DLL follows `RUNTIME`, and an import/static library follows `ARCHIVE`; assign `COMPONENT python` to each relevant group.
+- A wheel build log proves compilation and linking only. Package validation must enumerate the wheel and require the ABI-tagged `idax/_native` artifact, Python modules, stubs, `py.typed`, metadata, and license while rejecting bundled IDA runtime libraries.
+- For the declared Python 3.10 floor, declare stub enum members in value form (`MEMBER = ...`). Annotation-only `Self` entries are rejected as zero-member enums by current mypy and create a needless Python 3.11/backport coupling.
+- Falsification probes: build an isolated wheel, assert exactly one native extension under `idax/`, import it from a clean matching interpreter, and run the configured Python 3.10 type-check contract. Dependent results: packaged native availability and Python 3.10 typing compatibility.
+- Archive enumeration is `O(E)` time for `E` wheel entries and `O(E)` name storage; enum declaration validation is `O(M)` for `M` members.
+
+### 35.141. Non-Bundled IDA Runtime Resolution for Python [F487]
+
+- macOS IDA runtime libraries identify themselves through `@rpath`, but a Python extension linked to them does not inherit the IDA executable's runtime search paths when loaded by an external interpreter.
+- Before importing `_native`, the private package bootstrap may load `libida` and `libidalib` with global symbol visibility from `IDADIR`; the standard IDA Professional 9.4 application library directory is a non-identifying macOS fallback. On Windows, retain the `os.add_dll_directory()` handle for process lifetime. Linux uses the explicit `IDADIR` path.
+- Do not copy or package IDA libraries or licenses. The bootstrap changes loader visibility only and retains handles for the interpreter lifetime.
+- Falsification probe: install the wheel into a clean ABI-matching environment with no loader-path environment variable and import `idax`; independently enumerate the wheel to ensure no IDA runtime file is present. Dependent result: A57.1 external-interpreter import architecture.
+- Candidate resolution is `O(D)` time and space for `D` configured platform directories; the current default bound is constant.
+
+### 35.142. Python Enum and Initial Host-Runtime Contracts [F488-F489]
+
+- Public native enumerations use pybind11 3 `native_enum` with stdlib `enum.Enum`, explicit member registration, and mandatory `finalize()`. This makes converted return values identical to their class singleton and matches the `.pyi` inheritance contract.
+- The initialized-host baseline covers CPython 3.12 plus installed IDA Professional 9.4: initialize once, open a copied Linux x86-64 fixture without analysis, query database/address/analysis state, reject a worker-thread call as `ConflictError`, and close without saving.
+- `PluginLoadPolicy.disable_user_plugins` suppresses user-plugin discovery only. Bundled IDAPython can initialize during external idalib startup; do not claim that the option disables every plugin.
+- Falsification probes: require `issubclass(PublicEnum, enum.Enum)`, member singleton identity after a C++ return conversion, one same-thread runtime pass, and one cross-thread structured failure. Dependent results: enum idiomaticity, stub truthfulness, and host-thread enforcement.
+- Enum conversion is `O(1)`; host probe query costs are SDK-defined, with the binding adding `O(1)` thread checks and value conversions per call.
+
+### 35.143. Macro-Aware Python Symbol Verification [F490]
+
+- Native registrations may be literal `domain.def()` calls or invocations of local `IDAX_PY_*` macros. The verifier extracts literal lower-snake-case names plus lower-snake-case macro arguments terminated as invocations.
+- CamelCase class/option macro arguments are deliberately excluded. The extracted native function set must exactly equal the sorted manifest function set; public `__all__` and stub declarations must contain that same set.
+- Falsification probes: remove one macro invocation, add one undeclared literal registration, or add one manifest-only function; each mutation must fail the gate. Dependent result: structural function-parity evidence for macro-heavy domains.
+- Extraction is `O(N)` time in native source length and `O(S)` storage for `S` function names.
+
+### 35.144. Introspectable Python Property Bindings [F491]
+
+- pybind11 derives property argument metadata from the callable's concrete signature. Generic `auto` lambdas do not provide the required callable traits and fail during template instantiation.
+- Use explicit binding-adapter reference types for getters/setters and explicit converted value types for setters. This applies even when the lambda body itself would be valid C++.
+- Falsification probe: rebuild the wheel after replacing an explicit property lambda with an otherwise equivalent generic lambda; compilation must fail in pybind11 callable-trait resolution. Dependent result: native custom-definition class registration.
+- Trait extraction and property dispatch add `O(1)` work per registered property and access.
+
+### 35.145. Python-Owned Custom Data Callback Contract [F492]
+
+- Python-facing custom type/format definitions are binding-owned adapters, not direct copies of C++ structs containing `std::function`. They retain Python callables for the native registration lifetime and materialize GIL-acquiring C++ closures at registration.
+- Render callbacks receive immutable `bytes`; scan callbacks accept text and return any supported contiguous byte buffer. Their exceptions translate to structured internal errors after unraisable reporting. Creation filters, size calculations, and analysis callbacks cannot propagate through their SDK signatures, so failures are unraisable and return false, zero, or no result respectively.
+- Explicit unregister is required before the owning Python extension/plugin unloads. The IDA 9.4 runtime probe registers, invokes, and unregisters both a custom type and format.
+- Assumption A57.3: callers unregister custom definitions before interpreter teardown. Falsify by destroying the interpreter while IDA still owns a registered callback; dependent result: teardown safety only. Registration and callback dispatch are `O(1)` apart from user callable work and byte-buffer conversion `O(B)` for `B` bytes.
+
+### 35.146. Database-Model Python Parity Evidence [F493]
+
+- P57.3 covers all fifteen database-model domains through native registrations, public static exports, strict stubs, exact manifest inventories, and initialized-host evidence where lifecycle or mutation behavior matters.
+- The current manifest gate checks 405 functions/types over all 27 authoritative domains. Strict mypy uses the declared Python 3.10 floor; CPython 3.12 builds and runs the arm64 macOS wheel against installed IDA Professional 9.4.
+- The disposable runtime probe covers function/instruction/data/type/storage/event cross-domain behavior, including scoped unsubscribe, patch/revert, byte-return contracts, callback delivery, and custom-data callback ownership. Pure tests cover package behavior without initialization.
+- Falsification probes: remove a native/public/stub/manifest symbol; run the strict structural gate; run 12 pure tests plus the opt-in copied-fixture IDA 9.4 test. Dependent result: P57.3 closure only. Structural verification is `O(S)` in symbol count; test runtime is SDK/fixture dependent.
+
+### 35.147. Python Trampoline Registration Roots [F494]
+
+- Native shared ownership of a pybind11 trampoline base does not independently guarantee that the originating Python object's override identity remains alive. Registries that later call a Python virtual method retain a binding-owned `py::object` root for exactly the successful native-registration interval.
+- Root keys mirror the native uniqueness contract: debugger executor name, graph title, or returned microcode-filter token. Failed registration creates no root; successful unregister/close erases it.
+- Falsification probe: register a temporary Python subclass without another Python reference, force collection, then invoke it through the native registry. Dependent result: Python virtual dispatch and deterministic teardown. Lookup, insert, and erase are average `O(1)` time with `O(R)` retained objects for `R` active registrations.
+
+### 35.148. Callback-Scoped Decompiler Adapters [F495]
+
+- Pseudocode/cursor/hint/popup events, ctree expression/statement views, and microcode contexts are Python adapters over callback-scoped host state. They expose copied values and checked operations only; raw pointers remain private.
+- All adapters created for one callback share a validity state. Normal return, Python exception, and non-Python exception paths invalidate the state before control returns to IDA. Subsequent access raises `ConflictError` with operation context.
+- Falsification probe: retain one adapter beyond its callback and invoke an accessor; it must fail structurally without dereferencing host state. Dependent result: delayed-use safety. Validation adds `O(1)` time per access and `O(1)` shared state per callback, excluding copied descendants.
+
+### 35.149. Decompiler Resource Closure Ordering [F496]
+
+- `DecompiledFunction` is an explicitly closable Python resource because its native destructor depends on live Hex-Rays/database state. It provides `valid`, idempotent `close()`, and context-manager exit; all other methods obtain the native value through the same closed-state gate.
+- Release decompiled functions before `database.close()`. A direct wrapper allowed Python interpreter teardown to run the destructor after database shutdown and produced a native fault; deterministic close removes that ordering ambiguity.
+- Assumption A57.4: IDA requires every live decompiler function object to be destroyed before database close. Falsify with an SDK-supported guarantee or a sanitizer-clean cross-platform probe retaining the object beyond close; dependent result: the mandatory ordering contract. Close and state checks are `O(1)` time/space.
+
+### 35.150. Advanced Python Parity Evidence [F497]
+
+- P57.4 covers `debugger`, `graph`, and `decompiler` through native registrations, public modules, strict Python 3.10 stubs, exact manifest inventories, and initialized-host lifecycle/callback evidence.
+- The manifest verifies 590 symbols over all 27 domains; strict mypy passes 27 modules. The rebuilt CPython 3.12 extension runs against installed IDA Professional 9.4 and a newly analyzed disposable database.
+- Runtime evidence covers in-memory graph operations, Python-derived external appcall execution, pseudocode and local-variable queries, functional ctree traversal with expired-view rejection, Python-derived microcode-filter registration and expired-context rejection, explicit decompiler close, post-close rejection, database close, and normal process exit.
+- Falsification probes: remove a symbol from any native/public/stub/manifest layer; drop the last Python reference to a registered trampoline; retain a callback-scoped adapter; call a closed decompiler result; or close the database with one live. Dependent result: P57.4 closure only. Structural checking is `O(S)` in symbol count; lifecycle checks add `O(1)` per access/registration apart from SDK work.
+
+### 35.151. Hex-Rays ABI Compatibility Is an Independent Runtime Capability [F498]
+
+- The exact SDK pin identifies the IDA 9.4 wrapper ABI, but Hex-Rays plugin compatibility is additionally guarded by `HEXRAYS_API_MAGIC`. The requested SDK uses suffix `5`; the available local decompiler plugins use suffix `4` even though their application bundles identify as IDA 9.4.
+- `decompiler::available()` returning false is the safe and required result for this mismatch. Substituting an older magic or bypassing `init_hexrays_plugin()` would permit calls against incompatible decompiler layouts and is not an admissible compatibility technique.
+- Assumption A57.5: an HCLI installation that contains a suffix-5 decompiler plugin will make the exact-SDK decompiler runtime tranche pass unchanged. Falsify on a clean host by inspecting the installed plugin ABI and running the existing decompile/ctree/microcode lifecycle test. Dependent result: exact-SDK decompiler host evidence only; native compilation, manifest parity, pure tests, and other idalib runtime domains are independent.
+- The compatibility query is `O(1)` time and space. Runtime validation must report optional capability absence separately so it does not suppress execution of unrelated domains.
+
+### 35.152. Python Authoring Callback Capability Adapters [F499]
+
+- Borrowed plugin, loader, processor, and UI state is represented by binding-owned adapters with a shared validity token. Stable metadata is copied; permitted operations resolve the native object only while the callback is active.
+- A retained adapter raises structured `ConflictError` after normal return or any exception path. Public APIs contain no native capsules, SDK pointers, or pointer-valued integer escape hatches.
+- Python trampoline instances and callbacks remain rooted for exactly the successful native registration interval. Explicit unregister, scoped close, or owning-object teardown removes the root deterministically.
+- Falsification probes: retain each callback adapter and invoke it later; drop every other Python reference to a registered trampoline; raise from an override; close each RAII guard twice. Dependent result: P57.5 lifetime and teardown safety. State checks and registry operations are `O(1)` average time; roots use `O(R)` space for `R` active registrations.
+
+### 35.153. Authoring and Host Python Parity Evidence [F500]
+
+- P57.5 covers `plugin`, `loader`, `processor`, and `ui` through native registrations, public modules, strict Python 3.10 stubs, exact manifest inventories, and initialized-host evidence where headless IDA supports the operation.
+- The exact-SDK extension verifies 740 symbols across all 27 domains; 15 pure tests and strict mypy over 31 modules pass. Runtime evidence covers plugin action/hotkey ownership, loader bit flags, processor output construction, UI queries/events, explicit teardown, and cross-domain callback/mutation cleanup.
+- Python form bindings own mutable values and dynamically supply IDA form arguments for 64-bit supported targets. Assumption A57.6: the SDK's pointer-valued varargs form contract is ABI-compatible with the binding's 64-bit pointer dispatch on Linux, macOS, and Windows. Falsify with cross-platform compile plus accepted/cancelled interactive form runs; dependent result: modal-form execution only.
+- Interactive GUI action activation, modal dialogs, chooser/custom-viewer presentation, popup attachment, and visual rendering require a GUI host and are not inferred from headless results. Structural and pure callback/lifecycle tests remain applicable. Manifest verification is `O(S)` for `S` symbols; callback overhead is `O(1)` apart from user code and copied payload size.
+
+### 35.154. Complete Python Declaration Inventory [F501]
+
+- The executable inventory covers 27 domain headers plus shared `core` and `error`: 826 top-level functions/types with exact native registration, public export, and strict-stub agreement. Python-only convenience resources may extend a module but cannot substitute for an omitted IDAX declaration.
+- Header SHA-256 snapshots cover the authoritative umbrella and all 29 public headers. Any change blocks the checker and requires a new declaration diff; hashes are evidence selectors, not a replacement for the review recorded in `bindings/python/DECLARATION_AUDIT.md`.
+- Iterator implementation types adapt to Python iteration, aliases adapt to Python primitives, compile-time binary-entry macros remain compile-time, and callback host pointers become checked capabilities. These categories account for the intentional non-isomorphic declarations without raw escape hatches.
+- Falsification probes: add/remove a native type, public export, stub declaration, manifest item, or public-header byte; the structural gate must fail. Dependent result: P57.1 inventory currency. Verification is `O(H + S)` time and space for header bytes `H` and symbols `S`.
+
+### 35.155. Python Distribution Payload Privacy [F502]
+
+- Python `.pyc` payloads may contain source/build filenames even when source text and archive member names are clean. Source-tree compilation before an sdist build can therefore reintroduce an identity-bearing path.
+- Do not force-include a recursive Python subtree: explicit source/document/example/test patterns prevent ignored cache artifacts from being reintroduced even when caches exist. Retain cache exclusions as defense in depth. Inspect every wheel/sdist member name and payload, require all modules/stubs/licensing/native artifacts, and reject IDA runtime libraries, executables, and license files.
+- Falsification probe: place a cache containing a user-home source filename under any included subtree and rebuild; byte-level archive audit must fail. Dependent result: distributable privacy and package completeness. Inspection is `O(B)` time for total uncompressed bytes `B`, with bounded per-member buffering.
+
+### 35.156. Python Documentation, Package, and CI Contract [F503]
+
+- Stable documentation consists of the package README, 27-domain API reference, tutorial, declaration audit/adaptation matrix, architecture specification, module docstrings, strict stubs, and representative examples. Compile-time C++ entry macros and optional runtime capabilities are explicit boundaries.
+- Release archives are CPython/platform-specific and contain one private extension plus typed public modules. IDA SDK/runtime/decompiler/license artifacts remain external.
+- CI builds Linux, Windows, and macOS from the exact SDK/IDA 9.4 release set and executes pure tests, mypy, declaration audit, example compilation, and distribution audit on all targets. Initialized idalib/decompiler execution runs on Unix; Windows retains its already established nondiagnostic headless compile-only rule.
+- Falsification probes: remove a module docstring, stub, archive artifact, license, native extension, SDK pin, or CI matrix row; the respective local/CI gate must fail. Dependent result: P57.6 closure. Documentation/module checks are `O(D)` for `D` domains; archive and build complexity are payload/compiler dependent.
+
+### 35.157. Graph Callback Exception Containment [F504]
+
+- A pybind trampoline invoked from an IDA-owned callback must not use generic override propagation. It acquires the GIL, resolves the Python override, converts the result, and catches both Python and native exceptions before returning to the host.
+- Conservative fallbacks match the C++ base contract: false for event/refresh acceptance, empty text/hints, `0xFFFFFFFF` for default color, and no action for destruction.
+- Falsification probe: raise or return a non-convertible value from each graph override in an interactive host; the exception must be reported as unraisable, IDA must remain live, and the documented fallback must be observed. Dependent result: graph authoring callback safety. Dispatch is `O(1)` apart from Python callback work and converted payload size.
