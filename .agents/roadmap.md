@@ -424,6 +424,6 @@ Current overall phase status:
 - [x] P57.4 Implement advanced parity for `decompiler`, `debugger`, and `graph`, including opaque resources, value graphs, callbacks, and lifecycle semantics.
 - [x] P57.5 Implement authoring/host parity for `plugin`, `loader`, `processor`, and `ui`, including Python subclass trampolines, GIL-safe callbacks, registration ownership, and deterministic teardown.
 - [x] P57.6 Complete public modules, strict type stubs, docstrings/reference/tutorials/examples, compatibility aliases, symbol-manifest enforcement, wheel/sdist metadata, and cross-platform CI.
-- [ ] P57.7 Run complete pure/native/package/type/real-IDA/lifecycle/callback/cross-platform validation, exact staged review, commit/push, synchronize closure records, and remove Phase 57 from active work.
+- [x] P57.7 Run complete pure/native/package/type/real-IDA/lifecycle/callback/cross-platform validation, exact staged review, commit/push, synchronize closure records, and remove Phase 57 from active work.
 
 ---
