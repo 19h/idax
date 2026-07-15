@@ -22,6 +22,12 @@ def fail(message: str) -> None:
     raise AssertionError(message)
 
 
+def source_digest(path: Path) -> str:
+    """Hash source bytes after canonicalizing checkout-dependent CRLF endings."""
+    canonical = path.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(canonical).hexdigest()
+
+
 def umbrella_domains() -> set[str]:
     text = (ROOT / "include/ida/idax.hpp").read_text(encoding="utf-8")
     includes = set(re.findall(r"#include <ida/([a-z_]+)\.hpp>", text))
@@ -126,9 +132,7 @@ def main() -> int:
     umbrella_path = ROOT / header_audit.get("authoritative_umbrella", "")
     if umbrella_path != ROOT / manifest.get("authoritative_umbrella", ""):
         fail("header audit and API manifest use different umbrella headers")
-    if hashlib.sha256(umbrella_path.read_bytes()).hexdigest() != header_audit.get(
-        "umbrella_sha256"
-    ):
+    if source_digest(umbrella_path) != header_audit.get("umbrella_sha256"):
         fail("authoritative umbrella changed; repeat the declaration audit")
 
     states = set(manifest.get("completion_states", []))
@@ -162,7 +166,7 @@ def main() -> int:
         path = ROOT / entry.get("path", "")
         if not path.is_file():
             fail(f"{entry.get('domain')}: audited header is missing")
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        digest = source_digest(path)
         if digest != entry.get("sha256"):
             fail(
                 f"{entry.get('domain')}: public header changed; repeat the "

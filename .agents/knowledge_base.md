@@ -2107,3 +2107,15 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - A workflow may materialize the IDA SDK and installer beneath the repository root and recursively initialize external submodules. scikit-build-core can include nested repositories and populated gitlinks in the sdist independently of the project-owned `sdist.include` patterns.
 - Explicitly exclude `ida-sdk/**`, `ida-installer/**`, and `third-party/**`. The archive auditor must continue scanning all member names and bytes so an upstream identity path, proprietary acquisition artifact, or unrelated external source fails closed rather than entering a release.
 - Falsification probe: populate all three external trees with identity-bearing payloads before `uv build`; no external member or payload may occur in the resulting sdist, and the complete distribution audit must pass. Dependent result: CI-builder-independent archive privacy and external-source ownership. Exclusion matching is `O(P)` over candidate paths; byte inspection remains `O(B)` for uncompressed archive bytes `B`.
+
+### 35.159. Canonical Source-Digest Boundary [F506]
+
+- Git checkout configuration may represent a text header with CRLF on Windows and LF on Unix without changing its declarations. A raw-byte digest therefore conflates transport representation with authoritative source content.
+- The declaration audit canonicalizes only `CRLF -> LF` before SHA-256. It does not normalize whitespace, lone carriage returns, encoding, tokens, ordering, or any other byte, so declaration and formatting changes continue to fail closed.
+- Assumption A57.7: public C++ headers are UTF-8-compatible text whose repository-canonical line ending is LF. Falsify with a tracked binary/public header or an intentional lone-CR source convention; dependent result: digest portability only. The regression probe requires equal LF/CRLF digests and unequal digests after a type-token change. Hashing remains `O(B)` time and space for `B` source bytes.
+
+### 35.160. Single-Build Python CI Installation [F507]
+
+- `uv sync` installs the current project by default. A following editable reinstall therefore repeats configuration, compilation, linking, and installation of the native extension.
+- `--no-install-project` preserves dependency synchronization while deferring the project itself to the existing explicit editable-install command. The workflow retains one deterministic package-build boundary and all subsequent pure/type/manifest/package/runtime gates.
+- Assumption A57.8: the CI-provided `uv` supports `--no-install-project`; the local installed version's help lists the option. Falsify by executing the replacement workflow on Linux, Windows, and macOS and verifying import plus all downstream gates. Dependency synchronization complexity is unchanged; native compilation count falls from two to one per job.

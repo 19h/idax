@@ -506,7 +506,7 @@ jobs:
       - name: Build editable Python package
         shell: bash
         run: |
-          uv sync --extra test
+          uv sync --extra test --no-install-project
           uv pip install --reinstall -e .
 
       - name: Run Python pure, type, and declaration gates
