@@ -388,6 +388,6 @@ Current overall phase status:
 
 - [x] P52.1 Audit the contradictory P22.R3 migration-checklist state against public code, compile-surface tests, and terminal task records.
 - [x] P52.2 Correct stale partial/residual cells while separating locally verified IDAX capability from unavailable downstream-tree verification.
-- [ ] P52.3 Run focused validation, synchronize protocol records, exact-review, commit and push, then remove Phase 52 from active work.
+- [x] P52.3 Run focused validation, synchronize protocol records, exact-review, commit and push, then remove Phase 52 from active work.
 
 ---
