@@ -1822,3 +1822,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - The 2026-07-15 audit removed completed Phases 39, 40, 43, 44, 48, 49, and 50 after confirming every corresponding roadmap item was checked. Six ongoing/blocked groups remain. The temporary Phase 51 maintenance entry was removed immediately after its reviewed correction commit was pushed.
 - Assumption A51.1: roadmap checkboxes and terminal ledger entries are authoritative for classifying the seven removed phases. Falsification probe: any unchecked P39, P40, P43, P44, P48, P49, or P50 item, or any active mitigation/action absent from the six retained groups. Dependent result: only the stale-entry classification and removal set.
 - Structural probe: reject any active-work heading or status containing `Complete`, `Completed`, or `retired`; compare each closure transition against a same-commit deletion from `.agents/active_work.md`.
+
+### 35.118. P22.R3 Documentation and Provenance Invariant [F462]
+
+- `ida::decompiler::collect_referenced_types(Address)` is locally present in the public header and implementation, and `api_surface_parity_test` names its exact function type. This proves the IDAX facade exists; it does not independently prove the state of an unavailable downstream repository.
+- The migration checklist must classify P22.R3 as implemented for the audited flow and must not retain a residual IDAX implementation task that contradicts its terminal task table.
+- Assumption A52.1: the terminal P22.R3 record accurately states that the audited ida-cdump `ctree_analyzer.cpp` and `type_collector.cpp` stopped consuming raw `cfunc_t`, `cexpr_t`, and `ctree_visitor_t`. Falsify by inspecting the same pinned downstream revision and finding any such call site. Dependent result: only downstream migration-completion wording; the locally compiled IDAX API result is independent.
+- Structural probes: every P22.R3 status in `codedump_migration_checklist.md` must be terminal or explicitly conditional only on downstream-source access; no table cell may prescribe implementing a facade that already exists.

@@ -73,3 +73,11 @@
   - 7.1.2. **Evidence:** HCLI downloads IDA 9.3, then reports `No licenses found matching criteria` and cannot find the configured `*96-0000-0000-XX.hexlic` file (F377).
   - 7.1.3. **Mitigation:** Renew or correct the HCLI account/license assignment and corresponding GitHub Actions secrets, then rerun all three workflows on `edbc6f1` or its successor.
   - 7.1.4. **Status:** Blocked on external license/secret provisioning; no repository code fix indicated.
+
+---
+
+### 8. ida-cdump P22.R3 Documentation Reconciliation (Phase 52)
+
+- **8.1. Stale State Correction**
+  - 8.1.1. **Action:** Reconcile the migration checklist's stale partial P22.R3 cells with the implemented public API, compile-surface evidence, and terminal task record; preserve an explicit assumption boundary for the unavailable downstream ida-cdump tree.
+  - 8.1.2. **Status:** Active. Contradiction probes and `api_surface_parity` pass; exact staged review and push remain. Remove this Phase 52 section in the closure update immediately after push.

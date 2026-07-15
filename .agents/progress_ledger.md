@@ -2634,3 +2634,8 @@
 - **16.216. Phase 51 Active-Work State Hygiene Complete**
   - 16.216.1. `.agents/active_work.md` now contains only the six current active, queued, or blocked work groups. Completed phase history remains exclusively in the roadmap, Progress Ledger, findings, and Knowledge Base.
   - 16.216.2. `AGENTS.md` and KB 35.117 require atomic active-entry removal in the same update that records completion. Correction commit `c9729e42b1d91393f8ae73b614c0a1bce0696946` is pushed; the Phase 51 maintenance entry is absent from active work.
+
+- **16.217. Phase 52 ida-cdump P22.R3 Documentation Reconciliation Start**
+  - 16.217.1. Audited the only two in-progress roadmap items and the current coverage/port documents. P22.1/P22.5 remain genuinely interactive-host gated; no unchecked implementation item exists. A separate stale-state contradiction remained in `codedump_migration_checklist.md`: read-only ctree and lower-level rows prescribed P22.R3 work while the terminal task table marked it complete (F462; KB 35.118).
+  - 16.217.2. Verified the public declaration, implementation, and compile-surface reference for `collect_referenced_types(Address)`. Corrected three stale checklist cells and added Assumption A52.1 because the downstream `<userhome>/dev/ida-cdump` tree is unavailable for independent call-site verification. P52.1-P52.2 are complete; P52.3 focused validation/review/push remains active with no blocker.
+  - 16.217.3. Structural contradiction probes find no remaining stale P22.R3 partial/residual prescription; `idax_api_surface_check` is current and `api_surface_parity` passes 1/1. This validates the locally observable IDAX surface only and does not expand Assumption A52.1. Exact seven-file staged review and push remain active.

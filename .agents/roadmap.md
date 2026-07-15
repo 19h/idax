@@ -383,3 +383,11 @@ Current overall phase status:
 - [x] P51.3 Synchronize protocol records, run exact staged review, commit and push, then remove the Phase 51 maintenance item from active work.
 
 ---
+
+### Phase 52 TODO Action Items (ida-cdump P22.R3 Documentation Reconciliation)
+
+- [x] P52.1 Audit the contradictory P22.R3 migration-checklist state against public code, compile-surface tests, and terminal task records.
+- [x] P52.2 Correct stale partial/residual cells while separating locally verified IDAX capability from unavailable downstream-tree verification.
+- [ ] P52.3 Run focused validation, synchronize protocol records, exact-review, commit and push, then remove Phase 52 from active work.
+
+---

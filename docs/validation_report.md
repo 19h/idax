@@ -1159,3 +1159,13 @@ tracked in `docs/compatibility_matrix.md`.
   pre-existing `data::string_literals()` after `get_strlist_item()` corrupts
   vector state; exact cause is unknown without matching 9.4 headers, so this is
   excluded from the ABI-matched compatibility envelope.
+
+- 2026-07-15 Phase 52 ida-cdump P22.R3 documentation reconciliation:
+  Verified that public `collect_referenced_types(Address)` declaration,
+  implementation, and compile-surface reference are present. The
+  `idax_api_surface_check` target is current and `api_surface_parity` passes
+  1/1. Structural probes reject the former stale `Partially implemented`,
+  `Partially covered by idax`, and residual P22.R3-facade prescriptions. The
+  unavailable downstream ida-cdump tree remains explicitly bounded by
+  Assumption A52.1; no downstream call-site state is inferred from this local
+  build.
