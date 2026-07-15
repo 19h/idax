@@ -1,5 +1,5 @@
 /// \file drawida_port_plugin.cpp
-/// \brief idax-first C++ port of `<userhome>/Downloads/plo/DrawIDA-main`.
+/// \brief idax-first C++ port of `<upstream-source>/plo/DrawIDA-main`.
 
 #include <ida/idax.hpp>
 

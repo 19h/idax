@@ -79,16 +79,16 @@ tracked in `docs/compatibility_matrix.md`.
   Added opaque rich `ida::type` metadata for TypeInfo kind/name/declaration,
   function details, enum details, UDT details, and member bit-layout flags;
   mirrored the surface through Node and Rust bindings; and ported
-  `<dev-root_>/ida-trida` to consume idax for plugin actions/forms/wait/path/
+  `<ida-trida-root>` to consume idax for plugin actions/forms/wait/path/
   clipboard plus generator type walking. Validation passed:
   `cmake --build build-test-fetch --target idax_api_surface_check idax_type_roundtrip_test -j2`,
   `./build-test-fetch/tests/integration/idax_type_roundtrip_test build-test-fetch/_deps/ida_sdk-src/src/plugins/idapython/examples/debugger/appcall/test_programs/simple_appcall/simple_appcall_linux64`
-  (209/209 checks), `env IDASDK=<dev-root_>/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build`,
-  `env IDASDK=<dev-root_>/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  (209/209 checks), `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm run build`,
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   (183/183 checks), `env -u IDASDK cargo test -p idax types_tests --lib`,
   `env -u IDASDK cargo test -p idax --lib --no-run`, and
-  `IDASDK=<userhome>/ida-sdk cmake -S . -B build-idax -DCMAKE_BUILD_TYPE=RelWithDebInfo -DFETCHCONTENT_SOURCE_DIR_IDAX=<dev-root_>/idax`
-  plus `cmake --build build-idax -j2` from `<dev-root_>/ida-trida`.
+  `IDASDK=<ida-sdk-root> cmake -S . -B build-idax -DCMAKE_BUILD_TYPE=RelWithDebInfo -DFETCHCONTENT_SOURCE_DIR_IDAX=<repo-root>`
+  plus `cmake --build build-idax -j2` from `<ida-trida-root>`.
 - 2026-05-31 clipboard fallback availability:
   `cmake --build build-test-fetch --target idax_api_surface_check -j2`
   passed after adding external clipboard-command fallback and backend
@@ -96,8 +96,8 @@ tracked in `docs/compatibility_matrix.md`.
   `git diff --check` passed. The host has working `xclip` clipboard access
   (`xclip` write/read/restore roundtrip passed). The mirrored ida-cdump cached
   idax dependency also rebuilt successfully with
-  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build
-  -j2` from `<dev-root_>/ida-cdump`.
+  `IDASDK=<ida-cdump-root>/build/_deps/ida_sdk-src cmake --build build
+  -j2` from `<ida-cdump-root>`.
 - 2026-05-28 P22.10 bulk type declaration import:
   `cmake --build build-test-fetch --target idax_api_surface_check idax_type_roundtrip_test -j2`
   passed.
@@ -125,7 +125,7 @@ tracked in `docs/compatibility_matrix.md`.
   `IDAX_RUN_MODAL_FORMS=1`, `IDAX_RUN_QT_CLIPBOARD=1`, or
   `IDAX_RUN_HEXRAYS_SESSION=1` is set.
 - 2026-05-28 P22 Hex-Rays scoped-session host gate:
-  `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<userhome>/ida-pro-9.3 build-test-fetch/tests/integration/idax_codedump_parity_host_gates_test tests/fixtures/simple_appcall_linux64`
+  `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<ida-runtime> build-test-fetch/tests/integration/idax_codedump_parity_host_gates_test tests/fixtures/simple_appcall_linux64`
   passed with 9 checks, 0 failures, and only the modal/Qt clipboard gates
   skipped. The fixture was restored afterward.
 - 2026-05-28 P22.8 compact parity example:
@@ -153,7 +153,7 @@ tracked in `docs/compatibility_matrix.md`.
   `IDAX_ENABLE_QT_CLIPBOARD`, and `IDAX_QT6_DIR` controls. The default
   non-interactive run passed with 3 checks, 0 failures, and 3 skips. Running
   the same script with `IDAX_RUN_HEXRAYS_SESSION=1` and
-  `IDADIR=<userhome>/ida-pro-9.3` passed with 9 checks, 0 failures, and 2
+  `IDADIR=<ida-runtime>` passed with 9 checks, 0 failures, and 2
   skips; the default `.i64` fixture was restored afterward. Modal and Qt
   clipboard proof still require an interactive IDA Qt host.
 - 2026-05-28 P22 host-gate runner refresh:
@@ -161,7 +161,7 @@ tracked in `docs/compatibility_matrix.md`.
   `env -u IDASDK scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo`
   and the default path passed with 3 checks, 0 failures, and 3 expected skips.
   Reran
-  `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1 scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo`;
+  `env -u IDASDK IDADIR=<ida-runtime> IDAX_RUN_HEXRAYS_SESSION=1 scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host tests/fixtures/simple_appcall_linux64 RelWithDebInfo`;
   the Hex-Rays scoped-session path passed with 9 checks, 0 failures, and 2
   expected skips, and the runner restored the default `.i64` fixture.
 - 2026-05-28 P22 focused C++ parity refresh:
@@ -196,7 +196,7 @@ tracked in `docs/compatibility_matrix.md`.
   `env -u IDASDK cargo test -p idax --lib --no-run` pass from
   `bindings/rust`.
 - 2026-05-28 Node UI binding smoke:
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm
   test` passed from `bindings/node`, loading the native addon and confirming
   structural assertions including `WaitBox`, `askText`, the UI clipboard, and
   fixed typed-form entrypoints. The UI assertions also exercise non-modal
@@ -206,7 +206,7 @@ tracked in `docs/compatibility_matrix.md`.
 - 2026-05-28 Node/Rust path binding parity:
   Node now exposes `path.basename`, `path.dirname`, and `path.isDirectory`;
   Rust now exposes `path::{basename, dirname, is_directory}` over the same
-  `ida::path` helpers. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  `ida::path` helpers. `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   passed from `bindings/node` with 180/180 assertions, and
   `env -u IDASDK cargo test -p idax path_tests --lib` passed from
   `bindings/rust` with 2/2 path assertions.
@@ -214,8 +214,8 @@ tracked in `docs/compatibility_matrix.md`.
   Node now exposes `decompiler.initialize()` returning a `ScopedSession`
   wrapper with `valid()` and `close()`, and Rust now exposes
   `decompiler::initialize() -> ScopedSession` with RAII `Drop` release.
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build`
-  and `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm run build`
+  and `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   passed from `bindings/node`; the Node structural suite remains 180/180.
   `env -u IDASDK cargo test -p idax decompiler_tests --lib --no-run`,
   `env -u IDASDK cargo test -p idax decompiler_tests::test_scoped_session_function_signatures --lib`,
@@ -225,10 +225,10 @@ tracked in `docs/compatibility_matrix.md`.
   `npm install --ignore-scripts` installed local dependencies,
   `npm install nan@^2.27.0 --save --ignore-scripts` upgraded NAN for local
   Node 26 headers, and
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm run build`
-  passed. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm run build`
+  passed. `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   then loaded the native addon and passed 170/170 unit assertions without the
-  previous native-addon skip. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
+  previous native-addon skip. `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<ida-runtime> npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
   passed 63/63 integration assertions.
 - 2026-05-28 P22.8 focused validation sweep:
   `cmake --build build-test-fetch --target idax_api_surface_check idax_unit_test idax_decompiler_storage_hardening_test idax_segment_function_edge_cases_test -j2`
@@ -238,7 +238,7 @@ tracked in `docs/compatibility_matrix.md`.
   fixture integration validation pass locally. Rust high-level no-run
   validation passes locally.
 - 2026-05-28 P22 concrete task/evidence mapping:
-  Re-read `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` and expanded
+  Re-read `<ida-cdump-root>/docs/IDAX_GAPS.md` and expanded
   `docs/codedump_parity_tasks.md` with an idax implementation matrix for
   P22.1-P22.10, plus explicit host-only P22.H1/P22.H2 and final validation
   P22.V1 rows. `docs/codedump_migration_checklist.md` now includes an evidence
@@ -258,15 +258,15 @@ tracked in `docs/compatibility_matrix.md`.
   `variableCount`, `variables`, stable `variable(index)`,
   `captureUserLvarSettings`, `restoreUserLvarSettings`,
   `setVariableComment`, `forEachExpression`, and `forEachItem`) plus the
-  returned `LvarSnapshot` method shape. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
+  returned `LvarSnapshot` method shape. `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<ida-runtime> npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
   passes from `bindings/node` with 63/63 integration checks, and the fixture
-  remains clean afterward. `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  remains clean afterward. `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   also passes with 180/180 unit checks.
 - 2026-05-28 Bulk declaration binding evidence:
   Added Node unit validation that `type.parseDeclarations` rejects an empty
   declaration block before SDK import, and Rust unit coverage for
   `types::parse_declarations` signature, options, and report semantics.
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm test`
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm test`
   passes from `bindings/node` with 182/182 unit checks, and
   `env -u IDASDK cargo test -p idax types_tests::test_parse_declarations_function_signature_and_report --lib`
   passes from `bindings/rust`.
@@ -284,7 +284,7 @@ tracked in `docs/compatibility_matrix.md`.
   `variableIndex`, `helperName`, `typeDeclaration`, `parent`, and
   `parentDepth`, and added Rust unit coverage for `ExpressionInfo`,
   `StatementInfo`, `CtreeItemInfo`, and visitor function signatures.
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<userhome>/ida-pro-9.3 npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src IDADIR=<ida-runtime> npm run test:integration -- ../../tests/fixtures/simple_appcall_linux64`
   passes from `bindings/node` with 63/63 integration checks, and
   `env -u IDASDK cargo test -p idax decompiler_tests::test_ctree_callback_payload_shapes --lib`
   passes from `bindings/rust`.
@@ -344,7 +344,7 @@ tracked in `docs/compatibility_matrix.md`.
   `onPopulatingPopup`. `bindings/rust/idax/README.md` now has an ida-cdump
   parity section that names the Rust fixed-form, UI, clipboard, decompiler,
   type-import, database, and path surfaces plus their host-runtime caveats.
-  `env IDASDK=<userhome>/dev/idax/build-test-fetch/_deps/ida_sdk-src/src npm
+  `env IDASDK=<repo-root>/build-test-fetch/_deps/ida_sdk-src/src npm
   test` passes from `bindings/node` with 182/182 checks, and
   `env -u IDASDK cargo test -p idax
   ui_tests::test_codedump_typed_forms_reject_empty_markup_without_modal_ui --lib`
@@ -420,7 +420,7 @@ tracked in `docs/compatibility_matrix.md`.
 - 2026-05-28 P22 Hex-Rays auto-verifying host evidence:
   Reran the locally available scoped Hex-Rays gate through the race-free
   auto-verifying runner:
-  `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3 IDAX_RUN_HEXRAYS_SESSION=1
+  `env -u IDASDK IDADIR=<ida-runtime> IDAX_RUN_HEXRAYS_SESSION=1
   IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-hexrays.log
   scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host
   tests/fixtures/simple_appcall_linux64 RelWithDebInfo`. The run passed with
@@ -436,12 +436,12 @@ tracked in `docs/compatibility_matrix.md`.
   typed-form/no-run coverage with one command. `scripts/run_codedump_parity_local_validation.sh
   build-test-fetch RelWithDebInfo` passes with Node integration skipped after
   the section-presence verifier hardening, and
-  `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3
+  `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<ida-runtime>
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo` passes including the 63/63 Node fixture integration checks.
   The runner restores the default `.i64` fixture when local host runs dirty it.
 - 2026-05-28 P22 current full local parity sweep:
-  Reran `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3
+  Reran `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<ida-runtime>
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo` after the composable verifier and race-free logged runner
   changes. The sweep passed focused C++ build/CTest (6/6 selected tests),
@@ -468,7 +468,7 @@ tracked in `docs/compatibility_matrix.md`.
   `scripts/run_codedump_parity_local_validation.sh` now infers the same host
   evidence modes as `scripts/run_codedump_parity_host_gates.sh` and writes
   mode-specific logs for opt-in gates. `env IDAX_RUN_HEXRAYS_SESSION=1
-  IDADIR=<userhome>/ida-pro-9.3
+  IDADIR=<ida-runtime>
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo` passes, including focused C++ build/CTest (6/6 selected
   tests), Hex-Rays host evidence with automatic and explicit `hexrays`
@@ -522,7 +522,7 @@ tracked in `docs/compatibility_matrix.md`.
   IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-default.log
   scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host
   tests/fixtures/simple_appcall_linux64 RelWithDebInfo`, and refreshed
-  Hex-Rays evidence with `env -u IDASDK IDADIR=<userhome>/ida-pro-9.3
+  Hex-Rays evidence with `env -u IDASDK IDADIR=<ida-runtime>
   IDAX_RUN_HEXRAYS_SESSION=1
   IDAX_EVIDENCE_LOG=build-codedump-parity-host/codedump-host-hexrays.log
   scripts/run_codedump_parity_host_gates.sh build-codedump-parity-host
@@ -551,7 +551,7 @@ tracked in `docs/compatibility_matrix.md`.
   `scripts/run_codedump_parity_local_validation.sh --self-test`, and current
   default/Hex-Rays evidence-log verification all pass.
 - 2026-05-28 P22 concrete remaining implementation tasks:
-  Reconciled the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` notes
+  Reconciled the updated `<ida-cdump-root>/docs/IDAX_GAPS.md` notes
   against current idax implementation state and converted the remaining queue
   into concrete closure subtasks: P22.H1.1-H1.3 for accepted modal typed-form
   evidence, P22.H2.1-H2.3 for Qt clipboard evidence with an IDA-compatible
@@ -568,7 +568,7 @@ tracked in `docs/compatibility_matrix.md`.
   raw `insn_t`, `decode_insn`, `get_canon_feature`, `has_cf_use`,
   `has_cf_chg`, `get_dtype_size`, or `get_reg_name`. Verified with
   `cmake --build build-test-fetch --target idax_api_surface_check -j2` and
-  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+  `IDASDK=<ida-cdump-root>/build/_deps/ida_sdk-src cmake --build build -j2`.
 - 2026-05-28 P22.R4 lvar locator metadata closure:
   Added serializable `LocalVariableUserSetting` / `LocalVariableLocator`
   plus `saved_user_lvar_settings`, `apply_user_lvar_setting`, and
@@ -577,7 +577,7 @@ tracked in `docs/compatibility_matrix.md`.
   `restore_user_lvar_settings`, `modify_user_lvar_info`, and direct per-lvar
   `parse_decl` use from `transfer/metadata*.cpp`. Verified with
   `cmake --build build-test-fetch --target idax_api_surface_check -j2` and
-  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+  `IDASDK=<ida-cdump-root>/build/_deps/ida_sdk-src cmake --build build -j2`.
 - 2026-05-28 P22.R3 partial ctree provenance migration:
   Added read-only `ExpressionView` helpers for expression type sizing,
   pointed-object sizing, member-name resolution, ternary third operands, and
@@ -585,7 +585,7 @@ tracked in `docs/compatibility_matrix.md`.
   `ida::decompiler::DecompiledFunction` / `ExpressionView` traversal without
   raw `cfunc_t`, `cexpr_t`, `carg_t`, `ctree_visitor_t`, or `get_func`.
   Verified with `cmake --build build-test-fetch --target idax_api_surface_check -j2`
-  and `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`.
+  and `IDASDK=<ida-cdump-root>/build/_deps/ida_sdk-src cmake --build build -j2`.
 - 2026-05-28 P22.R2/R3/R6 ida-cdump parity closure:
   Added idax type declaration renderers, dependency-ordered ordinal
   declarations, used-member trimming, DOT type graph rendering,
@@ -597,7 +597,7 @@ tracked in `docs/compatibility_matrix.md`.
   ida-cdump scan hits are idax calls, field names, IDA ABI primitives, or
   local formatting utilities rather than parity-blocking SDK analysis calls.
   Verified with `cmake --build build-test-fetch --target idax_api_surface_check -j2`,
-  `IDASDK=<dev-root_>/ida-cdump/build/_deps/ida_sdk-src cmake --build build -j2`,
+  `IDASDK=<ida-cdump-root>/build/_deps/ida_sdk-src cmake --build build -j2`,
   and `git diff --check` in both checkouts.
 - 2026-05-28 P22 refreshed local parity evidence:
   `bash -n scripts/check_codedump_parity_evidence_log.sh
@@ -606,7 +606,7 @@ tracked in `docs/compatibility_matrix.md`.
   `scripts/check_codedump_parity_evidence_log.sh --self-test`,
   `scripts/run_codedump_parity_host_gates.sh --self-test`, and
   `scripts/run_codedump_parity_local_validation.sh --self-test` all pass.
-  `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<userhome>/ida-pro-9.3
+  `env IDAX_RUN_NODE_INTEGRATION=1 IDADIR=<ida-runtime>
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo` passes focused C++ build/CTest (6/6 selected tests), default
   host-gate evidence with automatic verifier output, verifier self-test,
@@ -614,7 +614,7 @@ tracked in `docs/compatibility_matrix.md`.
   (182/182), Node fixture integration (63/63), Rust typed-form validation,
   Rust library no-run, and Rust type-declaration integration no-run. The
   locally available Hex-Rays host mode also passes with
-  `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<userhome>/ida-pro-9.3
+  `env IDAX_RUN_HEXRAYS_SESSION=1 IDADIR=<ida-runtime>
   scripts/run_codedump_parity_local_validation.sh build-test-fetch
   RelWithDebInfo`, including Hex-Rays evidence verification with 9 checks,
   zero failures, and the expected modal/clipboard skips. Explicit verification of

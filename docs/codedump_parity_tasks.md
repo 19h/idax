@@ -37,7 +37,7 @@ Already addressed in idax during Phase 22:
 
 ## Current gap-to-task map
 
-This table reflects the updated `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md`
+This table reflects the updated `<ida-cdump-root>/docs/IDAX_GAPS.md`
 notes as of 2026-05-28 and maps each still-relevant gap to idax work.
 
 | ida-cdump gap | idax task | Status |
@@ -580,7 +580,7 @@ Deliverables:
 Concrete implementation tasks:
 
 - P22.8.1 [x] Add a `docs/codedump_migration_checklist.md` table with one row per
-  `<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` section: direct SDK call,
+  `<ida-cdump-root>/docs/IDAX_GAPS.md` section: direct SDK call,
   idax replacement, implementation status, binding availability, and residual
   caveats.
 - P22.8.2 [x] Update `docs/api_reference.md`, `docs/sdk_domain_coverage_matrix.md`,

@@ -791,7 +791,7 @@
 ### 15. Blockers (Live)
 
 - **15.1. B-LIFTER-MICROCODE — RESOLVED**
-  - 15.1.1. **Scope:** Full idax-first port of `<userhome>/dev/lifter` (AVX/VMX microcode transformations)
+  - 15.1.1. **Scope:** Full idax-first port of `<lifter-source>` (AVX/VMX microcode transformations)
   - 15.1.2. **Severity:** ~~High~~ → Resolved
   - **15.1.3. Final Capabilities**
     - 15.1.3.1. Generic typed instruction emission (19 opcodes, 7 emission sites in port)
@@ -1231,3 +1231,9 @@
   - **19.54.4. Diaphora adaptation:** Use a separate versioned C++/Rust byte-compatible companion manifest. Require a globally unique Phase 48 function match and Phase 49 ordinal/relative-offset/size/mnemonic/relocation-hash instruction guard. Preserve all same-address locations, unlike upstream's lossy address-only dictionary.
   - **19.54.5. Mutation:** Export/compare are non-mutating. Explicit apply fills only absent exact `(address,location)` slots, preserves every nonempty target value, saves only after successful changes in headless Rust, and never deletes orphan comments implicitly.
   - **19.54.6. Scope boundary:** Do not claim native SQLite compatibility, pseudocode hash/similarity parity, ctree semantic identity beyond persisted locations, automatic orphan relocation, referent name/type propagation, raw function-flag parity, or chooser UI.
+
+- **19.56. Decision D-IDENTITY-BEARING-ABSOLUTE-PATH-HYGIENE**: Store reproducible evidence without workstation identity
+  - **19.56.1. Scope:** Prohibit identity-bearing absolute paths in tracked text and binary artifacts. This includes user homes, private checkout roots, SDK/runtime evidence paths, and local upstream-source locations.
+  - **19.56.2. Representation:** Replace paths with semantic non-absolute tokens plus relevant relative suffixes. Retain generic platform paths only when they are non-identifying runtime semantics or discovery behavior.
+  - **19.56.3. Binary safety:** For serialized IDA databases, permit only equal-byte-length substitutions followed by isolated real-IDA open/read validation; otherwise regenerate through a supported API or reject the edit.
+  - **19.56.4. Verification:** Scan Git-tracked text and `strings` output for every tracked blob, then scan all reachable Git objects and remote refs. Current-tree cleanup and history cleanup are distinct closure gates.

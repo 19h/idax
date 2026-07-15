@@ -1,5 +1,5 @@
 /// \file qtform_renderer_plugin.cpp
-/// \brief idax port of `<userhome>/dev/ida-qtform` plugin glue.
+/// \brief idax port of `<ida-qtform-root>` plugin glue.
 ///
 /// This port uses idax's opaque widget host bridge (`with_widget_host`) to
 /// mount a Qt renderer widget into an IDA dock panel. The original plugin's

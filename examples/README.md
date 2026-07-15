@@ -66,7 +66,7 @@ handling.
 
 ### `loader/sep_firmware_loader.cpp` — Apple SEP Firmware Loader Port
 
-Port of `<userhome>/Downloads/sep-binja-main` into an idax example loader.
+Port of `<upstream-source>/sep-binja-main` into an idax example loader.
 It detects raw 64-bit SEP firmware images via the `Built by legion2` markers,
 parses the SEP container header/app table, maps the boot/kernel/SEPOS/app/shared
 library modules into distinct IDA segments, loads embedded Mach-O segments with
@@ -100,7 +100,7 @@ current idax abstraction.
 
 ### `plugin/qtform_renderer_plugin.cpp` + `plugin/qtform_renderer_widget.cpp` — ida-qtform Port
 
-Port of `<userhome>/dev/ida-qtform` to idax plugin and UI surfaces. It uses
+Port of `<ida-qtform-root>` to idax plugin and UI surfaces. It uses
 `ida::ui::create_widget()` + `ida::ui::with_widget_host()` to mount a Qt
 renderer widget in a dock panel and parse IDA form markup into live controls.
 The original "Test in ask_form" flow now uses markup-only
@@ -108,7 +108,7 @@ The original "Test in ask_form" flow now uses markup-only
 
 ### `plugin/drawida_port_plugin.cpp` + `plugin/drawida_port_widget.cpp` — DrawIDA Port (Not Applicable / Host-Constrained)
 
-Port of `<userhome>/Downloads/plo/DrawIDA-main` to idax plugin and UI surfaces.
+Port of `<upstream-source>/plo/DrawIDA-main` to idax plugin and UI surfaces.
 It recreates DrawIDA's whiteboard workflow (draw/text/eraser/select,
 undo/redo, style dialog, clear canvas) using `ida::plugin::Plugin` and
 `ida::ui::create_widget()` + `ida::ui::with_widget_host()` to host a Qt canvas
@@ -148,7 +148,7 @@ the optional Qt clipboard helper with `ask_text` fallback.
 
 ### `plugin/driverbuddy_port_plugin.cpp` — DriverBuddy Port
 
-Port of `<userhome>/Downloads/plo/DriverBuddy-master` to idax plugin, search,
+Port of `<upstream-source>/plo/DriverBuddy-master` to idax plugin, search,
 analysis, type, xref, and instruction surfaces.
 
 The plugin keeps DriverBuddy's core workflows:
@@ -164,7 +164,7 @@ The plugin keeps DriverBuddy's core workflows:
 
 ### `plugin/intelligent_inliner_port_plugin.cpp` — Intelligent Function Inliner Port
 
-Port of `<userhome>/Downloads/intelligent-function-inliner.py` to idax function,
+Port of `<upstream-source>/intelligent-function-inliner.py` to idax function,
 graph, instruction, xref, type, progress-UI, action, and decompiler-cache APIs.
 It preserves the original `<7`-instruction strict rule and score threshold/weights,
 skips thunk/library/non-returning/variadic functions, detects processor-marked
@@ -184,7 +184,7 @@ cargo run -p idax --example intelligent_inliner_port -- <idb> --apply
 
 ### `plugin/magic_strings_port_plugin.cpp` — IDAMagicStrings Port
 
-Port of `<userhome>/Downloads/plo/idamagicstrings-master/IDAMagicStrings.py`
+Port of `<upstream-source>/plo/idamagicstrings-master/IDAMagicStrings.py`
 to idax data, lines, name, xref, function, chooser, graph, and action APIs. It
 preserves the original non-NLTK path: one-byte/two-byte string discovery,
 source filename and language evidence, first-token candidate extraction,
@@ -205,7 +205,7 @@ cargo run -p idax --example magic_strings_port -- <idb> --apply-candidates --app
 
 ### `plugin/auto_enum_port_plugin.cpp` — Auto Enum Port
 
-Port of `<userhome>/Downloads/plo/auto-enum-main` to idax import, type,
+Port of `<upstream-source>/plo/auto-enum-main` to idax import, type,
 instruction, decompiler, plugin-action, and refresh APIs. The global action
 matches imported functions by normalized name, matches arguments by name with
 positional fallback, creates named `ENUM_<id>` local enum types, and replaces
@@ -280,7 +280,7 @@ cargo run -p idax --example diaphora_exact_port -- <input> --compare-pseudocode-
 
 ### `plugin/symless_structure_port_plugin.cpp` — Symless Structure Reconstruction Port
 
-Bounded port of `<userhome>/Downloads/plo/symless-main` to the opaque owned
+Bounded port of `<upstream-source>/plo/symless-main` to the opaque owned
 microcode graph and type APIs. The interactive plugin has separate report and
 apply actions for one selected function argument, declarative allocator roots,
 and verified constructor/vtable roots. It preserves register/stack
@@ -356,7 +356,7 @@ cargo run -p idax --example symless_structure_port -- <idb> --vtables --name rec
 
 ### `plugin/lifter_port_plugin.cpp` — lifter Port Probe (Adapted Standalone Port)
 
-Port probe of `<userhome>/dev/lifter` focused on plugin-shell workflows that
+Port probe of `<lifter-source>` focused on plugin-shell workflows that
 are currently portable through idax: action registration, pseudocode popup
 attachment, decompiler pseudocode/microcode snapshot dumping, and
 outlined-flag/cache-invalidation helpers.
@@ -401,7 +401,7 @@ raw decompiler-view handle context for advanced per-view manipulations).
 
 ### `plugin/idapcode_port_plugin.cpp` — idapcode Port (Adapted Standalone Port)
 
-Port of `<userhome>/Downloads/plo/idapcode-main` to idax plugin/UI/database
+Port of `<upstream-source>/plo/idapcode-main` to idax plugin/UI/database
 surfaces with Sleigh-backed p-code generation.
 
 The Rust adaptation (`idapcode_headless_port`) extracts the non-UI analysis slice 
@@ -427,7 +427,7 @@ If the Sleigh submodule is not present, fetch it with:
 
 ### `tools/idalib_dump_port.cpp` — idalib-dump Port (no Telegram)
 
-Port of `<userhome>/dev/idalib-dump` `ida_dump` behavior to pure idax calls:
+Port of `<idalib-dump-root>` `ida_dump` behavior to pure idax calls:
 database open/analysis wait, function traversal/filtering, assembly dump, and
 pseudocode/microcode dump, plus headless plugin policy controls
 (`--no-plugins`, `--plugin <pattern>`) through `ida::database::RuntimeOptions`.
@@ -442,7 +442,7 @@ address.
 
 ### `tools/ida2py_port.cpp` — ida2py Port Probe
 
-Port of `<userhome>/Downloads/plo/ida2py-main` static query workflows to pure
+Port of `<upstream-source>/plo/ida2py-main` static query workflows to pure
 idax calls: user-defined symbol discovery, type apply/retrieve checks,
 symbol-centric value/xref inspection, and decompiler-backed callsite text
 listing. It also includes optional runtime `--appcall-smoke` coverage for

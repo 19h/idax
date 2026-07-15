@@ -87,7 +87,7 @@ Current overall phase status:
 
 ### Phase 21 TODO Action Items (Example Loader Port Continuation)
 
-- [x] P21.1 Port `<userhome>/Downloads/sep-binja-main` SEP firmware Binary Ninja loader into a native idax example loader.
+- [x] P21.1 Port `<upstream-source>/sep-binja-main` SEP firmware Binary Ninja loader into a native idax example loader.
 - [x] P21.2 Wire the new loader into `examples/CMakeLists.txt` and document it in `examples/README.md`.
 - [x] P21.3 Validate the new example loader builds cleanly as `idax_sep_firmware_loader`.
 
@@ -122,7 +122,7 @@ Current overall phase status:
 
 ### Phase 23 TODO Action Items (ida-trida Port Parity)
 
-- [x] P23.1 Port `<dev-root_>/ida-trida` build/plugin shell to consume `idax::idax` instead of vendored ida-cmake and raw SDK UI/action/clipboard helpers.
+- [x] P23.1 Port `<ida-trida-root>` build/plugin shell to consume `idax::idax` instead of vendored ida-cmake and raw SDK UI/action/clipboard helpers.
 - [x] P23.2 Add ida-trida GitHub Actions build coverage with Linux, macOS x86_64, macOS arm64, and Windows plugin artifact jobs.
 - [x] P23.3 Add rich C++ `ida::type` metadata needed by trida (`TypeKind`, named declarations, function details, enum details, UDT layout/member bit offsets and flags) with API-surface and integration coverage.
 - [x] P23.4 Mirror the rich type metadata through Node and Rust binding surfaces, with structural/no-run tests that respect host initialization constraints.
@@ -389,5 +389,13 @@ Current overall phase status:
 - [x] P52.1 Audit the contradictory P22.R3 migration-checklist state against public code, compile-surface tests, and terminal task records.
 - [x] P52.2 Correct stale partial/residual cells while separating locally verified IDAX capability from unavailable downstream-tree verification.
 - [x] P52.3 Run focused validation, synchronize protocol records, exact-review, commit and push, then remove Phase 52 from active work.
+
+---
+
+### Phase 54 TODO Action Items (Repository Absolute-Path Privacy Hygiene)
+
+- [x] P54.1 Audit tracked text, tracked binary strings, and reachable Git history for identity-bearing absolute host paths.
+- [x] P54.2 Replace current-tree workstation, checkout, SDK, runtime, and upstream-source paths with semantic non-absolute tokens; preserve the tracked IDA database by equal-length binary substitution and validate an isolated copy opens.
+- [ ] P54.3 Run complete path probes, exact staged review, commit and push; scrub reachable history if required for removal, verify remote refs, then remove Phase 54 from active work.
 
 ---

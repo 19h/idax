@@ -50,6 +50,7 @@ Each `.agents/` file uses hierarchical numbered sections. To add a new entry:
 6. Any blocker must be captured with impact and mitigation plan in `.agents/active_work.md`.
 7. Any design change must be captured in `.agents/decision_log.md` with rationale.
 8. `.agents/active_work.md` must contain only active, queued, or blocked work. Remove an item in the same protocol update that records its completion; completed and retired work belongs in `.agents/progress_ledger.md`, not `.agents/active_work.md`.
+9. Never commit identity-bearing absolute host paths. Use semantic tokens such as `<repo-root>`, `<ida-sdk-root>`, `<ida-runtime>`, and `<upstream-source>` in documentation/evidence; audit both tracked text and binary strings before push.
 
 MANDATORY UPDATE PROTOCOL (must always be followed):
 - Step 1: Update task checkbox/status in `.agents/roadmap.md` as soon as it changes.

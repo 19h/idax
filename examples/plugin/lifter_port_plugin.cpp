@@ -1,5 +1,5 @@
 /// \file lifter_port_plugin.cpp
-/// \brief idax-first port probe of `<userhome>/dev/lifter`.
+/// \brief idax-first port probe of `<lifter-source>`.
 ///
 /// This plugin ports the lifter plugin shell (actions + pseudocode popup
 /// integration + decompiler snapshot reporting) onto idax APIs and records

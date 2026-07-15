@@ -73,3 +73,14 @@
   - 7.1.2. **Evidence:** HCLI downloads IDA 9.3, then reports `No licenses found matching criteria` and cannot find the configured `*96-0000-0000-XX.hexlic` file (F377).
   - 7.1.3. **Mitigation:** Renew or correct the HCLI account/license assignment and corresponding GitHub Actions secrets, then rerun all three workflows on `edbc6f1` or its successor.
   - 7.1.4. **Status:** Blocked on external license/secret provisioning; no repository code fix indicated.
+
+---
+
+### 9. Repository Absolute-Path Privacy Hygiene (Phase 54)
+
+- **9.1. Current-tree sanitization**
+  - 9.1.1. **Action:** Remove identity-bearing absolute host paths from tracked text and binary artifacts, replacing them with semantic non-absolute tokens.
+  - 9.1.2. **Status:** P54.1-P54.2 complete (F465; KB 35.121; decision 19.56); current-tree and isolated IDA-open probes pass.
+- **9.2. History and closure**
+  - 9.2.1. **Action:** Validate exact staged scope, push the sanitized tree, remove identity-bearing paths from reachable history, verify remote refs, and remove this Phase 54 entry in the same closure update.
+  - 9.2.2. **Status:** Active; unrelated local implementation work remains isolated in the primary worktree.

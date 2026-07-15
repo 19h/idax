@@ -1,13 +1,13 @@
 # ida-cdump migration checklist
 
 This checklist maps the updated
-`<userhome>/dev/ida-cdump/docs/IDAX_GAPS.md` notes to concrete idax APIs and
+`<ida-cdump-root>/docs/IDAX_GAPS.md` notes to concrete idax APIs and
 remaining implementation work. It is intentionally source-oriented: each row
 names the SDK shape `ida-cdump` uses today, the idax replacement, binding
 coverage, and any residual caveat before the plugin can remove that direct SDK
 use.
 
-The downstream `<userhome>/dev/ida-cdump` tree is not present in this workspace.
+The downstream `<ida-cdump-root>` tree is not present in this workspace.
 IDAX API and test statements below are locally verified; statements that its
 call sites stopped using raw SDK types preserve the terminal P22.R3 audit record
 and remain subject to Assumption A52.1.

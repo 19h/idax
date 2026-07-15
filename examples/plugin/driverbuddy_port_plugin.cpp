@@ -1,5 +1,5 @@
 /// \file driverbuddy_port_plugin.cpp
-/// \brief idax-first C++ port of `<userhome>/Downloads/plo/DriverBuddy-master`.
+/// \brief idax-first C++ port of `<upstream-source>/plo/DriverBuddy-master`.
 
 #include <ida/idax.hpp>
 
