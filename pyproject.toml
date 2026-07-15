@@ -63,6 +63,8 @@ sdist.include = [
 sdist.exclude = [
     "**/__pycache__/**",
     "**/*.pyc",
+    "ida-installer/**",
+    "ida-sdk/**",
 ]
 
 [tool.scikit-build.cmake.define]

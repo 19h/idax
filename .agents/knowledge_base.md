@@ -2101,3 +2101,9 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - A pybind trampoline invoked from an IDA-owned callback must not use generic override propagation. It acquires the GIL, resolves the Python override, converts the result, and catches both Python and native exceptions before returning to the host.
 - Conservative fallbacks match the C++ base contract: false for event/refresh acceptance, empty text/hints, `0xFFFFFFFF` for default color, and no action for destruction.
 - Falsification probe: raise or return a non-convertible value from each graph override in an interactive host; the exception must be reported as unraisable, IDA must remain live, and the documented fallback must be observed. Dependent result: graph authoring callback safety. Dispatch is `O(1)` apart from Python callback work and converted payload size.
+
+### 35.158. Source-Archive Acquisition Boundary [F505]
+
+- A workflow may materialize the IDA SDK and installer beneath the repository root after checkout. scikit-build-core can include a nested repository in the sdist independently of the project-owned `sdist.include` patterns.
+- Explicitly exclude `ida-sdk/**` and `ida-installer/**`. The archive auditor must continue scanning all member names and bytes so an upstream identity path or proprietary acquisition artifact fails closed rather than entering a release.
+- Falsification probe: create identity-bearing payloads under both acquisition directories before `uv build`; neither member nor payload may occur in the resulting sdist, and the complete distribution audit must pass. Dependent result: CI-builder-independent archive privacy and external SDK/runtime ownership. Exclusion matching is `O(P)` over candidate paths; byte inspection remains `O(B)` for uncompressed archive bytes `B`.
