@@ -84,4 +84,4 @@
 - **10.1. SDK/runtime release set**
   - 10.1.1. **Action:** Pin every CI and FetchContent SDK source to `6929db6868a524496eb66e76e4ec6c9d720a0594` and update every HCLI installer asset to IDA 9.4.
   - 10.1.2. **Evidence target:** Verify the official commit identity and 9.4 SDK CMake entry-point layout, parse all workflows, run selector tests, configure against the pinned SDK, exact-review, push, and observe the triggered GitHub Actions runs.
-  - 10.1.3. **Status:** P56.1-P56.2 complete; P56.3 exact review, push, and live Actions verification active with no blocker.
+  - 10.1.3. **Status:** P56.1-P56.2 complete; first live run passes all acquisition/resolution gates and Integrations 3/3, while a diagnosed SDK 9.4 MSVC runtime override is under focused revalidation. P56.3 remains active with no blocker.

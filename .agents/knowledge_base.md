@@ -1946,3 +1946,11 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Assumption A56.2: `actions/checkout@v4` performs an explicit fetch for the supplied immutable SHA, matching the locally successful `git fetch --depth=1 origin <SHA>`. Falsify if a live checkout cannot materialize that SHA; dependent result: workflow SDK acquisition only. The archive fallback remains independently verified.
 - Primary provenance: [official SDK commit](https://github.com/HexRaysSA/ida-sdk/commit/6929db6868a524496eb66e76e4ec6c9d720a0594), its `src/cmake/idasdkConfig.cmake`, and the HCLI direct-download key syntax documented by Hex-Rays.
 - Acquisition and resolution add `O(S)` download/extraction time and space for SDK archive size `S`; version selection and entry-point probing remain `O(1)`.
+
+### 35.136. IDA 9.4 MSVC Runtime Preservation [F481]
+
+- The 9.4 `idasdkConfig.cmake` assigns `CMAKE_MSVC_RUNTIME_LIBRARY` during package loading. This can silently replace a parent/toolchain choice made before `find_package`.
+- Capture a defined consumer value before package loading and restore it afterward. If no value is defined, IDAX uses `MultiThreaded$<$<CONFIG:Debug>:Debug>` to remain compatible with its static-CRT Node and Rust consumers.
+- Do not enable `IDA_USE_STATIC_RUNTIME` merely to preserve `/MT`: the published 9.4 Windows archive splits `ida.lib`/`idalib.lib` into `x64_win_64` and `pro.lib` into `x64_win_64_s`, while the package's `_s` suffix selection expects all import libraries under one directory.
+- Assumption A56.3: the Node addon and Rust `cc` shim continue compiling with static CRT on supported Windows runners. Falsify with verbose compile metadata showing `/MD` for either consumer; dependent result: the default static-runtime selection only. An explicit parent value remains authoritative.
+- Runtime selection adds `O(1)` configure state and no runtime cost.

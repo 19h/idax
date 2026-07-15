@@ -81,7 +81,23 @@ if(NOT DEFINED IDABIN)
     message(STATUS "Setting IDABIN to local build folder: ${IDABIN}")
 endif()
 
+# IDA SDK 9.4's package sets a default MSVC runtime during find_package().
+# Preserve an explicit parent/toolchain choice; standalone idax retains the
+# static runtime model used by its Node and Rust consumers.
+if(MSVC)
+    if(DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+        set(IDAX_MSVC_RUNTIME_LIBRARY "${CMAKE_MSVC_RUNTIME_LIBRARY}")
+    else()
+        set(IDAX_MSVC_RUNTIME_LIBRARY
+            "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
+endif()
+
 find_package(idasdk REQUIRED)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "${IDAX_MSVC_RUNTIME_LIBRARY}")
+endif()
 
 # Promote idasdk targets to GLOBAL scope so that parent projects including idax
 # via FetchContent or add_subdirectory can link against them.
