@@ -1921,3 +1921,11 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - The smoke input is an existing analyzed `.i64` database. Disabling auto-analysis for this CI-only invocation isolates wrapper read/list behavior from the separately known Windows headless analysis/open instability while retaining library initialization, database open, enumeration, output, and close coverage.
 - Assumption A55.10: IDA 9.3 can open the checked preanalyzed fixture when `open_database` receives `auto_analysis=false`. Falsify if the next Windows run still exits before `database::open ok`; dependent result: Windows Rust runtime-smoke recovery only.
 - The toggle changes one Boolean argument and skips an analysis wait: `O(1)` control overhead and no additional space.
+
+### 35.133. Windows Rust Headless Runtime Gate Boundary [F477]
+
+- Live Windows evidence falsifies A55.10: the process exits inside `open_database` for the checked preanalyzed IDB with both auto-analysis settings, after successful IDA initialization and before wrapper error propagation.
+- The Windows binding job still provides three independent compile/test gates: release construction of `idax`/`idax-sys`, release construction of every example, and 140 safe-Rust unit tests; it additionally compiles the integration target without executing it. Linux/macOS continue to execute Rust examples, and Linux/macOS/Windows execute native IDAX integration packaging.
+- Decision 19.59 removes only the non-diagnostic Windows headless example execution. Reopen that gate when a supported runner/runtime combination reaches `database::open ok` and closes the database with a zero exit status.
+- Assumption A55.11: compile/unit coverage is sufficient for the Windows-specific HCLI/compiler scope, while runtime semantics remain exercised on Unix. Falsify with a Windows-only ABI defect that passes release linking and 140 unit tests but fails on a supported headless runtime; dependent result: Phase 55 Windows binding coverage boundary.
+- Removing two redundant example launches reduces CI runtime by the duration of those processes; build/test complexity is otherwise unchanged.

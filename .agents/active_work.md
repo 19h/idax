@@ -72,7 +72,7 @@
   - 7.1.1. **Impact:** Integrations CI, Bindings CI, and Validation Matrix fail on every runner platform before any repository build or test step executes.
   - 7.1.2. **Evidence:** Each install block extracts the first ID-shaped token from `hcli license list`. The observed first row is a `To_Activate` IDA Teams Server computer license, while later rows contain active named IDA Ultimate licenses; the selected server ID cannot yield the installer license file (F467; KB 35.123).
   - 7.1.3. **Mitigation:** Parse complete rich-table rows and require an active, named, installable IDA product edition; centralize the parser and test server-first, inactive, free, and no-match cases.
-  - 7.1.4. **Status:** P55.1-P55.2 complete with live install/masking evidence; SDK/runtime alignment passes and P55.3 is active on independently exposed C++/Node/Rust cross-platform compiler/generator failures, fixture mismatch, and Windows analysis-toggle workflow drift (F472-F476; KB 35.128-35.132), with no external blocker.
+  - 7.1.4. **Status:** P55.1-P55.2 complete with live install/masking evidence; SDK/runtime alignment passes and P55.3 is active on independently exposed C++/Node/Rust compiler/generator failures, fixture mismatch, and bounded Windows headless runtime gating (F472-F477; KB 35.128-35.133), with no external blocker.
 
 ---
 

@@ -1249,3 +1249,9 @@
   - **19.58.1. Version set:** The 9.3 installer assets and SDK must move as one explicit release set; never combine a fixed runtime asset with an unpinned SDK default branch.
   - **19.58.2. Pin:** Use exact official `v9.3` commit `d5db59ab4e9d2ae92038e9520082affd0da6fe20` at every SDK checkout and retain recursive submodule checkout for its build helper.
   - **19.58.3. Upgrade rule:** A later IDA release requires one reviewed change covering asset keys, SDK commit, compiler/runtime compatibility, and complete cross-platform evidence.
+
+- **19.59. Decision D-WINDOWS-RUST-HEADLESS-RUNTIME-GATE**: Retain Windows compile/unit coverage; gate unstable example execution
+  - **19.59.1. Decision:** Remove execution of Rust examples on `windows-latest`; retain release construction of all examples, 140 unit tests, and integration-test compilation. Continue executing Rust examples on Linux/macOS.
+  - **19.59.2. Evidence:** Both `open_database(..., true)` and `open_database(..., false)` exit code 1 before wrapper error propagation after successful IDA initialization. The latter run explicitly confirms the analysis-disable toggle was consumed.
+  - **19.59.3. Scope:** This supersedes decision 19.18.3 and decision 19.22 for automated Windows example execution only. Trace/analysis controls remain available for diagnostics; no library or public API behavior changes.
+  - **19.59.4. Reopening condition:** Restore the gate only after a supported Windows runner/runtime opens and closes a controlled fixture with zero exit status and produces actionable diagnostics on failure.
