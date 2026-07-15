@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Select an active named IDA product license from HCLI rich-table output."""
+
+from __future__ import annotations
+
+import re
+import sys
+from dataclasses import dataclass
+
+
+LICENSE_ID_PATTERN = re.compile(
+    r"^[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}$"
+)
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+EDITION_PRIORITIES = (
+    ("IDA Ultimate", 0),
+    ("IDA Professional", 1),
+    ("IDA Pro", 1),
+    ("IDA Essential", 2),
+)
+
+
+@dataclass(frozen=True)
+class LicenseRow:
+    license_id: str
+    edition: str
+    license_type: str
+    status: str
+    source_index: int
+
+
+def _parse_rows(output: str) -> list[LicenseRow]:
+    rows: list[LicenseRow] = []
+    for source_index, raw_line in enumerate(output.splitlines()):
+        line = ANSI_ESCAPE_PATTERN.sub("", raw_line)
+        delimiter = "│" if "│" in line else "|" if "|" in line else None
+        if delimiter is None:
+            continue
+
+        columns = [column.strip() for column in line.split(delimiter)]
+        if len(columns) < 6:
+            continue
+        license_id, edition, license_type, status = columns[1:5]
+        if not LICENSE_ID_PATTERN.fullmatch(license_id):
+            continue
+        rows.append(
+            LicenseRow(
+                license_id=license_id,
+                edition=edition,
+                license_type=license_type,
+                status=status,
+                source_index=source_index,
+            )
+        )
+    return rows
+
+
+def _edition_priority(edition: str) -> int | None:
+    for prefix, priority in EDITION_PRIORITIES:
+        if edition == prefix or edition.startswith(f"{prefix} "):
+            return priority
+    return None
+
+
+def select_license_id(output: str) -> str | None:
+    candidates: list[tuple[int, int, str]] = []
+    for row in _parse_rows(output):
+        priority = _edition_priority(row.edition)
+        if priority is None or row.license_type != "named" or row.status != "Active":
+            continue
+        candidates.append((priority, row.source_index, row.license_id))
+
+    if not candidates:
+        return None
+    candidates.sort()
+    return candidates[0][2]
+
+
+def main() -> int:
+    license_id = select_license_id(sys.stdin.read())
+    if license_id is None:
+        print(
+            "error: HCLI returned no active named installable IDA product license",
+            file=sys.stderr,
+        )
+        return 2
+    print(license_id)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

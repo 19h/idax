@@ -1237,3 +1237,10 @@
   - **19.56.2. Representation:** Replace paths with semantic non-absolute tokens plus relevant relative suffixes. Retain generic platform paths only when they are non-identifying runtime semantics or discovery behavior.
   - **19.56.3. Binary safety:** For serialized IDA databases, permit only equal-byte-length substitutions followed by isolated real-IDA open/read validation; otherwise regenerate through a supported API or reject the edit.
   - **19.56.4. Verification:** Scan Git-tracked text and `strings` output for every tracked blob, then scan all reachable Git objects and remote refs. Current-tree cleanup and history cleanup are distinct closure gates.
+
+- **19.57. Decision D-HCLI-SEMANTIC-LICENSE-SELECTION**: Select installer licenses from complete entitlement rows
+  - **19.57.1. Input:** Capture complete `hcli license list` output and parse row fields through one repository script; do not duplicate shell token pipelines across workflows.
+  - **19.57.2. Eligibility:** Require canonical ID, active status, named type, and a positively enumerated installable IDA edition family. Never select Teams Server, Lumina Server, Free, expired, or activation-pending rows.
+  - **19.57.3. Determinism:** Rank supported edition families and preserve source order within equal priority. Emit only the chosen ID on stdout for command substitution and a non-sensitive error on failure.
+  - **19.57.4. Confidentiality:** Register the selected identifier with GitHub Actions `add-mask` immediately after selection and before HCLI can repeat it; never log the full entitlement table or identifier from workflow-authored diagnostics.
+  - **19.57.5. Validation:** Unit-test the observed server-first table shape plus malformed/no-match cases; run a structural workflow audit proving all install sites call the shared selector and mask the result.

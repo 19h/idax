@@ -1846,3 +1846,20 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Two PR head refs remain affected (549 matching historical blobs each). Four fork default branches remain affected (549, 575, 375, and 564 matching blobs). PR refs require GitHub Support; forks require their owners. Neither is writable through the source repository's ordinary branch permission.
 - Assumption A54.2: GitHub Support will classify identity-bearing absolute paths as sensitive personal data eligible for cached-view and object purge. Falsify if Support declines the request under its non-sensitive-data limitation. Dependent result: server-side purge availability only; the sanitized source ref and fresh-clone evidence are independent.
 - Closure probes: former object fetch must fail; PR refs must no longer reach contaminated commits; affected fork default branches must scan zero or cease to exist; fresh `master` clone must remain at zero; no collaborator may merge an old-history branch back into rewritten history.
+
+### 35.123. HCLI Installable-License Selection [F467]
+
+- `hcli license list` is documented as rich table output. An ID-shaped token alone carries no edition, type, or status semantics; server and inactive rows can precede installable IDA rows.
+- Accept only rows whose ID has the canonical grouped hexadecimal form, type is exactly `named`, status is exactly `Active`, and edition is a positively enumerated supported IDA product family (`Ultimate`, `Professional`/`Pro`, or `Essential`). Explicitly exclude Free, Home, and server products unless installer-compatibility evidence later expands the positive set.
+- Prefer editions deterministically in descending capability order: Ultimate, Professional/Pro, Essential. Preserve table order within a tier. Do not print the selected full license ID into CI logs.
+- Assumption A55.1: current HCLI rich output retains a vertical-delimited table with ID, Edition, Type, and Status in the documented order. Falsify with a supported HCLI release that changes those columns or adds a machine-readable format; dependent result: parser compatibility only. The semantic selection predicate remains required.
+- Complexity: for output length `N` bytes and `L` license rows, parsing is `O(N + L log L)` time from deterministic priority sorting and `O(L)` space; `L` is bounded by account entitlements. Six stress probes cover server-first ordering, inactive product rows, Free/Home exclusion, ANSI decoration, ASCII/Unicode delimiters, priority, malformed IDs, and a fail-closed no-eligible-row CLI result that does not echo rejected IDs.
+- Primary provenance: [Hex-Rays HCLI license management](https://hcli.docs.hex-rays.com/user-guide/licenses/) and [HCLI quick-start license table/install example](https://hcli.docs.hex-rays.com/getting-started/quick-start/).
+
+### 35.124. Derived License-Identifier Log Masking [F468]
+
+- HCLI installation diagnostics include the chosen license identifier, so suppressing a workflow-authored `echo` does not make the job log identifier-free.
+- Every one of the five independent install jobs registers the selected value with `::add-mask::` immediately after selection and before any later HCLI invocation. GitHub Runner then redacts subsequent exact occurrences while retaining non-sensitive diagnostics.
+- Assumption A55.2: the selected identifier contains no whitespace and the hosted runner implements the documented `add-mask` command before HCLI emits it. Falsify if a live post-change Actions log exposes the unredacted selected identifier; dependent result: log redaction only, not semantic license selection.
+- Complexity: one constant-size mask registration per job, `O(1)` time and space relative to the license table.
+- Primary provenance: [GitHub Actions workflow command for masking values](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands?tool=bash#masking-a-value-in-a-log).

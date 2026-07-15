@@ -82,8 +82,10 @@ jobs:
           HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
         shell: bash
         run: |
-          LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -oE "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1)
-          echo "Using license ID: $LICENSE_ID"
+          LICENSE_OUTPUT=$(uvx --from ida-hcli hcli --disable-updates license list)
+          LICENSE_ID=$(printf '%s\n' "$LICENSE_OUTPUT" | python3 scripts/select_hcli_license.py)
+          echo "::add-mask::$LICENSE_ID"
+          echo "Selected active named IDA product license"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64win.exe"

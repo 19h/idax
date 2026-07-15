@@ -68,11 +68,11 @@
 
 ### 7. GitHub Actions IDA License Provisioning
 
-- **7.1. HCLI License Retrieval Blocker**
+- **7.1. HCLI License Selection Defect**
   - 7.1.1. **Impact:** Integrations CI, Bindings CI, and Validation Matrix fail on every runner platform before any repository build or test step executes.
-  - 7.1.2. **Evidence:** HCLI downloads IDA 9.3, then reports `No licenses found matching criteria` and cannot find the configured `*96-0000-0000-XX.hexlic` file (F377).
-  - 7.1.3. **Mitigation:** Renew or correct the HCLI account/license assignment and corresponding GitHub Actions secrets, then rerun all three workflows on `edbc6f1` or its successor.
-  - 7.1.4. **Status:** Blocked on external license/secret provisioning; no repository code fix indicated.
+  - 7.1.2. **Evidence:** Each install block extracts the first ID-shaped token from `hcli license list`. The observed first row is a `To_Activate` IDA Teams Server computer license, while later rows contain active named IDA Ultimate licenses; the selected server ID cannot yield the installer license file (F467; KB 35.123).
+  - 7.1.3. **Mitigation:** Parse complete rich-table rows and require an active, named, installable IDA product edition; centralize the parser and test server-first, inactive, free, and no-match cases.
+  - 7.1.4. **Status:** P55.1-P55.2 complete; P55.3 exact staged review, push, and live Actions verification are active with no external blocker.
 
 ---
 
