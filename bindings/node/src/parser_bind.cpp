@@ -100,6 +100,13 @@ bool GetRequiredString(Nan::NAN_METHOD_ARGS_TYPE info, int index,
     return true;
 }
 
+v8::Local<v8::Value> OptionalArgument(Nan::NAN_METHOD_ARGS_TYPE info,
+                                      int index) {
+    if (index < info.Length())
+        return info[index];
+    return Nan::Undefined();
+}
+
 bool GetParseOptions(v8::Local<v8::Value> value,
                      ida::parser::ParseOptions& out) {
     if (value->IsUndefined() || value->IsNull())
@@ -223,7 +230,7 @@ NAN_METHOD(ParseFor) {
     ida::parser::InputKind input_kind;
     if (!GetLanguages(info[0], languages)
         || !GetRequiredString(info, 1, "Parser input", input)
-        || !GetInputKind(info.Length() > 2 ? info[2] : Nan::Undefined(), input_kind))
+        || !GetInputKind(OptionalArgument(info, 2), input_kind))
         return;
     IDAX_UNWRAP(auto report, ida::parser::parse_for(languages, input, input_kind));
     info.GetReturnValue().Set(FromReport(report));
@@ -235,7 +242,7 @@ NAN_METHOD(ParseWith) {
     ida::parser::InputKind input_kind;
     if (!GetRequiredString(info, 0, "Parser name", name)
         || !GetRequiredString(info, 1, "Parser input", input)
-        || !GetInputKind(info.Length() > 2 ? info[2] : Nan::Undefined(), input_kind))
+        || !GetInputKind(OptionalArgument(info, 2), input_kind))
         return;
     IDAX_UNWRAP(auto report, ida::parser::parse_with(name, input, input_kind));
     info.GetReturnValue().Set(FromReport(report));
@@ -247,7 +254,7 @@ NAN_METHOD(ParseWithOptions) {
     ida::parser::ParseOptions options;
     if (!GetRequiredString(info, 0, "Parser name", name)
         || !GetRequiredString(info, 1, "Parser input", input)
-        || !GetParseOptions(info.Length() > 2 ? info[2] : Nan::Undefined(), options))
+        || !GetParseOptions(OptionalArgument(info, 2), options))
         return;
     IDAX_UNWRAP(auto report,
                 ida::parser::parse_with_options(name, input, options));
