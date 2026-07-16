@@ -1208,7 +1208,7 @@ tracked in `docs/compatibility_matrix.md`.
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
   unmasked canonical license identifiers.
 
-- 2026-07-16 Phase 61 opaque exception-region domain local candidate:
+- 2026-07-16 Phase 61 opaque exception-region domain:
   Added all five pinned `tryblks.hpp` operations across C++, Node, generated
   C/safe Rust, and Python using owned fragmented ranges, discriminated C++/SEH
   handlers, semantic selectors/dispositions/locations, optional system-region
@@ -1221,4 +1221,8 @@ tracked in `docs/compatibility_matrix.md`.
   modules, a 30-domain/854-symbol manifest, and wheel/sdist inspection. The
   license-selector, procmod, repository-privacy, workflow-YAML, actionlint,
   diff-hygiene, 509-file candidate, and 3,753-object reachable-history gates
-  pass. Live cross-platform validation remains the post-push closure gate.
+  pass. Exact implementation commit
+  `35d3776ffeb3e6fc83de426f05b2d64f2e90cdfc` passes runs 29518226489
+  (Integrations 3/3), 29518226538 (Validation 6/6), and 29518226492
+  (Bindings 9/9) across Linux, Windows, and macOS; complete logs contain zero
+  unmasked canonical license identifiers.
