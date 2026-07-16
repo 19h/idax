@@ -32,12 +32,20 @@ class SelectHcliLicenseTests(unittest.TestCase):
 """
         self.assertEqual(select_license_id(output), "96-0000-0000-12")
 
-    def test_preserves_table_order_within_priority(self) -> None:
+    def test_rejects_anomalous_year_and_prefers_latest_plausible_expiration(self) -> None:
         output = """
-│ 96-0000-0000-20 │ IDA Ultimate │ named │ Active │ 2030-01-01 │ None │
-│ 96-0000-0000-21 │ IDA Ultimate │ named │ Active │ 2040-01-01 │ None │
+│ 96-0000-0000-20 │ IDA Ultimate │ named │ Active │ 3025-06-09 │ None │
+│ 96-0000-0000-21 │ IDA Ultimate │ named │ Active │ 2036-03-26 │ None │
+│ 96-0000-0000-22 │ IDA Ultimate │ named │ Active │ 2027-02-06 │ None │
 """
-        self.assertEqual(select_license_id(output), "96-0000-0000-20")
+        self.assertEqual(select_license_id(output), "96-0000-0000-21")
+
+    def test_preserves_table_order_for_equal_expiration(self) -> None:
+        output = """
+│ 96-0000-0000-23 │ IDA Ultimate │ named │ Active │ 2036-03-26 │ None │
+│ 96-0000-0000-24 │ IDA Ultimate │ named │ Active │ 2036-03-26 │ None │
+"""
+        self.assertEqual(select_license_id(output), "96-0000-0000-23")
 
     def test_strips_ansi_decoration(self) -> None:
         output = (
@@ -68,6 +76,7 @@ class SelectHcliLicenseTests(unittest.TestCase):
 │ 96-0000-0000-42 │ IDA Free PC      │ named    │ Active      │ Never │ None │
 │ 96-0000-0000-43 │ IDA Teams Server │ named    │ Active      │ Never │ None │
 │ 96-0000-0000-44 │ IDA Home PC      │ named    │ Active      │ Never │ None │
+│ 96-0000-0000-45 │ IDA Ultimate     │ named    │ Active      │ Never │ None │
 """
         self.assertIsNone(select_license_id(output))
 

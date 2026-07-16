@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import sys
 from dataclasses import dataclass
+from datetime import date
 
 
 LICENSE_ID_PATTERN = re.compile(
@@ -18,6 +19,7 @@ EDITION_PRIORITIES = (
     ("IDA Pro", 1),
     ("IDA Essential", 2),
 )
+MAX_PLAUSIBLE_EXPIRATION_YEAR = 2100
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,7 @@ class LicenseRow:
     edition: str
     license_type: str
     status: str
+    expiration: str
     source_index: int
 
 
@@ -38,13 +41,14 @@ def _parse_rows(output: str) -> list[LicenseRow]:
         nonlocal pending_columns
         if pending_columns is None:
             return
-        license_id, edition, license_type, status = pending_columns
+        license_id, edition, license_type, status, expiration = pending_columns
         rows.append(
             LicenseRow(
                 license_id=license_id,
                 edition=edition,
                 license_type=license_type,
                 status=status,
+                expiration=expiration,
                 source_index=pending_source_index,
             )
         )
@@ -62,7 +66,7 @@ def _parse_rows(output: str) -> list[LicenseRow]:
             finish_pending()
             continue
 
-        row_columns = columns[1:5]
+        row_columns = columns[1:6]
         license_id = row_columns[0]
         if LICENSE_ID_PATTERN.fullmatch(license_id):
             finish_pending()
@@ -93,17 +97,25 @@ def _edition_priority(edition: str) -> int | None:
 
 
 def select_license_id(output: str) -> str | None:
-    candidates: list[tuple[int, int, str]] = []
+    candidates: list[tuple[int, int, int, str]] = []
     for row in _parse_rows(output):
         priority = _edition_priority(row.edition)
         if priority is None or row.license_type != "named" or row.status != "Active":
             continue
-        candidates.append((priority, row.source_index, row.license_id))
+        try:
+            expiration = date.fromisoformat(row.expiration)
+        except ValueError:
+            continue
+        if expiration.year > MAX_PLAUSIBLE_EXPIRATION_YEAR:
+            continue
+        candidates.append(
+            (priority, -expiration.toordinal(), row.source_index, row.license_id)
+        )
 
     if not candidates:
         return None
     candidates.sort()
-    return candidates[0][2]
+    return candidates[0][3]
 
 
 def main() -> int:
