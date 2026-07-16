@@ -1276,7 +1276,7 @@ tracked in `docs/compatibility_matrix.md`.
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
   install failures and zero unmasked canonical license identifiers.
 
-- 2026-07-16 Phase 64 opaque scoped persistent-registry domain (local candidate):
+- 2026-07-16 Phase 64 opaque scoped persistent-registry domain:
   Added scoped persistent plugin configuration across C++, Node, generated
   C/safe Rust, and Python using owned nonempty key identities, typed copied
   values, copied child/value/list inventories, checked writes, explicit
@@ -1291,5 +1291,14 @@ tracked in `docs/compatibility_matrix.md`.
   files, a 33-domain/877-symbol declaration audit, and wheel/sdist inspection.
   The local optional Hex-Rays capability remains unavailable; all independent
   runtime domains, including registry behavior, pass under the established
-  capability contract. Exact staging, push, live cross-platform CI, complete
-  log privacy, and release closure remain active under P64.4.
+  capability contract. Implementation commit
+  `381fe404c51058a9c4741f0202f17acc92f9a834` exposed five ambiguous optional
+  V8 handle conversions in Linux/GCC and macOS/Apple-Clang Node builds;
+  corrective release commit `1489e775a1bb0f6d128e927cf4ca6147ccc69b85`
+  replaces them with explicit present/absent branches. On the corrective SHA,
+  runs 29536527402 (Integrations 3/3), 29536525913 (Validation 6/6), and
+  29536526464 (Bindings 9/9) pass across Linux, Windows, and macOS. All 18 jobs
+  use IDA Professional 9.4 and exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`; boundary-aware complete-log
+  scanning finds zero standalone canonical license identifiers, zero license-
+  install failures, and zero reported identity-path occurrences.

@@ -496,6 +496,6 @@ Current overall phase status:
 - [x] P64.1 Audit the pinned IDA 9.4 registry key/value/list surface, runtime exports, generated IDAPython model, public IDAX headers, and all language bindings.
 - [x] P64.2 Select an SDK-opaque scoped-store boundary for typed values, child/value enumeration, deletion, and string-list persistence without changing the process-global registry root.
 - [x] P64.3 Implement complete C++, Node, Rust, and Python parity without exposing SDK strings/vectors, raw buffers, `regval_type_t`, registry implementation details, or the unrestorable process-global root switch.
-- [ ] P64.4 Add malformed-input and disposable string/binary/integer/boolean/enumeration/list/delete round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 64 from active work.
+- [x] P64.4 Add malformed-input and disposable string/binary/integer/boolean/enumeration/list/delete round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 64 from active work.
 
 ---
