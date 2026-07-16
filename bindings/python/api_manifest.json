@@ -408,6 +408,16 @@
       ]
     },
     {
+      "name": "problem",
+      "header": "include/ida/problem.hpp",
+      "status": "validated",
+      "native_source": "problem_bind.cpp",
+      "bound_functions": [
+        "contains", "description", "name", "next", "remember", "remove"
+      ],
+      "bound_types": ["Kind"]
+    },
+    {
       "name": "search",
       "header": "include/ida/search.hpp",
       "status": "validated",

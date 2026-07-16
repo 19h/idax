@@ -161,7 +161,24 @@ Create the restore point immediately before its mutation. `False` means that
 the current host is not recording undo history; a missing next-action label is
 returned as `None`.
 
-## 9. Diagnose failures
+## 9. Record a typed analysis problem
+
+```python
+from idax import problem
+
+address = 0x401000
+problem.remember(problem.Kind.ATTENTION, address, "Review indirect flow")
+try:
+    assert problem.contains(problem.Kind.ATTENTION, address)
+    assert problem.description(problem.Kind.ATTENTION, address) == "Review indirect flow"
+finally:
+    problem.remove(problem.Kind.ATTENTION, address)
+```
+
+Descriptions and ordered lookups return `None` when absent. The problem kind
+is a closed `IntEnum`; no raw SDK problem-list identifier crosses the binding.
+
+## 10. Diagnose failures
 
 ```python
 from idax import IdaxError

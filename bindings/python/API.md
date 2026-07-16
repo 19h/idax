@@ -29,6 +29,7 @@ checked with strict mypy.
 | `path` | 3 | 0 | Portable `os.PathLike`-aware path operations. |
 | `plugin` | 14 | 8 | Plugin subclasses, actions, hotkeys, opaque action/host contexts. |
 | `processor` | 0 | 20 | Processor descriptors, exact primary/secondary flags, typed analysis, output context, subclass callbacks. |
+| `problem` | 6 | 1 | Typed analysis-problem recording, descriptions, ordered lookup, names, removal, and presence. |
 | `search` | 8 | 4 | Text, immediate, binary-pattern, code/data/defined searches. |
 | `segment` | 22 | 4 | Segment snapshots, lookup, traversal, selectors, mutation. |
 | `storage` | 0 | 1 | Opaque persistent node alt/sup/hash/blob storage. |

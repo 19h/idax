@@ -20,6 +20,7 @@ Public headers:
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
+| `include/ida/problem.hpp` | Typed analysis-problem kinds, copied optional descriptions, ordered lookup, names, recording, removal, and presence |
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
 | `include/ida/undo.hpp` | Opaque named restore points, copied optional action labels, and undo/redo execution |
 | `include/ida/type.hpp` | Type construction, copied pointer details and metadata-preserving shifted-parent copies, explicit forward-declaration classification and ordinal-preserving complete-UDT replacement, structs/unions/members, opaque exact-member persistent informational-reference ensure/readback, metadata-preserving function-argument and return replacement, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
@@ -42,6 +43,7 @@ See also:
 - `docs/cookbook/` — Common task recipes and disassembly workflows
 - `docs/cookbook/microcode_lifting.md` — Custom microcode lifting and Hex-Rays filters
 - `docs/cookbook/undo_redo.md` — Named restore points and cross-binding undo/redo semantics
+- `docs/cookbook/analysis_problems.md` — Typed analysis-problem recording and traversal
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

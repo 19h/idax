@@ -19,7 +19,7 @@ use idax::address::{Address, BAD_ADDRESS};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
-    instruction, lines, name, plugin, search, segment, storage, types, ui, undo, xref,
+    instruction, lines, name, plugin, problem, search, segment, storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -876,6 +876,33 @@ fn undo_comment_roundtrip() {
             ErrorCategory::NotFound
         ),
     }
+}
+
+fn problem_roundtrip() {
+    require_db!();
+    let address = function::by_index(0).unwrap().start();
+    let kind = problem::Kind::Attention;
+    let _ = problem::remove(kind, address).unwrap();
+
+    assert!(!problem::contains(kind, address).unwrap());
+    assert_eq!(problem::description(kind, address).unwrap(), None);
+    assert!(!problem::name(kind, true).unwrap().is_empty());
+    assert!(!problem::name(kind, false).unwrap().is_empty());
+
+    let message = "IDAX Rust problem round-trip \u{03c0}";
+    problem::remember(kind, address, Some(message)).unwrap();
+    assert!(problem::contains(kind, address).unwrap());
+    assert_eq!(
+        problem::description(kind, address).unwrap().as_deref(),
+        Some(message)
+    );
+    assert_eq!(problem::next(kind, address).unwrap(), Some(address));
+
+    assert!(problem::remove(kind, address).unwrap());
+    assert!(!problem::remove(kind, address).unwrap());
+    assert!(!problem::contains(kind, address).unwrap());
+    assert_eq!(problem::description(kind, address).unwrap(), None);
+    assert_ne!(problem::next(kind, address).unwrap(), Some(address));
 }
 
 // ===========================================================================
@@ -2658,6 +2685,7 @@ static TEST_CASES: &[TestCase] = &[
     ("comment_append", comment_append),
     ("comment_anterior_posterior", comment_anterior_posterior),
     ("undo_comment_roundtrip", undo_comment_roundtrip),
+    ("problem_roundtrip", problem_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),

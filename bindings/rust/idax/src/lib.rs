@@ -23,6 +23,7 @@
 //! | [`search`] | `ida::search` | Text, binary, and immediate value searches |
 //! | [`analysis`] | `ida::analysis` | Auto-analysis control |
 //! | [`undo`] | `ida::undo` | Named restore points and undo/redo state |
+//! | [`problem`] | `ida::problem` | Typed analysis-problem lists |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
 //! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
@@ -123,6 +124,7 @@ pub mod lumina;
 pub mod name;
 pub mod path;
 pub mod plugin;
+pub mod problem;
 pub mod processor;
 pub mod search;
 pub mod segment;

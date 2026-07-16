@@ -560,6 +560,33 @@ describe('Undo / Redo', () => {
     });
 });
 
+// ── Analysis Problems ───────────────────────────────────────────────────
+
+describe('Analysis Problems', () => {
+    it('should remember, describe, traverse, and remove a typed problem', () => {
+        const address = idax.function.byIndex(0).start;
+        const kind = 'attention';
+        idax.problem.remove(kind, address);
+
+        expect(idax.problem.contains(kind, address)).toBe(false);
+        expect(idax.problem.description(kind, address)).toBeNull();
+        expect(idax.problem.name(kind, true).length).toBeGreaterThan(0);
+        expect(idax.problem.name(kind, false).length).toBeGreaterThan(0);
+
+        const message = 'IDAX Node problem round-trip π';
+        idax.problem.remember(kind, address, message);
+        expect(idax.problem.contains(kind, address)).toBe(true);
+        expect(idax.problem.description(kind, address)).toBe(message);
+        expect(idax.problem.next(kind, address)).toBe(address);
+
+        expect(idax.problem.remove(kind, address)).toBe(true);
+        expect(idax.problem.remove(kind, address)).toBe(false);
+        expect(idax.problem.contains(kind, address)).toBe(false);
+        expect(idax.problem.description(kind, address)).toBeNull();
+        expect(idax.problem.next(kind, address) === address).toBe(false);
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

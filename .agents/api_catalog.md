@@ -262,4 +262,9 @@ This section captures the intended public API semantics at a concrete level so i
 - `perform_undo()` and `perform_redo()` return `false` when the requested transition is unavailable rather than manufacturing an SDK error.
 - Node, Rust, and Python preserve the same five operations, optional-label state, boolean availability state, and owned-string boundary.
 
+### 17.33 Typed Analysis-Problem Lists
+- `ida::problem::Kind` assigns semantic names to all 16 pinned problem-list categories without exposing `problist_id_t` or accepting raw numeric values.
+- `description()` and `next()` return copied optional values; `remember()` preserves absent versus explicitly empty messages and rejects embedded NUL.
+- `remove()`, `contains()`, and `name()` preserve exact host state while returning owned values. Node, Rust, and Python expose the same six operations.
+
 ---

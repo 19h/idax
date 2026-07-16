@@ -77,6 +77,8 @@ The C shim follows consistent conventions documented in `shim/idax_shim.h`:
 | Comment | `idax_comment_*` | 18 |
 | Search | `idax_search_*` | 8 |
 | Analysis | `idax_analysis_*` | 12 |
+| Undo/redo | `idax_undo_*` | 5 |
+| Analysis problems | `idax_problem_*` | 6 |
 | Types | `idax_type_*` | 76 |
 | Entry points | `idax_entry_*` | 8 |
 | Fixups | `idax_fixup_*` | 12 |

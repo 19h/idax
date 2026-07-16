@@ -387,6 +387,49 @@ unsafe extern "C" {
     pub fn idax_undo_perform_redo(out: *mut ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_problem_description(
+        kind: ::std::os::raw::c_int,
+        address: u64,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_problem_remember(
+        kind: ::std::os::raw::c_int,
+        address: u64,
+        message: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_problem_next(
+        kind: ::std::os::raw::c_int,
+        at_or_after: u64,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_problem_remove(
+        kind: ::std::os::raw::c_int,
+        address: u64,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_problem_name(
+        kind: ::std::os::raw::c_int,
+        long_form: ::std::os::raw::c_int,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_problem_contains(
+        kind: ::std::os::raw::c_int,
+        address: u64,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_address_is_mapped(ea: u64) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {

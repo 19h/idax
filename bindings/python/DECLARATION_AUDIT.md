@@ -3,13 +3,13 @@
 ## Authority and result
 
 The audit starts at `include/ida/idax.hpp` and covers `core.hpp`, `error.hpp`,
-and every one of its 28 domain headers. Every top-level function and public
+and every one of its 29 domain headers. Every top-level function and public
 type has a native registration, public module export, and strict stub entry.
 Class methods, properties, enum members, overloads, constructors, and callback
 signatures are represented in the corresponding `.pyi` declaration.
 
-`api_manifest.json` inventories 832 bound top-level functions/types.
-`header_audit.json` records SHA-256 digests for the umbrella and all 30
+`api_manifest.json` inventories 839 bound top-level functions/types.
+`header_audit.json` records SHA-256 digests for the umbrella and all 31
 authoritative headers. `scripts/check_python_api_manifest.py` fails closed when
 a header changes or when native registration, public `__all__`, stub symbols,
 or the manifest diverge. A header change requires a new declaration-level
@@ -38,7 +38,7 @@ bytes and `S` inventoried symbols. Runtime work is host/fixture dependent.
 | copied struct/snapshot | constructible value class | Copy stable fields; never retain an SDK pointer. |
 | move-only RAII guard | native resource with `close()` and context manager | Deterministic teardown; finalization is a fallback. Source `reset()` is also retained where public. |
 | iterator/range and `begin`/`end` | Python iterable/iterator | Preserve ordering, bounds, and laziness; iterator implementation types are not public API. |
-| C++ enum | stdlib `Enum` or `IntFlag` | `UPPER_SNAKE_CASE` names; flag composition round-trips numerically. |
+| C++ enum | stdlib `Enum`, `IntEnum`, or `IntFlag` | `UPPER_SNAKE_CASE` names; closed numeric kinds and flag composition round-trip exactly. |
 | `Result<T>` / `Status` | return value or `IdaxError` subclass | Preserve IDAX category/code/message/context. |
 | optional/result sentinel | `T | None` or structured exception | Selected per source semantics; no unchecked sentinel pointer. |
 | `std::span` / byte buffer | Python buffer input; immutable `bytes` output | Accept contiguous buffers and copy when lifetime requires it. |

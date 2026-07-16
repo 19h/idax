@@ -767,6 +767,45 @@ void check_undo_surface() {
     (void)static_cast<PerformFn>(&ida::undo::perform_redo);
 }
 
+// ─── ida::problem ───────────────────────────────────────────────────────
+
+void check_problem_surface() {
+    using DescriptionFn = ida::Result<std::optional<std::string>>(*)(
+        ida::problem::Kind, ida::Address);
+    using RememberFn = ida::Status(*)(
+        ida::problem::Kind, ida::Address,
+        std::optional<std::string_view>);
+    using NextFn = ida::Result<std::optional<ida::Address>>(*)(
+        ida::problem::Kind, ida::Address);
+    using BooleanFn = ida::Result<bool>(*)(
+        ida::problem::Kind, ida::Address);
+    using NameFn = ida::Result<std::string>(*)(ida::problem::Kind, bool);
+
+    (void)static_cast<DescriptionFn>(&ida::problem::description);
+    (void)static_cast<RememberFn>(&ida::problem::remember);
+    (void)static_cast<NextFn>(&ida::problem::next);
+    (void)static_cast<BooleanFn>(&ida::problem::remove);
+    (void)static_cast<NameFn>(&ida::problem::name);
+    (void)static_cast<BooleanFn>(&ida::problem::contains);
+
+    static_assert(static_cast<int>(ida::problem::Kind::MissingOffsetBase) == 1);
+    static_assert(static_cast<int>(ida::problem::Kind::MissingName) == 2);
+    static_assert(static_cast<int>(ida::problem::Kind::MissingForcedOperand) == 3);
+    static_assert(static_cast<int>(ida::problem::Kind::MissingComment) == 4);
+    static_assert(static_cast<int>(ida::problem::Kind::MissingReferences) == 5);
+    static_assert(static_cast<int>(ida::problem::Kind::IgnoredJumpTable) == 6);
+    static_assert(static_cast<int>(ida::problem::Kind::DisassemblyFailure) == 7);
+    static_assert(static_cast<int>(ida::problem::Kind::AlreadyItemHead) == 8);
+    static_assert(static_cast<int>(ida::problem::Kind::FlowBeyondLimits) == 9);
+    static_assert(static_cast<int>(ida::problem::Kind::TooManyLines) == 10);
+    static_assert(static_cast<int>(ida::problem::Kind::StackTraceFailure) == 11);
+    static_assert(static_cast<int>(ida::problem::Kind::Attention) == 12);
+    static_assert(static_cast<int>(ida::problem::Kind::AnalysisDecision) == 13);
+    static_assert(static_cast<int>(ida::problem::Kind::RolledBackDecision) == 14);
+    static_assert(static_cast<int>(ida::problem::Kind::FlairCollision) == 15);
+    static_assert(static_cast<int>(ida::problem::Kind::FlairIndecision) == 16);
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
@@ -2351,6 +2390,7 @@ int main() {
     surface_check::check_search_surface();     namespaces_verified++;
     surface_check::check_analysis_surface();   namespaces_verified++;
     surface_check::check_undo_surface();       namespaces_verified++;
+    surface_check::check_problem_surface();    namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
@@ -2367,9 +2407,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 30, "all 30 namespace surfaces verified");
+    CHECK(namespaces_verified == 31, "all 31 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (30 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (31 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

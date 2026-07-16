@@ -21,6 +21,7 @@ This section records concrete friction points discovered during SDK review so wr
 17. Numeric and representation controls are spread across low-level helper patterns.
 18. Migration requires broad knowledge of legacy naming and bitflag semantics.
 19. Undo-point creation requires callers to discover and reproduce an undocumented serialized-record convention, while label queries expose SDK strings and unavailable transitions use bare booleans.
+20. Analysis-problem lists use unscoped byte identifiers, SDK strings, `BADADDR`/`-1` absence sentinels, and operation names that obscure ordered traversal and removal semantics.
 
 Wrapper response requirements derived from these pain points:
 - Convert encoded flags to typed enums/options in public API.

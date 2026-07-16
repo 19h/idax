@@ -888,6 +888,90 @@ int idax_undo_perform_redo(int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Analysis problems
+// ═══════════════════════════════════════════════════════════════════════════
+
+int idax_problem_description(int kind, uint64_t address, char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Problem description output pointer is null"));
+    *out = nullptr;
+    auto result = ida::problem::description(
+        static_cast<ida::problem::Kind>(kind), address);
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = dup_string(**result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_problem_remember(int kind, uint64_t address, const char* message) {
+    clear_error();
+    std::optional<std::string_view> value;
+    if (message != nullptr)
+        value = message;
+    auto status = ida::problem::remember(
+        static_cast<ida::problem::Kind>(kind), address, value);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_problem_next(int kind, uint64_t at_or_after,
+                      uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Problem next output pointer is null"));
+    *out = 0;
+    *has_value = 0;
+    auto result = ida::problem::next(
+        static_cast<ida::problem::Kind>(kind), at_or_after);
+    if (!result)
+        return fail(result.error());
+    if (result->has_value()) {
+        *out = **result;
+        *has_value = 1;
+    }
+    return 0;
+}
+
+int idax_problem_remove(int kind, uint64_t address, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Problem remove output pointer is null"));
+    auto result = ida::problem::remove(
+        static_cast<ida::problem::Kind>(kind), address);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_problem_name(int kind, int long_form, char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Problem name output pointer is null"));
+    *out = nullptr;
+    auto result = ida::problem::name(
+        static_cast<ida::problem::Kind>(kind), long_form != 0);
+    if (!result)
+        return fail(result.error());
+    *out = dup_string(*result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_problem_contains(int kind, uint64_t address, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Problem contains output pointer is null"));
+    auto result = ida::problem::contains(
+        static_cast<ida::problem::Kind>(kind), address);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Address
 // ═══════════════════════════════════════════════════════════════════════════
 

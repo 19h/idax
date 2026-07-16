@@ -119,6 +119,7 @@ idax_add_integration_test(performance_benchmark            performance_benchmark
 idax_add_integration_test(codedump_parity_host_gates        codedump_parity_host_gates_test.cpp)
 idax_add_integration_test(diaphora_referent_metadata        diaphora_referent_metadata_test.cpp)
 idax_add_integration_test(undo_roundtrip                    undo_roundtrip_test.cpp)
+idax_add_integration_test(problem_roundtrip                 problem_roundtrip_test.cpp)
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

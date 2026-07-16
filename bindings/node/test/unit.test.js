@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'problem', 'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -627,6 +627,26 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
         expect(dts).toContain('export namespace undo');
         expect(dts).toContain('function undoActionLabel(): string | null');
+    });
+
+    it('should have typed problem-list functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'description', 'remember', 'next', 'remove', 'name', 'contains',
+        ]) {
+            expect(typeof idax.problem[fn]).toBe('function');
+        }
+        expect(() => idax.problem.name('unknownKind')).toThrow(/Unknown problem kind/);
+        expect(() => idax.problem.name(12)).toThrow(/must be a string/);
+        expect(() => idax.problem.remember('attention', 0n, 'bad\0message'))
+            .toThrow(/embedded NUL/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace problem');
+        expect(dts).toContain("| 'flairIndecision';");
+        expect(dts).toContain('function next(kind: Kind, atOrAfter?: Address | null): Address | null');
     });
 });
 

@@ -2234,6 +2234,48 @@ export namespace undo {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// problem namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace problem {
+    type Kind =
+        | 'missingOffsetBase'
+        | 'missingName'
+        | 'missingForcedOperand'
+        | 'missingComment'
+        | 'missingReferences'
+        | 'ignoredJumpTable'
+        | 'disassemblyFailure'
+        | 'alreadyItemHead'
+        | 'flowBeyondLimits'
+        | 'tooManyLines'
+        | 'stackTraceFailure'
+        | 'attention'
+        | 'analysisDecision'
+        | 'rolledBackDecision'
+        | 'flairCollision'
+        | 'flairIndecision';
+
+    /** Return a copied problem description, or null when none is recorded. */
+    function description(kind: Kind, address: Address): string | null;
+
+    /** Record a typed problem. Null/omitted selects the SDK default message. */
+    function remember(kind: Kind, address: Address, message?: string | null): void;
+
+    /** Return the first problem address at or after the bound, or null. */
+    function next(kind: Kind, atOrAfter?: Address | null): Address | null;
+
+    /** Remove a problem marker, returning whether it existed. */
+    function remove(kind: Kind, address: Address): boolean;
+
+    /** Return the copied short or long display name for a kind. */
+    function name(kind: Kind, longForm?: boolean): string;
+
+    /** Return whether a typed problem exists at an address. */
+    function contains(kind: Kind, address: Address): boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // lumina namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

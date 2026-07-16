@@ -4,7 +4,7 @@
 IDA SDK. It supports IDAPython-hosted extensions and external IDA Library
 processes without exposing SDK structures, pointers, or unvalidated handles.
 
-All 28 public IDAX domains are implemented. Release validation is tracked by
+All 29 public IDAX domains are implemented. Release validation is tracked by
 the fail-closed declaration and symbol inventories; see
 [`DECLARATION_AUDIT.md`](DECLARATION_AUDIT.md), [`API.md`](API.md), and
 [`TUTORIAL.md`](TUTORIAL.md).

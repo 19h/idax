@@ -133,6 +133,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`entry`] | Entry points | `count`, `by_index`, `by_ordinal`, `add`, `rename`, forwarders |
 | [`fixup`] | Fixups / relocations | `at`, `set`, `remove`, `in_range`, iteration (`first`, `next`, `prev`), custom fixup handler registration |
 | [`search`] | Search | `text`, `binary_pattern`, `immediate`, `next_code`, `next_data`, `next_unknown`, `next_error`, `next_defined` |
+| [`problem`] | Analysis problems | Closed `Kind`, copied optional descriptions, ordered `next`, `remember`, `remove`, names, and presence |
 
 ### Type system
 
@@ -149,6 +150,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`storage`] | Netnode storage | `Node` (RAII handle), typed value stores: altval (`set_altval` / `altval`), supval (`set_supval` / `supval`), hashval (`set_hashval` / `hashval`), blob (`set_blob` / `blob`), `create` / `open` / `remove` |
 | [`lumina`] | Lumina server | `pull`, `push` |
 | [`analysis`] | Auto-analysis | `is_enabled`, `set_enabled`, `is_idle`, `wait`, `schedule`, `schedule_range`, `schedule_function`, `cancel`, `revert_decisions` |
+| [`undo`] | Undo/redo | Named restore points, copied optional action labels, and boolean undo/redo transitions |
 | [`event`] | IDB event subscriptions | Typed callbacks for lifecycle, segment moves, function/type/operand changes, code/data creation/destruction, regular/extra comments, and local types; generic filtering; callback-safe self-unsubscribe; `ScopedSubscription` |
 
 ### Extension points

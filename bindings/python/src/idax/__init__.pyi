@@ -13,6 +13,7 @@ from . import fixup as fixup, function as function, instruction as instruction
 from . import storage as storage
 from . import undo as undo
 from . import loader as loader, plugin as plugin, processor as processor, ui as ui
+from . import problem as problem
 from .error import (
     ConflictError as ConflictError,
     ErrorCategory as ErrorCategory,

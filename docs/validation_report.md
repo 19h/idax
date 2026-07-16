@@ -1186,3 +1186,18 @@ tracked in `docs/compatibility_matrix.md`.
   exact implementation commit, runs 29509686296, 29509687054, and 29509687311
   pass Integrations 3/3, Validation 6/6, and Bindings 9/9; complete logs contain
   zero unmasked canonical license identifiers.
+
+- 2026-07-16 Phase 60 opaque analysis-problem domain local candidate:
+  Added all six pinned problem-list operations and all 16 semantic kinds across
+  C++, Node, generated C/safe Rust, and Python. Exact isolated tests cover
+  all-kind short/long names, invalid kind/address/NUL rejection, Unicode
+  remember/description fidelity, ordered lookup, presence, removal, and final
+  absence without assuming unrelated markers are absent. Native CTest passes
+  31/31 with TGZ packaging; Node passes 244 structural plus 87 initialized-host
+  checks and strict TypeScript; Rust passes 148 unit plus 104 initialized-host
+  checks, all-target compilation, doctests, formatting, and byte-identical
+  generated bindings; Python passes 19 pure plus one initialized-host check,
+  strict typing over 33 modules, a 29-domain/839-symbol manifest, and wheel/sdist
+  audit. Generic Python runtime setup now follows the release-neutral raw-only
+  fixture rule. Selector, procmod, privacy, workflow, YAML, diff-hygiene, and
+  strict object-integrity gates pass; exact staged review and live CI remain.

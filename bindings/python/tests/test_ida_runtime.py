@@ -31,6 +31,7 @@ from idax import (
     name,
     plugin,
     processor,
+    problem,
     search,
     segment,
     storage,
@@ -50,20 +51,16 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
     source = Path(source_text)
     copied_input = tmp_path / source.name
     shutil.copy2(source, copied_input)
-    companion_database = source.with_name(f"{source.name}.i64")
-    if companion_database.is_file():
-        fixture = tmp_path / companion_database.name
-        shutil.copy2(companion_database, fixture)
-    else:
-        fixture = copied_input
+    fixture = copied_input
 
     options = database.RuntimeOptions(
         quiet=True,
         plugin_policy=database.PluginLoadPolicy(disable_user_plugins=True),
     )
     database.init(["idax-python-runtime-test"], options)
-    database.open(fixture, database.OpenMode.SKIP_ANALYSIS)
+    database.open(fixture, database.OpenMode.ANALYZE)
     try:
+        analysis.wait()
         bounds = database.address_bounds()
         assert bounds.start < bounds.end
         assert database.address_bitness() in (16, 32, 64)
@@ -115,6 +112,23 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
                     comment.get(first_function.start, True)
             else:
                 assert comment.get(first_function.start, True) == original_repeatable
+
+            problem_kind = problem.Kind.ATTENTION
+            problem.remove(problem_kind, first_function.start)
+            assert not problem.contains(problem_kind, first_function.start)
+            assert problem.description(problem_kind, first_function.start) is None
+            assert problem.name(problem_kind, True)
+            assert problem.name(problem_kind, False)
+            problem_message = "IDAX Python problem round-trip π"
+            problem.remember(problem_kind, first_function.start, problem_message)
+            assert problem.contains(problem_kind, first_function.start)
+            assert problem.description(problem_kind, first_function.start) == problem_message
+            assert problem.next(problem_kind, first_function.start) == first_function.start
+            assert problem.remove(problem_kind, first_function.start)
+            assert not problem.remove(problem_kind, first_function.start)
+            assert not problem.contains(problem_kind, first_function.start)
+            assert problem.description(problem_kind, first_function.start) is None
+            assert problem.next(problem_kind, first_function.start) != first_function.start
 
         code_address = search.next_code(bounds.start)
         decoded = instruction.decode(code_address)

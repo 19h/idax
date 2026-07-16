@@ -166,6 +166,18 @@ int idax_undo_perform_undo(int* out);
 int idax_undo_perform_redo(int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Analysis problems (ida::problem)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+int idax_problem_description(int kind, uint64_t address, char** out);
+int idax_problem_remember(int kind, uint64_t address, const char* message);
+int idax_problem_next(int kind, uint64_t at_or_after,
+                      uint64_t* out, int* has_value);
+int idax_problem_remove(int kind, uint64_t address, int* out);
+int idax_problem_name(int kind, int long_form, char** out);
+int idax_problem_contains(int kind, uint64_t address, int* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Address (ida::address)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

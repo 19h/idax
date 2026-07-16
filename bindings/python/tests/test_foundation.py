@@ -12,6 +12,7 @@ from idax import (
     lines,
     loader,
     plugin,
+    problem,
     processor,
     ui,
     undo,
@@ -31,6 +32,11 @@ def test_package_contract() -> None:
         undo.create_point("bad\0action", "label")
     with pytest.raises(idax.ValidationError, match="embedded NUL"):
         undo.create_point("action", "bad\0label")
+    assert problem.Kind.MISSING_OFFSET_BASE == 1
+    assert problem.Kind.ATTENTION == 12
+    assert problem.Kind.FLAIR_INDECISION == 16
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        problem.remember(problem.Kind.ATTENTION, 0, "bad\0message")
 
 
 def test_address_range_is_pythonic_value() -> None:
