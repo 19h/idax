@@ -69,6 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage and semantically review the locally validated seven-operation register-finder family, push, verify live CI/log privacy, and close Phase 65.
-  - 7.1.2. **Evidence:** Final post-expansion native, C++/Node/Rust/Python runtime, package/distribution, processor-module, manifest, workflow, and privacy matrices pass; require the staged review and full live release matrix.
-  - 7.1.3. **Status:** Active / no blocker.
+  - 7.1.1. **Action:** Pin all six uv setup invocations to immutable Node 24 action revision `11f9893b081a58869d3b5fccaea48c9e9e46f990` (`v8.3.2`) and explicit uv `0.11.28`, retain the workflow token for authenticated fallback download, exact-stage/review/push the isolated CI correction, verify the replacement live matrix and complete-log privacy, then close Phase 65.
+  - 7.1.2. **Evidence:** Implementation commit `c66fc8e2bcd7c4084e7c1cc629114a41e96685b1` is on `master`. Runs 29541397249 and 29541397296 reached v5's unpinned latest-version resolution from shared macOS runner addresses; jobs 87764215050 and 87764215005 failed before checkout/build with unauthenticated GitHub API rate-limit annotations. Exact v5 inspection shows that the token input already defaulted to `${{ github.token }}`, so an explicit version pin is required to eliminate that metadata lookup rather than merely restating the default.
+  - 7.1.3. **Blocker:** The first live matrix cannot pass because two pre-build latest-version resolution steps reached and exhausted an unauthenticated GitHub API bucket.
+  - 7.1.4. **Mitigation:** Remove runtime version discovery with explicit uv `0.11.28`, use setup-uv `v8.3.2`'s Node 24 runtime and Astral-mirror default, and preserve `${{ github.token }}` for authenticated GitHub fallback acquisition.
+  - 7.1.5. **Status:** Active / corrective release validation in progress.
