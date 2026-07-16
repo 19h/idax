@@ -33,6 +33,29 @@ def _assembly_output(run_dir: Path) -> Path:
     return matches[0]
 
 
+def _seed_installed_user_state(user_dir: Path) -> list[Path]:
+    """Copy only HCLI-installed license/EULA state into a disposable IDAUSR."""
+    source_roots = [Path.home() / ".idapro"]
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        source_roots.insert(0, Path(appdata) / "Hex-Rays" / "IDA Pro")
+
+    copied: list[Path] = []
+    copied_names: set[str] = set()
+    for source_root in source_roots:
+        candidates = [source_root / "ida.reg"]
+        if source_root.is_dir():
+            candidates.extend(sorted(source_root.glob("*.hexlic")))
+        for source in candidates:
+            if not source.is_file() or source.name in copied_names:
+                continue
+            destination = user_dir / source.name
+            shutil.copy2(source, destination)
+            copied.append(destination)
+            copied_names.add(source.name)
+    return copied
+
+
 def run_smoke(build_dir: Path, ida_dir: Path, fixture: Path) -> None:
     module = find_module(build_dir, "idaxmini")
     console = _ida_console(ida_dir)
@@ -43,6 +66,7 @@ def run_smoke(build_dir: Path, ida_dir: Path, fixture: Path) -> None:
         run_dir = Path(raw_run_dir)
         user_processors = run_dir / "user" / "procs"
         user_processors.mkdir(parents=True)
+        _seed_installed_user_state(user_processors.parent)
         installed_module = user_processors / module.name
         shutil.copy2(module, installed_module)
         installed_fixture = run_dir / fixture.name
@@ -75,8 +99,13 @@ def run_smoke(build_dir: Path, ida_dir: Path, fixture: Path) -> None:
             timeout=120,
         )
         if completed.returncode != 0:
+            diagnostic_parts = [completed.stdout, completed.stderr]
+            if log_file.is_file():
+                diagnostic_parts.append(
+                    log_file.read_text(encoding="utf-8", errors="replace")
+                )
             detail = _redact(
-                "\n".join((completed.stdout, completed.stderr)).strip(),
+                "\n".join(diagnostic_parts).strip(),
                 (run_dir, build_dir, ida_dir, fixture.parent, Path.home()),
             )
             raise ValidationError(

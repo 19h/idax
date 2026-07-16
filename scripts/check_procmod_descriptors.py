@@ -26,6 +26,22 @@ class InstructionDescriptor(ctypes.Structure):
     ]
 
 
+class AssemblerDescriptorPrefix(ctypes.Structure):
+    _fields_ = [
+        ("flag", ctypes.c_uint32),
+        ("user_flag", ctypes.c_uint16),
+        ("name", ctypes.c_char_p),
+        ("help", ctypes.c_int32),
+        ("header", ctypes.POINTER(ctypes.c_char_p)),
+        ("origin", ctypes.c_char_p),
+        ("end", ctypes.c_char_p),
+        ("comment", ctypes.c_char_p),
+        ("string_delimiter", ctypes.c_char),
+        ("character_delimiter", ctypes.c_char),
+        ("escape_codes", ctypes.c_char_p),
+    ]
+
+
 class ProcessorDescriptor(ctypes.Structure):
     """Complete pinned 64-bit IDA 9.4 ``processor_t`` layout."""
 
@@ -121,6 +137,12 @@ def _validate_descriptor(
         raise ValidationError(f"{module_name}: missing assembler descriptor")
     if descriptor.assemblers[1]:
         raise ValidationError(f"{module_name}: assembler array is not terminated")
+    assembler = ctypes.cast(
+        descriptor.assemblers[0], ctypes.POINTER(AssemblerDescriptorPrefix)
+    ).contents
+    _decode_name(assembler.name, "assembler name")
+    if not assembler.escape_codes:
+        raise ValidationError(f"{module_name}: assembler escape-code set is empty")
     if not descriptor.notify:
         raise ValidationError(f"{module_name}: missing processor event callback")
 
@@ -166,7 +188,11 @@ def _validate_descriptor(
 def validate_descriptors(build_dir: Path, ida_dir: Path) -> None:
     if not build_dir.is_dir():
         raise ValidationError("build directory does not exist")
-    if ctypes.sizeof(ctypes.c_void_p) != 8 or ctypes.sizeof(ProcessorDescriptor) != 144:
+    if (
+        ctypes.sizeof(ctypes.c_void_p) != 8
+        or ctypes.sizeof(ProcessorDescriptor) != 144
+        or ctypes.sizeof(AssemblerDescriptorPrefix) != 72
+    ):
         raise ValidationError("descriptor validation requires the pinned 64-bit ABI")
     runtime_library = _runtime_library(ida_dir)
     directory_handle: object | None = None

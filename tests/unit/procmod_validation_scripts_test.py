@@ -67,6 +67,30 @@ class ProcmodExportValidationTests(unittest.TestCase):
 
 
 class ProcmodRuntimeValidationTests(unittest.TestCase):
+    def test_runtime_smoke_seeds_only_installed_eula_and_license_state(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_directory:
+            root = Path(raw_directory)
+            home = root / "home"
+            source = home / ".idapro"
+            destination = root / "disposable-user"
+            source.mkdir(parents=True)
+            destination.mkdir()
+            (source / "ida.reg").write_bytes(b"accepted-registry")
+            (source / "96-0000-0000-AA.hexlic").write_bytes(b"synthetic-license")
+            (source / "unrelated.cfg").write_bytes(b"must-not-copy")
+
+            with mock.patch.object(runtime.Path, "home", return_value=home):
+                copied = runtime._seed_installed_user_state(destination)
+
+            self.assertEqual(
+                {path.name for path in copied},
+                {"ida.reg", "96-0000-0000-AA.hexlic"},
+            )
+            self.assertEqual(
+                (destination / "ida.reg").read_bytes(), b"accepted-registry"
+            )
+            self.assertFalse((destination / "unrelated.cfg").exists())
+
     def test_runtime_smoke_requires_rendered_mnemonic(self) -> None:
         with tempfile.TemporaryDirectory() as raw_directory:
             root = Path(raw_directory)
@@ -96,6 +120,38 @@ class ProcmodRuntimeValidationTests(unittest.TestCase):
             with mock.patch.object(runtime.subprocess, "run", side_effect=fake_run):
                 runtime.run_smoke(build_dir, ida_dir, fixture)
 
+    def test_runtime_smoke_reports_redacted_ida_log_on_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_directory:
+            root = Path(raw_directory)
+            build_dir = root / "build"
+            module = build_dir / "idabin" / "procs" / "idaxmini.dylib"
+            ida_dir = root / "ida"
+            console = ida_dir / "idat"
+            fixture = root / "fixture.bin"
+            module.parent.mkdir(parents=True)
+            ida_dir.mkdir()
+            module.touch()
+            console.touch()
+            fixture.write_text("fixture", encoding="utf-8")
+
+            def fake_run(
+                command: list[str], **kwargs: object
+            ) -> subprocess.CompletedProcess[str]:
+                log = Path(
+                    next(argument[2:] for argument in command if argument.startswith("-L"))
+                )
+                log.write_text(
+                    "host failure 96-0000-0000-BB\n", encoding="utf-8"
+                )
+                return subprocess.CompletedProcess(command, 1, "", "")
+
+            with mock.patch.object(runtime.subprocess, "run", side_effect=fake_run):
+                with self.assertRaises(exports.ValidationError) as raised:
+                    runtime.run_smoke(build_dir, ida_dir, fixture)
+
+            self.assertIn("[REDACTED]", str(raised.exception))
+            self.assertNotIn("96-0000-0000-BB", str(raised.exception))
+
     def test_ida_console_rejects_missing_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as raw_directory:
             with self.assertRaises(exports.ValidationError):
@@ -106,7 +162,12 @@ class ProcmodDescriptorValidationTests(unittest.TestCase):
     def test_synthetic_descriptor_accepts_coherent_shape(self) -> None:
         names = (descriptors.ctypes.c_char_p * 2)(b"idaxmini", None)
         long_names = (descriptors.ctypes.c_char_p * 2)(b"Minimal", None)
-        assemblers = (descriptors.ctypes.c_void_p * 2)(1, None)
+        assembler = descriptors.AssemblerDescriptorPrefix()
+        assembler.name = b"Test assembler"
+        assembler.escape_codes = b"\"'"
+        assemblers = (descriptors.ctypes.c_void_p * 2)(
+            descriptors.ctypes.addressof(assembler), None
+        )
         registers = (descriptors.ctypes.c_char_p * 5)(
             b"r0", b"sp", b"pc", b"cs", b"ds"
         )
@@ -136,6 +197,11 @@ class ProcmodDescriptorValidationTests(unittest.TestCase):
         descriptors._validate_descriptor(
             "idaxmini", descriptor, descriptors.EXPECTED["idaxmini"]
         )
+        assembler.escape_codes = None
+        with self.assertRaises(exports.ValidationError):
+            descriptors._validate_descriptor(
+                "idaxmini", descriptor, descriptors.EXPECTED["idaxmini"]
+            )
 
     def test_synthetic_descriptor_rejects_wrong_return_instruction(self) -> None:
         descriptor = descriptors.ProcessorDescriptor()
@@ -146,7 +212,12 @@ class ProcmodDescriptorValidationTests(unittest.TestCase):
         descriptor.dnbits = 8
         names = (descriptors.ctypes.c_char_p * 2)(b"idaxmini", None)
         long_names = (descriptors.ctypes.c_char_p * 2)(b"Minimal", None)
-        assemblers = (descriptors.ctypes.c_void_p * 2)(1, None)
+        assembler = descriptors.AssemblerDescriptorPrefix()
+        assembler.name = b"Test assembler"
+        assembler.escape_codes = b"\"'"
+        assemblers = (descriptors.ctypes.c_void_p * 2)(
+            descriptors.ctypes.addressof(assembler), None
+        )
         registers = (descriptors.ctypes.c_char_p * 5)(
             b"r0", b"sp", b"pc", b"cs", b"ds"
         )
@@ -181,6 +252,13 @@ class ProcmodDescriptorValidationTests(unittest.TestCase):
         descriptor.dnbits = 8
         names = (descriptors.ctypes.c_char_p * 2)(b"idaxmini", None)
         descriptor.psnames = names
+        assembler = descriptors.AssemblerDescriptorPrefix()
+        assembler.name = b"Test assembler"
+        assembler.escape_codes = b"\"'"
+        assemblers = (descriptors.ctypes.c_void_p * 2)(
+            descriptors.ctypes.addressof(assembler), None
+        )
+        descriptor.assemblers = assemblers
         with self.assertRaises(exports.ValidationError):
             descriptors._validate_descriptor(
                 "idaxmini", descriptor, descriptors.EXPECTED["idaxmini"]

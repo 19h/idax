@@ -347,6 +347,8 @@ struct DescriptorState {
         assembler.cmnt = optional_text(source.comment_prefix);
         assembler.ascsep = source.string_delim;
         assembler.accsep = source.char_delim;
+        assembler.esccodes = "\"'";
+        assembler.a_ascii = optional_text(source.byte_directive);
         assembler.a_byte = optional_text(source.byte_directive);
         assembler.a_word = optional_text(source.word_directive);
         assembler.a_dword = optional_text(source.dword_directive);
@@ -532,21 +534,57 @@ void render_tokens(outctx_t& context, const OutputContext& output) {
         context.out_line(token.text.c_str(), token_color(token.kind));
 }
 
-void render_default_instruction(outctx_t& context) {
-    context.out_mnemonic();
+bool render_default_instruction(outctx_t& context, Processor& processor) {
+    OutputContext mnemonic;
+    const auto mnemonic_result = processor.output_mnemonic_with_context(
+        static_cast<ida::Address>(context.insn.ea), mnemonic);
+    if (mnemonic_result == OutputInstructionResult::Success) {
+        if (mnemonic.empty())
+            return false;
+        render_tokens(context, mnemonic);
+    } else {
+        const auto& state = descriptor_state();
+        const auto instruction_index = static_cast<std::size_t>(context.insn.itype);
+        if (instruction_index >= state.info.instructions.size())
+            return false;
+        context.out_line(
+            state.info.instructions[instruction_index].mnemonic.c_str(), COLOR_INSN);
+    }
+
     bool emitted_operand = false;
     for (int index = 0; index < UA_MAXOP; ++index) {
         const auto& operand = context.insn.ops[index];
         if (operand.type == o_void || !operand.shown())
             continue;
+        OutputContext output;
+        const auto result = processor.output_operand_with_context(
+            static_cast<ida::Address>(context.insn.ea), index, output);
+        if (result == OutputOperandResult::Hidden)
+            continue;
+        if (result == OutputOperandResult::Success) {
+            if (output.empty())
+                return false;
+            if (emitted_operand) {
+                context.out_symbol(',');
+                context.out_char(' ');
+            }
+            render_tokens(context, output);
+            emitted_operand = true;
+            continue;
+        }
+        const auto saved_output = context.outbuf;
         if (emitted_operand) {
             context.out_symbol(',');
             context.out_char(' ');
         }
-        emitted_operand = context.out_one_operand(index) || emitted_operand;
+        if (context.out_one_operand(index))
+            emitted_operand = true;
+        else
+            context.outbuf = saved_output;
     }
     context.set_gen_cmt();
     context.flush_outbuf();
+    return true;
 }
 
 SwitchDescription copy_switch_description(const switch_info_t& source) {
@@ -714,7 +752,11 @@ private:
             const auto result = processor_.output_instruction_with_context(
                 static_cast<ida::Address>(context->insn.ea), output);
             if (result == OutputInstructionResult::NotImplemented) {
-                render_default_instruction(*context);
+                if (!render_default_instruction(*context, processor_)) {
+                    report_callback_error(
+                        "output instruction", "canonical fallback emitted no text");
+                    return 0;
+                }
                 return 1;
             }
             if (output.empty()) {
