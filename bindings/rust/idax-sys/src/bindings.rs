@@ -431,6 +431,189 @@ unsafe extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxRegisterValueOrigin {
+    pub address: u64,
+    pub instruction_code: u16,
+    pub short_instruction: ::std::os::raw::c_int,
+    pub program_counter_based: ::std::os::raw::c_int,
+    pub global_offset_table_like: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxRegisterValueOrigin"][::std::mem::size_of::<IdaxRegisterValueOrigin>() - 24usize];
+    ["Alignment of IdaxRegisterValueOrigin"]
+        [::std::mem::align_of::<IdaxRegisterValueOrigin>() - 8usize];
+    ["Offset of field: IdaxRegisterValueOrigin::address"]
+        [::std::mem::offset_of!(IdaxRegisterValueOrigin, address) - 0usize];
+    ["Offset of field: IdaxRegisterValueOrigin::instruction_code"]
+        [::std::mem::offset_of!(IdaxRegisterValueOrigin, instruction_code) - 8usize];
+    ["Offset of field: IdaxRegisterValueOrigin::short_instruction"]
+        [::std::mem::offset_of!(IdaxRegisterValueOrigin, short_instruction) - 12usize];
+    ["Offset of field: IdaxRegisterValueOrigin::program_counter_based"]
+        [::std::mem::offset_of!(IdaxRegisterValueOrigin, program_counter_based) - 16usize];
+    ["Offset of field: IdaxRegisterValueOrigin::global_offset_table_like"]
+        [::std::mem::offset_of!(IdaxRegisterValueOrigin, global_offset_table_like) - 20usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxRegisterValueCandidate {
+    pub has_constant: ::std::os::raw::c_int,
+    pub constant: u64,
+    pub has_stack_pointer_delta: ::std::os::raw::c_int,
+    pub stack_pointer_delta: i64,
+    pub origin: IdaxRegisterValueOrigin,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxRegisterValueCandidate"]
+        [::std::mem::size_of::<IdaxRegisterValueCandidate>() - 56usize];
+    ["Alignment of IdaxRegisterValueCandidate"]
+        [::std::mem::align_of::<IdaxRegisterValueCandidate>() - 8usize];
+    ["Offset of field: IdaxRegisterValueCandidate::has_constant"]
+        [::std::mem::offset_of!(IdaxRegisterValueCandidate, has_constant) - 0usize];
+    ["Offset of field: IdaxRegisterValueCandidate::constant"]
+        [::std::mem::offset_of!(IdaxRegisterValueCandidate, constant) - 8usize];
+    ["Offset of field: IdaxRegisterValueCandidate::has_stack_pointer_delta"]
+        [::std::mem::offset_of!(IdaxRegisterValueCandidate, has_stack_pointer_delta) - 16usize];
+    ["Offset of field: IdaxRegisterValueCandidate::stack_pointer_delta"]
+        [::std::mem::offset_of!(IdaxRegisterValueCandidate, stack_pointer_delta) - 24usize];
+    ["Offset of field: IdaxRegisterValueCandidate::origin"]
+        [::std::mem::offset_of!(IdaxRegisterValueCandidate, origin) - 32usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxTrackedRegisterValue {
+    pub state: i32,
+    pub candidates: *mut IdaxRegisterValueCandidate,
+    pub candidate_count: usize,
+    pub has_cause: ::std::os::raw::c_int,
+    pub cause: IdaxRegisterValueOrigin,
+    pub has_aborting_depth: ::std::os::raw::c_int,
+    pub aborting_depth: i32,
+    pub description: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxTrackedRegisterValue"]
+        [::std::mem::size_of::<IdaxTrackedRegisterValue>() - 72usize];
+    ["Alignment of IdaxTrackedRegisterValue"]
+        [::std::mem::align_of::<IdaxTrackedRegisterValue>() - 8usize];
+    ["Offset of field: IdaxTrackedRegisterValue::state"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, state) - 0usize];
+    ["Offset of field: IdaxTrackedRegisterValue::candidates"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, candidates) - 8usize];
+    ["Offset of field: IdaxTrackedRegisterValue::candidate_count"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, candidate_count) - 16usize];
+    ["Offset of field: IdaxTrackedRegisterValue::has_cause"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, has_cause) - 24usize];
+    ["Offset of field: IdaxTrackedRegisterValue::cause"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, cause) - 32usize];
+    ["Offset of field: IdaxTrackedRegisterValue::has_aborting_depth"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, has_aborting_depth) - 56usize];
+    ["Offset of field: IdaxTrackedRegisterValue::aborting_depth"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, aborting_depth) - 60usize];
+    ["Offset of field: IdaxTrackedRegisterValue::description"]
+        [::std::mem::offset_of!(IdaxTrackedRegisterValue, description) - 64usize];
+};
+impl Default for IdaxTrackedRegisterValue {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxNearestRegisterValue {
+    pub selected_index: usize,
+    pub register_name: *mut ::std::os::raw::c_char,
+    pub value: IdaxTrackedRegisterValue,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxNearestRegisterValue"]
+        [::std::mem::size_of::<IdaxNearestRegisterValue>() - 88usize];
+    ["Alignment of IdaxNearestRegisterValue"]
+        [::std::mem::align_of::<IdaxNearestRegisterValue>() - 8usize];
+    ["Offset of field: IdaxNearestRegisterValue::selected_index"]
+        [::std::mem::offset_of!(IdaxNearestRegisterValue, selected_index) - 0usize];
+    ["Offset of field: IdaxNearestRegisterValue::register_name"]
+        [::std::mem::offset_of!(IdaxNearestRegisterValue, register_name) - 8usize];
+    ["Offset of field: IdaxNearestRegisterValue::value"]
+        [::std::mem::offset_of!(IdaxNearestRegisterValue, value) - 16usize];
+};
+impl Default for IdaxNearestRegisterValue {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_registers_track(
+        address: u64,
+        register_name: *const ::std::os::raw::c_char,
+        max_depth: ::std::os::raw::c_int,
+        out: *mut IdaxTrackedRegisterValue,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_constant_at(
+        address: u64,
+        register_name: *const ::std::os::raw::c_char,
+        max_depth: ::std::os::raw::c_int,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_stack_delta_at(
+        address: u64,
+        register_name: *const ::std::os::raw::c_char,
+        out: *mut i64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_nearest_at(
+        address: u64,
+        first_register: *const ::std::os::raw::c_char,
+        second_register: *const ::std::os::raw::c_char,
+        out: *mut IdaxNearestRegisterValue,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_clear_control_flow_cache() -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_clear_data_reference_cache() -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_control_flow_reference_changed(
+        from: u64,
+        to: u64,
+        mutation: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_data_reference_changed(
+        to: u64,
+        mutation: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registers_tracked_value_free(value: *mut IdaxTrackedRegisterValue);
+}
+unsafe extern "C" {
+    pub fn idax_registers_nearest_value_free(value: *mut IdaxNearestRegisterValue);
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct IdaxParserParseOptions {
     pub input_kind: i32,
     pub discard_result: ::std::os::raw::c_int,

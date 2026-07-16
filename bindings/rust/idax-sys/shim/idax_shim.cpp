@@ -972,6 +972,203 @@ int idax_problem_contains(int kind, uint64_t address, int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Register-value tracking
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+IdaxRegisterValueOrigin register_origin_to_c(
+    const ida::registers::ValueOrigin& input) {
+    return IdaxRegisterValueOrigin{
+        input.address,
+        input.instruction_code,
+        input.short_instruction ? 1 : 0,
+        input.program_counter_based ? 1 : 0,
+        input.global_offset_table_like ? 1 : 0,
+    };
+}
+
+int tracked_register_value_to_c(
+    const ida::registers::TrackedValue& input,
+    IdaxTrackedRegisterValue* out) {
+    *out = {};
+    out->state = static_cast<int32_t>(input.state);
+    if (!input.candidates.empty()) {
+        auto* candidates = static_cast<IdaxRegisterValueCandidate*>(
+            std::calloc(input.candidates.size(),
+                        sizeof(IdaxRegisterValueCandidate)));
+        if (candidates == nullptr)
+            return fail(ida::Error::internal("malloc failed"));
+        out->candidates = candidates;
+        out->candidate_count = input.candidates.size();
+        for (size_t index = 0; index < input.candidates.size(); ++index) {
+            const auto& source = input.candidates[index];
+            auto& target = candidates[index];
+            target.has_constant = source.constant.has_value() ? 1 : 0;
+            target.constant = source.constant.value_or(0);
+            target.has_stack_pointer_delta =
+                source.stack_pointer_delta.has_value() ? 1 : 0;
+            target.stack_pointer_delta =
+                source.stack_pointer_delta.value_or(0);
+            target.origin = register_origin_to_c(source.origin);
+        }
+    }
+    if (input.cause) {
+        out->has_cause = 1;
+        out->cause = register_origin_to_c(*input.cause);
+    }
+    if (input.aborting_depth) {
+        out->has_aborting_depth = 1;
+        out->aborting_depth = *input.aborting_depth;
+    }
+    out->description = dup_string(input.description);
+    if (out->description == nullptr) {
+        idax_registers_tracked_value_free(out);
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+ida::Result<ida::registers::ReferenceMutation> register_mutation_from_c(
+    int mutation) {
+    switch (mutation) {
+        case 0: return ida::registers::ReferenceMutation::Added;
+        case 1: return ida::registers::ReferenceMutation::Removed;
+        default:
+            return std::unexpected(ida::Error::validation(
+                "Unknown register-reference mutation",
+                std::to_string(mutation)));
+    }
+}
+
+} // anonymous namespace
+
+int idax_registers_track(uint64_t address, const char* register_name,
+                         int max_depth, IdaxTrackedRegisterValue* out) {
+    clear_error();
+    if (register_name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Register name/result pointer is null"));
+    *out = {};
+    auto result = ida::registers::track(address, register_name, max_depth);
+    if (!result) return fail(result.error());
+    return tracked_register_value_to_c(*result, out);
+}
+
+int idax_registers_constant_at(uint64_t address, const char* register_name,
+                               int max_depth, uint64_t* out, int* has_value) {
+    clear_error();
+    if (register_name == nullptr || out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Register constant pointer is null"));
+    *out = 0;
+    *has_value = 0;
+    auto result = ida::registers::constant_at(
+        address, register_name, max_depth);
+    if (!result) return fail(result.error());
+    if (result->has_value()) {
+        *out = **result;
+        *has_value = 1;
+    }
+    return 0;
+}
+
+int idax_registers_stack_delta_at(uint64_t address, const char* register_name,
+                                  int64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Register stack-delta output pointer is null"));
+    *out = 0;
+    *has_value = 0;
+    auto result = register_name == nullptr
+        ? ida::registers::stack_delta_at(address)
+        : ida::registers::stack_delta_at(address, register_name);
+    if (!result) return fail(result.error());
+    if (result->has_value()) {
+        *out = **result;
+        *has_value = 1;
+    }
+    return 0;
+}
+
+int idax_registers_nearest_at(uint64_t address, const char* first_register,
+                              const char* second_register,
+                              IdaxNearestRegisterValue* out, int* has_value) {
+    clear_error();
+    if (first_register == nullptr || second_register == nullptr
+        || out == nullptr || has_value == nullptr) {
+        return fail(ida::Error::validation(
+            "Nearest-register pointer is null"));
+    }
+    *out = {};
+    *has_value = 0;
+    auto result = ida::registers::nearest_at(
+        address, first_register, second_register);
+    if (!result) return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    out->selected_index = (**result).selected_index;
+    out->register_name = dup_string((**result).register_name);
+    if (out->register_name == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    const int status = tracked_register_value_to_c((**result).value,
+                                                    &out->value);
+    if (status != 0) {
+        idax_registers_nearest_value_free(out);
+        return status;
+    }
+    *has_value = 1;
+    return 0;
+}
+
+int idax_registers_clear_control_flow_cache(void) {
+    clear_error();
+    auto status = ida::registers::clear_control_flow_cache();
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registers_clear_data_reference_cache(void) {
+    clear_error();
+    auto status = ida::registers::clear_data_reference_cache();
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registers_control_flow_reference_changed(
+    uint64_t from, uint64_t to, int mutation) {
+    clear_error();
+    auto semantic = register_mutation_from_c(mutation);
+    if (!semantic) return fail(semantic.error());
+    auto status = ida::registers::control_flow_reference_changed(
+        from, to, *semantic);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registers_data_reference_changed(uint64_t to, int mutation) {
+    clear_error();
+    auto semantic = register_mutation_from_c(mutation);
+    if (!semantic) return fail(semantic.error());
+    auto status = ida::registers::data_reference_changed(to, *semantic);
+    return status ? 0 : fail(status.error());
+}
+
+void idax_registers_tracked_value_free(IdaxTrackedRegisterValue* value) {
+    if (value == nullptr)
+        return;
+    std::free(value->candidates);
+    std::free(value->description);
+    *value = {};
+}
+
+void idax_registers_nearest_value_free(IdaxNearestRegisterValue* value) {
+    if (value == nullptr)
+        return;
+    std::free(value->register_name);
+    idax_registers_tracked_value_free(&value->value);
+    *value = {};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Source parsers
 // ═══════════════════════════════════════════════════════════════════════════
 

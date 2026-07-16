@@ -18,6 +18,7 @@ from idax import (
     problem,
     processor,
     registry,
+    registers,
     ui,
     undo,
     xref,
@@ -65,6 +66,10 @@ def test_package_contract() -> None:
     registry_update = registry.StringListUpdate()
     assert registry_update.max_records == 100
     assert not registry_update.ignore_case
+    assert registers.TrackingState.UNDEFINED.name == "UNDEFINED"
+    assert registers.TrackingState.STACK_POINTER_DELTA.name == "STACK_POINTER_DELTA"
+    assert registers.ReferenceMutation.ADDED.name == "ADDED"
+    assert registers.ReferenceMutation.REMOVED.name == "REMOVED"
 
 
 def test_exception_models_are_opaque_python_values() -> None:

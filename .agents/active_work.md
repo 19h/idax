@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Register-Value Tracking (Phase 65)
+
+- **7.1. Release Validation and Closure**
+  - 7.1.1. **Action:** Exact-stage and semantically review the locally validated seven-operation register-finder family, push, verify live CI/log privacy, and close Phase 65.
+  - 7.1.2. **Evidence:** Final post-expansion native, C++/Node/Rust/Python runtime, package/distribution, processor-module, manifest, workflow, and privacy matrices pass; require the staged review and full live release matrix.
+  - 7.1.3. **Status:** Active / no blocker.

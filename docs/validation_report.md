@@ -1302,3 +1302,27 @@ tracked in `docs/compatibility_matrix.md`.
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; boundary-aware complete-log
   scanning finds zero standalone canonical license identifiers, zero license-
   install failures, and zero reported identity-path occurrences.
+
+- 2026-07-16 Phase 65 opaque register-value tracking domain:
+  Added all seven pinned `regfinder.hpp` operations across C++, Node, generated
+  C/safe Rust, and Python using twelve closed semantic states, owned copied
+  candidates/origins/descriptions, name-based register selection, unique
+  constants, stack-pointer deltas, nearest-of-two results, and semantic cache
+  notifications. Exact-SDK native validation passes all three processor
+  exports/descriptors, processor runtime smoke, CTest 36/36, 39 focused tracker
+  assertions, installation, and TGZ packaging. Node passes 254 structural, 91
+  general initialized-host, and 24 AArch64 tracker checks plus declaration and
+  package inspection. Rust passes formatting, 158 unit plus 108 general
+  initialized-host checks, one tracker runtime, all-target compilation,
+  doctests, build-support, and byte-identical generated bindings at SHA-256
+  `0a95f82dad548feb1e303b65e33680058dad899eaaf9cfabd4b1d609a7282f85`.
+  Python passes 20 pure plus two initialized-host tranches, strict typing over
+  38 files, a 34-domain/891-symbol declaration audit, and wheel/sdist
+  inspection. The debug-free AArch64 fixture is post-processed to remove LLD's
+  non-loadable email-shaped source-control comment; its program headers and
+  `.text` remain byte-identical and all four runtime consumers pass afterward.
+  A two-path merge also proves two copied constant candidates with distinct
+  origins while the unique-constant convenience query returns absence.
+  Workflow/actionlint, shell/JSON/diff consistency, and candidate/reachable-
+  history privacy gates pass across 546 files and 4,004 objects. Live matrix
+  evidence remains pending until the implementation commit is pushed.

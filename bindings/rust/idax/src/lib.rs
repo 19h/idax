@@ -133,6 +133,7 @@ pub mod path;
 pub mod plugin;
 pub mod problem;
 pub mod processor;
+pub mod registers;
 pub mod registry;
 pub mod search;
 pub mod segment;

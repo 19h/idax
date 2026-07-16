@@ -462,6 +462,21 @@
       "bound_types": ["Store", "StringListUpdate", "ValueKind"]
     },
     {
+      "name": "registers",
+      "header": "include/ida/registers.hpp",
+      "status": "validated",
+      "native_source": "registers_bind.cpp",
+      "bound_functions": [
+        "clear_control_flow_cache", "clear_data_reference_cache",
+        "constant_at", "control_flow_reference_changed",
+        "data_reference_changed", "nearest_at", "stack_delta_at", "track"
+      ],
+      "bound_types": [
+        "NearestValue", "ReferenceMutation", "TrackedValue", "TrackingState",
+        "ValueCandidate", "ValueOrigin"
+      ]
+    },
+    {
       "name": "search",
       "header": "include/ida/search.hpp",
       "status": "validated",

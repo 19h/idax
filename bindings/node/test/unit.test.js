@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'exception', 'parser', 'directory', 'registry',
+        'undo', 'problem', 'exception', 'parser', 'directory', 'registry', 'registers',
         'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
@@ -648,6 +648,30 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace problem');
         expect(dts).toContain("| 'flairIndecision';");
         expect(dts).toContain('function next(kind: Kind, atOrAfter?: Address | null): Address | null');
+    });
+
+    it('should have opaque register-tracking functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'track', 'constantAt', 'stackDeltaAt', 'nearestAt',
+            'clearControlFlowCache', 'clearDataReferenceCache',
+            'controlFlowReferenceChanged', 'dataReferenceChanged',
+        ]) {
+            expect(typeof idax.registers[fn]).toBe('function');
+        }
+        expect(() => idax.registers.track(idax.BadAddress, 'x0'))
+            .toThrow(/BadAddress/);
+        expect(() => idax.registers.track(0n, 'x0', 'deep'))
+            .toThrow(/depth must be an integer/);
+        expect(() => idax.registers.dataReferenceChanged(0n, 'unknown'))
+            .toThrow(/must be 'added' or 'removed'/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace registers');
+        expect(dts).toContain("| 'stackPointerDelta';");
+        expect(dts).toContain('function nearestAt(');
     });
 
     it('should have semantic exception-region functions and declarations', () => {

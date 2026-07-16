@@ -178,6 +178,60 @@ int idax_problem_name(int kind, int long_form, char** out);
 int idax_problem_contains(int kind, uint64_t address, int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Register-value tracking (ida::registers)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef struct IdaxRegisterValueOrigin {
+    uint64_t address;
+    uint16_t instruction_code;
+    int short_instruction;
+    int program_counter_based;
+    int global_offset_table_like;
+} IdaxRegisterValueOrigin;
+
+typedef struct IdaxRegisterValueCandidate {
+    int has_constant;
+    uint64_t constant;
+    int has_stack_pointer_delta;
+    int64_t stack_pointer_delta;
+    IdaxRegisterValueOrigin origin;
+} IdaxRegisterValueCandidate;
+
+typedef struct IdaxTrackedRegisterValue {
+    int32_t state;
+    IdaxRegisterValueCandidate* candidates;
+    size_t candidate_count;
+    int has_cause;
+    IdaxRegisterValueOrigin cause;
+    int has_aborting_depth;
+    int32_t aborting_depth;
+    char* description;
+} IdaxTrackedRegisterValue;
+
+typedef struct IdaxNearestRegisterValue {
+    size_t selected_index;
+    char* register_name;
+    IdaxTrackedRegisterValue value;
+} IdaxNearestRegisterValue;
+
+int idax_registers_track(uint64_t address, const char* register_name,
+                         int max_depth, IdaxTrackedRegisterValue* out);
+int idax_registers_constant_at(uint64_t address, const char* register_name,
+                               int max_depth, uint64_t* out, int* has_value);
+int idax_registers_stack_delta_at(uint64_t address, const char* register_name,
+                                  int64_t* out, int* has_value);
+int idax_registers_nearest_at(uint64_t address, const char* first_register,
+                              const char* second_register,
+                              IdaxNearestRegisterValue* out, int* has_value);
+int idax_registers_clear_control_flow_cache(void);
+int idax_registers_clear_data_reference_cache(void);
+int idax_registers_control_flow_reference_changed(
+    uint64_t from, uint64_t to, int mutation);
+int idax_registers_data_reference_changed(uint64_t to, int mutation);
+void idax_registers_tracked_value_free(IdaxTrackedRegisterValue* value);
+void idax_registers_nearest_value_free(IdaxNearestRegisterValue* value);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Source parsers (ida::parser)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

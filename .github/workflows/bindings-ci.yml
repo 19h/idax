@@ -193,6 +193,7 @@ jobs:
           fi
           echo "Running Node.js integration tests..."
           node test/integration.test.js ../../tests/fixtures/simple_appcall_linux64
+          node test/registers.integration.test.js ../../tests/fixtures/register_tracking_aarch64
 
       - name: Run Node examples (Windows)
         if: runner.os == 'Windows'
@@ -403,6 +404,20 @@ jobs:
           fi
           cargo test --test diaphora_referent_runtime
 
+      - name: Run Rust register-tracking runtime test (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        working-directory: bindings/rust
+        env:
+          IDAX_REGISTERS_RUNTIME_FIXTURE: ${{ github.workspace }}/tests/fixtures/register_tracking_aarch64
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH="$IDADIR:$DYLD_LIBRARY_PATH"
+          else
+            export LD_LIBRARY_PATH="$IDADIR:$LD_LIBRARY_PATH"
+          fi
+          cargo test --test registers_runtime
+
       - name: Run Rust integration tests (Windows)
         if: runner.os == 'Windows'
         working-directory: bindings/rust
@@ -414,6 +429,7 @@ jobs:
           Write-Host "Building Rust integration tests (runtime executes on Unix; Windows coverage is compile-only)..."
           cargo test --release --test integration --no-run
           cargo test --release --test diaphora_referent_runtime --no-run
+          cargo test --release --test registers_runtime --no-run
 
   build-python:
     name: Python Bindings - ${{ matrix.os }}
@@ -551,6 +567,7 @@ jobs:
           )
           IDAX_PYTHON_REQUIRE_DECOMPILER=1 \
           IDAX_PYTHON_RUNTIME_FIXTURE="$RUNTIME_DIR/fixture" \
+          IDAX_PYTHON_REGISTERS_RUNTIME_FIXTURE="${{ github.workspace }}/tests/fixtures/register_tracking_aarch64" \
             uv run pytest -q -m ida_runtime
 
       - name: Record Windows initialized-host boundary

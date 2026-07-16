@@ -4,7 +4,7 @@
 IDA SDK. It supports IDAPython-hosted extensions and external IDA Library
 processes without exposing SDK structures, pointers, or unvalidated handles.
 
-All 33 public IDAX domains are implemented. Release validation is tracked by
+All 34 public IDAX domains are implemented. Release validation is tracked by
 the fail-closed declaration and symbol inventories; see
 [`DECLARATION_AUDIT.md`](DECLARATION_AUDIT.md), [`API.md`](API.md), and
 [`TUTORIAL.md`](TUTORIAL.md).
@@ -87,6 +87,7 @@ companion for the fixture, configure its path, and run:
 
 ```sh
 IDAX_PYTHON_RUNTIME_FIXTURE=tests/fixtures/simple_appcall_linux64 \
+IDAX_PYTHON_REGISTERS_RUNTIME_FIXTURE=tests/fixtures/register_tracking_aarch64 \
   uv run pytest -m ida_runtime
 ```
 

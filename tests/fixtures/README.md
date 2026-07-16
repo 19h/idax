@@ -16,6 +16,19 @@
   - Suitable for decompiler testing (Hex-Rays)
   - Contains enough complexity for xref, comment, name, type, and fixup tests
 
+### `register_tracking_aarch64`
+
+- **Format**: ELF64 (AArch64, Linux), minimal freestanding executable
+- **Source**: `register_tracking_aarch64.s`
+- **Build**: `clang --target=aarch64-linux-gnu -nostdlib -fuse-ld=lld -Wl,-e,_start -Wl,-Ttext=0x400000 register_tracking_aarch64.s -o register_tracking_aarch64 && llvm-objcopy --remove-section=.comment register_tracking_aarch64`
+- **Used by**: Opaque register-value tracking integration test
+- **Key characteristics**:
+  - Defines deterministic `x29 = 0` and high-bit-distinct `x0`/`w0` values
+  - Applies a deterministic `-32 B` stack-pointer delta before a call
+  - Merges `x2 = 0x11` and `x2 = 0x22` across two control-flow paths
+  - Exercises AArch64's supported register tracker independently of host architecture
+  - Contains no debug information, toolchain comment, database sidecar, source path, or user identity metadata
+
 ### `simple_appcall_host.c` -> `simple_appcall_host`
 
 - **Format**: Host-native executable built on demand

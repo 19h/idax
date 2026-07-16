@@ -265,7 +265,24 @@ are deterministic but not transactional across processes; serialize writers
 that share a key. Use `erase_tree()` for explicit recursive cleanup of a
 disposable subtree.
 
-## 14. Diagnose failures
+## 14. Track a register value
+
+```python
+from idax import registers
+
+tracked = registers.track(0x401020, "x0")
+if tracked.state is registers.TrackingState.CONSTANT:
+    for candidate in tracked.candidates:
+        print(candidate.constant, candidate.origin.address)
+```
+
+`constant_at()` and `stack_delta_at()` return `None` when the tracker is
+supported but no unique value is known. `UnsupportedError` means the current
+processor module does not implement this tracker. `nearest_at()` accepts two
+distinct base registers; cache change notifications use the closed
+`ReferenceMutation` enum rather than raw xref type values.
+
+## 15. Diagnose failures
 
 ```python
 from idax import IdaxError

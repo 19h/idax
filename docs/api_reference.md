@@ -28,6 +28,7 @@ Public headers:
 | `include/ida/parser.hpp` | Third-party source-parser selection by name/language, copied identity and options, arguments, source/file ingestion, and semantic parse reports/options |
 | `include/ida/directory.hpp` | Opaque access to all eight standard database trees with copied entries, directory/item mutation, ordering, search, folding, and deterministic partial bulk reports |
 | `include/ida/registry.hpp` | Copyable scoped persistent-store identities; typed string, binary, signed 32-bit integer, and boolean values; copied child/value inventories; ordered string lists; value/key/tree deletion |
+| `include/ida/registers.hpp` | Named register-value tracking with closed states, copied candidates/origins, constants, stack deltas, nearest-of-two selection, and semantic cache notifications |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
 | `include/ida/plugin.hpp` | Plugin base class, wrapper-owned action registration/activation, move-only `ScopedHotkey`, counted wrapper-managed menu/toolbar attachment with deterministic detach errors, popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |
@@ -52,6 +53,7 @@ See also:
 - `docs/cookbook/source_parsers.md` — Third-party parser selection, configuration, and type ingestion
 - `docs/cookbook/directory_trees.md` — Built-in tree traversal, organization, ordering, and partial bulk operations
 - `docs/cookbook/persistent_registry.md` — Scoped typed plugin configuration, ordered lists, and cleanup
+- `docs/cookbook/register_tracking.md` — Backward register values, stack-relative candidates, nearest selection, and cache coherence
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

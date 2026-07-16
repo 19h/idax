@@ -84,7 +84,7 @@ try {
 //   database, address, segment, function, instruction, name, xref,
 //   comment, data, search, analysis, type, entry, fixup, event,
 //   storage, diagnostics, undo, problem, exception, parser, lumina, lines, ui,
-//   directory, registry, decompiler, path
+//   directory, registry, registers, decompiler, path
 
 module.exports = native;
 
@@ -114,6 +114,7 @@ module.exports.exception = native.exception;
 module.exports.parser = native.parser;
 module.exports.directory = native.directory;
 module.exports.registry = native.registry;
+module.exports.registers = native.registers;
 module.exports.lumina = native.lumina;
 module.exports.lines = native.lines;
 module.exports.ui = native.ui;

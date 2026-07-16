@@ -293,4 +293,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `StringListUpdate` performs deterministic removal, addition-specific deduplication, front insertion, and trimming with a `1..1000` record limit. Compound updates are not atomic across writers because the SDK exposes no registry transaction token.
 - Node, safe Rust, and Python preserve the same store identity, types, copied values, list behavior, and cleanup operations. SDK strings/vectors, raw buffers and kinds, storage backend details, and `set_registry_name` remain private.
 
+### 17.38 Opaque Register-Value Tracking
+- `TrackingState` names undefined, dead-end, aborted, bad-instruction, unsupported-instruction, function-input, loop-variant, incompatible-value, excessive-reference/value, constant, and stack-pointer-delta outcomes without exposing the native state byte.
+- `TrackedValue` owns rendered state, optional cause/abort metadata, and every constant or signed stack-delta candidate with copied defining address, processor instruction code, and short/PC-relative/GOT-like attributes.
+- `track`, `constant_at`, `stack_delta_at`, and `nearest_at` accept register names and preserve unsupported versus unknown versus optional-no-value semantics. Native register numbers and alias parsing remain private.
+- Semantic cache clear/change notifications translate added/removed control-flow or data-reference state without exposing `cref_t`, `dref_t`, tracker objects, or cache pointers. Node, safe Rust, and Python preserve the same owned model.
+
 ---

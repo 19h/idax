@@ -12,7 +12,8 @@
     "clean": "cmake-js clean",
     "configure": "cmake-js configure",
     "test": "node test/unit.test.js",
-    "test:integration": "node test/integration.test.js"
+    "test:integration": "node test/integration.test.js",
+    "test:registers": "node test/registers.integration.test.js"
   },
   "files": [
     "lib/",

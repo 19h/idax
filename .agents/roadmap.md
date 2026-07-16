@@ -499,3 +499,12 @@ Current overall phase status:
 - [x] P64.4 Add malformed-input and disposable string/binary/integer/boolean/enumeration/list/delete round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 64 from active work.
 
 ---
+
+### Phase 65 TODO Action Items (Opaque Register-Value Tracking)
+
+- [x] P65.1 Audit the pinned IDA 9.4 register-finder surface, runtime exports, generated IDAPython model, existing IDAX register/analysis APIs, and all language bindings.
+- [x] P65.2 Select an SDK-opaque name-based model for tracking state, copied value candidates/origins, constants, stack deltas, nearest-register selection, and cache invalidation.
+- [x] P65.3 Implement complete C++, Node, Rust, and Python parity without exposing processor register numbers, `reg_finder_t`, `reg_value_info_t`, native candidate vectors, pointers, or raw reference-type sentinels.
+- [ ] P65.4 Add malformed-input plus isolated constant/stack/unknown/multi-value/nearest/cache evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 65 from active work.
+
+---

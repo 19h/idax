@@ -58,6 +58,12 @@ This mapping is non-exhaustive but representative of expected direction.
 | `reg_read_*` / `reg_write_*` / `reg_data_type` | typed `Store::read_*` / `write_*` / `value_kind` |
 | `reg_delete` / `reg_delete_subkey` / `reg_delete_tree` | `Store::erase_value` / `erase_key` / `erase_tree` |
 | `reg_read_strlist` / `reg_write_strlist` / `reg_update_strlist` | `Store::read_string_list` / `write_string_list` / deterministic `update_string_list` |
+| `find_regname_value_info` | `ida::registers::track(address, register_name, max_depth)` |
+| `find_reg_value` | `ida::registers::constant_at(address, register_name, max_depth)` |
+| `find_sp_value` | `ida::registers::stack_delta_at(address[, register_name])` |
+| `find_nearest_rvi` | `ida::registers::nearest_at(address, first_register, second_register)` |
+| `invalidate_regfinder_cache` | `clear_control_flow_cache` / `control_flow_reference_changed` |
+| `invalidate_regfinder_xrefs_cache` | `clear_data_reference_cache` / `data_reference_changed` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

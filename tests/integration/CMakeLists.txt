@@ -49,6 +49,12 @@ endif()
 # registers it as a CTest with the fixture binary as argument.
 function(idax_add_integration_test TEST_NAME SOURCE_FILE)
     set(TARGET_NAME "idax_${TEST_NAME}_test")
+    if(ARGC GREATER 2)
+        set(TEST_FIXTURE "${ARGV2}")
+    else()
+        set(TEST_FIXTURE
+            "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64")
+    endif()
 
     # On macOS, we MUST link against the actual installation dylibs.
     # On other platforms we use the SDK's ida_add_idalib macro, which automatically
@@ -90,7 +96,7 @@ function(idax_add_integration_test TEST_NAME SOURCE_FILE)
             NAME ${TEST_NAME}
             COMMAND ${CMAKE_COMMAND}
                 "-DIDAX_TEST_EXECUTABLE=$<TARGET_FILE:${TARGET_NAME}>"
-                "-DIDAX_TEST_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/simple_appcall_linux64"
+                "-DIDAX_TEST_FIXTURE=${TEST_FIXTURE}"
                 "-DIDAX_TEST_NAME=${TEST_NAME}"
                 -P "${CMAKE_CURRENT_SOURCE_DIR}/run_with_temp_fixture.cmake"
         )
@@ -124,6 +130,9 @@ idax_add_integration_test(exception_roundtrip               exception_roundtrip_
 idax_add_integration_test(parser_roundtrip                  parser_roundtrip_test.cpp)
 idax_add_integration_test(directory_roundtrip               directory_roundtrip_test.cpp)
 idax_add_integration_test(registry_roundtrip                registry_roundtrip_test.cpp)
+idax_add_integration_test(register_tracking_roundtrip
+    register_tracking_roundtrip_test.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/register_tracking_aarch64")
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

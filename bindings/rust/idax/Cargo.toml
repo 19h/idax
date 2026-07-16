@@ -29,3 +29,8 @@ harness = false
 name = "diaphora_referent_runtime"
 path = "tests/diaphora_referent_runtime.rs"
 harness = false
+
+[[test]]
+name = "registers_runtime"
+path = "tests/registers_runtime.rs"
+harness = false

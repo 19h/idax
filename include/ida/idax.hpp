@@ -27,6 +27,7 @@
 #include <ida/parser.hpp>
 #include <ida/directory.hpp>
 #include <ida/registry.hpp>
+#include <ida/registers.hpp>
 #include <ida/lumina.hpp>
 #include <ida/type.hpp>
 #include <ida/entry.hpp>

@@ -970,6 +970,42 @@ void check_registry_surface() {
     (void)update.ignore_case;
 }
 
+// ─── ida::registers ────────────────────────────────────────────────────
+
+void check_registers_surface() {
+    using namespace ida::registers;
+    static_assert(static_cast<std::uint8_t>(TrackingState::Undefined) == 0);
+    static_assert(static_cast<std::uint8_t>(TrackingState::StackPointerDelta)
+                  == 11);
+    static_assert(static_cast<std::uint8_t>(ReferenceMutation::Added) == 0);
+    TrackedValue value;
+    (void)value.state;
+    (void)value.candidates;
+    (void)value.cause;
+    (void)value.aborting_depth;
+    (void)value.description;
+    (void)value.known();
+    ValueCandidate candidate;
+    (void)candidate.constant;
+    (void)candidate.stack_pointer_delta;
+    (void)candidate.origin;
+    NearestValue nearest;
+    (void)nearest.selected_index;
+    (void)nearest.register_name;
+    (void)nearest.value;
+    (void)&track;
+    (void)&constant_at;
+    (void)static_cast<ida::Result<std::optional<ida::AddressDelta>> (*)(
+        ida::Address)>(&stack_delta_at);
+    (void)static_cast<ida::Result<std::optional<ida::AddressDelta>> (*)(
+        ida::Address, std::string_view)>(&stack_delta_at);
+    (void)&nearest_at;
+    (void)&clear_control_flow_cache;
+    (void)&clear_data_reference_cache;
+    (void)&control_flow_reference_changed;
+    (void)&data_reference_changed;
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {

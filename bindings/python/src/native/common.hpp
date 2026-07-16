@@ -82,6 +82,7 @@ void bind_exception(py::module_& module);
 void bind_parser(py::module_& module);
 void bind_directory(py::module_& module);
 void bind_registry(py::module_& module);
+void bind_registers(py::module_& module);
 void bind_diagnostics(py::module_& module);
 void bind_comment(py::module_& module);
 void bind_entry(py::module_& module);

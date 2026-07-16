@@ -2234,6 +2234,82 @@ export namespace undo {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// registers namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace registers {
+    type TrackingState =
+        | 'undefined'
+        | 'deadEnd'
+        | 'aborted'
+        | 'badInstruction'
+        | 'unknownInstruction'
+        | 'functionInput'
+        | 'loopVariant'
+        | 'incompatibleValues'
+        | 'tooManyReferences'
+        | 'tooManyValues'
+        | 'constant'
+        | 'stackPointerDelta';
+
+    type ReferenceMutation = 'added' | 'removed';
+
+    interface ValueOrigin {
+        address: Address;
+        instructionCode: number;
+        shortInstruction: boolean;
+        programCounterBased: boolean;
+        globalOffsetTableLike: boolean;
+    }
+
+    interface ValueCandidate {
+        constant: bigint | null;
+        stackPointerDelta: bigint | null;
+        origin: ValueOrigin;
+    }
+
+    interface TrackedValue {
+        state: TrackingState;
+        candidates: ValueCandidate[];
+        cause: ValueOrigin | null;
+        abortingDepth: number | null;
+        description: string;
+        known: boolean;
+    }
+
+    interface NearestValue {
+        selectedIndex: number;
+        registerName: string;
+        value: TrackedValue;
+    }
+
+    /** Track a named register before executing the instruction at address. */
+    function track(address: Address, registerName: string, maxDepth?: number): TrackedValue;
+
+    /** Return a unique constant, or null when no unique constant is known. */
+    function constantAt(address: Address, registerName: string, maxDepth?: number): bigint | null;
+
+    /** Return the default or named stack-pointer-relative delta, or null. */
+    function stackDeltaAt(address: Address, registerName?: string | null): bigint | null;
+
+    /** Select the nearest known value from two distinct base registers. */
+    function nearestAt(
+        address: Address,
+        firstRegister: string,
+        secondRegister: string,
+    ): NearestValue | null;
+
+    function clearControlFlowCache(): void;
+    function clearDataReferenceCache(): void;
+    function controlFlowReferenceChanged(
+        from: Address,
+        to: Address,
+        mutation: ReferenceMutation,
+    ): void;
+    function dataReferenceChanged(to: Address, mutation: ReferenceMutation): void;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // problem namespace
 // ═══════════════════════════════════════════════════════════════════════════
 
