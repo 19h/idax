@@ -1250,7 +1250,7 @@ tracked in `docs/compatibility_matrix.md`.
   9/9) pass across Linux, Windows, and macOS; complete logs contain zero
   unmasked canonical license identifiers.
 
-- 2026-07-16 Phase 63 opaque standard directory-tree domain (local candidate):
+- 2026-07-16 Phase 63 opaque standard directory-tree domain:
   Added the standard-tree operation family across C++, Node, generated C/safe
   Rust, and Python using eight semantic built-in kinds, owned paths and copied
   entry snapshots, exact error mapping, recursive enumeration/search,
@@ -1264,6 +1264,14 @@ tracked in `docs/compatibility_matrix.md`.
   modules, a 32-domain/874-symbol manifest, and wheel/sdist inspection. The
   local Python host reports the compatible decompiler as unavailable under the
   strict licensed-CI flag; all directory behavior passes and the initialized
-  suite passes under its optional-capability contract. Repository/privacy
-  gates, exact staging, licensed cross-platform CI, and release closure remain
-  active under P63.4.
+  suite passes under its optional-capability contract. The 26 selector,
+  processor-module, and privacy regressions; repository consistency; workflow
+  YAML/actionlint; shell syntax; diff hygiene; strict object integrity; and
+  527-file candidate plus 3,932-object reachable-history privacy gates pass.
+  Implementation commit `dc9d3ac61bad6c82cfd8bd81bcdb6a3fb5a2ab21`
+  passes runs 29530158100 (Integrations 3/3), 29530157993 (Validation 6/6),
+  and 29530157973 (Bindings 9/9) across Linux, Windows, and macOS. All 18 jobs
+  select an eligible active named IDA product license, install IDA Professional
+  9.4, and use exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
+  install failures and zero unmasked canonical license identifiers.
