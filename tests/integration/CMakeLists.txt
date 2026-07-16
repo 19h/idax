@@ -25,7 +25,7 @@ if(DEFINED ENV{IDADIR})
     set(IDA_INSTALL_DIR "$ENV{IDADIR}")
 elseif(APPLE)
     # Try common macOS locations.
-    foreach(_ver 9.3 9.2)
+    foreach(_ver 9.4)
         set(_try "/Applications/IDA Professional ${_ver}.app/Contents/MacOS")
         if(EXISTS "${_try}/${IDAX_IDALIB_LIB_NAME}")
             set(IDA_INSTALL_DIR "${_try}")

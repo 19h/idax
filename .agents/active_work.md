@@ -66,13 +66,11 @@
 
 ---
 
-### 9. Repository Absolute-Path Privacy Hygiene (Phase 54)
+### 10. Loadable Processor-Module ABI Closure (Phase 58)
 
-- **9.1. Current-tree sanitization**
-  - 9.1.1. **Action:** Remove identity-bearing absolute host paths from tracked text and binary artifacts, replacing them with semantic non-absolute tokens.
-  - 9.1.2. **Status:** P54.1-P54.2 complete (F465; KB 35.121; decision 19.56); current-tree and isolated IDA-open probes pass.
-- **9.2. History and closure**
-  - 9.2.1. **Action:** Submit the documented GitHub sensitive-data purge request for two affected PR refs and cached objects; coordinate rewritten-history adoption with the four affected fork owners; reverify that an old object ID is no longer fetchable.
-  - 9.2.2. **Impact:** `origin/master` and fresh clones are sanitized, but GitHub still serves the former tip by exact object ID; both PR refs and all four fork default branches retain contaminated history (F466; KB 35.122).
-  - 9.2.3. **Mitigation:** GitHub Support must dereference the PRs, garbage-collect server objects, and invalidate cached views. Fork owners must rewrite or delete their copies. These are external account actions and cannot be inferred from repository write authority.
-  - 9.2.4. **Status:** Blocked on explicit authorization for the Support request and external fork-owner coordination; unrelated local implementation work remains isolated in the primary worktree.
+- **10.1. P58.4 validation and closure**
+  - 10.1.1. **Action:** Prove the exported descriptor and callback path against the pinned SDK and an IDA 9.4 host; run complete regression, privacy, exact staged review, push, and same-update active-work removal.
+  - 10.1.2. **Local blocker:** The installed 9.4 runtime reaches license validation, but the workstation HCLI session is expired; no local credential is available to refresh it.
+  - 10.1.3. **Impact:** Local IDA batch load/analyze/output evidence cannot complete on this host. Exact-SDK compilation, symbol inspection, offline contract tests, and cross-language tests remain available.
+  - 10.1.4. **Mitigation/status:** Active. The validation matrix now runs the same runtime smoke after its authenticated active-named-license installation on Linux, macOS, and Windows; push and live CI are the reopening probe.
+  - 10.1.5. **History privacy status:** Active. The current tree is clean, but 249 sensitive blobs remain reachable from the pre-rewrite `origin/master`. Commit the exact candidate, rewrite project-owned reachable history with fixed-width substitutions in an isolated mirror, prove an unchanged tip tree plus `git fsck` and zero-hit history scan, and push only the rewritten ref (F521; KB 35.174).

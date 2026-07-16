@@ -8,7 +8,7 @@ type has a native registration, public module export, and strict stub entry.
 Class methods, properties, enum members, overloads, constructors, and callback
 signatures are represented in the corresponding `.pyi` declaration.
 
-`api_manifest.json` inventories 826 bound top-level functions/types.
+`api_manifest.json` inventories 827 bound top-level functions/types.
 `header_audit.json` records SHA-256 digests for the umbrella and all 29
 authoritative headers. `scripts/check_python_api_manifest.py` fails closed when
 a header changes or when native registration, public `__all__`, stub symbols,

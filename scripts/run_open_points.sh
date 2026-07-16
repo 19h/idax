@@ -44,8 +44,7 @@ detect_runtime_dir() {
   if [[ "$(uname -s)" == "Darwin" ]]; then
     local candidate
     for candidate in \
-      "/Applications/IDA Professional 9.3.app/Contents/MacOS" \
-      "/Applications/IDA Professional 9.2.app/Contents/MacOS"; do
+      "/Applications/IDA Professional 9.4.app/Contents/MacOS"; do
       if has_runtime_libs "${candidate}"; then
         echo "${candidate}"
         return

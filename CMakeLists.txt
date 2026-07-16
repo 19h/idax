@@ -125,6 +125,24 @@ else()
         "IDASDK='${IDASDK}', ENV{IDASDK}='$ENV{IDASDK}'.")
 endif()
 
+# The public ABI and processor bridge target the pinned IDA SDK 9.4 release.
+# Caller-owned IDASDK overrides must not silently select an older/newer layout.
+set(IDAX_REQUIRED_IDA_SDK_VERSION 940)
+file(STRINGS "${IDAX_SDK_ROOT}/include/pro.h" IDAX_IDA_SDK_VERSION_LINE
+    REGEX "^#[ \t]*define[ \t]+IDA_SDK_VERSION[ \t]+[0-9]+"
+    LIMIT_COUNT 1)
+if(NOT IDAX_IDA_SDK_VERSION_LINE MATCHES
+        "IDA_SDK_VERSION[ \t]+([0-9]+)")
+    message(FATAL_ERROR "Could not read IDA_SDK_VERSION from the resolved SDK.")
+endif()
+set(IDAX_IDA_SDK_VERSION "${CMAKE_MATCH_1}")
+if(NOT IDAX_IDA_SDK_VERSION STREQUAL
+        "${IDAX_REQUIRED_IDA_SDK_VERSION}")
+    message(FATAL_ERROR
+        "idax requires IDA SDK 9.4 (IDA_SDK_VERSION=940); "
+        "resolved IDA_SDK_VERSION=${IDAX_IDA_SDK_VERSION}.")
+endif()
+
 # ── C++23 standard for idax itself ───────────────────────────────────────
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

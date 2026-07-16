@@ -54,6 +54,10 @@ enum class InstructionFeature : std::uint32_t {
     Jump        = 0x04000,   ///< Indirect jump/call.
     Shift       = 0x08000,   ///< Bit-shift instruction.
     HighLevel   = 0x10000,   ///< May appear in HLL function.
+    Change7     = 0x020000,  ///< Modifies operand 7.
+    Change8     = 0x040000,  ///< Modifies operand 8.
+    Use7        = 0x080000,  ///< Uses operand 7.
+    Use8        = 0x100000,  ///< Uses operand 8.
 };
 
 /// Describes a single instruction in the processor's instruction set.
@@ -105,24 +109,55 @@ struct AssemblerInfo {
 
 /// Processor feature flags (corresponds to SDK PR_* flags).
 enum class ProcessorFlag : std::uint32_t {
+    None                = 0,
+    HexNumbers          = 0x000000,  ///< PRN_HEX: use hexadecimal numbers.
+    Segments            = 0x000001,  ///< PR_SEGS: use segment registers.
+    Use32               = 0x000002,  ///< PR_USE32: support 32-bit addressing.
+    DefaultSeg32        = 0x000004,  ///< PR_DEFSEG32: default segments to 32-bit.
+    RegisterNames       = 0x000008,  ///< PR_RNAMESOK: allow register-like names.
+    AdjustSegments      = 0x000020,  ///< PR_ADJSEGS: IDA may adjust segment bounds.
+    OctalNumbers        = 0x000040,  ///< PRN_OCT: use octal numbers.
+    DecimalNumbers      = 0x000080,  ///< PRN_DEC: use decimal numbers.
+    BinaryNumbers       = 0x0000C0,  ///< PRN_BIN: use binary numbers.
+    WordInstructions    = 0x000100,  ///< PR_WORD_INS: word-grouped instruction bytes.
+    NoChange            = 0x000200,  ///< PR_NOCHANGE: display-only database attributes.
+    Assemble            = 0x000400,  ///< PR_ASSEMBLE: implements assembly callback.
+    AlignData           = 0x000800,  ///< PR_ALIGN: align data items.
+    TypeInfo            = 0x001000,  ///< PR_TYPEINFO: complete type callbacks.
+    Use64               = 0x002000,  ///< PR_USE64: support 64-bit addressing.
+    SegmentRegistersOther = 0x004000, ///< PR_SGROTHER: sregs are not selectors.
+    StackGrowsUp        = 0x008000,  ///< PR_STACK_UP: stack grows upward.
+    BinaryMemory        = 0x010000,  ///< PR_BINMEM: module defines binary memory.
+    SegmentTranslation  = 0x020000,  ///< PR_SEGTRANS: custom segment translation.
+    CheckCrossReferences = 0x040000, ///< PR_CHK_XREF: constrain near xrefs.
+    NoSegMove           = 0x080000,  ///< PR_NO_SEGMOVE: segment moves unsupported.
+    UseArgTypes         = 0x200000,  ///< PR_USE_ARG_TYPES: use argument callbacks.
+    ScaleStackVariables = 0x400000,  ///< PR_SCALE_STKVARS: implicit stack scaling.
+    DelayedBranches     = 0x800000,  ///< PR_DELAYED: delayed jumps/calls.
+    AlignInstructions   = 0x1000000, ///< PR_ALIGN_INSN: arbitrary alignment insns.
+    Purging             = 0x2000000, ///< PR_PURGING: callee-purged conventions.
+    ConditionalInsns    = 0x4000000, ///< PR_CNDINSNS: conditional instructions.
+    UseTbyte            = 0x8000000, ///< PR_USE_TBYTE: target-specific tbyte.
+    DefaultSeg64        = 0x10000000, ///< PR_DEFSEG64: default segments to 64-bit.
+    OuterOperands       = 0x20000000, ///< PR_OUTER: outer operands supported.
+};
+
+/// Additional processor feature flags (corresponds exactly to SDK PR2_* bits).
+enum class ProcessorFlag2 : std::uint32_t {
     None            = 0,
-    Segments        = 0x000001,  ///< PR_SEGS: use segments.
-    Use32           = 0x000002,  ///< PR_USE32: supports 32-bit addressing.
-    Use64           = 0x000004,  ///< PR_USE64: supports 64-bit addressing.
-    DefaultSeg32    = 0x000008,  ///< PR_DEFSEG32: default segment is 32-bit.
-    DefaultSeg64    = 0x000010,  ///< PR_DEFSEG64: default segment is 64-bit.
-    TypeInfo        = 0x000020,  ///< PR_TYPEINFO: supports type information.
-    UseArgTypes     = 0x000040,  ///< PR_USE_ARG_TYPES: use argument types.
-    ConditionalInsns = 0x000080, ///< PR_CNDINSNS: has conditional instructions.
-    NoSegMove       = 0x000100,  ///< PR_NO_SEGMOVE: no segment move.
-    HexNumbers      = 0x000200,  ///< PRN_HEX: use hex numbers by default.
-    DecimalNumbers  = 0x000400,  ///< PRN_DEC: use decimal numbers by default.
-    OctalNumbers    = 0x000800,  ///< PRN_OCT: use octal numbers by default.
+    Mappings        = 0x000001, ///< PR2_MAPPINGS: module uses memory mappings.
+    IdpOptions      = 0x000002, ///< PR2_IDP_OPTS: processor-specific options.
+    Code16Bit       = 0x000008, ///< PR2_CODE16_BIT: low address bit selects ISA.
+    Macro           = 0x000010, ///< PR2_MACRO: macro instructions supported.
+    UseCalcRel      = 0x000020, ///< PR2_USE_CALCREL: Lumina calcrel supported.
+    RelativeBits    = 0x000040, ///< PR2_REL_BITS: calcrel uses bit granularity.
+    Force16BitTypes = 0x000080, ///< PR2_FORCE_16BIT: force 16-bit basic types.
+    IgnoreIdaGuess  = 0x000100, ///< PR2_IGNORE_IDA_GUESS: create inside guessed arrays.
 };
 
 /// Processor metadata provided by a Processor subclass.
 struct ProcessorInfo {
-    std::int32_t id{0};              ///< Processor ID (PLFM_* or >0x8000 for third-party).
+    std::int32_t id{0};              ///< Third-party processor ID (>0x8000).
     std::vector<std::string> short_names;  ///< Short names (<9 chars each).
     std::vector<std::string> long_names;   ///< Long descriptive names.
     std::uint32_t flags{0};          ///< PR_* flags (or-ed ProcessorFlag values).
@@ -257,6 +292,7 @@ struct AnalyzeOperand {
 
 /// Optional typed result of analyze() with normalized operand metadata.
 struct AnalyzeDetails {
+    std::uint16_t instruction_code{0}; ///< Canonical instruction code (`itype`).
     int size{0};
     std::vector<AnalyzeOperand> operands;
 };
@@ -486,11 +522,9 @@ public:
 
     /// Optional context-driven instruction formatter.
     ///
-    /// Default behavior first attempts `output_mnemonic_with_context` and then
-    /// falls back to `output_instruction(address)`.
-    ///
-    /// If a subclass returns `OutputInstructionResult::Success` from
-    /// `output_mnemonic_with_context`, that status is propagated.
+    /// Default behavior is unimplemented. The private bridge uses this hook
+    /// from the SDK mnemonic callback and, independently, as part of canonical
+    /// full-instruction fallback rendering.
     virtual OutputInstructionResult output_mnemonic_with_context(
             Address address,
             OutputContext& output) {
@@ -501,14 +535,14 @@ public:
 
     /// Optional context-driven full instruction formatter.
     ///
-    /// Default behavior falls back to `output_instruction(address)` and returns
-    /// `OutputInstructionResult::NotImplemented`.
+    /// Default behavior invokes the legacy `output_instruction(address)` hook
+    /// and returns `OutputInstructionResult::NotImplemented`. Mnemonic-only
+    /// handling is deliberately separate: the private bridge uses it while
+    /// performing canonical mnemonic/operand fallback rendering.
     virtual OutputInstructionResult output_instruction_with_context(
             Address address,
             OutputContext& output) {
-        auto mnemonic_result = output_mnemonic_with_context(address, output);
-        if (mnemonic_result == OutputInstructionResult::Success)
-            return mnemonic_result;
+        (void)output;
         output_instruction(address);
         return OutputInstructionResult::NotImplemented;
     }
@@ -646,7 +680,12 @@ public:
     static ProcessorClass* g_idax_processor_instance = nullptr;              \
     }                                                                        \
     extern "C" {                                                             \
+    void idax_processor_bridge_link_anchor();                                \
     void idax_processor_bridge_init(void** out_processor);                   \
+    }                                                                        \
+    namespace {                                                              \
+    [[maybe_unused]] const bool g_idax_processor_bridge_linked =             \
+        (idax_processor_bridge_link_anchor(), true);                         \
     }                                                                        \
     void idax_processor_bridge_init(void** out_processor) {                  \
         if (!g_idax_processor_instance)                                      \

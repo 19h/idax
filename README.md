@@ -94,7 +94,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
 | **Plugins** | `ida::plugin` | Plugin base class, owned action registration/activation, scoped one-call hotkeys, menu/toolbar/popup attach+detach, context callbacks with optional Local Types refs |
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |
-| **Processors** | `ida::processor` | Processor base class, typed analysis details, tokenized output context, switch detection |
+| **Processors** | `ida::processor` | Loadable `LPH`/`procmod_t` bridge, exact processor flags, typed instruction/operand analysis, tokenized output, switch detection |
 | **Debugger** | `ida::debugger` | Process lifecycle, breakpoints, memory, registers, typed event subscriptions |
 | **Decompiler** | `ida::decompiler` | Scoped Hex-Rays ownership, decompile, pseudocode, variables, ctree visitor, lvar metadata, semantic persisted-comment positions/enumeration, pseudocode-switch/popup events, address mapping |
 | **Lines** | `ida::lines` | Tagged text/color helpers plus copied half-open source-file address mappings |
@@ -369,7 +369,12 @@ public:
         pi.short_names    = {"myproc"};
         pi.long_names     = {"My Custom Processor"};
         pi.default_bitness = 32;
-        pi.registers      = {{"r0", false}, {"r1", false}, {"sp", false}, {"pc", false}};
+        pi.registers      = {{"r0", false}, {"r1", false}, {"sp", false}, {"pc", false},
+                             {"cs", false}, {"ds", false}};
+        pi.first_segment_register = 4;
+        pi.last_segment_register = 5;
+        pi.code_segment_register = 4;
+        pi.data_segment_register = 5;
         pi.instructions   = {{"nop", 0}, {"mov", 0}, {"add", 0}, {"jmp", 0}};
         return pi;
     }
@@ -379,14 +384,29 @@ public:
         return 4;
     }
 
+    ida::Result<ida::processor::AnalyzeDetails>
+    analyze_with_details(ida::Address address) override {
+        ida::processor::AnalyzeDetails details;
+        details.instruction_code = 0;
+        details.size = 4;
+        return details;
+    }
+
     ida::processor::EmulateResult emulate(ida::Address) override {
         return ida::processor::EmulateResult::Success;
     }
 
-    void output_instruction(ida::Address) override { /* ... */ }
+    void output_instruction(ida::Address) override {}
+
+    ida::processor::OutputInstructionResult
+    output_instruction_with_context(ida::Address,
+                                    ida::processor::OutputContext& output) override {
+        output.mnemonic("nop");
+        return ida::processor::OutputInstructionResult::Success;
+    }
 
     ida::processor::OutputOperandResult output_operand(ida::Address, int) override {
-        return ida::processor::OutputOperandResult::Ok;
+        return ida::processor::OutputOperandResult::Hidden;
     }
 };
 

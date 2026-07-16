@@ -155,6 +155,20 @@ def test_loader_flag_round_trip() -> None:
     assert all(getattr(decoded, field) for field in fields)
 
 
+def test_processor_sdk_flag_and_analysis_contract() -> None:
+    assert int(processor.InstructionFeature.CHANGE7) == 0x020000
+    assert int(processor.InstructionFeature.CHANGE8) == 0x040000
+    assert int(processor.InstructionFeature.USE7) == 0x080000
+    assert int(processor.InstructionFeature.USE8) == 0x100000
+    assert int(processor.ProcessorFlag.HEX_NUMBERS) == 0
+    assert int(processor.ProcessorFlag.DEFAULT_SEG32) == 0x000004
+    assert int(processor.ProcessorFlag.USE64) == 0x002000
+    assert int(processor.ProcessorFlag.USE_ARG_TYPES) == 0x200000
+    assert int(processor.ProcessorFlag.CONDITIONAL_INSNS) == 0x4000000
+    assert int(processor.ProcessorFlag2.CODE16_BIT) == 0x000008
+    assert processor.AnalyzeDetails().instruction_code == 0
+
+
 def test_plugin_and_processor_python_subclasses() -> None:
     class ProbePlugin(plugin.Plugin):
         def __init__(self) -> None:

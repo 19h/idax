@@ -32,6 +32,10 @@ pub enum InstructionFeature {
     Jump = 0x04000,
     Shift = 0x08000,
     HighLevel = 0x10000,
+    Change7 = 0x020000,
+    Change8 = 0x040000,
+    Use7 = 0x080000,
+    Use8 = 0x100000,
 }
 
 #[derive(Debug, Clone)]
@@ -108,16 +112,52 @@ pub enum ProcessorFlag {
     None = 0,
     Segments = 0x000001,
     Use32 = 0x000002,
-    Use64 = 0x000004,
-    DefaultSeg32 = 0x000008,
-    DefaultSeg64 = 0x000010,
-    TypeInfo = 0x000020,
-    UseArgTypes = 0x000040,
-    ConditionalInsns = 0x000080,
-    NoSegMove = 0x000100,
-    HexNumbers = 0x000200,
-    DecimalNumbers = 0x000400,
-    OctalNumbers = 0x000800,
+    DefaultSeg32 = 0x000004,
+    RegisterNames = 0x000008,
+    AdjustSegments = 0x000020,
+    OctalNumbers = 0x000040,
+    DecimalNumbers = 0x000080,
+    BinaryNumbers = 0x0000C0,
+    WordInstructions = 0x000100,
+    NoChange = 0x000200,
+    Assemble = 0x000400,
+    AlignData = 0x000800,
+    TypeInfo = 0x001000,
+    Use64 = 0x002000,
+    SegmentRegistersOther = 0x004000,
+    StackGrowsUp = 0x008000,
+    BinaryMemory = 0x010000,
+    SegmentTranslation = 0x020000,
+    CheckCrossReferences = 0x040000,
+    NoSegMove = 0x080000,
+    UseArgTypes = 0x200000,
+    ScaleStackVariables = 0x400000,
+    DelayedBranches = 0x800000,
+    AlignInstructions = 0x1000000,
+    Purging = 0x2000000,
+    ConditionalInsns = 0x4000000,
+    UseTbyte = 0x8000000,
+    DefaultSeg64 = 0x10000000,
+    OuterOperands = 0x20000000,
+}
+
+impl ProcessorFlag {
+    /// PRN_HEX is the zero-valued default and cannot be a distinct Rust enum variant.
+    pub const HEX_NUMBERS: u32 = 0x000000;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u32)]
+pub enum ProcessorFlag2 {
+    None = 0,
+    Mappings = 0x000001,
+    IdpOptions = 0x000002,
+    Code16Bit = 0x000008,
+    Macro = 0x000010,
+    UseCalcRel = 0x000020,
+    RelativeBits = 0x000040,
+    Force16BitTypes = 0x000080,
+    IgnoreIdaGuess = 0x000100,
 }
 
 #[derive(Debug, Clone)]
@@ -312,6 +352,7 @@ impl Default for AnalyzeOperand {
 
 #[derive(Debug, Clone, Default)]
 pub struct AnalyzeDetails {
+    pub instruction_code: u16,
     pub size: i32,
     pub operands: Vec<AnalyzeOperand>,
 }
@@ -476,6 +517,7 @@ pub trait Processor {
     fn analyze_with_details(&mut self, address: Address) -> Result<AnalyzeDetails> {
         let size = self.analyze(address)?;
         Ok(AnalyzeDetails {
+            instruction_code: 0,
             size,
             operands: Vec::new(),
         })
@@ -492,11 +534,8 @@ pub trait Processor {
     fn output_instruction_with_context(
         &mut self,
         address: Address,
-        output: &mut OutputContext,
+        _output: &mut OutputContext,
     ) -> OutputInstructionResult {
-        if self.output_mnemonic_with_context(address, output) == OutputInstructionResult::Success {
-            return OutputInstructionResult::Success;
-        }
         self.output_instruction(address);
         OutputInstructionResult::NotImplemented
     }

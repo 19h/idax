@@ -318,6 +318,7 @@ public:
     ida::Result<ida::processor::AnalyzeDetails>
     analyze_with_details(ida::Address) override {
         ida::processor::AnalyzeDetails details;
+        details.instruction_code = 1;
         details.size = 4;
 
         ida::processor::AnalyzeOperand operand;
@@ -371,10 +372,15 @@ void test_processor_output_context() {
     MnemonicHookProcessor mnemonic_proc;
     ida::processor::OutputContext mnemonic_out;
     auto mnemonic_res = mnemonic_proc.output_instruction_with_context(0x1000, mnemonic_out);
-    CHECK(mnemonic_res == ida::processor::OutputInstructionResult::Success,
-          "default instruction formatter uses mnemonic hook when provided");
-    CHECK(mnemonic_out.text() == "hooked",
-          "mnemonic hook text is returned");
+    CHECK(mnemonic_res == ida::processor::OutputInstructionResult::NotImplemented,
+          "default full formatter remains unimplemented for mnemonic-only hooks");
+    CHECK(mnemonic_out.empty(),
+          "default full formatter does not conflate mnemonic and full output");
+    auto direct_mnemonic_res =
+        mnemonic_proc.output_mnemonic_with_context(0x1000, mnemonic_out);
+    CHECK(direct_mnemonic_res == ida::processor::OutputInstructionResult::Success,
+          "mnemonic hook independently reports success");
+    CHECK(mnemonic_out.text() == "hooked", "mnemonic hook text is returned");
 }
 
 void test_processor_analyze_details() {
@@ -387,6 +393,8 @@ void test_processor_analyze_details() {
         return;
 
     CHECK(details->size == 4, "typed analyze details include size");
+    CHECK(details->instruction_code == 1,
+          "typed analyze details include instruction code");
     CHECK(details->operands.size() == 1, "typed analyze details include operand");
 
     const auto& operand = details->operands.front();
@@ -967,19 +975,23 @@ void test_feature_flag_composition() {
     CHECK((change1_use2 & static_cast<std::uint32_t>(IF::Stop)) == 0,
           "Stop bit NOT set in composition");
 
-    // All six Change and Use pairs don't overlap.
+    // All eight Change and Use pairs don't overlap.
     auto all_change = static_cast<std::uint32_t>(IF::Change1) |
                       static_cast<std::uint32_t>(IF::Change2) |
                       static_cast<std::uint32_t>(IF::Change3) |
                       static_cast<std::uint32_t>(IF::Change4) |
                       static_cast<std::uint32_t>(IF::Change5) |
-                      static_cast<std::uint32_t>(IF::Change6);
+                      static_cast<std::uint32_t>(IF::Change6) |
+                      static_cast<std::uint32_t>(IF::Change7) |
+                      static_cast<std::uint32_t>(IF::Change8);
     auto all_use = static_cast<std::uint32_t>(IF::Use1) |
                    static_cast<std::uint32_t>(IF::Use2) |
                    static_cast<std::uint32_t>(IF::Use3) |
                    static_cast<std::uint32_t>(IF::Use4) |
                    static_cast<std::uint32_t>(IF::Use5) |
-                   static_cast<std::uint32_t>(IF::Use6);
+                   static_cast<std::uint32_t>(IF::Use6) |
+                   static_cast<std::uint32_t>(IF::Use7) |
+                   static_cast<std::uint32_t>(IF::Use8);
     CHECK((all_change & all_use) == 0, "Change and Use bits are disjoint");
 
     // Processor flags: compose multiple.
@@ -991,6 +1003,19 @@ void test_feature_flag_composition() {
     CHECK((pf & static_cast<std::uint32_t>(PF::Use64)) != 0, "Use64 in proc flags");
     CHECK((pf & static_cast<std::uint32_t>(PF::Use32)) == 0, "Use32 NOT in proc flags");
     CHECK((pf & static_cast<std::uint32_t>(PF::DefaultSeg64)) != 0, "DefaultSeg64 set");
+    CHECK(static_cast<std::uint32_t>(PF::DefaultSeg32) == 0x000004,
+          "DefaultSeg32 matches PR_DEFSEG32");
+    CHECK(static_cast<std::uint32_t>(PF::Use64) == 0x002000,
+          "Use64 matches PR_USE64");
+    CHECK(static_cast<std::uint32_t>(PF::TypeInfo) == 0x001000,
+          "TypeInfo matches PR_TYPEINFO");
+    CHECK(static_cast<std::uint32_t>(PF::UseArgTypes) == 0x200000,
+          "UseArgTypes matches PR_USE_ARG_TYPES");
+    CHECK(static_cast<std::uint32_t>(PF::ConditionalInsns) == 0x4000000,
+          "ConditionalInsns matches PR_CNDINSNS");
+    CHECK(static_cast<std::uint32_t>(ida::processor::ProcessorFlag2::Code16Bit)
+              == 0x000008,
+          "ProcessorFlag2 Code16Bit matches PR2_CODE16_BIT");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

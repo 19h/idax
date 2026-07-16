@@ -427,3 +427,12 @@ Current overall phase status:
 - [x] P57.7 Run complete pure/native/package/type/real-IDA/lifecycle/callback/cross-platform validation, exact staged review, commit/push, synchronize closure records, and remove Phase 57 from active work.
 
 ---
+
+### Phase 58 TODO Action Items (Loadable Processor-Module ABI Closure)
+
+- [x] P58.1 Audit `IDAX_PROCESSOR`, processor constants, typed analysis, examples, and the pinned IDA 9.4 processor-module ABI for an actual load/dispatch path.
+- [x] P58.2 Implement an SDK-private `LPH`/`procmod_t` bridge, exact processor constants, authoritative normalized descriptor bitness, and complete instruction/operand materialization without exposing SDK types in the public API.
+- [x] P58.3 Route the declared lifecycle, analysis, output, heuristic, frame, stack, and switch callbacks through both current IDA 9.4 and compatibility event IDs; update the JBC/XRISC examples to emit complete typed instructions.
+- [ ] P58.4 Add exact-SDK symbol/descriptor/dispatch and real-IDA load evidence, synchronize protocol/documentation, run complete validation and self-red-team, exact-stage review, commit, push, and remove Phase 58 from active work.
+
+---

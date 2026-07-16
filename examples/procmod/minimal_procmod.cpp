@@ -13,11 +13,13 @@ public:
             {"r0", false},
             {"sp", false},
             {"pc", false},
+            {"cs", false},
+            {"ds", false},
         };
-        pi.code_segment_register = 0;
-        pi.data_segment_register = 0;
-        pi.first_segment_register = 0;
-        pi.last_segment_register = 0;
+        pi.code_segment_register = 3;
+        pi.data_segment_register = 4;
+        pi.first_segment_register = 3;
+        pi.last_segment_register = 4;
 
         ida::processor::InstructionDescriptor nop;
         nop.mnemonic = "nop";
@@ -37,12 +39,20 @@ public:
     }
 
     void output_instruction(ida::Address) override {
-        // Demo skeleton; output helpers are SDK-context dependent.
+        // The context-driven override below performs actual IDA rendering.
     }
 
     ida::processor::OutputOperandResult output_operand(ida::Address, int) override {
-        return ida::processor::OutputOperandResult::NotImplemented;
+        return ida::processor::OutputOperandResult::Hidden;
     }
+
+    ida::processor::OutputInstructionResult
+    output_mnemonic_with_context(ida::Address,
+                                 ida::processor::OutputContext& output) override {
+        output.mnemonic("nop");
+        return ida::processor::OutputInstructionResult::Success;
+    }
+
 };
 
 IDAX_PROCESSOR(MinimalProcessor)

@@ -21,7 +21,7 @@ case "$PROFILE" in
   unit)
     BUILD_TESTS="ON"
     RUN_TESTS="1"
-    TEST_REGEX="idax_unit_test|api_surface_parity|error_torture|address_range_torture|diagnostics_torture|core_options_torture"
+    TEST_REGEX="idax_unit_test|api_surface_parity|error_torture|address_range_torture|diagnostics_torture|core_options_torture|processor_bridge_validation"
     ;;
   compile-only)
     BUILD_TESTS="OFF"
@@ -49,6 +49,11 @@ echo "[idax] build examples: $BUILD_EXAMPLES"
 echo "[idax] build example addons: $BUILD_EXAMPLE_ADDONS"
 echo "[idax] build example tools: $BUILD_EXAMPLE_TOOLS"
 
+python3 "$ROOT/tests/unit/select_hcli_license_test.py"
+python3 "$ROOT/tests/unit/procmod_validation_scripts_test.py"
+python3 "$ROOT/tests/unit/repository_privacy_test.py"
+python3 "$ROOT/scripts/check_repository_privacy.py"
+
 cmake -S "$ROOT" -B "$BUILD_DIR" \
   -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
   -DIDAX_BUILD_TESTS="$BUILD_TESTS" \
@@ -57,6 +62,14 @@ cmake -S "$ROOT" -B "$BUILD_DIR" \
   -DIDAX_BUILD_EXAMPLE_TOOLS="$BUILD_EXAMPLE_TOOLS"
 
 cmake --build "$BUILD_DIR" --config "$BUILD_TYPE"
+
+if [[ "$BUILD_EXAMPLE_ADDONS" == "ON" ]]; then
+  python3 "$ROOT/scripts/check_procmod_exports.py" "$BUILD_DIR"
+  if [[ -n "${IDADIR:-}" ]]; then
+    python3 "$ROOT/scripts/check_procmod_descriptors.py" "$BUILD_DIR"
+    python3 "$ROOT/scripts/run_procmod_runtime_smoke.py" "$BUILD_DIR"
+  fi
+fi
 
 if [[ "$RUN_TESTS" == "1" ]]; then
   if [[ -n "$TEST_REGEX" ]]; then

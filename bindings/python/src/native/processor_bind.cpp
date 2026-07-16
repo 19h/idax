@@ -399,6 +399,10 @@ void bind_processor(py::module_& module) {
         IDAX_PY_PROCESSOR_FEATURE(Jump, "JUMP")
         IDAX_PY_PROCESSOR_FEATURE(Shift, "SHIFT")
         IDAX_PY_PROCESSOR_FEATURE(HighLevel, "HIGH_LEVEL")
+        IDAX_PY_PROCESSOR_FEATURE(Change7, "CHANGE7")
+        IDAX_PY_PROCESSOR_FEATURE(Change8, "CHANGE8")
+        IDAX_PY_PROCESSOR_FEATURE(Use7, "USE7")
+        IDAX_PY_PROCESSOR_FEATURE(Use8, "USE8")
 #undef IDAX_PY_PROCESSOR_FEATURE
         .finalize();
     py::native_enum<ida::processor::ProcessorFlag>(
@@ -408,17 +412,50 @@ void bind_processor(py::module_& module) {
         IDAX_PY_PROCESSOR_FLAG(None, "NONE")
         IDAX_PY_PROCESSOR_FLAG(Segments, "SEGMENTS")
         IDAX_PY_PROCESSOR_FLAG(Use32, "USE32")
-        IDAX_PY_PROCESSOR_FLAG(Use64, "USE64")
         IDAX_PY_PROCESSOR_FLAG(DefaultSeg32, "DEFAULT_SEG32")
-        IDAX_PY_PROCESSOR_FLAG(DefaultSeg64, "DEFAULT_SEG64")
-        IDAX_PY_PROCESSOR_FLAG(TypeInfo, "TYPE_INFO")
-        IDAX_PY_PROCESSOR_FLAG(UseArgTypes, "USE_ARG_TYPES")
-        IDAX_PY_PROCESSOR_FLAG(ConditionalInsns, "CONDITIONAL_INSNS")
-        IDAX_PY_PROCESSOR_FLAG(NoSegMove, "NO_SEG_MOVE")
-        IDAX_PY_PROCESSOR_FLAG(HexNumbers, "HEX_NUMBERS")
-        IDAX_PY_PROCESSOR_FLAG(DecimalNumbers, "DECIMAL_NUMBERS")
+        IDAX_PY_PROCESSOR_FLAG(RegisterNames, "REGISTER_NAMES")
+        IDAX_PY_PROCESSOR_FLAG(AdjustSegments, "ADJUST_SEGMENTS")
         IDAX_PY_PROCESSOR_FLAG(OctalNumbers, "OCTAL_NUMBERS")
+        IDAX_PY_PROCESSOR_FLAG(DecimalNumbers, "DECIMAL_NUMBERS")
+        IDAX_PY_PROCESSOR_FLAG(BinaryNumbers, "BINARY_NUMBERS")
+        IDAX_PY_PROCESSOR_FLAG(WordInstructions, "WORD_INSTRUCTIONS")
+        IDAX_PY_PROCESSOR_FLAG(NoChange, "NO_CHANGE")
+        IDAX_PY_PROCESSOR_FLAG(Assemble, "ASSEMBLE")
+        IDAX_PY_PROCESSOR_FLAG(AlignData, "ALIGN_DATA")
+        IDAX_PY_PROCESSOR_FLAG(TypeInfo, "TYPE_INFO")
+        IDAX_PY_PROCESSOR_FLAG(Use64, "USE64")
+        IDAX_PY_PROCESSOR_FLAG(SegmentRegistersOther, "SEGMENT_REGISTERS_OTHER")
+        IDAX_PY_PROCESSOR_FLAG(StackGrowsUp, "STACK_GROWS_UP")
+        IDAX_PY_PROCESSOR_FLAG(BinaryMemory, "BINARY_MEMORY")
+        IDAX_PY_PROCESSOR_FLAG(SegmentTranslation, "SEGMENT_TRANSLATION")
+        IDAX_PY_PROCESSOR_FLAG(CheckCrossReferences, "CHECK_CROSS_REFERENCES")
+        IDAX_PY_PROCESSOR_FLAG(NoSegMove, "NO_SEG_MOVE")
+        IDAX_PY_PROCESSOR_FLAG(UseArgTypes, "USE_ARG_TYPES")
+        IDAX_PY_PROCESSOR_FLAG(ScaleStackVariables, "SCALE_STACK_VARIABLES")
+        IDAX_PY_PROCESSOR_FLAG(DelayedBranches, "DELAYED_BRANCHES")
+        IDAX_PY_PROCESSOR_FLAG(AlignInstructions, "ALIGN_INSTRUCTIONS")
+        IDAX_PY_PROCESSOR_FLAG(Purging, "PURGING")
+        IDAX_PY_PROCESSOR_FLAG(ConditionalInsns, "CONDITIONAL_INSNS")
+        IDAX_PY_PROCESSOR_FLAG(UseTbyte, "USE_TBYTE")
+        IDAX_PY_PROCESSOR_FLAG(DefaultSeg64, "DEFAULT_SEG64")
+        IDAX_PY_PROCESSOR_FLAG(OuterOperands, "OUTER_OPERANDS")
+        IDAX_PY_PROCESSOR_FLAG(HexNumbers, "HEX_NUMBERS")
 #undef IDAX_PY_PROCESSOR_FLAG
+        .finalize();
+    py::native_enum<ida::processor::ProcessorFlag2>(
+        processor, "ProcessorFlag2", "enum.IntFlag")
+#define IDAX_PY_PROCESSOR_FLAG2(name, python_name)                       \
+        .value(python_name, ida::processor::ProcessorFlag2::name)
+        IDAX_PY_PROCESSOR_FLAG2(None, "NONE")
+        IDAX_PY_PROCESSOR_FLAG2(Mappings, "MAPPINGS")
+        IDAX_PY_PROCESSOR_FLAG2(IdpOptions, "IDP_OPTIONS")
+        IDAX_PY_PROCESSOR_FLAG2(Code16Bit, "CODE16_BIT")
+        IDAX_PY_PROCESSOR_FLAG2(Macro, "MACRO")
+        IDAX_PY_PROCESSOR_FLAG2(UseCalcRel, "USE_CALC_REL")
+        IDAX_PY_PROCESSOR_FLAG2(RelativeBits, "RELATIVE_BITS")
+        IDAX_PY_PROCESSOR_FLAG2(Force16BitTypes, "FORCE16_BIT_TYPES")
+        IDAX_PY_PROCESSOR_FLAG2(IgnoreIdaGuess, "IGNORE_IDA_GUESS")
+#undef IDAX_PY_PROCESSOR_FLAG2
         .finalize();
 #define IDAX_PY_PROCESSOR_ENUM(type_name)                                \
     py::native_enum<ida::processor::type_name>(                          \
@@ -584,6 +621,7 @@ void bind_processor(py::module_& module) {
         IDAX_BIND_ANALYZE_FIELD(processor_flags);
 #undef IDAX_BIND_ANALYZE_FIELD
     IDAX_PY_PROCESSOR_VALUE(AnalyzeDetails)
+        .def_readwrite("instruction_code", &ida::processor::AnalyzeDetails::instruction_code)
         .def_readwrite("size", &ida::processor::AnalyzeDetails::size)
         .def_readwrite("operands", &ida::processor::AnalyzeDetails::operands);
     IDAX_PY_PROCESSOR_VALUE(OutputToken)

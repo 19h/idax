@@ -67,7 +67,7 @@ set(IDAX_PYTHON_IDA_RUNTIME_DIR "$ENV{IDADIR}" CACHE PATH
     "Directory containing the installed IDA runtime libraries")
 
 if(NOT IDAX_PYTHON_IDA_RUNTIME_DIR AND APPLE)
-    foreach(_version 9.4 9.3 9.2 9.1 9.0)
+    foreach(_version 9.4)
         set(_candidate "/Applications/IDA Professional ${_version}.app/Contents/MacOS")
         if(EXISTS "${_candidate}/libida.dylib"
            AND EXISTS "${_candidate}/libidalib.dylib")

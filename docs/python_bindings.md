@@ -8,7 +8,7 @@ domains. Existing Node and Rust bindings are behavioral comparison evidence;
 they cannot remove, rename away, or defer a C++ declaration from Python parity.
 
 Implementation covers all 27 domains. The executable inventory currently
-contains 826 top-level functions/types, while strict `.pyi` files cover class
+contains 827 top-level functions/types, while strict `.pyi` files cover class
 methods, properties, constructors, overloads, enum members, and callback
 signatures. `bindings/python/header_audit.json` locks the reviewed 29-header
 surface; any digest change requires the declaration audit in

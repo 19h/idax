@@ -1067,10 +1067,15 @@ void check_processor_surface() {
     (void)ida::processor::ProcessorFlag::Segments;
     (void)ida::processor::ProcessorFlag::Use32;
     (void)ida::processor::ProcessorFlag::Use64;
+    (void)ida::processor::ProcessorFlag::ConditionalInsns;
+    (void)ida::processor::ProcessorFlag2::None;
+    (void)ida::processor::ProcessorFlag2::Code16Bit;
 
     (void)ida::processor::InstructionFeature::None;
     (void)ida::processor::InstructionFeature::Stop;
     (void)ida::processor::InstructionFeature::Call;
+    (void)ida::processor::InstructionFeature::Change8;
+    (void)ida::processor::InstructionFeature::Use8;
 
     (void)ida::processor::EmulateResult::Success;
     (void)ida::processor::OutputInstructionResult::Success;
@@ -1117,6 +1122,7 @@ void check_processor_surface() {
     (void)analyzed_operand.processor_flags;
 
     ida::processor::AnalyzeDetails analyze_details;
+    (void)analyze_details.instruction_code;
     (void)analyze_details.size;
     (void)analyze_details.operands;
 

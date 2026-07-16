@@ -4,12 +4,13 @@
 
 - Reuses `../simple_appcall_linux64` for instruction decode/emulation callback smoke coverage.
 - Processor base class, metadata types, and switch descriptors validated via `loader_processor_scenario_test`.
+- `minimal_procmod.bin` is a deterministic raw input for the licensed IDA 9.4
+  `idaxmini` processor load/analyze/output smoke gate.
 
 ## Planned additions
 
 - **compact switch-table sample**: Sparse and dense case layouts
 - **architecture-specific prolog/epilog heuristics fixture**: For `analyze_function_prolog` testing
-- **synthetic_isa**: Minimal binary for a custom 32-bit RISC ISA
 - **delay_slot_binary**: Exercises delay-slot semantics for `is_basic_block_end` testing
 
 ## Test coverage
@@ -22,4 +23,5 @@
 | Optional callbacks (is_call/is_return/may_be_function/etc.) | loader_processor_scenario_test |
 | `SwitchDescription` / `SwitchCase` | loader_processor_scenario_test |
 | `EmulateResult` / `OutputOperandResult` enums | loader_processor_scenario_test |
-| `IDAX_PROCESSOR` macro | examples/procmod/minimal_procmod.cpp (build only) |
+| `IDAX_PROCESSOR` macro, `LPH` export, procmod event routing | cross-platform export check + licensed IDA runtime smoke |
+| Typed `itype`/operand materialization | JBC/XRISC example builds + runtime smoke + loader_processor_scenario_test |

@@ -1618,6 +1618,35 @@ mod database_tests {
 }
 
 #[cfg(test)]
+mod processor_tests {
+    use crate::processor::{AnalyzeDetails, InstructionFeature, ProcessorFlag, ProcessorFlag2};
+
+    #[test]
+    fn test_processor_sdk_flag_discriminants() {
+        assert_eq!(ProcessorFlag::DefaultSeg32 as u32, 0x000004);
+        assert_eq!(ProcessorFlag::Use64 as u32, 0x002000);
+        assert_eq!(ProcessorFlag::TypeInfo as u32, 0x001000);
+        assert_eq!(ProcessorFlag::UseArgTypes as u32, 0x200000);
+        assert_eq!(ProcessorFlag::ConditionalInsns as u32, 0x4000000);
+        assert_eq!(ProcessorFlag::HEX_NUMBERS, 0);
+        assert_eq!(ProcessorFlag2::Code16Bit as u32, 0x000008);
+    }
+
+    #[test]
+    fn test_eight_operand_feature_discriminants() {
+        assert_eq!(InstructionFeature::Change7 as u32, 0x020000);
+        assert_eq!(InstructionFeature::Change8 as u32, 0x040000);
+        assert_eq!(InstructionFeature::Use7 as u32, 0x080000);
+        assert_eq!(InstructionFeature::Use8 as u32, 0x100000);
+    }
+
+    #[test]
+    fn test_analyze_details_default_instruction_code() {
+        assert_eq!(AnalyzeDetails::default().instruction_code, 0);
+    }
+}
+
+#[cfg(test)]
 mod plugin_tests {
     use crate::address::BAD_ADDRESS;
     use crate::plugin::{ActionContext, TypeRef};

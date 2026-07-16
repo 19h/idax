@@ -31,7 +31,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::event          Typed IDB change snapshots, generic routing     [3 enums, 6 structs, 1 class, ~19 free fns]
  |-- ida::plugin         Plugin base, actions, scoped hotkeys, attachments [5 structs, 2 classes, ~14 free fns]
  |-- ida::loader         Loader base, InputFile, registration macro      [2 structs, 2 classes, ~5 free fns]
- |-- ida::processor      Processor base, descriptors, typed analysis/output [8 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
+ |-- ida::processor      Loadable processor bridge, descriptors, typed analysis/output [9 enums, 9 structs, 2 classes, IDAX_PROCESSOR]
  |
  |-- ida::debugger       Process/thread control, backend routing, request queue, events [2 enums, 5 structs, 1 class, ~42 free fns]
 |-- ida::decompiler     Decompile, owned/call-analyzed microcode graphs, ctree, events/cache/helpers [16 enums, 19 structs, 9 classes, event/free-fn surface]
@@ -101,7 +101,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::plugin` | Plugin development | `Plugin`, `Action`, `ActionContext`, `ScopedHotkey`, `Info` |
 | `ida::loader` | Loader development | `Loader`, `InputFile`, `AcceptResult` |
-| `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `AnalyzeDetails`, `OutputContext` |
+| `ida::processor` | Processor modules | `Processor`, `ProcessorInfo`, `ProcessorFlag2`, `AnalyzeDetails`, `OutputContext` |
 
 ### Interactive and Advanced
 

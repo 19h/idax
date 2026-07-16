@@ -403,7 +403,7 @@
         "AssemblerInfo", "EmulateResult", "InstructionDescriptor",
         "InstructionFeature", "OutputContext", "OutputInstructionResult",
         "OutputOperandResult", "OutputToken", "OutputTokenKind", "Processor",
-        "ProcessorFlag", "ProcessorInfo", "RegisterInfo", "SwitchCase",
+        "ProcessorFlag", "ProcessorFlag2", "ProcessorInfo", "RegisterInfo", "SwitchCase",
         "SwitchDescription", "SwitchTableKind"
       ]
     },

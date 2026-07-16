@@ -79,6 +79,7 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
         SOURCES procmod/minimal_procmod.cpp
         LIBRARIES idax::idax
     )
+    set_target_properties(idax_example_procmod PROPERTIES OUTPUT_NAME idaxmini)
 
     ida_add_plugin(idax_example_plugin
         SOURCES plugin/action_plugin.cpp
@@ -240,11 +241,13 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
         SOURCES procmod/advanced_procmod.cpp
         LIBRARIES idax::idax
     )
+    set_target_properties(idax_xrisc_procmod PROPERTIES OUTPUT_NAME xrisc32)
 
     ida_add_procmod(idax_jbc_full_procmod
         SOURCES procmod/jbc_full_procmod.cpp
         LIBRARIES idax::idax
     )
+    set_target_properties(idax_jbc_full_procmod PROPERTIES OUTPUT_NAME jbc)
 endif()
 
 if(IDAX_BUILD_EXAMPLE_TOOLS)
@@ -268,7 +271,7 @@ if(IDAX_BUILD_EXAMPLE_TOOLS)
     endif()
 
     if(NOT IDAX_EXAMPLE_IDA_RUNTIME_DIR AND APPLE)
-        foreach(_ver 9.3 9.2)
+        foreach(_ver 9.4)
             set(_try "/Applications/IDA Professional ${_ver}.app/Contents/MacOS")
             if(EXISTS "${_try}/${IDAX_IDALIB_LIB_NAME}" AND EXISTS "${_try}/${IDAX_IDA_LIB_NAME}")
                 set(IDAX_EXAMPLE_IDA_RUNTIME_DIR "${_try}")

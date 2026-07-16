@@ -109,6 +109,111 @@ ida::Address branch_target(ida::Address insn_addr, std::int16_t offset) {
     return insn_addr + static_cast<ida::Address>(offset * 4);
 }
 
+int operand_count(Opcode opcode) {
+    switch (opcode) {
+        case OP_NOP:
+        case OP_RET:
+        case OP_HALT:
+            return 0;
+        case OP_JMP:
+        case OP_CALL:
+            return 1;
+        case OP_MOV:
+        case OP_LDI:
+        case OP_LD:
+        case OP_ST:
+            return 2;
+        case OP_ADD:
+        case OP_SUB:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
+        case OP_BEQ:
+        case OP_BNE:
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+ida::processor::OutputOperandResult append_operand(
+    ida::processor::OutputContext& output,
+    ida::Address address,
+    const Decoded& decoded,
+    int operand_index) {
+    using Result = ida::processor::OutputOperandResult;
+    const auto append_target = [&](ida::Address target) {
+        auto symbol = ida::name::get(target);
+        if (symbol && !symbol->empty())
+            output.symbol(*symbol);
+        else
+            output.address(target);
+    };
+    const auto append_displacement = [&](int base_register) {
+        output.punctuation("[").register_name(kRegNames[base_register]);
+        if (decoded.imm16 != 0) {
+            output.space().operator_symbol(decoded.imm16 < 0 ? "-" : "+").space();
+            const auto magnitude = decoded.imm16 < 0
+                ? -static_cast<std::int64_t>(decoded.imm16)
+                : static_cast<std::int64_t>(decoded.imm16);
+            output.immediate(magnitude, 16);
+        }
+        output.punctuation("]");
+    };
+
+    switch (decoded.op) {
+        case OP_NOP:
+        case OP_RET:
+        case OP_HALT:
+            return Result::Hidden;
+        case OP_MOV:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rd]);
+            else if (operand_index == 1) output.register_name(kRegNames[decoded.rs1]);
+            else return Result::Hidden;
+            return Result::Success;
+        case OP_LDI:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rd]);
+            else if (operand_index == 1) {
+                output.immediate(static_cast<std::uint16_t>(decoded.imm16), 16);
+            } else return Result::Hidden;
+            return Result::Success;
+        case OP_ADD:
+        case OP_SUB:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rd]);
+            else if (operand_index == 1) output.register_name(kRegNames[decoded.rs1]);
+            else if (operand_index == 2) output.register_name(kRegNames[decoded.rs2]);
+            else return Result::Hidden;
+            return Result::Success;
+        case OP_LD:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rd]);
+            else if (operand_index == 1) append_displacement(decoded.rs1);
+            else return Result::Hidden;
+            return Result::Success;
+        case OP_ST:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rs2]);
+            else if (operand_index == 1) append_displacement(decoded.rs1);
+            else return Result::Hidden;
+            return Result::Success;
+        case OP_BEQ:
+        case OP_BNE:
+            if (operand_index == 0) output.register_name(kRegNames[decoded.rs1]);
+            else if (operand_index == 1) output.register_name(kRegNames[decoded.rs2]);
+            else if (operand_index == 2) append_target(branch_target(address, decoded.imm16));
+            else return Result::Hidden;
+            return Result::Success;
+        case OP_JMP:
+        case OP_CALL:
+            if (operand_index != 0) return Result::Hidden;
+            append_target(branch_target(address, decoded.imm16));
+            return Result::Success;
+        default:
+            return Result::NotImplemented;
+    }
+}
+
 } // anonymous namespace
 
 // ── Processor implementation ───────────────────────────────────────────
@@ -238,6 +343,105 @@ public:
         return 4;
     }
 
+    ida::Result<ida::processor::AnalyzeDetails>
+    analyze_with_details(ida::Address address) override {
+        auto dword = ida::data::read_dword(address);
+        if (!dword)
+            return std::unexpected(dword.error());
+
+        const auto decoded = decode(*dword);
+        if (decoded.op >= OP_COUNT)
+            return std::unexpected(ida::Error::validation("Invalid XRISC opcode"));
+
+        ida::processor::AnalyzeDetails details;
+        details.instruction_code = decoded.op;
+        details.size = 4;
+
+        const auto add_register = [&](std::size_t index, int register_index) {
+            ida::processor::AnalyzeOperand operand;
+            operand.index = index;
+            operand.kind = ida::processor::AnalyzeOperandKind::Register;
+            operand.has_register = true;
+            operand.register_index = register_index;
+            operand.data_type_code = 2; // 32-bit register
+            details.operands.push_back(operand);
+        };
+        const auto add_immediate = [&](std::size_t index, std::uint64_t value) {
+            ida::processor::AnalyzeOperand operand;
+            operand.index = index;
+            operand.kind = ida::processor::AnalyzeOperandKind::Immediate;
+            operand.has_immediate = true;
+            operand.immediate_value = value;
+            operand.data_type_code = 2; // 32-bit immediate
+            details.operands.push_back(operand);
+        };
+        const auto add_target = [&](std::size_t index, ida::Address target) {
+            ida::processor::AnalyzeOperand operand;
+            operand.index = index;
+            operand.kind = ida::processor::AnalyzeOperandKind::NearAddress;
+            operand.has_target_address = true;
+            operand.target_address = target;
+            operand.data_type_code = 9; // code address
+            details.operands.push_back(operand);
+        };
+        const auto add_displacement = [&](std::size_t index, int base, std::int16_t value) {
+            ida::processor::AnalyzeOperand operand;
+            operand.index = index;
+            operand.kind = ida::processor::AnalyzeOperandKind::Displacement;
+            operand.has_register = true;
+            operand.register_index = base;
+            operand.has_displacement = true;
+            operand.displacement = value;
+            operand.data_type_code = 2; // 32-bit memory value
+            details.operands.push_back(operand);
+        };
+
+        switch (decoded.op) {
+            case OP_NOP:
+            case OP_RET:
+            case OP_HALT:
+                break;
+            case OP_MOV:
+                add_register(0, decoded.rd);
+                add_register(1, decoded.rs1);
+                break;
+            case OP_LDI:
+                add_register(0, decoded.rd);
+                add_immediate(1, static_cast<std::uint16_t>(decoded.imm16));
+                break;
+            case OP_ADD:
+            case OP_SUB:
+            case OP_AND:
+            case OP_OR:
+            case OP_XOR:
+                add_register(0, decoded.rd);
+                add_register(1, decoded.rs1);
+                add_register(2, decoded.rs2);
+                break;
+            case OP_LD:
+                add_register(0, decoded.rd);
+                add_displacement(1, decoded.rs1, decoded.imm16);
+                break;
+            case OP_ST:
+                add_register(0, decoded.rs2);
+                add_displacement(1, decoded.rs1, decoded.imm16);
+                break;
+            case OP_BEQ:
+            case OP_BNE:
+                add_register(0, decoded.rs1);
+                add_register(1, decoded.rs2);
+                add_target(2, branch_target(address, decoded.imm16));
+                break;
+            case OP_JMP:
+            case OP_CALL:
+                add_target(0, branch_target(address, decoded.imm16));
+                break;
+            default:
+                return std::unexpected(ida::Error::validation("Invalid XRISC opcode"));
+        }
+        return details;
+    }
+
     // ── emulate(): create xrefs and schedule follow-on analysis ─────────
 
     ida::processor::EmulateResult emulate(ida::Address address) override {
@@ -301,6 +505,56 @@ public:
         }
 
         return ida::processor::EmulateResult::Success;
+    }
+
+    ida::processor::OutputInstructionResult
+    output_mnemonic_with_context(ida::Address address,
+                                 ida::processor::OutputContext& output) override {
+        auto dword = ida::data::read_dword(address);
+        if (!dword)
+            return ida::processor::OutputInstructionResult::NotImplemented;
+        const auto decoded = decode(*dword);
+        if (decoded.op >= OP_COUNT)
+            return ida::processor::OutputInstructionResult::NotImplemented;
+        output.mnemonic(kMnemonics[decoded.op]);
+        return ida::processor::OutputInstructionResult::Success;
+    }
+
+    ida::processor::OutputInstructionResult
+    output_instruction_with_context(ida::Address address,
+                                    ida::processor::OutputContext& output) override {
+        auto dword = ida::data::read_dword(address);
+        if (!dword)
+            return ida::processor::OutputInstructionResult::NotImplemented;
+        const auto decoded = decode(*dword);
+        if (decoded.op >= OP_COUNT)
+            return ida::processor::OutputInstructionResult::NotImplemented;
+
+        output.mnemonic(kMnemonics[decoded.op]);
+        for (int index = 0; index < operand_count(decoded.op); ++index) {
+            if (index == 0)
+                output.space();
+            else
+                output.comma().space();
+            if (append_operand(output, address, decoded, index)
+                != ida::processor::OutputOperandResult::Success) {
+                return ida::processor::OutputInstructionResult::NotImplemented;
+            }
+        }
+        return ida::processor::OutputInstructionResult::Success;
+    }
+
+    ida::processor::OutputOperandResult
+    output_operand_with_context(ida::Address address,
+                                int operand_index,
+                                ida::processor::OutputContext& output) override {
+        auto dword = ida::data::read_dword(address);
+        if (!dword)
+            return ida::processor::OutputOperandResult::NotImplemented;
+        const auto decoded = decode(*dword);
+        if (decoded.op >= OP_COUNT)
+            return ida::processor::OutputOperandResult::NotImplemented;
+        return append_operand(output, address, decoded, operand_index);
     }
 
     // ── output_instruction(): generate disassembly text ─────────────────
@@ -804,7 +1058,8 @@ public:
         for (std::uint32_t i = 0; i < sw.case_count; ++i) {
             auto entry_ea = sw.jump_table + i * sw.jump_element_size;
             auto target_word = ida::data::read_dword(entry_ea);
-            if (!target_word) continue;
+            if (!target_word)
+                return 0;
 
             ida::processor::SwitchCase sc;
             sc.values.push_back(sw.low_case_value + i);

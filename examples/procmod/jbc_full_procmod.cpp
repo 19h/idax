@@ -415,6 +415,7 @@ private:
     ida::processor::AnalyzeDetails
     build_analyze_details(const DecodedInstruction& instruction) const {
         ida::processor::AnalyzeDetails details;
+        details.instruction_code = instruction.opcode;
         details.size = instruction.size;
         details.operands.reserve(static_cast<std::size_t>(instruction.argument_count));
 
@@ -431,11 +432,13 @@ private:
 
             switch (operand_kind_value) {
             case OperandKind::Address:
+                operand.data_type_code = 9; // code address
                 operand.has_target_address = true;
                 operand.target_address = code_base_ + static_cast<ida::Address>(value);
                 break;
 
             case OperandKind::StringOffset:
+                operand.data_type_code = 2; // 32-bit memory address
                 operand.has_target_address = true;
                 operand.target_address = string_base_ + static_cast<ida::Address>(value);
                 break;
@@ -444,6 +447,7 @@ private:
             case OperandKind::State:
             case OperandKind::Count:
             case OperandKind::Immediate32:
+                operand.data_type_code = 2; // 32-bit immediate
                 operand.has_immediate = true;
                 operand.immediate_value = value;
                 break;

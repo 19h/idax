@@ -678,7 +678,7 @@ tracked in `docs/compatibility_matrix.md`.
   Integrations CI, Bindings CI, and Validation Matrix fail across Linux,
   macOS, and Windows in `Install IDA Pro` before setup/build/test execution.
   HCLI downloads IDA 9.3 successfully but reports no license matching the
-  configured ID `96-0000-0000-XX` and cannot obtain the corresponding
+  configured ID `[REDACTED]` and cannot obtain the corresponding
   `.hexlic` file. This is tracked as F377 and requires external HCLI/license or
   GitHub Actions secret correction; no source/workflow build patch is supported
   by the logs.

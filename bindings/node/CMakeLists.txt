@@ -116,21 +116,14 @@ endif()
 if(DEFINED ENV{IDADIR})
     set(IDA_INSTALL_DIR "$ENV{IDADIR}")
 elseif(APPLE)
-    # Try common macOS locations.
-    foreach(_ver 9.3 9.2 9.1 9.0)
+    # Automatic discovery must stay coherent with the exact 9.4 SDK contract.
+    foreach(_ver 9.4)
         set(_try "/Applications/IDA Professional ${_ver}.app/Contents/MacOS")
         if(EXISTS "${_try}/libidalib.dylib")
             set(IDA_INSTALL_DIR "${_try}")
             break()
         endif()
     endforeach()
-    # Also check the hexrays development build.
-    if(NOT IDA_INSTALL_DIR)
-        set(_dev_try "$ENV{HOME}/hexrays/ida/bin/arm64_mac_clang_opt/ida.app/Contents/MacOS")
-        if(EXISTS "${_dev_try}/libidalib.dylib")
-            set(IDA_INSTALL_DIR "${_dev_try}")
-        endif()
-    endif()
 endif()
 
 if(NOT IDA_INSTALL_DIR)

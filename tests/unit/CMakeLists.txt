@@ -45,3 +45,12 @@ add_test(NAME core_options_torture COMMAND idax_core_options_torture_test)
 add_executable(idax_diaphora_exact_core_test diaphora_exact_core_test.cpp)
 target_link_libraries(idax_diaphora_exact_core_test PRIVATE idax::idax)
 add_test(NAME diaphora_exact_core COMMAND idax_diaphora_exact_core_test)
+
+# SDK-private procmod payload validation (offline; no IDA runtime required).
+add_executable(idax_processor_bridge_validation_test
+    processor_bridge_validation_test.cpp)
+target_link_libraries(idax_processor_bridge_validation_test PRIVATE idax::idax)
+target_include_directories(idax_processor_bridge_validation_test
+    PRIVATE "${PROJECT_SOURCE_DIR}/src")
+add_test(NAME processor_bridge_validation
+    COMMAND idax_processor_bridge_validation_test)
