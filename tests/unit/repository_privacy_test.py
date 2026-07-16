@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -65,7 +66,11 @@ class RepositoryPrivacyTests(unittest.TestCase):
             except (OSError, NotImplementedError):
                 self.skipTest("symlinks are unavailable on this host")
             data, binary = repository_privacy.read_candidate(link) or (b"", True)
-            self.assertEqual(data, str(target).encode())
+            self.assertEqual(
+                data,
+                os.readlink(link).encode("utf-8", errors="surrogateescape"),
+            )
+            self.assertNotEqual(data, target.read_bytes())
             self.assertFalse(binary)
 
     def test_workflow_acquisition_roots_are_not_repository_candidates(self) -> None:
