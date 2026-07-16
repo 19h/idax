@@ -218,15 +218,20 @@ NAN_METHOD(StoreWrapper::ValueKind) {
     std::string name;
     if (!string_argument(info, 0, name)) return;
     IDAX_UNWRAP(auto value, unwrap(info)->store().value_kind(name));
-    info.GetReturnValue().Set(value ? FromString(kind_name(*value))
-                                    : Nan::Null());
+    if (value)
+        info.GetReturnValue().Set(FromString(kind_name(*value)));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(StoreWrapper::ReadString) {
     std::string name;
     if (!string_argument(info, 0, name)) return;
     IDAX_UNWRAP(auto value, unwrap(info)->store().read_string(name));
-    info.GetReturnValue().Set(value ? FromString(*value) : Nan::Null());
+    if (value)
+        info.GetReturnValue().Set(FromString(*value));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(StoreWrapper::WriteString) {
@@ -240,7 +245,10 @@ NAN_METHOD(StoreWrapper::ReadBinary) {
     std::string name;
     if (!string_argument(info, 0, name)) return;
     IDAX_UNWRAP(auto value, unwrap(info)->store().read_binary(name));
-    info.GetReturnValue().Set(value ? ByteVectorToBuffer(*value) : Nan::Null());
+    if (value)
+        info.GetReturnValue().Set(ByteVectorToBuffer(*value));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(StoreWrapper::WriteBinary) {
@@ -262,7 +270,10 @@ NAN_METHOD(StoreWrapper::ReadInteger) {
     std::string name;
     if (!string_argument(info, 0, name)) return;
     IDAX_UNWRAP(auto value, unwrap(info)->store().read_integer(name));
-    info.GetReturnValue().Set(value ? Nan::New(*value) : Nan::Null());
+    if (value)
+        info.GetReturnValue().Set(Nan::New(*value));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(StoreWrapper::WriteInteger) {
@@ -281,7 +292,10 @@ NAN_METHOD(StoreWrapper::ReadBoolean) {
     std::string name;
     if (!string_argument(info, 0, name)) return;
     IDAX_UNWRAP(auto value, unwrap(info)->store().read_boolean(name));
-    info.GetReturnValue().Set(value ? Nan::New(*value) : Nan::Null());
+    if (value)
+        info.GetReturnValue().Set(Nan::New(*value));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(StoreWrapper::WriteBoolean) {
