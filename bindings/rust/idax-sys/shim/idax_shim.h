@@ -280,6 +280,44 @@ int idax_directory_remove(int kind, const char* const* paths, size_t count,
 void idax_directory_bulk_report_free(IdaxDirectoryBulkReport* report);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Persistent registry (ida::registry)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+int idax_registry_open(const char* key);
+int idax_registry_child(const char* key, const char* name, char** out);
+int idax_registry_exists(const char* key, int* out);
+int idax_registry_child_keys(const char* key, char*** out, size_t* count);
+int idax_registry_value_names(const char* key, char*** out, size_t* count);
+void idax_registry_strings_free(char** values, size_t count);
+int idax_registry_contains(const char* key, const char* name, int* out);
+int idax_registry_value_kind(const char* key, const char* name,
+                             int* has_value, int* out);
+int idax_registry_read_string(const char* key, const char* name,
+                              int* has_value, char** out);
+int idax_registry_write_string(const char* key, const char* name,
+                               const char* value);
+int idax_registry_read_binary(const char* key, const char* name,
+                              int* has_value, uint8_t** out, size_t* count);
+int idax_registry_write_binary(const char* key, const char* name,
+                               const uint8_t* value, size_t count);
+int idax_registry_read_integer(const char* key, const char* name,
+                               int* has_value, int32_t* out);
+int idax_registry_write_integer(const char* key, const char* name,
+                                int32_t value);
+int idax_registry_read_boolean(const char* key, const char* name,
+                               int* has_value, int* out);
+int idax_registry_write_boolean(const char* key, const char* name, int value);
+int idax_registry_erase_value(const char* key, const char* name, int* out);
+int idax_registry_erase_key(const char* key, int* out);
+int idax_registry_erase_tree(const char* key, int* out);
+int idax_registry_read_string_list(const char* key, char*** out, size_t* count);
+int idax_registry_write_string_list(const char* key,
+                                    const char* const* values, size_t count);
+int idax_registry_update_string_list(const char* key, const char* add,
+                                     const char* remove, size_t max_records,
+                                     int ignore_case);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Architecture-independent exception regions (ida::exception)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

@@ -19,8 +19,8 @@ use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, directory, entry, event, exception, fixup,
-    function, graph, instruction, lines, name, parser, plugin, problem, search, segment, storage,
-    types, ui, undo, xref,
+    function, graph, instruction, lines, name, parser, plugin, problem, registry, search, segment,
+    storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -1241,6 +1241,97 @@ fn directory_roundtrip() {
     assert_eq!(removed.failures[0].input_index, 0);
     assert_eq!(removed.failures[1].input_index, 2);
     assert!(!tree.contains(destination).unwrap());
+}
+
+fn registry_roundtrip() {
+    require_db!();
+    let store =
+        registry::Store::open(&format!("idax\\phase64\\rust_{}", std::process::id())).unwrap();
+    let _ = store.erase_tree();
+    assert!(!store.exists().unwrap());
+    assert_eq!(store.value_kind("missing").unwrap(), None);
+    assert_eq!(store.read_string("missing").unwrap(), None);
+    assert!(store.child("bad/path").is_err());
+
+    store.write_string("text", "rust registry π").unwrap();
+    store
+        .write_binary("binary", &[0, 1, 127, 128, 255])
+        .unwrap();
+    store.write_binary("empty_binary", &[]).unwrap();
+    store.write_integer("integer", i32::MIN).unwrap();
+    store.write_boolean("enabled", true).unwrap();
+    store.write_boolean("disabled", false).unwrap();
+    assert_eq!(
+        store.read_string("text").unwrap().as_deref(),
+        Some("rust registry π")
+    );
+    assert_eq!(
+        store.read_binary("binary").unwrap().unwrap(),
+        [0, 1, 127, 128, 255]
+    );
+    assert!(
+        store
+            .read_binary("empty_binary")
+            .unwrap()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(store.read_integer("integer").unwrap(), Some(i32::MIN));
+    assert_eq!(store.read_boolean("enabled").unwrap(), Some(true));
+    assert_eq!(store.read_boolean("disabled").unwrap(), Some(false));
+    assert!(store.read_binary("text").is_err());
+    assert_eq!(
+        store.value_kind("text").unwrap(),
+        Some(registry::ValueKind::String)
+    );
+    assert_eq!(
+        store.value_kind("binary").unwrap(),
+        Some(registry::ValueKind::Binary)
+    );
+    assert_eq!(
+        store.value_kind("integer").unwrap(),
+        Some(registry::ValueKind::Integer)
+    );
+    assert_eq!(
+        store.value_kind("enabled").unwrap(),
+        Some(registry::ValueKind::Integer)
+    );
+
+    let child = store.child("child").unwrap();
+    child.write_string("nested", "value").unwrap();
+    assert!(store.child_keys().unwrap().contains(&"child".into()));
+    assert!(store.value_names().unwrap().contains(&"text".into()));
+    let list = store.child("list").unwrap();
+    assert!(list.write_string_list(&["bad\0value"]).is_err());
+    list.write_string_list(&["alpha", "beta", "gamma"]).unwrap();
+    list.update_string_list(&registry::StringListUpdate {
+        add: Some("delta".into()),
+        remove: Some("beta".into()),
+        max_records: 3,
+        ignore_case: false,
+    })
+    .unwrap();
+    assert_eq!(
+        list.read_string_list().unwrap(),
+        ["delta", "alpha", "gamma"]
+    );
+    assert!(
+        list.update_string_list(&registry::StringListUpdate {
+            add: Some("same".into()),
+            remove: Some("SAME".into()),
+            max_records: 3,
+            ignore_case: true,
+        })
+        .is_err()
+    );
+    let empty: [&str; 0] = [];
+    list.write_string_list(&empty).unwrap();
+    assert!(list.read_string_list().unwrap().is_empty());
+    assert!(!store.erase_key().unwrap());
+    assert!(store.erase_value("text").unwrap());
+    assert!(!store.erase_value("text").unwrap());
+    assert!(store.erase_tree().unwrap());
+    assert!(!store.exists().unwrap());
 }
 
 // ===========================================================================
@@ -3027,6 +3118,7 @@ static TEST_CASES: &[TestCase] = &[
     ("exception_roundtrip", exception_roundtrip),
     ("parser_roundtrip", parser_roundtrip),
     ("directory_roundtrip", directory_roundtrip),
+    ("registry_roundtrip", registry_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),

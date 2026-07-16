@@ -137,6 +137,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`exception`] | Exception regions | Owned fragmented C++/SEH blocks, semantic handlers, membership, system-region lookup, and mutation |
 | [`parser`] | Source parsers | Selection by language/name, copied identity/options, arguments, source/file ingestion, and parse reports |
 | [`directory`] | Directory trees | All eight standard trees, copied entries, organization, ordering, search, and partial bulk reports |
+| [`registry`] | Persistent registry | Copyable scoped stores, typed values, copied child/value inventories, ordered string lists, and cleanup |
 
 ### Type system
 

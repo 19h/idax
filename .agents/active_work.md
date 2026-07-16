@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Scoped Persistent Registry Release (Phase 64)
+
+- **7.1. Exact Release and CI Closure**
+  - 7.1.1. **Action:** Exact-stage the completed registry tranche, run the required staged semantic review, push to `master`, verify every licensed cross-platform workflow and complete-log privacy gate, then close P64.4.
+  - 7.1.2. **Evidence:** Preserve the passing local native/binding/package/privacy matrix and record implementation commit, live run/job results, log scanning, and post-push repository privacy.
+  - 7.1.3. **Status:** Active / no blocker.

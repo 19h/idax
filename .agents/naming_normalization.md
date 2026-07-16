@@ -54,6 +54,10 @@ This mapping is non-exhaustive but representative of expected direction.
 | `dirtree_t::mkdir/rmdir/link/unlink/rename` | `Tree::create_directory` / `remove_directory` / `link` / `unlink` / `rename` |
 | `dirtree_t::findfirst/findnext` | `Tree::find_items(pattern)` |
 | `dirtree_t::bulk_move/bulk_remove` + `dirtree_bulk_results_t` | `Tree::move/remove` returning `BulkReport` |
+| `reg_subkey_exists` / `reg_subkey_subkeys` / `reg_subkey_values` | `ida::registry::Store::exists` / `child_keys` / `value_names` |
+| `reg_read_*` / `reg_write_*` / `reg_data_type` | typed `Store::read_*` / `write_*` / `value_kind` |
+| `reg_delete` / `reg_delete_subkey` / `reg_delete_tree` | `Store::erase_value` / `erase_key` / `erase_tree` |
+| `reg_read_strlist` / `reg_write_strlist` / `reg_update_strlist` | `Store::read_string_list` / `write_string_list` / deterministic `update_string_list` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

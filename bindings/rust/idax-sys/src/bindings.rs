@@ -813,6 +813,158 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_directory_bulk_report_free(report: *mut IdaxDirectoryBulkReport);
 }
+unsafe extern "C" {
+    pub fn idax_registry_open(key: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_child(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_exists(
+        key: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_child_keys(
+        key: *const ::std::os::raw::c_char,
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_value_names(
+        key: *const ::std::os::raw::c_char,
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_strings_free(values: *mut *mut ::std::os::raw::c_char, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_registry_contains(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_value_kind(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_read_string(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_write_string(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        value: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_read_binary(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut *mut u8,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_write_binary(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        value: *const u8,
+        count: usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_read_integer(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut i32,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_write_integer(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        value: i32,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_read_boolean(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_write_boolean(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        value: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_erase_value(
+        key: *const ::std::os::raw::c_char,
+        name: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_erase_key(
+        key: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_erase_tree(
+        key: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_read_string_list(
+        key: *const ::std::os::raw::c_char,
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_write_string_list(
+        key: *const ::std::os::raw::c_char,
+        values: *const *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_registry_update_string_list(
+        key: *const ::std::os::raw::c_char,
+        add: *const ::std::os::raw::c_char,
+        remove: *const ::std::os::raw::c_char,
+        max_records: usize,
+        ignore_case: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct IdaxExceptionRange {

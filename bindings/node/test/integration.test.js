@@ -820,6 +820,70 @@ describe('Standard Directory Trees', () => {
     });
 });
 
+// ── Persistent Registry ────────────────────────────────────────────────
+
+describe('Persistent Registry', () => {
+    it('should round-trip typed values, lists, and recursive cleanup', () => {
+        const store = idax.registry.open(
+            `idax\\phase64\\node_${process.pid}_${Date.now()}`);
+        store.eraseTree();
+        expect(store.exists()).toBe(false);
+        expect(store.valueKind('missing')).toBeNull();
+        expect(store.readString('missing')).toBeNull();
+        expect(() => store.child('bad/path')).toThrow(/one path component/);
+        expect(() => store.writeInteger('bad', 2147483648))
+            .toThrow(/signed 32-bit/);
+
+        store.writeString('text', 'node registry π');
+        store.writeBinary('binary', Buffer.from([0, 1, 127, 128, 255]));
+        store.writeBinary('emptyBinary', Buffer.alloc(0));
+        store.writeInteger('integer', -2147483648);
+        store.writeBoolean('enabled', true);
+        store.writeBoolean('disabled', false);
+        expect(store.readString('text')).toBe('node registry π');
+        expect([...store.readBinary('binary')]).toEqual([0, 1, 127, 128, 255]);
+        expect(store.readBinary('emptyBinary').length).toBe(0);
+        expect(store.readInteger('integer')).toBe(-2147483648);
+        expect(store.readBoolean('enabled')).toBe(true);
+        expect(store.readBoolean('disabled')).toBe(false);
+        expect(() => store.readBinary('text')).toThrow(/kind/);
+        expect(store.valueKind('text')).toBe('string');
+        expect(store.valueKind('binary')).toBe('binary');
+        expect(store.valueKind('integer')).toBe('integer');
+        expect(store.valueKind('enabled')).toBe('integer');
+        const names = store.valueNames();
+        expect(names).toContain('text');
+        expect(names).toContain('binary');
+        expect(names).toContain('integer');
+        expect(names).toContain('enabled');
+
+        const child = store.child('child');
+        child.writeString('nested', 'value');
+        expect(store.childKeys()).toContain('child');
+        const list = store.child('list');
+        expect(() => list.writeStringList(['bad\0value']))
+            .toThrow(/embedded NUL/);
+        list.writeStringList(['alpha', 'beta', 'gamma']);
+        list.updateStringList({
+            add: 'delta', remove: 'beta', maxRecords: 3,
+        });
+        expect(list.readStringList()).toEqual(['delta', 'alpha', 'gamma']);
+        expect(() => list.updateStringList({
+            add: 'same', remove: 'SAME', ignoreCase: true,
+        })).toThrow(/same value/);
+        expect(() => list.updateStringList({ maxRecords: 0 }))
+            .toThrow(/1\.\.1000/);
+        list.writeStringList([]);
+        expect(list.readStringList()).toEqual([]);
+
+        expect(store.eraseKey()).toBe(false);
+        expect(store.eraseValue('text')).toBe(true);
+        expect(store.eraseValue('text')).toBe(false);
+        expect(store.eraseTree()).toBe(true);
+        expect(store.exists()).toBe(false);
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

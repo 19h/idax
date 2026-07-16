@@ -1275,3 +1275,21 @@ tracked in `docs/compatibility_matrix.md`.
   9.4, and use exact SDK commit
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
   install failures and zero unmasked canonical license identifiers.
+
+- 2026-07-16 Phase 64 opaque scoped persistent-registry domain (local candidate):
+  Added scoped persistent plugin configuration across C++, Node, generated
+  C/safe Rust, and Python using owned nonempty key identities, typed copied
+  values, copied child/value/list inventories, checked writes, explicit
+  deletion state, and deterministic ordered-list updates. Exact-SDK native
+  validation passes CTest 35/35, installation, and TGZ packaging. Node passes
+  252 structural plus 91 initialized-host checks, strict TypeScript, and
+  package inspection. Rust passes formatting, 156 unit plus 108
+  initialized-host checks, all-target compilation, doctests, build-support,
+  and byte-identical generated bindings at SHA-256
+  `19345f155b4b90c6ef7331c7d2b3baeb3d9bdcdbb91cb8503e9a88a744905a`.
+  Python passes 20 pure plus one initialized-host check, strict typing over 37
+  files, a 33-domain/877-symbol declaration audit, and wheel/sdist inspection.
+  The local optional Hex-Rays capability remains unavailable; all independent
+  runtime domains, including registry behavior, pass under the established
+  capability contract. Exact staging, push, live cross-platform CI, complete
+  log privacy, and release closure remain active under P64.4.

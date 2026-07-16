@@ -241,7 +241,31 @@ retains the original caller index. Full names and paths are identities;
 display names can collide. Folded directory names can contain the host's
 non-path separator byte and must not be rewritten before later tree calls.
 
-## 13. Diagnose failures
+## 13. Persist scoped plugin configuration
+
+```python
+from idax import registry
+
+store = registry.Store.open("plugins\\example")
+store.write_string("profile", "default")
+store.write_binary("signature", b"\x7fELF")
+store.write_integer("limit", 32)
+store.write_boolean("enabled", True)
+
+update = registry.StringListUpdate()
+update.add = "recent.bin"
+update.max_records = 20
+store.update_string_list(update)
+```
+
+`Store` owns only its nonempty key text; reads and inventories return copied
+values. Missing typed values return `None`, while reading an existing value
+through the wrong typed method raises `ConflictError`. Compound list updates
+are deterministic but not transactional across processes; serialize writers
+that share a key. Use `erase_tree()` for explicit recursive cleanup of a
+disposable subtree.
+
+## 14. Diagnose failures
 
 ```python
 from idax import IdaxError

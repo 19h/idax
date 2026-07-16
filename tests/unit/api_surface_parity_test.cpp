@@ -932,6 +932,44 @@ void check_directory_surface() {
     (void)report.ok();
 }
 
+// ─── ida::registry ──────────────────────────────────────────────────────
+
+void check_registry_surface() {
+    using Store = ida::registry::Store;
+    static_assert(std::is_copy_constructible_v<Store>);
+    static_assert(!std::is_default_constructible_v<Store>);
+    static_assert(static_cast<std::uint8_t>(ida::registry::ValueKind::String) == 1);
+    static_assert(static_cast<std::uint8_t>(ida::registry::ValueKind::Binary) == 3);
+    static_assert(static_cast<std::uint8_t>(ida::registry::ValueKind::Integer) == 4);
+    (void)&Store::open;
+    (void)&Store::key;
+    (void)&Store::child;
+    (void)&Store::exists;
+    (void)&Store::child_keys;
+    (void)&Store::value_names;
+    (void)&Store::contains;
+    (void)&Store::value_kind;
+    (void)&Store::read_string;
+    (void)&Store::write_string;
+    (void)&Store::read_binary;
+    (void)&Store::write_binary;
+    (void)&Store::read_integer;
+    (void)&Store::write_integer;
+    (void)&Store::read_boolean;
+    (void)&Store::write_boolean;
+    (void)&Store::erase_value;
+    (void)&Store::erase_key;
+    (void)&Store::erase_tree;
+    (void)&Store::read_string_list;
+    (void)&Store::write_string_list;
+    (void)&Store::update_string_list;
+    ida::registry::StringListUpdate update;
+    (void)update.add;
+    (void)update.remove;
+    (void)update.max_records;
+    (void)update.ignore_case;
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {

@@ -17,6 +17,7 @@ from idax import (
     plugin,
     problem,
     processor,
+    registry,
     ui,
     undo,
     xref,
@@ -58,6 +59,12 @@ def test_package_contract() -> None:
     assert directory.Kind.SNIPPETS.value == 7
     assert directory.EntryKind.DIRECTORY.name == "DIRECTORY"
     assert directory.OperationError.NOT_ORDERABLE.value == 9
+    assert registry.ValueKind.STRING.value == 1
+    assert registry.ValueKind.BINARY.value == 3
+    assert registry.ValueKind.INTEGER.value == 4
+    registry_update = registry.StringListUpdate()
+    assert registry_update.max_records == 100
+    assert not registry_update.ignore_case
 
 
 def test_exception_models_are_opaque_python_values() -> None:

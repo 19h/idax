@@ -30,6 +30,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::exception      Opaque C++/SEH exception regions                [3 enums, 7 structs, 5 free fns]
  |-- ida::parser         Third-party source parsing and type ingestion   [2 enums, 2 structs, 9 free fns]
  |-- ida::directory      Built-in database organization trees            [3 enums, 3 structs, 1 class]
+ |-- ida::registry       Scoped persistent plugin configuration           [1 enum, 1 struct, 1 class]
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |-- ida::undo           Named restore points and undo/redo state        [5 free fns]
  |
@@ -102,6 +103,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::exception` | Architecture-independent exception regions | `BlockDefinition`, `Block`, `CatchHandler`, `SehHandler`, `Location` |
 | `ida::parser` | Third-party parser selection/configuration and local-type ingestion | `Language`, `InputKind`, `ParseOptions`, `ParseReport` |
 | `ida::directory` | Built-in database organization trees | `Kind`, `Entry`, `BulkReport`, `Tree` |
+| `ida::registry` | Scoped persistent plugin configuration | `ValueKind`, `StringListUpdate`, `Store` |
 | `ida::lumina` | Lumina metadata sync | `Feature`, `PushMode`, `OperationCode`, `BatchResult` |
 | `ida::undo` | Named restore points and undo/redo state | (free functions only) |
 

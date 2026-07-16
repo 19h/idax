@@ -36,6 +36,7 @@ from idax import (
     processor,
     parser,
     problem,
+    registry,
     search,
     segment,
     storage,
@@ -355,6 +356,68 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             assert removed_directories.failures[0].input_index == 0
             assert removed_directories.failures[1].input_index == 2
             assert not directory_tree.contains(directory_destination)
+
+            registry_store = registry.Store.open(
+                f"idax\\phase64\\python_{uuid.uuid4().hex}"
+            )
+            registry_store.erase_tree()
+            assert not registry_store.exists
+            assert registry_store.value_kind("missing") is None
+            assert registry_store.read_string("missing") is None
+            with pytest.raises(ValidationError, match="one path component"):
+                registry_store.child("bad/path")
+
+            registry_store.write_string("text", "python registry π")
+            registry_store.write_binary("binary", bytes([0, 1, 127, 128, 255]))
+            registry_store.write_binary("empty_binary", b"")
+            registry_store.write_integer("integer", -(1 << 31))
+            registry_store.write_boolean("enabled", True)
+            registry_store.write_boolean("disabled", False)
+            assert registry_store.read_string("text") == "python registry π"
+            assert registry_store.read_binary("binary") == bytes(
+                [0, 1, 127, 128, 255]
+            )
+            assert registry_store.read_binary("empty_binary") == b""
+            assert registry_store.read_integer("integer") == -(1 << 31)
+            assert registry_store.read_boolean("enabled") is True
+            assert registry_store.read_boolean("disabled") is False
+            with pytest.raises(ConflictError, match="kind"):
+                registry_store.read_binary("text")
+            assert registry_store.value_kind("text") is registry.ValueKind.STRING
+            assert registry_store.value_kind("binary") is registry.ValueKind.BINARY
+            assert registry_store.value_kind("integer") is registry.ValueKind.INTEGER
+            assert registry_store.value_kind("enabled") is registry.ValueKind.INTEGER
+            assert {"text", "binary", "integer", "enabled"}.issubset(
+                registry_store.value_names()
+            )
+
+            registry_child = registry_store.child("child")
+            registry_child.write_string("nested", "value")
+            assert "child" in registry_store.child_keys()
+            registry_list = registry_store.child("list")
+            with pytest.raises(ValidationError, match="embedded NUL"):
+                registry_list.write_string_list(["bad\0value"])
+            registry_list.write_string_list(["alpha", "beta", "gamma"])
+            list_update = registry.StringListUpdate()
+            list_update.add = "delta"
+            list_update.remove = "beta"
+            list_update.max_records = 3
+            registry_list.update_string_list(list_update)
+            assert registry_list.read_string_list() == ["delta", "alpha", "gamma"]
+            contradictory_update = registry.StringListUpdate()
+            contradictory_update.add = "same"
+            contradictory_update.remove = "SAME"
+            contradictory_update.ignore_case = True
+            with pytest.raises(ValidationError, match="same value"):
+                registry_list.update_string_list(contradictory_update)
+            registry_list.write_string_list([])
+            assert registry_list.read_string_list() == []
+
+            assert not registry_store.erase_key()
+            assert registry_store.erase_value("text")
+            assert not registry_store.erase_value("text")
+            assert registry_store.erase_tree()
+            assert not registry_store.exists
 
             exception_heads = None
             for candidate in functions:

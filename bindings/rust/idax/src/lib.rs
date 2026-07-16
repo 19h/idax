@@ -27,6 +27,7 @@
 //! | [`exception`] | `ida::exception` | Architecture-independent exception regions |
 //! | [`parser`] | `ida::parser` | Third-party source-parser selection and type ingestion |
 //! | [`directory`] | `ida::directory` | Standard database organization trees |
+//! | [`registry`] | `ida::registry` | Scoped persistent plugin configuration |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
 //! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
@@ -132,6 +133,7 @@ pub mod path;
 pub mod plugin;
 pub mod problem;
 pub mod processor;
+pub mod registry;
 pub mod search;
 pub mod segment;
 pub mod storage;

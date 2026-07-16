@@ -2660,6 +2660,43 @@ export namespace directory {
     function open(kind: Kind): Tree;
 }
 
+export namespace registry {
+    type ValueKind = 'string' | 'binary' | 'integer';
+
+    interface StringListUpdate {
+        add?: string | null;
+        remove?: string | null;
+        maxRecords?: number;
+        ignoreCase?: boolean;
+    }
+
+    interface Store {
+        key(): string;
+        child(name: string): Store;
+        exists(): boolean;
+        childKeys(): string[];
+        valueNames(): string[];
+        contains(name: string): boolean;
+        valueKind(name: string): ValueKind | null;
+        readString(name: string): string | null;
+        writeString(name: string, value: string): void;
+        readBinary(name: string): Buffer | null;
+        writeBinary(name: string, value: Buffer | Uint8Array): void;
+        readInteger(name: string): number | null;
+        writeInteger(name: string, value: number): void;
+        readBoolean(name: string): boolean | null;
+        writeBoolean(name: string, value: boolean): void;
+        eraseValue(name: string): boolean;
+        eraseKey(): boolean;
+        eraseTree(): boolean;
+        readStringList(): string[];
+        writeStringList(values: string[]): void;
+        updateStringList(update: StringListUpdate): void;
+    }
+
+    function open(key: string): Store;
+}
+
 export namespace decompiler {
 
     type VariableStorage = 'unknown' | 'register' | 'stack';

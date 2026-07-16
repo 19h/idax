@@ -56,7 +56,8 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'exception', 'parser', 'directory', 'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'problem', 'exception', 'parser', 'directory', 'registry',
+        'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -712,6 +713,21 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace directory');
         expect(dts).toContain("| 'snippets';");
         expect(dts).toContain('function open(kind: Kind): Tree');
+    });
+
+    it('should have an opaque scoped registry factory and declarations', () => {
+        if (!idax) return;
+        expect(typeof idax.registry.open).toBe('function');
+        expect(() => idax.registry.open('')).toThrow(/cannot be empty/);
+        expect(() => idax.registry.open('bad\0key')).toThrow(/embedded NUL/);
+        expect(() => idax.registry.open(1)).toThrow(/Expected string/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace registry');
+        expect(dts).toContain("type ValueKind = 'string' | 'binary' | 'integer'");
+        expect(dts).toContain('function open(key: string): Store');
     });
 });
 

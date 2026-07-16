@@ -286,4 +286,11 @@ This section captures the intended public API semantics at a concrete level so i
 - `BulkReport` retains successful affected paths plus per-source `BulkFailure` values at original caller indices. Pre-resolution and native failures merge deterministically without erasing partial success.
 - Node, safe Rust, and Python expose the same tree kinds, entries, operations, and reports. Native trees, directory specifications, inodes, cursors, directory indexes, visitors, vectors, and raw `dterr_t` values remain private.
 
+### 17.37 Opaque Scoped Persistent Registry
+- `Store::open(nonempty_key)` owns only scoped key text; `child()` derives one validated component without retaining a native handle or changing the process-global registry root.
+- Typed optional string, binary, signed 32-bit integer, and boolean reads preserve absence and reject kind mismatch. Writes verify exact typed readback; `ValueKind` exposes only the three pinned semantic storage kinds.
+- Child/value inventories and ordered string lists return copied collections. Value, nonrecursive-key, and recursive-tree deletion return explicit host state.
+- `StringListUpdate` performs deterministic removal, addition-specific deduplication, front insertion, and trimming with a `1..1000` record limit. Compound updates are not atomic across writers because the SDK exposes no registry transaction token.
+- Node, safe Rust, and Python preserve the same store identity, types, copied values, list behavior, and cleanup operations. SDK strings/vectors, raw buffers and kinds, storage backend details, and `set_registry_name` remain private.
+
 ---

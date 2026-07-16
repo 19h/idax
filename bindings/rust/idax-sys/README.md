@@ -10,7 +10,7 @@ Raw `extern "C"` FFI bindings to the [idax](https://github.com/19h/idax) C++ IDA
 
 ## What this crate provides
 
-- **814 FFI function declarations** covering all 32 public IDAX domains
+- **836 FFI function declarations** covering all 33 public IDAX domains
 - **162 generated `Idax*` struct and type declarations** for data transfer across the FFI boundary
 - A **C shim layer** (`shim/idax_shim.h` + `shim/idax_shim.cpp`) that bridges `extern "C"` to the idax C++ API
 - Automatic **bindgen** code generation at build time — the output lands in `$OUT_DIR/bindings.rs`
@@ -82,6 +82,7 @@ The C shim follows consistent conventions documented in `shim/idax_shim.h`:
 | Exception regions | `idax_exception_*` | 6 |
 | Source parsers | `idax_parser_*` | 9 |
 | Directory trees | `idax_directory_*` | 25 |
+| Persistent registry | `idax_registry_*` | 22 |
 | Types | `idax_type_*` | 88 |
 | Entry points | `idax_entry_*` | 9 |
 | Fixups | `idax_fixup_*` | 12 |

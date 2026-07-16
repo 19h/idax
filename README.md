@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 35 public headers cover 32 concept domains plus the umbrella, shared core, and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 36 public headers cover 33 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -88,6 +88,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
 | **Source parsers** | `ida::parser` | Third-party parser selection by name/language, arguments/options, source/file ingestion, and parse reports |
 | **Directory trees** | `ida::directory` | All eight built-in organization trees, copied entries, directory/item mutation, ordering, search, and partial bulk reports |
+| **Persistent registry** | `ida::registry` | Scoped plugin configuration with typed string/binary/integer/boolean values, copied key/value inventories, ordered string lists, and deletion |
 | **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
@@ -556,12 +557,12 @@ idax is validated through layered testing:
 | Layer | What it tests | Runtime needed |
 |-------|---------------|----------------|
 | **Unit tests** | Error model, diagnostics, range semantics, iterator contracts | None |
-| **API surface parity** | Compile-only check that all 32 domain namespaces and types exist | None |
+| **API surface parity** | Compile-only check that all 33 domain namespaces and types exist | None |
 | **Smoke test** | 267 checks across every established namespace, end-to-end | idalib + fixture |
 | **Domain integration** | Dedicated suites: types, fixups, operands, decompiler, events, etc. | idalib + fixture |
 | **Scenario tests** | Loader/processor module lifecycle and callback wiring | idalib + fixture |
 
-Current status: **33/33 test targets passing** (267 smoke checks + 32 focused/unit suites).
+Current status: **35/35 test targets passing** (267 smoke checks + 34 focused/unit suites).
 
 ---
 

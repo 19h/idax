@@ -6,6 +6,7 @@ from . import debugger as debugger, graph as graph
 from . import decompiler as decompiler
 from . import database as database, diagnostics as diagnostics
 from . import directory as directory
+from . import registry as registry
 from . import error as error, path as path
 from . import parser as parser
 from . import comment as comment, entry as entry, lines as lines

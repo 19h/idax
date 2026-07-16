@@ -33,6 +33,7 @@ checked with strict mypy.
 | `plugin` | 14 | 8 | Plugin subclasses, actions, hotkeys, opaque action/host contexts. |
 | `processor` | 0 | 20 | Processor descriptors, exact primary/secondary flags, typed analysis, output context, subclass callbacks. |
 | `problem` | 6 | 1 | Typed analysis-problem recording, descriptions, ordered lookup, names, removal, and presence. |
+| `registry` | 0 | 3 | Scoped typed plugin configuration, copied inventories, ordered string lists, and deletion. |
 | `search` | 8 | 4 | Text, immediate, binary-pattern, code/data/defined searches. |
 | `segment` | 22 | 4 | Segment snapshots, lookup, traversal, selectors, mutation. |
 | `storage` | 0 | 1 | Opaque persistent node alt/sup/hash/blob storage. |

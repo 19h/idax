@@ -1530,6 +1530,367 @@ void idax_directory_bulk_report_free(IdaxDirectoryBulkReport* report) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Persistent registry
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::Result<ida::registry::Store> registry_store_from_c(const char* key) {
+    if (key == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Registry key pointer is null"));
+    }
+    return ida::registry::Store::open(key);
+}
+
+ida::Result<std::vector<std::string>> registry_strings_from_c(
+    const char* const* values, size_t count) {
+    if (count != 0 && values == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Registry string-list pointer is null"));
+    }
+    std::vector<std::string> result;
+    result.reserve(count);
+    for (size_t index = 0; index < count; ++index) {
+        if (values[index] == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "Registry string-list element pointer is null",
+                std::to_string(index)));
+        }
+        result.emplace_back(values[index]);
+    }
+    return result;
+}
+
+int registry_strings_to_c(const std::vector<std::string>& values,
+                          char*** out, size_t* count) {
+    *out = nullptr;
+    *count = 0;
+    if (values.empty())
+        return 0;
+    auto** copied = static_cast<char**>(
+        std::calloc(values.size(), sizeof(char*)));
+    if (copied == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < values.size(); ++index) {
+        copied[index] = dup_string(values[index]);
+        if (copied[index] == nullptr) {
+            idax_registry_strings_free(copied, values.size());
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    *out = copied;
+    *count = values.size();
+    return 0;
+}
+
+template <typename Function>
+int registry_named_bool(const char* key, const char* name, int* out,
+                        Function function) {
+    clear_error();
+    if (name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry name/result pointer is null"));
+    *out = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = ((*store).*function)(name);
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+template <typename Function>
+int registry_store_bool(const char* key, int* out, Function function) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry result pointer is null"));
+    *out = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = ((*store).*function)();
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+} // anonymous namespace
+
+int idax_registry_open(const char* key) {
+    clear_error();
+    auto store = registry_store_from_c(key);
+    return store ? 0 : fail(store.error());
+}
+
+int idax_registry_child(const char* key, const char* name, char** out) {
+    clear_error();
+    if (name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry child/output pointer is null"));
+    *out = nullptr;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto child = store->child(name);
+    if (!child) return fail(child.error());
+    *out = dup_string(child->key());
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_registry_exists(const char* key, int* out) {
+    return registry_store_bool(key, out, &ida::registry::Store::exists);
+}
+
+int idax_registry_child_keys(const char* key, char*** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Registry string-array output pointer is null"));
+    *out = nullptr;
+    *count = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto values = store->child_keys();
+    if (!values) return fail(values.error());
+    return registry_strings_to_c(*values, out, count);
+}
+
+int idax_registry_value_names(const char* key, char*** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Registry string-array output pointer is null"));
+    *out = nullptr;
+    *count = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto values = store->value_names();
+    if (!values) return fail(values.error());
+    return registry_strings_to_c(*values, out, count);
+}
+
+void idax_registry_strings_free(char** values, size_t count) {
+    if (values == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        std::free(values[index]);
+    std::free(values);
+}
+
+int idax_registry_contains(const char* key, const char* name, int* out) {
+    return registry_named_bool(key, name, out,
+                               &ida::registry::Store::contains);
+}
+
+int idax_registry_value_kind(const char* key, const char* name,
+                             int* has_value, int* out) {
+    clear_error();
+    if (name == nullptr || has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry value-kind pointer is null"));
+    *has_value = 0;
+    *out = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->value_kind(name);
+    if (!result) return fail(result.error());
+    if (*result) {
+        *has_value = 1;
+        *out = static_cast<int>(**result);
+    }
+    return 0;
+}
+
+int idax_registry_read_string(const char* key, const char* name,
+                              int* has_value, char** out) {
+    clear_error();
+    if (name == nullptr || has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry string output pointer is null"));
+    *has_value = 0;
+    *out = nullptr;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->read_string(name);
+    if (!result) return fail(result.error());
+    if (*result) {
+        *out = dup_string(**result);
+        if (*out == nullptr)
+            return fail(ida::Error::internal("malloc failed"));
+        *has_value = 1;
+    }
+    return 0;
+}
+
+int idax_registry_write_string(const char* key, const char* name,
+                               const char* value) {
+    clear_error();
+    if (name == nullptr || value == nullptr)
+        return fail(ida::Error::validation(
+            "Registry string input pointer is null"));
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto status = store->write_string(name, value);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registry_read_binary(const char* key, const char* name,
+                              int* has_value, uint8_t** out, size_t* count) {
+    clear_error();
+    if (name == nullptr || has_value == nullptr || out == nullptr
+        || count == nullptr) {
+        return fail(ida::Error::validation(
+            "Registry binary output pointer is null"));
+    }
+    *has_value = 0;
+    *out = nullptr;
+    *count = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->read_binary(name);
+    if (!result) return fail(result.error());
+    if (!*result)
+        return 0;
+    if (!(**result).empty()) {
+        *out = static_cast<uint8_t*>(std::malloc((**result).size()));
+        if (*out == nullptr)
+            return fail(ida::Error::internal("malloc failed"));
+        std::memcpy(*out, (**result).data(), (**result).size());
+    }
+    *count = (**result).size();
+    *has_value = 1;
+    return 0;
+}
+
+int idax_registry_write_binary(const char* key, const char* name,
+                               const uint8_t* value, size_t count) {
+    clear_error();
+    if (name == nullptr || (count != 0 && value == nullptr))
+        return fail(ida::Error::validation(
+            "Registry binary input pointer is null"));
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    const std::span<const uint8_t> bytes(
+        count == 0 ? nullptr : value, count);
+    auto status = store->write_binary(name, bytes);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registry_read_integer(const char* key, const char* name,
+                               int* has_value, int32_t* out) {
+    clear_error();
+    if (name == nullptr || has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry integer output pointer is null"));
+    *has_value = 0;
+    *out = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->read_integer(name);
+    if (!result) return fail(result.error());
+    if (*result) {
+        *has_value = 1;
+        *out = **result;
+    }
+    return 0;
+}
+
+int idax_registry_write_integer(const char* key, const char* name,
+                                int32_t value) {
+    clear_error();
+    if (name == nullptr)
+        return fail(ida::Error::validation(
+            "Registry integer name pointer is null"));
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto status = store->write_integer(name, value);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registry_read_boolean(const char* key, const char* name,
+                               int* has_value, int* out) {
+    clear_error();
+    if (name == nullptr || has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Registry boolean output pointer is null"));
+    *has_value = 0;
+    *out = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->read_boolean(name);
+    if (!result) return fail(result.error());
+    if (*result) {
+        *has_value = 1;
+        *out = **result ? 1 : 0;
+    }
+    return 0;
+}
+
+int idax_registry_write_boolean(const char* key, const char* name, int value) {
+    clear_error();
+    if (name == nullptr)
+        return fail(ida::Error::validation(
+            "Registry boolean name pointer is null"));
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto status = store->write_boolean(name, value != 0);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registry_erase_value(const char* key, const char* name, int* out) {
+    return registry_named_bool(key, name, out,
+                               &ida::registry::Store::erase_value);
+}
+
+int idax_registry_erase_key(const char* key, int* out) {
+    return registry_store_bool(key, out, &ida::registry::Store::erase_key);
+}
+
+int idax_registry_erase_tree(const char* key, int* out) {
+    return registry_store_bool(key, out, &ida::registry::Store::erase_tree);
+}
+
+int idax_registry_read_string_list(const char* key, char*** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Registry string-list output pointer is null"));
+    *out = nullptr;
+    *count = 0;
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto result = store->read_string_list();
+    if (!result) return fail(result.error());
+    return registry_strings_to_c(*result, out, count);
+}
+
+int idax_registry_write_string_list(const char* key,
+                                    const char* const* values, size_t count) {
+    clear_error();
+    auto copied = registry_strings_from_c(values, count);
+    if (!copied) return fail(copied.error());
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    auto status = store->write_string_list(*copied);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_registry_update_string_list(const char* key, const char* add,
+                                     const char* remove, size_t max_records,
+                                     int ignore_case) {
+    clear_error();
+    auto store = registry_store_from_c(key);
+    if (!store) return fail(store.error());
+    ida::registry::StringListUpdate update;
+    if (add != nullptr) update.add = std::string(add);
+    if (remove != nullptr) update.remove = std::string(remove);
+    update.max_records = max_records;
+    update.ignore_case = ignore_case != 0;
+    auto status = store->update_string_list(update);
+    return status ? 0 : fail(status.error());
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Architecture-independent exception regions
 // ═══════════════════════════════════════════════════════════════════════════
 
