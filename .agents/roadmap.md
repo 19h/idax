@@ -460,6 +460,6 @@ Current overall phase status:
 - [x] P60.1 Audit the pinned IDA 9.4 problem-list surface, runtime exports, existing search behavior, public IDAX headers, and all language bindings.
 - [x] P60.2 Select an SDK-opaque boundary for validated problem kinds, optional copied descriptions and next addresses, messages, names, removal, and presence.
 - [x] P60.3 Implement complete C++, Node, Rust, and Python parity without exposing SDK problem identifiers, strings, pointers, or storage.
-- [ ] P60.4 Add pure/signature and isolated real-IDA round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 60 from active work.
+- [x] P60.4 Add pure/signature and isolated real-IDA round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 60 from active work.
 
 ---

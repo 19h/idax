@@ -1187,7 +1187,7 @@ tracked in `docs/compatibility_matrix.md`.
   pass Integrations 3/3, Validation 6/6, and Bindings 9/9; complete logs contain
   zero unmasked canonical license identifiers.
 
-- 2026-07-16 Phase 60 opaque analysis-problem domain local candidate:
+- 2026-07-16 Phase 60 opaque analysis-problem domain:
   Added all six pinned problem-list operations and all 16 semantic kinds across
   C++, Node, generated C/safe Rust, and Python. Exact isolated tests cover
   all-kind short/long names, invalid kind/address/NUL rejection, Unicode
@@ -1200,4 +1200,10 @@ tracked in `docs/compatibility_matrix.md`.
   strict typing over 33 modules, a 29-domain/839-symbol manifest, and wheel/sdist
   audit. Generic Python runtime setup now follows the release-neutral raw-only
   fixture rule. Selector, procmod, privacy, workflow, YAML, diff-hygiene, and
-  strict object-integrity gates pass; exact staged review and live CI remain.
+  strict object-integrity gates pass. Exact implementation commit
+  `c3412cc74a7c2f76d74ed3a9c18cc0bebad6e39c` passes runs 29513543247
+  (Integrations 3/3), 29513543228 (Validation 6/6), and 29513543177
+  (Bindings 9/9) across Linux, Windows, and macOS. All 18 jobs install IDA
+  Professional 9.4 using exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
+  unmasked canonical license identifiers.
