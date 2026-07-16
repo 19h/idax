@@ -1180,6 +1180,9 @@ tracked in `docs/compatibility_matrix.md`.
   all-target compilation, doctests, and byte-identical generated bindings;
   Python 19 pure plus one initialized-host check, strict typing over 32 modules,
   a 28-domain/832-symbol validated manifest, and wheel/sdist audit. Current-tree
-  and reachable-history privacy scans pass across 491 project files and 3,630
+  and reachable-history privacy scans pass across 491 project files and 3,686
   reachable objects. The tag-only Node release matrix now uses the supported
-  `macos-15-intel` label, and all workflow YAML/actionlint gates pass.
+  `macos-15-intel` label, and all workflow YAML/actionlint gates pass. On the
+  exact implementation commit, runs 29509686296, 29509687054, and 29509687311
+  pass Integrations 3/3, Validation 6/6, and Bindings 9/9; complete logs contain
+  zero unmasked canonical license identifiers.
