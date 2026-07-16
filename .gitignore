@@ -23,6 +23,10 @@ obj/
 build/
 build*/
 
+# Workflow-owned SDK/runtime acquisition roots
+ida-installer/
+ida-sdk/
+
 # Workspace
 _wks/
 

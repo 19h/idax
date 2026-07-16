@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -66,6 +67,20 @@ class RepositoryPrivacyTests(unittest.TestCase):
             data, binary = repository_privacy.read_candidate(link) or (b"", True)
             self.assertEqual(data, str(target).encode())
             self.assertFalse(binary)
+
+    def test_workflow_acquisition_roots_are_not_repository_candidates(self) -> None:
+        candidates = b"ida-installer/installer.run\nida-sdk/src/include/pro.h\n"
+        completed = subprocess.run(
+            ["git", "check-ignore", "--stdin"],
+            cwd=ROOT,
+            input=candidates,
+            check=True,
+            capture_output=True,
+        )
+        self.assertEqual(
+            set(completed.stdout.splitlines()),
+            set(candidates.splitlines()),
+        )
 
 
 if __name__ == "__main__":
