@@ -107,7 +107,8 @@ def select_license_id(output: str) -> str | None:
 
 
 def main() -> int:
-    license_id = select_license_id(sys.stdin.read())
+    output = sys.stdin.buffer.read().decode("utf-8", errors="replace")
+    license_id = select_license_id(output)
     if license_id is None:
         print(
             "error: HCLI returned no active named installable IDA product license",

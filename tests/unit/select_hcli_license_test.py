@@ -79,7 +79,7 @@ class SelectHcliLicenseTests(unittest.TestCase):
                 f"│ {rejected_id} │ IDA Teams Server │ computer │ "
                 "To_Activate │ Never │ None │\n"
             ),
-            text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )
@@ -88,6 +88,23 @@ class SelectHcliLicenseTests(unittest.TestCase):
         self.assertEqual(result.stdout, "")
         self.assertIn("no active named installable IDA product license", result.stderr)
         self.assertNotIn(rejected_id, result.stderr)
+
+    def test_cli_reads_utf8_rich_table_independent_of_parent_locale(self) -> None:
+        selected_id = "96-0000-0000-51"
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT_PATH)],
+            input=(
+                f"│ {selected_id} │ IDA Ultimate │ named │ Active │ "
+                "2030-01-01 │ None │\n"
+            ),
+            encoding="utf-8",
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout.strip(), selected_id)
+        self.assertEqual(result.stderr, "")
 
 
 if __name__ == "__main__":
