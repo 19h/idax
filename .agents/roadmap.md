@@ -478,6 +478,6 @@ Current overall phase status:
 - [x] P62.1 Audit the pinned IDA 9.4 source-parser surface, runtime exports, IDAPython semantics, public IDAX headers, and all language bindings.
 - [x] P62.2 Select an SDK-opaque boundary for language-based/name-based selection, copied current-parser identity, parser arguments/options, source/file inputs, semantic extended parse options, and error counts.
 - [x] P62.3 Implement complete C++, Node, Rust, and Python parity without exposing `srclang_t`, `til_t`, `qstring`, parser pointers, or raw `HTI_*` integers.
-- [ ] P62.4 Add pure/signature and isolated real-IDA selection/configuration/source/file parse evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 62 from active work.
+- [x] P62.4 Add pure/signature and isolated real-IDA selection/configuration/source/file parse evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 62 from active work.
 
 ---

@@ -1227,7 +1227,7 @@ tracked in `docs/compatibility_matrix.md`.
   (Bindings 9/9) across Linux, Windows, and macOS; complete logs contain zero
   unmasked canonical license identifiers.
 
-- 2026-07-16 Phase 62 opaque source-parser domain (local release candidate):
+- 2026-07-16 Phase 62 opaque source-parser domain:
   Added all nine pinned `srclang.hpp` operations across C++, Node, generated
   C/safe Rust, and Python using a closed six-language set, semantic source/file
   inputs and extended options, copied parser identity/configuration, explicit
@@ -1242,5 +1242,10 @@ tracked in `docs/compatibility_matrix.md`.
   modules, a 31-domain/867-symbol manifest, and wheel/sdist inspection. The 26
   selector, processor-module, and privacy regressions; repository consistency;
   workflow YAML/actionlint; shell syntax; diff hygiene; and strict object
-  integrity gates pass. Exact staging, the staged semantic gate, promotion to
-  `master`, and live cross-platform Actions/log-privacy evidence remain active.
+  integrity gates pass. Implementation commit
+  `acd0e46020af8fb63d1edf73368873af046e60a6` exposed and corrective commit
+  `3d6b8b1b6b39e15b0ff32c1f0044070474990c5f` closes one GCC-only ambiguous V8
+  handle conversion. On the exact release commit, runs 29524467857
+  (Integrations 3/3), 29524467668 (Validation 6/6), and 29524467579 (Bindings
+  9/9) pass across Linux, Windows, and macOS; complete logs contain zero
+  unmasked canonical license identifiers.
