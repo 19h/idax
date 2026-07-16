@@ -11,6 +11,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/database_bind.cpp
     src/native/path_bind.cpp
     src/native/analysis_bind.cpp
+    src/native/undo_bind.cpp
     src/native/diagnostics_bind.cpp
     src/native/comment_bind.cpp
     src/native/entry_bind.cpp

@@ -753,6 +753,20 @@ void check_analysis_surface() {
     (void)static_cast<AnalysisScheduleRangeFn>(&ida::analysis::revert_decisions);
 }
 
+// ─── ida::undo ──────────────────────────────────────────────────────────
+
+void check_undo_surface() {
+    using CreatePointFn = ida::Result<bool>(*)(std::string_view, std::string_view);
+    using LabelFn = ida::Result<std::optional<std::string>>(*)();
+    using PerformFn = ida::Result<bool>(*)();
+
+    (void)static_cast<CreatePointFn>(&ida::undo::create_point);
+    (void)static_cast<LabelFn>(&ida::undo::undo_action_label);
+    (void)static_cast<LabelFn>(&ida::undo::redo_action_label);
+    (void)static_cast<PerformFn>(&ida::undo::perform_undo);
+    (void)static_cast<PerformFn>(&ida::undo::perform_redo);
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
@@ -2336,6 +2350,7 @@ int main() {
     surface_check::check_entry_surface();      namespaces_verified++;
     surface_check::check_search_surface();     namespaces_verified++;
     surface_check::check_analysis_surface();   namespaces_verified++;
+    surface_check::check_undo_surface();       namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
@@ -2352,9 +2367,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 29, "all 29 namespace surfaces verified");
+    CHECK(namespaces_verified == 30, "all 30 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (29 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (30 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

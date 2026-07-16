@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -608,6 +608,25 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         for (const fn of ['hasConnection', 'closeConnection', 'closeAllConnections', 'pull', 'push']) {
             expect(typeof idax.lumina[fn]).toBe('function');
         }
+    });
+
+    it('should have undo functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'createPoint', 'undoActionLabel', 'redoActionLabel',
+            'performUndo', 'performRedo',
+        ]) {
+            expect(typeof idax.undo[fn]).toBe('function');
+        }
+        expect(() => idax.undo.createPoint(1, 'label')).toThrow(/string arguments/);
+        expect(() => idax.undo.createPoint('bad\0action', 'label')).toThrow(/embedded NUL/);
+        expect(() => idax.undo.createPoint('action', 'bad\0label')).toThrow(/embedded NUL/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace undo');
+        expect(dts).toContain('function undoActionLabel(): string | null');
     });
 });
 

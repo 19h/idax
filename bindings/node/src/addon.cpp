@@ -20,6 +20,7 @@ NAN_MODULE_INIT(InitAll) {
     InitData(target);
     InitSearch(target);
     InitAnalysis(target);
+    InitUndo(target);
     InitType(target);
     InitEntry(target);
     InitFixup(target);

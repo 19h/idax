@@ -2,7 +2,7 @@
  * @file idax_shim.h
  * @brief C shim declarations for the idax C++ IDA SDK wrapper library.
  *
- * This header declares extern "C" functions covering all 27 idax namespaces.
+ * This header declares extern "C" functions covering every idax namespace.
  * It is consumed by bindgen to produce Rust FFI bindings.
  *
  * Error convention:
@@ -154,6 +154,16 @@ int idax_database_address_span(uint64_t* out);
 int idax_path_basename(const char* path, char** out);
 int idax_path_dirname(const char* path, char** out);
 int idax_path_is_directory(const char* path, int* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Undo (ida::undo)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+int idax_undo_create_point(const char* action_name, const char* label, int* out);
+int idax_undo_undo_action_label(char** out);
+int idax_undo_redo_action_label(char** out);
+int idax_undo_perform_undo(int* out);
+int idax_undo_perform_redo(int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Address (ida::address)

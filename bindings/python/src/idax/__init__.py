@@ -41,6 +41,7 @@ from . import (
     storage,
     type,
     ui,
+    undo,
     xref,
 )
 from ._native import __version__
@@ -105,5 +106,6 @@ __all__ = [
     "storage",
     "type",
     "ui",
+    "undo",
     "xref",
 ]

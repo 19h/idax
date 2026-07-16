@@ -19,7 +19,7 @@ use idax::address::{Address, BAD_ADDRESS};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
-    instruction, lines, name, plugin, search, segment, storage, types, ui, xref,
+    instruction, lines, name, plugin, search, segment, storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -832,6 +832,50 @@ fn comment_anterior_posterior() {
     comment::add_posterior(addr, "posterior_test").unwrap();
     let _ = comment::posterior_lines(addr);
     comment::clear_posterior(addr).unwrap();
+}
+
+fn undo_comment_roundtrip() {
+    require_db!();
+    let address = function::by_index(0).unwrap().start();
+    let original = match comment::get(address, true) {
+        Ok(value) => Some(value),
+        Err(error) if error.category == ErrorCategory::NotFound => None,
+        Err(error) => panic!("repeatable comment read failed: {error}"),
+    };
+    let action_label = "IDAX Rust undo round-trip \u{03c0}";
+
+    assert!(undo::create_point("idax.rust.undo", action_label).unwrap());
+    comment::set(address, "idax rust undo mutation", true).unwrap();
+    assert_eq!(
+        undo::undo_action_label().unwrap().as_deref(),
+        Some(action_label)
+    );
+    assert!(undo::perform_undo().unwrap());
+    match &original {
+        Some(value) => assert_eq!(comment::get(address, true).unwrap(), *value),
+        None => assert_eq!(
+            comment::get(address, true).unwrap_err().category,
+            ErrorCategory::NotFound
+        ),
+    }
+
+    assert_eq!(
+        undo::redo_action_label().unwrap().as_deref(),
+        Some(action_label)
+    );
+    assert!(undo::perform_redo().unwrap());
+    assert_eq!(
+        comment::get(address, true).unwrap(),
+        "idax rust undo mutation"
+    );
+    assert!(undo::perform_undo().unwrap());
+    match original {
+        Some(value) => assert_eq!(comment::get(address, true).unwrap(), value),
+        None => assert_eq!(
+            comment::get(address, true).unwrap_err().category,
+            ErrorCategory::NotFound
+        ),
+    }
 }
 
 // ===========================================================================
@@ -2613,6 +2657,7 @@ static TEST_CASES: &[TestCase] = &[
     ("comment_set_get_remove", comment_set_get_remove),
     ("comment_append", comment_append),
     ("comment_anterior_posterior", comment_anterior_posterior),
+    ("undo_comment_roundtrip", undo_comment_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),

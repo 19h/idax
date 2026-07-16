@@ -20,6 +20,7 @@ This section records concrete friction points discovered during SDK review so wr
 16. Manual memory and ownership conventions still appear in several API families.
 17. Numeric and representation controls are spread across low-level helper patterns.
 18. Migration requires broad knowledge of legacy naming and bitflag semantics.
+19. Undo-point creation requires callers to discover and reproduce an undocumented serialized-record convention, while label queries expose SDK strings and unavailable transitions use bare booleans.
 
 Wrapper response requirements derived from these pain points:
 - Convert encoded flags to typed enums/options in public API.

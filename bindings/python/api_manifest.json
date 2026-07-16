@@ -499,6 +499,16 @@
       ]
     },
     {
+      "name": "undo",
+      "header": "include/ida/undo.hpp",
+      "status": "validated",
+      "native_source": "undo_bind.cpp",
+      "bound_functions": [
+        "create_point", "perform_redo", "perform_undo",
+        "redo_action_label", "undo_action_label"
+      ]
+    },
+    {
       "name": "xref",
       "header": "include/ida/xref.hpp",
       "status": "validated",

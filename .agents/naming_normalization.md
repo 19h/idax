@@ -33,6 +33,9 @@ This mapping is non-exhaustive but representative of expected direction.
 | `find_text(...)` | `ida::search::text(options)` |
 | `auto_wait()` | `ida::analysis::wait()` |
 | `plan_ea(ea)` | `ida::analysis::schedule_reanalysis(address)` |
+| `create_undo_point(record, size)` with two packed strings | `ida::undo::create_point(action_name, label)` |
+| `get_undo_action_label(qstring*)` / `get_redo_action_label(qstring*)` | `ida::undo::undo_action_label()` / `redo_action_label()` |
+| `perform_undo()` / `perform_redo()` | `ida::undo::perform_undo()` / `perform_redo()` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

@@ -12,6 +12,7 @@ import pytest
 from idax import (
     ConflictError,
     IdaxError,
+    NotFoundError,
     address,
     analysis,
     comment,
@@ -35,6 +36,7 @@ from idax import (
     storage,
     type,
     ui,
+    undo,
     xref,
 )
 
@@ -89,6 +91,30 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             assert function.at(first_function.start).start == first_function.start
             assert function.by_index(0).start == first_function.start
             assert function.item_addresses(first_function.start)
+
+            try:
+                original_repeatable = comment.get(first_function.start, True)
+            except NotFoundError:
+                original_repeatable = None
+            undo_label = "IDAX Python undo round-trip π"
+            assert undo.create_point("idax.python.undo", undo_label)
+            comment.set(first_function.start, "idax python undo mutation", True)
+            assert undo.undo_action_label() == undo_label
+            assert undo.perform_undo()
+            if original_repeatable is None:
+                with pytest.raises(NotFoundError):
+                    comment.get(first_function.start, True)
+            else:
+                assert comment.get(first_function.start, True) == original_repeatable
+            assert undo.redo_action_label() == undo_label
+            assert undo.perform_redo()
+            assert comment.get(first_function.start, True) == "idax python undo mutation"
+            assert undo.perform_undo()
+            if original_repeatable is None:
+                with pytest.raises(NotFoundError):
+                    comment.get(first_function.start, True)
+            else:
+                assert comment.get(first_function.start, True) == original_repeatable
 
         code_address = search.next_code(bounds.start)
         decoded = instruction.decode(code_address)

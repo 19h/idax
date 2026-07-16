@@ -147,7 +147,7 @@ jobs:
         working-directory: bindings/node
         run: |
           npm install --ignore-scripts
-          npx cmake-js compile -v $(node -v | sed 's/v//')
+          npx cmake-js compile -v "$(node -v | sed 's/v//')"
 
       - name: Run Node unit tests
         shell: bash
@@ -324,7 +324,7 @@ jobs:
         shell: bash
         run: |
           choco install llvm
-          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "$GITHUB_ENV"
+          printf '%s\n' 'LIBCLANG_PATH=C:\Program Files\LLVM\bin' >> "$GITHUB_ENV"
 
       - name: Build Rust bindings (Unix)
         if: runner.os != 'Windows'

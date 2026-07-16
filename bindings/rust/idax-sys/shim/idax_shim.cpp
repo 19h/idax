@@ -823,6 +823,71 @@ int idax_path_is_directory(const char* path, int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Undo
+// ═══════════════════════════════════════════════════════════════════════════
+
+int idax_undo_create_point(const char* action_name, const char* label, int* out) {
+    clear_error();
+    if (action_name == nullptr || label == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Undo create-point argument is null"));
+    auto result = ida::undo::create_point(action_name, label);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_undo_undo_action_label(char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Undo label output pointer is null"));
+    *out = nullptr;
+    auto result = ida::undo::undo_action_label();
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = dup_string(**result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_undo_redo_action_label(char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Redo label output pointer is null"));
+    *out = nullptr;
+    auto result = ida::undo::redo_action_label();
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = dup_string(**result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_undo_perform_undo(int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Undo result pointer is null"));
+    auto result = ida::undo::perform_undo();
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_undo_perform_redo(int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Redo result pointer is null"));
+    auto result = ida::undo::perform_redo();
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Address
 // ═══════════════════════════════════════════════════════════════════════════
 

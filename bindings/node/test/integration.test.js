@@ -525,6 +525,41 @@ describe('Comments', () => {
     });
 });
 
+// ── Undo / Redo ─────────────────────────────────────────────────────────
+
+describe('Undo / Redo', () => {
+    it('should round-trip a repeatable comment and preserve labels', () => {
+        const address = idax.function.byIndex(0).start;
+        let original = null;
+        try {
+            original = idax.comment.get(address, true);
+        } catch (error) {
+            expect(error.category).toBe('NotFound');
+        }
+
+        const label = 'IDAX Node undo round-trip π';
+        expect(idax.undo.createPoint('idax.node.undo', label)).toBe(true);
+        idax.comment.set(address, 'idax node undo mutation', true);
+        expect(idax.undo.undoActionLabel()).toBe(label);
+        expect(idax.undo.performUndo()).toBe(true);
+        if (original === null) {
+            expect(() => idax.comment.get(address, true)).toThrow(/No comment/);
+        } else {
+            expect(idax.comment.get(address, true)).toBe(original);
+        }
+
+        expect(idax.undo.redoActionLabel()).toBe(label);
+        expect(idax.undo.performRedo()).toBe(true);
+        expect(idax.comment.get(address, true)).toBe('idax node undo mutation');
+        expect(idax.undo.performUndo()).toBe(true);
+        if (original === null) {
+            expect(() => idax.comment.get(address, true)).toThrow(/No comment/);
+        } else {
+            expect(idax.comment.get(address, true)).toBe(original);
+        }
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

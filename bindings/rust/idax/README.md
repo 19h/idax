@@ -41,15 +41,15 @@ If the IDA SDK isn't available locally, it will be fetched automatically during 
 
 ```bash
 # Option 1: Set the library path (recommended for development)
-DYLD_LIBRARY_PATH=/Applications/IDA\ Professional\ 9.3.app/Contents/MacOS ./target/release/my-tool  # macOS
+DYLD_LIBRARY_PATH=/Applications/IDA\ Professional\ 9.4.app/Contents/MacOS ./target/release/my-tool  # macOS
 LD_LIBRARY_PATH=/opt/idapro ./target/release/my-tool                                                # Linux
 
 # Option 2: Add an RPATH to the binary (recommended for deployment)
-install_name_tool -add_rpath /Applications/IDA\ Professional\ 9.3.app/Contents/MacOS ./target/release/my-tool  # macOS
+install_name_tool -add_rpath /Applications/IDA\ Professional\ 9.4.app/Contents/MacOS ./target/release/my-tool  # macOS
 patchelf --add-rpath /opt/idapro ./target/release/my-tool                                                       # Linux
 
 # Option 3: Place the binary next to the IDA libraries
-cp ./target/release/my-tool /Applications/IDA\ Professional\ 9.3.app/Contents/MacOS/
+cp ./target/release/my-tool /Applications/IDA\ Professional\ 9.4.app/Contents/MacOS/
 ```
 
 ## Real-IDA integration tests

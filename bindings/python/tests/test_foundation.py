@@ -14,6 +14,7 @@ from idax import (
     plugin,
     processor,
     ui,
+    undo,
     xref,
 )
 
@@ -24,6 +25,12 @@ def test_package_contract() -> None:
     assert idax.Address is int
     assert idax.AddressDelta is int
     assert idax.AddressSize is int
+    assert undo.create_point.__name__ == "create_point"
+    assert undo.undo_action_label.__name__ == "undo_action_label"
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        undo.create_point("bad\0action", "label")
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        undo.create_point("action", "bad\0label")
 
 
 def test_address_range_is_pythonic_value() -> None:

@@ -76,6 +76,7 @@ void bind_address(py::module_& module);
 void bind_database(py::module_& module);
 void bind_path(py::module_& module);
 void bind_analysis(py::module_& module);
+void bind_undo(py::module_& module);
 void bind_diagnostics(py::module_& module);
 void bind_comment(py::module_& module);
 void bind_entry(py::module_& module);

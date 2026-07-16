@@ -1169,3 +1169,17 @@ tracked in `docs/compatibility_matrix.md`.
   unavailable downstream ida-cdump tree remains explicitly bounded by
   Assumption A52.1; no downstream call-site state is inferred from this local
   build.
+
+- 2026-07-16 Phase 59 opaque undo/redo domain:
+  Added named checkpoint creation, copied optional undo/redo labels, and
+  boolean transition execution across C++, Node, generated C/safe Rust, and
+  Python without exposing native records or SDK strings. Exact isolated
+  comment mutation proves label fidelity, undo, redo, and final restoration.
+  Complete validation passes native CTest 30/30; Node 242 structural plus
+  86 initialized-host checks; Rust 145 unit plus 103 initialized-host checks,
+  all-target compilation, doctests, and byte-identical generated bindings;
+  Python 19 pure plus one initialized-host check, strict typing over 32 modules,
+  a 28-domain/832-symbol validated manifest, and wheel/sdist audit. Current-tree
+  and reachable-history privacy scans pass across 491 project files and 3,630
+  reachable objects. The tag-only Node release matrix now uses the supported
+  `macos-15-intel` label, and all workflow YAML/actionlint gates pass.

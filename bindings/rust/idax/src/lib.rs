@@ -22,6 +22,7 @@
 //! | [`comment`] | `ida::comment` | Comments (regular, repeatable, anterior/posterior) |
 //! | [`search`] | `ida::search` | Text, binary, and immediate value searches |
 //! | [`analysis`] | `ida::analysis` | Auto-analysis control |
+//! | [`undo`] | `ida::undo` | Named restore points and undo/redo state |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
 //! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
@@ -128,6 +129,7 @@ pub mod segment;
 pub mod storage;
 pub mod types;
 pub mod ui;
+pub mod undo;
 pub mod xref;
 
 #[cfg(test)]

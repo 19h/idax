@@ -445,3 +445,12 @@ Current overall phase status:
 - [x] P58.4 Add exact-SDK symbol/descriptor/dispatch and real-IDA load evidence, synchronize protocol/documentation, run complete validation and self-red-team, exact-stage review, commit, push, and remove Phase 58 from active work.
 
 ---
+
+### Phase 59 TODO Action Items (Opaque Undo/Redo Domain)
+
+- [x] P59.1 Audit the pinned IDA 9.4 undo surface, runtime exports, IDAX public headers, and all language bindings.
+- [x] P59.2 Select an SDK-opaque value boundary for named restore points, optional next-action labels, and non-throwing availability results.
+- [x] P59.3 Implement complete C++, Node, Rust, and Python parity without exposing serialized undo records or SDK strings.
+- [ ] P59.4 Add pure/signature and isolated real-IDA round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 59 from active work.
+
+---

@@ -1306,3 +1306,9 @@
   - **19.65.1. Call boundary:** Continue calling the runtime-exported `get_strlist_item`, but provide `string_info_ex_t` storage whose leading base is exactly `string_info_t`; do not expose either SDK type publicly.
   - **19.65.2. Copy boundary:** Validate address and nonnegative octet length, copy ordinary text through the semantic reader, and copy the extended decompiler text when the runtime supplies it. No SDK-owned string lifetime escapes.
   - **19.65.3. Validation:** Require exact-SDK compilation, real IDA 9.4 string-list enumeration, the existing Rust/C++ contract tests, and cross-platform CI; re-audit when the release set changes.
+
+- **19.66. Decision D-OPAQUE-NAMED-UNDO-DOMAIN**: Expose host undo state without exposing native records
+  - **19.66.1. Public boundary:** Add `ida::undo` with named point creation, optional copied undo/redo labels, and boolean execution results. Mirror those exact semantics in Node, Rust, and Python; do not expose `bytevec_t`, raw record bytes, `qstring`, pointers, or handles.
+  - **19.66.2. Encoding:** Build the SDK `UNDO_ACTION_START` body privately using the official two-`pack_ds` sequence. Reject embedded NUL at the public string boundary; otherwise preserve empty or non-ASCII UTF-8 values byte-for-byte.
+  - **19.66.3. State semantics:** Treat absent labels and rejected/unavailable operations as valid state values (`null`/`None`/`Option` and `false`). Reserve structured errors for invalid input or binding/transport failures; do not convert a disabled undo host into a fictitious SDK diagnostic.
+  - **19.66.4. Validation:** Require pure invalid-input and signature/parity probes, exact-SDK compilation, one disposable real-IDA checkpoint/comment/label/undo/redo/final-restore round trip, complete binding manifests, full regression, repository privacy, staged review, and cross-platform CI.

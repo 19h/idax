@@ -256,4 +256,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `set_comment`/`get_comment` use semantic positions, reject embedded NUL, and require explicit `save_comments()` persistence. `has_orphan_comments()` and `remove_orphan_comments()` remain explicit operations; enumeration and import never delete orphans.
 - Node uses semantic strings or `{ kind: 'argument'|'switchCase', ... }`; the C ABI uses a validated kind/detail pair; safe Rust uses `CommentPosition` variants and owned `PseudocodeComment` values.
 
+### 17.32 Opaque Named Undo/Redo
+- `ida::undo::create_point(action_name, label)` serializes the SDK-private checkpoint record and returns whether the host accepted it; embedded NUL bytes are rejected.
+- `undo_action_label()` and `redo_action_label()` return copied optional display labels without exposing `qstring` or native history objects.
+- `perform_undo()` and `perform_redo()` return `false` when the requested transition is unavailable rather than manufacturing an SDK error.
+- Node, Rust, and Python preserve the same five operations, optional-label state, boolean availability state, and owned-string boundary.
+
 ---

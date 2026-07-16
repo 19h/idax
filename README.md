@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 30 public headers across 26 domain namespaces plus cross-cutting core headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 31 public headers cover 28 concept domains plus shared core and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -91,6 +91,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
 | **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
+| **Undo** | `ida::undo` | Opaque named restore points, copied next-action labels, and undo/redo execution |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |
 | **Plugins** | `ida::plugin` | Plugin base class, owned action registration/activation, scoped one-call hotkeys, menu/toolbar/popup attach+detach, context callbacks with optional Local Types refs |
 | **Loaders** | `ida::loader` | Loader base class, InputFile abstraction, typed request/flag models, registration macro |

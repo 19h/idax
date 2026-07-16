@@ -376,6 +376,7 @@ void InitComment(v8::Local<v8::Object> target);
 void InitData(v8::Local<v8::Object> target);
 void InitSearch(v8::Local<v8::Object> target);
 void InitAnalysis(v8::Local<v8::Object> target);
+void InitUndo(v8::Local<v8::Object> target);
 void InitType(v8::Local<v8::Object> target);
 void InitEntry(v8::Local<v8::Object> target);
 void InitFixup(v8::Local<v8::Object> target);

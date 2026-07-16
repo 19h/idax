@@ -13,6 +13,7 @@ PYBIND11_MODULE(_native, module) {
     idax::python::bind_database(module);
     idax::python::bind_path(module);
     idax::python::bind_analysis(module);
+    idax::python::bind_undo(module);
     idax::python::bind_diagnostics(module);
     idax::python::bind_comment(module);
     idax::python::bind_entry(module);

@@ -21,6 +21,7 @@
 #include <ida/comment.hpp>
 #include <ida/search.hpp>
 #include <ida/analysis.hpp>
+#include <ida/undo.hpp>
 #include <ida/lumina.hpp>
 #include <ida/type.hpp>
 #include <ida/entry.hpp>

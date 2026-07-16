@@ -24,6 +24,7 @@ checked with strict mypy.
 | `lines` | 9 | 2 | Source mappings and IDA tagged-text processing. |
 | `loader` | 7 | 11 | Python loader subclasses, input/output adapters, database ingestion. |
 | `lumina` | 5 | 4 | Connection query and metadata pull/push. |
+| `undo` | 5 | 0 | Named restore points, optional next-action labels, and undo/redo execution. |
 | `name` | 16 | 3 | Name lookup/mutation, demangling, inventory, properties. |
 | `path` | 3 | 0 | Portable `os.PathLike`-aware path operations. |
 | `plugin` | 14 | 8 | Plugin subclasses, actions, hotkeys, opaque action/host contexts. |

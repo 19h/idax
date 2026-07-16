@@ -145,7 +145,23 @@ Loader and processor objects receive checked input/output/context adapters.
 These adapters are not raw streams or pointers and borrowed instances expire
 when native dispatch returns.
 
-## 8. Diagnose failures
+## 8. Make a named mutation undoable
+
+```python
+from idax import comment, undo
+
+address = 0x401000
+if undo.create_point("example.comment", "Set analysis comment"):
+    comment.set(address, "reviewed")
+    assert undo.undo_action_label() == "Set analysis comment"
+    undo.perform_undo()
+```
+
+Create the restore point immediately before its mutation. `False` means that
+the current host is not recording undo history; a missing next-action label is
+returned as `None`.
+
+## 9. Diagnose failures
 
 ```python
 from idax import IdaxError

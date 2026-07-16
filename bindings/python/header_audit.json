@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authoritative_umbrella": "include/ida/idax.hpp",
-  "umbrella_sha256": "e3e522490be9e9c73464d9973135d73b6ae59b11622b6bf09a5332493e7af500",
+  "umbrella_sha256": "6bf2cb392f1bb7172c199e508e2d6ffefed20d373474e4dac7218a76c52d9353",
   "headers": [
     {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
     {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
@@ -31,6 +31,7 @@
     {"domain": "storage", "path": "include/ida/storage.hpp", "sha256": "68900c09cd24d780438988d89354571c9d9014b89df286fab8d402ee89214ae6"},
     {"domain": "type", "path": "include/ida/type.hpp", "sha256": "fedb6f4232f53a397dc72e8367bdbd5986db87fbecbfe3045c1780a4e4ea7642"},
     {"domain": "ui", "path": "include/ida/ui.hpp", "sha256": "2e19c4afb3fca0ad20a4d6497ec8f7de8eac1a9d4e8bf2198d3d230e8834e34f"},
+    {"domain": "undo", "path": "include/ida/undo.hpp", "sha256": "7b70bee7a084da58483a2264ab78c52b72ae0a6c7623a0dfccaf28bef047629c"},
     {"domain": "xref", "path": "include/ida/xref.hpp", "sha256": "808e4a46b88d7da3e5e8bd52d419bd9b2bde377f144b5d36478bb0722c898588"}
   ]
 }

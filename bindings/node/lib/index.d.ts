@@ -2213,6 +2213,27 @@ export namespace diagnostics {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// undo namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace undo {
+    /** Create a named restore point. Returns false when undo is unavailable. */
+    function createPoint(actionName: string, label: string): boolean;
+
+    /** Display label of the next undo action, or null when none is available. */
+    function undoActionLabel(): string | null;
+
+    /** Display label of the next redo action, or null when none is available. */
+    function redoActionLabel(): string | null;
+
+    /** Perform the next undo action. Returns false when none is available. */
+    function performUndo(): boolean;
+
+    /** Perform the next redo action. Returns false when none is available. */
+    function performRedo(): boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // lumina namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

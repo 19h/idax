@@ -27,6 +27,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::search         Text/immediate/binary pattern search            [1 enum, 1 struct, ~7 free fns]
  |-- ida::analysis       Auto-analysis control, scheduling               [~7 free fns]
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
+ |-- ida::undo           Named restore points and undo/redo state        [5 free fns]
  |
  |-- ida::event          Typed IDB change snapshots, generic routing     [3 enums, 6 structs, 1 class, ~19 free fns]
  |-- ida::plugin         Plugin base, actions, scoped hotkeys, attachments [5 structs, 2 classes, ~14 free fns]
@@ -94,6 +95,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::search` | Pattern matching | `Direction`, `TextOptions` |
 | `ida::analysis` | Auto-analysis | (free functions only) |
 | `ida::lumina` | Lumina metadata sync | `Feature`, `PushMode`, `OperationCode`, `BatchResult` |
+| `ida::undo` | Named restore points and undo/redo state | (free functions only) |
 
 ### Module Authoring
 
