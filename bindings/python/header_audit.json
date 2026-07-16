@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authoritative_umbrella": "include/ida/idax.hpp",
-  "umbrella_sha256": "dee80267411e5c4044722dbddeecf4daff6258780abd99d875561cf66ee0ad19",
+  "umbrella_sha256": "7cd63c8102cf21af2900a243c5410bb5eea29c7526d1aeab2e98047373b713b0",
   "headers": [
     {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
     {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
@@ -15,6 +15,7 @@
     {"domain": "entry", "path": "include/ida/entry.hpp", "sha256": "67492268b69e4f4464d6426a92cfa6abc96e2119724b0ef25a9890fe9415f1a7"},
     {"domain": "error", "path": "include/ida/error.hpp", "sha256": "358d0ecccd84e72383f1694033babae8f9273e0851e1f8e6a2ceb07a611bd95f"},
     {"domain": "event", "path": "include/ida/event.hpp", "sha256": "4d332bca01211d6b718ff0a10e46b3e51d4e07b212d125f35da59765ed5e8185"},
+    {"domain": "exception", "path": "include/ida/exception.hpp", "sha256": "24a7ce6ea990491694e0bfff67e96e843034488c81e7f5790e15de43c817a204"},
     {"domain": "fixup", "path": "include/ida/fixup.hpp", "sha256": "3417f34bae64f69d1a6f346f5772b542408543cb12ab71816107692581af3e38"},
     {"domain": "function", "path": "include/ida/function.hpp", "sha256": "bdf7654c0aac632f349299c65d950cc42362df3ca1abce80a4b1ec79972a99cf"},
     {"domain": "graph", "path": "include/ida/graph.hpp", "sha256": "99039f3a872ba0c74447bbda89e23b5d858b2a1dde91e2766e579bdfedd0c906"},

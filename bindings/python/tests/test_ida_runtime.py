@@ -22,6 +22,7 @@ from idax import (
     decompiler,
     entry,
     event,
+    exception,
     fixup,
     function,
     graph,
@@ -129,6 +130,56 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             assert not problem.contains(problem_kind, first_function.start)
             assert problem.description(problem_kind, first_function.start) is None
             assert problem.next(problem_kind, first_function.start) != first_function.start
+
+            exception_heads = None
+            for candidate in functions:
+                addresses = function.code_addresses(candidate.start)
+                if len(addresses) >= 5:
+                    exception_heads = addresses[:5]
+                    break
+            if exception_heads is not None:
+                scope = address.Range(exception_heads[0], exception_heads[4])
+                exception.remove(scope)
+                metadata = exception.HandlerMetadata()
+                metadata.regions = [
+                    address.Range(exception_heads[2], exception_heads[3])
+                ]
+                metadata.stack_displacement = 16
+                metadata.frame_register = 5
+                selector = exception.CatchSelector()
+                selector.kind = exception.CatchSelectorKind.TYPED
+                selector.type_identifier = 7
+                handler = exception.CatchHandler()
+                handler.metadata = metadata
+                handler.object_displacement = 24
+                handler.selector = selector
+                handlers = exception.CppHandlers()
+                handlers.catches = [handler]
+                definition = exception.BlockDefinition()
+                definition.protected_regions = [
+                    address.Range(exception_heads[0], exception_heads[1])
+                ]
+                definition.handlers = handlers
+                try:
+                    exception.add(definition)
+                    blocks = exception.list(scope)
+                    block = next(
+                        item for item in blocks
+                        if item.definition.protected_regions[0].start
+                        == exception_heads[0]
+                    )
+                    assert block.definition.handlers.catches[0].selector.type_identifier == 7
+                    assert exception.contains(
+                        exception_heads[0], exception.Location.CPP_TRY
+                    )
+                    assert exception.contains(
+                        exception_heads[2], [exception.Location.CPP_HANDLER]
+                    )
+                    system_start = exception.system_region_start(exception_heads[0])
+                    assert system_start is None or isinstance(system_start, int)
+                finally:
+                    exception.remove(scope)
+                assert not exception.contains(exception_heads[0])
 
         code_address = search.next_code(bounds.start)
         decoded = instruction.decode(code_address)

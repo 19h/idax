@@ -463,3 +463,12 @@ Current overall phase status:
 - [x] P60.4 Add pure/signature and isolated real-IDA round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 60 from active work.
 
 ---
+
+### Phase 61 TODO Action Items (Opaque Exception-Region Domain)
+
+- [x] P61.1 Audit the pinned IDA 9.4 architecture-independent exception-region surface, runtime exports, IDAPython model, public IDAX headers, and all language bindings.
+- [x] P61.2 Select an SDK-opaque boundary for fragmented protected/handler ranges, typed/catch-all/cleanup selectors, SEH filters/dispositions, calculated nesting, mutation, system-region lookup, and semantic membership flags.
+- [x] P61.3 Implement complete C++, Node, Rust, and Python parity without exposing `tryblk_t`, handler records, SDK vectors, pointers, or raw flag integers.
+- [ ] P61.4 Add pure/signature and isolated real-IDA C++/SEH round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 61 from active work.
+
+---

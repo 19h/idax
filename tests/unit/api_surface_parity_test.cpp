@@ -806,6 +806,32 @@ void check_problem_surface() {
     static_assert(static_cast<int>(ida::problem::Kind::FlairIndecision) == 16);
 }
 
+// ─── ida::exception ─────────────────────────────────────────────────────
+
+void check_exception_surface() {
+    using ListFn = ida::Result<std::vector<ida::exception::Block>>(*)(
+        ida::address::Range);
+    using RemoveFn = ida::Status(*)(ida::address::Range);
+    using AddFn = ida::Status(*)(const ida::exception::BlockDefinition&);
+    using SystemFn = ida::Result<std::optional<ida::Address>>(*)(ida::Address);
+    using ContainsFn = ida::Result<bool>(*)(
+        ida::Address, ida::exception::Location);
+
+    (void)static_cast<ListFn>(&ida::exception::list);
+    (void)static_cast<RemoveFn>(&ida::exception::remove);
+    (void)static_cast<AddFn>(&ida::exception::add);
+    (void)static_cast<SystemFn>(&ida::exception::system_region_start);
+    (void)static_cast<ContainsFn>(&ida::exception::contains);
+
+    static_assert(std::is_same_v<
+        ida::exception::HandlerSet,
+        std::variant<ida::exception::CppHandlers, ida::exception::SehHandler>>);
+    static_assert(static_cast<std::uint32_t>(
+        ida::exception::Location::Any) == 0x1f);
+    static_assert(static_cast<std::int8_t>(
+        ida::exception::SehDisposition::ContinueExecution) == -1);
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
@@ -2391,6 +2417,7 @@ int main() {
     surface_check::check_analysis_surface();   namespaces_verified++;
     surface_check::check_undo_surface();       namespaces_verified++;
     surface_check::check_problem_surface();    namespaces_verified++;
+    surface_check::check_exception_surface();  namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;

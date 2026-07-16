@@ -972,6 +972,316 @@ int idax_problem_contains(int kind, uint64_t address, int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Architecture-independent exception regions
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::Result<std::vector<ida::address::Range>> exception_ranges_from_c(
+    const IdaxExceptionRange* ranges, size_t count, const char* context) {
+    if (count != 0 && ranges == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Exception range pointer is null", context));
+    }
+    std::vector<ida::address::Range> result;
+    result.reserve(count);
+    for (size_t i = 0; i < count; ++i)
+        result.push_back({ranges[i].start, ranges[i].end});
+    return result;
+}
+
+ida::Result<ida::exception::HandlerMetadata> exception_metadata_from_c(
+    const IdaxExceptionHandlerMetadata& input, const char* context) {
+    ida::exception::HandlerMetadata result;
+    auto ranges = exception_ranges_from_c(
+        input.regions, input.regions_count, context);
+    if (!ranges)
+        return std::unexpected(ranges.error());
+    result.regions = std::move(*ranges);
+    if (input.has_stack_displacement)
+        result.stack_displacement = input.stack_displacement;
+    if (input.has_frame_register)
+        result.frame_register = input.frame_register;
+    return result;
+}
+
+ida::Result<ida::exception::BlockDefinition> exception_definition_from_c(
+    const IdaxExceptionBlockDefinition& input) {
+    ida::exception::BlockDefinition result;
+    auto protected_ranges = exception_ranges_from_c(
+        input.protected_regions, input.protected_regions_count,
+        "protected regions");
+    if (!protected_ranges)
+        return std::unexpected(protected_ranges.error());
+    result.protected_regions = std::move(*protected_ranges);
+
+    if (input.handler_kind == 0) {
+        if (input.catches_count != 0 && input.catches == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "C++ catch pointer is null"));
+        }
+        ida::exception::CppHandlers handlers;
+        handlers.catches.reserve(input.catches_count);
+        for (size_t i = 0; i < input.catches_count; ++i) {
+            const auto& raw = input.catches[i];
+            ida::exception::CatchHandler handler;
+            auto metadata = exception_metadata_from_c(raw.metadata, "C++ catch");
+            if (!metadata)
+                return std::unexpected(metadata.error());
+            handler.metadata = std::move(*metadata);
+            if (raw.has_object_displacement)
+                handler.object_displacement = raw.object_displacement;
+            switch (raw.selector_kind) {
+            case 0:
+                handler.selector.kind = ida::exception::CatchSelectorKind::Typed;
+                handler.selector.type_identifier = raw.type_identifier;
+                break;
+            case 1:
+                handler.selector.kind = ida::exception::CatchSelectorKind::CatchAll;
+                handler.selector.type_identifier = raw.type_identifier;
+                break;
+            case 2:
+                handler.selector.kind = ida::exception::CatchSelectorKind::Cleanup;
+                handler.selector.type_identifier = raw.type_identifier;
+                break;
+            default:
+                return std::unexpected(ida::Error::validation(
+                    "Unknown C++ catch selector", std::to_string(raw.selector_kind)));
+            }
+            handlers.catches.push_back(std::move(handler));
+        }
+        result.handlers = std::move(handlers);
+        return result;
+    }
+
+    if (input.handler_kind != 1) {
+        return std::unexpected(ida::Error::validation(
+            "Unknown exception handler kind", std::to_string(input.handler_kind)));
+    }
+    ida::exception::SehHandler handler;
+    auto metadata = exception_metadata_from_c(input.seh.metadata, "SEH handler");
+    if (!metadata)
+        return std::unexpected(metadata.error());
+    handler.metadata = std::move(*metadata);
+    auto filters = exception_ranges_from_c(
+        input.seh.filter_regions, input.seh.filter_regions_count,
+        "SEH filter regions");
+    if (!filters)
+        return std::unexpected(filters.error());
+    handler.filter_regions = std::move(*filters);
+    if (input.seh.has_disposition) {
+        switch (input.seh.disposition) {
+        case -1:
+            handler.disposition = ida::exception::SehDisposition::ContinueExecution;
+            break;
+        case 0:
+            handler.disposition = ida::exception::SehDisposition::ContinueSearch;
+            break;
+        case 1:
+            handler.disposition = ida::exception::SehDisposition::ExecuteHandler;
+            break;
+        default:
+            return std::unexpected(ida::Error::validation(
+                "Unknown SEH disposition", std::to_string(input.seh.disposition)));
+        }
+    }
+    result.handlers = std::move(handler);
+    return result;
+}
+
+void exception_metadata_free(IdaxExceptionHandlerMetadata* metadata) {
+    if (metadata == nullptr)
+        return;
+    std::free(metadata->regions);
+    *metadata = {};
+}
+
+void exception_definition_free(IdaxExceptionBlockDefinition* definition) {
+    if (definition == nullptr)
+        return;
+    std::free(definition->protected_regions);
+    if (definition->catches != nullptr) {
+        for (size_t i = 0; i < definition->catches_count; ++i)
+            exception_metadata_free(&definition->catches[i].metadata);
+        std::free(definition->catches);
+    }
+    exception_metadata_free(&definition->seh.metadata);
+    std::free(definition->seh.filter_regions);
+    *definition = {};
+}
+
+int exception_ranges_to_c(const std::vector<ida::address::Range>& ranges,
+                          IdaxExceptionRange** out, size_t* count) {
+    *out = nullptr;
+    *count = ranges.size();
+    if (ranges.empty())
+        return 0;
+    *out = static_cast<IdaxExceptionRange*>(
+        std::calloc(ranges.size(), sizeof(IdaxExceptionRange)));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t i = 0; i < ranges.size(); ++i) {
+        (*out)[i].start = ranges[i].start;
+        (*out)[i].end = ranges[i].end;
+    }
+    return 0;
+}
+
+int exception_metadata_to_c(const ida::exception::HandlerMetadata& input,
+                            IdaxExceptionHandlerMetadata* out) {
+    *out = {};
+    if (exception_ranges_to_c(input.regions, &out->regions,
+                              &out->regions_count) != 0)
+        return -1;
+    if (input.stack_displacement) {
+        out->has_stack_displacement = 1;
+        out->stack_displacement = *input.stack_displacement;
+    }
+    if (input.frame_register) {
+        out->has_frame_register = 1;
+        out->frame_register = *input.frame_register;
+    }
+    return 0;
+}
+
+int exception_definition_to_c(const ida::exception::BlockDefinition& input,
+                              IdaxExceptionBlockDefinition* out) {
+    *out = {};
+    if (exception_ranges_to_c(input.protected_regions,
+                              &out->protected_regions,
+                              &out->protected_regions_count) != 0)
+        return -1;
+    if (const auto* cpp = std::get_if<ida::exception::CppHandlers>(
+            &input.handlers)) {
+        out->handler_kind = 0;
+        out->catches_count = cpp->catches.size();
+        if (cpp->catches.empty())
+            return 0;
+        out->catches = static_cast<IdaxExceptionCatchHandler*>(
+            std::calloc(cpp->catches.size(), sizeof(IdaxExceptionCatchHandler)));
+        if (out->catches == nullptr) {
+            exception_definition_free(out);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        for (size_t i = 0; i < cpp->catches.size(); ++i) {
+            const auto& source = cpp->catches[i];
+            auto& target = out->catches[i];
+            if (exception_metadata_to_c(source.metadata, &target.metadata) != 0) {
+                exception_definition_free(out);
+                return -1;
+            }
+            if (source.object_displacement) {
+                target.has_object_displacement = 1;
+                target.object_displacement = *source.object_displacement;
+            }
+            target.selector_kind = static_cast<int>(source.selector.kind);
+            target.type_identifier = source.selector.type_identifier;
+        }
+        return 0;
+    }
+
+    out->handler_kind = 1;
+    const auto& source = std::get<ida::exception::SehHandler>(input.handlers);
+    if (exception_metadata_to_c(source.metadata, &out->seh.metadata) != 0
+        || exception_ranges_to_c(source.filter_regions,
+                                 &out->seh.filter_regions,
+                                 &out->seh.filter_regions_count) != 0) {
+        exception_definition_free(out);
+        return -1;
+    }
+    if (source.disposition) {
+        out->seh.has_disposition = 1;
+        out->seh.disposition = static_cast<int>(*source.disposition);
+    }
+    return 0;
+}
+
+} // anonymous namespace
+
+int idax_exception_list(uint64_t start, uint64_t end,
+                        IdaxExceptionBlock** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Exception list output pointer is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::exception::list({start, end});
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+    *out = static_cast<IdaxExceptionBlock*>(
+        std::calloc(result->size(), sizeof(IdaxExceptionBlock)));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    *count = result->size();
+    for (size_t i = 0; i < result->size(); ++i) {
+        (*out)[i].nesting_level = (*result)[i].nesting_level;
+        if (exception_definition_to_c((*result)[i].definition,
+                                      &(*out)[i].definition) != 0) {
+            idax_exception_blocks_free(*out, *count);
+            *out = nullptr;
+            *count = 0;
+            return -1;
+        }
+    }
+    return 0;
+}
+
+void idax_exception_blocks_free(IdaxExceptionBlock* blocks, size_t count) {
+    if (blocks == nullptr)
+        return;
+    for (size_t i = 0; i < count; ++i)
+        exception_definition_free(&blocks[i].definition);
+    std::free(blocks);
+}
+
+int idax_exception_remove(uint64_t start, uint64_t end) {
+    RETURN_STATUS(ida::exception::remove({start, end}));
+}
+
+int idax_exception_add(const IdaxExceptionBlockDefinition* definition) {
+    clear_error();
+    if (definition == nullptr)
+        return fail(ida::Error::validation("Exception definition pointer is null"));
+    auto parsed = exception_definition_from_c(*definition);
+    if (!parsed)
+        return fail(parsed.error());
+    auto status = ida::exception::add(*parsed);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_exception_system_region_start(uint64_t address,
+                                       uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "System exception-region output pointer is null"));
+    *out = 0;
+    *has_value = 0;
+    auto result = ida::exception::system_region_start(address);
+    if (!result)
+        return fail(result.error());
+    if (*result) {
+        *out = **result;
+        *has_value = 1;
+    }
+    return 0;
+}
+
+int idax_exception_contains(uint64_t address, uint32_t locations, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Exception contains output pointer is null"));
+    auto result = ida::exception::contains(
+        address, static_cast<ida::exception::Location>(locations));
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Address
 // ═══════════════════════════════════════════════════════════════════════════
 

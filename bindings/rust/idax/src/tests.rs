@@ -280,6 +280,39 @@ mod error_tests {
 }
 
 #[cfg(test)]
+mod exception_tests {
+    use crate::address::Range;
+    use crate::exception::*;
+
+    #[test]
+    fn exception_models_preserve_semantic_variants() {
+        let metadata = HandlerMetadata {
+            regions: vec![Range::new(0x20, 0x24)],
+            stack_displacement: Some(-16),
+            frame_register: Some(5),
+        };
+        let definition = BlockDefinition {
+            protected_regions: vec![Range::new(0x10, 0x18)],
+            handlers: HandlerSet::Cpp(vec![CatchHandler {
+                metadata: metadata.clone(),
+                object_displacement: Some(-8),
+                selector: CatchSelector::Typed(7),
+            }]),
+        };
+        assert_eq!(definition.protected_regions[0].end, 0x18);
+        assert!(matches!(definition.handlers, HandlerSet::Cpp(_)));
+
+        let seh = SehHandler {
+            metadata,
+            filter_regions: Vec::new(),
+            disposition: Some(SehDisposition::ContinueSearch),
+        };
+        assert_eq!(seh.disposition, Some(SehDisposition::ContinueSearch));
+        assert_ne!(Location::CppTry, Location::SehTry);
+    }
+}
+
+#[cfg(test)]
 mod address_tests {
     use crate::address::*;
 

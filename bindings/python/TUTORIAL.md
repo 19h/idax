@@ -178,7 +178,32 @@ finally:
 Descriptions and ordered lookups return `None` when absent. The problem kind
 is a closed `IntEnum`; no raw SDK problem-list identifier crosses the binding.
 
-## 10. Diagnose failures
+## 10. Round-trip exception metadata
+
+```python
+from idax import address, exception
+
+metadata = exception.HandlerMetadata()
+metadata.regions = [address.Range(0x401020, 0x401028)]
+selector = exception.CatchSelector()
+selector.kind = exception.CatchSelectorKind.CATCH_ALL
+handler = exception.CatchHandler()
+handler.metadata = metadata
+handler.selector = selector
+handlers = exception.CppHandlers()
+handlers.catches = [handler]
+definition = exception.BlockDefinition()
+definition.protected_regions = [address.Range(0x401000, 0x401010)]
+definition.handlers = handlers
+exception.add(definition)
+```
+
+Ranges are copied half-open values. `list()` returns the host-calculated nesting
+level; `contains()` accepts semantic `Location` values or a sequence of them.
+`system_region_start()` is an independent optional host query and may return
+`None` for an ordinary stored SEH block.
+
+## 11. Diagnose failures
 
 ```python
 from idax import IdaxError

@@ -83,7 +83,8 @@ try {
 // The native addon sets each namespace as a property on the exports object:
 //   database, address, segment, function, instruction, name, xref,
 //   comment, data, search, analysis, type, entry, fixup, event,
-//   storage, diagnostics, undo, problem, lumina, lines, ui, decompiler, path
+//   storage, diagnostics, undo, problem, exception, lumina, lines, ui,
+//   decompiler, path
 
 module.exports = native;
 

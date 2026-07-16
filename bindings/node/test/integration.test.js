@@ -587,6 +587,58 @@ describe('Analysis Problems', () => {
     });
 });
 
+// ── Exception Regions ───────────────────────────────────────────────────
+
+describe('Exception Regions', () => {
+    it('should add, list, classify, and remove a semantic C++ region', () => {
+        let heads = null;
+        for (const func of idax.function.all()) {
+            const addresses = idax.function.codeAddresses(func.start);
+            if (addresses.length >= 5) {
+                heads = addresses.slice(0, 5);
+                break;
+            }
+        }
+        expect(heads).toBeTruthy();
+        const scope = { start: heads[0], end: heads[4] };
+        idax.exception.remove(scope);
+
+        const definition = {
+            protectedRegions: [{ start: heads[0], end: heads[1] }],
+            handlers: {
+                kind: 'cpp',
+                catches: [{
+                    metadata: {
+                        regions: [{ start: heads[2], end: heads[3] }],
+                        stackDisplacement: 16n,
+                        frameRegister: 5,
+                    },
+                    objectDisplacement: 24n,
+                    selector: { kind: 'typed', typeIdentifier: 7n },
+                }],
+            },
+        };
+
+        try {
+            idax.exception.add(definition);
+            const blocks = idax.exception.list(scope);
+            const block = blocks.find(
+                item => item.definition.protectedRegions[0].start === heads[0]);
+            expect(block).toBeTruthy();
+            expect(block.definition.handlers.kind).toBe('cpp');
+            expect(block.definition.handlers.catches[0].selector.kind).toBe('typed');
+            expect(block.definition.handlers.catches[0].selector.typeIdentifier).toBe(7n);
+            expect(idax.exception.contains(heads[0], 'cppTry')).toBe(true);
+            expect(idax.exception.contains(heads[2], ['cppHandler'])).toBe(true);
+            const systemStart = idax.exception.systemRegionStart(heads[0]);
+            expect(systemStart === null || typeof systemStart === 'bigint').toBe(true);
+        } finally {
+            idax.exception.remove(scope);
+        }
+        expect(idax.exception.contains(heads[0], 'any')).toBe(false);
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

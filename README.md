@@ -91,6 +91,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
 | **Problems** | `ida::problem` | Typed analysis-problem recording, descriptions, ordered lookup, names, removal, and presence |
+| **Exception regions** | `ida::exception` | Opaque fragmented C++/SEH protected regions, handlers, membership, mutation, and system-EH lookup |
 | **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
 | **Undo** | `ida::undo` | Opaque named restore points, copied next-action labels, and undo/redo execution |
 | **Events** | `ida::event` | Typed IDB subscriptions, generic filtering/routing, RAII guards |

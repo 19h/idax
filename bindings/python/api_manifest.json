@@ -408,6 +408,20 @@
       ]
     },
     {
+      "name": "exception",
+      "header": "include/ida/exception.hpp",
+      "status": "validated",
+      "native_source": "exception_bind.cpp",
+      "bound_functions": [
+        "add", "contains", "list", "remove", "system_region_start"
+      ],
+      "bound_types": [
+        "Block", "BlockDefinition", "CatchHandler", "CatchSelector",
+        "CatchSelectorKind", "CppHandlers", "HandlerMetadata", "Location",
+        "SehDisposition", "SehHandler"
+      ]
+    },
+    {
       "name": "problem",
       "header": "include/ida/problem.hpp",
       "status": "validated",

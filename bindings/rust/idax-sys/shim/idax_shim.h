@@ -178,6 +178,67 @@ int idax_problem_name(int kind, int long_form, char** out);
 int idax_problem_contains(int kind, uint64_t address, int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Architecture-independent exception regions (ida::exception)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef struct IdaxExceptionRange {
+    uint64_t start;
+    uint64_t end;
+} IdaxExceptionRange;
+
+typedef struct IdaxExceptionHandlerMetadata {
+    IdaxExceptionRange* regions;
+    size_t regions_count;
+    int has_stack_displacement;
+    int64_t stack_displacement;
+    int has_frame_register;
+    int frame_register;
+} IdaxExceptionHandlerMetadata;
+
+/** selector_kind: 0=typed, 1=catch-all, 2=cleanup. */
+typedef struct IdaxExceptionCatchHandler {
+    IdaxExceptionHandlerMetadata metadata;
+    int has_object_displacement;
+    int64_t object_displacement;
+    int selector_kind;
+    int64_t type_identifier;
+} IdaxExceptionCatchHandler;
+
+/** disposition is -1=continue execution, 0=continue search, 1=execute handler. */
+typedef struct IdaxExceptionSehHandler {
+    IdaxExceptionHandlerMetadata metadata;
+    IdaxExceptionRange* filter_regions;
+    size_t filter_regions_count;
+    int has_disposition;
+    int disposition;
+} IdaxExceptionSehHandler;
+
+/** handler_kind: 0=C++, 1=SEH. */
+typedef struct IdaxExceptionBlockDefinition {
+    IdaxExceptionRange* protected_regions;
+    size_t protected_regions_count;
+    int handler_kind;
+    IdaxExceptionCatchHandler* catches;
+    size_t catches_count;
+    IdaxExceptionSehHandler seh;
+} IdaxExceptionBlockDefinition;
+
+typedef struct IdaxExceptionBlock {
+    IdaxExceptionBlockDefinition definition;
+    uint8_t nesting_level;
+} IdaxExceptionBlock;
+
+int idax_exception_list(uint64_t start, uint64_t end,
+                        IdaxExceptionBlock** out, size_t* count);
+void idax_exception_blocks_free(IdaxExceptionBlock* blocks, size_t count);
+int idax_exception_remove(uint64_t start, uint64_t end);
+int idax_exception_add(const IdaxExceptionBlockDefinition* definition);
+int idax_exception_system_region_start(uint64_t address,
+                                       uint64_t* out, int* has_value);
+/** locations is the private shim transport for a safe semantic Rust set. */
+int idax_exception_contains(uint64_t address, uint32_t locations, int* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Address (ida::address)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

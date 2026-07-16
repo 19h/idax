@@ -27,6 +27,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::search         Text/immediate/binary pattern search            [1 enum, 1 struct, ~7 free fns]
  |-- ida::analysis       Auto-analysis control, scheduling               [~7 free fns]
  |-- ida::problem        Typed analysis-problem lists                    [1 enum, 6 free fns]
+ |-- ida::exception      Opaque C++/SEH exception regions                [3 enums, 7 structs, 5 free fns]
  |-- ida::lumina         Lumina pull/push and connection control         [3 enums, 1 struct, ~8 free fns]
  |-- ida::undo           Named restore points and undo/redo state        [5 free fns]
  |
@@ -96,6 +97,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::search` | Pattern matching | `Direction`, `TextOptions` |
 | `ida::analysis` | Auto-analysis | (free functions only) |
 | `ida::problem` | Typed analysis-problem lists | `Kind` |
+| `ida::exception` | Architecture-independent exception regions | `BlockDefinition`, `Block`, `CatchHandler`, `SehHandler`, `Location` |
 | `ida::lumina` | Lumina metadata sync | `Feature`, `PushMode`, `OperationCode`, `BatchResult` |
 | `ida::undo` | Named restore points and undo/redo state | (free functions only) |
 

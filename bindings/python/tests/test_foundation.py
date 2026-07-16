@@ -9,6 +9,7 @@ from idax import (
     address,
     database,
     diagnostics,
+    exception,
     lines,
     loader,
     plugin,
@@ -37,6 +38,29 @@ def test_package_contract() -> None:
     assert problem.Kind.FLAIR_INDECISION == 16
     with pytest.raises(idax.ValidationError, match="embedded NUL"):
         problem.remember(problem.Kind.ATTENTION, 0, "bad\0message")
+    assert exception.CatchSelectorKind.TYPED.name == "TYPED"
+    assert exception.SehDisposition.CONTINUE_SEARCH.name == "CONTINUE_SEARCH"
+    assert exception.Location.CPP_TRY.name == "CPP_TRY"
+
+
+def test_exception_models_are_opaque_python_values() -> None:
+    metadata = exception.HandlerMetadata()
+    metadata.regions = [address.Range(0x20, 0x24)]
+    metadata.stack_displacement = -16
+    metadata.frame_register = 5
+    selector = exception.CatchSelector()
+    selector.kind = exception.CatchSelectorKind.TYPED
+    selector.type_identifier = 7
+    handler = exception.CatchHandler()
+    handler.metadata = metadata
+    handler.object_displacement = -8
+    handler.selector = selector
+    handlers = exception.CppHandlers()
+    handlers.catches = [handler]
+    definition = exception.BlockDefinition()
+    definition.protected_regions = [address.Range(0x10, 0x18)]
+    definition.handlers = handlers
+    assert definition.handlers.catches[0].selector.type_identifier == 7
 
 
 def test_address_range_is_pythonic_value() -> None:

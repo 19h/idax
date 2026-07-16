@@ -1,6 +1,7 @@
 from typing import Final, TypeAlias
 from . import address as address, analysis as analysis, core as core
 from . import data as data, event as event
+from . import exception as exception
 from . import debugger as debugger, graph as graph
 from . import decompiler as decompiler
 from . import database as database, diagnostics as diagnostics

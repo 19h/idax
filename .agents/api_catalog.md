@@ -267,4 +267,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `description()` and `next()` return copied optional values; `remember()` preserves absent versus explicitly empty messages and rejects embedded NUL.
 - `remove()`, `contains()`, and `name()` preserve exact host state while returning owned values. Node, Rust, and Python expose the same six operations.
 
+### 17.34 Opaque Architecture-Independent Exception Regions
+- `BlockDefinition` owns sorted fragmented protected ranges and a discriminated `CppHandlers` or `SehHandler` payload; retrieved `Block` values add the host-calculated nesting level.
+- C++ catches use semantic typed, catch-all, and cleanup selectors with optional stack, frame-register, and exception-object metadata. SEH handlers use fragmented filter ranges or a closed disposition.
+- `list`, `remove`, `add`, `system_region_start`, and `contains` cover all five pinned runtime operations without exposing `tryblk_t`, `catch_t`, `seh_t`, SDK containers, selector sentinels, or raw masks.
+- Node, safe Rust, and Python preserve the same owned range graph and semantic location classes. The generated C ABI is private transport with explicit recursive allocation/free ownership.
+
 ---

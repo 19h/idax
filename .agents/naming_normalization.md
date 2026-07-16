@@ -40,6 +40,9 @@ This mapping is non-exhaustive but representative of expected direction.
 | `remember_problem(type, ea, msg)` | `ida::problem::remember(kind, address, message)` |
 | `get_problem(type, lowea)` | `ida::problem::next(kind, at_or_after)` |
 | `forget_problem` / `is_problem_present` | `ida::problem::remove` / `contains` |
+| `get_tryblks` / `del_tryblks` / `add_tryblk` | `ida::exception::list` / `remove` / `add` |
+| `find_syseh` | `ida::exception::system_region_start` |
+| `is_ea_tryblks(ea, TBEA_*)` | `ida::exception::contains(address, Location)` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

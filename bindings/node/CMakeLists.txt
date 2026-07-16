@@ -229,6 +229,7 @@ set(BINDING_SOURCES
     src/analysis_bind.cpp
     src/undo_bind.cpp
     src/problem_bind.cpp
+    src/exception_bind.cpp
     src/type_bind.cpp
     src/entry_bind.cpp
     src/fixup_bind.cpp

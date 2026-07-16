@@ -429,6 +429,227 @@ unsafe extern "C" {
         out: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxExceptionRange {
+    pub start: u64,
+    pub end: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionRange"][::std::mem::size_of::<IdaxExceptionRange>() - 16usize];
+    ["Alignment of IdaxExceptionRange"][::std::mem::align_of::<IdaxExceptionRange>() - 8usize];
+    ["Offset of field: IdaxExceptionRange::start"]
+        [::std::mem::offset_of!(IdaxExceptionRange, start) - 0usize];
+    ["Offset of field: IdaxExceptionRange::end"]
+        [::std::mem::offset_of!(IdaxExceptionRange, end) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxExceptionHandlerMetadata {
+    pub regions: *mut IdaxExceptionRange,
+    pub regions_count: usize,
+    pub has_stack_displacement: ::std::os::raw::c_int,
+    pub stack_displacement: i64,
+    pub has_frame_register: ::std::os::raw::c_int,
+    pub frame_register: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionHandlerMetadata"]
+        [::std::mem::size_of::<IdaxExceptionHandlerMetadata>() - 40usize];
+    ["Alignment of IdaxExceptionHandlerMetadata"]
+        [::std::mem::align_of::<IdaxExceptionHandlerMetadata>() - 8usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::regions"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, regions) - 0usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::regions_count"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, regions_count) - 8usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::has_stack_displacement"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, has_stack_displacement) - 16usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::stack_displacement"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, stack_displacement) - 24usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::has_frame_register"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, has_frame_register) - 32usize];
+    ["Offset of field: IdaxExceptionHandlerMetadata::frame_register"]
+        [::std::mem::offset_of!(IdaxExceptionHandlerMetadata, frame_register) - 36usize];
+};
+impl Default for IdaxExceptionHandlerMetadata {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " selector_kind: 0=typed, 1=catch-all, 2=cleanup."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxExceptionCatchHandler {
+    pub metadata: IdaxExceptionHandlerMetadata,
+    pub has_object_displacement: ::std::os::raw::c_int,
+    pub object_displacement: i64,
+    pub selector_kind: ::std::os::raw::c_int,
+    pub type_identifier: i64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionCatchHandler"]
+        [::std::mem::size_of::<IdaxExceptionCatchHandler>() - 72usize];
+    ["Alignment of IdaxExceptionCatchHandler"]
+        [::std::mem::align_of::<IdaxExceptionCatchHandler>() - 8usize];
+    ["Offset of field: IdaxExceptionCatchHandler::metadata"]
+        [::std::mem::offset_of!(IdaxExceptionCatchHandler, metadata) - 0usize];
+    ["Offset of field: IdaxExceptionCatchHandler::has_object_displacement"]
+        [::std::mem::offset_of!(IdaxExceptionCatchHandler, has_object_displacement) - 40usize];
+    ["Offset of field: IdaxExceptionCatchHandler::object_displacement"]
+        [::std::mem::offset_of!(IdaxExceptionCatchHandler, object_displacement) - 48usize];
+    ["Offset of field: IdaxExceptionCatchHandler::selector_kind"]
+        [::std::mem::offset_of!(IdaxExceptionCatchHandler, selector_kind) - 56usize];
+    ["Offset of field: IdaxExceptionCatchHandler::type_identifier"]
+        [::std::mem::offset_of!(IdaxExceptionCatchHandler, type_identifier) - 64usize];
+};
+impl Default for IdaxExceptionCatchHandler {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " disposition is -1=continue execution, 0=continue search, 1=execute handler."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxExceptionSehHandler {
+    pub metadata: IdaxExceptionHandlerMetadata,
+    pub filter_regions: *mut IdaxExceptionRange,
+    pub filter_regions_count: usize,
+    pub has_disposition: ::std::os::raw::c_int,
+    pub disposition: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionSehHandler"][::std::mem::size_of::<IdaxExceptionSehHandler>() - 64usize];
+    ["Alignment of IdaxExceptionSehHandler"]
+        [::std::mem::align_of::<IdaxExceptionSehHandler>() - 8usize];
+    ["Offset of field: IdaxExceptionSehHandler::metadata"]
+        [::std::mem::offset_of!(IdaxExceptionSehHandler, metadata) - 0usize];
+    ["Offset of field: IdaxExceptionSehHandler::filter_regions"]
+        [::std::mem::offset_of!(IdaxExceptionSehHandler, filter_regions) - 40usize];
+    ["Offset of field: IdaxExceptionSehHandler::filter_regions_count"]
+        [::std::mem::offset_of!(IdaxExceptionSehHandler, filter_regions_count) - 48usize];
+    ["Offset of field: IdaxExceptionSehHandler::has_disposition"]
+        [::std::mem::offset_of!(IdaxExceptionSehHandler, has_disposition) - 56usize];
+    ["Offset of field: IdaxExceptionSehHandler::disposition"]
+        [::std::mem::offset_of!(IdaxExceptionSehHandler, disposition) - 60usize];
+};
+impl Default for IdaxExceptionSehHandler {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " handler_kind: 0=C++, 1=SEH."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxExceptionBlockDefinition {
+    pub protected_regions: *mut IdaxExceptionRange,
+    pub protected_regions_count: usize,
+    pub handler_kind: ::std::os::raw::c_int,
+    pub catches: *mut IdaxExceptionCatchHandler,
+    pub catches_count: usize,
+    pub seh: IdaxExceptionSehHandler,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionBlockDefinition"]
+        [::std::mem::size_of::<IdaxExceptionBlockDefinition>() - 104usize];
+    ["Alignment of IdaxExceptionBlockDefinition"]
+        [::std::mem::align_of::<IdaxExceptionBlockDefinition>() - 8usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::protected_regions"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, protected_regions) - 0usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::protected_regions_count"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, protected_regions_count) - 8usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::handler_kind"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, handler_kind) - 16usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::catches"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, catches) - 24usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::catches_count"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, catches_count) - 32usize];
+    ["Offset of field: IdaxExceptionBlockDefinition::seh"]
+        [::std::mem::offset_of!(IdaxExceptionBlockDefinition, seh) - 40usize];
+};
+impl Default for IdaxExceptionBlockDefinition {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxExceptionBlock {
+    pub definition: IdaxExceptionBlockDefinition,
+    pub nesting_level: u8,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxExceptionBlock"][::std::mem::size_of::<IdaxExceptionBlock>() - 112usize];
+    ["Alignment of IdaxExceptionBlock"][::std::mem::align_of::<IdaxExceptionBlock>() - 8usize];
+    ["Offset of field: IdaxExceptionBlock::definition"]
+        [::std::mem::offset_of!(IdaxExceptionBlock, definition) - 0usize];
+    ["Offset of field: IdaxExceptionBlock::nesting_level"]
+        [::std::mem::offset_of!(IdaxExceptionBlock, nesting_level) - 104usize];
+};
+impl Default for IdaxExceptionBlock {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_exception_list(
+        start: u64,
+        end: u64,
+        out: *mut *mut IdaxExceptionBlock,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_exception_blocks_free(blocks: *mut IdaxExceptionBlock, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_exception_remove(start: u64, end: u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_exception_add(
+        definition: *const IdaxExceptionBlockDefinition,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_exception_system_region_start(
+        address: u64,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " locations is the private shim transport for a safe semantic Rust set."]
+    pub fn idax_exception_contains(
+        address: u64,
+        locations: u32,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
 unsafe extern "C" {
     pub fn idax_address_is_mapped(ea: u64) -> ::std::os::raw::c_int;
 }

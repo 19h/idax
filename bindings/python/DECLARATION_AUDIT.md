@@ -3,13 +3,13 @@
 ## Authority and result
 
 The audit starts at `include/ida/idax.hpp` and covers `core.hpp`, `error.hpp`,
-and every one of its 29 domain headers. Every top-level function and public
+and every one of its 30 domain headers. Every top-level function and public
 type has a native registration, public module export, and strict stub entry.
 Class methods, properties, enum members, overloads, constructors, and callback
 signatures are represented in the corresponding `.pyi` declaration.
 
-`api_manifest.json` inventories 839 bound top-level functions/types.
-`header_audit.json` records SHA-256 digests for the umbrella and all 31
+`api_manifest.json` inventories 854 bound top-level functions/types.
+`header_audit.json` records SHA-256 digests for the umbrella and all 32
 authoritative headers. `scripts/check_python_api_manifest.py` fails closed when
 a header changes or when native registration, public `__all__`, stub symbols,
 or the manifest diverge. A header change requires a new declaration-level

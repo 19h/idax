@@ -17,6 +17,7 @@ checked with strict mypy.
 | `diagnostics` | 7 | 2 | Logging, enriched errors, invariants, performance counters. |
 | `entry` | 8 | 1 | Entry-point inventory and mutation. |
 | `event` | 19 | 10 | Typed IDB subscriptions and scoped unsubscription. |
+| `exception` | 5 | 10 | Architecture-independent C++/SEH protected regions, handlers, membership, and mutation. |
 | `fixup` | 13 | 5 | Relocation lookup/traversal and custom handlers. |
 | `function` | 38 | 6 | Functions, chunks, frames, callers/callees, attributes, mutation. |
 | `graph` | 9 | 9 | In-memory graphs, flow charts, switch tables, graph viewers. |

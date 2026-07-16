@@ -1207,3 +1207,18 @@ tracked in `docs/compatibility_matrix.md`.
   Professional 9.4 using exact SDK commit
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; complete logs contain zero
   unmasked canonical license identifiers.
+
+- 2026-07-16 Phase 61 opaque exception-region domain local candidate:
+  Added all five pinned `tryblks.hpp` operations across C++, Node, generated
+  C/safe Rust, and Python using owned fragmented ranges, discriminated C++/SEH
+  handlers, semantic selectors/dispositions/locations, optional system-region
+  lookup, and explicit native error mapping. Native CTest passes 32/32 with TGZ
+  packaging; Node passes 246 structural plus 88 initialized-host checks and
+  strict TypeScript examples; Rust passes 149 unit plus 105 initialized-host
+  checks, formatting, all-target compilation, doctests, and byte-identical
+  generated bindings (`d350e186eb665c5635837a4770d5beafcf37634f255d38ee1b15d21eba7ed85d`);
+  Python passes 20 pure plus one initialized-host check, strict typing over 34
+  modules, a 30-domain/854-symbol manifest, and wheel/sdist inspection. The
+  license-selector, procmod, repository-privacy, workflow-YAML, actionlint,
+  diff-hygiene, 509-file candidate, and 3,753-object reachable-history gates
+  pass. Live cross-platform validation remains the post-push closure gate.

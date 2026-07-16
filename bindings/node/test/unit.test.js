@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'problem', 'exception', 'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -647,6 +647,24 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace problem');
         expect(dts).toContain("| 'flairIndecision';");
         expect(dts).toContain('function next(kind: Kind, atOrAfter?: Address | null): Address | null');
+    });
+
+    it('should have semantic exception-region functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of ['list', 'remove', 'add', 'systemRegionStart', 'contains']) {
+            expect(typeof idax.exception[fn]).toBe('function');
+        }
+        expect(() => idax.exception.list({ start: 0n, end: 'bad' }))
+            .toThrow(/must be addresses/);
+        expect(() => idax.exception.contains(0n, 'unknownLocation'))
+            .toThrow(/Unknown exception location/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace exception');
+        expect(dts).toContain("| 'cppTry'");
+        expect(dts).toContain('function systemRegionStart(address: Address): Address | null');
     });
 });
 

@@ -2276,6 +2276,86 @@ export namespace problem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// exception namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace exception {
+    interface Range {
+        start: Address;
+        end: Address;
+    }
+
+    interface HandlerMetadata {
+        regions: Range[];
+        stackDisplacement: bigint | null;
+        frameRegister: number | null;
+    }
+
+    type CatchSelector =
+        | { kind: 'typed'; typeIdentifier: bigint }
+        | { kind: 'catchAll' }
+        | { kind: 'cleanup' };
+
+    interface CatchHandler {
+        metadata: HandlerMetadata;
+        objectDisplacement: bigint | null;
+        selector: CatchSelector;
+    }
+
+    type SehDisposition =
+        | 'continueExecution'
+        | 'continueSearch'
+        | 'executeHandler';
+
+    interface SehHandler {
+        metadata: HandlerMetadata;
+        filterRegions: Range[];
+        disposition: SehDisposition | null;
+    }
+
+    type HandlerSet =
+        | { kind: 'cpp'; catches: CatchHandler[] }
+        | { kind: 'seh'; handler: SehHandler };
+
+    interface BlockDefinition {
+        protectedRegions: Range[];
+        handlers: HandlerSet;
+    }
+
+    interface Block {
+        definition: BlockDefinition;
+        nestingLevel: number;
+    }
+
+    type Location =
+        | 'cppTry'
+        | 'cppHandler'
+        | 'sehTry'
+        | 'sehHandler'
+        | 'sehFilter'
+        | 'any'
+        | 'unwindFallthrough';
+
+    /** Retrieve copied exception regions intersecting a range. */
+    function list(range: Range): Block[];
+
+    /** Delete every exception-region record intersecting a range. */
+    function remove(range: Range): void;
+
+    /** Add one validated C++ or SEH exception-region definition. */
+    function add(block: BlockDefinition): void;
+
+    /** Return a surrounding system-EH start, or null when absent. */
+    function systemRegionStart(address: Address): Address | null;
+
+    /** Test one or more semantic exception-location classes. */
+    function contains(
+        address: Address,
+        locations?: Location | readonly Location[] | null,
+    ): boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // lumina namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

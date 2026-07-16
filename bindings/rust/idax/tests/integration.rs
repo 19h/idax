@@ -15,10 +15,10 @@ use std::panic::{self, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, Once, OnceLock};
 
-use idax::address::{Address, BAD_ADDRESS};
+use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
-    analysis, comment, data, database, decompiler, entry, event, fixup, function, graph,
+    analysis, comment, data, database, decompiler, entry, event, exception, fixup, function, graph,
     instruction, lines, name, plugin, problem, search, segment, storage, types, ui, undo, xref,
 };
 
@@ -903,6 +903,52 @@ fn problem_roundtrip() {
     assert!(!problem::contains(kind, address).unwrap());
     assert_eq!(problem::description(kind, address).unwrap(), None);
     assert_ne!(problem::next(kind, address).unwrap(), Some(address));
+}
+
+fn exception_roundtrip() {
+    require_db!();
+    let mut heads = None;
+    for index in 0..function::count().unwrap() {
+        let candidate = function::by_index(index).unwrap();
+        let addresses = function::code_addresses(candidate.start()).unwrap();
+        if addresses.len() >= 5 {
+            heads = Some(addresses[..5].to_vec());
+            break;
+        }
+    }
+    let heads = heads.expect("fixture needs a function with five code addresses");
+    let scope = Range::new(heads[0], heads[4]);
+    exception::remove(scope).unwrap();
+
+    let definition = exception::BlockDefinition {
+        protected_regions: vec![Range::new(heads[0], heads[1])],
+        handlers: exception::HandlerSet::Cpp(vec![exception::CatchHandler {
+            metadata: exception::HandlerMetadata {
+                regions: vec![Range::new(heads[2], heads[3])],
+                stack_displacement: Some(16),
+                frame_register: Some(5),
+            },
+            object_displacement: Some(24),
+            selector: exception::CatchSelector::Typed(7),
+        }]),
+    };
+
+    exception::add(&definition).unwrap();
+    let blocks = exception::list(scope).unwrap();
+    let block = blocks
+        .iter()
+        .find(|block| block.definition.protected_regions[0].start == heads[0])
+        .expect("added exception block should be returned");
+    let exception::HandlerSet::Cpp(catches) = &block.definition.handlers else {
+        panic!("C++ exception handlers should retain their semantic variant");
+    };
+    assert_eq!(catches[0].selector, exception::CatchSelector::Typed(7));
+    assert!(exception::contains(heads[0], &[exception::Location::CppTry]).unwrap());
+    assert!(exception::contains(heads[2], &[exception::Location::CppHandler]).unwrap());
+    let _ = exception::system_region_start(heads[0]).unwrap();
+
+    exception::remove(scope).unwrap();
+    assert!(!exception::contains_any(heads[0]).unwrap());
 }
 
 // ===========================================================================
@@ -2686,6 +2732,7 @@ static TEST_CASES: &[TestCase] = &[
     ("comment_anterior_posterior", comment_anterior_posterior),
     ("undo_comment_roundtrip", undo_comment_roundtrip),
     ("problem_roundtrip", problem_roundtrip),
+    ("exception_roundtrip", exception_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),
