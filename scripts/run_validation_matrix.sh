@@ -52,6 +52,7 @@ echo "[idax] build example tools: $BUILD_EXAMPLE_TOOLS"
 python3 "$ROOT/tests/unit/select_hcli_license_test.py"
 python3 "$ROOT/tests/unit/procmod_validation_scripts_test.py"
 python3 "$ROOT/tests/unit/repository_privacy_test.py"
+python3 "$ROOT/tests/unit/ci_log_privacy_test.py"
 python3 "$ROOT/scripts/check_repository_privacy.py"
 python3 "$ROOT/scripts/check_repository_privacy.py" --history-ref=HEAD
 

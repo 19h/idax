@@ -69,8 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Pin all six uv setup invocations to immutable Node 24 action revision `11f9893b081a58869d3b5fccaea48c9e9e46f990` (`v8.3.2`) and explicit uv `0.11.28`, retain the workflow token for authenticated fallback download, exact-stage/review/push the isolated CI correction, verify the replacement live matrix and complete-log privacy, then close Phase 65.
-  - 7.1.2. **Evidence:** Implementation commit `c66fc8e2bcd7c4084e7c1cc629114a41e96685b1` is on `master`. Runs 29541397249 and 29541397296 reached v5's unpinned latest-version resolution from shared macOS runner addresses; jobs 87764215050 and 87764215005 failed before checkout/build with unauthenticated GitHub API rate-limit annotations. Exact v5 inspection shows that the token input already defaulted to `${{ github.token }}`, so an explicit version pin is required to eliminate that metadata lookup rather than merely restating the default.
-  - 7.1.3. **Blocker:** The first live matrix cannot pass because two pre-build latest-version resolution steps reached and exhausted an unauthenticated GitHub API bucket.
-  - 7.1.4. **Mitigation:** Remove runtime version discovery with explicit uv `0.11.28`, use setup-uv `v8.3.2`'s Node 24 runtime and Astral-mirror default, and preserve `${{ github.token }}` for authenticated GitHub fallback acquisition.
-  - 7.1.5. **Status:** Active / corrective release validation in progress.
+  - 7.1.1. **Action:** Exact-stage/review/push a least-privilege `workflow_run` auditor, obtain automatic complete-log privacy evidence for all three green replacement workflows, then close Phase 65.
+  - 7.1.2. **Evidence:** Corrective commit `0bc6fe9b` is on `master`; runs 29541772078 (Integrations 3/3), 29541772069 (Validation 6/6), and 29541772063 (Bindings 9/9) pass, and all 18 setup steps pass with explicit uv `0.11.28`. Public metadata exposes job/step conclusions but raw run logs require authenticated `actions:read`; the local GitHub credential is invalid and the in-app browser backend is unavailable.
+  - 7.1.3. **Blocker:** Manual complete-log retrieval is credential/session-dependent and cannot supply the remaining privacy gate in this environment.
+  - 7.1.4. **Mitigation:** On completion of each release workflow, use a separate default-branch `workflow_run` job with only `actions:read`/`contents:read` to download its complete log ZIP and run the fail-closed repository scanner without echoing matches.
+  - 7.1.5. **Status:** Active / automated log-privacy evidence in progress.
