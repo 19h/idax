@@ -1,4 +1,5 @@
 #[allow(dead_code)]
+#[path = "common/mod.rs"]
 mod common;
 
 // Adapted from Diaphora 3.4.0. Upstream copyright and AGPL-3.0-or-later
@@ -8,15 +9,18 @@ use common::{DatabaseSession, format_error, print_usage};
 use idax::error::ErrorCategory;
 use idax::instruction::OperandType;
 use idax::{
-    Error, Result, comment, data, database, decompiler, function, graph, instruction, name, segment,
+    Error, Result, comment, data, database, decompiler, function, graph, instruction, name,
+    segment, types, xref,
 };
 use std::collections::{HashMap, HashSet};
 
 const HEADER: &str = "IDAX_DIAPHORA_EXACT\t1\tcanonical-cfg";
 const INSTRUCTION_METADATA_HEADER: &str =
     "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
+const REFERENT_METADATA_HEADER: &str = "IDAX_DIAPHORA_REFERENT_METADATA\t1\tunique-reference-class";
 const PSEUDOCODE_COMMENT_HEADER: &str = "IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location";
 const DECLARATION_PLACEHOLDER: &str = "__idax_diaphora_function";
+const REFERENT_DECLARATION_PLACEHOLDER: &str = "__idax_diaphora_referent";
 
 #[derive(Debug, Clone)]
 struct Options {
@@ -32,6 +36,8 @@ enum Mode {
     Compare,
     ExportInstructionMetadata,
     CompareInstructionMetadata,
+    ExportReferentMetadata,
+    CompareReferentMetadata,
     ExportPseudocodeComments,
     ComparePseudocodeComments,
 }
@@ -127,6 +133,56 @@ struct InstructionMetadataApplySummary {
     comments: usize,
     repeatable_comments: usize,
     forced_operands: usize,
+    preserved: usize,
+    failures: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum ReferentKind {
+    Code,
+    Data,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ReferentMetadataRecord {
+    function_ordinal: usize,
+    instruction_ordinal: usize,
+    function_offset: i64,
+    size: usize,
+    full_md5: String,
+    relocation_md5: String,
+    mnemonic: String,
+    kind: ReferentKind,
+    name: String,
+    declaration: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ReferentMetadataManifest {
+    functions: Vec<FunctionRecord>,
+    referents: Vec<ReferentMetadataRecord>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct EligibleReferentMetadata {
+    metadata_index: usize,
+    instruction_address: u64,
+    referent_address: u64,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct ReferentMetadataComparison {
+    functions: MatchSummary,
+    eligible: Vec<EligibleReferentMetadata>,
+    unmatched_functions: usize,
+    instruction_guard_failures: usize,
+    reference_guard_failures: usize,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct ReferentMetadataApplySummary {
+    names: usize,
+    types: usize,
     preserved: usize,
     failures: usize,
 }
@@ -320,11 +376,13 @@ fn parse_options() -> Result<Options> {
         "--compare" => Mode::Compare,
         "--export-instruction-metadata" => Mode::ExportInstructionMetadata,
         "--compare-instruction-metadata" => Mode::CompareInstructionMetadata,
+        "--export-referent-metadata" => Mode::ExportReferentMetadata,
+        "--compare-referent-metadata" => Mode::CompareReferentMetadata,
         "--export-pseudocode-comments" => Mode::ExportPseudocodeComments,
         "--compare-pseudocode-comments" => Mode::ComparePseudocodeComments,
         _ => {
             return Err(Error::validation(
-                "expected an exact, instruction-metadata, or pseudocode-comment export/compare mode",
+                "expected an exact, instruction-metadata, referent-metadata, or pseudocode-comment export/compare mode",
             ));
         }
     };
@@ -333,7 +391,10 @@ fn parse_options() -> Result<Options> {
         if argument == "--apply"
             && matches!(
                 mode,
-                Mode::Compare | Mode::CompareInstructionMetadata | Mode::ComparePseudocodeComments
+                Mode::Compare
+                    | Mode::CompareInstructionMetadata
+                    | Mode::CompareReferentMetadata
+                    | Mode::ComparePseudocodeComments
             )
         {
             apply = true;
@@ -639,6 +700,140 @@ fn parse_instruction_metadata_manifest(text: &str) -> Result<InstructionMetadata
     Ok(InstructionMetadataManifest {
         functions,
         instructions,
+    })
+}
+
+fn referent_kind_name(kind: ReferentKind) -> &'static str {
+    match kind {
+        ReferentKind::Code => "code",
+        ReferentKind::Data => "data",
+    }
+}
+
+fn parse_referent_kind(name: &str) -> Result<ReferentKind> {
+    match name {
+        "code" => Ok(ReferentKind::Code),
+        "data" => Ok(ReferentKind::Data),
+        _ => Err(Error::validation(format!(
+            "unknown referent metadata class: {name}"
+        ))),
+    }
+}
+
+fn format_referent_metadata_record(record: &ReferentMetadataRecord) -> String {
+    format!(
+        "R\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        record.function_ordinal,
+        record.instruction_ordinal,
+        record.function_offset,
+        record.size,
+        record.full_md5,
+        record.relocation_md5,
+        hex_encode(&record.mnemonic),
+        referent_kind_name(record.kind),
+        hex_encode(&record.name),
+        hex_encode(&record.declaration),
+    )
+}
+
+fn format_referent_metadata_manifest(manifest: &ReferentMetadataManifest) -> String {
+    let mut output = format!("{REFERENT_METADATA_HEADER}\n");
+    for function in &manifest.functions {
+        output.push_str(&format_record(function));
+        output.push('\n');
+    }
+    for referent in &manifest.referents {
+        output.push_str(&format_referent_metadata_record(referent));
+        output.push('\n');
+    }
+    output
+}
+
+fn parse_referent_metadata_manifest(text: &str) -> Result<ReferentMetadataManifest> {
+    let mut lines = text.lines();
+    if lines.next() != Some(REFERENT_METADATA_HEADER) {
+        return Err(Error::validation(
+            "unsupported Diaphora referent metadata manifest header",
+        ));
+    }
+    let mut function_text = format!("{HEADER}\n");
+    let mut referents = Vec::new();
+    let mut referent_keys = HashSet::new();
+    for line in lines.filter(|line| !line.is_empty()) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.first() == Some(&"F") {
+            function_text.push_str(line);
+            function_text.push('\n');
+            continue;
+        }
+        if fields.len() != 11 || fields[0] != "R" {
+            return Err(Error::validation(
+                "malformed Diaphora referent metadata record",
+            ));
+        }
+        let parse_usize = |field: &str, label: &str| {
+            field
+                .parse::<usize>()
+                .map_err(|_| Error::validation(format!("invalid {label}")))
+        };
+        let function_ordinal = parse_usize(fields[1], "function ordinal")?;
+        let instruction_ordinal = parse_usize(fields[2], "instruction ordinal")?;
+        let function_offset = fields[3]
+            .parse::<i64>()
+            .map_err(|_| Error::validation("invalid referent function offset"))?;
+        let size = parse_usize(fields[4], "instruction size")?;
+        if size == 0 {
+            return Err(Error::validation("invalid instruction size"));
+        }
+        let full_md5 = fields[5].to_ascii_lowercase();
+        let relocation_md5 = fields[6].to_ascii_lowercase();
+        if !valid_md5(&full_md5) || !valid_md5(&relocation_md5) {
+            return Err(Error::validation("invalid referent metadata MD5 field"));
+        }
+        let mnemonic = hex_decode(fields[7])?;
+        let kind = parse_referent_kind(fields[8])?;
+        let name = hex_decode(fields[9])?;
+        let declaration = hex_decode(fields[10])?;
+        if mnemonic.contains('\0') || name.contains('\0') || declaration.contains('\0') {
+            return Err(Error::validation("referent metadata text contains NUL"));
+        }
+        if name.is_empty() && declaration.is_empty() {
+            return Err(Error::validation(
+                "referent metadata record contains no metadata",
+            ));
+        }
+        if !referent_keys.insert((function_ordinal, instruction_ordinal, kind)) {
+            return Err(Error::validation("duplicate referent metadata record"));
+        }
+        referents.push(ReferentMetadataRecord {
+            function_ordinal,
+            instruction_ordinal,
+            function_offset,
+            size,
+            full_md5,
+            relocation_md5,
+            mnemonic,
+            kind,
+            name,
+            declaration,
+        });
+    }
+    let functions = parse_manifest(&function_text)?;
+    let ordinals: HashSet<_> = functions.iter().map(|function| function.ordinal).collect();
+    if ordinals.len() != functions.len() {
+        return Err(Error::validation("duplicate function ordinal"));
+    }
+    if referents
+        .iter()
+        .any(|referent| !ordinals.contains(&referent.function_ordinal))
+    {
+        return Err(Error::validation(
+            "referent metadata references an unknown function",
+        ));
+    }
+    Ok(ReferentMetadataManifest {
+        functions,
+        referents,
     })
 }
 
@@ -1127,6 +1322,88 @@ fn extract_instruction_metadata_manifest() -> Result<InstructionMetadataManifest
     })
 }
 
+fn unique_referent(references: &[xref::Reference], kind: ReferentKind) -> Option<u64> {
+    let mut targets: Vec<_> = references
+        .iter()
+        .filter(|reference| match kind {
+            ReferentKind::Code => {
+                reference.is_code && reference.ref_type != xref::ReferenceType::Flow
+            }
+            ReferentKind::Data => !reference.is_code,
+        })
+        .map(|reference| reference.to)
+        .collect();
+    targets.sort_unstable();
+    targets.dedup();
+    (targets.len() == 1).then(|| targets[0])
+}
+
+fn referent_payload(address: u64) -> Result<(String, String)> {
+    let referent_name = match name::get(address) {
+        Ok(value) if !name::is_auto_generated(address) => value,
+        Ok(_) => String::new(),
+        Err(error) if error.category == ErrorCategory::NotFound => String::new(),
+        Err(error) => return Err(error),
+    };
+    let declaration = match types::retrieve(address) {
+        Ok(value) => value.declaration(Some(REFERENT_DECLARATION_PLACEHOLDER))?,
+        Err(error) if error.category == ErrorCategory::NotFound => String::new(),
+        Err(error) => return Err(error),
+    };
+    if referent_name.contains('\0') || declaration.contains('\0') {
+        return Err(Error::validation(
+            "referent name or declaration contains NUL",
+        ));
+    }
+    Ok((referent_name, declaration))
+}
+
+fn extract_referent_metadata_manifest() -> Result<ReferentMetadataManifest> {
+    let functions = extract_manifest()?;
+    let mut referents = Vec::new();
+    for function_record in &functions {
+        let mut addresses = function::code_addresses(function_record.address)?;
+        addresses.sort_unstable();
+        for (instruction_ordinal, address) in addresses.iter().copied().enumerate() {
+            let references = xref::refs_from(address)?;
+            let mut fingerprint = None;
+            let mut offset = None;
+            for kind in [ReferentKind::Code, ReferentKind::Data] {
+                let Some(target) = unique_referent(&references, kind) else {
+                    continue;
+                };
+                let (referent_name, declaration) = referent_payload(target)?;
+                if referent_name.is_empty() && declaration.is_empty() {
+                    continue;
+                }
+                if fingerprint.is_none() {
+                    fingerprint = Some(extract_instruction_fingerprint(address)?);
+                }
+                if offset.is_none() {
+                    offset = Some(relative_offset(address, function_record.address)?);
+                }
+                let fingerprint = fingerprint.as_ref().unwrap();
+                referents.push(ReferentMetadataRecord {
+                    function_ordinal: function_record.ordinal,
+                    instruction_ordinal,
+                    function_offset: offset.unwrap(),
+                    size: fingerprint.size,
+                    full_md5: fingerprint.full_md5.clone(),
+                    relocation_md5: fingerprint.relocation_md5.clone(),
+                    mnemonic: fingerprint.mnemonic.clone(),
+                    kind,
+                    name: referent_name,
+                    declaration,
+                });
+            }
+        }
+    }
+    Ok(ReferentMetadataManifest {
+        functions,
+        referents,
+    })
+}
+
 fn extract_pseudocode_comment_manifest() -> Result<PseudocodeCommentManifest> {
     if !decompiler::available()? {
         return Err(Error::unsupported("Hex-Rays decompiler is unavailable"));
@@ -1468,6 +1745,155 @@ fn instruction_metadata_report(
     )
 }
 
+fn compare_referent_metadata(
+    baseline: &ReferentMetadataManifest,
+    current: &[FunctionRecord],
+) -> Result<ReferentMetadataComparison> {
+    let functions = compare_records(&baseline.functions, current);
+    let baseline_by_ordinal: HashMap<_, _> = baseline
+        .functions
+        .iter()
+        .enumerate()
+        .map(|(index, function)| (function.ordinal, index))
+        .collect();
+    let current_by_baseline: HashMap<_, _> = functions
+        .matches
+        .iter()
+        .map(|matched| (matched.baseline, matched.current))
+        .collect();
+    let mut address_cache: HashMap<usize, Vec<u64>> = HashMap::new();
+    let mut eligible = Vec::new();
+    let mut unmatched_functions = 0usize;
+    let mut instruction_guard_failures = 0usize;
+    let mut reference_guard_failures = 0usize;
+
+    for (metadata_index, metadata) in baseline.referents.iter().enumerate() {
+        let Some(baseline_index) = baseline_by_ordinal.get(&metadata.function_ordinal) else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let Some(current_index) = current_by_baseline.get(baseline_index).copied() else {
+            unmatched_functions += 1;
+            continue;
+        };
+        let target_function = &current[current_index];
+        let target_address =
+            match apply_relative_offset(target_function.address, metadata.function_offset) {
+                Ok(address) => address,
+                Err(_) => {
+                    instruction_guard_failures += 1;
+                    continue;
+                }
+            };
+        if let std::collections::hash_map::Entry::Vacant(entry) = address_cache.entry(current_index)
+        {
+            let mut addresses = function::code_addresses(target_function.address)?;
+            addresses.sort_unstable();
+            entry.insert(addresses);
+        }
+        if address_cache[&current_index].get(metadata.instruction_ordinal) != Some(&target_address)
+        {
+            instruction_guard_failures += 1;
+            continue;
+        }
+        let fingerprint = extract_instruction_fingerprint(target_address)?;
+        if fingerprint.size != metadata.size
+            || fingerprint.mnemonic != metadata.mnemonic
+            || fingerprint.relocation_md5 != metadata.relocation_md5
+        {
+            instruction_guard_failures += 1;
+            continue;
+        }
+        let references = xref::refs_from(target_address)?;
+        let Some(referent_address) = unique_referent(&references, metadata.kind) else {
+            reference_guard_failures += 1;
+            continue;
+        };
+        eligible.push(EligibleReferentMetadata {
+            metadata_index,
+            instruction_address: target_address,
+            referent_address,
+        });
+    }
+
+    Ok(ReferentMetadataComparison {
+        functions,
+        eligible,
+        unmatched_functions,
+        instruction_guard_failures,
+        reference_guard_failures,
+    })
+}
+
+fn apply_referent_metadata(
+    baseline: &ReferentMetadataManifest,
+    comparison: &ReferentMetadataComparison,
+) -> ReferentMetadataApplySummary {
+    let mut summary = ReferentMetadataApplySummary::default();
+    for eligible in &comparison.eligible {
+        let source = &baseline.referents[eligible.metadata_index];
+        if !source.name.is_empty() {
+            let should_apply = match name::get(eligible.referent_address) {
+                Ok(existing)
+                    if !existing.is_empty()
+                        && !name::is_auto_generated(eligible.referent_address) =>
+                {
+                    summary.preserved += 1;
+                    false
+                }
+                Ok(_) => true,
+                Err(error) if error.category == ErrorCategory::NotFound => true,
+                Err(_) => {
+                    summary.failures += 1;
+                    false
+                }
+            };
+            if should_apply {
+                match name::set(eligible.referent_address, &source.name) {
+                    Ok(()) => summary.names += 1,
+                    Err(_) => summary.failures += 1,
+                }
+            }
+        }
+
+        if !source.declaration.is_empty() {
+            match types::retrieve(eligible.referent_address) {
+                Ok(_) => summary.preserved += 1,
+                Err(error) if error.category == ErrorCategory::NotFound => {
+                    match types::TypeInfo::from_declaration(&source.declaration)
+                        .and_then(|value| value.apply(eligible.referent_address))
+                    {
+                        Ok(()) => summary.types += 1,
+                        Err(_) => summary.failures += 1,
+                    }
+                }
+                Err(_) => summary.failures += 1,
+            }
+        }
+    }
+    summary
+}
+
+fn referent_metadata_report(
+    baseline: &ReferentMetadataManifest,
+    current: &[FunctionRecord],
+    comparison: &ReferentMetadataComparison,
+) -> String {
+    format!(
+        "Diaphora exact referent metadata comparison\nBaseline functions: {}\nCurrent functions: {}\nUnique function matches: {}\nAmbiguous baseline functions: {}\nUnmatched baseline functions: {}\nReferent records: {}\nEligible referent records: {}\nRecords with unmatched functions: {}\nInstruction guard failures: {}\nReference guard failures: {}",
+        baseline.functions.len(),
+        current.len(),
+        comparison.functions.matches.len(),
+        comparison.functions.ambiguous,
+        comparison.functions.unmatched,
+        baseline.referents.len(),
+        comparison.eligible.len(),
+        comparison.unmatched_functions,
+        comparison.instruction_guard_failures,
+        comparison.reference_guard_failures,
+    )
+}
+
 fn compare_pseudocode_comments(
     baseline: &PseudocodeCommentManifest,
     current: &[FunctionRecord],
@@ -1730,6 +2156,50 @@ fn run(options: &Options) -> Result<()> {
                 );
             }
         }
+        Mode::ExportReferentMetadata => {
+            let manifest = extract_referent_metadata_manifest()?;
+            std::fs::write(
+                &options.manifest,
+                format_referent_metadata_manifest(&manifest),
+            )
+            .map_err(|error| {
+                Error::internal(format!(
+                    "failed writing referent metadata manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            println!(
+                "Exported {} unique referent metadata records for {} functions to {}",
+                manifest.referents.len(),
+                manifest.functions.len(),
+                options.manifest
+            );
+        }
+        Mode::CompareReferentMetadata => {
+            let text = std::fs::read_to_string(&options.manifest).map_err(|error| {
+                Error::not_found(format!(
+                    "failed reading referent metadata manifest '{}': {error}",
+                    options.manifest
+                ))
+            })?;
+            let baseline = parse_referent_metadata_manifest(&text)?;
+            let current = extract_manifest()?;
+            let comparison = compare_referent_metadata(&baseline, &current)?;
+            println!(
+                "{}",
+                referent_metadata_report(&baseline, &current, &comparison)
+            );
+            if options.apply {
+                let applied = apply_referent_metadata(&baseline, &comparison);
+                if applied.names + applied.types > 0 {
+                    database::save()?;
+                }
+                println!(
+                    "Referent names applied: {}\nReferent types applied: {}\nExisting metadata preserved: {}\nMutation failures: {}",
+                    applied.names, applied.types, applied.preserved, applied.failures,
+                );
+            }
+        }
         Mode::ExportPseudocodeComments => {
             let manifest = extract_pseudocode_comment_manifest()?;
             std::fs::write(
@@ -1784,7 +2254,7 @@ fn main() {
         Err(error) => {
             print_usage(
                 "diaphora_exact_port",
-                "<input> --export <manifest> | <input> --compare <manifest> [--apply] | <input> --export-instruction-metadata <manifest> | <input> --compare-instruction-metadata <manifest> [--apply] | <input> --export-pseudocode-comments <manifest> | <input> --compare-pseudocode-comments <manifest> [--apply]",
+                "<input> --export <manifest> | <input> --compare <manifest> [--apply] | <input> --export-instruction-metadata <manifest> | <input> --compare-instruction-metadata <manifest> [--apply] | <input> --export-referent-metadata <manifest> | <input> --compare-referent-metadata <manifest> [--apply] | <input> --export-pseudocode-comments <manifest> | <input> --compare-pseudocode-comments <manifest> [--apply]",
             );
             eprintln!("error: {}", format_error(&error));
             std::process::exit(2);
@@ -1797,8 +2267,10 @@ fn main() {
 }
 
 #[cfg(test)]
-mod tests {
+#[allow(dead_code)]
+pub(crate) mod tests {
     use super::*;
+    use idax::analysis;
 
     fn record(index: usize, rva: u64, full: &str, relocation: &str) -> FunctionRecord {
         FunctionRecord {
@@ -1818,6 +2290,233 @@ mod tests {
             repeatable_comment: "comment\tline\nλ".to_owned(),
             mnemonics: "mov,ret".to_owned(),
         }
+    }
+
+    struct RuntimeFixture {
+        root: std::path::PathBuf,
+        input: std::path::PathBuf,
+    }
+
+    impl RuntimeFixture {
+        fn copy_from(source: &str) -> Self {
+            let nonce = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            let root = std::env::temp_dir().join(format!(
+                "idax-diaphora-referent-{}-{nonce}",
+                std::process::id()
+            ));
+            std::fs::create_dir(&root).unwrap();
+            let input = root.join("fixture");
+            std::fs::copy(source, &input).unwrap();
+            Self { root, input }
+        }
+    }
+
+    impl Drop for RuntimeFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    struct RuntimeSession {
+        open: bool,
+    }
+
+    impl RuntimeSession {
+        fn close(&mut self, save: bool) {
+            database::close(save).unwrap();
+            self.open = false;
+        }
+
+        fn reopen(&mut self, path: &str) {
+            database::open(path, true).unwrap();
+            analysis::wait().unwrap();
+            self.open = true;
+        }
+    }
+
+    impl Drop for RuntimeSession {
+        fn drop(&mut self) {
+            if self.open {
+                let _ = database::close(false);
+            }
+        }
+    }
+
+    fn runtime_candidate(
+        manifest: &ReferentMetadataManifest,
+        comparison: &ReferentMetadataComparison,
+        require_name: bool,
+        require_type: bool,
+        excluded: Option<u64>,
+    ) -> Option<EligibleReferentMetadata> {
+        comparison.eligible.iter().copied().find(|eligible| {
+            let source = &manifest.referents[eligible.metadata_index];
+            excluded != Some(eligible.referent_address)
+                && (!require_name || !source.name.is_empty())
+                && (!require_type || !source.declaration.is_empty())
+        })
+    }
+
+    fn remove_runtime_name(address: u64) {
+        match name::get(address) {
+            Ok(_) => name::remove(address).unwrap(),
+            Err(error) => assert_eq!(error.category, ErrorCategory::NotFound),
+        }
+    }
+
+    fn remove_runtime_type(address: u64) {
+        match types::retrieve(address) {
+            Ok(_) => types::remove_type(address).unwrap(),
+            Err(error) => assert_eq!(error.category, ErrorCategory::NotFound),
+        }
+    }
+
+    fn assert_runtime_type(address: u64, expected_declaration: &str) {
+        let actual = types::retrieve(address).unwrap().to_string().unwrap();
+        let expected = types::TypeInfo::from_declaration(expected_declaration)
+            .unwrap()
+            .to_string()
+            .unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    pub(crate) fn initialized_referent_runtime_applies_preserves_reopens_and_rejects_ambiguity() {
+        let source = std::env::var("IDAX_DIAPHORA_REFERENT_RUNTIME_FIXTURE")
+            .expect("set IDAX_DIAPHORA_REFERENT_RUNTIME_FIXTURE");
+        let fixture = RuntimeFixture::copy_from(&source);
+        let input = fixture.input.to_str().unwrap();
+
+        eprintln!("[diaphora-referent-rust] init");
+        database::init().unwrap();
+        eprintln!("[diaphora-referent-rust] open");
+        database::open(input, true).unwrap();
+        eprintln!("[diaphora-referent-rust] wait");
+        analysis::wait().unwrap();
+        let mut session = RuntimeSession { open: true };
+
+        eprintln!("[diaphora-referent-rust] extract");
+        let baseline = extract_referent_metadata_manifest().unwrap();
+        let encoded = format_referent_metadata_manifest(&baseline);
+        let parsed = parse_referent_metadata_manifest(&encoded).unwrap();
+        assert_eq!(format_referent_metadata_manifest(&parsed), encoded);
+        let current = extract_manifest().unwrap();
+        let initial = compare_referent_metadata(&baseline, &current).unwrap();
+        assert!(!initial.eligible.is_empty());
+        assert_eq!(initial.instruction_guard_failures, 0);
+        assert_eq!(initial.reference_guard_failures, 0);
+
+        let mut tampered = baseline.clone();
+        let tampered_index = initial.eligible[0].metadata_index;
+        let replacement = if &tampered.referents[tampered_index].relocation_md5[0..1] == "0" {
+            "1"
+        } else {
+            "0"
+        };
+        tampered.referents[tampered_index]
+            .relocation_md5
+            .replace_range(0..1, replacement);
+        let rejected = compare_referent_metadata(&tampered, &current).unwrap();
+        assert_eq!(rejected.eligible.len() + 1, initial.eligible.len());
+        assert_eq!(rejected.instruction_guard_failures, 1);
+        assert_eq!(rejected.reference_guard_failures, 0);
+
+        let ambiguous = initial
+            .eligible
+            .iter()
+            .copied()
+            .find(|eligible| baseline.referents[eligible.metadata_index].kind == ReferentKind::Data)
+            .expect("fixture needs one eligible data referent");
+        let alternate = ambiguous.referent_address + 1;
+        xref::add_data(
+            ambiguous.instruction_address,
+            alternate,
+            xref::DataType::Informational,
+        )
+        .unwrap();
+        let rejected = compare_referent_metadata(&baseline, &current).unwrap();
+        assert_eq!(rejected.eligible.len() + 1, initial.eligible.len());
+        assert_eq!(rejected.instruction_guard_failures, 0);
+        assert_eq!(rejected.reference_guard_failures, 1);
+        xref::remove_data(ambiguous.instruction_address, alternate).unwrap();
+
+        let absent_name = runtime_candidate(&baseline, &initial, true, false, None)
+            .expect("fixture needs a named referent");
+        let preserved_name = runtime_candidate(
+            &baseline,
+            &initial,
+            true,
+            false,
+            Some(absent_name.referent_address),
+        )
+        .expect("fixture needs a second named referent");
+        let absent_type = runtime_candidate(&baseline, &initial, false, true, None)
+            .expect("fixture needs a typed referent");
+        let preserved_type = runtime_candidate(
+            &baseline,
+            &initial,
+            false,
+            true,
+            Some(absent_type.referent_address),
+        )
+        .expect("fixture needs a second typed referent");
+
+        remove_runtime_name(absent_name.referent_address);
+        remove_runtime_type(absent_type.referent_address);
+        const PRESERVED_NAME: &str = "idax_phase53_rust_target_owned";
+        const PRESERVED_DECLARATION: &str = "unsigned char __idax_diaphora_referent;";
+        name::set(preserved_name.referent_address, PRESERVED_NAME).unwrap();
+        types::TypeInfo::from_declaration(PRESERVED_DECLARATION)
+            .unwrap()
+            .apply(preserved_type.referent_address)
+            .unwrap();
+
+        let comparison = compare_referent_metadata(&baseline, &current).unwrap();
+        let applied = apply_referent_metadata(&baseline, &comparison);
+        assert!(applied.names > 0);
+        assert!(applied.types > 0);
+        assert!(applied.preserved >= 2);
+        assert_eq!(applied.failures, 0);
+        let absent_name_source = &baseline.referents[absent_name.metadata_index];
+        let absent_type_source = &baseline.referents[absent_type.metadata_index];
+        assert_eq!(
+            name::get(absent_name.referent_address).unwrap(),
+            absent_name_source.name
+        );
+        assert_runtime_type(
+            absent_type.referent_address,
+            &absent_type_source.declaration,
+        );
+        assert_eq!(
+            name::get(preserved_name.referent_address).unwrap(),
+            PRESERVED_NAME
+        );
+        assert_runtime_type(preserved_type.referent_address, PRESERVED_DECLARATION);
+
+        session.close(true);
+        session.reopen(input);
+        assert_eq!(
+            name::get(absent_name.referent_address).unwrap(),
+            absent_name_source.name
+        );
+        assert_runtime_type(
+            absent_type.referent_address,
+            &absent_type_source.declaration,
+        );
+        assert_eq!(
+            name::get(preserved_name.referent_address).unwrap(),
+            PRESERVED_NAME
+        );
+        assert_runtime_type(preserved_type.referent_address, PRESERVED_DECLARATION);
+        let reopened_current = extract_manifest().unwrap();
+        let reopened = compare_referent_metadata(&baseline, &reopened_current).unwrap();
+        let reapplied = apply_referent_metadata(&baseline, &reopened);
+        assert_eq!(reapplied.names, 0);
+        assert_eq!(reapplied.types, 0);
+        assert_eq!(reapplied.failures, 0);
+        session.close(false);
     }
 
     #[test]
@@ -1951,6 +2650,152 @@ mod tests {
             ))
             .is_err()
         );
+    }
+
+    #[test]
+    fn referent_metadata_manifest_is_cpp_byte_compatible() {
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let expected = ReferentMetadataManifest {
+            functions: vec![function],
+            referents: vec![ReferentMetadataRecord {
+                function_ordinal: 0,
+                instruction_ordinal: 2,
+                function_offset: 7,
+                size: 5,
+                full_md5: "c".repeat(32),
+                relocation_md5: "d".repeat(32),
+                mnemonic: "mov".to_owned(),
+                kind: ReferentKind::Data,
+                name: "global_λ".to_owned(),
+                declaration: "int __idax_diaphora_referent;".to_owned(),
+            }],
+        };
+        let encoded = format_referent_metadata_manifest(&expected);
+        assert!(encoded.starts_with(&format!("{REFERENT_METADATA_HEADER}\nF\t")));
+        assert!(encoded.contains(concat!(
+            "R\t0\t2\t7\t5\tcccccccccccccccccccccccccccccccc\t",
+            "dddddddddddddddddddddddddddddddd\t6d6f76\tdata\t",
+            "676c6f62616c5fcebb\t696e74205f5f696461785f64696170686f72615f",
+            "7265666572656e743b\n",
+        )));
+        let decoded = parse_referent_metadata_manifest(&encoded).unwrap();
+        assert_eq!(decoded, expected);
+        assert_eq!(format_referent_metadata_manifest(&decoded), encoded);
+    }
+
+    #[test]
+    fn referent_metadata_decoder_rejects_ambiguous_records() {
+        let mut function = record(0, 0x123, "a", "b");
+        function.address = u64::MAX;
+        let manifest = ReferentMetadataManifest {
+            functions: vec![function],
+            referents: vec![ReferentMetadataRecord {
+                function_ordinal: 0,
+                instruction_ordinal: 0,
+                function_offset: 0,
+                size: 1,
+                full_md5: "c".repeat(32),
+                relocation_md5: "d".repeat(32),
+                mnemonic: "ret".to_owned(),
+                kind: ReferentKind::Code,
+                name: "callee".to_owned(),
+                declaration: String::new(),
+            }],
+        };
+        let encoded = format_referent_metadata_manifest(&manifest);
+        let record_start = encoded.find("R\t").unwrap();
+        let duplicate = format!("{encoded}{}", &encoded[record_start..]);
+        assert!(parse_referent_metadata_manifest(&duplicate).is_err());
+
+        let mut unknown_function = encoded.clone();
+        unknown_function.replace_range(record_start..record_start + 4, "R\t1\t");
+        assert!(parse_referent_metadata_manifest(&unknown_function).is_err());
+
+        let mut unknown_kind = encoded.clone();
+        let kind_start = unknown_kind[record_start..]
+            .find("\tcode\t")
+            .map(|offset| record_start + offset)
+            .unwrap();
+        unknown_kind.replace_range(kind_start..kind_start + 6, "\tother\t");
+        assert!(parse_referent_metadata_manifest(&unknown_kind).is_err());
+
+        let mut invalid_hash = encoded.clone();
+        let hash_start = invalid_hash[record_start..]
+            .find(&"c".repeat(32))
+            .map(|offset| record_start + offset)
+            .unwrap();
+        invalid_hash.replace_range(hash_start..hash_start + 1, "g");
+        assert!(parse_referent_metadata_manifest(&invalid_hash).is_err());
+
+        let mut empty = manifest.clone();
+        empty.referents[0].name.clear();
+        assert!(
+            parse_referent_metadata_manifest(&format_referent_metadata_manifest(&empty)).is_err()
+        );
+        let mut nul = manifest;
+        nul.referents[0].name = "x\0y".to_owned();
+        assert!(
+            parse_referent_metadata_manifest(&format_referent_metadata_manifest(&nul)).is_err()
+        );
+    }
+
+    #[test]
+    fn unique_referent_deduplicates_same_target_and_rejects_multiple_targets() {
+        let mut references = vec![
+            xref::Reference {
+                from: 0x100,
+                to: 0x101,
+                is_code: true,
+                ref_type: xref::ReferenceType::Flow,
+                user_defined: false,
+            },
+            xref::Reference {
+                from: 0x100,
+                to: 0x200,
+                is_code: true,
+                ref_type: xref::ReferenceType::CallNear,
+                user_defined: false,
+            },
+            xref::Reference {
+                from: 0x100,
+                to: 0x300,
+                is_code: false,
+                ref_type: xref::ReferenceType::Read,
+                user_defined: false,
+            },
+            xref::Reference {
+                from: 0x100,
+                to: 0x300,
+                is_code: false,
+                ref_type: xref::ReferenceType::Offset,
+                user_defined: true,
+            },
+        ];
+        assert_eq!(
+            unique_referent(&references, ReferentKind::Code),
+            Some(0x200)
+        );
+        assert_eq!(
+            unique_referent(&references, ReferentKind::Data),
+            Some(0x300)
+        );
+        references.push(xref::Reference {
+            from: 0x100,
+            to: 0x301,
+            is_code: false,
+            ref_type: xref::ReferenceType::Write,
+            user_defined: false,
+        });
+        assert_eq!(unique_referent(&references, ReferentKind::Data), None);
+        references.push(xref::Reference {
+            from: 0x100,
+            to: 0x201,
+            is_code: true,
+            ref_type: xref::ReferenceType::JumpNear,
+            user_defined: false,
+        });
+        assert_eq!(unique_referent(&references, ReferentKind::Code), None);
     }
 
     #[test]

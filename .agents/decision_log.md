@@ -1232,6 +1232,14 @@
   - **19.54.5. Mutation:** Export/compare are non-mutating. Explicit apply fills only absent exact `(address,location)` slots, preserves every nonempty target value, saves only after successful changes in headless Rust, and never deletes orphan comments implicitly.
   - **19.54.6. Scope boundary:** Do not claim native SQLite compatibility, pseudocode hash/similarity parity, ctree semantic identity beyond persisted locations, automatic orphan relocation, referent name/type propagation, raw function-flag parity, or chooser UI.
 
+- **19.55. Decision D-DIAPHORA-EXACT-REFERENT-METADATA-BOUNDARY**: Transfer instruction referent names/types only across unique same-class references
+  - **19.55.1. Source correction:** Do not reproduce Diaphora's last-reference export, first-reference import, or secondary-offset follow. Treat those as ambiguous whenever more than one distinct non-flow code or data referent exists.
+  - **19.55.2. Persistence:** Add a separate versioned, deterministic, byte-compatible C++/Rust companion containing function records plus one referent record per exact instruction/reference class. Require at least one non-auto source name or applied source type.
+  - **19.55.3. Alignment:** Reuse globally unique Phase 48 function matches and Phase 49 exact instruction guards. Require exactly one target referent of the recorded code/data class; zero or multiple targets are explicit reference-guard failures.
+  - **19.55.4. Mutation:** Report/export/compare are non-mutating. Explicit apply fills absent/auto names and absent types only; every target-owned name/type is preserved. Never create references or follow offsets.
+  - **19.55.5. Wrapper closure:** None. Existing opaque `xref`, `name`, `type`, `instruction`, and `function` APIs cover C++ and safe Rust extraction/readback/application.
+  - **19.55.6. Independent exclusions:** Native SQLite interchange, coupled heuristic/ratio/multimatch state, pseudocode/microcode similarity, raw function flags, definition/TIL import, compilation units, callgraph matching, and chooser UI remain separate surfaces.
+
 - **19.56. Decision D-IDENTITY-BEARING-ABSOLUTE-PATH-HYGIENE**: Store reproducible evidence without workstation identity
   - **19.56.1. Scope:** Prohibit identity-bearing absolute paths in tracked text and binary artifacts. This includes user homes, private checkout roots, SDK/runtime evidence paths, and local upstream-source locations.
   - **19.56.2. Representation:** Replace paths with semantic non-absolute tokens plus relevant relative suffixes. Retain generic platform paths only when they are non-identifying runtime semantics or discovery behavior.
@@ -1288,3 +1296,13 @@
   - **19.63.4. Analysis/output:** `AnalyzeDetails` supplies canonical instruction code, positive byte length, and at most eight uniquely indexed normalized operands. The bridge validates and copies them into SDK records. Tokenized output is copied immediately into the callback-scoped SDK output context with semantic colors; no borrowed context escapes.
   - **19.63.5. Metadata:** Public `ProcessorFlag`, `ProcessorFlag2`, and `InstructionFeature` values match the pinned SDK exactly. `default_bitness` deterministically supplies the corresponding use/default-segment bits. Empty assembler metadata receives a stable generic assembler so minimal modules remain discoverable.
   - **19.63.6. Validation:** Require exact-SDK constant assertions, per-example `LPH` export checks, descriptor/dispatch rejection tests, real IDA load/decode/render evidence, full native/binding regression, cross-platform CI, and identity-path scanning before closure.
+
+- **19.64. Decision D-RUNTIME-ANALYSED-INTEGRATION-FIXTURES**: Keep generic native integration input release-neutral
+  - **19.64.1. Generic boundary:** The common CTest runner copies only the raw fixture and lets the current IDA runtime create its disposable database. It never implicitly places a pre-analysed sidecar beside the input.
+  - **19.64.2. Existing-database exceptions:** A test that specifically requires a prebuilt database must select it explicitly, document its release compatibility, and retain byte-level privacy validation; generic semantic tests do not inherit that state.
+  - **19.64.3. Validation:** Require the complete exact-SDK/IDA 9.4 CTest matrix, not only the new Phase 53 target, because the former sidecar behavior affected every database-backed native executable.
+
+- **19.65. Decision D-STRING-LIST-EXTENDED-OUTPUT-STORAGE**: Defend the IDA 9.4 string-list ABI discrepancy inside the opaque bridge
+  - **19.65.1. Call boundary:** Continue calling the runtime-exported `get_strlist_item`, but provide `string_info_ex_t` storage whose leading base is exactly `string_info_t`; do not expose either SDK type publicly.
+  - **19.65.2. Copy boundary:** Validate address and nonnegative octet length, copy ordinary text through the semantic reader, and copy the extended decompiler text when the runtime supplies it. No SDK-owned string lifetime escapes.
+  - **19.65.3. Validation:** Require exact-SDK compilation, real IDA 9.4 string-list enumeration, the existing Rust/C++ contract tests, and cross-platform CI; re-audit when the release set changes.

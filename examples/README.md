@@ -248,6 +248,14 @@ and relocation-light MD5. Compare is non-mutating; explicit apply fills only
 absent slots and preserves every nonempty target value. C++ and Rust emit the
 same versioned tab/hex representation.
 
+The `IDAX_DIAPHORA_REFERENT_METADATA` companion carries separate code and data
+records only when an exact instruction has one distinct non-flow referent of
+that class and the referent owns a non-auto name or applied type. Comparison
+repeats the unique-reference check after the exact function/instruction guards.
+Apply fills only absent/auto names and absent types, preserves target-owned
+metadata, and never creates references or follows secondary offsets. C++ and
+Rust emit the same versioned tab/hex bytes.
+
 The `IDAX_DIAPHORA_PSEUDOCODE_COMMENTS` companion carries one record per
 persisted semantic tree location. It preserves multiple locations at one
 instruction address, validates the same unique-function and exact-instruction
@@ -255,16 +263,16 @@ guards, and applies only to absent target locations. Modified decompiled
 functions are saved explicitly; orphan deletion is never implicit. C++ and
 Rust emit the same canonical location names and tab/hex bytes.
 
-Neither manifest is a Diaphora SQLite database. SQLite schema interchange, the
-complete heuristic/ratio/multimatch engine, referent name/type propagation,
-pseudocode and microcode similarity, raw function flags, program definitions
-and type libraries, callgraph matching, compilation units, and chooser UI
-remain separate audited surfaces. The upstream copyright, adaptation notice,
-and complete AGPL text are retained in
+None of these manifests is a Diaphora SQLite database. SQLite schema
+interchange, the complete heuristic/ratio/multimatch engine, pseudocode and
+microcode similarity, raw function flags, program definitions and type
+libraries, callgraph matching, compilation units, and chooser UI remain
+separate audited surfaces. The upstream copyright, adaptation notice, and
+complete AGPL text are retained in
 `plugin/diaphora_port_LICENSE.txt`.
 
-The Rust adaptation provides byte-compatible headless function, instruction
-metadata, and pseudocode-comment export/compare/apply:
+The Rust adaptation provides byte-compatible headless function, instruction,
+referent, and pseudocode-comment export/compare/apply:
 
 ```bash
 cargo run -p idax --example diaphora_exact_port -- <input> --export baseline.idax-diaphora.tsv
@@ -273,6 +281,9 @@ cargo run -p idax --example diaphora_exact_port -- <input> --compare baseline.id
 cargo run -p idax --example diaphora_exact_port -- <input> --export-instruction-metadata baseline.idax-diaphora-instructions.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-instruction-metadata baseline.idax-diaphora-instructions.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-instruction-metadata baseline.idax-diaphora-instructions.tsv --apply
+cargo run -p idax --example diaphora_exact_port -- <input> --export-referent-metadata baseline.idax-diaphora-referents.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare-referent-metadata baseline.idax-diaphora-referents.tsv
+cargo run -p idax --example diaphora_exact_port -- <input> --compare-referent-metadata baseline.idax-diaphora-referents.tsv --apply
 cargo run -p idax --example diaphora_exact_port -- <input> --export-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv
 cargo run -p idax --example diaphora_exact_port -- <input> --compare-pseudocode-comments baseline.idax-diaphora-pseudocode.tsv --apply

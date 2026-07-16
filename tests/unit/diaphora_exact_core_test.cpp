@@ -157,6 +157,97 @@ void test_instruction_metadata_manifest() {
         format_instruction_metadata_manifest(nul_metadata)));
 }
 
+void test_referent_metadata_manifest() {
+    ReferentMetadataManifest manifest;
+    manifest.functions.push_back(record(0, 0x123, 'a', 'b'));
+    manifest.referents.push_back({
+        .function_ordinal = 0,
+        .instruction_ordinal = 2,
+        .function_offset = 7,
+        .size = 5,
+        .full_md5 = std::string(32, 'c'),
+        .relocation_md5 = std::string(32, 'd'),
+        .mnemonic = "mov",
+        .kind = ReferentKind::Data,
+        .name = "global_\xce\xbb",
+        .declaration = "int __idax_diaphora_referent;",
+    });
+    const std::string encoded = format_referent_metadata_manifest(manifest);
+    CHECK(encoded.starts_with(
+        "IDAX_DIAPHORA_REFERENT_METADATA\t1\tunique-reference-class\nF\t"));
+    CHECK(encoded.find(
+        "R\t0\t2\t7\t5\tcccccccccccccccccccccccccccccccc\t"
+        "dddddddddddddddddddddddddddddddd\t6d6f76\tdata\t"
+        "676c6f62616c5fcebb\t696e74205f5f696461785f64696170686f72615f"
+        "7265666572656e743b\n") != std::string::npos);
+    auto decoded = parse_referent_metadata_manifest(encoded);
+    CHECK(decoded.has_value());
+    if (decoded) {
+        CHECK(decoded->functions.size() == 1);
+        CHECK(decoded->referents == manifest.referents);
+        CHECK(format_referent_metadata_manifest(*decoded) == encoded);
+    }
+
+    const auto record_start = encoded.find("R\t");
+    CHECK(record_start != std::string::npos);
+    if (record_start != std::string::npos) {
+        std::string duplicate = encoded;
+        duplicate += encoded.substr(record_start);
+        CHECK(!parse_referent_metadata_manifest(duplicate));
+
+        std::string unknown_function = encoded;
+        unknown_function.replace(record_start, 4, "R\t1\t");
+        CHECK(!parse_referent_metadata_manifest(unknown_function));
+
+        std::string unknown_kind = encoded;
+        const auto kind = unknown_kind.find("\tdata\t", record_start);
+        CHECK(kind != std::string::npos);
+        if (kind != std::string::npos)
+            unknown_kind.replace(kind, 6, "\tother\t");
+        CHECK(!parse_referent_metadata_manifest(unknown_kind));
+
+        std::string invalid_hash = encoded;
+        const auto hash = invalid_hash.find(std::string(32, 'c'), record_start);
+        CHECK(hash != std::string::npos);
+        if (hash != std::string::npos)
+            invalid_hash[hash] = 'g';
+        CHECK(!parse_referent_metadata_manifest(invalid_hash));
+    }
+
+    auto empty = manifest;
+    empty.referents[0].name.clear();
+    empty.referents[0].declaration.clear();
+    CHECK(!parse_referent_metadata_manifest(
+        format_referent_metadata_manifest(empty)));
+    auto nul = manifest;
+    nul.referents[0].name = std::string("x\0y", 3);
+    CHECK(!parse_referent_metadata_manifest(
+        format_referent_metadata_manifest(nul)));
+}
+
+void test_unique_referent_selection() {
+    using ida::xref::Reference;
+    using ida::xref::ReferenceType;
+    std::vector<Reference> references = {
+        {.from = 0x100, .to = 0x101, .is_code = true,
+         .type = ReferenceType::Flow},
+        {.from = 0x100, .to = 0x200, .is_code = true,
+         .type = ReferenceType::CallNear},
+        {.from = 0x100, .to = 0x300, .is_code = false,
+         .type = ReferenceType::Read},
+        {.from = 0x100, .to = 0x300, .is_code = false,
+         .type = ReferenceType::Offset},
+    };
+    CHECK(unique_referent(references, ReferentKind::Code) == 0x200);
+    CHECK(unique_referent(references, ReferentKind::Data) == 0x300);
+    references.push_back({.from = 0x100, .to = 0x301, .is_code = false,
+                          .type = ReferenceType::Write});
+    CHECK(!unique_referent(references, ReferentKind::Data));
+    references.push_back({.from = 0x100, .to = 0x201, .is_code = true,
+                          .type = ReferenceType::JumpNear});
+    CHECK(!unique_referent(references, ReferentKind::Code));
+}
+
 void test_pseudocode_comment_manifest() {
     PseudocodeCommentManifest manifest;
     manifest.functions.push_back(record(0, 0x123, 'a', 'b'));
@@ -293,6 +384,8 @@ int main() {
     test_md5();
     test_manifest();
     test_instruction_metadata_manifest();
+    test_referent_metadata_manifest();
+    test_unique_referent_selection();
     test_pseudocode_comment_manifest();
     test_instruction_offsets();
     test_metrics_and_prefix();

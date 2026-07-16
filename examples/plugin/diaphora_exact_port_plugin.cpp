@@ -33,6 +33,8 @@ constexpr std::string_view kInstructionMetadataHeader =
     "IDAX_DIAPHORA_INSTRUCTION_METADATA\t1\texact-relative-offset";
 constexpr std::string_view kPseudocodeCommentHeader =
     "IDAX_DIAPHORA_PSEUDOCODE_COMMENTS\t1\texact-tree-location";
+constexpr std::string_view kReferentMetadataHeader =
+    "IDAX_DIAPHORA_REFERENT_METADATA\t1\tunique-reference-class";
 constexpr std::string_view kExportAction = "idax:diaphora:export_exact";
 constexpr std::string_view kCompareAction = "idax:diaphora:compare_exact";
 constexpr std::string_view kApplyAction = "idax:diaphora:apply_exact";
@@ -48,6 +50,12 @@ constexpr std::string_view kComparePseudocodeCommentsAction =
     "idax:diaphora:compare_pseudocode_comments";
 constexpr std::string_view kApplyPseudocodeCommentsAction =
     "idax:diaphora:apply_pseudocode_comments";
+constexpr std::string_view kExportReferentMetadataAction =
+    "idax:diaphora:export_referent_metadata";
+constexpr std::string_view kCompareReferentMetadataAction =
+    "idax:diaphora:compare_referent_metadata";
+constexpr std::string_view kApplyReferentMetadataAction =
+    "idax:diaphora:apply_referent_metadata";
 constexpr std::string_view kMenuPath = "Edit/Plugins/";
 
 class Md5 final {
@@ -255,6 +263,52 @@ struct InstructionMetadataApplySummary {
     std::size_t comments{0};
     std::size_t repeatable_comments{0};
     std::size_t forced_operands{0};
+    std::size_t preserved{0};
+    std::size_t failures{0};
+};
+
+enum class ReferentKind : std::uint8_t {
+    Code,
+    Data,
+};
+
+struct ReferentMetadataRecord {
+    std::size_t function_ordinal{0};
+    std::size_t instruction_ordinal{0};
+    std::int64_t function_offset{0};
+    std::size_t size{0};
+    std::string full_md5;
+    std::string relocation_md5;
+    std::string mnemonic;
+    ReferentKind kind{ReferentKind::Code};
+    std::string name;
+    std::string declaration;
+
+    bool operator==(const ReferentMetadataRecord&) const = default;
+};
+
+struct ReferentMetadataManifest {
+    std::vector<FunctionRecord> functions;
+    std::vector<ReferentMetadataRecord> referents;
+};
+
+struct EligibleReferentMetadata {
+    std::size_t metadata_index{0};
+    ida::Address instruction_address{ida::BadAddress};
+    ida::Address referent_address{ida::BadAddress};
+};
+
+struct ReferentMetadataComparison {
+    MatchSummary functions;
+    std::vector<EligibleReferentMetadata> eligible;
+    std::size_t unmatched_functions{0};
+    std::size_t instruction_guard_failures{0};
+    std::size_t reference_guard_failures{0};
+};
+
+struct ReferentMetadataApplySummary {
+    std::size_t names{0};
+    std::size_t types{0};
     std::size_t preserved{0};
     std::size_t failures{0};
 };
@@ -680,6 +734,140 @@ ida::Result<InstructionMetadataManifest> parse_instruction_metadata_manifest(
         if (!ordinals.contains(instruction.function_ordinal)) {
             return std::unexpected(ida::Error::validation(
                 "Instruction metadata references an unknown function"));
+        }
+    }
+    return manifest;
+}
+
+std::string_view referent_kind_name(ReferentKind kind) {
+    return kind == ReferentKind::Code ? "code" : "data";
+}
+
+ida::Result<ReferentKind> parse_referent_kind(std::string_view name) {
+    if (name == "code")
+        return ReferentKind::Code;
+    if (name == "data")
+        return ReferentKind::Data;
+    return std::unexpected(ida::Error::validation(
+        "Unknown referent metadata class", std::string(name)));
+}
+
+std::string format_referent_metadata_record(
+    const ReferentMetadataRecord& record) {
+    std::ostringstream output;
+    output << "R\t" << record.function_ordinal << '\t'
+           << record.instruction_ordinal << '\t' << record.function_offset << '\t'
+           << record.size << '\t' << record.full_md5 << '\t'
+           << record.relocation_md5 << '\t' << hex_encode(record.mnemonic) << '\t'
+           << referent_kind_name(record.kind) << '\t' << hex_encode(record.name)
+           << '\t' << hex_encode(record.declaration);
+    return output.str();
+}
+
+std::string format_referent_metadata_manifest(
+    const ReferentMetadataManifest& manifest) {
+    std::string output(kReferentMetadataHeader);
+    output.push_back('\n');
+    for (const auto& function : manifest.functions) {
+        output += format_record(function);
+        output.push_back('\n');
+    }
+    for (const auto& referent : manifest.referents) {
+        output += format_referent_metadata_record(referent);
+        output.push_back('\n');
+    }
+    return output;
+}
+
+ida::Result<ReferentMetadataManifest> parse_referent_metadata_manifest(
+    std::string_view text) {
+    std::istringstream input{std::string(text)};
+    std::string line;
+    if (!std::getline(input, line) || line != kReferentMetadataHeader) {
+        return std::unexpected(ida::Error::validation(
+            "Unsupported Diaphora referent metadata manifest header"));
+    }
+
+    std::string function_text(kHeader);
+    function_text.push_back('\n');
+    ReferentMetadataManifest manifest;
+    std::unordered_set<std::string> referent_keys;
+    while (std::getline(input, line)) {
+        if (line.empty())
+            continue;
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+        const auto fields = split_tabs(line);
+        if (!fields.empty() && fields[0] == "F") {
+            function_text += line;
+            function_text.push_back('\n');
+            continue;
+        }
+        if (fields.size() != 11 || fields[0] != "R") {
+            return std::unexpected(ida::Error::validation(
+                "Malformed Diaphora referent metadata record"));
+        }
+
+        ReferentMetadataRecord record;
+        if (!parse_integer(fields[1], record.function_ordinal)
+            || !parse_integer(fields[2], record.instruction_ordinal)
+            || !parse_integer(fields[3], record.function_offset)
+            || !parse_integer(fields[4], record.size) || record.size == 0) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid referent metadata numeric field"));
+        }
+        auto full_md5 = normalize_md5(fields[5]);
+        auto relocation_md5 = normalize_md5(fields[6]);
+        auto mnemonic = hex_decode(fields[7]);
+        auto kind = parse_referent_kind(fields[8]);
+        auto name = hex_decode(fields[9]);
+        auto declaration = hex_decode(fields[10]);
+        if (!full_md5 || !relocation_md5 || !mnemonic || !kind
+            || !name || !declaration) {
+            return std::unexpected(ida::Error::validation(
+                "Invalid referent metadata hash, class, or encoded field"));
+        }
+        if (mnemonic->find('\0') != std::string::npos
+            || name->find('\0') != std::string::npos
+            || declaration->find('\0') != std::string::npos) {
+            return std::unexpected(ida::Error::validation(
+                "Referent metadata text contains NUL"));
+        }
+        if (name->empty() && declaration->empty()) {
+            return std::unexpected(ida::Error::validation(
+                "Referent metadata record contains no metadata"));
+        }
+
+        const std::string record_key = std::to_string(record.function_ordinal)
+            + ":" + std::to_string(record.instruction_ordinal)
+            + ":" + std::string(referent_kind_name(*kind));
+        if (!referent_keys.insert(record_key).second) {
+            return std::unexpected(ida::Error::validation(
+                "Duplicate referent metadata record"));
+        }
+        record.full_md5 = std::move(*full_md5);
+        record.relocation_md5 = std::move(*relocation_md5);
+        record.mnemonic = std::move(*mnemonic);
+        record.kind = *kind;
+        record.name = std::move(*name);
+        record.declaration = std::move(*declaration);
+        manifest.referents.push_back(std::move(record));
+    }
+
+    auto functions = parse_manifest(function_text);
+    if (!functions)
+        return std::unexpected(functions.error());
+    manifest.functions = std::move(*functions);
+    std::unordered_set<std::size_t> ordinals;
+    for (const auto& function : manifest.functions) {
+        if (!ordinals.insert(function.ordinal).second)
+            return std::unexpected(ida::Error::validation(
+                "Duplicate function ordinal"));
+    }
+    for (const auto& referent : manifest.referents) {
+        if (!ordinals.contains(referent.function_ordinal)) {
+            return std::unexpected(ida::Error::validation(
+                "Referent metadata references an unknown function"));
         }
     }
     return manifest;
@@ -1286,6 +1474,116 @@ ida::Result<InstructionMetadataManifest> extract_instruction_metadata_manifest()
     return manifest;
 }
 
+std::optional<ida::Address> unique_referent(
+    const std::vector<ida::xref::Reference>& references,
+    ReferentKind kind) {
+    std::vector<ida::Address> targets;
+    for (const auto& reference : references) {
+        const bool matches = kind == ReferentKind::Code
+            ? reference.is_code
+                && reference.type != ida::xref::ReferenceType::Flow
+            : !reference.is_code;
+        if (matches)
+            targets.push_back(reference.to);
+    }
+    std::sort(targets.begin(), targets.end());
+    targets.erase(std::unique(targets.begin(), targets.end()), targets.end());
+    if (targets.size() != 1)
+        return std::nullopt;
+    return targets.front();
+}
+
+ida::Result<std::pair<std::string, std::string>> referent_payload(
+    ida::Address address) {
+    std::string referent_name;
+    auto name = ida::name::get(address);
+    if (name) {
+        if (!ida::name::is_auto_generated(address))
+            referent_name = std::move(*name);
+    } else if (name.error().category != ida::ErrorCategory::NotFound) {
+        return std::unexpected(name.error());
+    }
+
+    std::string declaration;
+    auto type = ida::type::retrieve(address);
+    if (type) {
+        auto rendered = type->declaration("__idax_diaphora_referent");
+        if (!rendered)
+            return std::unexpected(rendered.error());
+        declaration = std::move(*rendered);
+    } else if (type.error().category != ida::ErrorCategory::NotFound) {
+        return std::unexpected(type.error());
+    }
+
+    if (!valid_utf8(referent_name) || !valid_utf8(declaration)
+        || referent_name.find('\0') != std::string::npos
+        || declaration.find('\0') != std::string::npos) {
+        return std::unexpected(ida::Error::validation(
+            "Referent name or declaration is not valid UTF-8"));
+    }
+    return std::pair{std::move(referent_name), std::move(declaration)};
+}
+
+ida::Result<ReferentMetadataManifest> extract_referent_metadata_manifest() {
+    auto functions = extract_manifest();
+    if (!functions)
+        return std::unexpected(functions.error());
+    ReferentMetadataManifest manifest;
+    manifest.functions = std::move(*functions);
+
+    for (const auto& function : manifest.functions) {
+        auto addresses = ida::function::code_addresses(function.address);
+        if (!addresses)
+            return std::unexpected(addresses.error());
+        std::sort(addresses->begin(), addresses->end());
+        for (std::size_t instruction_ordinal = 0;
+             instruction_ordinal < addresses->size(); ++instruction_ordinal) {
+            const ida::Address address = (*addresses)[instruction_ordinal];
+            auto references = ida::xref::refs_from(address);
+            if (!references)
+                return std::unexpected(references.error());
+            std::optional<InstructionFingerprint> fingerprint;
+            std::optional<std::int64_t> offset;
+            for (const ReferentKind kind : {ReferentKind::Code,
+                                            ReferentKind::Data}) {
+                const auto target = unique_referent(*references, kind);
+                if (!target)
+                    continue;
+                auto payload = referent_payload(*target);
+                if (!payload)
+                    return std::unexpected(payload.error());
+                if (payload->first.empty() && payload->second.empty())
+                    continue;
+                if (!fingerprint) {
+                    auto extracted = extract_instruction_fingerprint(address);
+                    if (!extracted)
+                        return std::unexpected(extracted.error());
+                    fingerprint = std::move(*extracted);
+                }
+                if (!offset) {
+                    auto extracted = relative_offset(address, function.address);
+                    if (!extracted)
+                        return std::unexpected(extracted.error());
+                    offset = *extracted;
+                }
+                manifest.referents.push_back({
+                    function.ordinal,
+                    instruction_ordinal,
+                    *offset,
+                    fingerprint->size,
+                    fingerprint->full_md5,
+                    fingerprint->relocation_md5,
+                    fingerprint->mnemonic,
+                    kind,
+                    std::move(payload->first),
+                    std::move(payload->second),
+                });
+            }
+        }
+    }
+    return manifest;
+}
+
 ida::Result<PseudocodeCommentManifest> extract_pseudocode_comment_manifest() {
     auto available = ida::decompiler::available();
     if (!available)
@@ -1618,6 +1916,143 @@ std::string instruction_metadata_report(
     return output.str();
 }
 
+ida::Result<ReferentMetadataComparison> compare_referent_metadata(
+    const ReferentMetadataManifest& baseline,
+    const std::vector<FunctionRecord>& current) {
+    ReferentMetadataComparison comparison;
+    comparison.functions = compare_records(baseline.functions, current);
+
+    std::unordered_map<std::size_t, std::size_t> baseline_by_ordinal;
+    for (std::size_t index = 0; index < baseline.functions.size(); ++index)
+        baseline_by_ordinal.emplace(baseline.functions[index].ordinal, index);
+    std::unordered_map<std::size_t, std::size_t> current_by_baseline;
+    for (const auto& match : comparison.functions.matches)
+        current_by_baseline.emplace(match.baseline, match.current);
+    std::unordered_map<std::size_t, std::vector<ida::Address>> address_cache;
+
+    for (std::size_t metadata_index = 0;
+         metadata_index < baseline.referents.size(); ++metadata_index) {
+        const auto& metadata = baseline.referents[metadata_index];
+        const auto baseline_found = baseline_by_ordinal.find(
+            metadata.function_ordinal);
+        if (baseline_found == baseline_by_ordinal.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const auto match_found = current_by_baseline.find(baseline_found->second);
+        if (match_found == current_by_baseline.end()) {
+            ++comparison.unmatched_functions;
+            continue;
+        }
+        const std::size_t current_index = match_found->second;
+        const auto& target_function = current[current_index];
+        auto instruction_address = apply_relative_offset(
+            target_function.address, metadata.function_offset);
+        if (!instruction_address) {
+            ++comparison.instruction_guard_failures;
+            continue;
+        }
+
+        auto cached = address_cache.find(current_index);
+        if (cached == address_cache.end()) {
+            auto addresses = ida::function::code_addresses(target_function.address);
+            if (!addresses)
+                return std::unexpected(addresses.error());
+            std::sort(addresses->begin(), addresses->end());
+            cached = address_cache.emplace(current_index, std::move(*addresses)).first;
+        }
+        if (metadata.instruction_ordinal >= cached->second.size()
+            || cached->second[metadata.instruction_ordinal] != *instruction_address) {
+            ++comparison.instruction_guard_failures;
+            continue;
+        }
+        auto fingerprint = extract_instruction_fingerprint(*instruction_address);
+        if (!fingerprint)
+            return std::unexpected(fingerprint.error());
+        if (fingerprint->size != metadata.size
+            || fingerprint->mnemonic != metadata.mnemonic
+            || fingerprint->relocation_md5 != metadata.relocation_md5) {
+            ++comparison.instruction_guard_failures;
+            continue;
+        }
+        auto references = ida::xref::refs_from(*instruction_address);
+        if (!references)
+            return std::unexpected(references.error());
+        const auto referent = unique_referent(*references, metadata.kind);
+        if (!referent) {
+            ++comparison.reference_guard_failures;
+            continue;
+        }
+        comparison.eligible.push_back(
+            {metadata_index, *instruction_address, *referent});
+    }
+    return comparison;
+}
+
+ReferentMetadataApplySummary apply_referent_metadata(
+    const ReferentMetadataManifest& baseline,
+    const ReferentMetadataComparison& comparison) {
+    ReferentMetadataApplySummary summary;
+    for (const auto& eligible : comparison.eligible) {
+        const auto& source = baseline.referents[eligible.metadata_index];
+        if (!source.name.empty()) {
+            auto existing = ida::name::get(eligible.referent_address);
+            if (existing && !existing->empty()
+                && !ida::name::is_auto_generated(eligible.referent_address)) {
+                ++summary.preserved;
+            } else if (!existing
+                       && existing.error().category != ida::ErrorCategory::NotFound) {
+                ++summary.failures;
+            } else if (ida::name::set(eligible.referent_address, source.name)) {
+                ++summary.names;
+            } else {
+                ++summary.failures;
+            }
+        }
+
+        if (!source.declaration.empty()) {
+            auto existing = ida::type::retrieve(eligible.referent_address);
+            if (existing) {
+                ++summary.preserved;
+            } else if (existing.error().category != ida::ErrorCategory::NotFound) {
+                ++summary.failures;
+            } else {
+                auto parsed = ida::type::TypeInfo::from_declaration(
+                    source.declaration);
+                if (!parsed) {
+                    ++summary.failures;
+                } else if (parsed->apply(eligible.referent_address)) {
+                    ++summary.types;
+                } else {
+                    ++summary.failures;
+                }
+            }
+        }
+    }
+    return summary;
+}
+
+std::string referent_metadata_report(
+    const ReferentMetadataManifest& baseline,
+    const std::vector<FunctionRecord>& current,
+    const ReferentMetadataComparison& comparison) {
+    std::ostringstream output;
+    output << "Diaphora exact referent metadata comparison\n"
+           << "Baseline functions: " << baseline.functions.size() << "\n"
+           << "Current functions: " << current.size() << "\n"
+           << "Unique function matches: " << comparison.functions.matches.size() << "\n"
+           << "Ambiguous baseline functions: " << comparison.functions.ambiguous << "\n"
+           << "Unmatched baseline functions: " << comparison.functions.unmatched << "\n"
+           << "Referent records: " << baseline.referents.size() << "\n"
+           << "Eligible referent records: " << comparison.eligible.size() << "\n"
+           << "Records with unmatched functions: " << comparison.unmatched_functions << "\n"
+           << "Instruction guard failures: "
+           << comparison.instruction_guard_failures << "\n"
+           << "Reference guard failures: "
+           << comparison.reference_guard_failures;
+    return output.str();
+}
+
 ida::Result<PseudocodeCommentComparison> compare_pseudocode_comments(
     const PseudocodeCommentManifest& baseline,
     const std::vector<FunctionRecord>& current) {
@@ -1894,6 +2329,62 @@ ida::Status compare_instruction_metadata_action(bool apply) {
     return ida::ok();
 }
 
+ida::Status export_referent_metadata_action() {
+    auto path = ida::ui::ask_file(true, "*.idax-diaphora-refs.tsv",
+                                  "Export Diaphora Referent Metadata Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto manifest = extract_referent_metadata_manifest();
+    if (!manifest)
+        return std::unexpected(manifest.error());
+    auto written = write_text_file(
+        *path, format_referent_metadata_manifest(*manifest));
+    if (!written)
+        return written;
+    std::ostringstream report;
+    report << "Exported " << manifest->referents.size()
+           << " unique referent metadata records for "
+           << manifest->functions.size() << " functions to " << *path;
+    ida::ui::message("[diaphora-exact:idax] " + report.str() + "\n");
+    ida::ui::info(report.str());
+    return ida::ok();
+}
+
+ida::Status compare_referent_metadata_action(bool apply) {
+    auto path = ida::ui::ask_file(false, "*.idax-diaphora-refs.tsv",
+                                  "Open Diaphora Referent Metadata Manifest");
+    if (!path)
+        return std::unexpected(path.error());
+    auto text = read_text_file(*path);
+    if (!text)
+        return std::unexpected(text.error());
+    auto baseline = parse_referent_metadata_manifest(*text);
+    if (!baseline)
+        return std::unexpected(baseline.error());
+    auto current = extract_manifest();
+    if (!current)
+        return std::unexpected(current.error());
+    auto comparison = compare_referent_metadata(*baseline, *current);
+    if (!comparison)
+        return std::unexpected(comparison.error());
+    std::string report = referent_metadata_report(
+        *baseline, *current, *comparison);
+    if (apply) {
+        const auto applied = apply_referent_metadata(*baseline, *comparison);
+        std::ostringstream addition;
+        addition << "\nReferent names applied: " << applied.names
+                 << "\nReferent types applied: " << applied.types
+                 << "\nExisting metadata preserved: " << applied.preserved
+                 << "\nMutation failures: " << applied.failures;
+        report += addition.str();
+        if (applied.names + applied.types > 0)
+            ida::ui::refresh_all_views();
+    }
+    ida::ui::message("[diaphora-exact:idax] " + report + "\n");
+    ida::ui::info(report);
+    return ida::ok();
+}
+
 ida::Status export_pseudocode_comments_action() {
     auto path = ida::ui::ask_file(true, "*.idax-diaphora-pseudo.tsv",
                                   "Export Diaphora Pseudocode Comment Manifest");
@@ -1961,7 +2452,8 @@ public:
             .comment = "Export and compare exact Diaphora-style function fingerprints",
             .help = "A bounded Diaphora 3.4.0 adaptation using a deterministic canonical manifest. "
                     "A byte-compatible companion manifest conservatively transfers instruction "
-                    "comments, forced operands, and exact pseudocode comment locations. SQLite "
+                    "comments, forced operands, unique referent names/types, and exact pseudocode "
+                    "comment locations. SQLite "
                     "heuristics, pseudocode/microcode similarity, and chooser parity are outside "
                     "this artifact.",
         };
@@ -1989,6 +2481,18 @@ public:
                           "Diaphora Exact: Apply Instruction Metadata",
                           "Apply only absent instruction comments and forced operands",
                           [] { return compare_instruction_metadata_action(true); })
+            && add_action(kExportReferentMetadataAction,
+                          "Diaphora Exact: Export Referent Metadata",
+                          "Export exact unique code/data referent names and types",
+                          [] { return export_referent_metadata_action(); })
+            && add_action(kCompareReferentMetadataAction,
+                          "Diaphora Exact: Compare Referent Metadata",
+                          "Validate referent metadata without changing the database",
+                          [] { return compare_referent_metadata_action(false); })
+            && add_action(kApplyReferentMetadataAction,
+                          "Diaphora Exact: Apply Referent Metadata",
+                          "Apply only absent/auto referent names and absent types",
+                          [] { return compare_referent_metadata_action(true); })
             && add_action(kExportPseudocodeCommentsAction,
                           "Diaphora Exact: Export Pseudocode Comments",
                           "Export all exact persisted pseudocode comment locations",

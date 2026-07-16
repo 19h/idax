@@ -21,12 +21,10 @@ set(_temp_fixture "${_temp_dir}/${_fixture_name}")
 
 file(MAKE_DIRECTORY "${_temp_dir}")
 file(COPY_FILE "${IDAX_TEST_FIXTURE}" "${_temp_fixture}" ONLY_IF_DIFFERENT)
-if(EXISTS "${IDAX_TEST_FIXTURE}.i64")
-    file(COPY_FILE
-        "${IDAX_TEST_FIXTURE}.i64"
-        "${_temp_fixture}.i64"
-        ONLY_IF_DIFFERENT)
-endif()
+
+# Analyze the raw fixture with the runtime under test. A pre-analysed IDB is
+# release-specific input: copying an older sidecar can make IDA terminate after
+# its conversion pass before the integration executable reaches its assertions.
 
 execute_process(
     COMMAND "${IDAX_TEST_EXECUTABLE}" "${_temp_fixture}"

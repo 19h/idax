@@ -392,6 +392,15 @@ Current overall phase status:
 
 ---
 
+### Phase 53 TODO Action Items (Diaphora Exact Referent Metadata)
+
+- [x] P53.1 Audit pinned Diaphora 3.4.0 instruction referent name/type export and import semantics against the Phase 48-50 exact companions and current opaque APIs.
+- [x] P53.2 Select a deterministic boundary that rejects ambiguous multi-referent alignment and preserves target-owned names/types.
+- [x] P53.3 Implement byte-compatible C++ and Rust referent manifests with strict parsing, exact guards, report mode, and conservative apply.
+- [ ] P53.4 Add pure and isolated real-IDA report/apply/reopen/negative evidence, run complete validation, synchronize records/docs, exact-review, commit and push, then remove Phase 53 from active work.
+
+---
+
 ### Phase 54 TODO Action Items (Repository Absolute-Path Privacy Hygiene)
 
 - [x] P54.1 Audit tracked text, tracked binary strings, and reachable Git history for identity-bearing absolute host paths.

@@ -117,6 +117,7 @@ idax_add_integration_test(event_stress                      event_stress_test.cp
 idax_add_integration_test(decompiler_edge_cases            decompiler_edge_cases_test.cpp)
 idax_add_integration_test(performance_benchmark            performance_benchmark_test.cpp)
 idax_add_integration_test(codedump_parity_host_gates        codedump_parity_host_gates_test.cpp)
+idax_add_integration_test(diaphora_referent_metadata        diaphora_referent_metadata_test.cpp)
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

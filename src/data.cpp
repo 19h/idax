@@ -986,7 +986,7 @@ Result<std::vector<StringLiteral>> string_literals(bool rebuild) {
     std::vector<StringLiteral> literals;
     literals.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
-        string_info_t info;
+        string_info_ex_t info;
         if (!::get_strlist_item(&info, index)) {
             return std::unexpected(Error::sdk(
                 "get_strlist_item failed", std::to_string(index)));
@@ -996,9 +996,19 @@ Result<std::vector<StringLiteral>> string_literals(bool rebuild) {
                 "String-list item contains invalid metadata",
                 std::to_string(index)));
         }
-        auto text = read_string(static_cast<Address>(info.ea),
-                                static_cast<AddressSize>(info.length),
-                                static_cast<std::int32_t>(info.type));
+        Result<std::string> text;
+        if (info.type == STRTYPE_DECOMP) {
+            if (info.decompiler_string.empty()) {
+                return std::unexpected(Error::sdk(
+                    "Decompiler string-list item contains no copied text",
+                    std::to_string(index)));
+            }
+            text = ida::detail::to_string(info.decompiler_string);
+        } else {
+            text = read_string(static_cast<Address>(info.ea),
+                               static_cast<AddressSize>(info.length),
+                               static_cast<std::int32_t>(info.type));
+        }
         if (!text)
             return std::unexpected(text.error());
         literals.push_back({

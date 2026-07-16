@@ -6,8 +6,8 @@
 
 - **Format**: ELF64 (x86-64, Linux)
 - **Source**: Simple C program compiled with GCC, statically or dynamically linked
-- **Used by**: All integration tests (smoke, behavior, decode, mutation, roundtrip, etc.)
-- **Pre-analysed IDB**: `simple_appcall_linux64.i64` (identity/license metadata sanitized with `scripts/sanitize_ida_fixture.py`; enforced by the repository byte-level privacy gate)
+- **Used by**: All integration tests (smoke, behavior, decode, mutation, roundtrip, etc.); C++ runtime tests copy and analyze the raw binary with the current IDA release
+- **Pre-analysed IDB**: `simple_appcall_linux64.i64` is retained for consumers that explicitly require an existing database (identity/license metadata sanitized with `scripts/sanitize_ida_fixture.py`; enforced by the repository byte-level privacy gate)
 - **Key characteristics**:
   - Contains `main()` and several helper functions
   - Has code, data, BSS, and read-only segments

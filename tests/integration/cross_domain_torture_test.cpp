@@ -362,7 +362,9 @@ void test_instruction_decode_stress() {
 void test_decompiler_stress() {
     SECTION("Decompiler stress");
 
-    if (!ida::decompiler::available()) {
+    auto availability = ida::decompiler::available();
+    CHECK_OK(availability);
+    if (!availability || !*availability) {
         SKIP("decompiler not available");
         return;
     }

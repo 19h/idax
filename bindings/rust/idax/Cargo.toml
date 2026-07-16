@@ -24,3 +24,8 @@ bitflags = { workspace = true }
 name = "integration"
 path = "tests/integration.rs"
 harness = false
+
+[[test]]
+name = "diaphora_referent_runtime"
+path = "tests/diaphora_referent_runtime.rs"
+harness = false

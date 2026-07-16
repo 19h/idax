@@ -63,3 +63,14 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 8. Diaphora Exact Referent Metadata (Phase 53)
+
+- **8.1. Pinned-source audit and boundary**
+  - 8.1.1. **Action:** Adapt Diaphora 3.4.0 instruction referent name/type transfer without reproducing its last-reference export/first-reference import ambiguity.
+  - 8.1.2. **Status:** P53.1-P53.3 complete (F463-F464; KB 35.119-35.120; decision 19.55). Existing opaque APIs are sufficient; P53.4 validation, exact review, and push are active with no blocker.
+- **8.2. Implementation and evidence**
+  - 8.2.1. **Action:** Add byte-compatible C++/Rust manifests, strict parsing, unique-reference and exact-instruction guards, absent/auto-only application, pure tests, isolated IDA report/apply/reopen evidence, complete regression, exact review, and push.
+  - 8.2.2. **Status:** Active.
