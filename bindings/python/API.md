@@ -28,6 +28,7 @@ checked with strict mypy.
 | `undo` | 5 | 0 | Named restore points, optional next-action labels, and undo/redo execution. |
 | `name` | 16 | 3 | Name lookup/mutation, demangling, inventory, properties. |
 | `path` | 3 | 0 | Portable `os.PathLike`-aware path operations. |
+| `parser` | 9 | 4 | Third-party parser selection, arguments/options, source/file ingestion, and parse reports. |
 | `plugin` | 14 | 8 | Plugin subclasses, actions, hotkeys, opaque action/host contexts. |
 | `processor` | 0 | 20 | Processor descriptors, exact primary/secondary flags, typed analysis, output context, subclass callbacks. |
 | `problem` | 6 | 1 | Typed analysis-problem recording, descriptions, ordered lookup, names, removal, and presence. |

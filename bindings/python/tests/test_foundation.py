@@ -12,6 +12,7 @@ from idax import (
     exception,
     lines,
     loader,
+    parser,
     plugin,
     problem,
     processor,
@@ -41,6 +42,17 @@ def test_package_contract() -> None:
     assert exception.CatchSelectorKind.TYPED.name == "TYPED"
     assert exception.SehDisposition.CONTINUE_SEARCH.name == "CONTINUE_SEARCH"
     assert exception.Location.CPP_TRY.name == "CPP_TRY"
+    assert parser.Language.C.name == "C"
+    assert parser.Language.OBJECTIVE_CPP.name == "OBJECTIVE_CPP"
+    assert parser.InputKind.SOURCE_TEXT.name == "SOURCE_TEXT"
+    parser_options = parser.ParseOptions()
+    assert parser_options.input_kind is parser.InputKind.SOURCE_TEXT
+    assert parser_options.pack_alignment == 0
+    report = parser.ParseReport()
+    assert report.ok
+    assert bool(report)
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        parser.set_arguments("clang", "bad\0argument")
 
 
 def test_exception_models_are_opaque_python_values() -> None:

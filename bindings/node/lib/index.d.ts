@@ -2276,6 +2276,72 @@ export namespace problem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// parser namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace parser {
+    type Language =
+        | 'c' | 'cpp' | 'objectiveC' | 'swift' | 'go' | 'objectiveCpp';
+    type InputKind = 'sourceText' | 'filePath';
+
+    interface ParseOptions {
+        inputKind?: InputKind;
+        discardResult?: boolean;
+        defineBaseMacros?: boolean;
+        suppressWarnings?: boolean;
+        ignoreErrors?: boolean;
+        allowRedeclarations?: boolean;
+        noDecorate?: boolean;
+        assumeHighLevel?: boolean;
+        lowerPrototypes?: boolean;
+        rawArgumentNames?: boolean;
+        relaxedNamespaces?: boolean;
+        excludeBaseTypes?: boolean;
+        allowMissingSemicolon?: boolean;
+        standaloneDeclaration?: boolean;
+        allowVoid?: boolean;
+        noMangle?: boolean;
+        packAlignment?: 0 | 1 | 2 | 4 | 8 | 16;
+    }
+
+    interface ParseReport {
+        errorCount: number;
+        ok: boolean;
+    }
+
+    /** Select a named parser; null/omitted selects the default parser. */
+    function select(name?: string | null): void;
+    /** Select a parser supporting every requested language. */
+    function selectFor(languages: Language | readonly Language[]): void;
+    /** Return the copied current parser name, or null for unnamed default state. */
+    function selectedName(): string | null;
+    /** Configure command-line arguments for a named parser. */
+    function setArguments(parserName: string, arguments: string): void;
+    /** Parse source text or a file using a language-compatible parser. */
+    function parseFor(
+        languages: Language | readonly Language[],
+        input: string,
+        inputKind?: InputKind,
+    ): ParseReport;
+    /** Parse source text or a file using a named parser. */
+    function parseWith(
+        parserName: string,
+        input: string,
+        inputKind?: InputKind,
+    ): ParseReport;
+    /** Parse with a named parser and semantic extended options. */
+    function parseWithOptions(
+        parserName: string,
+        input: string,
+        options?: ParseOptions,
+    ): ParseReport;
+    /** Return one copied parser-defined option value. */
+    function option(parserName: string, optionName: string): string;
+    /** Set one parser-defined option value. */
+    function setOption(parserName: string, optionName: string, value: string): void;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // exception namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

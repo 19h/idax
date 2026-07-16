@@ -832,6 +832,51 @@ void check_exception_surface() {
         ida::exception::SehDisposition::ContinueExecution) == -1);
 }
 
+// ─── ida::parser ────────────────────────────────────────────────────────
+
+void check_parser_surface() {
+    using SelectFn = ida::Status(*)(std::optional<std::string_view>);
+    using SelectForFn = ida::Status(*)(ida::parser::Language);
+    using SelectedNameFn = ida::Result<std::optional<std::string>>(*)();
+    using SetArgumentsFn = ida::Status(*)(std::string_view, std::string_view);
+    using ParseForFn = ida::Result<ida::parser::ParseReport>(*)(
+        ida::parser::Language, std::string_view, ida::parser::InputKind);
+    using ParseWithFn = ida::Result<ida::parser::ParseReport>(*)(
+        std::string_view, std::string_view, ida::parser::InputKind);
+    using ParseWithOptionsFn = ida::Result<ida::parser::ParseReport>(*)(
+        std::string_view, std::string_view, const ida::parser::ParseOptions&);
+    using OptionFn = ida::Result<std::string>(*)(
+        std::string_view, std::string_view);
+    using SetOptionFn = ida::Status(*)(
+        std::string_view, std::string_view, std::string_view);
+
+    (void)static_cast<SelectFn>(&ida::parser::select);
+    (void)static_cast<SelectForFn>(&ida::parser::select_for);
+    (void)static_cast<SelectedNameFn>(&ida::parser::selected_name);
+    (void)static_cast<SetArgumentsFn>(&ida::parser::set_arguments);
+    (void)static_cast<ParseForFn>(&ida::parser::parse_for);
+    (void)static_cast<ParseWithFn>(&ida::parser::parse_with);
+    (void)static_cast<ParseWithOptionsFn>(&ida::parser::parse_with_options);
+    (void)static_cast<OptionFn>(&ida::parser::option);
+    (void)static_cast<SetOptionFn>(&ida::parser::set_option);
+
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::C) == 0x01);
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::Cpp) == 0x02);
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::ObjectiveC) == 0x04);
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::Swift) == 0x08);
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::Go) == 0x10);
+    static_assert(static_cast<std::uint32_t>(ida::parser::Language::ObjectiveCpp) == 0x20);
+    static_assert(static_cast<std::uint32_t>(
+        ida::parser::Language::C | ida::parser::Language::Cpp) == 0x03);
+
+    ida::parser::ParseOptions options;
+    (void)options.input_kind;
+    (void)options.pack_alignment;
+    ida::parser::ParseReport report;
+    (void)report.error_count;
+    (void)report.ok();
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
@@ -2418,6 +2463,7 @@ int main() {
     surface_check::check_undo_surface();       namespaces_verified++;
     surface_check::check_problem_surface();    namespaces_verified++;
     surface_check::check_exception_surface();  namespaces_verified++;
+    surface_check::check_parser_surface();     namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
@@ -2434,9 +2480,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 31, "all 31 namespace surfaces verified");
+    CHECK(namespaces_verified == 32, "all 32 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (31 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (32 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

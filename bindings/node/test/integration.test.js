@@ -639,6 +639,59 @@ describe('Exception Regions', () => {
     });
 });
 
+// ── Source Parsers ──────────────────────────────────────────────────────
+
+describe('Source Parsers', () => {
+    it('should select, configure, parse source/file inputs, and persist local types', () => {
+        idax.parser.selectFor(['c', 'cpp']);
+        const parserName = idax.parser.selectedName();
+        expect(typeof parserName).toBe('string');
+        expect(parserName.length).toBeGreaterThan(0);
+        idax.parser.setArguments(parserName, '');
+
+        const syntax = idax.parser.parseWith(
+            parserName, 'struct idax_node_parser_syntax_error {');
+        expect(syntax.ok).toBe(false);
+        expect(syntax.errorCount).toBeGreaterThan(0);
+
+        const memory = idax.parser.parseFor(
+            'c', 'struct idax_node_parser_memory { int value; };');
+        expect(memory.ok).toBe(true);
+        expect(idax.type.byName('idax_node_parser_memory').isStruct()).toBe(true);
+
+        const named = idax.parser.parseWith(
+            parserName, 'struct idax_node_parser_named { unsigned value; };');
+        expect(named.ok).toBe(true);
+        expect(idax.type.byName('idax_node_parser_named').isStruct()).toBe(true);
+
+        const extended = idax.parser.parseWithOptions(
+            parserName,
+            'struct idax_node_parser_extended { char value; };',
+            { suppressWarnings: true, allowRedeclarations: true, packAlignment: 4 },
+        );
+        expect(extended.ok).toBe(true);
+        expect(idax.type.byName('idax_node_parser_extended').isStruct()).toBe(true);
+
+        const sourcePath = path.join(fixtureDirectory, 'idax_node_parser_input.hpp');
+        fs.writeFileSync(
+            sourcePath,
+            'struct idax_node_parser_file { long long value; };\n',
+            'utf8',
+        );
+        const file = idax.parser.parseFor('cpp', sourcePath, 'filePath');
+        fs.rmSync(sourcePath, { force: true });
+        expect(file.ok).toBe(true);
+        expect(idax.type.byName('idax_node_parser_file').isStruct()).toBe(true);
+
+        const option = idax.parser.option(parserName, 'CLANG_APPLY_TINFO');
+        idax.parser.setOption(parserName, 'CLANG_APPLY_TINFO', option);
+        expect(idax.parser.option(parserName, 'CLANG_APPLY_TINFO')).toBe(option);
+        idax.parser.select();
+        const defaultName = idax.parser.selectedName();
+        expect(defaultName === null || typeof defaultName === 'string').toBe(true);
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

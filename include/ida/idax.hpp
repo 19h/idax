@@ -24,6 +24,7 @@
 #include <ida/undo.hpp>
 #include <ida/problem.hpp>
 #include <ida/exception.hpp>
+#include <ida/parser.hpp>
 #include <ida/lumina.hpp>
 #include <ida/type.hpp>
 #include <ida/entry.hpp>

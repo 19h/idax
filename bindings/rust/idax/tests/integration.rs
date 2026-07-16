@@ -19,7 +19,8 @@ use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, comment, data, database, decompiler, entry, event, exception, fixup, function, graph,
-    instruction, lines, name, plugin, problem, search, segment, storage, types, ui, undo, xref,
+    instruction, lines, name, parser, plugin, problem, search, segment, storage, types, ui, undo,
+    xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -949,6 +950,121 @@ fn exception_roundtrip() {
 
     exception::remove(scope).unwrap();
     assert!(!exception::contains_any(heads[0]).unwrap());
+}
+
+fn parser_roundtrip() {
+    require_db!();
+
+    parser::select_for(parser::Language::C | parser::Language::Cpp).unwrap();
+    let parser_name = parser::selected_name()
+        .unwrap()
+        .expect("language-selected parser should have a copied name");
+    assert!(!parser_name.is_empty());
+    parser::set_arguments(&parser_name, "").unwrap();
+
+    let rejected_source =
+        std::ffi::CString::new("struct idax_rust_parser_rejected_output { int value; };").unwrap();
+    let rejected = unsafe {
+        idax_sys::idax_parser_parse_for(
+            parser::Language::C as u32,
+            rejected_source.as_ptr(),
+            parser::InputKind::SourceText as i32,
+            std::ptr::null_mut(),
+        )
+    };
+    assert_ne!(rejected, 0);
+    assert_eq!(
+        unsafe { idax_sys::idax_last_error_category() },
+        idax_sys::IDAX_ERROR_VALIDATION as i32
+    );
+    assert!(types::TypeInfo::by_name("idax_rust_parser_rejected_output").is_err());
+
+    let conflicting_options = parser::ParseOptions {
+        assume_high_level: true,
+        lower_prototypes: true,
+        ..parser::ParseOptions::default()
+    };
+    let conflicting = parser::parse_with_options(
+        &parser_name,
+        "struct idax_rust_parser_conflicting_modes { int value; };",
+        &conflicting_options,
+    )
+    .unwrap_err();
+    assert_eq!(conflicting.category, ErrorCategory::Validation);
+
+    let syntax = parser::parse_with(
+        &parser_name,
+        "struct idax_rust_parser_syntax_error {",
+        parser::InputKind::SourceText,
+    )
+    .unwrap();
+    assert!(!syntax.is_ok());
+    assert!(syntax.error_count > 0);
+
+    let memory = parser::parse_for(
+        parser::Language::C,
+        "struct idax_rust_parser_memory { int value; };",
+        parser::InputKind::SourceText,
+    )
+    .unwrap();
+    assert!(memory.is_ok());
+    assert!(types::TypeInfo::by_name("idax_rust_parser_memory").is_ok());
+
+    let named = parser::parse_with(
+        &parser_name,
+        "struct idax_rust_parser_named { unsigned value; };",
+        parser::InputKind::SourceText,
+    )
+    .unwrap();
+    assert!(named.is_ok());
+    assert!(types::TypeInfo::by_name("idax_rust_parser_named").is_ok());
+
+    let options = parser::ParseOptions {
+        suppress_warnings: true,
+        allow_redeclarations: true,
+        pack_alignment: 4,
+        ..parser::ParseOptions::default()
+    };
+    let extended = parser::parse_with_options(
+        &parser_name,
+        "struct idax_rust_parser_extended { char value; };",
+        &options,
+    )
+    .unwrap();
+    assert!(extended.is_ok());
+    assert!(types::TypeInfo::by_name("idax_rust_parser_extended").is_ok());
+
+    let source_path = FIXTURE_COPY
+        .get()
+        .expect("fixture copy should exist")
+        .parent()
+        .expect("fixture should have a parent")
+        .join("idax_rust_parser_input.hpp");
+    std::fs::write(
+        &source_path,
+        "struct idax_rust_parser_file { long long value; };\n",
+    )
+    .unwrap();
+    let file = parser::parse_for(
+        parser::Language::Cpp,
+        source_path
+            .to_str()
+            .expect("temporary source path should be UTF-8"),
+        parser::InputKind::FilePath,
+    )
+    .unwrap();
+    std::fs::remove_file(&source_path).unwrap();
+    assert!(file.is_ok());
+    assert!(types::TypeInfo::by_name("idax_rust_parser_file").is_ok());
+
+    let option = parser::option(&parser_name, "CLANG_APPLY_TINFO").unwrap();
+    parser::set_option(&parser_name, "CLANG_APPLY_TINFO", &option).unwrap();
+    assert_eq!(
+        parser::option(&parser_name, "CLANG_APPLY_TINFO").unwrap(),
+        option
+    );
+    parser::select(None).unwrap();
+    let _ = parser::selected_name().unwrap();
 }
 
 // ===========================================================================
@@ -2733,6 +2849,7 @@ static TEST_CASES: &[TestCase] = &[
     ("undo_comment_roundtrip", undo_comment_roundtrip),
     ("problem_roundtrip", problem_roundtrip),
     ("exception_roundtrip", exception_roundtrip),
+    ("parser_roundtrip", parser_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),

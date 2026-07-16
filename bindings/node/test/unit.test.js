@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'exception', 'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'problem', 'exception', 'parser', 'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -665,6 +665,38 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace exception');
         expect(dts).toContain("| 'cppTry'");
         expect(dts).toContain('function systemRegionStart(address: Address): Address | null');
+    });
+
+    it('should have semantic source-parser functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'select', 'selectFor', 'selectedName', 'setArguments',
+            'parseFor', 'parseWith', 'parseWithOptions', 'option', 'setOption',
+        ]) {
+            expect(typeof idax.parser[fn]).toBe('function');
+        }
+        expect(() => idax.parser.selectFor([])).toThrow(/cannot be empty/);
+        expect(() => idax.parser.selectFor('unknown')).toThrow(/Unknown source language/);
+        expect(() => idax.parser.setArguments('clang', 'bad\0argument'))
+            .toThrow(/embedded NUL/);
+        expect(() => idax.parser.parseWithOptions(
+            'clang', 'struct ignored {};', { packAlignment: 3 }))
+            .toThrow(/Pack alignment/);
+        expect(() => idax.parser.parseWithOptions(
+            'clang', 'struct ignored {};', {
+                assumeHighLevel: true,
+                lowerPrototypes: true,
+            })).toThrow(/mutually exclusive/);
+        expect(() => idax.parser.parseWithOptions(
+            'clang', 'struct ignored {};', { packAlignment: 1e100 }))
+            .toThrow(/representable/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace parser');
+        expect(dts).toContain("type InputKind = 'sourceText' | 'filePath'");
+        expect(dts).toContain('function selectedName(): string | null');
     });
 });
 

@@ -178,6 +178,50 @@ int idax_problem_name(int kind, int long_form, char** out);
 int idax_problem_contains(int kind, uint64_t address, int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Source parsers (ida::parser)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef struct IdaxParserParseOptions {
+    int32_t input_kind;
+    int discard_result;
+    int define_base_macros;
+    int suppress_warnings;
+    int ignore_errors;
+    int allow_redeclarations;
+    int no_decorate;
+    int assume_high_level;
+    int lower_prototypes;
+    int raw_argument_names;
+    int relaxed_namespaces;
+    int exclude_base_types;
+    int allow_missing_semicolon;
+    int standalone_declaration;
+    int allow_void;
+    int no_mangle;
+    size_t pack_alignment;
+} IdaxParserParseOptions;
+
+typedef struct IdaxParserParseReport {
+    size_t error_count;
+} IdaxParserParseReport;
+
+int idax_parser_select(const char* name);
+int idax_parser_select_for(uint32_t languages);
+int idax_parser_selected_name(char** out);
+int idax_parser_set_arguments(const char* parser_name, const char* arguments);
+int idax_parser_parse_for(uint32_t languages, const char* input,
+                          int32_t input_kind, IdaxParserParseReport* out);
+int idax_parser_parse_with(const char* parser_name, const char* input,
+                           int32_t input_kind, IdaxParserParseReport* out);
+int idax_parser_parse_with_options(const char* parser_name, const char* input,
+                                   const IdaxParserParseOptions* options,
+                                   IdaxParserParseReport* out);
+int idax_parser_option(const char* parser_name, const char* option_name,
+                       char** out);
+int idax_parser_set_option(const char* parser_name, const char* option_name,
+                           const char* value);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Architecture-independent exception regions (ida::exception)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

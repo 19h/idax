@@ -431,6 +431,135 @@ unsafe extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxParserParseOptions {
+    pub input_kind: i32,
+    pub discard_result: ::std::os::raw::c_int,
+    pub define_base_macros: ::std::os::raw::c_int,
+    pub suppress_warnings: ::std::os::raw::c_int,
+    pub ignore_errors: ::std::os::raw::c_int,
+    pub allow_redeclarations: ::std::os::raw::c_int,
+    pub no_decorate: ::std::os::raw::c_int,
+    pub assume_high_level: ::std::os::raw::c_int,
+    pub lower_prototypes: ::std::os::raw::c_int,
+    pub raw_argument_names: ::std::os::raw::c_int,
+    pub relaxed_namespaces: ::std::os::raw::c_int,
+    pub exclude_base_types: ::std::os::raw::c_int,
+    pub allow_missing_semicolon: ::std::os::raw::c_int,
+    pub standalone_declaration: ::std::os::raw::c_int,
+    pub allow_void: ::std::os::raw::c_int,
+    pub no_mangle: ::std::os::raw::c_int,
+    pub pack_alignment: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxParserParseOptions"][::std::mem::size_of::<IdaxParserParseOptions>() - 72usize];
+    ["Alignment of IdaxParserParseOptions"]
+        [::std::mem::align_of::<IdaxParserParseOptions>() - 8usize];
+    ["Offset of field: IdaxParserParseOptions::input_kind"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, input_kind) - 0usize];
+    ["Offset of field: IdaxParserParseOptions::discard_result"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, discard_result) - 4usize];
+    ["Offset of field: IdaxParserParseOptions::define_base_macros"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, define_base_macros) - 8usize];
+    ["Offset of field: IdaxParserParseOptions::suppress_warnings"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, suppress_warnings) - 12usize];
+    ["Offset of field: IdaxParserParseOptions::ignore_errors"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, ignore_errors) - 16usize];
+    ["Offset of field: IdaxParserParseOptions::allow_redeclarations"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, allow_redeclarations) - 20usize];
+    ["Offset of field: IdaxParserParseOptions::no_decorate"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, no_decorate) - 24usize];
+    ["Offset of field: IdaxParserParseOptions::assume_high_level"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, assume_high_level) - 28usize];
+    ["Offset of field: IdaxParserParseOptions::lower_prototypes"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, lower_prototypes) - 32usize];
+    ["Offset of field: IdaxParserParseOptions::raw_argument_names"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, raw_argument_names) - 36usize];
+    ["Offset of field: IdaxParserParseOptions::relaxed_namespaces"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, relaxed_namespaces) - 40usize];
+    ["Offset of field: IdaxParserParseOptions::exclude_base_types"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, exclude_base_types) - 44usize];
+    ["Offset of field: IdaxParserParseOptions::allow_missing_semicolon"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, allow_missing_semicolon) - 48usize];
+    ["Offset of field: IdaxParserParseOptions::standalone_declaration"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, standalone_declaration) - 52usize];
+    ["Offset of field: IdaxParserParseOptions::allow_void"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, allow_void) - 56usize];
+    ["Offset of field: IdaxParserParseOptions::no_mangle"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, no_mangle) - 60usize];
+    ["Offset of field: IdaxParserParseOptions::pack_alignment"]
+        [::std::mem::offset_of!(IdaxParserParseOptions, pack_alignment) - 64usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxParserParseReport {
+    pub error_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxParserParseReport"][::std::mem::size_of::<IdaxParserParseReport>() - 8usize];
+    ["Alignment of IdaxParserParseReport"]
+        [::std::mem::align_of::<IdaxParserParseReport>() - 8usize];
+    ["Offset of field: IdaxParserParseReport::error_count"]
+        [::std::mem::offset_of!(IdaxParserParseReport, error_count) - 0usize];
+};
+unsafe extern "C" {
+    pub fn idax_parser_select(name: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_select_for(languages: u32) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_selected_name(
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_set_arguments(
+        parser_name: *const ::std::os::raw::c_char,
+        arguments: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_parse_for(
+        languages: u32,
+        input: *const ::std::os::raw::c_char,
+        input_kind: i32,
+        out: *mut IdaxParserParseReport,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_parse_with(
+        parser_name: *const ::std::os::raw::c_char,
+        input: *const ::std::os::raw::c_char,
+        input_kind: i32,
+        out: *mut IdaxParserParseReport,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_parse_with_options(
+        parser_name: *const ::std::os::raw::c_char,
+        input: *const ::std::os::raw::c_char,
+        options: *const IdaxParserParseOptions,
+        out: *mut IdaxParserParseReport,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_option(
+        parser_name: *const ::std::os::raw::c_char,
+        option_name: *const ::std::os::raw::c_char,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_parser_set_option(
+        parser_name: *const ::std::os::raw::c_char,
+        option_name: *const ::std::os::raw::c_char,
+        value: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct IdaxExceptionRange {
     pub start: u64,
     pub end: u64,

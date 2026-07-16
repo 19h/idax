@@ -22,6 +22,7 @@ This section records concrete friction points discovered during SDK review so wr
 18. Migration requires broad knowledge of legacy naming and bitflag semantics.
 19. Undo-point creation requires callers to discover and reproduce an undocumented serialized-record convention, while label queries expose SDK strings and unavailable transitions use bare booleans.
 20. Analysis-problem lists use unscoped byte identifiers, SDK strings, `BADADDR`/`-1` absence sentinels, and operation names that obscure ordered traversal and removal semantics.
+21. Source-parser APIs combine raw language/behavior masks, nullable parser/TIL pointers, SDK strings, implementation-defined option keys, file-vs-memory booleans, and overloaded negative integer outcomes across selection, configuration, and parsing.
 
 Wrapper response requirements derived from these pain points:
 - Convert encoded flags to typed enums/options in public API.

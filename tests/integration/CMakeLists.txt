@@ -121,6 +121,7 @@ idax_add_integration_test(diaphora_referent_metadata        diaphora_referent_me
 idax_add_integration_test(undo_roundtrip                    undo_roundtrip_test.cpp)
 idax_add_integration_test(problem_roundtrip                 problem_roundtrip_test.cpp)
 idax_add_integration_test(exception_roundtrip               exception_roundtrip_test.cpp)
+idax_add_integration_test(parser_roundtrip                  parser_roundtrip_test.cpp)
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

@@ -1226,3 +1226,21 @@ tracked in `docs/compatibility_matrix.md`.
   (Integrations 3/3), 29518226538 (Validation 6/6), and 29518226492
   (Bindings 9/9) across Linux, Windows, and macOS; complete logs contain zero
   unmasked canonical license identifiers.
+
+- 2026-07-16 Phase 62 opaque source-parser domain (local release candidate):
+  Added all nine pinned `srclang.hpp` operations across C++, Node, generated
+  C/safe Rust, and Python using a closed six-language set, semantic source/file
+  inputs and extended options, copied parser identity/configuration, explicit
+  error-count reports, and current-local-type-library storage. Exact-SDK native
+  validation passes 33/33 CTest targets, 44 focused parser assertions, the
+  267-check smoke suite, installation, and TGZ packaging. Node passes 248
+  structural plus 89 initialized-host checks, declaration compilation, and
+  package inspection. Rust passes 152 unit plus 106 initialized-host checks,
+  all-target compilation, doctests, formatting, and byte-identical generated
+  bindings (`1f140efe048b93721295fb0eddfc62ef7e51b6340ce162a38e198e9d09d1f50f`).
+  Python passes 20 pure plus one initialized-host check, strict typing over 35
+  modules, a 31-domain/867-symbol manifest, and wheel/sdist inspection. The 26
+  selector, processor-module, and privacy regressions; repository consistency;
+  workflow YAML/actionlint; shell syntax; diff hygiene; and strict object
+  integrity gates pass. Exact staging, the staged semantic gate, promotion to
+  `master`, and live cross-platform Actions/log-privacy evidence remain active.

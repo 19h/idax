@@ -10,8 +10,8 @@ Raw `extern "C"` FFI bindings to the [idax](https://github.com/19h/idax) C++ IDA
 
 ## What this crate provides
 
-- **727 FFI function declarations** covering 27 IDA SDK domains (database, segments, functions, instructions, types, decompiler, debugger, and more)
-- **129 C struct/enum/callback typedefs** for data transfer across the FFI boundary
+- **789 FFI function declarations** covering all 31 public IDAX domains
+- **159 generated `Idax*` struct and type declarations** for data transfer across the FFI boundary
 - A **C shim layer** (`shim/idax_shim.h` + `shim/idax_shim.cpp`) that bridges `extern "C"` to the idax C++ API
 - Automatic **bindgen** code generation at build time — the output lands in `$OUT_DIR/bindings.rs`
 
@@ -65,34 +65,38 @@ The C shim follows consistent conventions documented in `shim/idax_shim.h`:
 
 | Domain | C prefix | Functions |
 |--------|----------|-----------|
-| Error handling | `idax_last_error_*`, `idax_free_*` | 5 |
-| Database | `idax_database_*` | 28 |
-| Address | `idax_address_*` | 19 |
+| Error handling | `idax_last_error_*`, `idax_free_*` | 6 |
+| Database | `idax_database_*` | 33 |
+| Address | `idax_address_*` | 18 |
 | Segment | `idax_segment_*` | 20 |
 | Function | `idax_function_*` | 37 |
-| Instruction | `idax_instruction_*` | 39 |
-| Data | `idax_data_*` | 70 |
-| Name | `idax_name_*` | 16 |
+| Instruction | `idax_instruction_*` | 41 |
+| Data | `idax_data_*` | 77 |
+| Name | `idax_name_*` | 18 |
 | Cross-references | `idax_xref_*` | 16 |
-| Comment | `idax_comment_*` | 18 |
+| Comment | `idax_comment_*` | 20 |
 | Search | `idax_search_*` | 8 |
-| Analysis | `idax_analysis_*` | 12 |
+| Analysis | `idax_analysis_*` | 13 |
 | Undo/redo | `idax_undo_*` | 5 |
 | Analysis problems | `idax_problem_*` | 6 |
-| Types | `idax_type_*` | 76 |
-| Entry points | `idax_entry_*` | 8 |
+| Exception regions | `idax_exception_*` | 6 |
+| Source parsers | `idax_parser_*` | 9 |
+| Types | `idax_type_*` | 88 |
+| Entry points | `idax_entry_*` | 9 |
 | Fixups | `idax_fixup_*` | 12 |
-| Events | `idax_event_*` | 10 |
-| Plugin | `idax_plugin_*` | 12 |
-| Loader | `idax_loader_*` | 12 |
-| Debugger | `idax_debugger_*` | 67 |
-| Decompiler | `idax_decompiler_*` | 32 |
-| Storage | `idax_storage_*` | 14 |
-| Lumina | `idax_lumina_*` | 2 |
-| Graph | `idax_graph_*` | 10 |
-| UI | `idax_ui_*` | 42 |
-| Lines | `idax_lines_*` | 2 |
-| Diagnostics | `idax_diagnostics_*` | 7 |
+| Events | `idax_event_*` | 20 |
+| Plugin | `idax_plugin_*` | 14 |
+| Loader | `idax_loader_*` | 14 |
+| Processor | generated transfer/callback types | 0 |
+| Debugger | `idax_debugger_*` | 68 |
+| Decompiler | `idax_decompiler_*` | 39 |
+| Storage | `idax_storage_*` | 17 |
+| Lumina | `idax_lumina_*` | 5 |
+| Graph | `idax_graph_*` | 37 |
+| UI | `idax_ui_*` | 76 |
+| Lines | `idax_lines_*` | 10 |
+| Diagnostics | `idax_diagnostics_*` | 5 |
+| Path | `idax_path_*` | 3 |
 
 ## Architecture
 

@@ -203,7 +203,26 @@ level; `contains()` accepts semantic `Location` values or a sequence of them.
 `system_region_start()` is an independent optional host query and may return
 `None` for an ordinary stored SEH block.
 
-## 11. Diagnose failures
+## 11. Parse source declarations with an installed parser
+
+```python
+from idax import parser
+
+parser.select_for([parser.Language.C, parser.Language.CPP])
+selected = parser.selected_name()
+report = parser.parse_for(
+    parser.Language.CPP,
+    "struct packet_header { unsigned size; };",
+)
+assert report.ok
+```
+
+The parsed declaration is stored in the current local type library. A nonzero
+`error_count` reports source diagnostics without converting them into an IDAX
+transport error. Parser names, argument support, and option keys depend on the
+installed parser; handle `NotFoundError` and `UnsupportedError` explicitly.
+
+## 12. Diagnose failures
 
 ```python
 from idax import IdaxError

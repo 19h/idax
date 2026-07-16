@@ -972,6 +972,169 @@ int idax_problem_contains(int kind, uint64_t address, int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Source parsers
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::Result<ida::parser::InputKind> parser_input_kind_from_c(int32_t value) {
+    switch (value) {
+        case 0: return ida::parser::InputKind::SourceText;
+        case 1: return ida::parser::InputKind::FilePath;
+        default:
+            return std::unexpected(ida::Error::validation(
+                "Unknown parser input kind", std::to_string(value)));
+    }
+}
+
+ida::Result<ida::parser::ParseOptions> parser_options_from_c(
+    const IdaxParserParseOptions* input) {
+    if (input == nullptr)
+        return std::unexpected(ida::Error::validation(
+            "Parser options pointer is null"));
+    auto input_kind = parser_input_kind_from_c(input->input_kind);
+    if (!input_kind)
+        return std::unexpected(input_kind.error());
+    ida::parser::ParseOptions result;
+    result.input_kind = *input_kind;
+    result.discard_result = input->discard_result != 0;
+    result.define_base_macros = input->define_base_macros != 0;
+    result.suppress_warnings = input->suppress_warnings != 0;
+    result.ignore_errors = input->ignore_errors != 0;
+    result.allow_redeclarations = input->allow_redeclarations != 0;
+    result.no_decorate = input->no_decorate != 0;
+    result.assume_high_level = input->assume_high_level != 0;
+    result.lower_prototypes = input->lower_prototypes != 0;
+    result.raw_argument_names = input->raw_argument_names != 0;
+    result.relaxed_namespaces = input->relaxed_namespaces != 0;
+    result.exclude_base_types = input->exclude_base_types != 0;
+    result.allow_missing_semicolon = input->allow_missing_semicolon != 0;
+    result.standalone_declaration = input->standalone_declaration != 0;
+    result.allow_void = input->allow_void != 0;
+    result.no_mangle = input->no_mangle != 0;
+    result.pack_alignment = input->pack_alignment;
+    return result;
+}
+
+int parser_report_to_c(const ida::Result<ida::parser::ParseReport>& result,
+                       IdaxParserParseReport* out) {
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Parser report output pointer is null"));
+    out->error_count = 0;
+    if (!result)
+        return fail(result.error());
+    out->error_count = result->error_count;
+    return 0;
+}
+
+} // namespace
+
+int idax_parser_select(const char* name) {
+    clear_error();
+    std::optional<std::string_view> value;
+    if (name != nullptr)
+        value = name;
+    auto status = ida::parser::select(value);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_parser_select_for(uint32_t languages) {
+    clear_error();
+    auto status = ida::parser::select_for(
+        static_cast<ida::parser::Language>(languages));
+    return status ? 0 : fail(status.error());
+}
+
+int idax_parser_selected_name(char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Selected parser name output pointer is null"));
+    *out = nullptr;
+    auto result = ida::parser::selected_name();
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = dup_string(**result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_parser_set_arguments(const char* parser_name, const char* arguments) {
+    clear_error();
+    if (parser_name == nullptr || arguments == nullptr)
+        return fail(ida::Error::validation(
+            "Parser name or arguments pointer is null"));
+    auto status = ida::parser::set_arguments(parser_name, arguments);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_parser_parse_for(uint32_t languages, const char* input,
+                          int32_t input_kind, IdaxParserParseReport* out) {
+    clear_error();
+    if (input == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Parser input/report pointer is null"));
+    auto kind = parser_input_kind_from_c(input_kind);
+    if (!kind)
+        return fail(kind.error());
+    return parser_report_to_c(ida::parser::parse_for(
+        static_cast<ida::parser::Language>(languages), input, *kind), out);
+}
+
+int idax_parser_parse_with(const char* parser_name, const char* input,
+                           int32_t input_kind, IdaxParserParseReport* out) {
+    clear_error();
+    if (parser_name == nullptr || input == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Parser name, input, or report pointer is null"));
+    auto kind = parser_input_kind_from_c(input_kind);
+    if (!kind)
+        return fail(kind.error());
+    return parser_report_to_c(
+        ida::parser::parse_with(parser_name, input, *kind), out);
+}
+
+int idax_parser_parse_with_options(const char* parser_name, const char* input,
+                                   const IdaxParserParseOptions* options,
+                                   IdaxParserParseReport* out) {
+    clear_error();
+    if (parser_name == nullptr || input == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Parser name, input, or report pointer is null"));
+    auto native_options = parser_options_from_c(options);
+    if (!native_options)
+        return fail(native_options.error());
+    return parser_report_to_c(ida::parser::parse_with_options(
+        parser_name, input, *native_options), out);
+}
+
+int idax_parser_option(const char* parser_name, const char* option_name,
+                       char** out) {
+    clear_error();
+    if (parser_name == nullptr || option_name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Parser option input/output pointer is null"));
+    *out = nullptr;
+    auto result = ida::parser::option(parser_name, option_name);
+    if (!result)
+        return fail(result.error());
+    *out = dup_string(*result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_parser_set_option(const char* parser_name, const char* option_name,
+                           const char* value) {
+    clear_error();
+    if (parser_name == nullptr || option_name == nullptr || value == nullptr)
+        return fail(ida::Error::validation(
+            "Parser option input pointer is null"));
+    auto status = ida::parser::set_option(parser_name, option_name, value);
+    return status ? 0 : fail(status.error());
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Architecture-independent exception regions
 // ═══════════════════════════════════════════════════════════════════════════
 

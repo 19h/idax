@@ -273,4 +273,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `list`, `remove`, `add`, `system_region_start`, and `contains` cover all five pinned runtime operations without exposing `tryblk_t`, `catch_t`, `seh_t`, SDK containers, selector sentinels, or raw masks.
 - Node, safe Rust, and Python preserve the same owned range graph and semantic location classes. The generated C ABI is private transport with explicit recursive allocation/free ownership.
 
+### 17.35 Opaque Third-Party Source Parsers
+- `Language` is a closed six-bit semantic set and `InputKind` distinguishes in-memory source from a file path without exposing `srclang_t` or a native boolean convention.
+- `select`, `select_for`, `selected_name`, and `set_arguments` preserve parser registry identity and native not-found/unsupported states using copied strings and structured errors.
+- `parse_for`, `parse_with`, and `parse_with_options` import into the current local type library and return `ParseReport{error_count}`; `ParseOptions` names every supported extended behavior and accepts only portable pack alignments.
+- `option` and `set_option` preserve parser-defined string configuration without inventing a cross-parser option enum. Node, safe Rust, and Python expose the same nine operations and four public value types.
+
 ---

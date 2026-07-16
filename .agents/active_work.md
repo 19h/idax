@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Source-Parser Domain (Phase 62)
+
+- **7.1. Release Validation and Promotion**
+  - 7.1.1. **Action:** Run complete regression/package/privacy gates and generated-binding equivalence for the completed cross-language parser surface.
+  - 7.1.2. **Release:** Exact-stage only intended files, run the staged `red` gate, commit and push `master`, verify live Actions/log privacy, then remove this completed section immediately.
+  - 7.1.3. **Status:** Active / no blocker.

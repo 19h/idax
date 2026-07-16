@@ -43,6 +43,12 @@ This mapping is non-exhaustive but representative of expected direction.
 | `get_tryblks` / `del_tryblks` / `add_tryblk` | `ida::exception::list` / `remove` / `add` |
 | `find_syseh` | `ida::exception::system_region_start` |
 | `is_ea_tryblks(ea, TBEA_*)` | `ida::exception::contains(address, Location)` |
+| `select_parser_by_name` / `select_parser_by_srclang` | `ida::parser::select` / `select_for` |
+| `get_selected_parser_name(qstring*)` | `ida::parser::selected_name()` |
+| `set_parser_argv` | `ida::parser::set_arguments(parser_name, arguments)` |
+| `parse_decls_for_srclang` / `parse_decls_with_parser` | `ida::parser::parse_for` / `parse_with` |
+| `parse_decls_with_parser_ext(..., HTI_*)` | `ida::parser::parse_with_options(..., ParseOptions)` |
+| `get_parser_option` / `set_parser_option` | `ida::parser::option` / `set_option` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

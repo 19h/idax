@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 32 public headers cover 29 concept domains plus shared core and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 34 public headers cover 31 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -86,6 +86,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
+| **Source parsers** | `ida::parser` | Third-party parser selection by name/language, arguments/options, source/file ingestion, and parse reports |
 | **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
@@ -513,7 +514,7 @@ Set `IDADIR` to your IDA install path, or let CMake auto-discover it:
 ctest --test-dir build --output-on-failure
 ```
 
-The test suite includes 16 targets: 2 unit tests (pure logic + API surface parity) and 14 integration tests covering every namespace with a real ELF64 fixture binary.
+The test suite includes 33 targets: 8 unit/compile-surface tests and 25 integration tests covering every namespace with a real ELF64 fixture binary.
 
 For repeatable OS/compiler/profile runs, use `scripts/run_validation_matrix.sh` and
 track evidence in `docs/compatibility_matrix.md`.
@@ -554,12 +555,12 @@ idax is validated through layered testing:
 | Layer | What it tests | Runtime needed |
 |-------|---------------|----------------|
 | **Unit tests** | Error model, diagnostics, range semantics, iterator contracts | None |
-| **API surface parity** | Compile-only check that all 23+ namespaces and types exist | None |
-| **Smoke test** | 232 checks across every namespace, end-to-end | idalib + fixture |
+| **API surface parity** | Compile-only check that all 32 domain namespaces and types exist | None |
+| **Smoke test** | 267 checks across every established namespace, end-to-end | idalib + fixture |
 | **Domain integration** | Dedicated suites: types, fixups, operands, decompiler, events, etc. | idalib + fixture |
 | **Scenario tests** | Loader/processor module lifecycle and callback wiring | idalib + fixture |
 
-Current status: **16/16 test targets passing** (232 smoke checks + 15 dedicated suites).
+Current status: **33/33 test targets passing** (267 smoke checks + 32 focused/unit suites).
 
 ---
 

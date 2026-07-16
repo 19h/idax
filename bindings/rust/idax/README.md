@@ -134,6 +134,8 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`fixup`] | Fixups / relocations | `at`, `set`, `remove`, `in_range`, iteration (`first`, `next`, `prev`), custom fixup handler registration |
 | [`search`] | Search | `text`, `binary_pattern`, `immediate`, `next_code`, `next_data`, `next_unknown`, `next_error`, `next_defined` |
 | [`problem`] | Analysis problems | Closed `Kind`, copied optional descriptions, ordered `next`, `remember`, `remove`, names, and presence |
+| [`exception`] | Exception regions | Owned fragmented C++/SEH blocks, semantic handlers, membership, system-region lookup, and mutation |
+| [`parser`] | Source parsers | Selection by language/name, copied identity/options, arguments, source/file ingestion, and parse reports |
 
 ### Type system
 

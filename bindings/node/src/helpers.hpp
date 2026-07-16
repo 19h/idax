@@ -379,6 +379,7 @@ void InitAnalysis(v8::Local<v8::Object> target);
 void InitUndo(v8::Local<v8::Object> target);
 void InitProblem(v8::Local<v8::Object> target);
 void InitException(v8::Local<v8::Object> target);
+void InitParser(v8::Local<v8::Object> target);
 void InitType(v8::Local<v8::Object> target);
 void InitEntry(v8::Local<v8::Object> target);
 void InitFixup(v8::Local<v8::Object> target);

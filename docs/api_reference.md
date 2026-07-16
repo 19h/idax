@@ -25,6 +25,7 @@ Public headers:
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
 | `include/ida/undo.hpp` | Opaque named restore points, copied optional action labels, and undo/redo execution |
 | `include/ida/type.hpp` | Type construction, copied pointer details and metadata-preserving shifted-parent copies, explicit forward-declaration classification and ordinal-preserving complete-UDT replacement, structs/unions/members, opaque exact-member persistent informational-reference ensure/readback, metadata-preserving function-argument and return replacement, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
+| `include/ida/parser.hpp` | Third-party source-parser selection by name/language, copied identity and options, arguments, source/file ingestion, and semantic parse reports/options |
 | `include/ida/entry.hpp` | Entry point enumeration, add/rename, forwarders |
 | `include/ida/fixup.hpp` | Fixup descriptors, traversal, custom fixup handlers |
 | `include/ida/plugin.hpp` | Plugin base class, wrapper-owned action registration/activation, move-only `ScopedHotkey`, counted wrapper-managed menu/toolbar attachment with deterministic detach errors, popup attachment, action-context host bridges, Local Types `TypeRef` snapshots |
@@ -46,6 +47,7 @@ See also:
 - `docs/cookbook/undo_redo.md` — Named restore points and cross-binding undo/redo semantics
 - `docs/cookbook/analysis_problems.md` — Typed analysis-problem recording and traversal
 - `docs/cookbook/exception_regions.md` — Architecture-independent C++/SEH metadata round trips
+- `docs/cookbook/source_parsers.md` — Third-party parser selection, configuration, and type ingestion
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

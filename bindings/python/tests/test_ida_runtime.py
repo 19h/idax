@@ -13,6 +13,7 @@ from idax import (
     ConflictError,
     IdaxError,
     NotFoundError,
+    ValidationError,
     address,
     analysis,
     comment,
@@ -32,6 +33,7 @@ from idax import (
     name,
     plugin,
     processor,
+    parser,
     problem,
     search,
     segment,
@@ -130,6 +132,71 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             assert not problem.contains(problem_kind, first_function.start)
             assert problem.description(problem_kind, first_function.start) is None
             assert problem.next(problem_kind, first_function.start) != first_function.start
+
+            parser.select_for([parser.Language.C, parser.Language.CPP])
+            parser_name = parser.selected_name()
+            assert parser_name
+            parser.set_arguments(parser_name, "")
+            conflicting_options = parser.ParseOptions()
+            conflicting_options.assume_high_level = True
+            conflicting_options.lower_prototypes = True
+            with pytest.raises(ValidationError, match="mutually exclusive"):
+                parser.parse_with_options(
+                    parser_name,
+                    "struct idax_python_parser_conflicting_modes { int value; };",
+                    conflicting_options,
+                )
+            syntax_report = parser.parse_with(
+                parser_name, "struct idax_python_parser_syntax_error {"
+            )
+            assert not syntax_report.ok
+            assert syntax_report.error_count > 0
+            memory_report = parser.parse_for(
+                parser.Language.C,
+                "struct idax_python_parser_memory { int value; };",
+            )
+            assert memory_report.ok
+            assert type.TypeInfo.by_name("idax_python_parser_memory").is_struct
+
+            named_report = parser.parse_with(
+                parser_name,
+                "struct idax_python_parser_named { unsigned value; };",
+            )
+            assert named_report.ok
+            assert type.TypeInfo.by_name("idax_python_parser_named").is_struct
+
+            parser_options = parser.ParseOptions()
+            parser_options.allow_redeclarations = True
+            parser_options.suppress_warnings = True
+            parser_options.pack_alignment = 4
+            extended_report = parser.parse_with_options(
+                parser_name,
+                "struct idax_python_parser_extended { char value; };",
+                parser_options,
+            )
+            assert extended_report.ok
+            assert type.TypeInfo.by_name("idax_python_parser_extended").is_struct
+
+            parser_source = tmp_path / "idax_python_parser_input.hpp"
+            parser_source.write_text(
+                "struct idax_python_parser_file { long long value; };\n",
+                encoding="utf-8",
+            )
+            file_report = parser.parse_for(
+                parser.Language.CPP,
+                str(parser_source),
+                parser.InputKind.FILE_PATH,
+            )
+            parser_source.unlink()
+            assert file_report.ok
+            assert type.TypeInfo.by_name("idax_python_parser_file").is_struct
+
+            option_value = parser.option(parser_name, "CLANG_APPLY_TINFO")
+            parser.set_option(parser_name, "CLANG_APPLY_TINFO", option_value)
+            assert parser.option(parser_name, "CLANG_APPLY_TINFO") == option_value
+            parser.select()
+            default_parser_name = parser.selected_name()
+            assert default_parser_name is None or default_parser_name
 
             exception_heads = None
             for candidate in functions:

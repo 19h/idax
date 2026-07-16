@@ -25,6 +25,7 @@
 //! | [`undo`] | `ida::undo` | Named restore points and undo/redo state |
 //! | [`problem`] | `ida::problem` | Typed analysis-problem lists |
 //! | [`exception`] | `ida::exception` | Architecture-independent exception regions |
+//! | [`parser`] | `ida::parser` | Third-party source-parser selection and type ingestion |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
 //! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
@@ -124,6 +125,7 @@ pub mod lines;
 pub mod loader;
 pub mod lumina;
 pub mod name;
+pub mod parser;
 pub mod path;
 pub mod plugin;
 pub mod problem;

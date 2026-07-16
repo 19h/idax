@@ -14,6 +14,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/undo_bind.cpp
     src/native/problem_bind.cpp
     src/native/exception_bind.cpp
+    src/native/parser_bind.cpp
     src/native/diagnostics_bind.cpp
     src/native/comment_bind.cpp
     src/native/entry_bind.cpp
