@@ -210,6 +210,17 @@
       "bound_types": ["LogLevel", "PerformanceCounters"]
     },
     {
+      "name": "directory",
+      "header": "include/ida/directory.hpp",
+      "status": "validated",
+      "native_source": "directory_bind.cpp",
+      "bound_functions": [],
+      "bound_types": [
+        "BulkFailure", "BulkReport", "Entry", "EntryKind", "Kind",
+        "OperationError", "Tree"
+      ]
+    },
+    {
       "name": "entry",
       "header": "include/ida/entry.hpp",
       "status": "validated",

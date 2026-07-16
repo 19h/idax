@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 34 public headers cover 31 concept domains plus the umbrella, shared core, and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 35 public headers cover 32 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -87,6 +87,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
 | **Source parsers** | `ida::parser` | Third-party parser selection by name/language, arguments/options, source/file ingestion, and parse reports |
+| **Directory trees** | `ida::directory` | All eight built-in organization trees, copied entries, directory/item mutation, ordering, search, and partial bulk reports |
 | **Entries** | `ida::entry` | Entry point enumeration, add/rename/forwarder workflows |
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |

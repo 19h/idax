@@ -877,6 +877,61 @@ void check_parser_surface() {
     (void)report.ok();
 }
 
+// ─── ida::directory ─────────────────────────────────────────────────────
+
+void check_directory_surface() {
+    using Tree = ida::directory::Tree;
+    static_assert(std::is_copy_constructible_v<Tree>);
+    static_assert(!std::is_default_constructible_v<Tree>);
+    static_assert(static_cast<std::uint8_t>(ida::directory::Kind::LocalTypes) == 0);
+    static_assert(static_cast<std::uint8_t>(ida::directory::Kind::Snippets) == 7);
+    static_assert(static_cast<std::uint8_t>(
+        ida::directory::OperationError::AlreadyExists) == 1);
+    static_assert(static_cast<std::uint8_t>(
+        ida::directory::OperationError::SdkFailure) == 10);
+
+    (void)&Tree::open;
+    (void)&Tree::kind;
+    (void)&Tree::is_orderable;
+    (void)&Tree::current_directory;
+    (void)&Tree::change_directory;
+    (void)&Tree::absolute_path;
+    (void)&Tree::contains;
+    (void)&Tree::entry;
+    (void)&Tree::children;
+    (void)&Tree::snapshot;
+    (void)&Tree::find_items;
+    (void)&Tree::create_directory;
+    (void)&Tree::remove_directory;
+    (void)&Tree::link;
+    (void)&Tree::unlink;
+    (void)&Tree::rename;
+    (void)&Tree::fold_common_prefix;
+    (void)&Tree::has_natural_order;
+    (void)&Tree::set_natural_order;
+    (void)&Tree::rank;
+    (void)&Tree::change_rank;
+    (void)&Tree::move;
+    (void)&Tree::remove;
+
+    ida::directory::Entry entry;
+    (void)entry.path;
+    (void)entry.name;
+    (void)entry.display_name;
+    (void)entry.attributes;
+    (void)entry.kind;
+    (void)entry.is_directory();
+    ida::directory::BulkFailure failure;
+    (void)failure.input_index;
+    (void)failure.path;
+    (void)failure.error;
+    (void)failure.message;
+    ida::directory::BulkReport report;
+    (void)report.affected_paths;
+    (void)report.failures;
+    (void)report.ok();
+}
+
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
@@ -2464,6 +2519,7 @@ int main() {
     surface_check::check_problem_surface();    namespaces_verified++;
     surface_check::check_exception_surface();  namespaces_verified++;
     surface_check::check_parser_surface();     namespaces_verified++;
+    surface_check::check_directory_surface();  namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
@@ -2480,9 +2536,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 32, "all 32 namespace surfaces verified");
+    CHECK(namespaces_verified == 33, "all 33 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (32 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (33 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

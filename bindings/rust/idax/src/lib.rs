@@ -26,6 +26,7 @@
 //! | [`problem`] | `ida::problem` | Typed analysis-problem lists |
 //! | [`exception`] | `ida::exception` | Architecture-independent exception regions |
 //! | [`parser`] | `ida::parser` | Third-party source-parser selection and type ingestion |
+//! | [`directory`] | `ida::directory` | Standard database organization trees |
 //! | [`lumina`] | `ida::lumina` | Lumina metadata pull/push |
 //! | [`types`] | `ida::type` | Type system: construction, introspection, application, bulk declaration import |
 //! | [`entry`] | `ida::entry` | Program entry points |
@@ -113,6 +114,7 @@ pub mod database;
 pub mod debugger;
 pub mod decompiler;
 pub mod diagnostics;
+pub mod directory;
 pub mod entry;
 pub mod error;
 pub mod event;

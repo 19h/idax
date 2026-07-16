@@ -222,7 +222,26 @@ The parsed declaration is stored in the current local type library. A nonzero
 transport error. Parser names, argument support, and option keys depend on the
 installed parser; handle `NotFoundError` and `UnsupportedError` explicitly.
 
-## 12. Diagnose failures
+## 12. Organize a built-in directory tree
+
+```python
+from idax import directory
+
+tree = directory.Tree.open(directory.Kind.FUNCTIONS)
+tree.create_directory("/reviewed")
+functions = [entry.path for entry in tree.find_items("*")[:2]]
+report = tree.move(functions, "/reviewed")
+for failure in report.failures:
+    print(failure.input_index, failure.path, failure.error)
+```
+
+`Tree` stores only the closed standard-tree kind; every entry and report is an
+owned snapshot. Bulk operations preserve partial success, and each failure
+retains the original caller index. Full names and paths are identities;
+display names can collide. Folded directory names can contain the host's
+non-path separator byte and must not be rewritten before later tree calls.
+
+## 13. Diagnose failures
 
 ```python
 from idax import IdaxError

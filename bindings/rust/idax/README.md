@@ -136,6 +136,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`problem`] | Analysis problems | Closed `Kind`, copied optional descriptions, ordered `next`, `remember`, `remove`, names, and presence |
 | [`exception`] | Exception regions | Owned fragmented C++/SEH blocks, semantic handlers, membership, system-region lookup, and mutation |
 | [`parser`] | Source parsers | Selection by language/name, copied identity/options, arguments, source/file ingestion, and parse reports |
+| [`directory`] | Directory trees | All eight standard trees, copied entries, organization, ordering, search, and partial bulk reports |
 
 ### Type system
 

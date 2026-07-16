@@ -1135,6 +1135,401 @@ int idax_parser_set_option(const char* parser_name, const char* option_name,
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Standard database directory trees
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::Result<ida::directory::Kind> directory_kind_from_c(int value) {
+    using K = ida::directory::Kind;
+    switch (value) {
+        case 0: return K::LocalTypes;
+        case 1: return K::Functions;
+        case 2: return K::Names;
+        case 3: return K::Imports;
+        case 4: return K::IdaPlaceBookmarks;
+        case 5: return K::Breakpoints;
+        case 6: return K::LocalTypeBookmarks;
+        case 7: return K::Snippets;
+        default:
+            return std::unexpected(ida::Error::validation(
+                "Unknown standard directory-tree kind", std::to_string(value)));
+    }
+}
+
+ida::Result<ida::directory::Tree> directory_tree_from_c(int kind) {
+    auto parsed = directory_kind_from_c(kind);
+    if (!parsed)
+        return std::unexpected(parsed.error());
+    return ida::directory::Tree::open(*parsed);
+}
+
+void directory_entry_clear(IdaxDirectoryEntry* entry) {
+    if (entry == nullptr)
+        return;
+    std::free(entry->path);
+    std::free(entry->name);
+    std::free(entry->display_name);
+    std::free(entry->attributes);
+    *entry = {};
+}
+
+int directory_entry_to_c(const ida::directory::Entry& input,
+                         IdaxDirectoryEntry* out) {
+    *out = {};
+    out->path = dup_string(input.path);
+    out->name = dup_string(input.name);
+    out->display_name = dup_string(input.display_name);
+    out->attributes = dup_string(input.attributes);
+    out->entry_kind = static_cast<int>(input.kind);
+    if (out->path == nullptr || out->name == nullptr
+        || out->display_name == nullptr || out->attributes == nullptr) {
+        directory_entry_clear(out);
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int directory_entries_to_c(const std::vector<ida::directory::Entry>& input,
+                           IdaxDirectoryEntry** out, size_t* count) {
+    *out = nullptr;
+    *count = 0;
+    if (input.empty())
+        return 0;
+    auto* entries = static_cast<IdaxDirectoryEntry*>(
+        std::calloc(input.size(), sizeof(IdaxDirectoryEntry)));
+    if (entries == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < input.size(); ++index) {
+        if (directory_entry_to_c(input[index], &entries[index]) != 0) {
+            idax_directory_entries_free(entries, input.size());
+            return -1;
+        }
+    }
+    *out = entries;
+    *count = input.size();
+    return 0;
+}
+
+ida::Result<std::vector<std::string>> directory_paths_from_c(
+    const char* const* paths, size_t count) {
+    if (count != 0 && paths == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Directory paths pointer is null"));
+    }
+    std::vector<std::string> result;
+    result.reserve(count);
+    for (size_t index = 0; index < count; ++index) {
+        if (paths[index] == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "Directory path pointer is null", std::to_string(index)));
+        }
+        result.emplace_back(paths[index]);
+    }
+    return result;
+}
+
+int directory_bulk_report_to_c(const ida::directory::BulkReport& input,
+                               IdaxDirectoryBulkReport* out) {
+    *out = {};
+    if (!input.affected_paths.empty()) {
+        out->affected_paths = static_cast<char**>(
+            std::calloc(input.affected_paths.size(), sizeof(char*)));
+        if (out->affected_paths == nullptr)
+            return fail(ida::Error::internal("malloc failed"));
+        out->affected_paths_count = input.affected_paths.size();
+        for (size_t index = 0; index < input.affected_paths.size(); ++index) {
+            out->affected_paths[index] = dup_string(input.affected_paths[index]);
+            if (out->affected_paths[index] == nullptr) {
+                idax_directory_bulk_report_free(out);
+                return fail(ida::Error::internal("malloc failed"));
+            }
+        }
+    }
+    if (!input.failures.empty()) {
+        out->failures = static_cast<IdaxDirectoryBulkFailure*>(
+            std::calloc(input.failures.size(), sizeof(IdaxDirectoryBulkFailure)));
+        if (out->failures == nullptr) {
+            idax_directory_bulk_report_free(out);
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        out->failures_count = input.failures.size();
+        for (size_t index = 0; index < input.failures.size(); ++index) {
+            const auto& source = input.failures[index];
+            auto& target = out->failures[index];
+            target.input_index = source.input_index;
+            target.path = dup_string(source.path);
+            target.operation_error = static_cast<int>(source.error);
+            target.message = dup_string(source.message);
+            if (target.path == nullptr || target.message == nullptr) {
+                idax_directory_bulk_report_free(out);
+                return fail(ida::Error::internal("malloc failed"));
+            }
+        }
+    }
+    return 0;
+}
+
+template <typename Function>
+int directory_path_status(int kind, const char* path, Function function) {
+    clear_error();
+    if (path == nullptr)
+        return fail(ida::Error::validation("Directory path pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree)
+        return fail(tree.error());
+    auto status = ((*tree).*function)(path);
+    return status ? 0 : fail(status.error());
+}
+
+} // anonymous namespace
+
+int idax_directory_open(int kind) {
+    clear_error();
+    auto tree = directory_tree_from_c(kind);
+    return tree ? 0 : fail(tree.error());
+}
+
+int idax_directory_is_orderable(int kind, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Directory result pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->is_orderable();
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_directory_current_directory(int kind, char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Directory output pointer is null"));
+    *out = nullptr;
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->current_directory();
+    if (!result) return fail(result.error());
+    *out = dup_string(*result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_directory_change_directory(int kind, const char* path) {
+    return directory_path_status(
+        kind, path, &ida::directory::Tree::change_directory);
+}
+
+int idax_directory_absolute_path(int kind, const char* path, char** out) {
+    clear_error();
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory path/output pointer is null"));
+    *out = nullptr;
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->absolute_path(path);
+    if (!result) return fail(result.error());
+    *out = dup_string(*result);
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_directory_contains(int kind, const char* path, int* out) {
+    clear_error();
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory path/output pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->contains(path);
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_directory_entry(int kind, const char* path, IdaxDirectoryEntry* out) {
+    clear_error();
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory entry pointer is null"));
+    *out = {};
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->entry(path);
+    if (!result) return fail(result.error());
+    return directory_entry_to_c(*result, out);
+}
+
+void idax_directory_entry_free(IdaxDirectoryEntry* entry) {
+    directory_entry_clear(entry);
+}
+
+int idax_directory_children(int kind, const char* path,
+                            IdaxDirectoryEntry** out, size_t* count) {
+    clear_error();
+    if (path == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Directory children pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->children(path);
+    if (!result) return fail(result.error());
+    return directory_entries_to_c(*result, out, count);
+}
+
+int idax_directory_snapshot(int kind, const char* path,
+                            IdaxDirectoryEntry** out, size_t* count) {
+    clear_error();
+    if (path == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Directory snapshot pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->snapshot(path);
+    if (!result) return fail(result.error());
+    return directory_entries_to_c(*result, out, count);
+}
+
+int idax_directory_find_items(int kind, const char* pattern,
+                              IdaxDirectoryEntry** out, size_t* count) {
+    clear_error();
+    if (pattern == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Directory search pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->find_items(pattern);
+    if (!result) return fail(result.error());
+    return directory_entries_to_c(*result, out, count);
+}
+
+void idax_directory_entries_free(IdaxDirectoryEntry* entries, size_t count) {
+    if (entries == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        directory_entry_clear(&entries[index]);
+    std::free(entries);
+}
+
+int idax_directory_create_directory(int kind, const char* path) {
+    return directory_path_status(
+        kind, path, &ida::directory::Tree::create_directory);
+}
+
+int idax_directory_remove_directory(int kind, const char* path) {
+    return directory_path_status(
+        kind, path, &ida::directory::Tree::remove_directory);
+}
+
+int idax_directory_link(int kind, const char* path) {
+    return directory_path_status(kind, path, &ida::directory::Tree::link);
+}
+
+int idax_directory_unlink(int kind, const char* path) {
+    return directory_path_status(kind, path, &ida::directory::Tree::unlink);
+}
+
+int idax_directory_rename(int kind, const char* from, const char* to) {
+    clear_error();
+    if (from == nullptr || to == nullptr)
+        return fail(ida::Error::validation("Directory rename pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto status = tree->rename(from, to);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_directory_fold_common_prefix(int kind, const char* path) {
+    return directory_path_status(
+        kind, path, &ida::directory::Tree::fold_common_prefix);
+}
+
+int idax_directory_has_natural_order(int kind, const char* path, int* out) {
+    clear_error();
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory order pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->has_natural_order(path);
+    if (!result) return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_directory_set_natural_order(int kind, const char* path, int enable) {
+    clear_error();
+    if (path == nullptr)
+        return fail(ida::Error::validation("Directory order path pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto status = tree->set_natural_order(path, enable != 0);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_directory_rank(int kind, const char* path, size_t* out) {
+    clear_error();
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory rank pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->rank(path);
+    if (!result) return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_directory_change_rank(int kind, const char* path, ptrdiff_t delta) {
+    clear_error();
+    if (path == nullptr)
+        return fail(ida::Error::validation("Directory rank path pointer is null"));
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto status = tree->change_rank(path, delta);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_directory_move(int kind, const char* const* paths, size_t count,
+                        const char* destination, int has_rank,
+                        size_t destination_rank, IdaxDirectoryBulkReport* out) {
+    clear_error();
+    if (destination == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Directory move pointer is null"));
+    *out = {};
+    auto native_paths = directory_paths_from_c(paths, count);
+    if (!native_paths) return fail(native_paths.error());
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->move(
+        *native_paths, destination,
+        has_rank != 0 ? std::optional<size_t>(destination_rank) : std::nullopt);
+    if (!result) return fail(result.error());
+    return directory_bulk_report_to_c(*result, out);
+}
+
+int idax_directory_remove(int kind, const char* const* paths, size_t count,
+                          IdaxDirectoryBulkReport* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Directory remove output pointer is null"));
+    *out = {};
+    auto native_paths = directory_paths_from_c(paths, count);
+    if (!native_paths) return fail(native_paths.error());
+    auto tree = directory_tree_from_c(kind);
+    if (!tree) return fail(tree.error());
+    auto result = tree->remove(*native_paths);
+    if (!result) return fail(result.error());
+    return directory_bulk_report_to_c(*result, out);
+}
+
+void idax_directory_bulk_report_free(IdaxDirectoryBulkReport* report) {
+    if (report == nullptr)
+        return;
+    for (size_t index = 0; index < report->affected_paths_count; ++index)
+        std::free(report->affected_paths[index]);
+    std::free(report->affected_paths);
+    for (size_t index = 0; index < report->failures_count; ++index) {
+        std::free(report->failures[index].path);
+        std::free(report->failures[index].message);
+    }
+    std::free(report->failures);
+    *report = {};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Architecture-independent exception regions
 // ═══════════════════════════════════════════════════════════════════════════
 

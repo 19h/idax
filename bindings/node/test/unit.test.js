@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'exception', 'parser', 'lumina', 'lines', 'ui', 'decompiler', 'path',
+        'undo', 'problem', 'exception', 'parser', 'directory', 'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
     for (const ns of EXPECTED_NAMESPACES) {
@@ -697,6 +697,21 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace parser');
         expect(dts).toContain("type InputKind = 'sourceText' | 'filePath'");
         expect(dts).toContain('function selectedName(): string | null');
+    });
+
+    it('should have an opaque standard directory-tree factory and declarations', () => {
+        if (!idax) return;
+        expect(typeof idax.directory.open).toBe('function');
+        expect(() => idax.directory.open('unknownKind'))
+            .toThrow(/Unknown standard directory-tree kind/);
+        expect(() => idax.directory.open(1)).toThrow(/must be a string/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace directory');
+        expect(dts).toContain("| 'snippets';");
+        expect(dts).toContain('function open(kind: Kind): Tree');
     });
 });
 

@@ -279,4 +279,11 @@ This section captures the intended public API semantics at a concrete level so i
 - `parse_for`, `parse_with`, and `parse_with_options` import into the current local type library and return `ParseReport{error_count}`; `ParseOptions` names every supported extended behavior and accepts only portable pack alignments.
 - `option` and `set_option` preserve parser-defined string configuration without inventing a cross-parser option enum. Node, safe Rust, and Python expose the same nine operations and four public value types.
 
+### 17.36 Opaque Standard Directory Trees
+- `Kind` selects exactly one of the eight host-owned standard trees without retaining a `dirtree_t*`; a copyable `Tree` reacquires current state by semantic kind.
+- `Entry` copies absolute path, full name, display name, attributes, and directory/item classification. Direct children, recursive descendants, and wildcard item search return owned collections.
+- Directory create/remove/rename/fold, item link/unlink, cwd/absolute-path conversion, natural/manual ordering, and rank changes preserve host semantics through validated text and structured errors.
+- `BulkReport` retains successful affected paths plus per-source `BulkFailure` values at original caller indices. Pre-resolution and native failures merge deterministically without erasing partial success.
+- Node, safe Rust, and Python expose the same tree kinds, entries, operations, and reports. Native trees, directory specifications, inodes, cursors, directory indexes, visitors, vectors, and raw `dterr_t` values remain private.
+
 ---

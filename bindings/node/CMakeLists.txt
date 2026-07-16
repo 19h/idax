@@ -231,6 +231,7 @@ set(BINDING_SOURCES
     src/problem_bind.cpp
     src/exception_bind.cpp
     src/parser_bind.cpp
+    src/directory_bind.cpp
     src/type_bind.cpp
     src/entry_bind.cpp
     src/fixup_bind.cpp

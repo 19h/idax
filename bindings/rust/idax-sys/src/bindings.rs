@@ -559,6 +559,261 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDirectoryEntry {
+    pub path: *mut ::std::os::raw::c_char,
+    pub name: *mut ::std::os::raw::c_char,
+    pub display_name: *mut ::std::os::raw::c_char,
+    pub attributes: *mut ::std::os::raw::c_char,
+    pub entry_kind: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDirectoryEntry"][::std::mem::size_of::<IdaxDirectoryEntry>() - 40usize];
+    ["Alignment of IdaxDirectoryEntry"][::std::mem::align_of::<IdaxDirectoryEntry>() - 8usize];
+    ["Offset of field: IdaxDirectoryEntry::path"]
+        [::std::mem::offset_of!(IdaxDirectoryEntry, path) - 0usize];
+    ["Offset of field: IdaxDirectoryEntry::name"]
+        [::std::mem::offset_of!(IdaxDirectoryEntry, name) - 8usize];
+    ["Offset of field: IdaxDirectoryEntry::display_name"]
+        [::std::mem::offset_of!(IdaxDirectoryEntry, display_name) - 16usize];
+    ["Offset of field: IdaxDirectoryEntry::attributes"]
+        [::std::mem::offset_of!(IdaxDirectoryEntry, attributes) - 24usize];
+    ["Offset of field: IdaxDirectoryEntry::entry_kind"]
+        [::std::mem::offset_of!(IdaxDirectoryEntry, entry_kind) - 32usize];
+};
+impl Default for IdaxDirectoryEntry {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDirectoryBulkFailure {
+    pub input_index: usize,
+    pub path: *mut ::std::os::raw::c_char,
+    pub operation_error: ::std::os::raw::c_int,
+    pub message: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDirectoryBulkFailure"]
+        [::std::mem::size_of::<IdaxDirectoryBulkFailure>() - 32usize];
+    ["Alignment of IdaxDirectoryBulkFailure"]
+        [::std::mem::align_of::<IdaxDirectoryBulkFailure>() - 8usize];
+    ["Offset of field: IdaxDirectoryBulkFailure::input_index"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkFailure, input_index) - 0usize];
+    ["Offset of field: IdaxDirectoryBulkFailure::path"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkFailure, path) - 8usize];
+    ["Offset of field: IdaxDirectoryBulkFailure::operation_error"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkFailure, operation_error) - 16usize];
+    ["Offset of field: IdaxDirectoryBulkFailure::message"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkFailure, message) - 24usize];
+};
+impl Default for IdaxDirectoryBulkFailure {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDirectoryBulkReport {
+    pub affected_paths: *mut *mut ::std::os::raw::c_char,
+    pub affected_paths_count: usize,
+    pub failures: *mut IdaxDirectoryBulkFailure,
+    pub failures_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDirectoryBulkReport"][::std::mem::size_of::<IdaxDirectoryBulkReport>() - 32usize];
+    ["Alignment of IdaxDirectoryBulkReport"]
+        [::std::mem::align_of::<IdaxDirectoryBulkReport>() - 8usize];
+    ["Offset of field: IdaxDirectoryBulkReport::affected_paths"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkReport, affected_paths) - 0usize];
+    ["Offset of field: IdaxDirectoryBulkReport::affected_paths_count"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkReport, affected_paths_count) - 8usize];
+    ["Offset of field: IdaxDirectoryBulkReport::failures"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkReport, failures) - 16usize];
+    ["Offset of field: IdaxDirectoryBulkReport::failures_count"]
+        [::std::mem::offset_of!(IdaxDirectoryBulkReport, failures_count) - 24usize];
+};
+impl Default for IdaxDirectoryBulkReport {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_directory_open(kind: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_is_orderable(
+        kind: ::std::os::raw::c_int,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_current_directory(
+        kind: ::std::os::raw::c_int,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_change_directory(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_absolute_path(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_contains(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_entry(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut IdaxDirectoryEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_entry_free(entry: *mut IdaxDirectoryEntry);
+}
+unsafe extern "C" {
+    pub fn idax_directory_children(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut *mut IdaxDirectoryEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_snapshot(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut *mut IdaxDirectoryEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_find_items(
+        kind: ::std::os::raw::c_int,
+        pattern: *const ::std::os::raw::c_char,
+        out: *mut *mut IdaxDirectoryEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_entries_free(entries: *mut IdaxDirectoryEntry, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_directory_create_directory(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_remove_directory(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_link(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_unlink(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_rename(
+        kind: ::std::os::raw::c_int,
+        from: *const ::std::os::raw::c_char,
+        to: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_fold_common_prefix(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_has_natural_order(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_set_natural_order(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        enable: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_rank(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_change_rank(
+        kind: ::std::os::raw::c_int,
+        path: *const ::std::os::raw::c_char,
+        delta: isize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_move(
+        kind: ::std::os::raw::c_int,
+        paths: *const *const ::std::os::raw::c_char,
+        count: usize,
+        destination: *const ::std::os::raw::c_char,
+        has_rank: ::std::os::raw::c_int,
+        destination_rank: usize,
+        out: *mut IdaxDirectoryBulkReport,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_remove(
+        kind: ::std::os::raw::c_int,
+        paths: *const *const ::std::os::raw::c_char,
+        count: usize,
+        out: *mut IdaxDirectoryBulkReport,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_directory_bulk_report_free(report: *mut IdaxDirectoryBulkReport);
+}
+#[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct IdaxExceptionRange {
     pub start: u64,

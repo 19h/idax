@@ -692,6 +692,134 @@ describe('Source Parsers', () => {
     });
 });
 
+// ── Standard Directory Trees ───────────────────────────────────────────
+
+describe('Standard Directory Trees', () => {
+    it('should open all kinds and round-trip directory bulk operations', () => {
+        const kinds = [
+            'localTypes', 'functions', 'names', 'imports',
+            'idaPlaceBookmarks', 'breakpoints', 'localTypeBookmarks', 'snippets',
+        ];
+        for (const kind of kinds) {
+            const candidate = idax.directory.open(kind);
+            expect(candidate.kind()).toBe(kind);
+            expect(candidate.entry('/').kind).toBe('directory');
+            expect(Array.isArray(candidate.children('/'))).toBe(true);
+        }
+
+        const tree = idax.directory.open('functions');
+        expect(() => tree.contains('bad\0path')).toThrow(/embedded NUL/);
+        expect(() => tree.move([], '/')).toThrow(/cannot be empty/);
+        tree.changeDirectory('/');
+        expect(tree.currentDirectory()).toBe('/');
+        expect(tree.absolutePath('idax_node_directory_probe'))
+            .toBe('/idax_node_directory_probe');
+
+        const alpha = '/idax_node_directory_alpha';
+        const child = `${alpha}/child`;
+        const renamed = `${alpha}/renamed`;
+        const beta = '/idax_node_directory_beta';
+        const destination = '/idax_node_directory_destination';
+        const empty = '/idax_node_directory_empty';
+        const nativeParent = '/idax_node_directory_native_parent';
+        const nativeValid = '/idax_node_directory_native_valid';
+        const nativeDestination = `${nativeParent}/child`;
+        const foldRoot = '/idax_node_directory_fold';
+        const foldChild = `${foldRoot}/a`;
+        const foldGrandchild = `${foldChild}/b`;
+        tree.createDirectory(alpha);
+        tree.createDirectory(child);
+        tree.createDirectory(beta);
+        tree.createDirectory(destination);
+        tree.createDirectory(empty);
+        tree.removeDirectory(empty);
+        expect(tree.contains(empty)).toBe(false);
+        tree.createDirectory(nativeParent);
+        tree.createDirectory(nativeValid);
+        tree.createDirectory(nativeDestination);
+        const nativeRejected = tree.move(
+            [
+                '/__idax_node_directory_missing_native_reject__',
+                nativeParent,
+                nativeValid,
+            ],
+            nativeDestination,
+        );
+        expect(nativeRejected.affectedPaths).toEqual([
+            `${nativeDestination}/idax_node_directory_native_valid`,
+        ]);
+        expect(nativeRejected.failures.map(failure => failure.inputIndex))
+            .toEqual([0, 1]);
+        expect(nativeRejected.failures[0].error).toBe('notFound');
+        expect(nativeRejected.failures[1].error).toBe('ownChild');
+        expect(tree.remove([nativeParent]).ok).toBe(true);
+        tree.createDirectory(foldRoot);
+        tree.createDirectory(foldChild);
+        tree.createDirectory(foldGrandchild);
+        tree.foldCommonPrefix(foldRoot);
+        const foldedChildren = tree.children(foldRoot);
+        expect(foldedChildren).toHaveLength(1);
+        expect(foldedChildren[0].kind).toBe('directory');
+        expect(foldedChildren[0].name).toContain('\x1d');
+        expect(tree.remove([foldRoot]).ok).toBe(true);
+        expect(() => tree.createDirectory(alpha)).toThrow(/already exists/i);
+        expect(tree.entry(alpha).kind).toBe('directory');
+        expect(tree.children(alpha).some(entry => entry.path === child)).toBe(true);
+        tree.rename(child, renamed);
+        expect(tree.contains(child)).toBe(false);
+        expect(tree.contains(renamed)).toBe(true);
+        expect(tree.snapshot(alpha).some(entry => entry.path === renamed)).toBe(true);
+        expect(tree.findItems('*').length).toBeGreaterThan(0);
+
+        const item = tree.children('/').find(entry => entry.kind === 'item');
+        expect(item).toBeDefined();
+        tree.unlink(item.path);
+        expect(tree.contains(item.path)).toBe(false);
+        tree.link(item.name);
+        expect(tree.contains(item.path)).toBe(true);
+
+        if (tree.isOrderable()) {
+            const natural = tree.hasNaturalOrder('/');
+            tree.setNaturalOrder('/', !natural);
+            tree.setNaturalOrder('/', natural);
+            expect(Number.isSafeInteger(tree.rank(alpha))).toBe(true);
+            tree.changeRank(alpha, 1);
+            tree.changeRank(alpha, -1);
+        }
+
+        const moved = tree.move(
+            [
+                '/__idax_node_directory_missing_move_a__',
+                alpha,
+                '/__idax_node_directory_missing_move_b__',
+                beta,
+            ],
+            destination,
+        );
+        expect(moved.ok).toBe(false);
+        expect(moved.affectedPaths.length).toBe(2);
+        expect(moved.failures).toHaveLength(2);
+        expect(moved.failures[0].inputIndex).toBe(0);
+        expect(moved.failures[0].error).toBe('notFound');
+        expect(moved.failures[1].inputIndex).toBe(2);
+        expect(moved.failures[1].error).toBe('notFound');
+
+        const removed = tree.remove(
+            [
+                '/__idax_node_directory_missing_remove_a__',
+                destination,
+                '/__idax_node_directory_missing_remove_b__',
+            ],
+        );
+        expect(removed.ok).toBe(false);
+        expect(removed.affectedPaths).toEqual([destination]);
+        expect(removed.failures).toHaveLength(2);
+        expect(removed.failures[0].inputIndex).toBe(0);
+        expect(removed.failures[1].inputIndex).toBe(2);
+        expect(tree.contains(destination)).toBe(false);
+    });
+});
+
 // ── Cross-References ────────────────────────────────────────────────────
 
 describe('Cross-References', () => {

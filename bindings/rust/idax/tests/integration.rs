@@ -18,9 +18,9 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
-    analysis, comment, data, database, decompiler, entry, event, exception, fixup, function, graph,
-    instruction, lines, name, parser, plugin, problem, search, segment, storage, types, ui, undo,
-    xref,
+    analysis, comment, data, database, decompiler, directory, entry, event, exception, fixup,
+    function, graph, instruction, lines, name, parser, plugin, problem, search, segment, storage,
+    types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -1065,6 +1065,182 @@ fn parser_roundtrip() {
     );
     parser::select(None).unwrap();
     let _ = parser::selected_name().unwrap();
+}
+
+fn directory_roundtrip() {
+    require_db!();
+
+    let kinds = [
+        directory::Kind::LocalTypes,
+        directory::Kind::Functions,
+        directory::Kind::Names,
+        directory::Kind::Imports,
+        directory::Kind::IdaPlaceBookmarks,
+        directory::Kind::Breakpoints,
+        directory::Kind::LocalTypeBookmarks,
+        directory::Kind::Snippets,
+    ];
+    for kind in kinds {
+        let candidate = directory::Tree::open(kind).unwrap();
+        assert_eq!(candidate.kind(), kind);
+        assert!(candidate.entry("/").unwrap().is_directory());
+        candidate.children("/").unwrap();
+    }
+
+    let tree = directory::Tree::open(directory::Kind::Functions).unwrap();
+    assert_eq!(
+        tree.contains("bad\0path").unwrap_err().category,
+        ErrorCategory::Validation
+    );
+    let empty_paths: [&str; 0] = [];
+    assert_eq!(
+        tree.move_entries(&empty_paths, "/", None)
+            .unwrap_err()
+            .category,
+        ErrorCategory::Validation
+    );
+    tree.change_directory("/").unwrap();
+    assert_eq!(tree.current_directory().unwrap(), "/");
+    assert_eq!(
+        tree.absolute_path("idax_rust_directory_probe").unwrap(),
+        "/idax_rust_directory_probe"
+    );
+
+    let alpha = "/idax_rust_directory_alpha";
+    let child = "/idax_rust_directory_alpha/child";
+    let renamed = "/idax_rust_directory_alpha/renamed";
+    let beta = "/idax_rust_directory_beta";
+    let destination = "/idax_rust_directory_destination";
+    let empty = "/idax_rust_directory_empty";
+    let native_parent = "/idax_rust_directory_native_parent";
+    let native_valid = "/idax_rust_directory_native_valid";
+    let native_destination = "/idax_rust_directory_native_parent/child";
+    let fold_root = "/idax_rust_directory_fold";
+    let fold_child = "/idax_rust_directory_fold/a";
+    let fold_grandchild = "/idax_rust_directory_fold/a/b";
+    tree.create_directory(alpha).unwrap();
+    tree.create_directory(child).unwrap();
+    tree.create_directory(beta).unwrap();
+    tree.create_directory(destination).unwrap();
+    tree.create_directory(empty).unwrap();
+    tree.remove_directory(empty).unwrap();
+    assert!(!tree.contains(empty).unwrap());
+    tree.create_directory(native_parent).unwrap();
+    tree.create_directory(native_valid).unwrap();
+    tree.create_directory(native_destination).unwrap();
+    let native_rejected = tree
+        .move_entries(
+            &[
+                "/__idax_rust_directory_missing_native_reject__",
+                native_parent,
+                native_valid,
+            ],
+            native_destination,
+            None,
+        )
+        .unwrap();
+    assert_eq!(
+        native_rejected.affected_paths,
+        ["/idax_rust_directory_native_parent/child/idax_rust_directory_native_valid"]
+    );
+    assert_eq!(native_rejected.failures.len(), 2);
+    assert_eq!(native_rejected.failures[0].input_index, 0);
+    assert_eq!(
+        native_rejected.failures[0].error,
+        directory::OperationError::NotFound
+    );
+    assert_eq!(native_rejected.failures[1].input_index, 1);
+    assert_eq!(
+        native_rejected.failures[1].error,
+        directory::OperationError::OwnChild
+    );
+    assert!(tree.remove_entries(&[native_parent]).unwrap().is_ok());
+    tree.create_directory(fold_root).unwrap();
+    tree.create_directory(fold_child).unwrap();
+    tree.create_directory(fold_grandchild).unwrap();
+    tree.fold_common_prefix(fold_root).unwrap();
+    let folded_children = tree.children(fold_root).unwrap();
+    assert_eq!(folded_children.len(), 1);
+    assert!(folded_children[0].is_directory());
+    assert!(folded_children[0].name.contains('\u{1d}'));
+    assert!(tree.remove_entries(&[fold_root]).unwrap().is_ok());
+    let duplicate = tree.create_directory(alpha).unwrap_err();
+    assert_eq!(duplicate.category, ErrorCategory::Conflict);
+    assert_eq!(
+        duplicate.code,
+        directory::OperationError::AlreadyExists as i32
+    );
+    assert!(tree.entry(alpha).unwrap().is_directory());
+    assert!(
+        tree.children(alpha)
+            .unwrap()
+            .iter()
+            .any(|entry| entry.path == child)
+    );
+    tree.rename(child, renamed).unwrap();
+    assert!(!tree.contains(child).unwrap());
+    assert!(tree.contains(renamed).unwrap());
+    assert!(
+        tree.snapshot(alpha)
+            .unwrap()
+            .iter()
+            .any(|entry| entry.path == renamed)
+    );
+    assert!(!tree.find_items("*").unwrap().is_empty());
+
+    let item = tree
+        .children("/")
+        .unwrap()
+        .into_iter()
+        .find(|entry| !entry.is_directory())
+        .expect("functions tree should contain a root item");
+    tree.unlink(&item.path).unwrap();
+    assert!(!tree.contains(&item.path).unwrap());
+    tree.link(&item.name).unwrap();
+    assert!(tree.contains(&item.path).unwrap());
+
+    if tree.is_orderable().unwrap() {
+        let natural = tree.has_natural_order("/").unwrap();
+        tree.set_natural_order("/", !natural).unwrap();
+        tree.set_natural_order("/", natural).unwrap();
+        tree.rank(alpha).unwrap();
+        tree.change_rank(alpha, 1).unwrap();
+        tree.change_rank(alpha, -1).unwrap();
+    }
+
+    let moved = tree
+        .move_entries(
+            &[
+                "/__idax_rust_directory_missing_move_a__",
+                alpha,
+                "/__idax_rust_directory_missing_move_b__",
+                beta,
+            ],
+            destination,
+            None,
+        )
+        .unwrap();
+    assert!(!moved.is_ok());
+    assert_eq!(moved.affected_paths.len(), 2);
+    assert_eq!(moved.failures.len(), 2);
+    assert_eq!(moved.failures[0].input_index, 0);
+    assert_eq!(moved.failures[0].error, directory::OperationError::NotFound);
+    assert_eq!(moved.failures[1].input_index, 2);
+    assert_eq!(moved.failures[1].error, directory::OperationError::NotFound);
+
+    let removed = tree
+        .remove_entries(&[
+            "/__idax_rust_directory_missing_remove_a__",
+            destination,
+            "/__idax_rust_directory_missing_remove_b__",
+        ])
+        .unwrap();
+    assert!(!removed.is_ok());
+    assert_eq!(removed.affected_paths, [destination]);
+    assert_eq!(removed.failures.len(), 2);
+    assert_eq!(removed.failures[0].input_index, 0);
+    assert_eq!(removed.failures[1].input_index, 2);
+    assert!(!tree.contains(destination).unwrap());
 }
 
 // ===========================================================================
@@ -2850,6 +3026,7 @@ static TEST_CASES: &[TestCase] = &[
     ("problem_roundtrip", problem_roundtrip),
     ("exception_roundtrip", exception_roundtrip),
     ("parser_roundtrip", parser_roundtrip),
+    ("directory_roundtrip", directory_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
     ("data_read_byte", data_read_byte),

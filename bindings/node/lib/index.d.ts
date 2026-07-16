@@ -2597,6 +2597,69 @@ export namespace lines {
 // decompiler namespace
 // ═══════════════════════════════════════════════════════════════════════════
 
+export namespace directory {
+    type Kind =
+        | 'localTypes' | 'functions' | 'names' | 'imports'
+        | 'idaPlaceBookmarks' | 'breakpoints' | 'localTypeBookmarks'
+        | 'snippets';
+
+    type EntryKind = 'directory' | 'item';
+
+    type OperationError =
+        | 'alreadyExists' | 'notFound' | 'notDirectory' | 'notEmpty'
+        | 'badPath' | 'cannotRename' | 'ownChild' | 'directoryLimit'
+        | 'notOrderable' | 'sdkFailure';
+
+    interface Entry {
+        path: string;
+        name: string;
+        displayName: string;
+        attributes: string;
+        kind: EntryKind;
+    }
+
+    interface BulkFailure {
+        inputIndex: number;
+        path: string;
+        error: OperationError;
+        message: string;
+    }
+
+    interface BulkReport {
+        affectedPaths: string[];
+        failures: BulkFailure[];
+        ok: boolean;
+    }
+
+    interface Tree {
+        kind(): Kind;
+        isOrderable(): boolean;
+        currentDirectory(): string;
+        changeDirectory(path: string): void;
+        absolutePath(relativePath: string): string;
+        contains(path: string): boolean;
+        entry(path: string): Entry;
+        children(path?: string): Entry[];
+        snapshot(path?: string): Entry[];
+        findItems(pattern: string): Entry[];
+        createDirectory(path: string): void;
+        removeDirectory(path: string): void;
+        link(path: string): void;
+        unlink(path: string): void;
+        rename(from: string, to: string): void;
+        foldCommonPrefix(path?: string): void;
+        hasNaturalOrder(directoryPath: string): boolean;
+        setNaturalOrder(directoryPath: string, enable: boolean): void;
+        rank(path: string): number;
+        changeRank(path: string, delta: number): void;
+        move(paths: string[], destinationDirectory: string,
+             destinationRank?: number | null): BulkReport;
+        remove(paths: string[]): BulkReport;
+    }
+
+    function open(kind: Kind): Tree;
+}
+
 export namespace decompiler {
 
     type VariableStorage = 'unknown' | 'register' | 'stack';

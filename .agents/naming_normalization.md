@@ -49,6 +49,11 @@ This mapping is non-exhaustive but representative of expected direction.
 | `parse_decls_for_srclang` / `parse_decls_with_parser` | `ida::parser::parse_for` / `parse_with` |
 | `parse_decls_with_parser_ext(..., HTI_*)` | `ida::parser::parse_with_options(..., ParseOptions)` |
 | `get_parser_option` / `set_parser_option` | `ida::parser::option` / `set_option` |
+| `get_std_dirtree(id)` | `ida::directory::Tree::open(Kind)` |
+| `dirtree_t::getcwd/chdir/get_abspath` | `Tree::current_directory` / `change_directory` / `absolute_path` |
+| `dirtree_t::mkdir/rmdir/link/unlink/rename` | `Tree::create_directory` / `remove_directory` / `link` / `unlink` / `rename` |
+| `dirtree_t::findfirst/findnext` | `Tree::find_items(pattern)` |
+| `dirtree_t::bulk_move/bulk_remove` + `dirtree_bulk_results_t` | `Tree::move/remove` returning `BulkReport` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

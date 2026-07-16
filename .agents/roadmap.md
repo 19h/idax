@@ -481,3 +481,12 @@ Current overall phase status:
 - [x] P62.4 Add pure/signature and isolated real-IDA selection/configuration/source/file parse evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 62 from active work.
 
 ---
+
+### Phase 63 TODO Action Items (Opaque Standard Directory-Tree Domain)
+
+- [x] P63.1 Audit the pinned IDA 9.4 standard dirtree surface, runtime exports, generated IDAPython model, public IDAX headers, and all language bindings.
+- [x] P63.2 Select an SDK-opaque path/value boundary for the eight built-in database trees, copied entry snapshots, enumeration/search, directory and item organization, ordering, and partial bulk reports.
+- [x] P63.3 Implement complete C++, Node, Rust, and Python parity without exposing `dirtree_t`, `dirspec_t`, cursors, entries, inodes, directory indexes, visitors, SDK vectors, or raw `dterr_t` values.
+- [ ] P63.4 Add pure/signature and isolated real-IDA directory/item/order/bulk round-trip evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 63 from active work.
+
+---

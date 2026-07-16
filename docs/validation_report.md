@@ -1249,3 +1249,21 @@ tracked in `docs/compatibility_matrix.md`.
   (Integrations 3/3), 29524467668 (Validation 6/6), and 29524467579 (Bindings
   9/9) pass across Linux, Windows, and macOS; complete logs contain zero
   unmasked canonical license identifiers.
+
+- 2026-07-16 Phase 63 opaque standard directory-tree domain (local candidate):
+  Added the standard-tree operation family across C++, Node, generated C/safe
+  Rust, and Python using eight semantic built-in kinds, owned paths and copied
+  entry snapshots, exact error mapping, recursive enumeration/search,
+  directory/item organization, semantic ordering, and deterministic partial
+  bulk reports. Exact-SDK native validation passes CTest 34/34, installation,
+  and TGZ packaging. Node passes 250 structural plus 90 initialized-host
+  checks, strict TypeScript compilation, and package inspection. Rust passes
+  formatting, 154 unit plus 107 initialized-host checks, all-target
+  compilation, doctests, build-support, and byte-identical generated bindings.
+  Python passes 20 pure plus one initialized-host check, strict typing over 36
+  modules, a 32-domain/874-symbol manifest, and wheel/sdist inspection. The
+  local Python host reports the compatible decompiler as unavailable under the
+  strict licensed-CI flag; all directory behavior passes and the initialized
+  suite passes under its optional-capability contract. Repository/privacy
+  gates, exact staging, licensed cross-platform CI, and release closure remain
+  active under P63.4.

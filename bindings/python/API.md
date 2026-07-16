@@ -15,6 +15,7 @@ checked with strict mypy.
 | `debugger` | 65 | 14 | Backends, processes/threads, memory/registers, breakpoints, appcalls, events. |
 | `decompiler` | 32 | 56 | Hex-Rays sessions, pseudocode, ctree, local variables, microcode, events. |
 | `diagnostics` | 7 | 2 | Logging, enriched errors, invariants, performance counters. |
+| `directory` | 0 | 7 | Standard database trees, copied entries, organization, ordering, and bulk reports. |
 | `entry` | 8 | 1 | Entry-point inventory and mutation. |
 | `event` | 19 | 10 | Typed IDB subscriptions and scoped unsubscription. |
 | `exception` | 5 | 10 | Architecture-independent C++/SEH protected regions, handlers, membership, and mutation. |

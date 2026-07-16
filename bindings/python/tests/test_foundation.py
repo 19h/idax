@@ -9,6 +9,7 @@ from idax import (
     address,
     database,
     diagnostics,
+    directory,
     exception,
     lines,
     loader,
@@ -53,6 +54,10 @@ def test_package_contract() -> None:
     assert bool(report)
     with pytest.raises(idax.ValidationError, match="embedded NUL"):
         parser.set_arguments("clang", "bad\0argument")
+    assert directory.Kind.LOCAL_TYPES.value == 0
+    assert directory.Kind.SNIPPETS.value == 7
+    assert directory.EntryKind.DIRECTORY.name == "DIRECTORY"
+    assert directory.OperationError.NOT_ORDERABLE.value == 9
 
 
 def test_exception_models_are_opaque_python_values() -> None:

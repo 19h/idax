@@ -222,6 +222,64 @@ int idax_parser_set_option(const char* parser_name, const char* option_name,
                            const char* value);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Standard database directory trees (ida::directory)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef struct IdaxDirectoryEntry {
+    char* path;
+    char* name;
+    char* display_name;
+    char* attributes;
+    int entry_kind;
+} IdaxDirectoryEntry;
+
+typedef struct IdaxDirectoryBulkFailure {
+    size_t input_index;
+    char* path;
+    int operation_error;
+    char* message;
+} IdaxDirectoryBulkFailure;
+
+typedef struct IdaxDirectoryBulkReport {
+    char** affected_paths;
+    size_t affected_paths_count;
+    IdaxDirectoryBulkFailure* failures;
+    size_t failures_count;
+} IdaxDirectoryBulkReport;
+
+int idax_directory_open(int kind);
+int idax_directory_is_orderable(int kind, int* out);
+int idax_directory_current_directory(int kind, char** out);
+int idax_directory_change_directory(int kind, const char* path);
+int idax_directory_absolute_path(int kind, const char* path, char** out);
+int idax_directory_contains(int kind, const char* path, int* out);
+int idax_directory_entry(int kind, const char* path, IdaxDirectoryEntry* out);
+void idax_directory_entry_free(IdaxDirectoryEntry* entry);
+int idax_directory_children(int kind, const char* path,
+                            IdaxDirectoryEntry** out, size_t* count);
+int idax_directory_snapshot(int kind, const char* path,
+                            IdaxDirectoryEntry** out, size_t* count);
+int idax_directory_find_items(int kind, const char* pattern,
+                              IdaxDirectoryEntry** out, size_t* count);
+void idax_directory_entries_free(IdaxDirectoryEntry* entries, size_t count);
+int idax_directory_create_directory(int kind, const char* path);
+int idax_directory_remove_directory(int kind, const char* path);
+int idax_directory_link(int kind, const char* path);
+int idax_directory_unlink(int kind, const char* path);
+int idax_directory_rename(int kind, const char* from, const char* to);
+int idax_directory_fold_common_prefix(int kind, const char* path);
+int idax_directory_has_natural_order(int kind, const char* path, int* out);
+int idax_directory_set_natural_order(int kind, const char* path, int enable);
+int idax_directory_rank(int kind, const char* path, size_t* out);
+int idax_directory_change_rank(int kind, const char* path, ptrdiff_t delta);
+int idax_directory_move(int kind, const char* const* paths, size_t count,
+                        const char* destination, int has_rank,
+                        size_t destination_rank, IdaxDirectoryBulkReport* out);
+int idax_directory_remove(int kind, const char* const* paths, size_t count,
+                          IdaxDirectoryBulkReport* out);
+void idax_directory_bulk_report_free(IdaxDirectoryBulkReport* report);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Architecture-independent exception regions (ida::exception)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

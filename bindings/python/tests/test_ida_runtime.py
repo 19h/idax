@@ -21,6 +21,7 @@ from idax import (
     database,
     debugger,
     decompiler,
+    directory,
     entry,
     event,
     exception,
@@ -197,6 +198,163 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             parser.select()
             default_parser_name = parser.selected_name()
             assert default_parser_name is None or default_parser_name
+
+            directory_kinds = (
+                directory.Kind.LOCAL_TYPES,
+                directory.Kind.FUNCTIONS,
+                directory.Kind.NAMES,
+                directory.Kind.IMPORTS,
+                directory.Kind.IDA_PLACE_BOOKMARKS,
+                directory.Kind.BREAKPOINTS,
+                directory.Kind.LOCAL_TYPE_BOOKMARKS,
+                directory.Kind.SNIPPETS,
+            )
+            for directory_kind in directory_kinds:
+                candidate_tree = directory.Tree.open(directory_kind)
+                assert candidate_tree.kind is directory_kind
+                assert candidate_tree.entry("/").is_directory
+                assert isinstance(candidate_tree.children(), list)
+
+            directory_tree = directory.Tree.open(directory.Kind.FUNCTIONS)
+            with pytest.raises(ValidationError, match="embedded NUL"):
+                directory_tree.contains("bad\0path")
+            with pytest.raises(ValidationError, match="cannot be empty"):
+                directory_tree.move([], "/")
+            directory_tree.change_directory("/")
+            assert directory_tree.current_directory == "/"
+            assert (
+                directory_tree.absolute_path("idax_python_directory_probe")
+                == "/idax_python_directory_probe"
+            )
+
+            directory_alpha = "/idax_python_directory_alpha"
+            directory_child = "/idax_python_directory_alpha/child"
+            directory_renamed = "/idax_python_directory_alpha/renamed"
+            directory_beta = "/idax_python_directory_beta"
+            directory_destination = "/idax_python_directory_destination"
+            directory_empty = "/idax_python_directory_empty"
+            directory_native_parent = "/idax_python_directory_native_parent"
+            directory_native_valid = "/idax_python_directory_native_valid"
+            directory_native_destination = (
+                "/idax_python_directory_native_parent/child"
+            )
+            directory_fold_root = "/idax_python_directory_fold"
+            directory_fold_child = "/idax_python_directory_fold/a"
+            directory_fold_grandchild = "/idax_python_directory_fold/a/b"
+            directory_tree.create_directory(directory_alpha)
+            directory_tree.create_directory(directory_child)
+            directory_tree.create_directory(directory_beta)
+            directory_tree.create_directory(directory_destination)
+            directory_tree.create_directory(directory_empty)
+            directory_tree.remove_directory(directory_empty)
+            assert not directory_tree.contains(directory_empty)
+            directory_tree.create_directory(directory_native_parent)
+            directory_tree.create_directory(directory_native_valid)
+            directory_tree.create_directory(directory_native_destination)
+            native_rejected = directory_tree.move(
+                [
+                    "/__idax_python_directory_missing_native_reject__",
+                    directory_native_parent,
+                    directory_native_valid,
+                ],
+                directory_native_destination,
+            )
+            assert native_rejected.affected_paths == [
+                "/idax_python_directory_native_parent/child/"
+                "idax_python_directory_native_valid"
+            ]
+            assert [failure.input_index for failure in native_rejected.failures] == [
+                0,
+                1,
+            ]
+            assert (
+                native_rejected.failures[0].error
+                is directory.OperationError.NOT_FOUND
+            )
+            assert (
+                native_rejected.failures[1].error
+                is directory.OperationError.OWN_CHILD
+            )
+            assert directory_tree.remove([directory_native_parent]).ok
+            directory_tree.create_directory(directory_fold_root)
+            directory_tree.create_directory(directory_fold_child)
+            directory_tree.create_directory(directory_fold_grandchild)
+            directory_tree.fold_common_prefix(directory_fold_root)
+            folded_children = directory_tree.children(directory_fold_root)
+            assert len(folded_children) == 1
+            assert folded_children[0].is_directory
+            assert "\x1d" in folded_children[0].name
+            assert directory_tree.remove([directory_fold_root]).ok
+            with pytest.raises(ConflictError, match="already exists"):
+                directory_tree.create_directory(directory_alpha)
+            assert directory_tree.entry(directory_alpha).is_directory
+            assert any(
+                item.path == directory_child
+                for item in directory_tree.children(directory_alpha)
+            )
+            directory_tree.rename(directory_child, directory_renamed)
+            assert not directory_tree.contains(directory_child)
+            assert directory_tree.contains(directory_renamed)
+            assert any(
+                item.path == directory_renamed
+                for item in directory_tree.snapshot(directory_alpha)
+            )
+            assert directory_tree.find_items("*")
+
+            directory_item = next(
+                item
+                for item in directory_tree.children("/")
+                if not item.is_directory
+            )
+            directory_tree.unlink(directory_item.path)
+            assert not directory_tree.contains(directory_item.path)
+            directory_tree.link(directory_item.name)
+            assert directory_tree.contains(directory_item.path)
+
+            if directory_tree.is_orderable:
+                natural_order = directory_tree.has_natural_order("/")
+                directory_tree.set_natural_order("/", not natural_order)
+                directory_tree.set_natural_order("/", natural_order)
+                assert isinstance(directory_tree.rank(directory_alpha), int)
+                directory_tree.change_rank(directory_alpha, 1)
+                directory_tree.change_rank(directory_alpha, -1)
+
+            moved_directories = directory_tree.move(
+                [
+                    "/__idax_python_directory_missing_move_a__",
+                    directory_alpha,
+                    "/__idax_python_directory_missing_move_b__",
+                    directory_beta,
+                ],
+                directory_destination,
+            )
+            assert not moved_directories.ok
+            assert len(moved_directories.affected_paths) == 2
+            assert len(moved_directories.failures) == 2
+            assert moved_directories.failures[0].input_index == 0
+            assert (
+                moved_directories.failures[0].error
+                is directory.OperationError.NOT_FOUND
+            )
+            assert moved_directories.failures[1].input_index == 2
+            assert (
+                moved_directories.failures[1].error
+                is directory.OperationError.NOT_FOUND
+            )
+
+            removed_directories = directory_tree.remove(
+                [
+                    "/__idax_python_directory_missing_remove_a__",
+                    directory_destination,
+                    "/__idax_python_directory_missing_remove_b__",
+                ]
+            )
+            assert not removed_directories.ok
+            assert removed_directories.affected_paths == [directory_destination]
+            assert len(removed_directories.failures) == 2
+            assert removed_directories.failures[0].input_index == 0
+            assert removed_directories.failures[1].input_index == 2
+            assert not directory_tree.contains(directory_destination)
 
             exception_heads = None
             for candidate in functions:
