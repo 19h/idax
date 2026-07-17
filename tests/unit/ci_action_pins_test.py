@@ -54,6 +54,14 @@ class CiActionPinTests(unittest.TestCase):
         self.assertIn("setup-msvc.ps1", action)
         self.assertNotIn("node20", action)
 
+    def test_local_msvc_action_uses_initialized_native_status(self) -> None:
+        script = (
+            ROOT / ".github/actions/setup-msvc/setup-msvc.ps1"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("$LASTEXITCODE", script)
+        self.assertIn("$vswhereSucceeded = $?", script)
+        self.assertIn("$vcvarsSucceeded = $?", script)
+
     def test_node_setup_disables_new_automatic_cache(self) -> None:
         for relative in (
             ".github/workflows/bindings-ci.yml",

@@ -80,14 +80,16 @@ if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) {
     throw "vswhere.exe was not found"
 }
 
-$installationPath = & $vswhere `
+$installationPaths = & $vswhere `
     -latest `
     -products "*" `
     -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-    -property installationPath |
+    -property installationPath
+$vswhereSucceeded = $?
+$installationPath = $installationPaths |
     Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
     Select-Object -First 1
-if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($installationPath)) {
+if (-not $vswhereSucceeded -or [string]::IsNullOrWhiteSpace($installationPath)) {
     throw "Visual Studio with the C++ toolchain was not found"
 }
 
@@ -118,7 +120,8 @@ try {
         [System.Text.ASCIIEncoding]::new()
     )
     $environmentLines = & $env:ComSpec /d /q /c $commandFile
-    if ($LASTEXITCODE -ne 0) {
+    $vcvarsSucceeded = $?
+    if (-not $vcvarsSucceeded) {
         throw "vcvarsall.bat rejected the requested architecture"
     }
 }
