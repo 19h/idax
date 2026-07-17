@@ -104,6 +104,13 @@ bool OptionalBoolean(Nan::NAN_METHOD_ARGS_TYPE info, int index,
     return true;
 }
 
+v8::Local<v8::Value> OptionalArgument(Nan::NAN_METHOD_ARGS_TYPE info,
+                                      int index) {
+    if (index < info.Length())
+        return info[index];
+    return Nan::Undefined();
+}
+
 const char* KindName(ida::script::ValueKind kind) {
     using Kind = ida::script::ValueKind;
     switch (kind) {
@@ -552,7 +559,7 @@ NAN_METHOD(Evaluate) {
     std::string expression;
     if (!RequiredString(info, 0, "expression", expression)) return;
     ida::Address where = ida::BadAddress;
-    if (!Where(info.Length() > 1 ? info[1] : Nan::Undefined(), where)) return;
+    if (!Where(OptionalArgument(info, 1), where)) return;
     IDAX_UNWRAP(auto result, ida::script::evaluate(expression, where));
     info.GetReturnValue().Set(ExecutionObject(std::move(result)));
 }
@@ -561,7 +568,7 @@ NAN_METHOD(EvaluateIdc) {
     std::string expression;
     if (!RequiredString(info, 0, "expression", expression)) return;
     ida::Address where = ida::BadAddress;
-    if (!Where(info.Length() > 1 ? info[1] : Nan::Undefined(), where)) return;
+    if (!Where(OptionalArgument(info, 1), where)) return;
     IDAX_UNWRAP(auto result, ida::script::evaluate_idc(expression, where));
     info.GetReturnValue().Set(ExecutionObject(std::move(result)));
 }
@@ -570,7 +577,7 @@ NAN_METHOD(EvaluateInteger) {
     std::string expression;
     if (!RequiredString(info, 0, "expression", expression)) return;
     ida::Address where = ida::BadAddress;
-    if (!Where(info.Length() > 1 ? info[1] : Nan::Undefined(), where)) return;
+    if (!Where(OptionalArgument(info, 1), where)) return;
     IDAX_UNWRAP(auto result, ida::script::evaluate_integer(expression, where));
     info.GetReturnValue().Set(ObjectBuilder()
         .setBool("succeeded", result.succeeded)
@@ -582,7 +589,7 @@ NAN_METHOD(CompileFile) {
     std::string path;
     if (!RequiredString(info, 0, "file path", path)) return;
     ida::script::FileCompileOptions options;
-    if (!FileOpts(info.Length() > 1 ? info[1] : Nan::Undefined(), options)) return;
+    if (!FileOpts(OptionalArgument(info, 1), options)) return;
     IDAX_UNWRAP(auto result, ida::script::compile_file(path, options));
     info.GetReturnValue().Set(CompilationObject(result));
 }
@@ -591,7 +598,7 @@ NAN_METHOD(CompileText) {
     std::string source;
     if (!RequiredString(info, 0, "source", source)) return;
     ida::script::CompileOptions options;
-    if (!CompileOpts(info.Length() > 1 ? info[1] : Nan::Undefined(), options)) return;
+    if (!CompileOpts(OptionalArgument(info, 1), options)) return;
     IDAX_UNWRAP(auto result, ida::script::compile_text(source, options));
     info.GetReturnValue().Set(CompilationObject(result));
 }
@@ -602,7 +609,7 @@ NAN_METHOD(CompileSnippet) {
     if (!RequiredString(info, 0, "function name", name)
         || !RequiredString(info, 1, "snippet body", body)) return;
     ida::script::CompileOptions options;
-    if (!CompileOpts(info.Length() > 2 ? info[2] : Nan::Undefined(), options)) return;
+    if (!CompileOpts(OptionalArgument(info, 2), options)) return;
     IDAX_UNWRAP(auto result, ida::script::compile_snippet(name, body, options));
     info.GetReturnValue().Set(CompilationObject(result));
 }
@@ -612,8 +619,8 @@ NAN_METHOD(Call) {
     if (!RequiredString(info, 0, "function name", name)) return;
     std::vector<ida::script::Value> arguments;
     std::vector<ida::script::ResolvedName> resolved;
-    if (!ValueArray(info.Length() > 1 ? info[1] : Nan::Undefined(), arguments)
-        || !ResolvedNames(info.Length() > 2 ? info[2] : Nan::Undefined(), resolved)) return;
+    if (!ValueArray(OptionalArgument(info, 1), arguments)
+        || !ResolvedNames(OptionalArgument(info, 2), resolved)) return;
     IDAX_UNWRAP(auto result, ida::script::call(name, arguments, resolved));
     info.GetReturnValue().Set(ExecutionObject(std::move(result)));
 }
@@ -624,9 +631,9 @@ NAN_METHOD(ExecuteScript) {
     if (!RequiredString(info, 0, "file path", path)
         || !RequiredString(info, 1, "function name", name)) return;
     std::vector<ida::script::Value> arguments;
-    if (!ValueArray(info.Length() > 2 ? info[2] : Nan::Undefined(), arguments)) return;
+    if (!ValueArray(OptionalArgument(info, 2), arguments)) return;
     ida::script::FileCompileOptions options;
-    if (!FileOpts(info.Length() > 3 ? info[3] : Nan::Undefined(), options)) return;
+    if (!FileOpts(OptionalArgument(info, 3), options)) return;
     IDAX_UNWRAP(auto result, ida::script::execute_script(path, name, arguments, options));
     info.GetReturnValue().Set(ExecutionObject(std::move(result)));
 }
@@ -635,7 +642,7 @@ NAN_METHOD(EvaluateSnippet) {
     std::string source;
     if (!RequiredString(info, 0, "snippet source", source)) return;
     std::vector<ida::script::ResolvedName> resolved;
-    if (!ResolvedNames(info.Length() > 1 ? info[1] : Nan::Undefined(), resolved)) return;
+    if (!ResolvedNames(OptionalArgument(info, 1), resolved)) return;
     IDAX_UNWRAP(auto result, ida::script::evaluate_snippet(source, resolved));
     info.GetReturnValue().Set(ExecutionObject(std::move(result)));
 }
@@ -674,7 +681,10 @@ NAN_METHOD(ResolveFile) {
     std::string file;
     if (!RequiredString(info, 0, "filename", file)) return;
     IDAX_UNWRAP(auto result, ida::script::resolve_file(file));
-    info.GetReturnValue().Set(result ? FromString(*result) : Nan::Null());
+    if (result)
+        info.GetReturnValue().Set(FromString(*result));
+    else
+        info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(ExecuteSystemScript) {

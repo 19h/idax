@@ -1471,3 +1471,11 @@ tracked in `docs/compatibility_matrix.md`.
   Exact IDA Professional 9.4 runtime, all 18 hosted jobs, and the
   three automatic complete-log audits remain the authoritative release and
   Phase 71 closure gate.
+  Implementation commit `bbcb34511947f53b443fd004cf0ae93ea16fb388`
+  reached the hosted matrices; Bindings run 29572635965 then falsified the
+  first Node binding's compiler portability on hosted Apple Clang and GCC at
+  12 V8 local-handle conditional expressions. The isolated explicitly typed
+  optional-argument and output-branch correction passes the local Apple Clang
+  rebuild, all 277 Node structural checks, all 96 initialized-host checks, and
+  strict TypeScript compilation. Replacement hosted compiler rows, complete
+  matrices, and automatic log audits remain required for closure.
