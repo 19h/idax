@@ -1441,8 +1441,7 @@ tracked in `docs/compatibility_matrix.md`.
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; licensed rows install IDA
   Professional 9.4 through the eligible active named-product selector.
 
-- 2026-07-17 Phase 71 opaque IDC values and synchronous script execution
-  (local release candidate):
+- 2026-07-17 Phase 71 opaque IDC values and synchronous script execution:
   Added owned opaque IDC values with exact typed access, explicit SDK
   coercions, deterministic moved-from zero state, shallow/deep object copies,
   attributes, half-open slices, rendering, references, and globals. Added
@@ -1468,14 +1467,15 @@ tracked in `docs/compatibility_matrix.md`.
   gates pass. Candidate privacy covers 597 project-owned files and pre-commit
   reachable-history privacy covers 4,389 objects; extracted CPack, Node, both
   Rust crates, and both Python artifacts contain no user-home identity path.
-  Exact IDA Professional 9.4 runtime, all 18 hosted jobs, and the
-  three automatic complete-log audits remain the authoritative release and
-  Phase 71 closure gate.
   Implementation commit `bbcb34511947f53b443fd004cf0ae93ea16fb388`
   reached the hosted matrices; Bindings run 29572635965 then falsified the
-  first Node binding's compiler portability on hosted Apple Clang and GCC at
-  12 V8 local-handle conditional expressions. The isolated explicitly typed
-  optional-argument and output-branch correction passes the local Apple Clang
-  rebuild, all 277 Node structural checks, all 96 initialized-host checks, and
-  strict TypeScript compilation. Replacement hosted compiler rows, complete
-  matrices, and automatic log audits remain required for closure.
+  first Node binding's compiler portability on hosted Apple Clang, GCC, and
+  MSVC at V8 local-handle conditional expressions. Correction commit
+  `a9c8bd0cd2264603a8644b99cedfb3a596c8090a` replaces them with explicitly
+  typed optional arguments and output branches. Runs 29573171753
+  (Integrations 3/3), 29573171723 (Validation 6/6), and 29573171713 (Bindings
+  9/9) then pass all 18 hosted jobs across Linux, Windows, and macOS. Every job
+  records exact SDK commit `6929db6868a524496eb66e76e4ec6c9d720a0594`
+  and IDA Professional 9.4. Automatic complete-log audits 29573520110,
+  29573734060, and 29574575456 pass across 294 entries and 12,790,604
+  uncompressed bytes.
