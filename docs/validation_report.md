@@ -1324,5 +1324,15 @@ tracked in `docs/compatibility_matrix.md`.
   A two-path merge also proves two copied constant candidates with distinct
   origins while the unique-constant convenience query returns absence.
   Workflow/actionlint, shell/JSON/diff consistency, and candidate/reachable-
-  history privacy gates pass across 546 files and 4,004 objects. Live matrix
-  evidence remains pending until the implementation commit is pushed.
+  history privacy gates pass. Implementation commit
+  `c66fc8e2bcd7c4084e7c1cc629114a41e96685b1` exposed an unpinned setup-uv
+  metadata-rate-limit failure; the workflows now pin setup-uv `v8.3.2`, uv
+  `0.11.28`, and the explicit workflow token. Corrective release commit
+  `c035111e9cf8ed8db5fcd3cdf03a7ab33712a540` passes runs 29545255109
+  (Integrations 3/3), 29545255136 (Validation 6/6), and 29545255093 (Bindings
+  9/9) across Linux, Windows, and macOS. All 18 jobs install IDA Professional
+  9.4 and use exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`. Automatic whole-log audits
+  29545467762, 29545625755, and 29546203247 pass with no canonical license
+  identifier or non-infrastructure home-path finding. All one-use diagnostic
+  artifacts and replay tags are removed at closure.
