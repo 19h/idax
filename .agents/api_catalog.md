@@ -299,4 +299,10 @@ This section captures the intended public API semantics at a concrete level so i
 - `track`, `constant_at`, `stack_delta_at`, and `nearest_at` accept register names and preserve unsupported versus unknown versus optional-no-value semantics. Native register numbers and alias parsing remain private.
 - Semantic cache clear/change notifications translate added/removed control-flow or data-reference state without exposing `cref_t`, `dref_t`, tracker objects, or cache pointers. Node, safe Rust, and Python preserve the same owned model.
 
+### 17.39 Opaque Address Bookmarks
+- `Bookmark` owns an address, exact `0..1023` slot, and copied description. `all`, `at`, and `at_slot` return current snapshots in ascending slot order without exposing `place_t`, `lochist_entry_t`, renderers, widgets, user data, directory-tree identities, or native sentinels.
+- `set` updates an existing address in place, rejects identity or slot conflicts before mutation, and otherwise selects the lowest free slot deterministically unless an explicit slot is supplied.
+- `remove` and `remove_slot` preserve the exact address, slot, and description of every survivor despite native interior-erase compaction. The implementation snapshots state, clears from the tail, rebuilds exact survivors, verifies equality, and attempts restoration of the original snapshot on failure.
+- Node, safe Rust, and Python preserve the same six operations, `1024`-slot capacity, owned values, optional lookup state, conflict semantics, and boolean removal state. The C ABI is private transport with explicit string/array ownership.
+
 ---

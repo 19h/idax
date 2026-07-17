@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Address Bookmark Management (Phase 67)
+
+- **7.1. Bookmark Domain**
+  - 7.1.1. **Action:** Complete P67.4 documentation, full exact-SDK/IDA 9.4 validation, package/privacy/self-red-team gates, exact staging/push, live CI, and closure.
+  - 7.1.2. **Scope:** Owned address/slot/description snapshots; deterministic lowest-free-slot allocation; optional explicit slot; same-address description update; address/slot conflict detection; copied enumeration and lookup; idempotent removal. Keep every native place/history/renderer/widget/dirtree identity private.
+  - 7.1.3. **Status:** Active / validation; no blocker.

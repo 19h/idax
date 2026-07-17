@@ -109,6 +109,7 @@
 
 pub mod address;
 pub mod analysis;
+pub mod bookmark;
 pub mod comment;
 pub mod data;
 pub mod database;

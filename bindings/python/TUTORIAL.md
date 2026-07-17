@@ -178,7 +178,25 @@ finally:
 Descriptions and ordered lookups return `None` when absent. The problem kind
 is a closed `IntEnum`; no raw SDK problem-list identifier crosses the binding.
 
-## 10. Round-trip exception metadata
+## 10. Manage an address bookmark
+
+```python
+from idax import bookmark
+
+created = bookmark.set(address, "Review indirect target")
+try:
+    assert bookmark.at(address) is not None
+    assert bookmark.at_slot(created.slot) is not None
+    bookmark.set(address, "Validated indirect target")
+finally:
+    bookmark.remove_slot(created.slot)
+```
+
+New bookmarks use the lowest free slot unless an explicit slot is supplied.
+Snapshots own their address, exact slot, and description; removal preserves the
+slots of every survivor.
+
+## 11. Round-trip exception metadata
 
 ```python
 from idax import address, exception
@@ -203,7 +221,7 @@ level; `contains()` accepts semantic `Location` values or a sequence of them.
 `system_region_start()` is an independent optional host query and may return
 `None` for an ordinary stored SEH block.
 
-## 11. Parse source declarations with an installed parser
+## 12. Parse source declarations with an installed parser
 
 ```python
 from idax import parser
@@ -222,7 +240,7 @@ The parsed declaration is stored in the current local type library. A nonzero
 transport error. Parser names, argument support, and option keys depend on the
 installed parser; handle `NotFoundError` and `UnsupportedError` explicitly.
 
-## 12. Organize a built-in directory tree
+## 13. Organize a built-in directory tree
 
 ```python
 from idax import directory
@@ -241,7 +259,7 @@ retains the original caller index. Full names and paths are identities;
 display names can collide. Folded directory names can contain the host's
 non-path separator byte and must not be rewritten before later tree calls.
 
-## 13. Persist scoped plugin configuration
+## 14. Persist scoped plugin configuration
 
 ```python
 from idax import registry
@@ -265,7 +283,7 @@ are deterministic but not transactional across processes; serialize writers
 that share a key. Use `erase_tree()` for explicit recursive cleanup of a
 disposable subtree.
 
-## 14. Track a register value
+## 15. Track a register value
 
 ```python
 from idax import registers
@@ -282,7 +300,7 @@ processor module does not implement this tracker. `nearest_at()` accepts two
 distinct base registers; cache change notifications use the closed
 `ReferenceMutation` enum rather than raw xref type values.
 
-## 15. Diagnose failures
+## 16. Diagnose failures
 
 ```python
 from idax import IdaxError

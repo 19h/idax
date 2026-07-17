@@ -454,6 +454,16 @@
       "bound_types": ["Kind"]
     },
     {
+      "name": "bookmark",
+      "header": "include/ida/bookmark.hpp",
+      "status": "validated",
+      "native_source": "bookmark_bind.cpp",
+      "bound_functions": [
+        "all", "at", "at_slot", "remove", "remove_slot", "set"
+      ],
+      "bound_types": ["Bookmark"]
+    },
+    {
       "name": "registry",
       "header": "include/ida/registry.hpp",
       "status": "validated",

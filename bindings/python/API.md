@@ -9,6 +9,7 @@ checked with strict mypy.
 |---|---:|---:|---|
 | `address` | 24 | 4 | Address classification, item bounds, navigation, searches, lazy ranges. |
 | `analysis` | 13 | 0 | Auto-analysis state, scheduling, waiting, cancellation, decision reset. |
+| `bookmark` | 6 | 1 | Opaque address bookmarks, copied descriptions, deterministic slots, lookup, update, enumeration, and removal. |
 | `comment` | 19 | 0 | Ordinary/repeatable and anterior/posterior comments. |
 | `data` | 70 | 12 | Bytes, patches, typed values, strings, custom data type/format callbacks. |
 | `database` | 32 | 10 | Runtime lifecycle, open/save/close, metadata, processors, snapshots, imports. |

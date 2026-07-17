@@ -22,6 +22,7 @@ NAN_MODULE_INIT(InitAll) {
     InitAnalysis(target);
     InitUndo(target);
     InitProblem(target);
+    InitBookmark(target);
     InitException(target);
     InitParser(target);
     InitDirectory(target);

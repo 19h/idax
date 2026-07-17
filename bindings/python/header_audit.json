@@ -1,10 +1,11 @@
 {
   "schema_version": 1,
   "authoritative_umbrella": "include/ida/idax.hpp",
-  "umbrella_sha256": "bdccd31b715328fe03bb0fe382b6ba6fa3e217482a9c9302d62536a064bc241a",
+  "umbrella_sha256": "165e11b03280cdedf9986bd3ca4b68ea025f510724805d1f68f4b804a502c760",
   "headers": [
     {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
     {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
+    {"domain": "bookmark", "path": "include/ida/bookmark.hpp", "sha256": "a9680294bddd24d113bad027ccbb05fa5d2e6beb44a5f0cd89128926980e4117"},
     {"domain": "comment", "path": "include/ida/comment.hpp", "sha256": "f689153a011297e6622c2a3e732c6e64814cbc9b34b8966916496539a991fbe7"},
     {"domain": "core", "path": "include/ida/core.hpp", "sha256": "e2e1684e43660d778f6f2c41b4d819d0a77872bc599506b6156027d07a218572"},
     {"domain": "data", "path": "include/ida/data.hpp", "sha256": "af865ba352625e47b4b22d158990b848da3b47195eed67e20759f3bd8f56a097"},

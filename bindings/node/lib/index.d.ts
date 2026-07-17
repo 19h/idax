@@ -2352,6 +2352,41 @@ export namespace problem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// bookmark namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace bookmark {
+    /** Exact number of address-bookmark slots supported by IDA. */
+    const maxSlots: number;
+
+    /** Owned snapshot of one address bookmark. */
+    interface Bookmark {
+        address: Address;
+        slot: number;
+        description: string;
+    }
+
+    /** Copy every address bookmark in ascending slot order. */
+    function all(): Bookmark[];
+
+    /** Find the bookmark at an address, or null. */
+    function at(address: Address): Bookmark | null;
+
+    /** Find the bookmark occupying a slot, or null. */
+    function atSlot(slot: number): Bookmark | null;
+
+    /** Create or update a bookmark; omitted slot selects the lowest free slot. */
+    function set(address: Address, description: string,
+                 slot?: number | null): Bookmark;
+
+    /** Remove the bookmark at an address, returning whether it existed. */
+    function remove(address: Address): boolean;
+
+    /** Remove the bookmark occupying a slot, returning whether it existed. */
+    function removeSlot(slot: number): boolean;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // parser namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

@@ -20,6 +20,7 @@ Public headers:
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
+| `include/ida/bookmark.hpp` | Opaque address bookmarks with copied descriptions, deterministic slot selection, lookup, update, enumeration, and identity-preserving removal |
 | `include/ida/problem.hpp` | Typed analysis-problem kinds, copied optional descriptions, ordered lookup, names, recording, removal, and presence |
 | `include/ida/exception.hpp` | Opaque architecture-independent C++/SEH regions with fragmented ranges, semantic handlers, membership, and mutation |
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
@@ -49,6 +50,7 @@ See also:
 - `docs/cookbook/microcode_lifting.md` — Custom microcode lifting and Hex-Rays filters
 - `docs/cookbook/undo_redo.md` — Named restore points and cross-binding undo/redo semantics
 - `docs/cookbook/analysis_problems.md` — Typed analysis-problem recording and traversal
+- `docs/cookbook/address_bookmarks.md` — Opaque address-bookmark lifecycle and slot semantics
 - `docs/cookbook/exception_regions.md` — Architecture-independent C++/SEH metadata round trips
 - `docs/cookbook/source_parsers.md` — Third-party parser selection, configuration, and type ingestion
 - `docs/cookbook/directory_trees.md` — Built-in tree traversal, organization, ordering, and partial bulk operations

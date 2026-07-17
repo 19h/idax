@@ -16,6 +16,7 @@ from idax import (
     ValidationError,
     address,
     analysis,
+    bookmark,
     comment,
     data,
     database,
@@ -134,6 +135,46 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
             assert not problem.contains(problem_kind, first_function.start)
             assert problem.description(problem_kind, first_function.start) is None
             assert problem.next(problem_kind, first_function.start) != first_function.start
+
+            bookmark_addresses = function.code_addresses(first_function.start)
+            if len(bookmark_addresses) >= 2:
+                bookmark_address = next(
+                    (value for value in bookmark_addresses if bookmark.at(value) is None),
+                    None,
+                )
+                assert bookmark_address is not None
+                occupied_slots = {value.slot for value in bookmark.all()}
+                bookmark_slot = next(
+                    (
+                        slot
+                        for slot in range(29, bookmark.MAX_SLOTS)
+                        if slot not in occupied_slots
+                    ),
+                    None,
+                )
+                assert bookmark_slot is not None
+                created_bookmark = bookmark.set(
+                    bookmark_address, "IDAX Python bookmark π", bookmark_slot
+                )
+                try:
+                    assert created_bookmark.address == bookmark_address
+                    assert created_bookmark.slot == bookmark_slot
+                    assert created_bookmark.description == "IDAX Python bookmark π"
+                    assert bookmark.at(bookmark_address).slot == bookmark_slot
+                    assert bookmark.at_slot(bookmark_slot).address == bookmark_address
+                    updated_bookmark = bookmark.set(
+                        bookmark_address, "IDAX Python updated λ"
+                    )
+                    assert updated_bookmark.slot == bookmark_slot
+                    assert updated_bookmark.description == "IDAX Python updated λ"
+                    conflict_slot = 1 if bookmark_slot == 0 else 0
+                    with pytest.raises(ConflictError, match="different slot"):
+                        bookmark.set(bookmark_address, "conflict", conflict_slot)
+                    assert bookmark.remove_slot(bookmark_slot)
+                    assert not bookmark.remove_slot(bookmark_slot)
+                    assert bookmark.at(bookmark_address) is None
+                finally:
+                    bookmark.remove(bookmark_address)
 
             parser.select_for([parser.Language.C, parser.Language.CPP])
             parser_name = parser.selected_name()

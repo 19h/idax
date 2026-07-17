@@ -378,6 +378,7 @@ void InitSearch(v8::Local<v8::Object> target);
 void InitAnalysis(v8::Local<v8::Object> target);
 void InitUndo(v8::Local<v8::Object> target);
 void InitProblem(v8::Local<v8::Object> target);
+void InitBookmark(v8::Local<v8::Object> target);
 void InitException(v8::Local<v8::Object> target);
 void InitParser(v8::Local<v8::Object> target);
 void InitDirectory(v8::Local<v8::Object> target);

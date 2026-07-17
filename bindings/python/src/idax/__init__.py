@@ -15,6 +15,7 @@ _runtime.prepare()
 from . import (
     address,
     analysis,
+    bookmark,
     comment,
     core,
     data,
@@ -86,6 +87,7 @@ __all__ = [
     "__version__",
     "address",
     "analysis",
+    "bookmark",
     "comment",
     "core",
     "data",

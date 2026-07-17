@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'exception', 'parser', 'directory', 'registry', 'registers',
+        'undo', 'problem', 'bookmark', 'exception', 'parser', 'directory', 'registry', 'registers',
         'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
@@ -648,6 +648,25 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace problem');
         expect(dts).toContain("| 'flairIndecision';");
         expect(dts).toContain('function next(kind: Kind, atOrAfter?: Address | null): Address | null');
+    });
+
+    it('should have opaque address-bookmark functions and declarations', () => {
+        if (!idax) return;
+        expect(idax.bookmark.maxSlots).toBe(1024);
+        for (const fn of ['all', 'at', 'atSlot', 'set', 'remove', 'removeSlot'])
+            expect(typeof idax.bookmark[fn]).toBe('function');
+        expect(() => idax.bookmark.atSlot(-1)).toThrow(/unsigned 32-bit/);
+        expect(() => idax.bookmark.atSlot(1.5)).toThrow(/unsigned 32-bit/);
+        expect(() => idax.bookmark.atSlot(1024)).toThrow(/outside the supported range/);
+        expect(() => idax.bookmark.set(0n, 'bad\0description'))
+            .toThrow(/embedded NUL/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace bookmark');
+        expect(dts).toContain('function atSlot(slot: number): Bookmark | null');
+        expect(dts).toContain('slot?: number | null): Bookmark');
     });
 
     it('should have opaque register-tracking functions and declarations', () => {

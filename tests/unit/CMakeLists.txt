@@ -10,6 +10,34 @@ add_test(NAME idax_unit_test COMMAND idax_unit_test)
 # Validates that every public namespace and type in the architecture
 # blueprint is present and compilable. The test is a compile-only check:
 # if it compiles, the API surface contract is satisfied.
+file(READ "${PROJECT_SOURCE_DIR}/include/ida/idax.hpp" IDAX_UMBRELLA_SOURCE)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/api_surface_parity_test.cpp"
+    IDAX_API_SURFACE_SOURCE)
+string(REGEX MATCHALL "#include <ida/[a-z_]+\\.hpp>"
+    IDAX_UMBRELLA_INCLUDES "${IDAX_UMBRELLA_SOURCE}")
+list(LENGTH IDAX_UMBRELLA_INCLUDES IDAX_UMBRELLA_INCLUDE_COUNT)
+if(NOT IDAX_UMBRELLA_INCLUDE_COUNT EQUAL 37)
+    message(FATAL_ERROR
+        "API surface inventory expected 37 authoritative umbrella includes; "
+        "found ${IDAX_UMBRELLA_INCLUDE_COUNT}. Update the parity inventory.")
+endif()
+foreach(IDAX_UMBRELLA_INCLUDE IN LISTS IDAX_UMBRELLA_INCLUDES)
+    string(REGEX REPLACE "#include <ida/([a-z_]+)\\.hpp>" "\\1"
+        IDAX_UMBRELLA_DOMAIN "${IDAX_UMBRELLA_INCLUDE}")
+    if(IDAX_UMBRELLA_DOMAIN STREQUAL "error")
+        set(IDAX_REQUIRED_SURFACE_PROBE "void check_error_categories() {")
+    else()
+        set(IDAX_REQUIRED_SURFACE_PROBE
+            "void check_${IDAX_UMBRELLA_DOMAIN}_surface() {")
+    endif()
+    string(FIND "${IDAX_API_SURFACE_SOURCE}"
+        "${IDAX_REQUIRED_SURFACE_PROBE}" IDAX_SURFACE_PROBE_OFFSET)
+    if(IDAX_SURFACE_PROBE_OFFSET EQUAL -1)
+        message(FATAL_ERROR
+            "API surface inventory has no probe for ida::${IDAX_UMBRELLA_DOMAIN}")
+    endif()
+endforeach()
+
 add_library(idax_api_surface_check OBJECT api_surface_parity_test.cpp)
 target_link_libraries(idax_api_surface_check PRIVATE idax::idax)
 

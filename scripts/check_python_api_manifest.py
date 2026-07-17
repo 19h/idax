@@ -67,7 +67,8 @@ def native_functions(domain: str, path: Path) -> set[str]:
     text = path.read_text(encoding="utf-8")
     functions = set(
         re.findall(
-            rf"\b{re.escape(domain)}(?:_module)?\.def\(\"([a-z_][a-z0-9_]*)\"",
+            rf"\b{re.escape(domain)}(?:_module)?\.def\(\s*"
+            r'"([a-z_][a-z0-9_]*)"',
             text,
         )
     )

@@ -587,6 +587,50 @@ describe('Analysis Problems', () => {
     });
 });
 
+// ── Address Bookmarks ───────────────────────────────────────────────────
+
+describe('Address Bookmarks', () => {
+    it('should create, update, enumerate, and remove an opaque bookmark', () => {
+        const addresses = idax.function.codeAddresses(idax.function.byIndex(0).start);
+        expect(addresses.length).toBeGreaterThanOrEqual(2);
+        const address = addresses.find(value => idax.bookmark.at(value) === null);
+        expect(address).toBeDefined();
+        const baseline = idax.bookmark.all();
+        const occupied = new Set(baseline.map(value => value.slot));
+        let slot = 23;
+        while (occupied.has(slot)) ++slot;
+        expect(slot).toBeLessThan(idax.bookmark.maxSlots);
+
+        try {
+            const created = idax.bookmark.set(address, 'IDAX Node bookmark π', slot);
+            expect(created.address).toBe(address);
+            expect(created.slot).toBe(slot);
+            expect(created.description).toBe('IDAX Node bookmark π');
+            const byAddress = idax.bookmark.at(address);
+            expect(byAddress.address).toBe(created.address);
+            expect(byAddress.slot).toBe(created.slot);
+            expect(byAddress.description).toBe(created.description);
+            const bySlot = idax.bookmark.atSlot(slot);
+            expect(bySlot.address).toBe(created.address);
+            expect(bySlot.slot).toBe(created.slot);
+            expect(bySlot.description).toBe(created.description);
+            expect(idax.bookmark.all().some(value => value.slot === slot)).toBe(true);
+
+            const updated = idax.bookmark.set(address, 'IDAX Node updated λ');
+            expect(updated.slot).toBe(slot);
+            expect(updated.description).toBe('IDAX Node updated λ');
+            const conflictSlot = slot === 0 ? 1 : 0;
+            expect(() => idax.bookmark.set(address, 'conflict', conflictSlot))
+                .toThrow(/different slot/);
+            expect(idax.bookmark.removeSlot(slot)).toBe(true);
+            expect(idax.bookmark.removeSlot(slot)).toBe(false);
+            expect(idax.bookmark.at(address)).toBeNull();
+        } finally {
+            idax.bookmark.remove(address);
+        }
+    });
+});
+
 // ── Exception Regions ───────────────────────────────────────────────────
 
 describe('Exception Regions', () => {

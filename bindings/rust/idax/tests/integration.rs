@@ -18,9 +18,9 @@ use std::sync::{Arc, Mutex, Once, OnceLock};
 use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
-    analysis, comment, data, database, decompiler, directory, entry, event, exception, fixup,
-    function, graph, instruction, lines, name, parser, plugin, problem, registry, search, segment,
-    storage, types, ui, undo, xref,
+    analysis, bookmark, comment, data, database, decompiler, directory, entry, event, exception,
+    fixup, function, graph, instruction, lines, name, parser, plugin, problem, registry, search,
+    segment, storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -904,6 +904,39 @@ fn problem_roundtrip() {
     assert!(!problem::contains(kind, address).unwrap());
     assert_eq!(problem::description(kind, address).unwrap(), None);
     assert_ne!(problem::next(kind, address).unwrap(), Some(address));
+}
+
+fn bookmark_roundtrip() {
+    require_db!();
+    let first_function = function::by_index(0).unwrap();
+    let addresses = function::code_addresses(first_function.start()).unwrap();
+    if addresses.len() < 2 {
+        return;
+    }
+    let address = addresses
+        .iter()
+        .copied()
+        .find(|value| bookmark::at(*value).unwrap().is_none())
+        .expect("unbookmarked code address");
+    let baseline = bookmark::all().unwrap();
+    let slot = (31..bookmark::MAX_SLOTS)
+        .find(|slot| !baseline.iter().any(|value| value.slot == *slot))
+        .expect("free bookmark slot");
+
+    let created = bookmark::set(address, "IDAX Rust bookmark \u{03c0}", Some(slot)).unwrap();
+    assert_eq!(created.address, address);
+    assert_eq!(created.slot, slot);
+    assert_eq!(bookmark::at(address).unwrap(), Some(created.clone()));
+    assert_eq!(bookmark::at_slot(slot).unwrap(), Some(created));
+
+    let updated = bookmark::set(address, "IDAX Rust updated \u{03bb}", None).unwrap();
+    assert_eq!(updated.slot, slot);
+    assert_eq!(updated.description, "IDAX Rust updated \u{03bb}");
+    let conflict_slot = if slot == 0 { 1 } else { 0 };
+    assert!(bookmark::set(address, "conflict", Some(conflict_slot)).is_err());
+    assert!(bookmark::remove_slot(slot).unwrap());
+    assert!(!bookmark::remove_slot(slot).unwrap());
+    assert_eq!(bookmark::at(address).unwrap(), None);
 }
 
 fn exception_roundtrip() {
@@ -3115,6 +3148,7 @@ static TEST_CASES: &[TestCase] = &[
     ("comment_anterior_posterior", comment_anterior_posterior),
     ("undo_comment_roundtrip", undo_comment_roundtrip),
     ("problem_roundtrip", problem_roundtrip),
+    ("bookmark_roundtrip", bookmark_roundtrip),
     ("exception_roundtrip", exception_roundtrip),
     ("parser_roundtrip", parser_roundtrip),
     ("directory_roundtrip", directory_roundtrip),

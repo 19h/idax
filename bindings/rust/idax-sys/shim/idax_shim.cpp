@@ -972,6 +972,139 @@ int idax_problem_contains(int kind, uint64_t address, int* out) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Address bookmarks
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+int bookmark_to_c(const ida::bookmark::Bookmark& input, IdaxBookmark* out) {
+    if (out == nullptr)
+        return fail(ida::Error::validation("Bookmark output pointer is null"));
+    *out = {};
+    out->address = input.address;
+    out->slot = input.slot;
+    out->description = dup_string(input.description);
+    if (out->description == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+} // namespace
+
+void idax_bookmark_free(IdaxBookmark* bookmark) {
+    if (bookmark == nullptr)
+        return;
+    std::free(bookmark->description);
+    *bookmark = {};
+}
+
+void idax_bookmarks_free(IdaxBookmark* bookmarks, size_t count) {
+    if (bookmarks == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        idax_bookmark_free(&bookmarks[index]);
+    std::free(bookmarks);
+}
+
+int idax_bookmark_all(IdaxBookmark** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Bookmark array output pointer is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::bookmark::all();
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+    auto* values = static_cast<IdaxBookmark*>(
+        std::calloc(result->size(), sizeof(IdaxBookmark)));
+    if (values == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < result->size(); ++index) {
+        if (bookmark_to_c((*result)[index], &values[index]) != 0) {
+            idax_bookmarks_free(values, result->size());
+            return -1;
+        }
+    }
+    *out = values;
+    *count = result->size();
+    return 0;
+}
+
+int idax_bookmark_at(uint64_t address, IdaxBookmark* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Bookmark lookup output pointer is null"));
+    *out = {};
+    *has_value = 0;
+    auto result = ida::bookmark::at(address);
+    if (!result)
+        return fail(result.error());
+    if (!*result)
+        return 0;
+    if (bookmark_to_c(**result, out) != 0)
+        return -1;
+    *has_value = 1;
+    return 0;
+}
+
+int idax_bookmark_at_slot(uint32_t slot, IdaxBookmark* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Bookmark lookup output pointer is null"));
+    *out = {};
+    *has_value = 0;
+    auto result = ida::bookmark::at_slot(slot);
+    if (!result)
+        return fail(result.error());
+    if (!*result)
+        return 0;
+    if (bookmark_to_c(**result, out) != 0)
+        return -1;
+    *has_value = 1;
+    return 0;
+}
+
+int idax_bookmark_set(uint64_t address, const char* description,
+                      int has_slot, uint32_t slot, IdaxBookmark* out) {
+    clear_error();
+    if (description == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Bookmark set argument is null"));
+    if (has_slot != 0 && has_slot != 1)
+        return fail(ida::Error::validation("Bookmark slot presence flag is invalid"));
+    *out = {};
+    const std::optional<std::uint32_t> requested_slot =
+        has_slot != 0 ? std::optional<std::uint32_t>(slot) : std::nullopt;
+    auto result = ida::bookmark::set(address, description, requested_slot);
+    if (!result)
+        return fail(result.error());
+    return bookmark_to_c(*result, out);
+}
+
+int idax_bookmark_remove(uint64_t address, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Bookmark remove output pointer is null"));
+    auto result = ida::bookmark::remove(address);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_bookmark_remove_slot(uint32_t slot, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Bookmark remove output pointer is null"));
+    auto result = ida::bookmark::remove_slot(slot);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Register-value tracking
 // ═══════════════════════════════════════════════════════════════════════════
 

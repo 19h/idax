@@ -13,6 +13,7 @@ from idax import (
     exception,
     lines,
     loader,
+    bookmark,
     parser,
     plugin,
     problem,
@@ -42,6 +43,11 @@ def test_package_contract() -> None:
     assert problem.Kind.FLAIR_INDECISION == 16
     with pytest.raises(idax.ValidationError, match="embedded NUL"):
         problem.remember(problem.Kind.ATTENTION, 0, "bad\0message")
+    assert bookmark.MAX_SLOTS == 1024
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        bookmark.set(0, "bad\0description")
+    with pytest.raises(idax.ValidationError, match="outside the supported range"):
+        bookmark.at_slot(bookmark.MAX_SLOTS)
     assert exception.CatchSelectorKind.TYPED.name == "TYPED"
     assert exception.SehDisposition.CONTINUE_SEARCH.name == "CONTINUE_SEARCH"
     assert exception.Location.CPP_TRY.name == "CPP_TRY"

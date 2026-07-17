@@ -1,5 +1,6 @@
 from typing import Final, TypeAlias
 from . import address as address, analysis as analysis, core as core
+from . import bookmark as bookmark
 from . import data as data, event as event
 from . import exception as exception
 from . import debugger as debugger, graph as graph

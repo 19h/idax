@@ -7,6 +7,7 @@ pub const IDAX_ERROR_CONFLICT: u32 = 3;
 pub const IDAX_ERROR_UNSUPPORTED: u32 = 4;
 pub const IDAX_ERROR_SDK_FAILURE: u32 = 5;
 pub const IDAX_ERROR_INTERNAL: u32 = 6;
+pub const IDAX_BOOKMARK_MAX_SLOTS: u32 = 1024;
 unsafe extern "C" {
     #[doc = " Get the error category from the last failed call (thread-local)."]
     pub fn idax_last_error_category() -> ::std::os::raw::c_int;
@@ -428,6 +429,79 @@ unsafe extern "C" {
         address: u64,
         out: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxBookmark {
+    pub address: u64,
+    pub slot: u32,
+    pub description: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxBookmark"][::std::mem::size_of::<IdaxBookmark>() - 24usize];
+    ["Alignment of IdaxBookmark"][::std::mem::align_of::<IdaxBookmark>() - 8usize];
+    ["Offset of field: IdaxBookmark::address"]
+        [::std::mem::offset_of!(IdaxBookmark, address) - 0usize];
+    ["Offset of field: IdaxBookmark::slot"][::std::mem::offset_of!(IdaxBookmark, slot) - 8usize];
+    ["Offset of field: IdaxBookmark::description"]
+        [::std::mem::offset_of!(IdaxBookmark, description) - 16usize];
+};
+impl Default for IdaxBookmark {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_all(
+        out: *mut *mut IdaxBookmark,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_at(
+        address: u64,
+        out: *mut IdaxBookmark,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_at_slot(
+        slot: u32,
+        out: *mut IdaxBookmark,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_set(
+        address: u64,
+        description: *const ::std::os::raw::c_char,
+        has_slot: ::std::os::raw::c_int,
+        slot: u32,
+        out: *mut IdaxBookmark,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_remove(
+        address: u64,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_remove_slot(
+        slot: u32,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_bookmark_free(bookmark: *mut IdaxBookmark);
+}
+unsafe extern "C" {
+    pub fn idax_bookmarks_free(bookmarks: *mut IdaxBookmark, count: usize);
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]

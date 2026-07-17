@@ -13,6 +13,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/analysis_bind.cpp
     src/native/undo_bind.cpp
     src/native/problem_bind.cpp
+    src/native/bookmark_bind.cpp
     src/native/exception_bind.cpp
     src/native/parser_bind.cpp
     src/native/directory_bind.cpp

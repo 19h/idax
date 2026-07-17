@@ -78,6 +78,7 @@ void bind_path(py::module_& module);
 void bind_analysis(py::module_& module);
 void bind_undo(py::module_& module);
 void bind_problem(py::module_& module);
+void bind_bookmark(py::module_& module);
 void bind_exception(py::module_& module);
 void bind_parser(py::module_& module);
 void bind_directory(py::module_& module);

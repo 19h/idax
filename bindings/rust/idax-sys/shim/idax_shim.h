@@ -178,6 +178,28 @@ int idax_problem_name(int kind, int long_form, char** out);
 int idax_problem_contains(int kind, uint64_t address, int* out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Address bookmarks (ida::bookmark)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#define IDAX_BOOKMARK_MAX_SLOTS 1024
+
+typedef struct IdaxBookmark {
+    uint64_t address;
+    uint32_t slot;
+    char* description;
+} IdaxBookmark;
+
+int idax_bookmark_all(IdaxBookmark** out, size_t* count);
+int idax_bookmark_at(uint64_t address, IdaxBookmark* out, int* has_value);
+int idax_bookmark_at_slot(uint32_t slot, IdaxBookmark* out, int* has_value);
+int idax_bookmark_set(uint64_t address, const char* description,
+                      int has_slot, uint32_t slot, IdaxBookmark* out);
+int idax_bookmark_remove(uint64_t address, int* out);
+int idax_bookmark_remove_slot(uint32_t slot, int* out);
+void idax_bookmark_free(IdaxBookmark* bookmark);
+void idax_bookmarks_free(IdaxBookmark* bookmarks, size_t count);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Register-value tracking (ida::registers)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

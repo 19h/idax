@@ -806,6 +806,31 @@ void check_problem_surface() {
     static_assert(static_cast<int>(ida::problem::Kind::FlairIndecision) == 16);
 }
 
+// ─── ida::bookmark ──────────────────────────────────────────────────────
+
+void check_bookmark_surface() {
+    using AllFn = ida::Result<std::vector<ida::bookmark::Bookmark>>(*)();
+    using AtAddressFn = ida::Result<std::optional<ida::bookmark::Bookmark>>(*)(
+        ida::Address);
+    using AtSlotFn = ida::Result<std::optional<ida::bookmark::Bookmark>>(*)(
+        std::uint32_t);
+    using SetFn = ida::Result<ida::bookmark::Bookmark>(*)(
+        ida::Address, std::string_view, std::optional<std::uint32_t>);
+    using RemoveAddressFn = ida::Result<bool>(*)(ida::Address);
+    using RemoveSlotFn = ida::Result<bool>(*)(std::uint32_t);
+
+    (void)static_cast<AllFn>(&ida::bookmark::all);
+    (void)static_cast<AtAddressFn>(&ida::bookmark::at);
+    (void)static_cast<AtSlotFn>(&ida::bookmark::at_slot);
+    (void)static_cast<SetFn>(&ida::bookmark::set);
+    (void)static_cast<RemoveAddressFn>(&ida::bookmark::remove);
+    (void)static_cast<RemoveSlotFn>(&ida::bookmark::remove_slot);
+
+    static_assert(ida::bookmark::MaxSlots == 1024);
+    static_assert(std::is_same_v<
+        decltype(ida::bookmark::Bookmark::slot), std::uint32_t>);
+}
+
 // ─── ida::exception ─────────────────────────────────────────────────────
 
 void check_exception_surface() {
@@ -2591,9 +2616,12 @@ int main() {
     surface_check::check_analysis_surface();   namespaces_verified++;
     surface_check::check_undo_surface();       namespaces_verified++;
     surface_check::check_problem_surface();    namespaces_verified++;
+    surface_check::check_bookmark_surface();   namespaces_verified++;
     surface_check::check_exception_surface();  namespaces_verified++;
     surface_check::check_parser_surface();     namespaces_verified++;
     surface_check::check_directory_surface();  namespaces_verified++;
+    surface_check::check_registry_surface();   namespaces_verified++;
+    surface_check::check_registers_surface();  namespaces_verified++;
     surface_check::check_database_surface();   namespaces_verified++;
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
@@ -2610,9 +2638,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 33, "all 33 namespace surfaces verified");
+    CHECK(namespaces_verified == 37, "all 37 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (33 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (37 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

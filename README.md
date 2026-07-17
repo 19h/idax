@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 37 public headers cover 34 concept domains plus the umbrella, shared core, and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 38 public headers cover 35 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -94,6 +94,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Fixups** | `ida::fixup` | Fixup descriptors, traversal, custom fixup handlers |
 | **Search** | `ida::search` | Text (with regex), immediate, binary pattern, structural search |
 | **Analysis** | `ida::analysis` | Auto-analysis control, scheduling, waiting |
+| **Bookmarks** | `ida::bookmark` | Opaque address bookmarks with copied descriptions, deterministic slots, lookup, update, enumeration, and identity-preserving removal |
 | **Problems** | `ida::problem` | Typed analysis-problem recording, descriptions, ordered lookup, names, removal, and presence |
 | **Exception regions** | `ida::exception` | Opaque fragmented C++/SEH protected regions, handlers, membership, mutation, and system-EH lookup |
 | **Lumina** | `ida::lumina` | Lumina metadata pull/push wrappers and connection checks |
@@ -558,12 +559,12 @@ idax is validated through layered testing:
 | Layer | What it tests | Runtime needed |
 |-------|---------------|----------------|
 | **Unit tests** | Error model, diagnostics, range semantics, iterator contracts | None |
-| **API surface parity** | Compile-only check that all 34 domain namespaces and types exist | None |
+| **API surface parity** | Compile-only check that all 35 domain namespaces and types exist | None |
 | **Smoke test** | 267 checks across every established namespace, end-to-end | idalib + fixture |
 | **Domain integration** | Dedicated suites: types, fixups, operands, decompiler, events, etc. | idalib + fixture |
 | **Scenario tests** | Loader/processor module lifecycle and callback wiring | idalib + fixture |
 
-Current status: **36/36 test targets passing** (267 smoke checks + 35 focused/unit suites).
+Current status: **37/37 test targets passing** (267 smoke checks + 36 focused/unit suites).
 
 ---
 
