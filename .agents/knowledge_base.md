@@ -2552,3 +2552,10 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - A test that covers both local stderr and Actions annotations must delete `GITHUB_ACTIONS` from its baseline child environment and add it only for the annotation-specific case.
 - Validation run 29544788074 exposed this as a platform-independent pre-CMake harness failure across all six rows; the scanner's privacy matching behavior was not implicated.
 - Assumption A65.17: inherited diagnostic mode is the only cause of all six Validation failures. Falsify locally with the test under both absent and forced `GITHUB_ACTIONS=true`, then with all six replacement Validation rows. Dependent result: release closure. **Bounded risk [low]:** this changes only child-process diagnostic formatting in a test harness; scanner production behavior is unchanged. Each subprocess environment normalization is `O(E)` time and space for `E` inherited environment entries.
+
+### 35.236. Later Bindings Archives Require Independent Private Classification [F583]
+
+- Audit 29545265951 covers Bindings source run 29544788057 and reports only two sanitized POSIX-home categories at archive entries 89 and 100.
+- Replay 29544791067 proves the scanner policy against a different, earlier Bindings archive; it cannot establish the identity of a later match.
+- Reuse Decision 19.72.12 with a fresh one-use key pair and a matcher that applies the scanner's current lowercase whole-key membership before encryption. Publish only ciphertext and keep the private key outside the repository.
+- Assumption A65.18: both new entries reduce to a small deduplicated prefix set that can be classified without broadening scanner policy by inference. Falsify by replaying source run 29544788057 and decrypting every emitted ciphertext locally. Dependent result: an evidence-backed correction or upstream-log mitigation. **Bounded risk [low]:** RSA-OAEP/SHA-256 encrypts at most 128 B per distinct matched prefix; matching is `O(B)` over archived bytes and diagnostic storage is `O(U)` for `U` unique prefixes.

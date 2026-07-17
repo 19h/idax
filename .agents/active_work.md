@@ -69,6 +69,6 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Correct the CI-only validation-harness environment leak, push the exact correction to `master`, verify its Integrations/Validation/Bindings runs plus all three automatic complete-log audits, delete the one-use replay tag, and close Phase 65.
-  - 7.1.2. **Evidence:** Exact correction `30af98e1` is on `master`; byte-identical replay 29544791067 passes. Validation run 29544788074 failed all six rows before CMake because the test harness inherited `GITHUB_ACTIONS=true` into subprocess cases that intentionally assert local diagnostic formatting; all six shared pre-build gates and a complete local IDA 9.4 compile-only profile otherwise pass. Runs 29544788119 and 29544788057 plus their audits remain release evidence only after the harness correction is pushed.
-  - 7.1.3. **Status:** Active / deterministic CI-only test-harness correction and replacement release/audit matrix; no blocker.
+  - 7.1.1. **Action:** Privately classify Bindings audit 29545265951 entries 89/100 without publishing matched bytes, remove the one-shot diagnostic immediately, apply only an evidence-backed correction, then require replacement runs 29545255109/29545255136/29545255093 and all three audits to pass before deleting replay tags and closing Phase 65.
+  - 7.1.2. **Evidence:** Exact harness correction `c035111e` is on `master`; Integrations replacement run 29545255109 and audit 29545467762 pass. Prior Bindings audit 29545265951 fails only two sanitized non-runner POSIX-home categories; the new prefix cannot be inferred from the earlier uppercase-runner finding.
+  - 7.1.3. **Status:** Active / one-shot encrypted classification in progress; no blocker.
