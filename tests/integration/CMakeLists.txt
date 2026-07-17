@@ -137,6 +137,7 @@ idax_add_integration_test(bookmark_roundtrip                bookmark_roundtrip_t
 idax_add_integration_test(navigation_roundtrip              navigation_roundtrip_test.cpp)
 idax_add_integration_test(segment_register_roundtrip        segment_register_roundtrip_test.cpp)
 idax_add_integration_test(offset_reference_roundtrip        offset_reference_roundtrip_test.cpp)
+idax_add_integration_test(script_roundtrip                  script_roundtrip_test.cpp)
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

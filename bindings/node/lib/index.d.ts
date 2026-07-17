@@ -47,6 +47,78 @@ export interface IdaxError extends Error {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// script namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace script {
+    type ValueKind =
+        | 'integer' | 'floatingPoint' | 'object' | 'function' | 'string'
+        | 'opaquePointer' | 'reference';
+    type DereferenceMode = 'once' | 'recursive';
+
+    class Value {
+        /** Construct the default IDC integer value (zero). */
+        constructor();
+        kind(): ValueKind;
+        asInteger(): bigint;
+        asFloating(): number;
+        asString(): string;
+        coerceInteger(): bigint;
+        coerceFloating(): number;
+        coerceString(): string;
+        render(name?: string | null, indent?: number): string;
+        /** Shallow-copy the value; object attributes remain shared. */
+        copy(): Value;
+        /** Deep-copy object attributes; scalar values use ordinary copy semantics. */
+        deepCopy(): Value;
+        className(): string;
+        attribute(name: string, useHandler?: boolean): Value;
+        setAttribute(name: string, value: Value, useHandler?: boolean): void;
+        attributeNames(): string[];
+        removeAttribute(name: string): boolean;
+        slice(begin: number, end: number): Value;
+        replaceSlice(begin: number, end: number, replacement: Value): void;
+        dereference(mode?: DereferenceMode): Value;
+    }
+
+    interface ResolvedName { name: string; value: bigint; }
+    interface CompileOptions {
+        onlySafeFunctions?: boolean;
+        resolvedNames?: ResolvedName[];
+    }
+    interface FileCompileOptions {
+        deleteMacrosAfterCompilation?: boolean;
+        allowProgramLabels?: boolean;
+        onlySafeFunctions?: boolean;
+    }
+    interface CompilationResult { succeeded: boolean; error: string; }
+    interface ExecutionResult { succeeded: boolean; value: Value; error: string; }
+    interface IntegerExecutionResult { succeeded: boolean; value: bigint; error: string; }
+
+    function integer(value: bigint | number): Value;
+    function floating(value: number): Value;
+    function string(value: string): Value;
+    function object(): Value;
+    function evaluate(expression: string, where?: Address): ExecutionResult;
+    function evaluateIdc(expression: string, where?: Address): ExecutionResult;
+    function evaluateInteger(expression: string, where?: Address): IntegerExecutionResult;
+    function compileFile(path: string, options?: FileCompileOptions): CompilationResult;
+    function compileText(source: string, options?: CompileOptions): CompilationResult;
+    function compileSnippet(name: string, body: string, options?: CompileOptions): CompilationResult;
+    function call(name: string, args?: Value[], resolvedNames?: ResolvedName[]): ExecutionResult;
+    function executeScript(path: string, name: string, args?: Value[], options?: FileCompileOptions): ExecutionResult;
+    function evaluateSnippet(source: string, resolvedNames?: ResolvedName[]): ExecutionResult;
+    function setIncludePaths(paths: string[]): void;
+    function appendIncludePaths(paths: string[]): void;
+    function resolveFile(file: string): string | null;
+    function executeSystemScript(file: string, complainIfMissing?: boolean): void;
+    function functionNames(prefix?: string, maximum?: number): string[];
+    function global(name: string): Value | null;
+    function setGlobal(name: string, value: Value): boolean;
+    function referenceGlobal(name: string): Value;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ui namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

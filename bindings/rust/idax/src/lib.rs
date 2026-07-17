@@ -46,6 +46,7 @@
 //! | [`ui`] | `ida::ui` | UI utilities: messages, dialogs, widgets, events |
 //! | [`lines`] | `ida::lines` | Color tag manipulation |
 //! | [`diagnostics`] | `ida::diagnostics` | Logging and performance counters |
+//! | [`script`] | `ida::script` | Opaque IDC values and synchronous script execution |
 //!
 //! # Quick Start
 //!
@@ -141,6 +142,7 @@ pub mod problem;
 pub mod processor;
 pub mod registers;
 pub mod registry;
+pub mod script;
 pub mod search;
 pub mod segment;
 pub mod storage;

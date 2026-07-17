@@ -17,6 +17,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/navigation_bind.cpp
     src/native/exception_bind.cpp
     src/native/parser_bind.cpp
+    src/native/script_bind.cpp
     src/native/directory_bind.cpp
     src/native/registry_bind.cpp
     src/native/registers_bind.cpp

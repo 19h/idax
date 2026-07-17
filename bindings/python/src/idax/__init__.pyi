@@ -15,6 +15,7 @@ from . import parser as parser
 from . import comment as comment, entry as entry, lines as lines
 from . import lumina as lumina, name as name, search as search
 from . import segment as segment, xref as xref
+from . import script as script
 from . import type as type
 from . import fixup as fixup, function as function, instruction as instruction
 from . import storage as storage

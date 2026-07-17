@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authoritative_umbrella": "include/ida/idax.hpp",
-  "umbrella_sha256": "80360aa9a547aa4cf7ab13ef0a5510c4145d9824f7fb495d6885d0996e98f271",
+  "umbrella_sha256": "f43b02a5194b073ff48019cee7160093c49e9691d91877147ba910275abdaf93",
   "headers": [
     {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
     {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
@@ -37,6 +37,7 @@
     {"domain": "registers", "path": "include/ida/registers.hpp", "sha256": "871aac3c1bfd63edf72f0b480229ef0cfad759054def6db23d6349d668834b54"},
     {"domain": "search", "path": "include/ida/search.hpp", "sha256": "6345a30552c3fcc0ca8d502b8487b85831bb350cd0026f1e9ab4b997a35af1f5"},
     {"domain": "segment", "path": "include/ida/segment.hpp", "sha256": "15a8d1d888404fd80c455fcfd301264df83a68dfc4cdc446729095d8650687ca"},
+    {"domain": "script", "path": "include/ida/script.hpp", "sha256": "6d2e8b7c972c3963bd352ddb4f9e1ca5d68cd3a9a826e2f8a00699bd4f9f6754"},
     {"domain": "storage", "path": "include/ida/storage.hpp", "sha256": "68900c09cd24d780438988d89354571c9d9014b89df286fab8d402ee89214ae6"},
     {"domain": "type", "path": "include/ida/type.hpp", "sha256": "fedb6f4232f53a397dc72e8367bdbd5986db87fbecbfe3045c1780a4e4ea7642"},
     {"domain": "ui", "path": "include/ida/ui.hpp", "sha256": "2e19c4afb3fca0ad20a4d6497ec8f7de8eac1a9d4e8bf2198d3d230e8834e34f"},

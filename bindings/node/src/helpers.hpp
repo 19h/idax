@@ -383,6 +383,7 @@ void InitBookmark(v8::Local<v8::Object> target);
 void InitNavigation(v8::Local<v8::Object> target);
 void InitException(v8::Local<v8::Object> target);
 void InitParser(v8::Local<v8::Object> target);
+void InitScript(v8::Local<v8::Object> target);
 void InitDirectory(v8::Local<v8::Object> target);
 void InitRegistry(v8::Local<v8::Object> target);
 void InitRegisters(v8::Local<v8::Object> target);

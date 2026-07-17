@@ -82,6 +82,7 @@ void bind_bookmark(py::module_& module);
 void bind_navigation(py::module_& module);
 void bind_exception(py::module_& module);
 void bind_parser(py::module_& module);
+void bind_script(py::module_& module);
 void bind_directory(py::module_& module);
 void bind_registry(py::module_& module);
 void bind_registers(py::module_& module);

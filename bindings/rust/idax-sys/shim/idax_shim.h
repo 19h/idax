@@ -61,6 +61,136 @@ void idax_free_bytes(uint8_t* p);
 void idax_free_addresses(uint64_t* p);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Script / IDC values and synchronous execution (ida::script)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef void* IdaxScriptValueHandle;
+
+typedef struct IdaxScriptResolvedName {
+    const char* name;
+    uint64_t value;
+} IdaxScriptResolvedName;
+
+typedef struct IdaxScriptCompileOptions {
+    int only_safe_functions;
+    const IdaxScriptResolvedName* resolved_names;
+    size_t resolved_name_count;
+} IdaxScriptCompileOptions;
+
+typedef struct IdaxScriptFileCompileOptions {
+    int delete_macros_after_compilation;
+    int allow_program_labels;
+    int only_safe_functions;
+} IdaxScriptFileCompileOptions;
+
+typedef struct IdaxScriptCompilationResult {
+    int succeeded;
+    char* error;
+} IdaxScriptCompilationResult;
+
+typedef struct IdaxScriptExecutionResult {
+    int succeeded;
+    IdaxScriptValueHandle value;
+    char* error;
+} IdaxScriptExecutionResult;
+
+typedef struct IdaxScriptIntegerExecutionResult {
+    int succeeded;
+    int64_t value;
+    char* error;
+} IdaxScriptIntegerExecutionResult;
+
+void idax_script_value_free(IdaxScriptValueHandle value);
+int idax_script_value_clone(IdaxScriptValueHandle value,
+                            IdaxScriptValueHandle* out);
+int idax_script_value_integer(int64_t value, IdaxScriptValueHandle* out);
+int idax_script_value_string(const uint8_t* value, size_t length,
+                             IdaxScriptValueHandle* out);
+int idax_script_value_floating(double value, IdaxScriptValueHandle* out);
+int idax_script_value_object(IdaxScriptValueHandle* out);
+int idax_script_value_kind(IdaxScriptValueHandle value, int* out);
+int idax_script_value_as_integer(IdaxScriptValueHandle value, int64_t* out);
+int idax_script_value_as_floating(IdaxScriptValueHandle value, double* out);
+int idax_script_value_as_string(IdaxScriptValueHandle value,
+                                uint8_t** out, size_t* length);
+int idax_script_value_coerce_integer(IdaxScriptValueHandle value, int64_t* out);
+int idax_script_value_coerce_floating(IdaxScriptValueHandle value, double* out);
+int idax_script_value_coerce_string(IdaxScriptValueHandle value,
+                                    uint8_t** out, size_t* length);
+int idax_script_value_render(IdaxScriptValueHandle value, const char* name,
+                             size_t indent, char** out);
+int idax_script_value_deep_copy(IdaxScriptValueHandle value,
+                                IdaxScriptValueHandle* out);
+int idax_script_value_class_name(IdaxScriptValueHandle value, char** out);
+int idax_script_value_attribute(IdaxScriptValueHandle value, const char* name,
+                                int use_handler, IdaxScriptValueHandle* out);
+int idax_script_value_set_attribute(IdaxScriptValueHandle value,
+                                    const char* name,
+                                    IdaxScriptValueHandle attribute,
+                                    int use_handler);
+int idax_script_value_attribute_names(IdaxScriptValueHandle value,
+                                      char*** out, size_t* count);
+void idax_script_string_array_free(char** values, size_t count);
+int idax_script_value_remove_attribute(IdaxScriptValueHandle value,
+                                       const char* name, int* out);
+int idax_script_value_slice(IdaxScriptValueHandle value, size_t begin,
+                            size_t end, IdaxScriptValueHandle* out);
+int idax_script_value_replace_slice(IdaxScriptValueHandle value, size_t begin,
+                                    size_t end,
+                                    IdaxScriptValueHandle replacement);
+int idax_script_value_dereference(IdaxScriptValueHandle value, int mode,
+                                  IdaxScriptValueHandle* out);
+
+void idax_script_compilation_result_free(IdaxScriptCompilationResult* result);
+void idax_script_execution_result_free(IdaxScriptExecutionResult* result);
+void idax_script_integer_execution_result_free(
+    IdaxScriptIntegerExecutionResult* result);
+
+int idax_script_evaluate(const char* expression, uint64_t where,
+                         IdaxScriptExecutionResult* out);
+int idax_script_evaluate_idc(const char* expression, uint64_t where,
+                             IdaxScriptExecutionResult* out);
+int idax_script_evaluate_integer(const char* expression, uint64_t where,
+                                 IdaxScriptIntegerExecutionResult* out);
+int idax_script_compile_file(const char* path,
+                             const IdaxScriptFileCompileOptions* options,
+                             IdaxScriptCompilationResult* out);
+int idax_script_compile_text(const char* source,
+                             const IdaxScriptCompileOptions* options,
+                             IdaxScriptCompilationResult* out);
+int idax_script_compile_snippet(const char* function_name, const char* body,
+                                const IdaxScriptCompileOptions* options,
+                                IdaxScriptCompilationResult* out);
+int idax_script_call(const char* function_name,
+                     const IdaxScriptValueHandle* arguments,
+                     size_t argument_count,
+                     const IdaxScriptResolvedName* resolved_names,
+                     size_t resolved_name_count,
+                     IdaxScriptExecutionResult* out);
+int idax_script_execute_script(const char* path, const char* function_name,
+                               const IdaxScriptValueHandle* arguments,
+                               size_t argument_count,
+                               const IdaxScriptFileCompileOptions* options,
+                               IdaxScriptExecutionResult* out);
+int idax_script_evaluate_snippet(const char* source,
+                                 const IdaxScriptResolvedName* resolved_names,
+                                 size_t resolved_name_count,
+                                 IdaxScriptExecutionResult* out);
+int idax_script_set_include_paths(const char* const* paths, size_t count);
+int idax_script_append_include_paths(const char* const* paths, size_t count);
+int idax_script_resolve_file(const char* file, char** out, int* has_value);
+int idax_script_execute_system_script(const char* file,
+                                      int complain_if_missing);
+int idax_script_function_names(const char* prefix, size_t maximum,
+                               char*** out, size_t* count);
+int idax_script_global(const char* name, IdaxScriptValueHandle* out,
+                       int* has_value);
+int idax_script_set_global(const char* name, IdaxScriptValueHandle value,
+                           int* created);
+int idax_script_reference_global(const char* name,
+                                 IdaxScriptValueHandle* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Database (ida::database)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

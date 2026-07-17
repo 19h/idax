@@ -20,7 +20,7 @@ use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, bookmark, comment, data, database, decompiler, directory, entry, event, exception,
     fixup, function, graph, instruction, lines, name, navigation, offset, parser, plugin, problem,
-    registry, search, segment, storage, types, ui, undo, xref,
+    registry, script, search, segment, storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -1209,6 +1209,178 @@ fn parser_roundtrip() {
     );
     parser::select(None).unwrap();
     let _ = parser::selected_name().unwrap();
+}
+
+fn script_roundtrip() {
+    require_db!();
+
+    // Raw ABI failures must not preserve a caller's stale scalar output.
+    unsafe {
+        let bytes = b"not-an-integer";
+        let mut handle: idax_sys::IdaxScriptValueHandle = std::ptr::null_mut();
+        assert_eq!(
+            idax_sys::idax_script_value_string(bytes.as_ptr(), bytes.len(), &mut handle,),
+            0
+        );
+        assert!(!handle.is_null());
+        let mut stale = 99_i64;
+        assert_ne!(
+            idax_sys::idax_script_value_as_integer(handle, &mut stale),
+            0
+        );
+        assert_eq!(stale, 0);
+        idax_sys::idax_script_value_free(handle);
+    }
+
+    let integer = script::Value::integer(42);
+    assert_eq!(integer.kind().unwrap(), script::ValueKind::Integer);
+    assert_eq!(integer.as_integer().unwrap(), 42);
+    assert!(!integer.coerce_string().unwrap().is_empty());
+
+    let embedded = script::Value::string("ab\0cd");
+    assert_eq!(embedded.kind().unwrap(), script::ValueKind::String);
+    assert_eq!(embedded.as_string().unwrap().as_bytes(), b"ab\0cd");
+    assert!(embedded.as_integer().is_err());
+
+    let mutable = script::Value::string("abcdef");
+    let mut copied = mutable.clone();
+    copied
+        .replace_slice(2, 4, &script::Value::string("XY"))
+        .unwrap();
+    assert_eq!(mutable.as_string().unwrap(), "abcdef");
+    assert_eq!(copied.slice(1, 5).unwrap().as_string().unwrap(), "bXYe");
+    assert!(mutable.slice(5, 4).is_err());
+
+    let mut object = script::Value::object().unwrap();
+    object
+        .set_attribute("answer", &script::Value::integer(7), false)
+        .unwrap();
+    let mut shallow = object.clone();
+    shallow
+        .set_attribute("answer", &script::Value::integer(9), false)
+        .unwrap();
+    assert_eq!(
+        object
+            .attribute("answer", false)
+            .unwrap()
+            .as_integer()
+            .unwrap(),
+        9
+    );
+    let mut deep = object.deep_copy().unwrap();
+    deep.set_attribute("answer", &script::Value::integer(11), false)
+        .unwrap();
+    assert_eq!(
+        deep.attribute("answer", false)
+            .unwrap()
+            .as_integer()
+            .unwrap(),
+        11
+    );
+    assert_eq!(
+        object
+            .attribute("answer", false)
+            .unwrap()
+            .as_integer()
+            .unwrap(),
+        9
+    );
+    assert_eq!(object.attribute_names().unwrap(), vec!["answer"]);
+    assert!(!object.remove_attribute("missing").unwrap());
+    assert!(!object.class_name().unwrap().is_empty());
+
+    let falsey = script::evaluate_idc_current("0").unwrap();
+    assert!(falsey.succeeded);
+    assert_eq!(falsey.value.as_integer().unwrap(), 0);
+    let numeric = script::evaluate_integer_current("21 * 2").unwrap();
+    assert!(numeric.succeeded);
+    assert_eq!(numeric.value, 42);
+    let failure = script::evaluate_idc_current("1 / 0").unwrap();
+    assert!(!failure.succeeded);
+    assert!(!failure.error.is_empty());
+    assert_eq!(failure.value.kind().unwrap(), script::ValueKind::Object);
+
+    let suffix = std::process::id();
+    let function_name = format!("idax_rust_script_{suffix}");
+    let options = script::CompileOptions {
+        only_safe_functions: false,
+        resolved_names: vec![script::ResolvedName::new("IDAX_RUST_CONST", 40)],
+    };
+    let compiled =
+        script::compile_snippet(&function_name, "return IDAX_RUST_CONST + 2;", &options).unwrap();
+    assert!(compiled.succeeded, "{}", compiled.error);
+    let called = script::call(&function_name, &[], &[]).unwrap();
+    assert!(called.succeeded, "{}", called.error);
+    assert_eq!(called.value.as_integer().unwrap(), 42);
+    let evaluated =
+        script::evaluate_snippet("return IDAX_RUST_CONST + 2;", &options.resolved_names).unwrap();
+    assert!(evaluated.succeeded, "{}", evaluated.error);
+    assert_eq!(evaluated.value.as_integer().unwrap(), 42);
+
+    let invalid = script::CompileOptions {
+        only_safe_functions: false,
+        resolved_names: vec![script::ResolvedName::new("BAD_SENTINEL", BAD_ADDRESS)],
+    };
+    let invalid_result = script::compile_text(
+        "static idax_rust_invalid() { return BAD_SENTINEL; }",
+        &invalid,
+    )
+    .unwrap_err();
+    assert_eq!(invalid_result.category, ErrorCategory::Validation);
+
+    let global_name = format!("idax_rust_global_{suffix}");
+    assert!(script::global(&global_name).unwrap().is_none());
+    assert!(script::set_global(&global_name, &script::Value::integer(123)).unwrap());
+    assert_eq!(
+        script::global(&global_name)
+            .unwrap()
+            .unwrap()
+            .as_integer()
+            .unwrap(),
+        123
+    );
+    let reference = script::reference_global(&global_name).unwrap();
+    assert_eq!(reference.kind().unwrap(), script::ValueKind::Reference);
+    assert_eq!(
+        reference
+            .dereference(script::DereferenceMode::Recursive)
+            .unwrap()
+            .as_integer()
+            .unwrap(),
+        123
+    );
+    assert!(!script::set_global(&global_name, &script::Value::integer(456)).unwrap());
+
+    let fixture = FIXTURE_COPY.get().expect("fixture path");
+    let directory = fixture.parent().expect("fixture directory");
+    let file_name = format!("{function_name}.idc");
+    let script_path = directory.join(&file_name);
+    std::fs::write(
+        &script_path,
+        format!("static {function_name}_file(x) {{ return x * 2; }}\n"),
+    )
+    .unwrap();
+    script::set_include_paths(&[directory.to_string_lossy().into_owned()]).unwrap();
+    assert_eq!(
+        script::resolve_file(&file_name).unwrap(),
+        Some(script_path.to_string_lossy().into_owned())
+    );
+    let arguments = [script::Value::integer(21)];
+    let executed = script::execute_script(
+        &script_path.to_string_lossy(),
+        &format!("{function_name}_file"),
+        &arguments,
+        &script::FileCompileOptions::default(),
+    )
+    .unwrap();
+    assert!(executed.succeeded, "{}", executed.error);
+    assert_eq!(executed.value.as_integer().unwrap(), 42);
+    std::fs::remove_file(script_path).unwrap();
+    assert!(!script::function_names("", 16).unwrap().is_empty());
+    assert_eq!(
+        script::function_names("", 0).unwrap_err().category,
+        ErrorCategory::Validation
+    );
 }
 
 fn directory_roundtrip() {
@@ -3401,6 +3573,7 @@ static TEST_CASES: &[TestCase] = &[
     ("navigation_roundtrip", navigation_roundtrip),
     ("exception_roundtrip", exception_roundtrip),
     ("parser_roundtrip", parser_roundtrip),
+    ("script_roundtrip", script_roundtrip),
     ("directory_roundtrip", directory_roundtrip),
     ("registry_roundtrip", registry_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),

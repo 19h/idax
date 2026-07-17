@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'offset', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'bookmark', 'navigation', 'exception', 'parser', 'directory', 'registry', 'registers',
+        'undo', 'problem', 'bookmark', 'navigation', 'exception', 'parser', 'script', 'directory', 'registry', 'registers',
         'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
@@ -806,6 +806,44 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace parser');
         expect(dts).toContain("type InputKind = 'sourceText' | 'filePath'");
         expect(dts).toContain('function selectedName(): string | null');
+    });
+
+    it('should have opaque IDC value and execution functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'integer', 'floating', 'string', 'object', 'evaluate', 'evaluateIdc',
+            'evaluateInteger', 'compileFile', 'compileText', 'compileSnippet',
+            'call', 'executeScript', 'evaluateSnippet', 'setIncludePaths',
+            'appendIncludePaths', 'resolveFile', 'executeSystemScript',
+            'functionNames', 'global', 'setGlobal', 'referenceGlobal',
+        ]) {
+            expect(typeof idax.script[fn]).toBe('function');
+        }
+        const integer = idax.script.integer(42n);
+        expect(integer.kind()).toBe('integer');
+        expect(integer.asInteger()).toBe(42n);
+        const zero = new idax.script.Value();
+        expect(zero.kind()).toBe('integer');
+        expect(zero.asInteger()).toBe(0n);
+        expect(integer.copy().asInteger()).toBe(42n);
+        expect(() => integer.asString()).toThrow(/exact kind/);
+        expect(() => idax.script.integer(1e100)).toThrow(/safe integer/);
+        expect(() => idax.script.evaluateIdc('1\0+2')).toThrow(/embedded NUL/);
+        expect(() => idax.script.compileText('return VALUE;', {
+            resolvedNames: [{ name: 'VALUE', value: 0xFFFFFFFFFFFFFFFFn }],
+        })).toThrow(/unresolved sentinel/);
+        expect(() => idax.script.functionNames('', 0)).toThrow(/\[1, INT_MAX\]/);
+        expect(() => integer.attribute('missing', 1)).toThrow(/must be boolean/);
+        expect(() => integer.setAttribute('value', zero, 'yes')).toThrow(/must be boolean/);
+        expect(() => idax.script.executeSystemScript('missing.idc', 1))
+            .toThrow(/must be boolean/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace script');
+        expect(dts).toContain("| 'opaquePointer' | 'reference'");
+        expect(dts).toContain('function evaluateIdc(');
     });
 
     it('should have an opaque standard directory-tree factory and declarations', () => {

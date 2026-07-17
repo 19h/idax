@@ -34,6 +34,10 @@
 | `find_text(..., SEARCH_REGEX)` | `ida::search::text(query, start, TextOptions{.regex=true})` |
 | `auto_wait()` | `ida::analysis::wait()` |
 | `plan_ea(ea)` | `ida::analysis::schedule(ea)` |
+| `eval_expr` / `eval_idc_expr` / `eval_expr_long` | `ida::script::evaluate` / `evaluate_idc` / `evaluate_integer` with structured outcomes |
+| `compile_idc_text` / `compile_idc_snippet` / `compile_idc_file` | `ida::script::compile_text` / `compile_snippet` / `compile_file` with semantic options |
+| `call_idc_func` / `exec_idc_script` / `eval_idc_snippet` | `ida::script::call` / `execute_script` / `evaluate_snippet` with owned values and retained exception results |
+| `idc_value_t`, `get_idcv_attr`, `set_idcv_attr`, `find_idc_gvar` | opaque `ida::script::Value` plus attribute/global/reference operations |
 | `open_linput(path, false)` | `ida::loader::InputFile` (provided in callbacks) |
 | `file2base(li, off, ea1, ea2, p)` | `ida::loader::file_to_database(handle, off, ea, size, p)` |
 | `mem2base(ptr, ea1, ea2, fpos)` | `ida::loader::memory_to_database(ptr, ea, size)` |

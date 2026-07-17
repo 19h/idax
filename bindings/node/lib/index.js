@@ -115,6 +115,7 @@ module.exports.bookmark = native.bookmark;
 module.exports.navigation = native.navigation;
 module.exports.exception = native.exception;
 module.exports.parser = native.parser;
+module.exports.script = native.script;
 module.exports.directory = native.directory;
 module.exports.registry = native.registry;
 module.exports.registers = native.registers;

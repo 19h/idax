@@ -19,6 +19,7 @@ PYBIND11_MODULE(_native, module) {
     idax::python::bind_navigation(module);
     idax::python::bind_exception(module);
     idax::python::bind_parser(module);
+    idax::python::bind_script(module);
     idax::python::bind_directory(module);
     idax::python::bind_registry(module);
     idax::python::bind_registers(module);

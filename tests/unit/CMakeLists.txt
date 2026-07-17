@@ -16,9 +16,9 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/api_surface_parity_test.cpp"
 string(REGEX MATCHALL "#include <ida/[a-z_]+\\.hpp>"
     IDAX_UMBRELLA_INCLUDES "${IDAX_UMBRELLA_SOURCE}")
 list(LENGTH IDAX_UMBRELLA_INCLUDES IDAX_UMBRELLA_INCLUDE_COUNT)
-if(NOT IDAX_UMBRELLA_INCLUDE_COUNT EQUAL 39)
+if(NOT IDAX_UMBRELLA_INCLUDE_COUNT EQUAL 40)
     message(FATAL_ERROR
-        "API surface inventory expected 39 authoritative umbrella includes; "
+        "API surface inventory expected 40 authoritative umbrella includes; "
         "found ${IDAX_UMBRELLA_INCLUDE_COUNT}. Update the parity inventory.")
 endif()
 foreach(IDAX_UMBRELLA_INCLUDE IN LISTS IDAX_UMBRELLA_INCLUDES)

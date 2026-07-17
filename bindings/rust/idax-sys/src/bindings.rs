@@ -32,6 +32,451 @@ unsafe extern "C" {
     #[doc = " Free a malloc'd uint64 array returned by an idax function."]
     pub fn idax_free_addresses(p: *mut u64);
 }
+pub type IdaxScriptValueHandle = *mut ::std::os::raw::c_void;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxScriptResolvedName {
+    pub name: *const ::std::os::raw::c_char,
+    pub value: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptResolvedName"][::std::mem::size_of::<IdaxScriptResolvedName>() - 16usize];
+    ["Alignment of IdaxScriptResolvedName"]
+        [::std::mem::align_of::<IdaxScriptResolvedName>() - 8usize];
+    ["Offset of field: IdaxScriptResolvedName::name"]
+        [::std::mem::offset_of!(IdaxScriptResolvedName, name) - 0usize];
+    ["Offset of field: IdaxScriptResolvedName::value"]
+        [::std::mem::offset_of!(IdaxScriptResolvedName, value) - 8usize];
+};
+impl Default for IdaxScriptResolvedName {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxScriptCompileOptions {
+    pub only_safe_functions: ::std::os::raw::c_int,
+    pub resolved_names: *const IdaxScriptResolvedName,
+    pub resolved_name_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptCompileOptions"]
+        [::std::mem::size_of::<IdaxScriptCompileOptions>() - 24usize];
+    ["Alignment of IdaxScriptCompileOptions"]
+        [::std::mem::align_of::<IdaxScriptCompileOptions>() - 8usize];
+    ["Offset of field: IdaxScriptCompileOptions::only_safe_functions"]
+        [::std::mem::offset_of!(IdaxScriptCompileOptions, only_safe_functions) - 0usize];
+    ["Offset of field: IdaxScriptCompileOptions::resolved_names"]
+        [::std::mem::offset_of!(IdaxScriptCompileOptions, resolved_names) - 8usize];
+    ["Offset of field: IdaxScriptCompileOptions::resolved_name_count"]
+        [::std::mem::offset_of!(IdaxScriptCompileOptions, resolved_name_count) - 16usize];
+};
+impl Default for IdaxScriptCompileOptions {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxScriptFileCompileOptions {
+    pub delete_macros_after_compilation: ::std::os::raw::c_int,
+    pub allow_program_labels: ::std::os::raw::c_int,
+    pub only_safe_functions: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptFileCompileOptions"]
+        [::std::mem::size_of::<IdaxScriptFileCompileOptions>() - 12usize];
+    ["Alignment of IdaxScriptFileCompileOptions"]
+        [::std::mem::align_of::<IdaxScriptFileCompileOptions>() - 4usize];
+    ["Offset of field: IdaxScriptFileCompileOptions::delete_macros_after_compilation"][::std::mem::offset_of!(
+        IdaxScriptFileCompileOptions,
+        delete_macros_after_compilation
+    ) - 0usize];
+    ["Offset of field: IdaxScriptFileCompileOptions::allow_program_labels"]
+        [::std::mem::offset_of!(IdaxScriptFileCompileOptions, allow_program_labels) - 4usize];
+    ["Offset of field: IdaxScriptFileCompileOptions::only_safe_functions"]
+        [::std::mem::offset_of!(IdaxScriptFileCompileOptions, only_safe_functions) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxScriptCompilationResult {
+    pub succeeded: ::std::os::raw::c_int,
+    pub error: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptCompilationResult"]
+        [::std::mem::size_of::<IdaxScriptCompilationResult>() - 16usize];
+    ["Alignment of IdaxScriptCompilationResult"]
+        [::std::mem::align_of::<IdaxScriptCompilationResult>() - 8usize];
+    ["Offset of field: IdaxScriptCompilationResult::succeeded"]
+        [::std::mem::offset_of!(IdaxScriptCompilationResult, succeeded) - 0usize];
+    ["Offset of field: IdaxScriptCompilationResult::error"]
+        [::std::mem::offset_of!(IdaxScriptCompilationResult, error) - 8usize];
+};
+impl Default for IdaxScriptCompilationResult {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxScriptExecutionResult {
+    pub succeeded: ::std::os::raw::c_int,
+    pub value: IdaxScriptValueHandle,
+    pub error: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptExecutionResult"]
+        [::std::mem::size_of::<IdaxScriptExecutionResult>() - 24usize];
+    ["Alignment of IdaxScriptExecutionResult"]
+        [::std::mem::align_of::<IdaxScriptExecutionResult>() - 8usize];
+    ["Offset of field: IdaxScriptExecutionResult::succeeded"]
+        [::std::mem::offset_of!(IdaxScriptExecutionResult, succeeded) - 0usize];
+    ["Offset of field: IdaxScriptExecutionResult::value"]
+        [::std::mem::offset_of!(IdaxScriptExecutionResult, value) - 8usize];
+    ["Offset of field: IdaxScriptExecutionResult::error"]
+        [::std::mem::offset_of!(IdaxScriptExecutionResult, error) - 16usize];
+};
+impl Default for IdaxScriptExecutionResult {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxScriptIntegerExecutionResult {
+    pub succeeded: ::std::os::raw::c_int,
+    pub value: i64,
+    pub error: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxScriptIntegerExecutionResult"]
+        [::std::mem::size_of::<IdaxScriptIntegerExecutionResult>() - 24usize];
+    ["Alignment of IdaxScriptIntegerExecutionResult"]
+        [::std::mem::align_of::<IdaxScriptIntegerExecutionResult>() - 8usize];
+    ["Offset of field: IdaxScriptIntegerExecutionResult::succeeded"]
+        [::std::mem::offset_of!(IdaxScriptIntegerExecutionResult, succeeded) - 0usize];
+    ["Offset of field: IdaxScriptIntegerExecutionResult::value"]
+        [::std::mem::offset_of!(IdaxScriptIntegerExecutionResult, value) - 8usize];
+    ["Offset of field: IdaxScriptIntegerExecutionResult::error"]
+        [::std::mem::offset_of!(IdaxScriptIntegerExecutionResult, error) - 16usize];
+};
+impl Default for IdaxScriptIntegerExecutionResult {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_script_value_free(value: IdaxScriptValueHandle);
+}
+unsafe extern "C" {
+    pub fn idax_script_value_clone(
+        value: IdaxScriptValueHandle,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_integer(
+        value: i64,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_string(
+        value: *const u8,
+        length: usize,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_floating(
+        value: f64,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_object(out: *mut IdaxScriptValueHandle) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_kind(
+        value: IdaxScriptValueHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_as_integer(
+        value: IdaxScriptValueHandle,
+        out: *mut i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_as_floating(
+        value: IdaxScriptValueHandle,
+        out: *mut f64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_as_string(
+        value: IdaxScriptValueHandle,
+        out: *mut *mut u8,
+        length: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_coerce_integer(
+        value: IdaxScriptValueHandle,
+        out: *mut i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_coerce_floating(
+        value: IdaxScriptValueHandle,
+        out: *mut f64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_coerce_string(
+        value: IdaxScriptValueHandle,
+        out: *mut *mut u8,
+        length: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_render(
+        value: IdaxScriptValueHandle,
+        name: *const ::std::os::raw::c_char,
+        indent: usize,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_deep_copy(
+        value: IdaxScriptValueHandle,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_class_name(
+        value: IdaxScriptValueHandle,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_attribute(
+        value: IdaxScriptValueHandle,
+        name: *const ::std::os::raw::c_char,
+        use_handler: ::std::os::raw::c_int,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_set_attribute(
+        value: IdaxScriptValueHandle,
+        name: *const ::std::os::raw::c_char,
+        attribute: IdaxScriptValueHandle,
+        use_handler: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_attribute_names(
+        value: IdaxScriptValueHandle,
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_string_array_free(values: *mut *mut ::std::os::raw::c_char, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_script_value_remove_attribute(
+        value: IdaxScriptValueHandle,
+        name: *const ::std::os::raw::c_char,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_slice(
+        value: IdaxScriptValueHandle,
+        begin: usize,
+        end: usize,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_replace_slice(
+        value: IdaxScriptValueHandle,
+        begin: usize,
+        end: usize,
+        replacement: IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_value_dereference(
+        value: IdaxScriptValueHandle,
+        mode: ::std::os::raw::c_int,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_compilation_result_free(result: *mut IdaxScriptCompilationResult);
+}
+unsafe extern "C" {
+    pub fn idax_script_execution_result_free(result: *mut IdaxScriptExecutionResult);
+}
+unsafe extern "C" {
+    pub fn idax_script_integer_execution_result_free(result: *mut IdaxScriptIntegerExecutionResult);
+}
+unsafe extern "C" {
+    pub fn idax_script_evaluate(
+        expression: *const ::std::os::raw::c_char,
+        where_: u64,
+        out: *mut IdaxScriptExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_evaluate_idc(
+        expression: *const ::std::os::raw::c_char,
+        where_: u64,
+        out: *mut IdaxScriptExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_evaluate_integer(
+        expression: *const ::std::os::raw::c_char,
+        where_: u64,
+        out: *mut IdaxScriptIntegerExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_compile_file(
+        path: *const ::std::os::raw::c_char,
+        options: *const IdaxScriptFileCompileOptions,
+        out: *mut IdaxScriptCompilationResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_compile_text(
+        source: *const ::std::os::raw::c_char,
+        options: *const IdaxScriptCompileOptions,
+        out: *mut IdaxScriptCompilationResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_compile_snippet(
+        function_name: *const ::std::os::raw::c_char,
+        body: *const ::std::os::raw::c_char,
+        options: *const IdaxScriptCompileOptions,
+        out: *mut IdaxScriptCompilationResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_call(
+        function_name: *const ::std::os::raw::c_char,
+        arguments: *const IdaxScriptValueHandle,
+        argument_count: usize,
+        resolved_names: *const IdaxScriptResolvedName,
+        resolved_name_count: usize,
+        out: *mut IdaxScriptExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_execute_script(
+        path: *const ::std::os::raw::c_char,
+        function_name: *const ::std::os::raw::c_char,
+        arguments: *const IdaxScriptValueHandle,
+        argument_count: usize,
+        options: *const IdaxScriptFileCompileOptions,
+        out: *mut IdaxScriptExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_evaluate_snippet(
+        source: *const ::std::os::raw::c_char,
+        resolved_names: *const IdaxScriptResolvedName,
+        resolved_name_count: usize,
+        out: *mut IdaxScriptExecutionResult,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_set_include_paths(
+        paths: *const *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_append_include_paths(
+        paths: *const *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_resolve_file(
+        file: *const ::std::os::raw::c_char,
+        out: *mut *mut ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_execute_system_script(
+        file: *const ::std::os::raw::c_char,
+        complain_if_missing: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_function_names(
+        prefix: *const ::std::os::raw::c_char,
+        maximum: usize,
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_global(
+        name: *const ::std::os::raw::c_char,
+        out: *mut IdaxScriptValueHandle,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_set_global(
+        name: *const ::std::os::raw::c_char,
+        value: IdaxScriptValueHandle,
+        created: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_script_reference_global(
+        name: *const ::std::os::raw::c_char,
+        out: *mut IdaxScriptValueHandle,
+    ) -> ::std::os::raw::c_int;
+}
 unsafe extern "C" {
     pub fn idax_database_init(
         argc: ::std::os::raw::c_int,

@@ -380,6 +380,817 @@ void idax_free_addresses(uint64_t* p) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Script / IDC values and synchronous execution
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::script::Value* script_value(IdaxScriptValueHandle handle) {
+    return static_cast<ida::script::Value*>(handle);
+}
+
+ida::Result<std::vector<ida::script::ResolvedName>> script_resolved_names(
+    const IdaxScriptResolvedName* values, size_t count) {
+    if (count != 0 && values == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Script resolved-name pointer is null for a nonempty array"));
+    }
+    std::vector<ida::script::ResolvedName> result;
+    result.reserve(count);
+    for (size_t index = 0; index < count; ++index) {
+        if (values[index].name == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "Script resolved name is null", std::to_string(index)));
+        }
+        result.push_back({values[index].name, values[index].value});
+    }
+    return result;
+}
+
+ida::Result<ida::script::CompileOptions> script_compile_options(
+    const IdaxScriptCompileOptions* input) {
+    ida::script::CompileOptions result;
+    if (input == nullptr)
+        return result;
+    result.only_safe_functions = input->only_safe_functions != 0;
+    auto names = script_resolved_names(
+        input->resolved_names, input->resolved_name_count);
+    if (!names)
+        return std::unexpected(names.error());
+    result.resolved_names = std::move(*names);
+    return result;
+}
+
+ida::script::FileCompileOptions script_file_compile_options(
+    const IdaxScriptFileCompileOptions* input) {
+    ida::script::FileCompileOptions result;
+    if (input != nullptr) {
+        result.delete_macros_after_compilation =
+            input->delete_macros_after_compilation != 0;
+        result.allow_program_labels = input->allow_program_labels != 0;
+        result.only_safe_functions = input->only_safe_functions != 0;
+    }
+    return result;
+}
+
+ida::Result<std::vector<ida::script::Value>> script_arguments(
+    const IdaxScriptValueHandle* values, size_t count) {
+    if (count != 0 && values == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Script argument pointer is null for a nonempty array"));
+    }
+    std::vector<ida::script::Value> result;
+    result.reserve(count);
+    for (size_t index = 0; index < count; ++index) {
+        auto* value = script_value(values[index]);
+        if (value == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "Script argument handle is null", std::to_string(index)));
+        }
+        result.push_back(*value);
+    }
+    return result;
+}
+
+int script_copy_bytes(const std::string& value, uint8_t** out,
+                      size_t* length) {
+    if (out == nullptr || length == nullptr) {
+        return fail(ida::Error::validation(
+            "Script byte output pointer is null"));
+    }
+    *out = nullptr;
+    *length = value.size();
+    if (value.empty())
+        return 0;
+    auto* bytes = static_cast<uint8_t*>(std::malloc(value.size()));
+    if (bytes == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    std::memcpy(bytes, value.data(), value.size());
+    *out = bytes;
+    return 0;
+}
+
+int script_fill_compilation(const ida::script::CompilationResult& input,
+                            IdaxScriptCompilationResult* out) {
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script compilation output pointer is null"));
+    *out = {};
+    out->succeeded = input.succeeded ? 1 : 0;
+    out->error = dup_string(input.error);
+    if (out->error == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int script_fill_execution(ida::script::ExecutionResult input,
+                          IdaxScriptExecutionResult* out) {
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script execution output pointer is null"));
+    *out = {};
+    out->succeeded = input.succeeded ? 1 : 0;
+    auto* value = new (std::nothrow) ida::script::Value(std::move(input.value));
+    if (value == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    out->error = dup_string(input.error);
+    if (out->error == nullptr) {
+        delete value;
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    out->value = value;
+    return 0;
+}
+
+int script_fill_integer_execution(
+    const ida::script::IntegerExecutionResult& input,
+    IdaxScriptIntegerExecutionResult* out) {
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script integer-execution output pointer is null"));
+    *out = {};
+    out->succeeded = input.succeeded ? 1 : 0;
+    out->value = input.value;
+    out->error = dup_string(input.error);
+    if (out->error == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+ida::Result<std::vector<std::string>> script_paths(
+    const char* const* paths, size_t count) {
+    if (count != 0 && paths == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Script path pointer is null for a nonempty array"));
+    }
+    std::vector<std::string> result;
+    result.reserve(count);
+    for (size_t index = 0; index < count; ++index) {
+        if (paths[index] == nullptr) {
+            return std::unexpected(ida::Error::validation(
+                "Script path is null", std::to_string(index)));
+        }
+        result.emplace_back(paths[index]);
+    }
+    return result;
+}
+
+} // anonymous namespace
+
+void idax_script_value_free(IdaxScriptValueHandle value) {
+    delete script_value(value);
+}
+
+int idax_script_value_clone(IdaxScriptValueHandle value,
+                            IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    *out = new (std::nothrow) ida::script::Value(*script_value(value));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_integer(int64_t value, IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value output pointer is null"));
+    *out = new (std::nothrow) ida::script::Value(value);
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_string(const uint8_t* value, size_t length,
+                             IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (out == nullptr || (length != 0 && value == nullptr))
+        return fail(ida::Error::validation(
+            "Script string input or output pointer is null"));
+    const char* data = length == 0 ? "" : reinterpret_cast<const char*>(value);
+    *out = new (std::nothrow) ida::script::Value(
+        std::string_view(data, length));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_floating(double value, IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value output pointer is null"));
+    auto result = ida::script::Value::floating(value);
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_object(IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value output pointer is null"));
+    auto result = ida::script::Value::object();
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_kind(IdaxScriptValueHandle value, int* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = 0;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    auto result = script_value(value)->kind();
+    if (!result)
+        return fail(result.error());
+    *out = static_cast<int>(*result);
+    return 0;
+}
+
+int idax_script_value_as_integer(IdaxScriptValueHandle value, int64_t* out) {
+    if (out != nullptr)
+        *out = 0;
+    if (value == nullptr || out == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    }
+    RETURN_RESULT_VALUE(script_value(value)->as_integer());
+}
+
+int idax_script_value_as_floating(IdaxScriptValueHandle value, double* out) {
+    if (out != nullptr)
+        *out = 0.0;
+    if (value == nullptr || out == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    }
+    RETURN_RESULT_VALUE(script_value(value)->as_floating());
+}
+
+int idax_script_value_as_string(IdaxScriptValueHandle value,
+                                uint8_t** out, size_t* length) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (length != nullptr)
+        *length = 0;
+    if (value == nullptr || out == nullptr || length == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or byte output pointer is null"));
+    auto result = script_value(value)->as_string();
+    if (!result)
+        return fail(result.error());
+    return script_copy_bytes(*result, out, length);
+}
+
+int idax_script_value_coerce_integer(IdaxScriptValueHandle value,
+                                     int64_t* out) {
+    if (out != nullptr)
+        *out = 0;
+    if (value == nullptr || out == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    }
+    RETURN_RESULT_VALUE(script_value(value)->coerce_integer());
+}
+
+int idax_script_value_coerce_floating(IdaxScriptValueHandle value,
+                                      double* out) {
+    if (out != nullptr)
+        *out = 0.0;
+    if (value == nullptr || out == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    }
+    RETURN_RESULT_VALUE(script_value(value)->coerce_floating());
+}
+
+int idax_script_value_coerce_string(IdaxScriptValueHandle value,
+                                    uint8_t** out, size_t* length) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (length != nullptr)
+        *length = 0;
+    if (value == nullptr || out == nullptr || length == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or byte output pointer is null"));
+    auto result = script_value(value)->coerce_string();
+    if (!result)
+        return fail(result.error());
+    return script_copy_bytes(*result, out, length);
+}
+
+int idax_script_value_render(IdaxScriptValueHandle value, const char* name,
+                             size_t indent, char** out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    auto result = name == nullptr
+        ? script_value(value)->render(std::nullopt, indent)
+        : script_value(value)->render(std::string_view(name), indent);
+    if (!result)
+        return fail(result.error());
+    *out = dup_string(*result);
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int idax_script_value_deep_copy(IdaxScriptValueHandle value,
+                                IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    auto result = script_value(value)->deep_copy();
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_class_name(IdaxScriptValueHandle value, char** out) {
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr) {
+        clear_error();
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    }
+    RETURN_RESULT_STRING(script_value(value)->class_name());
+}
+
+int idax_script_value_attribute(IdaxScriptValueHandle value, const char* name,
+                                int use_handler, IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value, attribute name, or output pointer is null"));
+    auto result = script_value(value)->attribute(name, use_handler != 0);
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_set_attribute(IdaxScriptValueHandle value,
+                                    const char* name,
+                                    IdaxScriptValueHandle attribute,
+                                    int use_handler) {
+    clear_error();
+    if (value == nullptr || name == nullptr || attribute == nullptr)
+        return fail(ida::Error::validation(
+            "Script value, attribute name, or attribute value is null"));
+    auto status = script_value(value)->set_attribute(
+        name, *script_value(attribute), use_handler != 0);
+    if (!status)
+        return fail(status.error());
+    return 0;
+}
+
+int idax_script_value_attribute_names(IdaxScriptValueHandle value,
+                                      char*** out, size_t* count) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (count != nullptr)
+        *count = 0;
+    if (value == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or array output pointer is null"));
+    auto result = script_value(value)->attribute_names();
+    if (!result)
+        return fail(result.error());
+    return fill_string_array(*result, out, count);
+}
+
+void idax_script_string_array_free(char** values, size_t count) {
+    if (values == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        std::free(values[index]);
+    std::free(values);
+}
+
+int idax_script_value_remove_attribute(IdaxScriptValueHandle value,
+                                       const char* name, int* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = 0;
+    if (value == nullptr || name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value, attribute name, or output pointer is null"));
+    auto result = script_value(value)->remove_attribute(name);
+    if (!result)
+        return fail(result.error());
+    *out = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_script_value_slice(IdaxScriptValueHandle value, size_t begin,
+                            size_t end, IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    auto result = script_value(value)->slice(begin, end);
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+int idax_script_value_replace_slice(IdaxScriptValueHandle value, size_t begin,
+                                    size_t end,
+                                    IdaxScriptValueHandle replacement) {
+    clear_error();
+    if (value == nullptr || replacement == nullptr)
+        return fail(ida::Error::validation(
+            "Script value or replacement handle is null"));
+    auto status = script_value(value)->replace_slice(
+        begin, end, *script_value(replacement));
+    if (!status)
+        return fail(status.error());
+    return 0;
+}
+
+int idax_script_value_dereference(IdaxScriptValueHandle value, int mode,
+                                  IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script value handle or output pointer is null"));
+    ida::script::DereferenceMode parsed;
+    switch (mode) {
+        case 0: parsed = ida::script::DereferenceMode::Once; break;
+        case 1: parsed = ida::script::DereferenceMode::Recursive; break;
+        default:
+            return fail(ida::Error::validation(
+                "Invalid script dereference mode", std::to_string(mode)));
+    }
+    auto result = script_value(value)->dereference(parsed);
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+void idax_script_compilation_result_free(IdaxScriptCompilationResult* result) {
+    if (result == nullptr)
+        return;
+    std::free(result->error);
+    result->error = nullptr;
+}
+
+void idax_script_execution_result_free(IdaxScriptExecutionResult* result) {
+    if (result == nullptr)
+        return;
+    idax_script_value_free(result->value);
+    std::free(result->error);
+    result->value = nullptr;
+    result->error = nullptr;
+}
+
+void idax_script_integer_execution_result_free(
+    IdaxScriptIntegerExecutionResult* result) {
+    if (result == nullptr)
+        return;
+    std::free(result->error);
+    result->error = nullptr;
+}
+
+int idax_script_evaluate(const char* expression, uint64_t where,
+                         IdaxScriptExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (expression == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script expression or output pointer is null"));
+    auto result = ida::script::evaluate(expression, where);
+    if (!result)
+        return fail(result.error());
+    return script_fill_execution(std::move(*result), out);
+}
+
+int idax_script_evaluate_idc(const char* expression, uint64_t where,
+                             IdaxScriptExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (expression == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script expression or output pointer is null"));
+    auto result = ida::script::evaluate_idc(expression, where);
+    if (!result)
+        return fail(result.error());
+    return script_fill_execution(std::move(*result), out);
+}
+
+int idax_script_evaluate_integer(const char* expression, uint64_t where,
+                                 IdaxScriptIntegerExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (expression == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script expression or output pointer is null"));
+    auto result = ida::script::evaluate_integer(expression, where);
+    if (!result)
+        return fail(result.error());
+    return script_fill_integer_execution(*result, out);
+}
+
+int idax_script_compile_file(const char* path,
+                             const IdaxScriptFileCompileOptions* options,
+                             IdaxScriptCompilationResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (path == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script path or output pointer is null"));
+    auto result = ida::script::compile_file(
+        path, script_file_compile_options(options));
+    if (!result)
+        return fail(result.error());
+    return script_fill_compilation(*result, out);
+}
+
+int idax_script_compile_text(const char* source,
+                             const IdaxScriptCompileOptions* options,
+                             IdaxScriptCompilationResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (source == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script source or output pointer is null"));
+    auto parsed = script_compile_options(options);
+    if (!parsed)
+        return fail(parsed.error());
+    auto result = ida::script::compile_text(source, *parsed);
+    if (!result)
+        return fail(result.error());
+    return script_fill_compilation(*result, out);
+}
+
+int idax_script_compile_snippet(const char* function_name, const char* body,
+                                const IdaxScriptCompileOptions* options,
+                                IdaxScriptCompilationResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (function_name == nullptr || body == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script function name, body, or output pointer is null"));
+    auto parsed = script_compile_options(options);
+    if (!parsed)
+        return fail(parsed.error());
+    auto result = ida::script::compile_snippet(function_name, body, *parsed);
+    if (!result)
+        return fail(result.error());
+    return script_fill_compilation(*result, out);
+}
+
+int idax_script_call(const char* function_name,
+                     const IdaxScriptValueHandle* arguments,
+                     size_t argument_count,
+                     const IdaxScriptResolvedName* resolved_names,
+                     size_t resolved_name_count,
+                     IdaxScriptExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (function_name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script function name or output pointer is null"));
+    auto args = script_arguments(arguments, argument_count);
+    if (!args)
+        return fail(args.error());
+    auto names = script_resolved_names(resolved_names, resolved_name_count);
+    if (!names)
+        return fail(names.error());
+    auto result = ida::script::call(function_name, *args, *names);
+    if (!result)
+        return fail(result.error());
+    return script_fill_execution(std::move(*result), out);
+}
+
+int idax_script_execute_script(const char* path, const char* function_name,
+                               const IdaxScriptValueHandle* arguments,
+                               size_t argument_count,
+                               const IdaxScriptFileCompileOptions* options,
+                               IdaxScriptExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (path == nullptr || function_name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script path, function name, or output pointer is null"));
+    auto args = script_arguments(arguments, argument_count);
+    if (!args)
+        return fail(args.error());
+    auto result = ida::script::execute_script(
+        path, function_name, *args, script_file_compile_options(options));
+    if (!result)
+        return fail(result.error());
+    return script_fill_execution(std::move(*result), out);
+}
+
+int idax_script_evaluate_snippet(const char* source,
+                                 const IdaxScriptResolvedName* resolved_names,
+                                 size_t resolved_name_count,
+                                 IdaxScriptExecutionResult* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = {};
+    if (source == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script source or output pointer is null"));
+    auto names = script_resolved_names(resolved_names, resolved_name_count);
+    if (!names)
+        return fail(names.error());
+    auto result = ida::script::evaluate_snippet(source, *names);
+    if (!result)
+        return fail(result.error());
+    return script_fill_execution(std::move(*result), out);
+}
+
+int idax_script_set_include_paths(const char* const* paths, size_t count) {
+    clear_error();
+    auto parsed = script_paths(paths, count);
+    if (!parsed)
+        return fail(parsed.error());
+    auto status = ida::script::set_include_paths(*parsed);
+    if (!status)
+        return fail(status.error());
+    return 0;
+}
+
+int idax_script_append_include_paths(const char* const* paths, size_t count) {
+    clear_error();
+    auto parsed = script_paths(paths, count);
+    if (!parsed)
+        return fail(parsed.error());
+    auto status = ida::script::append_include_paths(*parsed);
+    if (!status)
+        return fail(status.error());
+    return 0;
+}
+
+int idax_script_resolve_file(const char* file, char** out, int* has_value) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (has_value != nullptr)
+        *has_value = 0;
+    if (file == nullptr || out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Script filename or output pointer is null"));
+    auto result = ida::script::resolve_file(file);
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = dup_string(**result);
+    if (*out == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    *has_value = 1;
+    return 0;
+}
+
+int idax_script_execute_system_script(const char* file,
+                                      int complain_if_missing) {
+    clear_error();
+    if (file == nullptr)
+        return fail(ida::Error::validation(
+            "Script filename is null"));
+    auto status = ida::script::execute_system_script(
+        file, complain_if_missing != 0);
+    if (!status)
+        return fail(status.error());
+    return 0;
+}
+
+int idax_script_function_names(const char* prefix, size_t maximum,
+                               char*** out, size_t* count) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (count != nullptr)
+        *count = 0;
+    if (prefix == nullptr || out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Script function prefix or output pointer is null"));
+    auto result = ida::script::function_names(prefix, maximum);
+    if (!result)
+        return fail(result.error());
+    return fill_string_array(*result, out, count);
+}
+
+int idax_script_global(const char* name, IdaxScriptValueHandle* out,
+                       int* has_value) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (has_value != nullptr)
+        *has_value = 0;
+    if (name == nullptr || out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Script global name or output pointer is null"));
+    auto result = ida::script::global(name);
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    *out = new (std::nothrow) ida::script::Value(std::move(**result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    *has_value = 1;
+    return 0;
+}
+
+int idax_script_set_global(const char* name, IdaxScriptValueHandle value,
+                           int* created) {
+    clear_error();
+    if (created != nullptr)
+        *created = 0;
+    if (name == nullptr || value == nullptr || created == nullptr)
+        return fail(ida::Error::validation(
+            "Script global name, value, or output pointer is null"));
+    auto result = ida::script::set_global(name, *script_value(value));
+    if (!result)
+        return fail(result.error());
+    *created = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_script_reference_global(const char* name,
+                                 IdaxScriptValueHandle* out) {
+    clear_error();
+    if (out != nullptr)
+        *out = nullptr;
+    if (name == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Script global name or output pointer is null"));
+    auto result = ida::script::reference_global(name);
+    if (!result)
+        return fail(result.error());
+    *out = new (std::nothrow) ida::script::Value(std::move(*result));
+    if (*out == nullptr)
+        return fail(ida::Error::internal("allocation failed"));
+    return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Database
 // ═══════════════════════════════════════════════════════════════════════════
 

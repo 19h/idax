@@ -1079,6 +1079,60 @@ void check_parser_surface() {
     (void)report.ok();
 }
 
+// ─── ida::script ────────────────────────────────────────────────────────
+
+void check_script_surface() {
+    static_assert(std::is_copy_constructible_v<ida::script::Value>);
+    static_assert(std::is_move_constructible_v<ida::script::Value>);
+    static_assert(std::is_copy_assignable_v<ida::script::Value>);
+    static_assert(std::is_move_assignable_v<ida::script::Value>);
+
+    ida::script::Value integer(std::int64_t{42});
+    ida::script::Value text(std::string_view("text"));
+    (void)integer;
+    (void)text;
+    (void)ida::script::ValueKind::Integer;
+    (void)ida::script::ValueKind::Reference;
+    (void)ida::script::DereferenceMode::Once;
+
+    ida::script::ResolvedName resolved{"constant", 1};
+    ida::script::CompileOptions compile_options;
+    compile_options.resolved_names.push_back(resolved);
+    ida::script::FileCompileOptions file_options;
+    ida::script::CompilationResult compilation;
+    ida::script::ExecutionResult execution;
+    ida::script::IntegerExecutionResult integer_execution;
+    (void)file_options;
+    (void)compilation;
+    (void)execution;
+    (void)integer_execution;
+
+    using EvaluateFn = ida::Result<ida::script::ExecutionResult>(*)(
+        std::string_view, ida::Address);
+    using CompileFileFn = ida::Result<ida::script::CompilationResult>(*)(
+        std::string_view, const ida::script::FileCompileOptions&);
+    using CompileTextFn = ida::Result<ida::script::CompilationResult>(*)(
+        std::string_view, const ida::script::CompileOptions&);
+    using CompileSnippetFn = ida::Result<ida::script::CompilationResult>(*)(
+        std::string_view, std::string_view,
+        const ida::script::CompileOptions&);
+    using CallFn = ida::Result<ida::script::ExecutionResult>(*)(
+        std::string_view, const std::vector<ida::script::Value>&,
+        const std::vector<ida::script::ResolvedName>&);
+    using ExecuteScriptFn = ida::Result<ida::script::ExecutionResult>(*)(
+        std::string_view, std::string_view,
+        const std::vector<ida::script::Value>&,
+        const ida::script::FileCompileOptions&);
+
+    (void)static_cast<EvaluateFn>(&ida::script::evaluate);
+    (void)static_cast<EvaluateFn>(&ida::script::evaluate_idc);
+    (void)static_cast<CompileFileFn>(&ida::script::compile_file);
+    (void)static_cast<CompileTextFn>(&ida::script::compile_text);
+    (void)static_cast<CompileSnippetFn>(&ida::script::compile_snippet);
+    (void)static_cast<CallFn>(&ida::script::call);
+    (void)static_cast<ExecuteScriptFn>(&ida::script::execute_script);
+}
+
 // ─── ida::directory ─────────────────────────────────────────────────────
 
 void check_directory_surface() {
@@ -2798,6 +2852,7 @@ int main() {
     surface_check::check_navigation_surface(); namespaces_verified++;
     surface_check::check_exception_surface();  namespaces_verified++;
     surface_check::check_parser_surface();     namespaces_verified++;
+    surface_check::check_script_surface();     namespaces_verified++;
     surface_check::check_directory_surface();  namespaces_verified++;
     surface_check::check_registry_surface();   namespaces_verified++;
     surface_check::check_registers_surface();  namespaces_verified++;
@@ -2817,9 +2872,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 39, "all 39 namespace surfaces verified");
+    CHECK(namespaces_verified == 40, "all 40 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (39 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (40 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

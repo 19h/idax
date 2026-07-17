@@ -5,6 +5,7 @@ import shutil
 import threading
 import uuid
 import warnings
+import copy
 from pathlib import Path
 
 import pytest
@@ -42,6 +43,7 @@ from idax import (
     registry,
     search,
     segment,
+    script,
     storage,
     type,
     ui,
@@ -76,6 +78,99 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
         assert len(database.input_md5()) == 32
         assert address.next_mapped(bounds.start) <= bounds.end
         assert isinstance(analysis.is_enabled(), bool)
+
+        integer_value = script.Value(42)
+        assert integer_value.kind is script.ValueKind.INTEGER
+        assert integer_value.as_integer() == 42
+        assert integer_value.coerce_string()
+        embedded_string = script.Value("ab\0cd")
+        assert embedded_string.kind is script.ValueKind.STRING
+        assert embedded_string.as_string() == "ab\0cd"
+        with pytest.raises(IdaxError):
+            embedded_string.as_integer()
+        mutable_string = script.Value("abcdef")
+        mutable_copy = copy.copy(mutable_string)
+        mutable_copy.replace_slice(2, 4, script.Value("XY"))
+        assert mutable_string.as_string() == "abcdef"
+        assert mutable_copy.slice(1, 5).as_string() == "bXYe"
+
+        object_value = script.Value.object()
+        object_value.set_attribute("answer", script.Value(7))
+        shallow_object = copy.copy(object_value)
+        shallow_object.set_attribute("answer", script.Value(9))
+        assert object_value.attribute("answer").as_integer() == 9
+        deep_object = object_value.deep_copy()
+        deep_object.set_attribute("answer", script.Value(11))
+        assert deep_object.attribute("answer").as_integer() == 11
+        assert object_value.attribute("answer").as_integer() == 9
+        assert object_value.attribute_names() == ["answer"]
+        assert not object_value.remove_attribute("missing")
+        assert object_value.class_name
+
+        falsey_script = script.evaluate_idc("0")
+        assert falsey_script.succeeded
+        assert falsey_script.value.as_integer() == 0
+        integer_script = script.evaluate_integer("21 * 2")
+        assert integer_script.succeeded and integer_script.value == 42
+        runtime_failure = script.evaluate_idc("1 / 0")
+        assert not runtime_failure.succeeded
+        assert runtime_failure.error
+        assert runtime_failure.value.kind is script.ValueKind.OBJECT
+
+        script_suffix = uuid.uuid4().hex
+        script_name = f"idax_python_script_{script_suffix}"
+        compile_options = script.CompileOptions()
+        compile_options.resolved_names = [
+            script.ResolvedName("IDAX_PYTHON_CONST", 40)
+        ]
+        compiled_script = script.compile_snippet(
+            script_name, "return IDAX_PYTHON_CONST + 2;", compile_options
+        )
+        assert compiled_script.succeeded and not compiled_script.error
+        called_script = script.call(script_name)
+        assert called_script.succeeded
+        assert called_script.value.as_integer() == 42
+        evaluated_snippet = script.evaluate_snippet(
+            "return IDAX_PYTHON_CONST + 2;", compile_options.resolved_names
+        )
+        assert evaluated_snippet.succeeded
+        assert evaluated_snippet.value.as_integer() == 42
+
+        invalid_resolver_options = script.CompileOptions()
+        invalid_resolver_options.resolved_names = [
+            script.ResolvedName("BAD_SENTINEL", (1 << 64) - 1)
+        ]
+        with pytest.raises(ValidationError, match="sentinel"):
+            script.compile_text(
+                "static idax_python_invalid() { return BAD_SENTINEL; }",
+                invalid_resolver_options,
+            )
+
+        global_name = f"idax_python_global_{script_suffix}"
+        assert script.global_value(global_name) is None
+        assert script.set_global(global_name, script.Value(123))
+        assert script.global_value(global_name).as_integer() == 123
+        reference = script.reference_global(global_name)
+        assert reference.kind is script.ValueKind.REFERENCE
+        assert reference.dereference().as_integer() == 123
+        assert not script.set_global(global_name, script.Value(456))
+
+        idc_path = tmp_path / f"{script_name}.idc"
+        idc_path.write_text(
+            f"static {script_name}_file(x) {{ return x * 2; }}\n",
+            encoding="utf-8",
+        )
+        script.set_include_paths([str(tmp_path)])
+        assert script.resolve_file(idc_path.name) == str(idc_path)
+        file_execution = script.execute_script(
+            str(idc_path), f"{script_name}_file", [script.Value(21)]
+        )
+        assert file_execution.succeeded
+        assert file_execution.value.as_integer() == 42
+        assert script.function_names("", 16)
+        with pytest.raises(ValidationError):
+            script.function_names("", 0)
+
         segments = list(segment.all())
         assert len(segments) == segment.count()
         assert segments

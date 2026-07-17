@@ -2200,6 +2200,82 @@ describe('IDB Change-Tracking Events', () => {
     });
 });
 
+// ── IDC values and synchronous execution ───────────────────────────────
+
+describe('IDC Values and Script Execution', () => {
+    it('should preserve owned values, errors, compilation, calls, globals, and files', () => {
+        const integer = idax.script.integer(42n);
+        expect(integer.kind()).toBe('integer');
+        expect(integer.asInteger()).toBe(42n);
+        expect(idax.script.string('not-a-number').coerceInteger()).toBe(0n);
+
+        const text = idax.script.string('abcdef');
+        const copy = text.deepCopy();
+        copy.replaceSlice(2, 4, idax.script.string('XY'));
+        expect(text.asString()).toBe('abcdef');
+        expect(copy.asString()).toBe('abXYef');
+        expect(copy.slice(1, 5).asString()).toBe('bXYe');
+
+        const object = idax.script.object();
+        object.setAttribute('answer', idax.script.integer(7n));
+        const shallow = object.copy();
+        shallow.setAttribute('answer', idax.script.integer(9n));
+        expect(object.attribute('answer').asInteger()).toBe(9n);
+        const deep = object.deepCopy();
+        deep.setAttribute('answer', idax.script.integer(11n));
+        expect(object.attribute('answer').asInteger()).toBe(9n);
+        expect(deep.attribute('answer').asInteger()).toBe(11n);
+        expect(object.attributeNames().includes('answer')).toBe(true);
+        expect(object.removeAttribute('missing')).toBe(false);
+
+        const falsey = idax.script.evaluateIdc('0');
+        expect(falsey.succeeded).toBe(true);
+        expect(falsey.value.asInteger()).toBe(0n);
+        const runtimeError = idax.script.evaluateIdc('1 / 0');
+        expect(runtimeError.succeeded).toBe(false);
+        expect(runtimeError.error.length).toBeGreaterThan(0);
+        expect(runtimeError.value.kind()).toBe('object');
+
+        const options = {
+            resolvedNames: [{ name: 'IDAX_NODE_CONST', value: 40n }],
+        };
+        const compiled = idax.script.compileText(
+            'static idax_node_add(a, b) { return a + b + IDAX_NODE_CONST; }',
+            options,
+        );
+        expect(compiled.succeeded).toBe(true);
+        const called = idax.script.call(
+            'idax_node_add', [idax.script.integer(1n), idax.script.integer(1n)],
+        );
+        expect(called.succeeded).toBe(true);
+        expect(called.value.asInteger()).toBe(42n);
+        const snippet = idax.script.evaluateSnippet(
+            'return IDAX_NODE_CONST + 2;', options.resolvedNames,
+        );
+        expect(snippet.succeeded).toBe(true);
+        expect(snippet.value.asInteger()).toBe(42n);
+
+        expect(idax.script.global('idax_node_global')).toBe(null);
+        expect(idax.script.setGlobal(
+            'idax_node_global', idax.script.integer(123n))).toBe(true);
+        const reference = idax.script.referenceGlobal('idax_node_global');
+        expect(reference.kind()).toBe('reference');
+        expect(reference.dereference().asInteger()).toBe(123n);
+
+        const file = path.join(fixtureDirectory, 'idax_node_script.idc');
+        fs.writeFileSync(file, 'static idax_node_file(x) { return x * 2; }\n');
+        idax.script.setIncludePaths([fixtureDirectory]);
+        expect(idax.script.resolveFile(path.basename(file))).toBe(file);
+        const executed = idax.script.executeScript(
+            file, 'idax_node_file', [idax.script.integer(21n)],
+        );
+        expect(executed.succeeded).toBe(true);
+        expect(executed.value.asInteger()).toBe(42n);
+        fs.rmSync(file, { force: true });
+        expect(idax.script.functionNames('', 8).length).toBeGreaterThan(0);
+    });
+});
+
 // ── Cleanup ─────────────────────────────────────────────────────────────
 
 describe('Cleanup', () => {

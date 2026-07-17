@@ -27,6 +27,7 @@ NAN_MODULE_INIT(InitAll) {
     InitNavigation(target);
     InitException(target);
     InitParser(target);
+    InitScript(target);
     InitDirectory(target);
     InitRegistry(target);
     InitRegisters(target);

@@ -234,6 +234,7 @@ set(BINDING_SOURCES
     src/navigation_bind.cpp
     src/exception_bind.cpp
     src/parser_bind.cpp
+    src/script_bind.cpp
     src/directory_bind.cpp
     src/registry_bind.cpp
     src/registers_bind.cpp

@@ -28,6 +28,7 @@
 #include <ida/problem.hpp>
 #include <ida/exception.hpp>
 #include <ida/parser.hpp>
+#include <ida/script.hpp>
 #include <ida/directory.hpp>
 #include <ida/registry.hpp>
 #include <ida/registers.hpp>

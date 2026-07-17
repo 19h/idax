@@ -61,6 +61,7 @@ See also:
 - `docs/cookbook/register_tracking.md` — Backward register values, stack-relative candidates, nearest selection, and cache coherence
 - `docs/cookbook/segment_register_state.md` — Named segment-register discovery, copied ranges, defaults, and verified mutation
 - `docs/cookbook/offset_references.md` — Rich operand reference metadata, rendering, calculation, verified mutation, and data-xref creation
+- `docs/cookbook/script_execution.md` — Opaque IDC values, exact access/coercion, structured execution failures, compilation, calls, and globals
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

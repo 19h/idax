@@ -145,6 +145,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`problem`] | Analysis problems | Closed `Kind`, copied optional descriptions, ordered `next`, `remember`, `remove`, names, and presence |
 | [`exception`] | Exception regions | Owned fragmented C++/SEH blocks, semantic handlers, membership, system-region lookup, and mutation |
 | [`parser`] | Source parsers | Selection by language/name, copied identity/options, arguments, source/file ingestion, and parse reports |
+| [`script`] | IDC scripts | Opaque copyable values, exact access/coercion, objects/slices, structured evaluation/compilation/calls, globals/references, and include/file resolution |
 | [`directory`] | Directory trees | All eight standard trees, copied entries, organization, ordering, search, and partial bulk reports |
 | [`registry`] | Persistent registry | Copyable scoped stores, typed values, copied child/value inventories, ordered string lists, and cleanup |
 | [`navigation`] | Navigation history | RAII history handles, owned channel/metadata entries, cursor movement, and conflict-checked channel transfer |

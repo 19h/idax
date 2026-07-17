@@ -325,4 +325,11 @@ This section captures the intended public API semantics at a concrete level so i
 - Apply refuses competing non-offset display state, preflights outer capability, verifies normalized exact readback, and restores prior/empty state after rejection or mismatch. Removal deletes both metadata and representation, verifies absence, and restores on partial failure.
 - Node, safe Rust, and Python preserve the same owned/optional semantic model; the generated C ABI separates borrowed input records from explicitly freed owned outputs.
 
+### 17.43 Opaque IDC Values and Synchronous Script Execution
+- `Value` privately owns one IDC value. Ordinary copies allocate independently and preserve native shallow object identity; `deep_copy` requests recursive object isolation. Exact integer/floating/string access never coerces, while explicit `coerce_*` operations retain SDK conversion behavior.
+- Default objects expose copied class/attribute inventories, checked attribute mutation/removal, and half-open string/object slices. Global reads return copied optionals; assignment reports creation; references can be traversed once or recursively without exposing native global storage.
+- `evaluate`, `evaluate_idc`, and `evaluate_integer` distinguish wrapper transport from interpreter success. Failed evaluation retains copied diagnostic text and the native exception value; successful falsey results remain successful.
+- File/text/snippet compilation, named calls, file execution, IDC snippet execution, include-path replacement/append, filename resolution, system-script execution, and registered/built-in function enumeration cover the synchronous execution family. Resolver maps are caller-owned copied names/values and reject duplicates plus the native unresolved sentinel.
+- Node, safe Rust, and Python preserve the same owned model. The generated C ABI uses pointer-plus-length value strings, explicit result destructors, borrowed argument arrays, and owned returned value handles. External IDC-function and third-party-language registration remain separate callback-lifecycle domains.
+
 ---

@@ -1440,3 +1440,34 @@ tracked in `docs/compatibility_matrix.md`.
   uncompressed bytes. Every job uses exact SDK commit
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; licensed rows install IDA
   Professional 9.4 through the eligible active named-product selector.
+
+- 2026-07-17 Phase 71 opaque IDC values and synchronous script execution
+  (local release candidate):
+  Added owned opaque IDC values with exact typed access, explicit SDK
+  coercions, deterministic moved-from zero state, shallow/deep object copies,
+  attributes, half-open slices, rendering, references, and globals. Added
+  current-language/IDC/integer evaluation, file/text/snippet compilation,
+  named calls, compile-and-call, snippet/system execution, include paths, file
+  resolution, and function discovery across C++, Node, generated C/safe Rust,
+  and Python. Resolver callbacks are synchronous owned maps; native values,
+  objects, pointers, bytecode, callback descriptors, and interpreter-global
+  registration remain private or explicitly out of this lifecycle phase.
+  Every native target builds against exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`. The local IDA 9.3 runtime proxy
+  passes the 118-check script lifecycle and 39/41 complete CTests; the only
+  failures are the previously bounded name-sanitization and decompiler-variable
+  fixture variances. Node passes 277 structural and 96 initialized-host checks,
+  strict TypeScript compilation, and a 41-file package. Rust passes formatting,
+  all-target compilation, 172 unit and 113 initialized-host tests, doctests,
+  11/76-file crate packages, and byte-identical generated declarations at
+  SHA-256 `692d05ed07d6f2b2f456773df32dcc933f2d2cb65ca56d881c7092f007f31cd8`.
+  Python passes 20 pure and one fresh-wheel initialized-host test, strict typing
+  over 42 files, a 38-domain/965-symbol declaration audit, and fresh wheel/sdist
+  inspection. Release install/TGZ, 35 policy tests plus three subtests,
+  immutable-action inventory, actionlint, consistency, diff and object-integrity
+  gates pass. Candidate privacy covers 597 project-owned files and pre-commit
+  reachable-history privacy covers 4,389 objects; extracted CPack, Node, both
+  Rust crates, and both Python artifacts contain no user-home identity path.
+  Exact IDA Professional 9.4 runtime, all 18 hosted jobs, and the
+  three automatic complete-log audits remain the authoritative release and
+  Phase 71 closure gate.

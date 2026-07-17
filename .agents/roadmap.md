@@ -553,3 +553,12 @@ Current overall phase status:
 - [x] P70.4 Add malformed-input plus isolated real-IDA descriptor/apply/query/calculate/render/reference/remove evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 70 from active work.
 
 ---
+
+### Phase 71 TODO Action Items (Opaque IDC Value and Script Execution)
+
+- [x] P71.1 Audit the pinned IDA 9.4 `expr.hpp` value/evaluation/compilation/call surface, exact runtime exports, generated IDAPython model, existing Appcall conversions, public IDAX headers, and all language bindings.
+- [ ] P71.2 Select and falsify an SDK-opaque owned value/result model for scalar and retained native values, attributes, slices, expression evaluation, IDC compilation, function calls, snippets, scripts, and include-path resolution.
+- [x] P71.3 Implement complete C++, Node, Rust, and Python parity for the proven execution family without exposing `idc_value_t`, `idc_object_t`, `idc_class_t`, `fpvalue_t`, `qstring`, resolver pointers, bytecode, raw value tags, or host-retained callbacks.
+- [ ] P71.4 Add malformed-input plus isolated exact-IDA 9.4 scalar/object/evaluate/compile/call/snippet/script evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, live-audit all release jobs/logs, and remove Phase 71 from active work.
+
+---

@@ -71,7 +71,7 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 39 public headers cover 36 concept domains plus the umbrella, shared core, and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 41 public headers cover 38 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
@@ -88,6 +88,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
 | **Source parsers** | `ida::parser` | Third-party parser selection by name/language, arguments/options, source/file ingestion, and parse reports |
+| **IDC scripts** | `ida::script` | Opaque values, exact access and explicit coercion, objects/slices, evaluation, compilation, calls, globals/references, and script/include resolution |
 | **Directory trees** | `ida::directory` | All eight built-in organization trees, copied entries, directory/item mutation, ordering, search, and partial bulk reports |
 | **Persistent registry** | `ida::registry` | Scoped plugin configuration with typed string/binary/integer/boolean values, copied key/value inventories, ordered string lists, and deletion |
 | **Register tracking** | `ida::registers` | Named backward value tracking, copied constant/stack-relative candidates and origins, nearest-of-two selection, and semantic cache invalidation |
@@ -561,7 +562,7 @@ idax is validated through layered testing:
 | Layer | What it tests | Runtime needed |
 |-------|---------------|----------------|
 | **Unit tests** | Error model, diagnostics, range semantics, iterator contracts | None |
-| **API surface parity** | Compile-only check that all 36 domain namespaces and types exist | None |
+| **API surface parity** | Compile-only check that all 38 domain namespaces and types exist | None |
 | **Smoke test** | 267 checks across every established namespace, end-to-end | idalib + fixture |
 | **Domain integration** | Dedicated suites: types, fixups, operands, decompiler, events, etc. | idalib + fixture |
 | **Scenario tests** | Loader/processor module lifecycle and callback wiring | idalib + fixture |
