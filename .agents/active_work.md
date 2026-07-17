@@ -69,8 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage/review/push the official Linuxbrew service-home classification, replay immutable Bindings run 29542885658, then require three green automatic complete-log audits before closing Phase 65.
-  - 7.1.2. **Evidence:** Auditor diagnostics commit `457bfa0c` is on `master`; tag replay run 29544138787 publicly classifies only entries 73 and 84 as non-runner POSIX home paths, with no canonical license finding. The official GitHub `actions/runner-images` Ubuntu 24.04 inventory documents a preinstalled Linuxbrew service home; Bindings uniquely exercises that toolchain.
-  - 7.1.3. **Blocker:** The scanner currently treats GitHub's service-owned Linuxbrew installation identity as a developer home path, so the otherwise green Bindings archive fails closed.
-  - 7.1.4. **Mitigation:** Allow only the exact fragment-constructed Linuxbrew service home alongside the three existing hosted-runner homes; retain rejection of every other POSIX/Windows home identity and replay the identical archive.
-  - 7.1.5. **Status:** Active / service-path correction and release revalidation in progress.
+  - 7.1.1. **Action:** Exact-stage/review/push an ephemeral RSA-OAEP diagnostic, replay immutable Bindings run 29542885658, decrypt the two findings locally, remove all diagnostic key/code, correct only evidenced service paths or leaks, then require three green automatic audits before closing Phase 65.
+  - 7.1.2. **Evidence:** Release correction `87eb596c` is on `master`; replay 29544303227 still reports entries 73 and 84 after the sole Linuxbrew service allowlist addition, falsifying A65.14. The two findings remain POSIX homes and no canonical license category is present.
+  - 7.1.3. **Blocker:** Category-only annotations cannot identify which additional prefix is involved, while publishing the raw prefix would recreate the privacy exposure the gate is designed to prevent.
+  - 7.1.4. **Mitigation:** Encrypt only deduplicated matched prefixes to a one-use committed public key; emit ciphertext annotations; decrypt only with the uncommitted local private key; then delete the diagnostic key and script from the repository.
+  - 7.1.5. **Status:** Active / encrypted private classification in progress.
