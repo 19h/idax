@@ -25,6 +25,7 @@ def run_scanner(
     path: Path, *, github_actions: bool = False
 ) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
+    environment.pop("GITHUB_ACTIONS", None)
     if github_actions:
         environment["GITHUB_ACTIONS"] = "true"
     return subprocess.run(

@@ -2540,3 +2540,15 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - The privately decrypted 13 B finding contained uppercase account component `RUNNER`; both reported entries deduplicated to that one prefix. This is a case-rendering difference for the existing hosted macOS runner identity, not a third user or toolchain home.
 - Store only the two hosted Linux/macOS home keys assembled from fragments and lowercased. Lowercase each complete regex match solely for set membership. This admits case variants of exactly those keys while still rejecting suffixes, lookalike usernames, arbitrary homes, Windows identities outside their separate list, and every canonical license ID.
 - Assumption A65.16: both original Bindings entries are the same hosted macOS key and no other finding remains. Falsify with byte-identical replay 29542885658 after case normalization, then with automatic audits for all three replacement workflows. Dependent result: complete-log privacy without a false positive. **Bounded risk [low]:** case normalization is broader than the macOS filesystem requires but remains bounded to two whole-key equalities. Membership is `O(1)` average time and `O(2)` stored keys.
+
+### 35.234. Byte-Identical Bindings Log Replay Passes [F581]
+
+- Replay 29544791067 rescanned unchanged Bindings run 29542885658 with the final two-key case-normalized policy and passed. This isolates the correction to comparison semantics: no source log changed, no third home identity was admitted, and no license exception exists.
+- Assumption A65.16's first falsification probe is satisfied; final dependency remains the three automatic audits for correction commit `30af98e1`. **Bounded opportunity [low]:** the numeric replay workflow provides reproducible regression diagnosis for retained Actions logs without workstation REST credentials. Replay cost is `O(B)` for archived bytes `B`.
+
+### 35.235. CI Diagnostic-Mode Tests Require Environment Isolation [F582]
+
+- GitHub-hosted jobs set `GITHUB_ACTIONS=true`; copying the parent environment into subprocess tests implicitly selects Actions annotation formatting.
+- A test that covers both local stderr and Actions annotations must delete `GITHUB_ACTIONS` from its baseline child environment and add it only for the annotation-specific case.
+- Validation run 29544788074 exposed this as a platform-independent pre-CMake harness failure across all six rows; the scanner's privacy matching behavior was not implicated.
+- Assumption A65.17: inherited diagnostic mode is the only cause of all six Validation failures. Falsify locally with the test under both absent and forced `GITHUB_ACTIONS=true`, then with all six replacement Validation rows. Dependent result: release closure. **Bounded risk [low]:** this changes only child-process diagnostic formatting in a test harness; scanner production behavior is unchanged. Each subprocess environment normalization is `O(E)` time and space for `E` inherited environment entries.

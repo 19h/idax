@@ -69,8 +69,6 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage/review/push case-normalized matching for only the two hosted POSIX runner homes, replay immutable Bindings run 29542885658, then require three green automatic complete-log audits before closing Phase 65.
-  - 7.1.2. **Evidence:** Encrypted replay 29544535103 produced one deduplicated ciphertext for entries 73 and 84. Local RSA-OAEP decryption identified only uppercase account component `RUNNER` in a 13 B POSIX prefix, which is the case-variant of the hosted macOS runner home. The private key, public key, ciphertext diagnostic, and decrypted temporary are being removed; no plaintext entered repository or public job text.
-  - 7.1.3. **Blocker:** Byte-exact comparison rejects case-normalized rendering of the otherwise exact hosted macOS runner identity.
-  - 7.1.4. **Mitigation:** Lowercase the complete matched prefix only for membership against the two exact fragment-constructed hosted-runner keys; remove the unevidenced Linuxbrew allowlist entry and all encrypted diagnostic code/key material.
-  - 7.1.5. **Status:** Active / exact case correction and release revalidation in progress.
+  - 7.1.1. **Action:** Correct the CI-only validation-harness environment leak, push the exact correction to `master`, verify its Integrations/Validation/Bindings runs plus all three automatic complete-log audits, delete the one-use replay tag, and close Phase 65.
+  - 7.1.2. **Evidence:** Exact correction `30af98e1` is on `master`; byte-identical replay 29544791067 passes. Validation run 29544788074 failed all six rows before CMake because the test harness inherited `GITHUB_ACTIONS=true` into subprocess cases that intentionally assert local diagnostic formatting; all six shared pre-build gates and a complete local IDA 9.4 compile-only profile otherwise pass. Runs 29544788119 and 29544788057 plus their audits remain release evidence only after the harness correction is pushed.
+  - 7.1.3. **Status:** Active / deterministic CI-only test-harness correction and replacement release/audit matrix; no blocker.
