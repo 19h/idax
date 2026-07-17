@@ -1,0 +1,48 @@
+name: CI Log Privacy Replay
+
+on:
+  push:
+    tags:
+      - 'ci-log-privacy-*'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  replay:
+    name: Replay complete-log privacy audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate replay tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id="${GITHUB_REF_NAME#ci-log-privacy-}"
+          if [[ ! "${run_id}" =~ ^[0-9]+$ ]]; then
+            echo "::error title=CI log privacy replay::tag suffix must be a numeric run ID"
+            exit 1
+          fi
+          echo "RUN_ID=${run_id}" >> "${GITHUB_ENV}"
+
+      - name: Checkout default-branch scanner
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Download and rescan complete logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/idax-ci-run-${RUN_ID}.zip"
+          curl --fail --silent --show-error --location \
+            --retry 3 --retry-all-errors \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/logs" \
+            --output "${archive}"
+          python3 scripts/check_ci_log_privacy.py "${archive}"

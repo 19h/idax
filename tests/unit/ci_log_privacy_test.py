@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -20,13 +21,19 @@ def write_archive(path: Path, entries: list[bytes]) -> None:
             archive.writestr(f"job-{index}.txt", data)
 
 
-def run_scanner(path: Path) -> subprocess.CompletedProcess[str]:
+def run_scanner(
+    path: Path, *, github_actions: bool = False
+) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    if github_actions:
+        environment["GITHUB_ACTIONS"] = "true"
     return subprocess.run(
         [sys.executable, str(SCANNER), str(path)],
         cwd=ROOT,
         check=False,
         capture_output=True,
         text=True,
+        env=environment,
     )
 
 
@@ -93,9 +100,17 @@ def main() -> int:
         for name, payload in cases.items():
             archive = tmp / f"{name}.zip"
             write_archive(archive, [payload])
-            result = run_scanner(archive)
+            result = run_scanner(
+                archive, github_actions=name == "lowercase-license"
+            )
             require(result.returncode == 1, f"{name}: expected rejection")
-            require("error: log entry 1:" in result.stderr, result.stderr)
+            if name == "lowercase-license":
+                require(
+                    "::error title=CI log privacy::log entry 1:" in result.stderr,
+                    result.stderr,
+                )
+            else:
+                require("error: log entry 1:" in result.stderr, result.stderr)
             require(payload.decode().strip() not in result.stderr, result.stderr)
 
         empty = tmp / "empty.zip"

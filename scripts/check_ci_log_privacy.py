@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 import zipfile
@@ -27,6 +28,15 @@ ALLOWED_POSIX_HOMES = {
     b"/" + root + b"/" + b"runner" for root in (b"home", b"Users")
 }
 ALLOWED_WINDOWS_USERS = {b"runner", b"runneradmin", b"runner~1"}
+
+
+def report_error(message: str) -> None:
+    """Report only sanitized diagnostics, including a public Actions annotation."""
+
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        print(f"::error title=CI log privacy::{message}", file=sys.stderr)
+    else:
+        print(f"error: {message}", file=sys.stderr)
 
 
 def sensitive_categories(data: bytes) -> set[str]:
@@ -84,12 +94,12 @@ def main() -> int:
     try:
         failures, entry_count, total_bytes = scan_archive(args.archive)
     except (OSError, ValueError, zipfile.BadZipFile, zipfile.LargeZipFile) as error:
-        print(f"error: CI log privacy scan failed: {error}", file=sys.stderr)
+        report_error(f"scan failed: {error}")
         return 1
 
     if failures:
         for ordinal, category in failures:
-            print(f"error: log entry {ordinal}: {category}", file=sys.stderr)
+            report_error(f"log entry {ordinal}: {category}")
         return 1
 
     print(

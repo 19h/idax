@@ -69,8 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage/review/push a least-privilege `workflow_run` auditor, obtain automatic complete-log privacy evidence for all three green replacement workflows, then close Phase 65.
-  - 7.1.2. **Evidence:** Corrective commit `0bc6fe9b` is on `master`; runs 29541772078 (Integrations 3/3), 29541772069 (Validation 6/6), and 29541772063 (Bindings 9/9) pass, and all 18 setup steps pass with explicit uv `0.11.28`. Public metadata exposes job/step conclusions but raw run logs require authenticated `actions:read`; the local GitHub credential is invalid and the in-app browser backend is unavailable.
-  - 7.1.3. **Blocker:** Manual complete-log retrieval is credential/session-dependent and cannot supply the remaining privacy gate in this environment.
-  - 7.1.4. **Mitigation:** On completion of each release workflow, use a separate default-branch `workflow_run` job with only `actions:read`/`contents:read` to download its complete log ZIP and run the fail-closed repository scanner without echoing matches.
-  - 7.1.5. **Status:** Active / automated log-privacy evidence in progress.
+  - 7.1.1. **Action:** Exact-stage/review/push category-only Actions annotations and tag-triggered audit replay, replay Bindings run 29542885658, classify/correct the fail-closed finding, then require three green automatic complete-log audits before closing Phase 65.
+  - 7.1.2. **Evidence:** Auditor commit `b5ae308c` is on `master`; runs 29542885650 (Integrations 3/3), 29542885651 (Validation 6/6), and 29542885658 (Bindings 9/9) pass. Automatic audit runs 29543110353 and 29543262444 pass for Integrations and Validation. Audit 29543894041 fails in the Bindings scan step, but plain stderr produced only a generic public exit-code annotation.
+  - 7.1.3. **Blocker:** The category-only scanner finding is present in an authenticated job log but was not emitted through a public workflow command, so the current environment cannot distinguish a true identifier/path leak from an overbroad CI service-path classification.
+  - 7.1.4. **Mitigation:** Emit only sanitized entry ordinal/category through an Actions error annotation and support scoped replay through tags named `ci-log-privacy-<run-id>`; never expose matched bytes.
+  - 7.1.5. **Status:** Active / Bindings log finding classification in progress.
