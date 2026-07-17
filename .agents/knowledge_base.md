@@ -2553,9 +2553,9 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Validation run 29544788074 exposed this as a platform-independent pre-CMake harness failure across all six rows; the scanner's privacy matching behavior was not implicated.
 - Assumption A65.17: inherited diagnostic mode is the only cause of all six Validation failures. Falsify locally with the test under both absent and forced `GITHUB_ACTIONS=true`, then with all six replacement Validation rows. Dependent result: release closure. **Bounded risk [low]:** this changes only child-process diagnostic formatting in a test harness; scanner production behavior is unchanged. Each subprocess environment normalization is `O(E)` time and space for `E` inherited environment entries.
 
-### 35.236. Later Bindings Archives Require Independent Private Classification [F583]
+### 35.236. Delayed Audits Retain the Audited Revision's Scanner [F583]
 
-- Audit 29545265951 covers Bindings source run 29544788057 and reports only two sanitized POSIX-home categories at archive entries 89 and 100.
-- Replay 29544791067 proves the scanner policy against a different, earlier Bindings archive; it cannot establish the identity of a later match.
-- Reuse Decision 19.72.12 with a fresh one-use key pair and a matcher that applies the scanner's current lowercase whole-key membership before encryption. Publish only ciphertext and keep the private key outside the repository.
-- Assumption A65.18: both new entries reduce to a small deduplicated prefix set that can be classified without broadening scanner policy by inference. Falsify by replaying source run 29544788057 and decrypting every emitted ciphertext locally. Dependent result: an evidence-backed correction or upstream-log mitigation. **Bounded risk [low]:** RSA-OAEP/SHA-256 encrypts at most 128 B per distinct matched prefix; matching is `O(B)` over archived bytes and diagnostic storage is `O(U)` for `U` unique prefixes.
+- `CI Log Privacy` checks out `github.event.workflow_run.head_sha`, so a long-running source workflow uses the scanner committed at its own start revision even if a correction reaches `master` before the audit begins.
+- Bindings run 29544300132 started at 00:16:02 UTC, ran 20 min 56 s, and maps exactly to audit 29545265951 at 00:37:00 UTC. Its source revision `87eb596` predates case-normalized hosted-runner membership.
+- Current-scanner replay 29545854051 passes that exact archive. The diagnostic fallback emitted no ciphertext, so entries 89/100 are already accepted by the corrected two-key policy and do not represent a new identity.
+- Assumption A65.18 is falsified: there is no new non-allowed prefix under the current scanner. **Bounded opportunity [low]:** map delayed audit results by source start plus total duration before diagnosing them as current-policy failures. This mapping is `O(R)` over candidate source runs and requires exact timestamp equality.

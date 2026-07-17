@@ -69,6 +69,6 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Privately classify Bindings audit 29545265951 entries 89/100 without publishing matched bytes, remove the one-shot diagnostic immediately, apply only an evidence-backed correction, then require replacement runs 29545255109/29545255136/29545255093 and all three audits to pass before deleting replay tags and closing Phase 65.
-  - 7.1.2. **Evidence:** Exact harness correction `c035111e` is on `master`; Integrations replacement run 29545255109 and audit 29545467762 pass. Prior Bindings audit 29545265951 fails only two sanitized non-runner POSIX-home categories; the new prefix cannot be inferred from the earlier uppercase-runner finding.
-  - 7.1.3. **Status:** Active / one-shot encrypted classification in progress; no blocker.
+  - 7.1.1. **Action:** Verify replacement Bindings run 29545255093 and the remaining automatic complete-log audits; delete all replay tags; then close Phase 65.
+  - 7.1.2. **Evidence:** Replacement Integrations run 29545255109 passes 3/3 with audit 29545467762 green, and Validation run 29545255136 passes 6/6. Exact replay 29545854051 proves audit 29545265951 was an older-revision scanner result rather than a new path identity; the one-shot diagnostic is removed without emitting ciphertext.
+  - 7.1.3. **Status:** Active / final Bindings and automatic log-audit evidence in progress; no blocker.
