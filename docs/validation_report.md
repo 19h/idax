@@ -1336,3 +1336,26 @@ tracked in `docs/compatibility_matrix.md`.
   29545467762, 29545625755, and 29546203247 pass with no canonical license
   identifier or non-infrastructure home-path finding. All one-use diagnostic
   artifacts and replay tags are removed at closure.
+
+- 2026-07-17 Phase 66 Node 24 CI runtime and immutable-action boundary:
+  Migrated all 29 external workflow action uses to seven reviewed full-commit
+  pins and replaced six Node 20-only MSVC action uses with a repository-local
+  composite PowerShell bridge. The three setup-node calls continue testing
+  Node.js 20 product behavior while their action runtime uses Node 24 and its
+  new automatic package-manager cache remains explicitly disabled. Rust macOS
+  now uses Xcode's bundled `libclang.dylib` without Homebrew. A fail-closed
+  offline inventory covers all 35 action uses and passes nine regression tests;
+  actionlint, workflow/composite YAML, shell/Python syntax, exact-SDK IDA 9.4
+  compile-only validation, processor exports/descriptors/runtime smoke, and
+  559-file candidate plus 4,168-object reachable-history privacy gates pass.
+  Initial source commit `a6d8c8510b4af434be699a1d061c3dd6de77d01a`
+  exposed strict-mode access to uninitialized `$LASTEXITCODE` on hosted Windows
+  2025/Visual Studio 2026. Corrective commit
+  `245dd2bf4a425c9b9bbfaa9d6842540db49a37be` captures initialized `$?` state
+  and passes runs 29547501264 (Integrations 3/3), 29547501196 (Validation 6/6),
+  and 29547501214 (Bindings 9/9). All six Windows rows pass MSVC setup and
+  downstream compilation; all 18 complete logs contain zero GitHub warning
+  commands, Node 20 action-runtime warnings, Homebrew LLVM invocations, or
+  untrusted-tap warnings. Whole-log audits 29547738319, 29547844551, and
+  29548385969 pass. IDA Professional 9.4 and exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594` remain unchanged.
