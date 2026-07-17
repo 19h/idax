@@ -1384,7 +1384,7 @@ tracked in `docs/compatibility_matrix.md`.
   non-infrastructure identity-path finding. Every job uses IDA Professional 9.4
   and exact SDK commit `6929db6868a524496eb66e76e4ec6c9d720a0594`.
 
-- 2026-07-17 Phase 68 opaque address-navigation history local candidate:
+- 2026-07-17 Phase 68 opaque address-navigation history:
   Added the proven current `navstack_t` address-history subset across C++,
   Node, generated C/safe Rust, and Python using owned address/channel/metadata
   snapshots and copyable logical stream handles. Native places, renderer and
@@ -1407,6 +1407,12 @@ tracked in `docs/compatibility_matrix.md`.
   while optional-capability runtime execution passes. Workflow/action pins,
   HCLI named-product license selection, processor validation helpers, log
   privacy, explicit checkout-path absence, 577-file candidate privacy, and
-  4,232-object reachable-history privacy pass. Exact staging, implementation
-  push, the live 18-job release matrix, complete-log audits, and closure remain
-  active under P68.4.
+  4,232-object pre-implementation reachable-history privacy pass.
+  Implementation commit `c3977730f20b65adb30f6443b0f366fe0651a4ee`
+  passes runs 29555219434 (Integrations 3/3), 29555219457 (Validation 6/6),
+  and 29555219429 (Bindings 9/9) across Linux, Windows, and macOS. Automatic
+  complete-log audits 29555414138, 29555572331, and 29556133959 pass without a
+  canonical license identifier or non-infrastructure identity-path finding.
+  All 18 jobs use IDA Professional 9.4 and exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`; post-implementation privacy
+  passes across 4,287 reachable objects.
