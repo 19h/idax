@@ -464,6 +464,14 @@
       "bound_types": ["Bookmark"]
     },
     {
+      "name": "navigation",
+      "header": "include/ida/navigation.hpp",
+      "status": "validated",
+      "native_source": "navigation_bind.cpp",
+      "bound_functions": ["open"],
+      "bound_types": ["Entry", "History"]
+    },
+    {
       "name": "registry",
       "header": "include/ida/registry.hpp",
       "status": "validated",

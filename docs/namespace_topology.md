@@ -27,6 +27,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::search         Text/immediate/binary pattern search            [1 enum, 1 struct, ~7 free fns]
  |-- ida::analysis       Auto-analysis control, scheduling               [~7 free fns]
  |-- ida::bookmark       Opaque address-bookmark management              [1 struct, 6 free fns]
+ |-- ida::navigation     Persistent semantic address history             [1 struct, 1 class]
  |-- ida::problem        Typed analysis-problem lists                    [1 enum, 6 free fns]
  |-- ida::exception      Opaque C++/SEH exception regions                [3 enums, 7 structs, 5 free fns]
  |-- ida::parser         Third-party source parsing and type ingestion   [2 enums, 2 structs, 9 free fns]
@@ -102,6 +103,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::search` | Pattern matching | `Direction`, `TextOptions` |
 | `ida::analysis` | Auto-analysis | (free functions only) |
 | `ida::bookmark` | Address bookmarks | `Bookmark`, `MaxSlots` |
+| `ida::navigation` | Persistent address history | `Entry`, `History` |
 | `ida::problem` | Typed analysis-problem lists | `Kind` |
 | `ida::exception` | Architecture-independent exception regions | `BlockDefinition`, `Block`, `CatchHandler`, `SehHandler`, `Location` |
 | `ida::parser` | Third-party parser selection/configuration and local-type ingestion | `Language`, `InputKind`, `ParseOptions`, `ParseReport` |

@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Address Navigation History (Phase 68)
+
+- **7.1. Navigation-History Domain**
+  - 7.1.1. **Action:** Execute P68.4 complete regression, distribution, privacy, exact-stage, push, live CI/audit, documentation, and closure gates for the implemented named address-history model.
+  - 7.1.2. **Scope:** Named private streams and owned address/widget-label/user-data snapshots only. Keep `place_t`, `idaplace_t`, `lochist_entry_t`, `navstack_entry_t`, renderer coordinates, `TWidget`, netnodes, native vectors, serialized bytes, and deprecated `lochist_t` private.
+  - 7.1.3. **Status:** Active / validation and release; no blocker.

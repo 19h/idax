@@ -200,6 +200,68 @@ void idax_bookmark_free(IdaxBookmark* bookmark);
 void idax_bookmarks_free(IdaxBookmark* bookmarks, size_t count);
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * Address navigation history (ida::navigation)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+typedef void* IdaxNavigationHistoryHandle;
+
+typedef struct IdaxNavigationEntry {
+    uint64_t address;
+    char* channel;
+    char* metadata;
+} IdaxNavigationEntry;
+
+int idax_navigation_history_open(const char* name,
+                                 const IdaxNavigationEntry* initial,
+                                 IdaxNavigationHistoryHandle* out);
+void idax_navigation_history_free(IdaxNavigationHistoryHandle history);
+int idax_navigation_history_name(IdaxNavigationHistoryHandle history,
+                                 char** out);
+int idax_navigation_history_created(IdaxNavigationHistoryHandle history,
+                                    int* out);
+int idax_navigation_history_entries(IdaxNavigationHistoryHandle history,
+                                    IdaxNavigationEntry** out, size_t* count);
+int idax_navigation_history_size(IdaxNavigationHistoryHandle history,
+                                 size_t* out);
+int idax_navigation_history_index(IdaxNavigationHistoryHandle history,
+                                  size_t* out);
+int idax_navigation_history_current(IdaxNavigationHistoryHandle history,
+                                    IdaxNavigationEntry* out);
+int idax_navigation_history_current_for(IdaxNavigationHistoryHandle history,
+                                        const char* channel,
+                                        IdaxNavigationEntry* out,
+                                        int* has_value);
+int idax_navigation_history_all_current(IdaxNavigationHistoryHandle history,
+                                        IdaxNavigationEntry** out,
+                                        size_t* count);
+int idax_navigation_history_set_current(IdaxNavigationHistoryHandle history,
+                                        const IdaxNavigationEntry* entry,
+                                        int record_in_history);
+int idax_navigation_history_push(IdaxNavigationHistoryHandle history,
+                                 const IdaxNavigationEntry* entry,
+                                 IdaxNavigationEntry* out);
+int idax_navigation_history_seek(IdaxNavigationHistoryHandle history,
+                                 size_t index, IdaxNavigationEntry* out);
+int idax_navigation_history_back(IdaxNavigationHistoryHandle history,
+                                 size_t count, IdaxNavigationEntry* out,
+                                 int* has_value);
+int idax_navigation_history_forward(IdaxNavigationHistoryHandle history,
+                                    size_t count, IdaxNavigationEntry* out,
+                                    int* has_value);
+int idax_navigation_history_replace(IdaxNavigationHistoryHandle history,
+                                    size_t index,
+                                    const IdaxNavigationEntry* entry);
+int idax_navigation_history_clear(IdaxNavigationHistoryHandle history,
+                                  const IdaxNavigationEntry* new_tip);
+int idax_navigation_history_transfer_channel_to(
+    IdaxNavigationHistoryHandle source,
+    IdaxNavigationHistoryHandle destination,
+    const char* channel,
+    int retain_history);
+void idax_navigation_entry_free(IdaxNavigationEntry* entry);
+void idax_navigation_entries_free(IdaxNavigationEntry* entries, size_t count);
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * Register-value tracking (ida::registers)
  * ═══════════════════════════════════════════════════════════════════════════ */
 

@@ -631,6 +631,67 @@ describe('Address Bookmarks', () => {
     });
 });
 
+// ── Address Navigation History ──────────────────────────────────────────
+
+describe('Address Navigation History', () => {
+    it('should preserve opaque stack, cursor, current channels, and transfer', () => {
+        const expectEntry = (actual, expected) => {
+            expect(actual.address).toBe(expected.address);
+            expect(actual.channel).toBe(expected.channel);
+            expect(actual.metadata).toBe(expected.metadata);
+        };
+        const expectEntries = (actual, expected) => {
+            expect(actual.length).toBe(expected.length);
+            for (let index = 0; index < expected.length; ++index)
+                expectEntry(actual[index], expected[index]);
+        };
+        const expectNull = (actual, operation) => {
+            if (actual !== null)
+                throw new Error(`${operation} returned a navigation entry`);
+        };
+        const addresses = idax.function.codeAddresses(idax.function.byIndex(0).start);
+        expect(addresses.length).toBeGreaterThanOrEqual(5);
+        const alpha0 = { address: addresses[0], channel: 'alpha', metadata: 'a0 π' };
+        const alpha1 = { address: addresses[1], channel: 'alpha', metadata: 'a1' };
+        const beta0 = { address: addresses[2], channel: 'beta', metadata: 'b0' };
+        const other0 = { address: addresses[3], channel: 'other', metadata: 'o0' };
+        const gamma0 = { address: addresses[4], channel: 'gamma', metadata: 'g0' };
+
+        const history = idax.navigation.open('node-phase68-main', alpha0);
+        expect(history.created()).toBe(true);
+        expect(history.name()).toBe('node-phase68-main');
+        expectEntries(history.entries(), [alpha0]);
+        expectEntry(history.current(), alpha0);
+        expect(history.index()).toBe(0);
+        history.setCurrent(beta0);
+        expectEntry(history.currentFor('beta'), beta0);
+        expectEntries(history.entries(), [alpha0]);
+        expectEntry(history.push(alpha1), alpha1);
+        expectEntry(history.back(), alpha0);
+        expectEntry(history.forward(), alpha1);
+        expectNull(history.forward(), 'forward boundary');
+        history.replace(0, other0);
+        expectEntry(history.seek(0), other0);
+
+        const destination = idax.navigation.open('node-phase68-destination', gamma0);
+        try {
+            history.transferChannelTo(destination, 'alpha', true);
+        } catch (error) {
+            throw new Error(`${error.message} [${error.context || ''}]`);
+        }
+        expectEntries(history.entries(), [other0]);
+        expectNull(history.currentFor('alpha'), 'transferred source current');
+        expectEntries(destination.entries(), [gamma0, alpha1]);
+        expectEntry(destination.currentFor('alpha'), alpha1);
+        destination.clear(gamma0);
+        expectEntries(destination.entries(), [gamma0]);
+
+        const reopened = idax.navigation.open('node-phase68-main', alpha0);
+        expect(reopened.created()).toBe(false);
+        expectEntries(reopened.entries(), [other0]);
+    });
+});
+
 // ── Exception Regions ───────────────────────────────────────────────────
 
 describe('Exception Regions', () => {

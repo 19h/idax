@@ -24,6 +24,7 @@
 //! | [`analysis`] | `ida::analysis` | Auto-analysis control |
 //! | [`undo`] | `ida::undo` | Named restore points and undo/redo state |
 //! | [`problem`] | `ida::problem` | Typed analysis-problem lists |
+//! | [`navigation`] | `ida::navigation` | Persistent semantic address history |
 //! | [`exception`] | `ida::exception` | Architecture-independent exception regions |
 //! | [`parser`] | `ida::parser` | Third-party source-parser selection and type ingestion |
 //! | [`directory`] | `ida::directory` | Standard database organization trees |
@@ -95,6 +96,7 @@
 //!
 //! Types that hold SDK resources implement [`Drop`]:
 //! - [`types::TypeInfo`] — pimpl-wrapped type handle
+//! - [`navigation::History`] — persistent navigation-stream handle
 //! - [`storage::Node`] — netnode handle
 //! - [`decompiler::DecompiledFunction`] — decompilation result
 //! - [`decompiler::LvarSnapshot`] — saved local-variable metadata
@@ -129,6 +131,7 @@ pub mod lines;
 pub mod loader;
 pub mod lumina;
 pub mod name;
+pub mod navigation;
 pub mod parser;
 pub mod path;
 pub mod plugin;

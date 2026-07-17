@@ -134,6 +134,7 @@ idax_add_integration_test(register_tracking_roundtrip
     register_tracking_roundtrip_test.cpp
     "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/register_tracking_aarch64")
 idax_add_integration_test(bookmark_roundtrip                bookmark_roundtrip_test.cpp)
+idax_add_integration_test(navigation_roundtrip              navigation_roundtrip_test.cpp)
 
 # ── Torture tests (expanded coverage) ────────────────────────────────────
 idax_add_integration_test(analysis_entry_lines_torture     analysis_entry_lines_torture_test.cpp)

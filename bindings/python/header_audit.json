@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authoritative_umbrella": "include/ida/idax.hpp",
-  "umbrella_sha256": "165e11b03280cdedf9986bd3ca4b68ea025f510724805d1f68f4b804a502c760",
+  "umbrella_sha256": "12a7b79786539bb7ca68bcfb0f3f8013c10f190133e1d70498c0e7af0245d9dc",
   "headers": [
     {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
     {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
@@ -26,6 +26,7 @@
     {"domain": "loader", "path": "include/ida/loader.hpp", "sha256": "93ca21298a306b5b4e32dbb06c896a534c3a442ca4880de02cf5ec263b1f329a"},
     {"domain": "lumina", "path": "include/ida/lumina.hpp", "sha256": "63631351710e3b13d247be206452b9cd161dad5783dd4c761a72d06de4a9be2e"},
     {"domain": "name", "path": "include/ida/name.hpp", "sha256": "1650d32efce2e36eadc99847d5c24e309ed6e5fcbc035bcfd15072b50c86ee43"},
+    {"domain": "navigation", "path": "include/ida/navigation.hpp", "sha256": "182725771726110fd1dc762260af0f9c38f3c9bcdfa47b52c02ec81f0ae4131a"},
     {"domain": "path", "path": "include/ida/path.hpp", "sha256": "619d6c9a5b18ded419d63f6562ce0744a25470bea2e28d1d764939d441316f03"},
     {"domain": "parser", "path": "include/ida/parser.hpp", "sha256": "8b491a03749cbbe2b29d24cfac834adb9c51a2439a27d939b95141184c7d4545"},
     {"domain": "plugin", "path": "include/ida/plugin.hpp", "sha256": "8b3ecd96155f6289670680c862c74565036840e2d0015ba92f162a0bf7b02e79"},

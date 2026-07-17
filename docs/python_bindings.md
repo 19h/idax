@@ -3,15 +3,15 @@
 ## Scope
 
 The authoritative scope is every public declaration reachable from
-`include/ida/idax.hpp`: shared error/core primitives and all 35 concept domains.
+`include/ida/idax.hpp`: shared error/core primitives and all 36 concept domains.
 Existing Node and Rust bindings are behavioral comparison evidence;
 they cannot remove, rename away, or defer a C++ declaration from Python parity.
 
-Implementation covers all 35 domains. The executable inventory currently
-contains 898 top-level functions/types, while strict `.pyi` files cover class
+Implementation covers all 36 domains. The executable inventory currently
+contains 901 top-level functions/types, while strict `.pyi` files cover class
 methods, properties, constructors, overloads, enum members, and callback
-signatures. `bindings/python/header_audit.json` locks the reviewed 37-header
-surface; any digest change requires the declaration audit in
+signatures. `bindings/python/header_audit.json` locks the reviewed 38-header
+dependency surface plus the umbrella digest; any digest change requires the declaration audit in
 `bindings/python/DECLARATION_AUDIT.md` to be repeated.
 
 ## Layering

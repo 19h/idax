@@ -305,4 +305,11 @@ This section captures the intended public API semantics at a concrete level so i
 - `remove` and `remove_slot` preserve the exact address, slot, and description of every survivor despite native interior-erase compaction. The implementation snapshots state, clears from the tail, rebuilds exact survivors, verifies equality, and attempts restoration of the original snapshot on failure.
 - Node, safe Rust, and Python preserve the same six operations, `1024`-slot capacity, owned values, optional lookup state, conflict semantics, and boolean removal state. The C ABI is private transport with explicit string/array ownership.
 
+### 17.40 Opaque Persistent Address Navigation
+- `Entry` owns one address, semantic channel, and metadata string. Copyable `History` owns only a validated logical stream name, immutable recovery entry, and creation observation; native places, renderer state, widget identities, stream keys, netnodes, containers, and serialization remain private.
+- Stack and current-channel state remain distinct. `entries`, `size`, `index`, `current`, `current_for`, and `all_current` copy exact public state; `set_current`, `push`, `seek`, `back`, `forward`, `replace`, and `clear` expose the proven headless persistent subset with checked bounds and exact postcondition verification.
+- `transfer_channel_to` rejects identity, missing-source, destination-conflict, and empty-source cases before mutation. Retained matching entries append in source order, the source cursor normalizes to its nearest retained predecessor, and the destination cursor stays fixed. Representable mismatches trigger restoration attempts.
+- Native initialization uses a reserved filtered bootstrap channel because `navstack_t::init` inserts its default when that channel-current record is missing. Public channels cannot enter the reserved namespace, preventing caller-default resurrection after transfer.
+- Node, safe Rust, and Python preserve owned entries, optional boundary/current state, default movement/transfer controls where supported, and RAII/native lifetime containment. The generated C ABI has explicit history-handle and entry/string/array ownership.
+
 ---

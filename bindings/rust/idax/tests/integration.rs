@@ -19,8 +19,8 @@ use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, bookmark, comment, data, database, decompiler, directory, entry, event, exception,
-    fixup, function, graph, instruction, lines, name, parser, plugin, problem, registry, search,
-    segment, storage, types, ui, undo, xref,
+    fixup, function, graph, instruction, lines, name, navigation, parser, plugin, problem,
+    registry, search, segment, storage, types, ui, undo, xref,
 };
 
 // ---------------------------------------------------------------------------
@@ -937,6 +937,71 @@ fn bookmark_roundtrip() {
     assert!(bookmark::remove_slot(slot).unwrap());
     assert!(!bookmark::remove_slot(slot).unwrap());
     assert_eq!(bookmark::at(address).unwrap(), None);
+}
+
+fn navigation_roundtrip() {
+    require_db!();
+    let first_function = function::by_index(0).unwrap();
+    let addresses = function::code_addresses(first_function.start()).unwrap();
+    if addresses.len() < 5 {
+        return;
+    }
+
+    let alpha0 = navigation::Entry::new(addresses[0], "alpha", "a0 \u{03c0}");
+    let alpha1 = navigation::Entry::new(addresses[1], "alpha", "a1");
+    let beta0 = navigation::Entry::new(addresses[2], "beta", "b0");
+    let other0 = navigation::Entry::new(addresses[3], "other", "o0");
+    let gamma0 = navigation::Entry::new(addresses[4], "gamma", "g0");
+    let suffix = std::process::id();
+
+    let history =
+        navigation::History::open(&format!("rust-phase68-main-{suffix}"), &alpha0).unwrap();
+    assert!(history.created().unwrap());
+    assert_eq!(
+        history.name().unwrap(),
+        format!("rust-phase68-main-{suffix}")
+    );
+    assert_eq!(history.entries().unwrap(), vec![alpha0.clone()]);
+    assert_eq!(history.current().unwrap(), alpha0);
+    assert_eq!(history.index().unwrap(), 0);
+    assert_eq!(history.size().unwrap(), 1);
+
+    history.set_current(&beta0, false).unwrap();
+    assert_eq!(history.current_for("beta").unwrap(), Some(beta0));
+    assert_eq!(history.push(&alpha1).unwrap(), alpha1);
+    assert_eq!(history.back(1).unwrap(), Some(alpha0.clone()));
+    assert_eq!(history.forward(1).unwrap(), Some(alpha1.clone()));
+    assert_eq!(history.forward(1).unwrap(), None);
+    history.replace(0, &other0).unwrap();
+    assert_eq!(history.seek(0).unwrap(), other0);
+
+    let destination =
+        navigation::History::open(&format!("rust-phase68-destination-{suffix}"), &gamma0).unwrap();
+    history
+        .transfer_channel_to(&destination, "alpha", true)
+        .unwrap();
+    assert_eq!(history.entries().unwrap(), vec![other0.clone()]);
+    assert_eq!(history.current_for("alpha").unwrap(), None);
+    assert_eq!(destination.entries().unwrap(), vec![gamma0, alpha1.clone()]);
+    assert_eq!(destination.current_for("alpha").unwrap(), Some(alpha1));
+    assert!(
+        destination
+            .all_current()
+            .unwrap()
+            .iter()
+            .all(|entry| !entry.channel.starts_with("$ idax navigation/"))
+    );
+
+    let reopened =
+        navigation::History::open(&format!("rust-phase68-main-{suffix}"), &alpha0).unwrap();
+    assert!(!reopened.created().unwrap());
+    assert_eq!(reopened.entries().unwrap(), vec![other0]);
+    assert_eq!(reopened.current_for("alpha").unwrap(), None);
+
+    let reserved = navigation::Entry::new(addresses[0], "$ idax navigation/not-public", "reserved");
+    let failure = navigation::History::open(&format!("rust-phase68-reserved-{suffix}"), &reserved)
+        .unwrap_err();
+    assert_eq!(failure.category, ErrorCategory::Validation);
 }
 
 fn exception_roundtrip() {
@@ -3149,6 +3214,7 @@ static TEST_CASES: &[TestCase] = &[
     ("undo_comment_roundtrip", undo_comment_roundtrip),
     ("problem_roundtrip", problem_roundtrip),
     ("bookmark_roundtrip", bookmark_roundtrip),
+    ("navigation_roundtrip", navigation_roundtrip),
     ("exception_roundtrip", exception_roundtrip),
     ("parser_roundtrip", parser_roundtrip),
     ("directory_roundtrip", directory_roundtrip),

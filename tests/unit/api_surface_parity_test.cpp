@@ -831,6 +831,31 @@ void check_bookmark_surface() {
         decltype(ida::bookmark::Bookmark::slot), std::uint32_t>);
 }
 
+// ─── ida::navigation ────────────────────────────────────────────────────
+
+void check_navigation_surface() {
+    using OpenFn = ida::Result<ida::navigation::History>(*)(
+        std::string_view, const ida::navigation::Entry&);
+
+    (void)static_cast<OpenFn>(&ida::navigation::History::open);
+    static_assert(std::is_copy_constructible_v<ida::navigation::History>);
+    static_assert(std::is_copy_assignable_v<ida::navigation::History>);
+    static_assert(std::is_same_v<
+        decltype(ida::navigation::Entry::address), ida::Address>);
+    static_assert(std::is_same_v<
+        decltype(std::declval<const ida::navigation::History&>().entries()),
+        ida::Result<std::vector<ida::navigation::Entry>>>);
+    static_assert(std::is_same_v<
+        decltype(std::declval<const ida::navigation::History&>().back()),
+        ida::Result<std::optional<ida::navigation::Entry>>>);
+    static_assert(std::is_same_v<
+        decltype(std::declval<const ida::navigation::History&>()
+                     .transfer_channel_to(
+                         std::declval<const ida::navigation::History&>(),
+                         std::string_view{}, true)),
+        ida::Status>);
+}
+
 // ─── ida::exception ─────────────────────────────────────────────────────
 
 void check_exception_surface() {
@@ -2617,6 +2642,7 @@ int main() {
     surface_check::check_undo_surface();       namespaces_verified++;
     surface_check::check_problem_surface();    namespaces_verified++;
     surface_check::check_bookmark_surface();   namespaces_verified++;
+    surface_check::check_navigation_surface(); namespaces_verified++;
     surface_check::check_exception_surface();  namespaces_verified++;
     surface_check::check_parser_surface();     namespaces_verified++;
     surface_check::check_directory_surface();  namespaces_verified++;
@@ -2638,9 +2664,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 37, "all 37 namespace surfaces verified");
+    CHECK(namespaces_verified == 38, "all 38 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (37 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (38 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

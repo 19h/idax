@@ -2387,6 +2387,43 @@ export namespace bookmark {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// navigation namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace navigation {
+    /** Owned snapshot of one semantic address-navigation location. */
+    interface Entry {
+        address: Address;
+        channel: string;
+        metadata: string;
+    }
+
+    /** Opaque copyable handle to one persistent IDAX-private history stream. */
+    interface History {
+        name(): string;
+        created(): boolean;
+        entries(): Entry[];
+        size(): number;
+        index(): number;
+        current(): Entry;
+        currentFor(channel: string): Entry | null;
+        allCurrent(): Entry[];
+        setCurrent(entry: Entry, recordInHistory?: boolean): void;
+        push(entry: Entry): Entry;
+        seek(index: number): Entry;
+        back(count?: number): Entry | null;
+        forward(count?: number): Entry | null;
+        replace(index: number, entry: Entry): void;
+        clear(newTip: Entry): void;
+        transferChannelTo(destination: History, channel: string,
+                          retainHistory?: boolean): void;
+    }
+
+    /** Open or create a logical persistent history with one initial tip. */
+    function open(name: string, initial: Entry): History;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // parser namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

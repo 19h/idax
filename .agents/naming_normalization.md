@@ -64,6 +64,11 @@ This mapping is non-exhaustive but representative of expected direction.
 | `find_nearest_rvi` | `ida::registers::nearest_at(address, first_register, second_register)` |
 | `invalidate_regfinder_cache` | `clear_control_flow_cache` / `control_flow_reference_changed` |
 | `invalidate_regfinder_xrefs_cache` | `clear_data_reference_cache` / `data_reference_changed` |
+| `navstack_t::init` | `ida::navigation::History::open(name, initial)` |
+| `navstack_t::get_all_current` / `get_current` / `set_current` | `History::all_current` / `current_for` / `set_current` |
+| `navstack_t::stack_jump/stack_seek/stack_back/stack_forward` | `History::push` / `seek` / `back` / `forward` |
+| `navstack_t::set_stack_entry/stack_clear` | `History::replace` / `clear` |
+| `navstack_t::perform_move` | `History::transfer_channel_to(destination, channel, retain_history)` |
 | `add_sourcefile` / `get_sourcefile` / `del_sourcefile` | `ida::lines::add_source_file` / `source_file_at` / `remove_source_file` |
 | copy `func_type_data_t`, edit `funcarg_t::type`, `create_func(...)` | `TypeInfo::with_function_argument_type(index, replacement)` |
 | copy `func_type_data_t`, edit `funcarg_t::name`, `create_func(...)` | `TypeInfo::with_function_argument_name(index, name)` |

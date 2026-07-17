@@ -15,6 +15,7 @@
 #include <cstring>
 #include <limits>
 #include <mutex>
+#include <new>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -1102,6 +1103,406 @@ int idax_bookmark_remove_slot(uint32_t slot, int* out) {
         return fail(result.error());
     *out = *result ? 1 : 0;
     return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Address navigation history
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+ida::Result<const ida::navigation::History*> navigation_history_from_c(
+    IdaxNavigationHistoryHandle history) {
+    if (history == nullptr) {
+        return std::unexpected(
+            ida::Error::validation("Navigation history handle is null"));
+    }
+    return static_cast<const ida::navigation::History*>(history);
+}
+
+ida::Result<ida::navigation::Entry> navigation_entry_from_c(
+    const IdaxNavigationEntry* input) {
+    if (input == nullptr) {
+        return std::unexpected(
+            ida::Error::validation("Navigation entry pointer is null"));
+    }
+    if (input->channel == nullptr || input->metadata == nullptr) {
+        return std::unexpected(ida::Error::validation(
+            "Navigation entry string pointer is null"));
+    }
+    return ida::navigation::Entry{
+        input->address,
+        input->channel,
+        input->metadata,
+    };
+}
+
+int navigation_entry_to_c(const ida::navigation::Entry& input,
+                          IdaxNavigationEntry* out) {
+    if (out == nullptr) {
+        return fail(
+            ida::Error::validation("Navigation entry output pointer is null"));
+    }
+    *out = {};
+    out->address = input.address;
+    out->channel = dup_string(input.channel);
+    if (out->channel == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    out->metadata = dup_string(input.metadata);
+    if (out->metadata == nullptr) {
+        std::free(out->channel);
+        *out = {};
+        return fail(ida::Error::internal("malloc failed"));
+    }
+    return 0;
+}
+
+int navigation_entries_to_c(const std::vector<ida::navigation::Entry>& input,
+                            IdaxNavigationEntry** out,
+                            size_t* count) {
+    if (out == nullptr || count == nullptr) {
+        return fail(ida::Error::validation(
+            "Navigation entry array output pointer is null"));
+    }
+    *out = nullptr;
+    *count = 0;
+    if (input.empty())
+        return 0;
+    auto* values = static_cast<IdaxNavigationEntry*>(
+        std::calloc(input.size(), sizeof(IdaxNavigationEntry)));
+    if (values == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < input.size(); ++index) {
+        if (navigation_entry_to_c(input[index], &values[index]) != 0) {
+            idax_navigation_entries_free(values, input.size());
+            return -1;
+        }
+    }
+    *out = values;
+    *count = input.size();
+    return 0;
+}
+
+int navigation_optional_entry_to_c(
+    const ida::Result<std::optional<ida::navigation::Entry>>& result,
+    IdaxNavigationEntry* out,
+    int* has_value) {
+    if (out == nullptr || has_value == nullptr) {
+        return fail(ida::Error::validation(
+            "Navigation optional-entry output pointer is null"));
+    }
+    *out = {};
+    *has_value = 0;
+    if (!result)
+        return fail(result.error());
+    if (!*result)
+        return 0;
+    if (navigation_entry_to_c(**result, out) != 0)
+        return -1;
+    *has_value = 1;
+    return 0;
+}
+
+} // namespace
+
+void idax_navigation_entry_free(IdaxNavigationEntry* entry) {
+    if (entry == nullptr)
+        return;
+    std::free(entry->channel);
+    std::free(entry->metadata);
+    *entry = {};
+}
+
+void idax_navigation_entries_free(IdaxNavigationEntry* entries, size_t count) {
+    if (entries == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        idax_navigation_entry_free(&entries[index]);
+    std::free(entries);
+}
+
+int idax_navigation_history_open(const char* name,
+                                 const IdaxNavigationEntry* initial,
+                                 IdaxNavigationHistoryHandle* out) {
+    clear_error();
+    if (name == nullptr || out == nullptr) {
+        return fail(ida::Error::validation(
+            "Navigation history open argument is null"));
+    }
+    *out = nullptr;
+    auto semantic_initial = navigation_entry_from_c(initial);
+    if (!semantic_initial)
+        return fail(semantic_initial.error());
+    auto result = ida::navigation::History::open(name, *semantic_initial);
+    if (!result)
+        return fail(result.error());
+    auto* history = new (std::nothrow)
+        ida::navigation::History(std::move(*result));
+    if (history == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    *out = history;
+    return 0;
+}
+
+void idax_navigation_history_free(IdaxNavigationHistoryHandle history) {
+    delete static_cast<ida::navigation::History*>(history);
+}
+
+int idax_navigation_history_name(IdaxNavigationHistoryHandle history,
+                                 char** out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation history name output pointer is null"));
+    *out = nullptr;
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    *out = dup_string((*semantic)->name());
+    return *out != nullptr ? 0 : fail(ida::Error::internal("malloc failed"));
+}
+
+int idax_navigation_history_created(IdaxNavigationHistoryHandle history,
+                                    int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation history created output pointer is null"));
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    *out = (*semantic)->created() ? 1 : 0;
+    return 0;
+}
+
+int idax_navigation_history_entries(IdaxNavigationHistoryHandle history,
+                                    IdaxNavigationEntry** out,
+                                    size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr) {
+        return fail(ida::Error::validation(
+            "Navigation history entries output pointer is null"));
+    }
+    *out = nullptr;
+    *count = 0;
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->entries();
+    if (!result)
+        return fail(result.error());
+    return navigation_entries_to_c(*result, out, count);
+}
+
+int idax_navigation_history_size(IdaxNavigationHistoryHandle history,
+                                 size_t* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation history size output pointer is null"));
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->size();
+    if (!result)
+        return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_navigation_history_index(IdaxNavigationHistoryHandle history,
+                                  size_t* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation history index output pointer is null"));
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->index();
+    if (!result)
+        return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_navigation_history_current(IdaxNavigationHistoryHandle history,
+                                    IdaxNavigationEntry* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation current-entry output pointer is null"));
+    *out = {};
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->current();
+    if (!result)
+        return fail(result.error());
+    return navigation_entry_to_c(*result, out);
+}
+
+int idax_navigation_history_current_for(IdaxNavigationHistoryHandle history,
+                                        const char* channel,
+                                        IdaxNavigationEntry* out,
+                                        int* has_value) {
+    clear_error();
+    if (channel == nullptr)
+        return fail(ida::Error::validation("Navigation channel is null"));
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    return navigation_optional_entry_to_c(
+        (*semantic)->current_for(channel), out, has_value);
+}
+
+int idax_navigation_history_all_current(IdaxNavigationHistoryHandle history,
+                                        IdaxNavigationEntry** out,
+                                        size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr) {
+        return fail(ida::Error::validation(
+            "Navigation current-entry array output pointer is null"));
+    }
+    *out = nullptr;
+    *count = 0;
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->all_current();
+    if (!result)
+        return fail(result.error());
+    return navigation_entries_to_c(*result, out, count);
+}
+
+int idax_navigation_history_set_current(IdaxNavigationHistoryHandle history,
+                                        const IdaxNavigationEntry* entry,
+                                        int record_in_history) {
+    clear_error();
+    if (record_in_history != 0 && record_in_history != 1) {
+        return fail(ida::Error::validation(
+            "Navigation record-in-history flag is invalid"));
+    }
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto semantic_entry = navigation_entry_from_c(entry);
+    if (!semantic_entry)
+        return fail(semantic_entry.error());
+    auto status = (*semantic)->set_current(*semantic_entry,
+                                           record_in_history != 0);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_navigation_history_push(IdaxNavigationHistoryHandle history,
+                                 const IdaxNavigationEntry* entry,
+                                 IdaxNavigationEntry* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation push output pointer is null"));
+    *out = {};
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto semantic_entry = navigation_entry_from_c(entry);
+    if (!semantic_entry)
+        return fail(semantic_entry.error());
+    auto result = (*semantic)->push(*semantic_entry);
+    if (!result)
+        return fail(result.error());
+    return navigation_entry_to_c(*result, out);
+}
+
+int idax_navigation_history_seek(IdaxNavigationHistoryHandle history,
+                                 size_t index,
+                                 IdaxNavigationEntry* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Navigation seek output pointer is null"));
+    *out = {};
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto result = (*semantic)->seek(index);
+    if (!result)
+        return fail(result.error());
+    return navigation_entry_to_c(*result, out);
+}
+
+int idax_navigation_history_back(IdaxNavigationHistoryHandle history,
+                                 size_t count,
+                                 IdaxNavigationEntry* out,
+                                 int* has_value) {
+    clear_error();
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    return navigation_optional_entry_to_c(
+        (*semantic)->back(count), out, has_value);
+}
+
+int idax_navigation_history_forward(IdaxNavigationHistoryHandle history,
+                                    size_t count,
+                                    IdaxNavigationEntry* out,
+                                    int* has_value) {
+    clear_error();
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    return navigation_optional_entry_to_c(
+        (*semantic)->forward(count), out, has_value);
+}
+
+int idax_navigation_history_replace(IdaxNavigationHistoryHandle history,
+                                    size_t index,
+                                    const IdaxNavigationEntry* entry) {
+    clear_error();
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto semantic_entry = navigation_entry_from_c(entry);
+    if (!semantic_entry)
+        return fail(semantic_entry.error());
+    auto status = (*semantic)->replace(index, *semantic_entry);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_navigation_history_clear(IdaxNavigationHistoryHandle history,
+                                  const IdaxNavigationEntry* new_tip) {
+    clear_error();
+    auto semantic = navigation_history_from_c(history);
+    if (!semantic)
+        return fail(semantic.error());
+    auto semantic_entry = navigation_entry_from_c(new_tip);
+    if (!semantic_entry)
+        return fail(semantic_entry.error());
+    auto status = (*semantic)->clear(*semantic_entry);
+    return status ? 0 : fail(status.error());
+}
+
+int idax_navigation_history_transfer_channel_to(
+    IdaxNavigationHistoryHandle source,
+    IdaxNavigationHistoryHandle destination,
+    const char* channel,
+    int retain_history) {
+    clear_error();
+    if (channel == nullptr)
+        return fail(ida::Error::validation("Navigation channel is null"));
+    if (retain_history != 0 && retain_history != 1) {
+        return fail(ida::Error::validation(
+            "Navigation retain-history flag is invalid"));
+    }
+    auto semantic_source = navigation_history_from_c(source);
+    if (!semantic_source)
+        return fail(semantic_source.error());
+    auto semantic_destination = navigation_history_from_c(destination);
+    if (!semantic_destination)
+        return fail(semantic_destination.error());
+    auto status = (*semantic_source)->transfer_channel_to(
+        **semantic_destination, channel, retain_history != 0);
+    return status ? 0 : fail(status.error());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -1383,3 +1383,30 @@ tracked in `docs/compatibility_matrix.md`.
   29551508095, and 29551931196 pass without a canonical license identifier or
   non-infrastructure identity-path finding. Every job uses IDA Professional 9.4
   and exact SDK commit `6929db6868a524496eb66e76e4ec6c9d720a0594`.
+
+- 2026-07-17 Phase 68 opaque address-navigation history local candidate:
+  Added the proven current `navstack_t` address-history subset across C++,
+  Node, generated C/safe Rust, and Python using owned address/channel/metadata
+  snapshots and copyable logical stream handles. Native places, renderer and
+  widget state, netnodes, stream keys, serialized records, and mutable SDK
+  containers remain private. Exact mutation verification covers independent
+  per-channel current state, push with forward truncation, cursor movement,
+  replacement, clear, discard/retain transfer, source/destination cursor
+  normalization, conflict/empty-source rejection, rollback paths, private
+  bootstrap filtering, and save/reopen persistence. Exact-SDK/IDA 9.4 native
+  validation passes CTest 38/38, every example/addon/tool, three processor
+  exports/descriptors plus licensed runtime smoke, install, and TGZ packaging.
+  Node passes 258 structural, 93 initialized-host, and 24 register-tracking
+  checks with a 39-file package inventory. Rust passes formatting, 164 unit
+  plus 110 initialized-host checks, doctests, package inspection, and
+  byte-identical generated declarations at SHA-256
+  `bab689914bbdfcd89d8f01a8417ccb950f2b9656546116ad2bdb124d7eab0946`.
+  Python passes 20 pure plus two initialized-host tests, strict typing over 40
+  files, a 36-domain/901-symbol declaration audit, and fresh wheel/sdist
+  inspection; the independent strict local Hex-Rays tranche remains unavailable
+  while optional-capability runtime execution passes. Workflow/action pins,
+  HCLI named-product license selection, processor validation helpers, log
+  privacy, explicit checkout-path absence, 577-file candidate privacy, and
+  4,232-object reachable-history privacy pass. Exact staging, implementation
+  push, the live 18-job release matrix, complete-log audits, and closure remain
+  active under P68.4.

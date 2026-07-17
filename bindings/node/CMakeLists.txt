@@ -230,6 +230,7 @@ set(BINDING_SOURCES
     src/undo_bind.cpp
     src/problem_bind.cpp
     src/bookmark_bind.cpp
+    src/navigation_bind.cpp
     src/exception_bind.cpp
     src/parser_bind.cpp
     src/directory_bind.cpp

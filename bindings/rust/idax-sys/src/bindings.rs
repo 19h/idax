@@ -503,6 +503,160 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_bookmarks_free(bookmarks: *mut IdaxBookmark, count: usize);
 }
+pub type IdaxNavigationHistoryHandle = *mut ::std::os::raw::c_void;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxNavigationEntry {
+    pub address: u64,
+    pub channel: *mut ::std::os::raw::c_char,
+    pub metadata: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxNavigationEntry"][::std::mem::size_of::<IdaxNavigationEntry>() - 24usize];
+    ["Alignment of IdaxNavigationEntry"][::std::mem::align_of::<IdaxNavigationEntry>() - 8usize];
+    ["Offset of field: IdaxNavigationEntry::address"]
+        [::std::mem::offset_of!(IdaxNavigationEntry, address) - 0usize];
+    ["Offset of field: IdaxNavigationEntry::channel"]
+        [::std::mem::offset_of!(IdaxNavigationEntry, channel) - 8usize];
+    ["Offset of field: IdaxNavigationEntry::metadata"]
+        [::std::mem::offset_of!(IdaxNavigationEntry, metadata) - 16usize];
+};
+impl Default for IdaxNavigationEntry {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_open(
+        name: *const ::std::os::raw::c_char,
+        initial: *const IdaxNavigationEntry,
+        out: *mut IdaxNavigationHistoryHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_free(history: IdaxNavigationHistoryHandle);
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_name(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_created(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_entries(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut *mut IdaxNavigationEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_size(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_index(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_current(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut IdaxNavigationEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_current_for(
+        history: IdaxNavigationHistoryHandle,
+        channel: *const ::std::os::raw::c_char,
+        out: *mut IdaxNavigationEntry,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_all_current(
+        history: IdaxNavigationHistoryHandle,
+        out: *mut *mut IdaxNavigationEntry,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_set_current(
+        history: IdaxNavigationHistoryHandle,
+        entry: *const IdaxNavigationEntry,
+        record_in_history: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_push(
+        history: IdaxNavigationHistoryHandle,
+        entry: *const IdaxNavigationEntry,
+        out: *mut IdaxNavigationEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_seek(
+        history: IdaxNavigationHistoryHandle,
+        index: usize,
+        out: *mut IdaxNavigationEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_back(
+        history: IdaxNavigationHistoryHandle,
+        count: usize,
+        out: *mut IdaxNavigationEntry,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_forward(
+        history: IdaxNavigationHistoryHandle,
+        count: usize,
+        out: *mut IdaxNavigationEntry,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_replace(
+        history: IdaxNavigationHistoryHandle,
+        index: usize,
+        entry: *const IdaxNavigationEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_clear(
+        history: IdaxNavigationHistoryHandle,
+        new_tip: *const IdaxNavigationEntry,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_history_transfer_channel_to(
+        source: IdaxNavigationHistoryHandle,
+        destination: IdaxNavigationHistoryHandle,
+        channel: *const ::std::os::raw::c_char,
+        retain_history: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_navigation_entry_free(entry: *mut IdaxNavigationEntry);
+}
+unsafe extern "C" {
+    pub fn idax_navigation_entries_free(entries: *mut IdaxNavigationEntry, count: usize);
+}
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct IdaxRegisterValueOrigin {

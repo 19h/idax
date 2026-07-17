@@ -17,6 +17,7 @@ from idax import (
     address,
     analysis,
     bookmark,
+    navigation,
     comment,
     data,
     database,
@@ -175,6 +176,56 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
                     assert bookmark.at(bookmark_address) is None
                 finally:
                     bookmark.remove(bookmark_address)
+
+            navigation_addresses = function.code_addresses(first_function.start)
+            if len(navigation_addresses) >= 5:
+                def navigation_entry(
+                    index: int, channel: str, metadata: str
+                ) -> navigation.Entry:
+                    value = navigation.Entry()
+                    value.address = navigation_addresses[index]
+                    value.channel = channel
+                    value.metadata = metadata
+                    return value
+
+                alpha0 = navigation_entry(0, "alpha", "a0 π")
+                alpha1 = navigation_entry(1, "alpha", "a1")
+                beta0 = navigation_entry(2, "beta", "b0")
+                other0 = navigation_entry(3, "other", "o0")
+                gamma0 = navigation_entry(4, "gamma", "g0")
+                stream_suffix = uuid.uuid4().hex
+                history = navigation.open(
+                    f"python-phase68-main-{stream_suffix}", alpha0
+                )
+                assert history.created
+                assert history.entries == [alpha0]
+                assert history.current == alpha0
+                assert history.index == 0
+                history.set_current(beta0)
+                assert history.current_for("beta") == beta0
+                assert history.push(alpha1) == alpha1
+                assert history.back() == alpha0
+                assert history.forward() == alpha1
+                assert history.forward() is None
+                history.replace(0, other0)
+                assert history.seek(0) == other0
+                destination = navigation.open(
+                    f"python-phase68-destination-{stream_suffix}", gamma0
+                )
+                history.transfer_channel_to(destination, "alpha", True)
+                assert history.entries == [other0]
+                assert history.current_for("alpha") is None
+                assert destination.entries == [gamma0, alpha1]
+                assert destination.current_for("alpha") == alpha1
+                assert all(
+                    not value.channel.startswith("$ idax navigation/")
+                    for value in destination.all_current
+                )
+                reopened = navigation.open(
+                    f"python-phase68-main-{stream_suffix}", alpha0
+                )
+                assert not reopened.created
+                assert reopened.entries == [other0]
 
             parser.select_for([parser.Language.C, parser.Language.CPP])
             parser_name = parser.selected_name()

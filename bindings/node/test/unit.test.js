@@ -56,7 +56,7 @@ describe('Namespace Exports', () => {
         'database', 'address', 'segment', 'function', 'instruction',
         'name', 'xref', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
-        'undo', 'problem', 'bookmark', 'exception', 'parser', 'directory', 'registry', 'registers',
+        'undo', 'problem', 'bookmark', 'navigation', 'exception', 'parser', 'directory', 'registry', 'registers',
         'lumina', 'lines', 'ui', 'decompiler', 'path',
     ];
 
@@ -667,6 +667,32 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace bookmark');
         expect(dts).toContain('function atSlot(slot: number): Bookmark | null');
         expect(dts).toContain('slot?: number | null): Bookmark');
+    });
+
+    it('should have an opaque address-navigation factory and declarations', () => {
+        if (!idax) return;
+        expect(typeof idax.navigation.open).toBe('function');
+        const entry = { address: 0n, channel: 'alpha', metadata: '' };
+        expect(() => idax.navigation.open('', entry)).toThrow(/cannot be empty/);
+        expect(() => idax.navigation.open('bad\0name', entry))
+            .toThrow(/embedded NUL/);
+        expect(() => idax.navigation.open('bad-address', {
+            address: idax.BadAddress,
+            channel: 'alpha',
+            metadata: '',
+        })).toThrow(/BadAddress/);
+        expect(() => idax.navigation.open('bad-channel', {
+            address: 0n,
+            channel: 'bad\0channel',
+            metadata: '',
+        })).toThrow(/embedded NUL/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace navigation');
+        expect(dts).toContain('transferChannelTo(destination: History');
+        expect(dts).toContain('function open(name: string, initial: Entry): History');
     });
 
     it('should have opaque register-tracking functions and declarations', () => {

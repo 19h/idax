@@ -14,6 +14,7 @@ from idax import (
     lines,
     loader,
     bookmark,
+    navigation,
     parser,
     plugin,
     problem,
@@ -48,6 +49,20 @@ def test_package_contract() -> None:
         bookmark.set(0, "bad\0description")
     with pytest.raises(idax.ValidationError, match="outside the supported range"):
         bookmark.at_slot(bookmark.MAX_SLOTS)
+    navigation_entry = navigation.Entry()
+    navigation_entry.address = 0
+    navigation_entry.channel = "alpha"
+    navigation_entry.metadata = "probe"
+    assert navigation_entry == navigation_entry
+    assert "Entry" in repr(navigation_entry)
+    with pytest.raises(idax.ValidationError, match="cannot be empty"):
+        navigation.open("", navigation_entry)
+    navigation_entry.channel = "bad\0channel"
+    with pytest.raises(idax.ValidationError, match="embedded NUL"):
+        navigation.open("probe", navigation_entry)
+    navigation_entry.channel = "$ idax navigation/private"
+    with pytest.raises(idax.ValidationError, match="reserved IDAX namespace"):
+        navigation.open("probe", navigation_entry)
     assert exception.CatchSelectorKind.TYPED.name == "TYPED"
     assert exception.SehDisposition.CONTINUE_SEARCH.name == "CONTINUE_SEARCH"
     assert exception.Location.CPP_TRY.name == "CPP_TRY"

@@ -138,6 +138,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 | [`parser`] | Source parsers | Selection by language/name, copied identity/options, arguments, source/file ingestion, and parse reports |
 | [`directory`] | Directory trees | All eight standard trees, copied entries, organization, ordering, search, and partial bulk reports |
 | [`registry`] | Persistent registry | Copyable scoped stores, typed values, copied child/value inventories, ordered string lists, and cleanup |
+| [`navigation`] | Navigation history | RAII history handles, owned channel/metadata entries, cursor movement, and conflict-checked channel transfer |
 | [`registers`] | Register tracking | Named backward value queries, owned constants/stack deltas and origins, nearest selection, and cache notifications |
 
 ### Type system

@@ -526,3 +526,12 @@ Current overall phase status:
 - [x] P67.4 Add malformed-input plus isolated real-IDA create/enumerate/update/conflict/remove/reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 67 from active work.
 
 ---
+
+### Phase 68 TODO Action Items (Opaque Address Navigation History)
+
+- [x] P68.1 Audit the pinned IDA 9.4 `navstack_t`/entry surface, runtime exports, generated IDAPython model, current UI/address APIs, and all language bindings.
+- [x] P68.2 Select and falsify an SDK-opaque address-history model for named persistent streams, owned entries, cursor movement, mutation, and stream transfer without exposing places, renderer state, widgets, netnodes, or serialized records.
+- [x] P68.3 Implement complete C++, Node, Rust, and Python parity for the proven address-history subset and retain an explicit custom-place/UI-action boundary.
+- [ ] P68.4 Add malformed-input plus isolated real-IDA push/enumerate/current/seek/back/forward/update/clear/save/reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 68 from active work.
+
+---
