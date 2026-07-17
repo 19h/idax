@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Node 24 CI Runtime and Supply-Chain Hardening (Phase 66)
+
+- **7.1. Workflow Migration**
+  - 7.1.1. **Action:** Exact-stage/review/push the completed P66.3 migration, require all 18 source jobs and complete-log audits to pass, inspect every public annotation for zero Node 20/Homebrew trust warnings, then close P66.4.
+  - 7.1.2. **Evidence:** Offline inventory passes 35/35 reviewed action uses and eight policy tests; composite/action/workflow YAML, actionlint, Python/shell syntax, exact-SDK IDA 9.4 workflow-equivalent compile-only build, three processor exports/descriptors, processor runtime smoke, Xcode `libclang` existence, and 559-file candidate plus 4,143-object history privacy pass. Local PowerShell is unavailable; the six hosted Windows jobs are the executable MSVC bridge proof.
+  - 7.1.3. **Status:** Active / P66.4 exact release validation; no blocker.

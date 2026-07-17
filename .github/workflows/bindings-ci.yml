@@ -38,12 +38,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
       - name: Checkout IDA SDK
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ${{ env.IDA_SDK_REPO }}
           ref: ${{ env.IDA_SDK_REF }}
@@ -91,9 +91,10 @@ jobs:
           uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
+          package-manager-cache: false
 
       - name: Resolve IDASDK and IDADIR paths
         shell: bash
@@ -129,7 +130,7 @@ jobs:
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ./.github/actions/setup-msvc
         with:
           arch: ${{ matrix.msvc_arch }}
 
@@ -221,12 +222,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
       - name: Checkout IDA SDK
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ${{ env.IDA_SDK_REPO }}
           ref: ${{ env.IDA_SDK_REF }}
@@ -274,7 +275,7 @@ jobs:
           uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable action snapshot
 
       - name: Resolve IDASDK and IDADIR paths
         shell: bash
@@ -310,7 +311,7 @@ jobs:
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ./.github/actions/setup-msvc
         with:
           arch: ${{ matrix.msvc_arch }}
 
@@ -322,9 +323,14 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
+        shell: bash
         run: |
-          brew install llvm
-          echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> "$GITHUB_ENV"
+          XCODE_LIBCLANG="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib"
+          if [[ ! -f "$XCODE_LIBCLANG/libclang.dylib" ]]; then
+            echo "error: Xcode libclang.dylib was not found"
+            exit 1
+          fi
+          echo "LIBCLANG_PATH=$XCODE_LIBCLANG" >> "$GITHUB_ENV"
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
@@ -453,12 +459,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: recursive
 
       - name: Checkout IDA SDK
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ${{ env.IDA_SDK_REPO }}
           ref: ${{ env.IDA_SDK_REF }}
@@ -539,7 +545,7 @@ jobs:
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ./.github/actions/setup-msvc
         with:
           arch: ${{ matrix.msvc_arch }}
 

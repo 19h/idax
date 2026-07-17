@@ -508,3 +508,12 @@ Current overall phase status:
 - [x] P65.4 Add malformed-input plus isolated constant/stack/unknown/multi-value/nearest/cache evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 65 from active work.
 
 ---
+
+### Phase 66 TODO Action Items (Node 24 CI Runtime and Supply-Chain Hardening)
+
+- [x] P66.1 Audit every workflow action reference, current green-run warning annotation, upstream runtime manifest, immutable release revision, and macOS Homebrew trust warning.
+- [x] P66.2 Select exact immutable Node 24 action revisions, a local composite MSVC environment bridge, Xcode-bundled `libclang`, and a fail-closed repository action-pin policy.
+- [x] P66.3 Implement all workflow migrations, local MSVC setup, Homebrew removal, and offline regression coverage without changing IDA 9.4 or SDK acquisition semantics.
+- [ ] P66.4 Run complete local validation and self-red-team, exact-stage review, push, require warning-free live source matrices plus complete-log audits, synchronize closure records, and remove Phase 66 from active work.
+
+---
