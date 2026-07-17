@@ -28,6 +28,8 @@
 | `add_extra_cmt(ea, false, line)` | `ida::comment::set_posterior_lines(ea, lines)` |
 | `add_cref(from, to, fl_CN)` | `ida::xref::add_code(from, to, CodeType::CallNear)` |
 | `add_dref(from, to, dr_R)` | `ida::xref::add_data(from, to, DataType::Read)` |
+| `get_refinfo(&ri, ea, n)` / raw `refinfo_t` inspection | `ida::offset::reference_info(ea, OperandLocation{n})` returning copied semantic metadata |
+| `op_offset_ex(ea, n, &ri)` / `del_refinfo` / `clr_op_type` | `ida::offset::apply_reference(...)` / `remove_reference(...)` with verified layered mutation |
 | `find_text(...)` | `ida::search::text(query, start, options)` |
 | `find_text(..., SEARCH_REGEX)` | `ida::search::text(query, start, TextOptions{.regex=true})` |
 | `auto_wait()` | `ida::analysis::wait()` |

@@ -5380,6 +5380,368 @@ int idax_xref_remove_data(uint64_t from, uint64_t to) {
     RETURN_STATUS(ida::xref::remove_data(from, to));
 }
 
+// Offset/reference semantics
+
+namespace {
+
+ida::offset::OperandLocation offset_location(size_t operand_index, int outer) {
+    return ida::offset::OperandLocation{
+        .index = operand_index,
+        .outer = outer != 0,
+    };
+}
+
+ida::offset::ReferenceInfo offset_info_from_input(
+    const IdaxOffsetReferenceInfoInput& input) {
+    ida::offset::ReferenceInfo result;
+    result.type.kind = static_cast<ida::offset::ReferenceKind>(input.kind);
+    result.type.custom_name = input.custom_name == nullptr
+        ? "" : input.custom_name;
+    if (input.has_target != 0)
+        result.target = input.target;
+    if (input.has_base != 0)
+        result.base = input.base;
+    result.target_delta = input.target_delta;
+    result.options.relative_virtual_address =
+        input.relative_virtual_address != 0;
+    result.options.allow_past_end = input.allow_past_end != 0;
+    result.options.suppress_base_reference =
+        input.suppress_base_reference != 0;
+    result.options.subtract_operand = input.subtract_operand != 0;
+    result.options.sign_extend_operand = input.sign_extend_operand != 0;
+    result.options.accept_zero = input.accept_zero != 0;
+    result.options.reject_all_ones = input.reject_all_ones != 0;
+    result.options.self_relative = input.self_relative != 0;
+    result.options.ignore_fixup = input.ignore_fixup != 0;
+    return result;
+}
+
+bool fill_offset_reference_type(
+    IdaxOffsetReferenceType* out,
+    const ida::offset::ReferenceType& input) {
+    out->kind = static_cast<int>(input.kind);
+    out->custom_name = dup_string(input.custom_name);
+    return out->custom_name != nullptr;
+}
+
+bool fill_offset_reference_info(
+    IdaxOffsetReferenceInfo* out,
+    const ida::offset::ReferenceInfo& input) {
+    std::memset(out, 0, sizeof(*out));
+    out->kind = static_cast<int>(input.type.kind);
+    out->custom_name = dup_string(input.type.custom_name);
+    if (out->custom_name == nullptr)
+        return false;
+    out->has_target = input.target.has_value() ? 1 : 0;
+    out->target = input.target.value_or(0);
+    out->has_base = input.base.has_value() ? 1 : 0;
+    out->base = input.base.value_or(0);
+    out->target_delta = input.target_delta;
+    out->relative_virtual_address =
+        input.options.relative_virtual_address ? 1 : 0;
+    out->allow_past_end = input.options.allow_past_end ? 1 : 0;
+    out->suppress_base_reference =
+        input.options.suppress_base_reference ? 1 : 0;
+    out->subtract_operand = input.options.subtract_operand ? 1 : 0;
+    out->sign_extend_operand = input.options.sign_extend_operand ? 1 : 0;
+    out->accept_zero = input.options.accept_zero ? 1 : 0;
+    out->reject_all_ones = input.options.reject_all_ones ? 1 : 0;
+    out->self_relative = input.options.self_relative ? 1 : 0;
+    out->ignore_fixup = input.options.ignore_fixup ? 1 : 0;
+    return true;
+}
+
+ida::offset::RenderOptions offset_render_options(
+    int append_zero_field, int avoid_dummy_names) {
+    return ida::offset::RenderOptions{
+        .append_zero_field = append_zero_field != 0,
+        .avoid_dummy_names = avoid_dummy_names != 0,
+    };
+}
+
+int fill_optional_offset_address(
+    ida::Result<std::optional<ida::Address>> result,
+    uint64_t* out,
+    int* has_value) {
+    if (!result)
+        return fail(result.error());
+    *has_value = result->has_value() ? 1 : 0;
+    *out = result->value_or(0);
+    return 0;
+}
+
+} // anonymous namespace
+
+int idax_offset_reference_types(
+    IdaxOffsetReferenceTypeDescriptor** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("Offset descriptor output is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::offset::reference_types();
+    if (!result)
+        return fail(result.error());
+    if (result->empty())
+        return 0;
+
+    auto* values = static_cast<IdaxOffsetReferenceTypeDescriptor*>(
+        std::calloc(result->size(), sizeof(IdaxOffsetReferenceTypeDescriptor)));
+    if (values == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    *out = values;
+    *count = result->size();
+    for (size_t index = 0; index < result->size(); ++index) {
+        const auto& input = (*result)[index];
+        if (!fill_offset_reference_type(&values[index].type, input.type)) {
+            idax_offset_reference_types_free(values, result->size());
+            *out = nullptr;
+            *count = 0;
+            return fail(ida::Error::internal("malloc failed"));
+        }
+        values[index].name = dup_string(input.name);
+        values[index].description = dup_string(input.description);
+        values[index].target_optional = input.target_optional ? 1 : 0;
+        if (values[index].name == nullptr
+            || values[index].description == nullptr) {
+            idax_offset_reference_types_free(values, result->size());
+            *out = nullptr;
+            *count = 0;
+            return fail(ida::Error::internal("malloc failed"));
+        }
+    }
+    return 0;
+}
+
+void idax_offset_reference_types_free(
+    IdaxOffsetReferenceTypeDescriptor* values, size_t count) {
+    if (values == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index) {
+        std::free(values[index].type.custom_name);
+        std::free(values[index].name);
+        std::free(values[index].description);
+    }
+    std::free(values);
+}
+
+int idax_offset_default_reference_type(
+    uint64_t address, IdaxOffsetReferenceType* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Offset type output is null"));
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::offset::default_reference_type(address);
+    if (!result)
+        return fail(result.error());
+    if (!fill_offset_reference_type(out, *result))
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+void idax_offset_reference_type_free(IdaxOffsetReferenceType* value) {
+    if (value == nullptr)
+        return;
+    std::free(value->custom_name);
+    value->custom_name = nullptr;
+}
+
+int idax_offset_reference_info(
+    uint64_t address, size_t operand_index, int outer,
+    IdaxOffsetReferenceInfo* out, int* has_info) {
+    clear_error();
+    if (out == nullptr || has_info == nullptr)
+        return fail(ida::Error::validation("Offset info output is null"));
+    std::memset(out, 0, sizeof(*out));
+    *has_info = 0;
+    auto result = ida::offset::reference_info(
+        address, offset_location(operand_index, outer));
+    if (!result)
+        return fail(result.error());
+    if (!result->has_value())
+        return 0;
+    if (!fill_offset_reference_info(out, **result))
+        return fail(ida::Error::internal("malloc failed"));
+    *has_info = 1;
+    return 0;
+}
+
+void idax_offset_reference_info_free(IdaxOffsetReferenceInfo* value) {
+    if (value == nullptr)
+        return;
+    std::free(value->custom_name);
+    value->custom_name = nullptr;
+}
+
+int idax_offset_apply_reference(
+    uint64_t address, size_t operand_index, int outer,
+    const IdaxOffsetReferenceInfoInput* info) {
+    clear_error();
+    if (info == nullptr)
+        return fail(ida::Error::validation("Offset info input is null"));
+    RETURN_STATUS(ida::offset::apply_reference(
+        address,
+        offset_location(operand_index, outer),
+        offset_info_from_input(*info)));
+}
+
+int idax_offset_remove_reference(
+    uint64_t address, size_t operand_index, int outer, int* removed) {
+    clear_error();
+    if (removed == nullptr)
+        return fail(ida::Error::validation("Offset removal output is null"));
+    *removed = 0;
+    auto result = ida::offset::remove_reference(
+        address, offset_location(operand_index, outer));
+    if (!result)
+        return fail(result.error());
+    *removed = *result ? 1 : 0;
+    return 0;
+}
+
+int idax_offset_render_stored_expression(
+    uint64_t address, size_t operand_index, int outer,
+    uint64_t from, int64_t operand_value,
+    int append_zero_field, int avoid_dummy_names,
+    IdaxOffsetRenderedExpression* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Offset render output is null"));
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::offset::render_stored_expression(
+        address,
+        offset_location(operand_index, outer),
+        from,
+        operand_value,
+        offset_render_options(append_zero_field, avoid_dummy_names));
+    if (!result)
+        return fail(result.error());
+    out->text = dup_string(result->text);
+    out->complexity = static_cast<int>(result->complexity);
+    if (out->text == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+int idax_offset_render_expression(
+    uint64_t address, size_t operand_index, int outer,
+    const IdaxOffsetReferenceInfoInput* info,
+    uint64_t from, int64_t operand_value,
+    int append_zero_field, int avoid_dummy_names,
+    IdaxOffsetRenderedExpression* out) {
+    clear_error();
+    if (info == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Offset render input/output is null"));
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::offset::render_expression(
+        address,
+        offset_location(operand_index, outer),
+        offset_info_from_input(*info),
+        from,
+        operand_value,
+        offset_render_options(append_zero_field, avoid_dummy_names));
+    if (!result)
+        return fail(result.error());
+    out->text = dup_string(result->text);
+    out->complexity = static_cast<int>(result->complexity);
+    if (out->text == nullptr)
+        return fail(ida::Error::internal("malloc failed"));
+    return 0;
+}
+
+void idax_offset_rendered_expression_free(
+    IdaxOffsetRenderedExpression* value) {
+    if (value == nullptr)
+        return;
+    std::free(value->text);
+    value->text = nullptr;
+}
+
+int idax_offset_possible_offset32_target(
+    uint64_t address, uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Offset target output is null"));
+    *out = 0;
+    *has_value = 0;
+    return fill_optional_offset_address(
+        ida::offset::possible_offset32_target(address), out, has_value);
+}
+
+int idax_offset_calculate_offset_base(
+    uint64_t address, size_t operand_index, int outer,
+    uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Offset base output is null"));
+    *out = 0;
+    *has_value = 0;
+    return fill_optional_offset_address(
+        ida::offset::calculate_offset_base(
+            address, offset_location(operand_index, outer)),
+        out,
+        has_value);
+}
+
+int idax_offset_probable_base(
+    uint64_t address, uint64_t operand_value,
+    uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Probable-base output is null"));
+    *out = 0;
+    *has_value = 0;
+    return fill_optional_offset_address(
+        ida::offset::probable_base(address, operand_value), out, has_value);
+}
+
+int idax_offset_calculate_reference(
+    uint64_t from, const IdaxOffsetReferenceInfoInput* info,
+    int64_t operand_value, IdaxOffsetReferenceCalculation* out) {
+    clear_error();
+    if (info == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Reference-calculation input/output is null"));
+    std::memset(out, 0, sizeof(*out));
+    auto result = ida::offset::calculate_reference(
+        from, offset_info_from_input(*info), operand_value);
+    if (!result)
+        return fail(result.error());
+    out->has_target = result->target.has_value() ? 1 : 0;
+    out->target = result->target.value_or(0);
+    out->has_base = result->base.has_value() ? 1 : 0;
+    out->base = result->base.value_or(0);
+    return 0;
+}
+
+int idax_offset_add_operand_data_references(
+    uint64_t instruction_address, size_t operand_index, int outer,
+    int data_type, uint64_t* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Offset xref output is null"));
+    *out = 0;
+    auto result = ida::offset::add_operand_data_references(
+        instruction_address,
+        offset_location(operand_index, outer),
+        static_cast<ida::xref::DataType>(data_type));
+    if (!result)
+        return fail(result.error());
+    *out = *result;
+    return 0;
+}
+
+int idax_offset_calculate_base_value(
+    uint64_t target, uint64_t base, uint64_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation("Base-value output is null"));
+    *out = 0;
+    *has_value = 0;
+    return fill_optional_offset_address(
+        ida::offset::calculate_base_value(target, base), out, has_value);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Comment
 // ═══════════════════════════════════════════════════════════════════════════

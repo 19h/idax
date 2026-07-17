@@ -84,6 +84,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **Instructions** | `ida::instruction` | Decode/create, operand access/read-write metadata, representation controls, xref conveniences |
 | **Names** | `ida::name` | Set/get/force/remove, filtered copied inventories, address-based or arbitrary-symbol demangling, resolution, properties |
 | **Cross-refs** | `ida::xref` | Unified reference model, typed code/data refs, add/remove/enumerate |
+| **Offset references** | `ida::offset` | Opaque operand reference formats/options, copied metadata, rendering, calculation, verified mutation, and reference-aware data xrefs |
 | **Comments** | `ida::comment` | Regular/repeatable, anterior/posterior lines, bulk operations, rendering |
 | **Types** | `ida::type` | Type construction, structs/unions/members, apply/retrieve, bulk declaration import/rendering, dependency-ordered declarations, type graph rendering, type libraries |
 | **Source parsers** | `ida::parser` | Third-party parser selection by name/language, arguments/options, source/file ingestion, and parse reports |

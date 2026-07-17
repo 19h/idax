@@ -54,7 +54,7 @@ describe('Namespace Exports', () => {
 
     const EXPECTED_NAMESPACES = [
         'database', 'address', 'segment', 'function', 'instruction',
-        'name', 'xref', 'comment', 'data', 'search', 'analysis',
+        'name', 'xref', 'offset', 'comment', 'data', 'search', 'analysis',
         'type', 'entry', 'fixup', 'event', 'storage', 'diagnostics',
         'undo', 'problem', 'bookmark', 'navigation', 'exception', 'parser', 'directory', 'registry', 'registers',
         'lumina', 'lines', 'ui', 'decompiler', 'path',
@@ -706,6 +706,32 @@ describe('Type/Storage/Decompiler/Lines/Diagnostics/Lumina Structure', () => {
         expect(dts).toContain('export namespace navigation');
         expect(dts).toContain('transferChannelTo(destination: History');
         expect(dts).toContain('function open(name: string, initial: Entry): History');
+    });
+
+    it('should have opaque offset/reference functions and declarations', () => {
+        if (!idax) return;
+        for (const fn of [
+            'referenceTypes', 'defaultReferenceType', 'referenceInfo',
+            'applyReference', 'removeReference', 'renderStoredExpression',
+            'renderExpression', 'possibleOffset32Target',
+            'calculateOffsetBase', 'probableBase', 'calculateReference',
+            'addOperandDataReferences', 'calculateBaseValue',
+        ]) {
+            expect(typeof idax.offset[fn]).toBe('function');
+        }
+        expect(() => idax.offset.referenceInfo(0n, { index: -1 }))
+            .toThrow(/nonnegative safe integer/);
+        expect(() => idax.offset.referenceInfo(0n, { index: 1e100 }))
+            .toThrow(/nonnegative safe integer/);
+        expect(() => idax.offset.referenceInfo(0n, { index: 0, outer: 'yes' }))
+            .toThrow(/must be a boolean/);
+
+        const fs = require('fs');
+        const path = require('path');
+        const dts = fs.readFileSync(path.join(__dirname, '../lib/index.d.ts'), 'utf8');
+        expect(dts).toContain('export namespace offset');
+        expect(dts).toContain('interface ReferenceInfo');
+        expect(dts).toContain('function renderExpression(');
     });
 
     it('should have opaque register-tracking functions and declarations', () => {

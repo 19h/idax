@@ -3727,6 +3727,380 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn idax_xref_remove_data(from: u64, to: u64) -> ::std::os::raw::c_int;
 }
+#[doc = " Owned reference-format identity returned by the shim."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxOffsetReferenceType {
+    #[doc = "< ida::offset::ReferenceKind as int"]
+    pub kind: ::std::os::raw::c_int,
+    #[doc = "< Empty for standard formats."]
+    pub custom_name: *mut ::std::os::raw::c_char,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetReferenceType"][::std::mem::size_of::<IdaxOffsetReferenceType>() - 16usize];
+    ["Alignment of IdaxOffsetReferenceType"]
+        [::std::mem::align_of::<IdaxOffsetReferenceType>() - 8usize];
+    ["Offset of field: IdaxOffsetReferenceType::kind"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceType, kind) - 0usize];
+    ["Offset of field: IdaxOffsetReferenceType::custom_name"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceType, custom_name) - 8usize];
+};
+impl Default for IdaxOffsetReferenceType {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Owned live reference-format descriptor returned by the shim."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxOffsetReferenceTypeDescriptor {
+    pub type_: IdaxOffsetReferenceType,
+    pub name: *mut ::std::os::raw::c_char,
+    pub description: *mut ::std::os::raw::c_char,
+    pub target_optional: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetReferenceTypeDescriptor"]
+        [::std::mem::size_of::<IdaxOffsetReferenceTypeDescriptor>() - 40usize];
+    ["Alignment of IdaxOffsetReferenceTypeDescriptor"]
+        [::std::mem::align_of::<IdaxOffsetReferenceTypeDescriptor>() - 8usize];
+    ["Offset of field: IdaxOffsetReferenceTypeDescriptor::type_"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceTypeDescriptor, type_) - 0usize];
+    ["Offset of field: IdaxOffsetReferenceTypeDescriptor::name"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceTypeDescriptor, name) - 16usize];
+    ["Offset of field: IdaxOffsetReferenceTypeDescriptor::description"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceTypeDescriptor, description) - 24usize];
+    ["Offset of field: IdaxOffsetReferenceTypeDescriptor::target_optional"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceTypeDescriptor, target_optional) - 32usize];
+};
+impl Default for IdaxOffsetReferenceTypeDescriptor {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Borrowed input representation of opaque reference metadata."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxOffsetReferenceInfoInput {
+    pub kind: ::std::os::raw::c_int,
+    pub custom_name: *const ::std::os::raw::c_char,
+    pub has_target: ::std::os::raw::c_int,
+    pub target: u64,
+    pub has_base: ::std::os::raw::c_int,
+    pub base: u64,
+    pub target_delta: i64,
+    pub relative_virtual_address: ::std::os::raw::c_int,
+    pub allow_past_end: ::std::os::raw::c_int,
+    pub suppress_base_reference: ::std::os::raw::c_int,
+    pub subtract_operand: ::std::os::raw::c_int,
+    pub sign_extend_operand: ::std::os::raw::c_int,
+    pub accept_zero: ::std::os::raw::c_int,
+    pub reject_all_ones: ::std::os::raw::c_int,
+    pub self_relative: ::std::os::raw::c_int,
+    pub ignore_fixup: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetReferenceInfoInput"]
+        [::std::mem::size_of::<IdaxOffsetReferenceInfoInput>() - 96usize];
+    ["Alignment of IdaxOffsetReferenceInfoInput"]
+        [::std::mem::align_of::<IdaxOffsetReferenceInfoInput>() - 8usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::kind"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, kind) - 0usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::custom_name"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, custom_name) - 8usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::has_target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, has_target) - 16usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, target) - 24usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::has_base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, has_base) - 32usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, base) - 40usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::target_delta"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, target_delta) - 48usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::relative_virtual_address"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, relative_virtual_address) - 56usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::allow_past_end"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, allow_past_end) - 60usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::suppress_base_reference"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, suppress_base_reference) - 64usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::subtract_operand"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, subtract_operand) - 68usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::sign_extend_operand"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, sign_extend_operand) - 72usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::accept_zero"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, accept_zero) - 76usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::reject_all_ones"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, reject_all_ones) - 80usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::self_relative"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, self_relative) - 84usize];
+    ["Offset of field: IdaxOffsetReferenceInfoInput::ignore_fixup"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfoInput, ignore_fixup) - 88usize];
+};
+impl Default for IdaxOffsetReferenceInfoInput {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Owned output representation of opaque reference metadata."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxOffsetReferenceInfo {
+    pub kind: ::std::os::raw::c_int,
+    pub custom_name: *mut ::std::os::raw::c_char,
+    pub has_target: ::std::os::raw::c_int,
+    pub target: u64,
+    pub has_base: ::std::os::raw::c_int,
+    pub base: u64,
+    pub target_delta: i64,
+    pub relative_virtual_address: ::std::os::raw::c_int,
+    pub allow_past_end: ::std::os::raw::c_int,
+    pub suppress_base_reference: ::std::os::raw::c_int,
+    pub subtract_operand: ::std::os::raw::c_int,
+    pub sign_extend_operand: ::std::os::raw::c_int,
+    pub accept_zero: ::std::os::raw::c_int,
+    pub reject_all_ones: ::std::os::raw::c_int,
+    pub self_relative: ::std::os::raw::c_int,
+    pub ignore_fixup: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetReferenceInfo"][::std::mem::size_of::<IdaxOffsetReferenceInfo>() - 96usize];
+    ["Alignment of IdaxOffsetReferenceInfo"]
+        [::std::mem::align_of::<IdaxOffsetReferenceInfo>() - 8usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::kind"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, kind) - 0usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::custom_name"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, custom_name) - 8usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::has_target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, has_target) - 16usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, target) - 24usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::has_base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, has_base) - 32usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, base) - 40usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::target_delta"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, target_delta) - 48usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::relative_virtual_address"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, relative_virtual_address) - 56usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::allow_past_end"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, allow_past_end) - 60usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::suppress_base_reference"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, suppress_base_reference) - 64usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::subtract_operand"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, subtract_operand) - 68usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::sign_extend_operand"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, sign_extend_operand) - 72usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::accept_zero"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, accept_zero) - 76usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::reject_all_ones"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, reject_all_ones) - 80usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::self_relative"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, self_relative) - 84usize];
+    ["Offset of field: IdaxOffsetReferenceInfo::ignore_fixup"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceInfo, ignore_fixup) - 88usize];
+};
+impl Default for IdaxOffsetReferenceInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxOffsetRenderedExpression {
+    pub text: *mut ::std::os::raw::c_char,
+    #[doc = "< ida::offset::ExpressionComplexity as int"]
+    pub complexity: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetRenderedExpression"]
+        [::std::mem::size_of::<IdaxOffsetRenderedExpression>() - 16usize];
+    ["Alignment of IdaxOffsetRenderedExpression"]
+        [::std::mem::align_of::<IdaxOffsetRenderedExpression>() - 8usize];
+    ["Offset of field: IdaxOffsetRenderedExpression::text"]
+        [::std::mem::offset_of!(IdaxOffsetRenderedExpression, text) - 0usize];
+    ["Offset of field: IdaxOffsetRenderedExpression::complexity"]
+        [::std::mem::offset_of!(IdaxOffsetRenderedExpression, complexity) - 8usize];
+};
+impl Default for IdaxOffsetRenderedExpression {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxOffsetReferenceCalculation {
+    pub has_target: ::std::os::raw::c_int,
+    pub target: u64,
+    pub has_base: ::std::os::raw::c_int,
+    pub base: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxOffsetReferenceCalculation"]
+        [::std::mem::size_of::<IdaxOffsetReferenceCalculation>() - 32usize];
+    ["Alignment of IdaxOffsetReferenceCalculation"]
+        [::std::mem::align_of::<IdaxOffsetReferenceCalculation>() - 8usize];
+    ["Offset of field: IdaxOffsetReferenceCalculation::has_target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceCalculation, has_target) - 0usize];
+    ["Offset of field: IdaxOffsetReferenceCalculation::target"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceCalculation, target) - 8usize];
+    ["Offset of field: IdaxOffsetReferenceCalculation::has_base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceCalculation, has_base) - 16usize];
+    ["Offset of field: IdaxOffsetReferenceCalculation::base"]
+        [::std::mem::offset_of!(IdaxOffsetReferenceCalculation, base) - 24usize];
+};
+unsafe extern "C" {
+    pub fn idax_offset_reference_types(
+        out: *mut *mut IdaxOffsetReferenceTypeDescriptor,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_reference_types_free(
+        values: *mut IdaxOffsetReferenceTypeDescriptor,
+        count: usize,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_offset_default_reference_type(
+        address: u64,
+        out: *mut IdaxOffsetReferenceType,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_reference_type_free(value: *mut IdaxOffsetReferenceType);
+}
+unsafe extern "C" {
+    pub fn idax_offset_reference_info(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        out: *mut IdaxOffsetReferenceInfo,
+        has_info: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_reference_info_free(value: *mut IdaxOffsetReferenceInfo);
+}
+unsafe extern "C" {
+    pub fn idax_offset_apply_reference(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        info: *const IdaxOffsetReferenceInfoInput,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_remove_reference(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        removed: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_render_stored_expression(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        from: u64,
+        operand_value: i64,
+        append_zero_field: ::std::os::raw::c_int,
+        avoid_dummy_names: ::std::os::raw::c_int,
+        out: *mut IdaxOffsetRenderedExpression,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_render_expression(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        info: *const IdaxOffsetReferenceInfoInput,
+        from: u64,
+        operand_value: i64,
+        append_zero_field: ::std::os::raw::c_int,
+        avoid_dummy_names: ::std::os::raw::c_int,
+        out: *mut IdaxOffsetRenderedExpression,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_rendered_expression_free(value: *mut IdaxOffsetRenderedExpression);
+}
+unsafe extern "C" {
+    pub fn idax_offset_possible_offset32_target(
+        address: u64,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_calculate_offset_base(
+        address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_probable_base(
+        address: u64,
+        operand_value: u64,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_calculate_reference(
+        from: u64,
+        info: *const IdaxOffsetReferenceInfoInput,
+        operand_value: i64,
+        out: *mut IdaxOffsetReferenceCalculation,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_add_operand_data_references(
+        instruction_address: u64,
+        operand_index: usize,
+        outer: ::std::os::raw::c_int,
+        data_type: ::std::os::raw::c_int,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_offset_calculate_base_value(
+        target: u64,
+        base: u64,
+        out: *mut u64,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
 unsafe extern "C" {
     pub fn idax_comment_get(
         ea: u64,

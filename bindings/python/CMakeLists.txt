@@ -27,6 +27,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/search_bind.cpp
     src/native/segment_bind.cpp
     src/native/xref_bind.cpp
+    src/native/offset_bind.cpp
     src/native/lines_bind.cpp
     src/native/lumina_bind.cpp
     src/native/type_bind.cpp

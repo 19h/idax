@@ -17,6 +17,7 @@ Public headers:
 | `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls including opaque named enum apply/readback and copied root/member-name struct-offset paths, conflict-safe exact-member path ensure, xref conveniences; Node and Rust snapshots preserve both access-mode booleans |
 | `include/ida/name.hpp` | Set/get/force/remove names, filtered copied inventories, address-based and arbitrary-symbol demangling, resolution, properties |
 | `include/ida/xref.hpp` | Unified reference model, typed code/data refs, add/remove/enumerate |
+| `include/ida/offset.hpp` | Opaque operand offset/reference formats and options, copied metadata, expression rendering, target/base calculation, verified apply/remove, and reference-aware data-xref creation |
 | `include/ida/comment.hpp` | Regular/repeatable comments, anterior/posterior lines, bulk operations |
 | `include/ida/search.hpp` | Text (with regex), immediate, binary pattern, structural search |
 | `include/ida/analysis.hpp` | Auto-analysis control, scheduling, waiting |
@@ -59,6 +60,7 @@ See also:
 - `docs/cookbook/persistent_registry.md` — Scoped typed plugin configuration, ordered lists, and cleanup
 - `docs/cookbook/register_tracking.md` — Backward register values, stack-relative candidates, nearest selection, and cache coherence
 - `docs/cookbook/segment_register_state.md` — Named segment-register discovery, copied ranges, defaults, and verified mutation
+- `docs/cookbook/offset_references.md` — Rich operand reference metadata, rendering, calculation, verified mutation, and data-xref creation
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

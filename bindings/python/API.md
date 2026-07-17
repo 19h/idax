@@ -30,6 +30,7 @@ checked with strict mypy.
 | `undo` | 5 | 0 | Named restore points, optional next-action labels, and undo/redo execution. |
 | `name` | 16 | 3 | Name lookup/mutation, demangling, inventory, properties. |
 | `navigation` | 1 | 2 | Persistent opaque address histories, semantic channel-current state, cursor movement, replacement, and channel transfer. |
+| `offset` | 13 | 10 | Operand reference formats/options, copied metadata, rendering, calculation, verified mutation, and data-xref creation. |
 | `path` | 3 | 0 | Portable `os.PathLike`-aware path operations. |
 | `parser` | 9 | 4 | Third-party parser selection, arguments/options, source/file ingestion, and parse reports. |
 | `plugin` | 14 | 8 | Plugin subclasses, actions, hotkeys, opaque action/host contexts. |

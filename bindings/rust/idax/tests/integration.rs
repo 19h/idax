@@ -19,7 +19,7 @@ use idax::address::{Address, BAD_ADDRESS, Range};
 use idax::error::{ErrorCategory, Status};
 use idax::{
     analysis, bookmark, comment, data, database, decompiler, directory, entry, event, exception,
-    fixup, function, graph, instruction, lines, name, navigation, parser, plugin, problem,
+    fixup, function, graph, instruction, lines, name, navigation, offset, parser, plugin, problem,
     registry, search, segment, storage, types, ui, undo, xref,
 };
 
@@ -1500,6 +1500,143 @@ fn xref_code_data_refs() {
     let _ = xref::code_refs_to(f.start()).unwrap();
     let _ = xref::data_refs_from(f.start()).unwrap();
     let _ = xref::data_refs_to(f.start()).unwrap();
+}
+
+fn offset_reference_roundtrip() {
+    require_db!();
+
+    let mut raw_value = u64::MAX;
+    let mut raw_present = 1;
+    let raw_optional_failure = unsafe {
+        idax_sys::idax_offset_possible_offset32_target(
+            BAD_ADDRESS,
+            &mut raw_value,
+            &mut raw_present,
+        )
+    };
+    assert_ne!(raw_optional_failure, 0);
+    assert_eq!((raw_value, raw_present), (0, 0));
+
+    let mut raw_removed = 1;
+    let raw_remove_failure =
+        unsafe { idax_sys::idax_offset_remove_reference(BAD_ADDRESS, 0, 0, &mut raw_removed) };
+    assert_ne!(raw_remove_failure, 0);
+    assert_eq!(raw_removed, 0);
+
+    let mut raw_target = u64::MAX;
+    let raw_xref_failure = unsafe {
+        idax_sys::idax_offset_add_operand_data_references(
+            BAD_ADDRESS,
+            0,
+            0,
+            xref::DataType::Offset as i32,
+            &mut raw_target,
+        )
+    };
+    assert_ne!(raw_xref_failure, 0);
+    assert_eq!(raw_target, 0);
+
+    let descriptors = offset::reference_types().unwrap();
+    assert!(descriptors.len() >= 10);
+    assert!(
+        descriptors
+            .iter()
+            .all(|value| { !value.name.is_empty() && !value.description.is_empty() })
+    );
+
+    let candidate = function::all().find_map(|function| {
+        function::code_addresses(function.start())
+            .ok()?
+            .into_iter()
+            .find_map(|address| {
+                let decoded = instruction::decode(address).ok()?;
+                decoded.operands().iter().find_map(|operand| {
+                    let numeric = operand.is_immediate()
+                        || matches!(
+                            operand.op_type(),
+                            instruction::OperandType::MemoryDirect
+                                | instruction::OperandType::MemoryDisplacement
+                        );
+                    let index = usize::try_from(operand.index()).ok()?;
+                    let location = offset::OperandLocation {
+                        index,
+                        outer: false,
+                    };
+                    let existing = offset::reference_info(address, location).ok()?;
+                    if !numeric || existing.is_some() {
+                        return None;
+                    }
+                    let value = if operand.is_immediate() {
+                        operand.value() as i64
+                    } else {
+                        operand.target_address() as i64
+                    };
+                    let from = address + operand.encoded_value_byte_offset().unwrap_or(0) as u64;
+                    Some((address, location, from, value))
+                })
+            })
+    });
+    let (address, location, from, value) =
+        candidate.expect("numeric operand without reference metadata");
+
+    let default_type = offset::default_reference_type(address).unwrap();
+    let info = offset::ReferenceInfo {
+        reference_type: default_type,
+        target: None,
+        base: Some(0),
+        target_delta: 0,
+        options: offset::ReferenceOptions {
+            ignore_fixup: true,
+            ..offset::ReferenceOptions::default()
+        },
+    };
+    instruction::clear_operand_representation(address, location.index as i32).unwrap();
+    offset::apply_reference(address, location, &info).unwrap();
+    assert_eq!(
+        offset::reference_info(address, location).unwrap(),
+        Some(info.clone())
+    );
+
+    let stored = offset::render_stored_expression(
+        address,
+        location,
+        from,
+        value,
+        offset::RenderOptions::default(),
+    )
+    .unwrap();
+    let explicit = offset::render_expression(
+        address,
+        location,
+        &info,
+        from,
+        value,
+        offset::RenderOptions::default(),
+    )
+    .unwrap();
+    assert!(!stored.text.is_empty());
+    assert_eq!(stored, explicit);
+
+    let calculation = offset::calculate_reference(from, &info, value).unwrap();
+    assert_eq!(calculation.target, Some(value as u64));
+    let _ = offset::calculate_offset_base(address, location).unwrap();
+    let _ = offset::probable_base(address, value as u64).unwrap();
+    let _ = offset::possible_offset32_target(address).unwrap();
+    let _ = offset::calculate_base_value(value as u64, 0).unwrap();
+
+    let had_target = xref::data_refs_from(address)
+        .unwrap()
+        .into_iter()
+        .any(|candidate| candidate == value as u64);
+    let target =
+        offset::add_operand_data_references(address, location, xref::DataType::Offset).unwrap();
+    assert_eq!(target, value as u64);
+    if !had_target {
+        xref::remove_data(address, target).unwrap();
+    }
+    assert!(offset::remove_reference(address, location).unwrap());
+    assert_eq!(offset::reference_info(address, location).unwrap(), None);
+    assert!(!offset::remove_reference(address, location).unwrap());
 }
 
 // ===========================================================================
@@ -3268,6 +3405,7 @@ static TEST_CASES: &[TestCase] = &[
     ("registry_roundtrip", registry_roundtrip),
     ("xref_refs_to_from", xref_refs_to_from),
     ("xref_code_data_refs", xref_code_data_refs),
+    ("offset_reference_roundtrip", offset_reference_roundtrip),
     ("data_read_byte", data_read_byte),
     ("data_read_bytes", data_read_bytes),
     ("data_read_word_dword_qword", data_read_word_dword_qword),

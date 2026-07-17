@@ -18,6 +18,7 @@ from idax import (
     analysis,
     bookmark,
     navigation,
+    offset,
     comment,
     data,
     database,
@@ -254,6 +255,114 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
                 )
                 assert not reopened.created
                 assert reopened.entries == [other0]
+
+            offset_descriptors = offset.reference_types()
+            assert len(offset_descriptors) >= 10
+            assert all(
+                value.name and value.description
+                for value in offset_descriptors
+            )
+            offset_candidate = None
+            for candidate_function in functions:
+                for candidate_address in function.code_addresses(
+                    candidate_function.start
+                ):
+                    decoded = instruction.decode(candidate_address)
+                    for candidate_operand in decoded.operands:
+                        if not candidate_operand.is_immediate:
+                            continue
+                        candidate_location = offset.OperandLocation(
+                            candidate_operand.index
+                        )
+                        if offset.reference_info(
+                            candidate_address, candidate_location
+                        ) is None:
+                            offset_candidate = (
+                                candidate_address,
+                                candidate_operand,
+                                candidate_location,
+                            )
+                            break
+                    if offset_candidate is not None:
+                        break
+                if offset_candidate is not None:
+                    break
+            assert offset_candidate is not None
+            if offset_candidate is not None:
+                offset_address, offset_operand, offset_location = offset_candidate
+                offset_from = offset_address + (
+                    offset_operand.encoded_value_byte_offset or 0
+                )
+                offset_info = offset.ReferenceInfo()
+                offset_info.type = offset.default_reference_type(offset_address)
+                offset_info.base = 0
+                offset_info.options.ignore_fixup = True
+                instruction.clear_operand_representation(
+                    offset_address, offset_operand.index
+                )
+                offset.apply_reference(
+                    offset_address, offset_location, offset_info
+                )
+                try:
+                    observed_offset = offset.reference_info(
+                        offset_address, offset_location
+                    )
+                    assert observed_offset is not None
+                    assert observed_offset.type.kind is offset_info.type.kind
+                    assert observed_offset.target is None
+                    assert observed_offset.base == 0
+                    assert observed_offset.target_delta == 0
+                    assert observed_offset.options.ignore_fixup
+                    stored_offset = offset.render_stored_expression(
+                        offset_address,
+                        offset_location,
+                        offset_from,
+                        offset_operand.value,
+                    )
+                    explicit_offset = offset.render_expression(
+                        offset_address,
+                        offset_location,
+                        offset_info,
+                        offset_from,
+                        offset_operand.value,
+                    )
+                    assert stored_offset.text
+                    assert stored_offset.text == explicit_offset.text
+                    assert stored_offset.complexity is explicit_offset.complexity
+                    calculated_offset = offset.calculate_reference(
+                        offset_from, offset_info, offset_operand.value
+                    )
+                    assert calculated_offset.target == offset_operand.value
+                    offset.calculate_offset_base(
+                        offset_address, offset_location
+                    )
+                    offset.probable_base(
+                        offset_address, offset_operand.value
+                    )
+                    offset.possible_offset32_target(offset_address)
+                    offset.calculate_base_value(offset_operand.value, 0)
+                    existing_offset_target = any(
+                        reference.to_address == offset_operand.value
+                        for reference in xref.data_refs_from(offset_address)
+                    )
+                    added_offset_target = offset.add_operand_data_references(
+                        offset_address,
+                        offset_location,
+                        xref.DataType.OFFSET,
+                    )
+                    assert added_offset_target == offset_operand.value
+                    if not existing_offset_target:
+                        xref.remove_data(offset_address, added_offset_target)
+                finally:
+                    assert offset.remove_reference(
+                        offset_address, offset_location
+                    )
+                assert offset.reference_info(
+                    offset_address, offset_location
+                ) is None
+                assert not offset.remove_reference(
+                    offset_address, offset_location
+                )
 
             parser.select_for([parser.Language.C, parser.Language.CPP])
             parser_name = parser.selected_name()

@@ -81,7 +81,7 @@ try {
 
 // Re-export all namespaces from the native addon
 // The native addon sets each namespace as a property on the exports object:
-//   database, address, segment, function, instruction, name, xref,
+//   database, address, segment, function, instruction, name, xref, offset,
 //   comment, data, search, analysis, type, entry, fixup, event,
 //   storage, diagnostics, undo, problem, bookmark, navigation, exception, parser, lumina, lines, ui,
 //   directory, registry, registers, decompiler, path
@@ -98,6 +98,7 @@ module.exports.function = native.function;
 module.exports.instruction = native.instruction;
 module.exports.name = native.name;
 module.exports.xref = native.xref;
+module.exports.offset = native.offset;
 module.exports.comment = native.comment;
 module.exports.data = native.data;
 module.exports.search = native.search;

@@ -18,6 +18,7 @@
 #include <ida/instruction.hpp>
 #include <ida/name.hpp>
 #include <ida/xref.hpp>
+#include <ida/offset.hpp>
 #include <ida/comment.hpp>
 #include <ida/search.hpp>
 #include <ida/analysis.hpp>

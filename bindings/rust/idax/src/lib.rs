@@ -19,6 +19,7 @@
 //! | [`data`] | `ida::data` | Byte-level read, write, patch, and define |
 //! | [`name`] | `ida::name` | Naming and demangling |
 //! | [`xref`] | `ida::xref` | Cross-reference enumeration and mutation |
+//! | [`offset`] | `ida::offset` | Operand offset/reference metadata, rendering, calculation, and xref creation |
 //! | [`comment`] | `ida::comment` | Comments (regular, repeatable, anterior/posterior) |
 //! | [`search`] | `ida::search` | Text, binary, and immediate value searches |
 //! | [`analysis`] | `ida::analysis` | Auto-analysis control |
@@ -132,6 +133,7 @@ pub mod loader;
 pub mod lumina;
 pub mod name;
 pub mod navigation;
+pub mod offset;
 pub mod parser;
 pub mod path;
 pub mod plugin;

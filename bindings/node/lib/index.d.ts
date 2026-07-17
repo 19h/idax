@@ -1145,6 +1145,99 @@ export namespace xref {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// offset namespace
+// ═══════════════════════════════════════════════════════════════════════════
+
+export namespace offset {
+
+    type ReferenceKind =
+        | 'offset8' | 'offset16' | 'offset32' | 'offset64'
+        | 'low8' | 'low16' | 'low32'
+        | 'high8' | 'high16' | 'high32' | 'custom';
+
+    interface ReferenceType {
+        kind: ReferenceKind;
+        customName?: string;
+    }
+
+    interface ReferenceTypeDescriptor {
+        type: ReferenceType;
+        name: string;
+        description: string;
+        targetOptional: boolean;
+    }
+
+    interface OperandLocation {
+        index: number;
+        outer?: boolean;
+    }
+
+    interface ReferenceOptions {
+        relativeVirtualAddress?: boolean;
+        allowPastEnd?: boolean;
+        suppressBaseReference?: boolean;
+        subtractOperand?: boolean;
+        signExtendOperand?: boolean;
+        acceptZero?: boolean;
+        rejectAllOnes?: boolean;
+        selfRelative?: boolean;
+        ignoreFixup?: boolean;
+    }
+
+    interface ReferenceInfo {
+        type: ReferenceType;
+        target?: Address | null;
+        base?: Address | null;
+        targetDelta?: AddressDelta | number;
+        options?: ReferenceOptions;
+    }
+
+    interface RenderOptions {
+        appendZeroField?: boolean;
+        avoidDummyNames?: boolean;
+    }
+
+    interface RenderedExpression {
+        text: string;
+        complexity: 'simple' | 'complex';
+    }
+
+    interface ReferenceCalculation {
+        target: Address | null;
+        base: Address | null;
+    }
+
+    function referenceTypes(): ReferenceTypeDescriptor[];
+    function defaultReferenceType(address: Address): ReferenceType;
+    function referenceInfo(address: Address,
+                           location: OperandLocation): ReferenceInfo | null;
+    function applyReference(address: Address, location: OperandLocation,
+                            info: ReferenceInfo): void;
+    function removeReference(address: Address,
+                             location: OperandLocation): boolean;
+    function renderStoredExpression(address: Address,
+                                    location: OperandLocation,
+                                    from: Address,
+                                    operandValue: AddressDelta | number,
+                                    options?: RenderOptions): RenderedExpression;
+    function renderExpression(address: Address, location: OperandLocation,
+                              info: ReferenceInfo, from: Address,
+                              operandValue: AddressDelta | number,
+                              options?: RenderOptions): RenderedExpression;
+    function possibleOffset32Target(address: Address): Address | null;
+    function calculateOffsetBase(address: Address,
+                                 location: OperandLocation): Address | null;
+    function probableBase(address: Address,
+                          operandValue: Address): Address | null;
+    function calculateReference(from: Address, info: ReferenceInfo,
+                                operandValue: AddressDelta | number): ReferenceCalculation;
+    function addOperandDataReferences(address: Address,
+                                      location: OperandLocation,
+                                      type?: xref.DataType): Address;
+    function calculateBaseValue(target: Address, base: Address): Address | null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // comment namespace
 // ═══════════════════════════════════════════════════════════════════════════
 

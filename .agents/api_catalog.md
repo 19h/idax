@@ -318,4 +318,11 @@ This section captures the intended public API semantics at a concrete level so i
 - Name-based query, enumeration/indexing, split/delete, per-segment/all-segment/data defaults, next-code containment, and range copying cover all 12 current pinned `segregs.hpp` operations. Mutations propagate native rejection and verify observable post-state.
 - Node, safe Rust, and Python preserve the same owned/optional model. The two numeric default setters remain legacy source-compatibility overloads and route through the current address-based SDK operation.
 
+### 17.42 Opaque Operand Offset and Reference Semantics
+- `ReferenceType` selects ten stable standard formats or one registered custom format by copied name; live descriptors add copied display name/description and whether a target is optional.
+- `ReferenceInfo` owns optional target/base addresses, signed target delta, and nine named behavioral options. `OperandLocation` represents a validated main or processor-supported outer operand without exposing encoded native indices.
+- Query/default discovery, stored/explicit plain expression rendering, candidate/base/target calculations, and reference-aware operand data-xref creation cover the current stable helper family while keeping native records, flags, sentinels, strings/tags, instructions, and operands private.
+- Apply refuses competing non-offset display state, preflights outer capability, verifies normalized exact readback, and restores prior/empty state after rejection or mismatch. Removal deletes both metadata and representation, verifies absence, and restores on partial failure.
+- Node, safe Rust, and Python preserve the same owned/optional semantic model; the generated C ABI separates borrowed input records from explicitly freed owned outputs.
+
 ---

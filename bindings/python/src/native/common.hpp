@@ -92,6 +92,7 @@ void bind_name(py::module_& module);
 void bind_search(py::module_& module);
 void bind_segment(py::module_& module);
 void bind_xref(py::module_& module);
+void bind_offset(py::module_& module);
 void bind_lines(py::module_& module);
 void bind_lumina(py::module_& module);
 void bind_type(py::module_& module);

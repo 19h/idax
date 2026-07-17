@@ -16,6 +16,7 @@ NAN_MODULE_INIT(InitAll) {
     InitInstruction(target);
     InitName(target);
     InitXref(target);
+    InitOffset(target);
     InitComment(target);
     InitData(target);
     InitSearch(target);

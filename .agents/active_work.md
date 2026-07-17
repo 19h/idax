@@ -63,3 +63,11 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+### 7. Opaque Operand Offset and Reference Semantics (Phase 70)
+
+- **7.1. Exact-runtime semantic boundary**
+  - 7.1.1. **Action:** Falsify the copied reference model and verified mutation rules against disposable exact-IDA 9.4 databases, then implement complete four-binding parity.
+  - 7.1.2. **Scope:** Reference descriptors and kinds; main/outer operand locations; semantic options; copied target/base/delta metadata; calculation and plain rendering; offset-candidate helpers; verified apply/remove; data-reference creation.
+  - 7.1.3. **Current evidence:** Complete C++/Node/Rust/Python parity builds against exact SDK 9.4; focused core proxy runtime, structural/type/manifest, generated-ABI identity, package, and privacy gates pass. Newly fail-closed binding lifecycles and exact semantic falsification await the live IDA 9.4 matrix because the installed 9.3 proxy cannot load every current 9.4 binding symbol and now terminates in the pre-existing segment-register suite before Phase 70.
+  - 7.1.4. **Status:** Active under P70.2-P70.4; no blocker.

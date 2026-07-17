@@ -372,6 +372,7 @@ void InitFunction(v8::Local<v8::Object> target);
 void InitInstruction(v8::Local<v8::Object> target);
 void InitName(v8::Local<v8::Object> target);
 void InitXref(v8::Local<v8::Object> target);
+void InitOffset(v8::Local<v8::Object> target);
 void InitComment(v8::Local<v8::Object> target);
 void InitData(v8::Local<v8::Object> target);
 void InitSearch(v8::Local<v8::Object> target);

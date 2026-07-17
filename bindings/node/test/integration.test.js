@@ -1056,6 +1056,84 @@ describe('Cross-References', () => {
 
 // ── Data Access ─────────────────────────────────────────────────────────
 
+describe('Offset/reference semantics', () => {
+    it('should round-trip copied reference metadata and rendering', () => {
+        const descriptors = idax.offset.referenceTypes();
+        expect(descriptors.length).toBeGreaterThanOrEqual(10);
+        for (const descriptor of descriptors) {
+            expect(descriptor.name.length).toBeGreaterThan(0);
+            expect(descriptor.description.length).toBeGreaterThan(0);
+        }
+
+        let candidate = null;
+        for (const func of idax.function.all()) {
+            for (const address of idax.function.codeAddresses(func.start)) {
+                const decoded = idax.instruction.decode(address);
+                const operand = decoded.operands.find(value => {
+                    if (value.type !== 'immediate') return false;
+                    return idax.offset.referenceInfo(address, {
+                        index: value.index,
+                    }) === null;
+                });
+                if (operand) {
+                    candidate = { address, operand };
+                    break;
+                }
+            }
+            if (candidate) break;
+        }
+        expect(candidate === null).toBe(false);
+
+        const { address, operand } = candidate;
+        const location = { index: operand.index };
+        const from = address + BigInt(operand.encodedValueByteOffset || 0);
+        const info = {
+            type: idax.offset.defaultReferenceType(address),
+            target: null,
+            base: 0n,
+            targetDelta: 0n,
+            options: { ignoreFixup: true },
+        };
+        idax.instruction.clearOperandRepresentation(address, operand.index);
+        idax.offset.applyReference(address, location, info);
+        try {
+            const observed = idax.offset.referenceInfo(address, location);
+            expect(observed.type.kind).toBe(info.type.kind);
+            expect(observed.target).toBeNull();
+            expect(observed.base).toBe(0n);
+            expect(observed.targetDelta).toBe(0n);
+            expect(observed.options.ignoreFixup).toBe(true);
+
+            const stored = idax.offset.renderStoredExpression(
+                address, location, from, operand.value);
+            const explicit = idax.offset.renderExpression(
+                address, location, info, from, operand.value);
+            expect(stored.text.length).toBeGreaterThan(0);
+            expect(stored.text).toBe(explicit.text);
+            expect(stored.complexity).toBe(explicit.complexity);
+
+            const calculated = idax.offset.calculateReference(
+                from, info, operand.value);
+            expect(calculated.target).toBe(operand.value);
+            idax.offset.calculateOffsetBase(address, location);
+            idax.offset.probableBase(address, operand.value);
+            idax.offset.possibleOffset32Target(address);
+            idax.offset.calculateBaseValue(operand.value, 0n);
+
+            const hadTarget = idax.instruction.dataRefsFrom(address)
+                .includes(operand.value);
+            const target = idax.offset.addOperandDataReferences(
+                address, location, 'offset');
+            expect(target).toBe(operand.value);
+            if (!hadTarget) idax.xref.removeData(address, target);
+        } finally {
+            expect(idax.offset.removeReference(address, location)).toBe(true);
+        }
+        expect(idax.offset.referenceInfo(address, location)).toBeNull();
+        expect(idax.offset.removeReference(address, location)).toBe(false);
+    });
+});
+
 describe('Data Access', () => {
     it('should read byte', () => {
         const segs = idax.segment.all();

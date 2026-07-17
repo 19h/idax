@@ -552,6 +552,98 @@ void check_xref_surface() {
     (void)static_cast<RefTypePredicateFn>(&ida::xref::is_data_write);
 }
 
+// ─── ida::offset ────────────────────────────────────────────────────────
+
+void check_offset_surface() {
+    using namespace ida::offset;
+    (void)ReferenceKind::Offset8;
+    (void)ReferenceKind::Offset16;
+    (void)ReferenceKind::Offset32;
+    (void)ReferenceKind::Offset64;
+    (void)ReferenceKind::Low8;
+    (void)ReferenceKind::Low16;
+    (void)ReferenceKind::Low32;
+    (void)ReferenceKind::High8;
+    (void)ReferenceKind::High16;
+    (void)ReferenceKind::High32;
+    (void)ReferenceKind::Custom;
+
+    ReferenceType type;
+    (void)type.kind;
+    (void)type.custom_name;
+    ReferenceTypeDescriptor descriptor;
+    (void)descriptor.type;
+    (void)descriptor.name;
+    (void)descriptor.description;
+    (void)descriptor.target_optional;
+    OperandLocation location;
+    (void)location.index;
+    (void)location.outer;
+    ReferenceOptions options;
+    (void)options.relative_virtual_address;
+    (void)options.allow_past_end;
+    (void)options.suppress_base_reference;
+    (void)options.subtract_operand;
+    (void)options.sign_extend_operand;
+    (void)options.accept_zero;
+    (void)options.reject_all_ones;
+    (void)options.self_relative;
+    (void)options.ignore_fixup;
+    ReferenceInfo info;
+    (void)info.type;
+    (void)info.target;
+    (void)info.base;
+    (void)info.target_delta;
+    (void)info.options;
+    RenderOptions render_options;
+    (void)render_options.append_zero_field;
+    (void)render_options.avoid_dummy_names;
+    RenderedExpression rendered;
+    (void)rendered.text;
+    (void)rendered.complexity;
+    ReferenceCalculation calculation;
+    (void)calculation.target;
+    (void)calculation.base;
+
+    using TypesFn = ida::Result<std::vector<ReferenceTypeDescriptor>>(*)();
+    using DefaultFn = ida::Result<ReferenceType>(*)(ida::Address);
+    using QueryFn = ida::Result<std::optional<ReferenceInfo>>(*)(
+        ida::Address, OperandLocation);
+    using ApplyFn = ida::Status(*)(
+        ida::Address, OperandLocation, const ReferenceInfo&);
+    using RemoveFn = ida::Result<bool>(*)(ida::Address, OperandLocation);
+    using StoredRenderFn = ida::Result<RenderedExpression>(*)(
+        ida::Address, OperandLocation, ida::Address, ida::AddressDelta,
+        RenderOptions);
+    using ExplicitRenderFn = ida::Result<RenderedExpression>(*)(
+        ida::Address, OperandLocation, const ReferenceInfo&, ida::Address,
+        ida::AddressDelta, RenderOptions);
+    using CandidateFn = ida::Result<std::optional<ida::Address>>(*)(ida::Address);
+    using BaseFn = ida::Result<std::optional<ida::Address>>(*)(
+        ida::Address, OperandLocation);
+    using ProbableFn = ida::Result<std::optional<ida::Address>>(*)(
+        ida::Address, std::uint64_t);
+    using CalculateFn = ida::Result<ReferenceCalculation>(*)(
+        ida::Address, const ReferenceInfo&, ida::AddressDelta);
+    using AddRefsFn = ida::Result<ida::Address>(*)(
+        ida::Address, OperandLocation, ida::xref::DataType);
+    using BaseValueFn = ida::Result<std::optional<ida::Address>>(*)(
+        ida::Address, ida::Address);
+    (void)static_cast<TypesFn>(&reference_types);
+    (void)static_cast<DefaultFn>(&default_reference_type);
+    (void)static_cast<QueryFn>(&reference_info);
+    (void)static_cast<ApplyFn>(&apply_reference);
+    (void)static_cast<RemoveFn>(&remove_reference);
+    (void)static_cast<StoredRenderFn>(&render_stored_expression);
+    (void)static_cast<ExplicitRenderFn>(&render_expression);
+    (void)static_cast<CandidateFn>(&possible_offset32_target);
+    (void)static_cast<BaseFn>(&calculate_offset_base);
+    (void)static_cast<ProbableFn>(&probable_base);
+    (void)static_cast<CalculateFn>(&calculate_reference);
+    (void)static_cast<AddRefsFn>(&add_operand_data_references);
+    (void)static_cast<BaseValueFn>(&calculate_base_value);
+}
+
 // ─── ida::comment ───────────────────────────────────────────────────────
 
 void check_comment_surface() {
@@ -2693,6 +2785,7 @@ int main() {
     surface_check::check_instruction_surface();namespaces_verified++;
     surface_check::check_name_surface();       namespaces_verified++;
     surface_check::check_xref_surface();       namespaces_verified++;
+    surface_check::check_offset_surface();     namespaces_verified++;
     surface_check::check_comment_surface();    namespaces_verified++;
     surface_check::check_type_surface();       namespaces_verified++;
     surface_check::check_fixup_surface();      namespaces_verified++;
@@ -2724,9 +2817,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 38, "all 38 namespace surfaces verified");
+    CHECK(namespaces_verified == 39, "all 39 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (38 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (39 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

@@ -29,6 +29,7 @@ PYBIND11_MODULE(_native, module) {
     idax::python::bind_search(module);
     idax::python::bind_segment(module);
     idax::python::bind_xref(module);
+    idax::python::bind_offset(module);
     idax::python::bind_lines(module);
     idax::python::bind_lumina(module);
     idax::python::bind_type(module);

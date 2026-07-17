@@ -223,6 +223,7 @@ set(BINDING_SOURCES
     src/instruction_bind.cpp
     src/name_bind.cpp
     src/xref_bind.cpp
+    src/offset_bind.cpp
     src/comment_bind.cpp
     src/data_bind.cpp
     src/search_bind.cpp

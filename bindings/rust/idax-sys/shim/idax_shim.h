@@ -1170,6 +1170,120 @@ int idax_xref_add_data(uint64_t from, uint64_t to, int type);
 int idax_xref_remove_code(uint64_t from, uint64_t to);
 int idax_xref_remove_data(uint64_t from, uint64_t to);
 
+/* Offset/reference semantics (ida::offset) */
+
+/** Owned reference-format identity returned by the shim. */
+typedef struct IdaxOffsetReferenceType {
+    int   kind;             /**< ida::offset::ReferenceKind as int */
+    char* custom_name;      /**< Empty for standard formats. */
+} IdaxOffsetReferenceType;
+
+/** Owned live reference-format descriptor returned by the shim. */
+typedef struct IdaxOffsetReferenceTypeDescriptor {
+    IdaxOffsetReferenceType type;
+    char* name;
+    char* description;
+    int   target_optional;
+} IdaxOffsetReferenceTypeDescriptor;
+
+/** Borrowed input representation of opaque reference metadata. */
+typedef struct IdaxOffsetReferenceInfoInput {
+    int         kind;
+    const char* custom_name;
+    int         has_target;
+    uint64_t    target;
+    int         has_base;
+    uint64_t    base;
+    int64_t     target_delta;
+    int         relative_virtual_address;
+    int         allow_past_end;
+    int         suppress_base_reference;
+    int         subtract_operand;
+    int         sign_extend_operand;
+    int         accept_zero;
+    int         reject_all_ones;
+    int         self_relative;
+    int         ignore_fixup;
+} IdaxOffsetReferenceInfoInput;
+
+/** Owned output representation of opaque reference metadata. */
+typedef struct IdaxOffsetReferenceInfo {
+    int      kind;
+    char*    custom_name;
+    int      has_target;
+    uint64_t target;
+    int      has_base;
+    uint64_t base;
+    int64_t  target_delta;
+    int      relative_virtual_address;
+    int      allow_past_end;
+    int      suppress_base_reference;
+    int      subtract_operand;
+    int      sign_extend_operand;
+    int      accept_zero;
+    int      reject_all_ones;
+    int      self_relative;
+    int      ignore_fixup;
+} IdaxOffsetReferenceInfo;
+
+typedef struct IdaxOffsetRenderedExpression {
+    char* text;
+    int   complexity;       /**< ida::offset::ExpressionComplexity as int */
+} IdaxOffsetRenderedExpression;
+
+typedef struct IdaxOffsetReferenceCalculation {
+    int      has_target;
+    uint64_t target;
+    int      has_base;
+    uint64_t base;
+} IdaxOffsetReferenceCalculation;
+
+int idax_offset_reference_types(
+    IdaxOffsetReferenceTypeDescriptor** out, size_t* count);
+void idax_offset_reference_types_free(
+    IdaxOffsetReferenceTypeDescriptor* values, size_t count);
+int idax_offset_default_reference_type(
+    uint64_t address, IdaxOffsetReferenceType* out);
+void idax_offset_reference_type_free(IdaxOffsetReferenceType* value);
+int idax_offset_reference_info(
+    uint64_t address, size_t operand_index, int outer,
+    IdaxOffsetReferenceInfo* out, int* has_info);
+void idax_offset_reference_info_free(IdaxOffsetReferenceInfo* value);
+int idax_offset_apply_reference(
+    uint64_t address, size_t operand_index, int outer,
+    const IdaxOffsetReferenceInfoInput* info);
+int idax_offset_remove_reference(
+    uint64_t address, size_t operand_index, int outer, int* removed);
+int idax_offset_render_stored_expression(
+    uint64_t address, size_t operand_index, int outer,
+    uint64_t from, int64_t operand_value,
+    int append_zero_field, int avoid_dummy_names,
+    IdaxOffsetRenderedExpression* out);
+int idax_offset_render_expression(
+    uint64_t address, size_t operand_index, int outer,
+    const IdaxOffsetReferenceInfoInput* info,
+    uint64_t from, int64_t operand_value,
+    int append_zero_field, int avoid_dummy_names,
+    IdaxOffsetRenderedExpression* out);
+void idax_offset_rendered_expression_free(
+    IdaxOffsetRenderedExpression* value);
+int idax_offset_possible_offset32_target(
+    uint64_t address, uint64_t* out, int* has_value);
+int idax_offset_calculate_offset_base(
+    uint64_t address, size_t operand_index, int outer,
+    uint64_t* out, int* has_value);
+int idax_offset_probable_base(
+    uint64_t address, uint64_t operand_value,
+    uint64_t* out, int* has_value);
+int idax_offset_calculate_reference(
+    uint64_t from, const IdaxOffsetReferenceInfoInput* info,
+    int64_t operand_value, IdaxOffsetReferenceCalculation* out);
+int idax_offset_add_operand_data_references(
+    uint64_t instruction_address, size_t operand_index, int outer,
+    int data_type, uint64_t* out);
+int idax_offset_calculate_base_value(
+    uint64_t target, uint64_t base, uint64_t* out, int* has_value);
+
 /* ═══════════════════════════════════════════════════════════════════════════
  * Comment (ida::comment)
  * ═══════════════════════════════════════════════════════════════════════════ */

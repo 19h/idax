@@ -472,6 +472,26 @@
       "bound_types": ["Entry", "History"]
     },
     {
+      "name": "offset",
+      "header": "include/ida/offset.hpp",
+      "status": "validated",
+      "native_source": "offset_bind.cpp",
+      "bound_functions": [
+        "add_operand_data_references", "apply_reference",
+        "calculate_base_value", "calculate_offset_base",
+        "calculate_reference", "default_reference_type",
+        "possible_offset32_target", "probable_base", "reference_info",
+        "reference_types", "remove_reference", "render_expression",
+        "render_stored_expression"
+      ],
+      "bound_types": [
+        "ExpressionComplexity", "OperandLocation", "ReferenceCalculation",
+        "ReferenceInfo", "ReferenceKind", "ReferenceOptions",
+        "ReferenceType", "ReferenceTypeDescriptor", "RenderOptions",
+        "RenderedExpression"
+      ]
+    },
+    {
       "name": "registry",
       "header": "include/ida/registry.hpp",
       "status": "validated",

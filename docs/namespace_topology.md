@@ -18,6 +18,7 @@ ida::                                     (root: type aliases, error model, opti
  |
  |-- ida::name           Set/get/force/remove, inventories, demangling   [1 enum, 2 structs, ~13 free fns]
  |-- ida::xref           Unified refs, typed code/data categories        [3 enums, 1 struct, ~10 free fns]
+ |-- ida::offset         Opaque operand reference semantics              [2 enums, 7 structs, 13 free fns]
  |-- ida::comment        Regular/repeatable, anterior/posterior           [~15 free fns]
  |
  |-- ida::type           Type construction, rich layout metadata, libraries [8 structs, 3 enums, 1 class, ~9 free fns]
@@ -91,6 +92,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 |-----------|---------------|-----------|
 | `ida::name` | Symbol naming, filtered inventories, and address-free demangling | `ListOptions`, `Entry`, `DemangleForm` |
 | `ida::xref` | Cross-references | `Reference`, `CodeType`, `DataType` |
+| `ida::offset` | Operand offset/reference semantics | `ReferenceType`, `ReferenceTypeDescriptor`, `OperandLocation`, `ReferenceOptions`, `ReferenceInfo`, `RenderedExpression`, `ReferenceCalculation` |
 | `ida::comment` | Comments | (free functions only) |
 | `ida::type` | Type system, including copied shifted-pointer metadata, explicit forward classification/ordinal-preserving replacement, opaque exact-member persistent references, metadata-preserving pointer/prototype edits, and UDT semantic mutation | `TypeInfo`, `PointerDetails`, `TypeKind`, `EnumRadix`, `Member`, `FunctionDetails`, `EnumDetails`, `UdtDetails` |
 | `ida::entry` | Entry points | `EntryPoint` |
