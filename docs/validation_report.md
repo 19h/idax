@@ -1416,3 +1416,27 @@ tracked in `docs/compatibility_matrix.md`.
   All 18 jobs use IDA Professional 9.4 and exact SDK commit
   `6929db6868a524496eb66e76e4ec6c9d720a0594`; post-implementation privacy
   passes across 4,287 reachable objects.
+
+- 2026-07-17 Phase 70 opaque operand offset/reference semantics:
+  Added standard/custom semantic formats, copied target/base/delta metadata,
+  nine named options, main/outer operand locations, stored/explicit plain
+  rendering, target/base/candidate calculations, verified layered apply/remove,
+  and reference-aware operand data-xref creation across C++, Node, generated
+  C/safe Rust, and Python. Native IDs, flags, records, sentinels, tagged strings,
+  decoded instructions, and operand containers remain private. Mutation rejects
+  competing display state, preflights outer capability, verifies normalized
+  exact readback, and restores prior/empty state on rejection, mismatch, or
+  partial removal. Node passes 275 structural checks, strict declarations, and
+  40-file package inspection. Rust passes formatting, 170 pure tests, generated
+  declaration identity at SHA-256
+  `52ca9518414f45373171c250956f8bca137e4a5d8baece193346476867bc835f`,
+  and both crate archives. Python passes strict typing over 41 files, a
+  37-domain/939-symbol declaration audit, and fresh wheel/sdist inspection.
+  Exact IDA 9.4 release evidence passes implementation commit
+  `fafcbaffe0f859b9f3e1835c0f76126486532a18` in runs 29564523560
+  (Integrations 3/3), 29564523607 (Validation 6/6), and 29564523569 (Bindings
+  9/9) across Linux, Windows, and macOS. Complete-log audits 29564829739,
+  29565022137, and 29565920823 pass across 294 entries and 12,611,190
+  uncompressed bytes. Every job uses exact SDK commit
+  `6929db6868a524496eb66e76e4ec6c9d720a0594`; licensed rows install IDA
+  Professional 9.4 through the eligible active named-product selector.

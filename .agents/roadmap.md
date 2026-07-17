@@ -548,8 +548,8 @@ Current overall phase status:
 ### Phase 70 TODO Action Items (Opaque Operand Offset and Reference Semantics)
 
 - [x] P70.1 Audit the pinned IDA 9.4 `offset.hpp`/`nalt.hpp` surface, runtime exports, generated IDAPython model, current plain-offset setter, and all language bindings.
-- [ ] P70.2 Select and falsify an SDK-opaque model for reference kinds/descriptors, operand locations, options, copied metadata, calculations, rendering, mutation, and data-reference creation.
+- [x] P70.2 Select and falsify an SDK-opaque model for reference kinds/descriptors, operand locations, options, copied metadata, calculations, rendering, mutation, and data-reference creation.
 - [x] P70.3 Implement complete C++, Node, Rust, and Python parity without exposing `refinfo_t`, native reference IDs/flags, operand sentinels, SDK strings, instruction records, or native containers.
-- [ ] P70.4 Add malformed-input plus isolated real-IDA descriptor/apply/query/calculate/render/reference/remove evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 70 from active work.
+- [x] P70.4 Add malformed-input plus isolated real-IDA descriptor/apply/query/calculate/render/reference/remove evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 70 from active work.
 
 ---
