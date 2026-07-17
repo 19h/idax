@@ -523,6 +523,6 @@ Current overall phase status:
 - [x] P67.1 Audit the pinned IDA 9.4 `moves.hpp` bookmark surface, runtime exports, generated IDAPython model, standard bookmark dirtree, and current IDAX APIs/bindings.
 - [x] P67.2 Select an SDK-opaque address/slot/description model with deterministic non-interactive slot allocation, copied enumeration, conflict detection, and explicit removal.
 - [x] P67.3 Implement complete C++, Node, Rust, and Python parity without exposing `place_t`, `idaplace_t`, `lochist_entry_t`, renderer state, dirtree IDs/inodes, widget userdata, or native sentinel values.
-- [ ] P67.4 Add malformed-input plus isolated real-IDA create/enumerate/update/conflict/remove/reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 67 from active work.
+- [x] P67.4 Add malformed-input plus isolated real-IDA create/enumerate/update/conflict/remove/reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 67 from active work.
 
 ---

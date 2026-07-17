@@ -1359,3 +1359,27 @@ tracked in `docs/compatibility_matrix.md`.
   untrusted-tap warnings. Whole-log audits 29547738319, 29547844551, and
   29548385969 pass. IDA Professional 9.4 and exact SDK commit
   `6929db6868a524496eb66e76e4ec6c9d720a0594` remain unchanged.
+
+- 2026-07-17 Phase 67 opaque address-bookmark domain:
+  Added the complete address-bookmark lifecycle across C++, Node, generated
+  C/safe Rust, and Python using owned address/slot/description snapshots,
+  deterministic lowest-free-slot allocation, exact optional slots, copied
+  sparse enumeration, pre-mutation conflicts, and identity-preserving removal.
+  Exact-SDK native validation passes CTest 37/37, sparse low/middle/high removal
+  plus save/reopen, all examples/addons/tools, three processor exports and
+  descriptors, processor runtime smoke, install, and TGZ packaging. Node passes
+  256 structural plus 92 initialized-host checks, strict declarations, and
+  38-file package inspection. Rust passes formatting, 161 unit plus 109
+  initialized-host checks, doctests, package inspection, and byte-identical
+  generated bindings at SHA-256
+  `3b79836d71b236a92ad42f7551fb762c1c3828be0310e8549e3dd43d7972e18b`.
+  Python passes 20 pure plus one initialized-host lifecycle, strict typing over
+  39 files, a 35-domain/898-symbol manifest, and wheel/sdist inspection.
+  Candidate privacy passes across 568 files and post-implementation reachable-
+  history privacy across 4,226 objects. Implementation commit
+  `151a4622294a71836c9063a6ac9fa569053d6d07` passes runs 29551204566
+  (Integrations 3/3), 29551204572 (Validation 6/6), and 29551204568 (Bindings
+  9/9) across Linux, Windows, and macOS. Complete-log audits 29551426405,
+  29551508095, and 29551931196 pass without a canonical license identifier or
+  non-infrastructure identity-path finding. Every job uses IDA Professional 9.4
+  and exact SDK commit `6929db6868a524496eb66e76e4ec6c9d720a0594`.
