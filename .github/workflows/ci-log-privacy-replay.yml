@@ -45,12 +45,4 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/logs" \
             --output "${archive}"
-          set +e
           python3 scripts/check_ci_log_privacy.py "${archive}"
-          scan_status=$?
-          set -e
-          if (( scan_status != 0 )); then
-            python3 scripts/encrypt_ci_log_findings.py \
-              "${archive}" .github/ci-log-diagnostic-public.pem
-          fi
-          exit "${scan_status}"

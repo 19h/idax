@@ -25,12 +25,8 @@ WINDOWS_HOME_PATTERN = re.compile(
 )
 
 ALLOWED_POSIX_HOMES = {
-    b"/" + root + b"/" + username
-    for root, username in (
-        (b"home", b"runner"),
-        (b"Users", b"runner"),
-        (b"home", b"linuxbrew"),
-    )
+    (b"/" + root + b"/" + b"runner").lower()
+    for root in (b"home", b"Users")
 }
 ALLOWED_WINDOWS_USERS = {b"runner", b"runneradmin", b"runner~1"}
 
@@ -52,7 +48,7 @@ def sensitive_categories(data: bytes) -> set[str]:
         categories.add("canonical license identifier")
 
     if any(
-        match.group(0) not in ALLOWED_POSIX_HOMES
+        match.group(0).lower() not in ALLOWED_POSIX_HOMES
         for match in POSIX_HOME_PATTERN.finditer(data)
     ):
         categories.add("non-runner POSIX home path")

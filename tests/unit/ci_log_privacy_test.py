@@ -70,8 +70,8 @@ def main() -> int:
                 b"workspace="
                 + windows_home(b"RUNNER~1", b"\\AppData\\Local")
                 + b"\n",
-                b"toolchain="
-                + posix_home(b"home", b"linuxbrew", b"/.linuxbrew/bin")
+                b"normalized-workspace="
+                + posix_home(b"Users", b"RUNNER", b"/work/idax/idax")
                 + b"\n",
             ],
         )
@@ -92,6 +92,11 @@ def main() -> int:
             "mac-home": (
                 b"workspace="
                 + posix_home(b"Users", b"privateuser", b"/project")
+                + b"\n"
+            ),
+            "uppercase-mac-home": (
+                b"workspace="
+                + posix_home(b"Users", b"PRIVATEUSER", b"/project")
                 + b"\n"
             ),
             "windows-home": (
@@ -126,7 +131,7 @@ def main() -> int:
         malformed_result = run_scanner(malformed)
         require(malformed_result.returncode == 1, "malformed archive was accepted")
 
-    print("ci log privacy tests: PASS (5 safe entries, 7 rejection paths)")
+    print("ci log privacy tests: PASS (5 safe entries, 8 rejection paths)")
     return 0
 
 

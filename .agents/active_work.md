@@ -69,8 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage/review/push an ephemeral RSA-OAEP diagnostic, replay immutable Bindings run 29542885658, decrypt the two findings locally, remove all diagnostic key/code, correct only evidenced service paths or leaks, then require three green automatic audits before closing Phase 65.
-  - 7.1.2. **Evidence:** Release correction `87eb596c` is on `master`; replay 29544303227 still reports entries 73 and 84 after the sole Linuxbrew service allowlist addition, falsifying A65.14. The two findings remain POSIX homes and no canonical license category is present.
-  - 7.1.3. **Blocker:** Category-only annotations cannot identify which additional prefix is involved, while publishing the raw prefix would recreate the privacy exposure the gate is designed to prevent.
-  - 7.1.4. **Mitigation:** Encrypt only deduplicated matched prefixes to a one-use committed public key; emit ciphertext annotations; decrypt only with the uncommitted local private key; then delete the diagnostic key and script from the repository.
-  - 7.1.5. **Status:** Active / encrypted private classification in progress.
+  - 7.1.1. **Action:** Exact-stage/review/push case-normalized matching for only the two hosted POSIX runner homes, replay immutable Bindings run 29542885658, then require three green automatic complete-log audits before closing Phase 65.
+  - 7.1.2. **Evidence:** Encrypted replay 29544535103 produced one deduplicated ciphertext for entries 73 and 84. Local RSA-OAEP decryption identified only uppercase account component `RUNNER` in a 13 B POSIX prefix, which is the case-variant of the hosted macOS runner home. The private key, public key, ciphertext diagnostic, and decrypted temporary are being removed; no plaintext entered repository or public job text.
+  - 7.1.3. **Blocker:** Byte-exact comparison rejects case-normalized rendering of the otherwise exact hosted macOS runner identity.
+  - 7.1.4. **Mitigation:** Lowercase the complete matched prefix only for membership against the two exact fragment-constructed hosted-runner keys; remove the unevidenced Linuxbrew allowlist entry and all encrypted diagnostic code/key material.
+  - 7.1.5. **Status:** Active / exact case correction and release revalidation in progress.
