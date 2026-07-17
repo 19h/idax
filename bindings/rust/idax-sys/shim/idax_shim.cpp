@@ -3052,6 +3052,49 @@ void idax_segment_free(IdaxSegment* seg) {
     }
 }
 
+namespace {
+
+bool fill_segment_register_descriptor(
+    IdaxSegmentRegisterDescriptor* out,
+    const ida::segment::SegmentRegisterDescriptor& input) {
+    out->name = dup_string(input.name);
+    out->bit_width = input.bit_width;
+    out->is_code = input.is_code ? 1 : 0;
+    out->is_data = input.is_data ? 1 : 0;
+    return out->name != nullptr;
+}
+
+void fill_segment_register_range(
+    IdaxSegmentRegisterRange* out,
+    const ida::segment::SegmentRegisterRange& input) {
+    out->start = input.start;
+    out->end = input.end;
+    out->has_value = input.value.has_value() ? 1 : 0;
+    out->value = input.value.value_or(0);
+    out->source = static_cast<int>(input.source);
+}
+
+std::optional<std::uint64_t> optional_segment_register_value(
+    int has_value, std::uint64_t value) {
+    return has_value != 0 ? std::optional<std::uint64_t>{value}
+                          : std::optional<std::uint64_t>{};
+}
+
+} // namespace
+
+void idax_segment_register_descriptors_free(
+    IdaxSegmentRegisterDescriptor* values, size_t count) {
+    if (values == nullptr)
+        return;
+    for (size_t index = 0; index < count; ++index)
+        std::free(values[index].name);
+    std::free(values);
+}
+
+void idax_segment_register_ranges_free(IdaxSegmentRegisterRange* values) {
+    std::free(values);
+}
+
 int idax_segment_at(uint64_t ea, IdaxSegment* out) {
     clear_error();
     auto r = ida::segment::at(ea);
@@ -3160,6 +3203,191 @@ int idax_segment_set_default_segment_register(uint64_t ea,
 int idax_segment_set_default_segment_register_for_all(int register_index,
                                                       uint64_t value) {
     RETURN_STATUS(ida::segment::set_default_segment_register_for_all(register_index, value));
+}
+
+int idax_segment_registers(IdaxSegmentRegisterDescriptor** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register descriptor output is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::segment::segment_registers();
+    if (!result)
+        return fail(result.error());
+    *count = result->size();
+    if (result->empty())
+        return 0;
+    auto* copied = static_cast<IdaxSegmentRegisterDescriptor*>(
+        std::calloc(result->size(), sizeof(IdaxSegmentRegisterDescriptor)));
+    if (copied == nullptr)
+        return fail(ida::Error::internal(
+            "Could not allocate segment-register descriptors"));
+    for (size_t index = 0; index < result->size(); ++index) {
+        if (!fill_segment_register_descriptor(
+                &copied[index], (*result)[index])) {
+            idax_segment_register_descriptors_free(copied, result->size());
+            return fail(ida::Error::internal(
+                "Could not allocate segment-register name"));
+        }
+    }
+    *out = copied;
+    return 0;
+}
+
+int idax_segment_register_value(uint64_t ea, const char* register_name,
+                                int* has_value, uint64_t* out) {
+    clear_error();
+    if (has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register value output is null"));
+    auto result = ida::segment::segment_register_value(
+        ea, register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    *has_value = result->has_value() ? 1 : 0;
+    *out = result->value_or(0);
+    return 0;
+}
+
+int idax_segment_default_register_value(uint64_t ea,
+                                        const char* register_name,
+                                        int* has_value, uint64_t* out) {
+    clear_error();
+    if (has_value == nullptr || out == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register default output is null"));
+    auto result = ida::segment::default_segment_register_value(
+        ea, register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    *has_value = result->has_value() ? 1 : 0;
+    *out = result->value_or(0);
+    return 0;
+}
+
+int idax_segment_register_range(uint64_t ea, const char* register_name,
+                                IdaxSegmentRegisterRange* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register range output is null"));
+    auto result = ida::segment::segment_register_range(
+        ea, register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    fill_segment_register_range(out, *result);
+    return 0;
+}
+
+int idax_segment_previous_register_range(
+    uint64_t ea, const char* register_name,
+    IdaxSegmentRegisterRange* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Previous segment-register range output is null"));
+    auto result = ida::segment::previous_segment_register_range(
+        ea, register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    *has_value = result->has_value() ? 1 : 0;
+    if (*result)
+        fill_segment_register_range(out, **result);
+    return 0;
+}
+
+int idax_segment_register_ranges(const char* register_name,
+                                 IdaxSegmentRegisterRange** out,
+                                 size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register range-list output is null"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::segment::segment_register_ranges(
+        register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    *count = result->size();
+    if (result->empty())
+        return 0;
+    auto* copied = static_cast<IdaxSegmentRegisterRange*>(
+        std::calloc(result->size(), sizeof(IdaxSegmentRegisterRange)));
+    if (copied == nullptr)
+        return fail(ida::Error::internal(
+            "Could not allocate segment-register ranges"));
+    for (size_t index = 0; index < result->size(); ++index)
+        fill_segment_register_range(&copied[index], (*result)[index]);
+    *out = copied;
+    return 0;
+}
+
+int idax_segment_register_range_index(uint64_t ea, const char* register_name,
+                                      size_t* out, int* has_value) {
+    clear_error();
+    if (out == nullptr || has_value == nullptr)
+        return fail(ida::Error::validation(
+            "Segment-register range-index output is null"));
+    auto result = ida::segment::segment_register_range_index(
+        ea, register_name == nullptr ? "" : register_name);
+    if (!result)
+        return fail(result.error());
+    *has_value = result->has_value() ? 1 : 0;
+    *out = result->value_or(0);
+    return 0;
+}
+
+int idax_segment_split_register_range(uint64_t ea, const char* register_name,
+                                      int has_value, uint64_t value,
+                                      int source) {
+    RETURN_STATUS(ida::segment::split_segment_register_range(
+        ea, register_name == nullptr ? "" : register_name,
+        optional_segment_register_value(has_value, value),
+        static_cast<ida::segment::SegmentRegisterSource>(source)));
+}
+
+int idax_segment_remove_register_range(uint64_t ea,
+                                       const char* register_name) {
+    RETURN_STATUS(ida::segment::remove_segment_register_range(
+        ea, register_name == nullptr ? "" : register_name));
+}
+
+int idax_segment_set_default_segment_register_named(
+    uint64_t ea, const char* register_name, int has_value, uint64_t value) {
+    RETURN_STATUS(ida::segment::set_default_segment_register(
+        ea, register_name == nullptr ? "" : register_name,
+        optional_segment_register_value(has_value, value)));
+}
+
+int idax_segment_set_default_segment_register_for_all_named(
+    const char* register_name, int has_value, uint64_t value) {
+    RETURN_STATUS(ida::segment::set_default_segment_register_for_all(
+        register_name == nullptr ? "" : register_name,
+        optional_segment_register_value(has_value, value)));
+}
+
+int idax_segment_set_default_data_segment(int has_value, uint64_t value) {
+    RETURN_STATUS(ida::segment::set_default_data_segment(
+        optional_segment_register_value(has_value, value)));
+}
+
+int idax_segment_set_register_at_next_code(
+    uint64_t search_start, uint64_t maximum, const char* register_name,
+    int has_value, uint64_t value) {
+    RETURN_STATUS(ida::segment::set_segment_register_at_next_code(
+        search_start, maximum, register_name == nullptr ? "" : register_name,
+        optional_segment_register_value(has_value, value)));
+}
+
+int idax_segment_copy_register_ranges(const char* destination_register,
+                                      const char* source_register,
+                                      int map_selectors_to_addresses) {
+    RETURN_STATUS(ida::segment::copy_segment_register_ranges(
+        destination_register == nullptr ? "" : destination_register,
+        source_register == nullptr ? "" : source_register,
+        map_selectors_to_addresses != 0));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

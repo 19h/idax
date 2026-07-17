@@ -535,3 +535,12 @@ Current overall phase status:
 - [x] P68.4 Add malformed-input plus isolated real-IDA push/enumerate/current/seek/back/forward/update/clear/save/reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 68 from active work.
 
 ---
+
+### Phase 69 TODO Action Items (Opaque Segment-Register State and Ranges)
+
+- [x] P69.1 Audit the pinned IDA 9.4 `segregs.hpp` surface, runtime exports, generated IDAPython conventions, current numeric default setters, processor descriptors, and all language bindings.
+- [ ] P69.2 Select and falsify an SDK-opaque name-based model for segment-register discovery, optional values/defaults, provenance-tagged ranges, enumeration, mutation, next-code containment, and range copying.
+- [ ] P69.3 Implement complete C++, Node, Rust, and Python parity for the proven current operation family without exposing processor ordinals, `sreg_range_t`, `segment_t`, `sel_t` sentinels, tags, or native containers.
+- [ ] P69.4 Add malformed-input plus isolated real-IDA discovery/query/split/delete/default/copy/save-reopen evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, and remove Phase 69 from active work.
+
+---

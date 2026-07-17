@@ -1709,9 +1709,78 @@ impl Default for IdaxSegment {
         }
     }
 }
+#[doc = " Owned semantic segment-register descriptor."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxSegmentRegisterDescriptor {
+    pub name: *mut ::std::os::raw::c_char,
+    pub bit_width: usize,
+    pub is_code: ::std::os::raw::c_int,
+    pub is_data: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxSegmentRegisterDescriptor"]
+        [::std::mem::size_of::<IdaxSegmentRegisterDescriptor>() - 24usize];
+    ["Alignment of IdaxSegmentRegisterDescriptor"]
+        [::std::mem::align_of::<IdaxSegmentRegisterDescriptor>() - 8usize];
+    ["Offset of field: IdaxSegmentRegisterDescriptor::name"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterDescriptor, name) - 0usize];
+    ["Offset of field: IdaxSegmentRegisterDescriptor::bit_width"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterDescriptor, bit_width) - 8usize];
+    ["Offset of field: IdaxSegmentRegisterDescriptor::is_code"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterDescriptor, is_code) - 16usize];
+    ["Offset of field: IdaxSegmentRegisterDescriptor::is_data"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterDescriptor, is_data) - 20usize];
+};
+impl Default for IdaxSegmentRegisterDescriptor {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Copied half-open segment-register range; source uses the public enum order."]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxSegmentRegisterRange {
+    pub start: u64,
+    pub end: u64,
+    pub has_value: ::std::os::raw::c_int,
+    pub value: u64,
+    pub source: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxSegmentRegisterRange"]
+        [::std::mem::size_of::<IdaxSegmentRegisterRange>() - 40usize];
+    ["Alignment of IdaxSegmentRegisterRange"]
+        [::std::mem::align_of::<IdaxSegmentRegisterRange>() - 8usize];
+    ["Offset of field: IdaxSegmentRegisterRange::start"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterRange, start) - 0usize];
+    ["Offset of field: IdaxSegmentRegisterRange::end"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterRange, end) - 8usize];
+    ["Offset of field: IdaxSegmentRegisterRange::has_value"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterRange, has_value) - 16usize];
+    ["Offset of field: IdaxSegmentRegisterRange::value"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterRange, value) - 24usize];
+    ["Offset of field: IdaxSegmentRegisterRange::source"]
+        [::std::mem::offset_of!(IdaxSegmentRegisterRange, source) - 32usize];
+};
 unsafe extern "C" {
     #[doc = " Free strings inside an IdaxSegment (does NOT free the struct itself)."]
     pub fn idax_segment_free(seg: *mut IdaxSegment);
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_descriptors_free(
+        values: *mut IdaxSegmentRegisterDescriptor,
+        count: usize,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_ranges_free(values: *mut IdaxSegmentRegisterRange);
 }
 unsafe extern "C" {
     pub fn idax_segment_at(ea: u64, out: *mut IdaxSegment) -> ::std::os::raw::c_int;
@@ -1803,6 +1872,110 @@ unsafe extern "C" {
     pub fn idax_segment_set_default_segment_register_for_all(
         register_index: ::std::os::raw::c_int,
         value: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_registers(
+        out: *mut *mut IdaxSegmentRegisterDescriptor,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_value(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_default_register_value(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        has_value: *mut ::std::os::raw::c_int,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_range(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        out: *mut IdaxSegmentRegisterRange,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_previous_register_range(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        out: *mut IdaxSegmentRegisterRange,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_ranges(
+        register_name: *const ::std::os::raw::c_char,
+        out: *mut *mut IdaxSegmentRegisterRange,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_register_range_index(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        out: *mut usize,
+        has_value: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_split_register_range(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        has_value: ::std::os::raw::c_int,
+        value: u64,
+        source: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_remove_register_range(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_set_default_segment_register_named(
+        ea: u64,
+        register_name: *const ::std::os::raw::c_char,
+        has_value: ::std::os::raw::c_int,
+        value: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_set_default_segment_register_for_all_named(
+        register_name: *const ::std::os::raw::c_char,
+        has_value: ::std::os::raw::c_int,
+        value: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_set_default_data_segment(
+        has_value: ::std::os::raw::c_int,
+        value: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_set_register_at_next_code(
+        search_start: u64,
+        maximum: u64,
+        register_name: *const ::std::os::raw::c_char,
+        has_value: ::std::os::raw::c_int,
+        value: u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_segment_copy_register_ranges(
+        destination_register: *const ::std::os::raw::c_char,
+        source_register: *const ::std::os::raw::c_char,
+        map_selectors_to_addresses: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 #[doc = " Flat C representation of a function snapshot."]

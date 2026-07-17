@@ -80,6 +80,34 @@ def test_ida_94_database_lifecycle_and_thread_affinity(tmp_path: Path) -> None:
         assert segments
         assert segment.first().start == segments[0].start
         assert segment.at(segments[0].start).name == segments[0].name
+        segment_registers = segment.segment_registers()
+        assert segment_registers
+        assert all(value.name and value.bit_width > 0
+                   for value in segment_registers)
+        assert any(value.is_code for value in segment_registers)
+        assert any(value.is_data for value in segment_registers)
+        segment_register = segment_registers[0]
+        segment_address = segments[0].start
+        effective_value = segment.segment_register_value(
+            segment_address, segment_register.name)
+        assert effective_value is None or isinstance(effective_value, int)
+        default_value = segment.default_segment_register_value(
+            segment_address, segment_register.name)
+        register_range = segment.segment_register_range(
+            segment_address, segment_register.name)
+        assert register_range.start <= segment_address < register_range.end
+        assert register_range.source in tuple(segment.SegmentRegisterSource)
+        assert segment.segment_register_ranges(segment_register.name)
+        assert segment.segment_register_range_index(
+            segment_address, segment_register.name) is not None
+        segment.set_default_segment_register(
+            segment_address, segment_register.name, 0x234)
+        assert segment.default_segment_register_value(
+            segment_address, segment_register.name) == 0x234
+        segment.set_default_segment_register(
+            segment_address, segment_register.name, default_value)
+        with pytest.raises(ValidationError):
+            segment.segment_register_value(segment_address, "bad\0name")
         assert len(name.all()) >= len(name.all_user_defined())
         assert search.next_defined(bounds.start) <= bounds.end
         assert isinstance(xref.refs_from(bounds.start), list)

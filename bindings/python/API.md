@@ -38,7 +38,7 @@ checked with strict mypy.
 | `registry` | 0 | 3 | Scoped typed plugin configuration, copied inventories, ordered string lists, and deletion. |
 | `registers` | 8 | 6 | Named register-value tracking, owned candidates/origins, nearest selection, and cache notifications. |
 | `search` | 8 | 4 | Text, immediate, binary-pattern, code/data/defined searches. |
-| `segment` | 22 | 4 | Segment snapshots, lookup, traversal, selectors, mutation. |
+| `segment` | 34 | 7 | Segment snapshots plus named register discovery, optional values/defaults, copied provenance ranges, and verified mutation. |
 | `storage` | 0 | 1 | Opaque persistent node alt/sup/hash/blob storage. |
 | `type` | 15 | 17 | Type construction, parsing, introspection, rendering, application. |
 | `ui` | 65 | 26 | Dialogs, forms, messages, widgets, choosers, viewers, timers, events. |

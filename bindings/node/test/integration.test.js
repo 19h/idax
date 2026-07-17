@@ -169,6 +169,43 @@ describe('Segments', () => {
         expect(typeof first.start).toBe('bigint');
         expect(typeof last.start).toBe('bigint');
     });
+
+    it('should expose opaque segment-register discovery and copied state', () => {
+        const registers = idax.segment.segmentRegisters();
+        expect(registers.length).toBeGreaterThan(0);
+        const register = registers[0];
+        expect(typeof register.name).toBe('string');
+        expect(register.name.length).toBeGreaterThan(0);
+        expect(register.bitWidth).toBeGreaterThan(0);
+        expect(typeof register.isCode).toBe('boolean');
+        expect(typeof register.isData).toBe('boolean');
+
+        const address = idax.segment.first().start;
+        const value = idax.segment.segmentRegisterValue(address, register.name);
+        expect(value === null || typeof value === 'bigint').toBe(true);
+        const defaultValue = idax.segment.defaultSegmentRegisterValue(
+            address, register.name);
+        expect(defaultValue === null || typeof defaultValue === 'bigint').toBe(true);
+        const range = idax.segment.segmentRegisterRange(address, register.name);
+        expect(typeof range.start).toBe('bigint');
+        expect(typeof range.end).toBe('bigint');
+        expect(range.value === null || typeof range.value === 'bigint').toBe(true);
+        expect(['inherited', 'user', 'analysis', 'analysisAtSegmentStart'])
+            .toContain(range.source);
+        const ranges = idax.segment.segmentRegisterRanges(register.name);
+        expect(ranges.length).toBeGreaterThan(0);
+        expect(idax.segment.segmentRegisterRangeIndex(
+            address, register.name) !== null).toBe(true);
+
+        expect(idax.segment.setDefaultSegmentRegister(
+            address, register.name, 0x234n)).toBe(true);
+        expect(idax.segment.defaultSegmentRegisterValue(
+            address, register.name)).toBe(0x234n);
+        expect(idax.segment.setDefaultSegmentRegister(
+            address, register.name, defaultValue)).toBe(true);
+        expect(() => idax.segment.segmentRegisterValue(
+            address, 'bad\0name')).toThrow();
+    });
 });
 
 // ── Functions ───────────────────────────────────────────────────────────

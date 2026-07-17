@@ -4,6 +4,10 @@
 #include "helpers.hpp"
 #include <ida/segment.hpp>
 
+#include <cmath>
+#include <limits>
+#include <optional>
+
 namespace idax_node {
 namespace {
 
@@ -63,6 +67,132 @@ static v8::Local<v8::Object> SegmentToJS(const ida::segment::Segment& seg) {
         .setStr("name",       seg.name())
         .setStr("className",  seg.class_name())
         .setBool("isVisible", seg.is_visible())
+        .build();
+}
+
+static const char* SegmentRegisterSourceToString(
+    ida::segment::SegmentRegisterSource source) {
+    switch (source) {
+    case ida::segment::SegmentRegisterSource::Inherited: return "inherited";
+    case ida::segment::SegmentRegisterSource::User: return "user";
+    case ida::segment::SegmentRegisterSource::Analysis: return "analysis";
+    case ida::segment::SegmentRegisterSource::AnalysisAtSegmentStart:
+        return "analysisAtSegmentStart";
+    }
+    return "inherited";
+}
+
+static bool GetSegmentRegisterSource(
+    v8::Local<v8::Value> value,
+    ida::segment::SegmentRegisterSource& out) {
+    if (!value->IsString()) {
+        Nan::ThrowTypeError("Segment-register source must be a string");
+        return false;
+    }
+    Nan::Utf8String text(value);
+    const std::string source = *text == nullptr
+        ? std::string{}
+        : std::string(*text, static_cast<std::size_t>(text.length()));
+    if (source == "inherited") {
+        out = ida::segment::SegmentRegisterSource::Inherited;
+    } else if (source == "user") {
+        out = ida::segment::SegmentRegisterSource::User;
+    } else if (source == "analysis") {
+        out = ida::segment::SegmentRegisterSource::Analysis;
+    } else if (source == "analysisAtSegmentStart") {
+        out = ida::segment::SegmentRegisterSource::AnalysisAtSegmentStart;
+    } else {
+        Nan::ThrowRangeError("Unknown segment-register source");
+        return false;
+    }
+    return true;
+}
+
+static bool GetExactStringArg(const Nan::FunctionCallbackInfo<v8::Value>& info,
+                              int index,
+                              std::string& out,
+                              const char* description) {
+    if (info.Length() <= index || !info[index]->IsString()) {
+        Nan::ThrowTypeError(description);
+        return false;
+    }
+    Nan::Utf8String text(info[index]);
+    out = *text == nullptr
+        ? std::string{}
+        : std::string(*text, static_cast<std::size_t>(text.length()));
+    return true;
+}
+
+static bool GetOptionalSegmentRegisterValue(
+    v8::Local<v8::Value> value,
+    std::optional<std::uint64_t>& out) {
+    if (value->IsNull() || value->IsUndefined()) {
+        out = std::nullopt;
+        return true;
+    }
+    if (value->IsBigInt()) {
+        bool lossless = false;
+        const auto parsed = value.As<v8::BigInt>()->Uint64Value(&lossless);
+        if (!lossless) {
+            Nan::ThrowRangeError(
+                "Segment-register value must be an unsigned 64-bit integer");
+            return false;
+        }
+        out = parsed;
+        return true;
+    }
+    if (value->IsNumber()) {
+        const double parsed = Nan::To<double>(value).FromJust();
+        if (!std::isfinite(parsed) || std::trunc(parsed) != parsed
+            || parsed < 0
+            || parsed > static_cast<double>((std::uint64_t{1} << 53) - 1)) {
+            Nan::ThrowRangeError(
+                "Numeric segment-register values must be safe unsigned integers");
+            return false;
+        }
+        out = static_cast<std::uint64_t>(parsed);
+        return true;
+    }
+    Nan::ThrowTypeError(
+        "Segment-register value must be a number, bigint, null, or undefined");
+    return false;
+}
+
+static bool GetLegacySegmentRegisterIndex(
+    v8::Local<v8::Value> value, int& out) {
+    if (!value->IsInt32()) {
+        Nan::ThrowTypeError(
+            "Legacy segment-register index must be a signed 32-bit integer");
+        return false;
+    }
+    out = Nan::To<std::int32_t>(value).FromJust();
+    return true;
+}
+
+static v8::Local<v8::Value> SegmentRegisterValueToJS(
+    std::optional<std::uint64_t> value) {
+    if (!value)
+        return Nan::Null();
+    return v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), *value);
+}
+
+static v8::Local<v8::Object> SegmentRegisterDescriptorToJS(
+    const ida::segment::SegmentRegisterDescriptor& descriptor) {
+    return ObjectBuilder()
+        .setStr("name", descriptor.name)
+        .setUint("bitWidth", static_cast<std::uint32_t>(descriptor.bit_width))
+        .setBool("isCode", descriptor.is_code)
+        .setBool("isData", descriptor.is_data)
+        .build();
+}
+
+static v8::Local<v8::Object> SegmentRegisterRangeToJS(
+    const ida::segment::SegmentRegisterRange& range) {
+    return ObjectBuilder()
+        .setAddr("start", range.start)
+        .setAddr("end", range.end)
+        .set("value", SegmentRegisterValueToJS(range.value))
+        .setStr("source", SegmentRegisterSourceToString(range.source))
         .build();
 }
 
@@ -218,53 +348,243 @@ NAN_METHOD(SetBitness) {
     info.GetReturnValue().Set(Nan::True());
 }
 
-// setDefaultSegmentRegister(address, regIndex, value)
+// setDefaultSegmentRegister(address, registerName|regIndex, value|null)
 NAN_METHOD(SetDefaultSegmentRegister) {
     ida::Address addr;
     if (!GetAddressArg(info, 0, addr)) return;
 
-    if (info.Length() < 3 || !info[1]->IsNumber()) {
-        Nan::ThrowTypeError("Expected register index and value arguments");
+    if (info.Length() < 3) {
+        Nan::ThrowTypeError("Expected register and value arguments");
         return;
     }
-    int regIndex = Nan::To<int>(info[1]).FromJust();
-
-    // Value can be a number or BigInt (uint64_t)
-    std::uint64_t value = 0;
-    if (info[2]->IsBigInt()) {
-        bool lossless;
-        value = info[2].As<v8::BigInt>()->Uint64Value(&lossless);
-    } else if (info[2]->IsNumber()) {
-        value = static_cast<std::uint64_t>(Nan::To<double>(info[2]).FromJust());
-    } else {
-        Nan::ThrowTypeError("Expected numeric value for register default");
+    if (info[1]->IsString()) {
+        std::string name;
+        if (!GetExactStringArg(info, 1, name,
+                               "Expected segment-register name")) {
+            return;
+        }
+        std::optional<std::uint64_t> value;
+        if (!GetOptionalSegmentRegisterValue(info[2], value))
+            return;
+        IDAX_CHECK_STATUS(ida::segment::set_default_segment_register(
+            addr, name, value));
+        info.GetReturnValue().Set(Nan::True());
         return;
     }
-
-    IDAX_CHECK_STATUS(ida::segment::set_default_segment_register(addr, regIndex, value));
+    if (!info[1]->IsNumber()) {
+        Nan::ThrowTypeError("Register must be a name or legacy numeric index");
+        return;
+    }
+    int regIndex = 0;
+    if (!GetLegacySegmentRegisterIndex(info[1], regIndex))
+        return;
+    std::optional<std::uint64_t> parsed;
+    if (!GetOptionalSegmentRegisterValue(info[2], parsed))
+        return;
+    if (!parsed) {
+        Nan::ThrowTypeError("Legacy numeric defaults cannot be null");
+        return;
+    }
+    IDAX_CHECK_STATUS(ida::segment::set_default_segment_register(
+        addr, regIndex, *parsed));
     info.GetReturnValue().Set(Nan::True());
 }
 
-// setDefaultSegmentRegisterForAll(regIndex, value)
+// setDefaultSegmentRegisterForAll(registerName|regIndex, value|null)
 NAN_METHOD(SetDefaultSegmentRegisterForAll) {
-    if (info.Length() < 2 || !info[0]->IsNumber()) {
-        Nan::ThrowTypeError("Expected register index and value arguments");
+    if (info.Length() < 2) {
+        Nan::ThrowTypeError("Expected register and value arguments");
         return;
     }
-    int regIndex = Nan::To<int>(info[0]).FromJust();
-
-    std::uint64_t value = 0;
-    if (info[1]->IsBigInt()) {
-        bool lossless;
-        value = info[1].As<v8::BigInt>()->Uint64Value(&lossless);
-    } else if (info[1]->IsNumber()) {
-        value = static_cast<std::uint64_t>(Nan::To<double>(info[1]).FromJust());
-    } else {
-        Nan::ThrowTypeError("Expected numeric value for register default");
+    if (info[0]->IsString()) {
+        std::string name;
+        if (!GetExactStringArg(info, 0, name,
+                               "Expected segment-register name")) {
+            return;
+        }
+        std::optional<std::uint64_t> value;
+        if (!GetOptionalSegmentRegisterValue(info[1], value))
+            return;
+        IDAX_CHECK_STATUS(ida::segment::set_default_segment_register_for_all(
+            name, value));
+        info.GetReturnValue().Set(Nan::True());
         return;
     }
+    if (!info[0]->IsNumber()) {
+        Nan::ThrowTypeError("Register must be a name or legacy numeric index");
+        return;
+    }
+    int regIndex = 0;
+    if (!GetLegacySegmentRegisterIndex(info[0], regIndex))
+        return;
+    std::optional<std::uint64_t> parsed;
+    if (!GetOptionalSegmentRegisterValue(info[1], parsed))
+        return;
+    if (!parsed) {
+        Nan::ThrowTypeError("Legacy numeric defaults cannot be null");
+        return;
+    }
+    IDAX_CHECK_STATUS(ida::segment::set_default_segment_register_for_all(
+        regIndex, *parsed));
+    info.GetReturnValue().Set(Nan::True());
+}
 
-    IDAX_CHECK_STATUS(ida::segment::set_default_segment_register_for_all(regIndex, value));
+NAN_METHOD(SegmentRegisters) {
+    IDAX_UNWRAP(auto registers, ida::segment::segment_registers());
+    auto array = Nan::New<v8::Array>(static_cast<std::uint32_t>(registers.size()));
+    for (std::uint32_t index = 0; index < registers.size(); ++index)
+        Nan::Set(array, index, SegmentRegisterDescriptorToJS(registers[index]));
+    info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(SegmentRegisterValue) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto value,
+                ida::segment::segment_register_value(address, name));
+    info.GetReturnValue().Set(SegmentRegisterValueToJS(value));
+}
+
+NAN_METHOD(DefaultSegmentRegisterValue) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto value,
+                ida::segment::default_segment_register_value(address, name));
+    info.GetReturnValue().Set(SegmentRegisterValueToJS(value));
+}
+
+NAN_METHOD(SegmentRegisterRange) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto range,
+                ida::segment::segment_register_range(address, name));
+    info.GetReturnValue().Set(SegmentRegisterRangeToJS(range));
+}
+
+NAN_METHOD(PreviousSegmentRegisterRange) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto range,
+                ida::segment::previous_segment_register_range(address, name));
+    if (range)
+        info.GetReturnValue().Set(SegmentRegisterRangeToJS(*range));
+    else
+        info.GetReturnValue().Set(Nan::Null());
+}
+
+NAN_METHOD(SegmentRegisterRanges) {
+    std::string name;
+    if (!GetExactStringArg(info, 0, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto ranges, ida::segment::segment_register_ranges(name));
+    auto array = Nan::New<v8::Array>(static_cast<std::uint32_t>(ranges.size()));
+    for (std::uint32_t index = 0; index < ranges.size(); ++index)
+        Nan::Set(array, index, SegmentRegisterRangeToJS(ranges[index]));
+    info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(SegmentRegisterRangeIndex) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_UNWRAP(auto index,
+                ida::segment::segment_register_range_index(address, name));
+    if (index)
+        info.GetReturnValue().Set(Nan::New(static_cast<double>(*index)));
+    else
+        info.GetReturnValue().Set(Nan::Null());
+}
+
+NAN_METHOD(SplitSegmentRegisterRange) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    if (info.Length() < 3) {
+        Nan::ThrowTypeError("Missing segment-register value");
+        return;
+    }
+    std::optional<std::uint64_t> value;
+    if (!GetOptionalSegmentRegisterValue(info[2], value))
+        return;
+    auto source = ida::segment::SegmentRegisterSource::User;
+    if (info.Length() > 3 && !info[3]->IsUndefined()
+        && !GetSegmentRegisterSource(info[3], source)) {
+        return;
+    }
+    IDAX_CHECK_STATUS(ida::segment::split_segment_register_range(
+        address, name, value, source));
+    info.GetReturnValue().Set(Nan::True());
+}
+
+NAN_METHOD(RemoveSegmentRegisterRange) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 1, name, "Expected segment-register name"))
+        return;
+    IDAX_CHECK_STATUS(
+        ida::segment::remove_segment_register_range(address, name));
+    info.GetReturnValue().Set(Nan::True());
+}
+
+NAN_METHOD(SetDefaultDataSegment) {
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("Missing data-segment default value");
+        return;
+    }
+    std::optional<std::uint64_t> value;
+    if (!GetOptionalSegmentRegisterValue(info[0], value))
+        return;
+    IDAX_CHECK_STATUS(ida::segment::set_default_data_segment(value));
+    info.GetReturnValue().Set(Nan::True());
+}
+
+NAN_METHOD(SetSegmentRegisterAtNextCode) {
+    ida::Address start, maximum;
+    if (!GetAddressArg(info, 0, start)) return;
+    if (!GetAddressArg(info, 1, maximum)) return;
+    std::string name;
+    if (!GetExactStringArg(info, 2, name, "Expected segment-register name"))
+        return;
+    if (info.Length() < 4) {
+        Nan::ThrowTypeError("Missing segment-register value");
+        return;
+    }
+    std::optional<std::uint64_t> value;
+    if (!GetOptionalSegmentRegisterValue(info[3], value))
+        return;
+    IDAX_CHECK_STATUS(ida::segment::set_segment_register_at_next_code(
+        start, maximum, name, value));
+    info.GetReturnValue().Set(Nan::True());
+}
+
+NAN_METHOD(CopySegmentRegisterRanges) {
+    std::string destination, source;
+    if (!GetExactStringArg(info, 0, destination,
+                           "Expected destination segment-register name"))
+        return;
+    if (!GetExactStringArg(info, 1, source,
+                           "Expected source segment-register name"))
+        return;
+    const bool map_selectors = GetOptionalBool(info, 2, false);
+    IDAX_CHECK_STATUS(ida::segment::copy_segment_register_ranges(
+        destination, source, map_selectors));
     info.GetReturnValue().Set(Nan::True());
 }
 
@@ -380,8 +700,20 @@ void InitSegment(v8::Local<v8::Object> target) {
     SetMethod(ns, "setBitness",     SetBitness);
 
     // Segment register defaults
+    SetMethod(ns, "segmentRegisters", SegmentRegisters);
+    SetMethod(ns, "segmentRegisterValue", SegmentRegisterValue);
+    SetMethod(ns, "defaultSegmentRegisterValue", DefaultSegmentRegisterValue);
+    SetMethod(ns, "segmentRegisterRange", SegmentRegisterRange);
+    SetMethod(ns, "previousSegmentRegisterRange", PreviousSegmentRegisterRange);
+    SetMethod(ns, "segmentRegisterRanges", SegmentRegisterRanges);
+    SetMethod(ns, "segmentRegisterRangeIndex", SegmentRegisterRangeIndex);
+    SetMethod(ns, "splitSegmentRegisterRange", SplitSegmentRegisterRange);
+    SetMethod(ns, "removeSegmentRegisterRange", RemoveSegmentRegisterRange);
     SetMethod(ns, "setDefaultSegmentRegister",       SetDefaultSegmentRegister);
     SetMethod(ns, "setDefaultSegmentRegisterForAll", SetDefaultSegmentRegisterForAll);
+    SetMethod(ns, "setDefaultDataSegment", SetDefaultDataSegment);
+    SetMethod(ns, "setSegmentRegisterAtNextCode", SetSegmentRegisterAtNextCode);
+    SetMethod(ns, "copySegmentRegisterRanges", CopySegmentRegisterRanges);
 
     // Comments
     SetMethod(ns, "comment",    Comment);

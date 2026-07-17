@@ -271,6 +271,10 @@ void check_lines_surface() {
 
 void check_segment_surface() {
     static_assert(std::is_copy_constructible_v<ida::segment::Segment>);
+    static_assert(std::is_copy_constructible_v<
+                  ida::segment::SegmentRegisterDescriptor>);
+    static_assert(std::is_copy_constructible_v<
+                  ida::segment::SegmentRegisterRange>);
     (void)ida::segment::Type::Normal;
     (void)ida::segment::Type::Code;
     (void)ida::segment::Type::Data;
@@ -278,6 +282,20 @@ void check_segment_surface() {
 
     ida::segment::Permissions p{};
     (void)p.read; (void)p.write; (void)p.execute;
+    ida::segment::SegmentRegisterDescriptor descriptor{};
+    (void)descriptor.name;
+    (void)descriptor.bit_width;
+    (void)descriptor.is_code;
+    (void)descriptor.is_data;
+    ida::segment::SegmentRegisterRange register_range{};
+    (void)register_range.start;
+    (void)register_range.end;
+    (void)register_range.value;
+    (void)register_range.source;
+    (void)ida::segment::SegmentRegisterSource::Inherited;
+    (void)ida::segment::SegmentRegisterSource::User;
+    (void)ida::segment::SegmentRegisterSource::Analysis;
+    (void)ida::segment::SegmentRegisterSource::AnalysisAtSegmentStart;
 
     using SegmentCommentFn = ida::Result<std::string>(*)(ida::Address, bool);
     using SegmentSetCommentFn = ida::Status(*)(ida::Address, std::string_view, bool);
@@ -285,6 +303,34 @@ void check_segment_surface() {
     using SegmentMoveFn = ida::Status(*)(ida::Address, ida::Address);
     using SegmentSetDefaultRegisterFn = ida::Status(*)(ida::Address, int, std::uint64_t);
     using SegmentSetDefaultRegisterAllFn = ida::Status(*)(int, std::uint64_t);
+    using SegmentRegistersFn = ida::Result<std::vector<
+        ida::segment::SegmentRegisterDescriptor>>(*)();
+    using SegmentRegisterValueFn = ida::Result<std::optional<std::uint64_t>>(*)(
+        ida::Address, std::string_view);
+    using SegmentRegisterRangeFn = ida::Result<
+        ida::segment::SegmentRegisterRange>(*)(ida::Address, std::string_view);
+    using SegmentRegisterPreviousRangeFn = ida::Result<std::optional<
+        ida::segment::SegmentRegisterRange>>(*)(ida::Address, std::string_view);
+    using SegmentRegisterRangesFn = ida::Result<std::vector<
+        ida::segment::SegmentRegisterRange>>(*)(std::string_view);
+    using SegmentRegisterRangeIndexFn = ida::Result<std::optional<std::size_t>>(*)(
+        ida::Address, std::string_view);
+    using SegmentRegisterSplitFn = ida::Status(*)(
+        ida::Address, std::string_view, std::optional<std::uint64_t>,
+        ida::segment::SegmentRegisterSource);
+    using SegmentRegisterRemoveFn = ida::Status(*)(
+        ida::Address, std::string_view);
+    using SegmentRegisterSetDefaultNamedFn = ida::Status(*)(
+        ida::Address, std::string_view, std::optional<std::uint64_t>);
+    using SegmentRegisterSetDefaultAllNamedFn = ida::Status(*)(
+        std::string_view, std::optional<std::uint64_t>);
+    using SegmentRegisterSetDataDefaultFn = ida::Status(*)(
+        std::optional<std::uint64_t>);
+    using SegmentRegisterNextCodeFn = ida::Status(*)(
+        ida::Address, ida::Address, std::string_view,
+        std::optional<std::uint64_t>);
+    using SegmentRegisterCopyFn = ida::Status(*)(
+        std::string_view, std::string_view, bool);
     using SegmentFirstFn = ida::Result<ida::segment::Segment>(*)();
     using SegmentLastFn = ida::Result<ida::segment::Segment>(*)();
     using SegmentNextFn = ida::Result<ida::segment::Segment>(*)(ida::Address);
@@ -296,6 +342,20 @@ void check_segment_surface() {
     (void)static_cast<SegmentMoveFn>(&ida::segment::move);
     (void)static_cast<SegmentSetDefaultRegisterFn>(&ida::segment::set_default_segment_register);
     (void)static_cast<SegmentSetDefaultRegisterAllFn>(&ida::segment::set_default_segment_register_for_all);
+    (void)static_cast<SegmentRegistersFn>(&ida::segment::segment_registers);
+    (void)static_cast<SegmentRegisterValueFn>(&ida::segment::segment_register_value);
+    (void)static_cast<SegmentRegisterValueFn>(&ida::segment::default_segment_register_value);
+    (void)static_cast<SegmentRegisterRangeFn>(&ida::segment::segment_register_range);
+    (void)static_cast<SegmentRegisterPreviousRangeFn>(&ida::segment::previous_segment_register_range);
+    (void)static_cast<SegmentRegisterRangesFn>(&ida::segment::segment_register_ranges);
+    (void)static_cast<SegmentRegisterRangeIndexFn>(&ida::segment::segment_register_range_index);
+    (void)static_cast<SegmentRegisterSplitFn>(&ida::segment::split_segment_register_range);
+    (void)static_cast<SegmentRegisterRemoveFn>(&ida::segment::remove_segment_register_range);
+    (void)static_cast<SegmentRegisterSetDefaultNamedFn>(&ida::segment::set_default_segment_register);
+    (void)static_cast<SegmentRegisterSetDefaultAllNamedFn>(&ida::segment::set_default_segment_register_for_all);
+    (void)static_cast<SegmentRegisterSetDataDefaultFn>(&ida::segment::set_default_data_segment);
+    (void)static_cast<SegmentRegisterNextCodeFn>(&ida::segment::set_segment_register_at_next_code);
+    (void)static_cast<SegmentRegisterCopyFn>(&ida::segment::copy_segment_register_ranges);
     (void)static_cast<SegmentFirstFn>(&ida::segment::first);
     (void)static_cast<SegmentLastFn>(&ida::segment::last);
     (void)static_cast<SegmentNextFn>(&ida::segment::next);

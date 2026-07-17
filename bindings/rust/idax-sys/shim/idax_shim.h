@@ -562,8 +562,28 @@ typedef struct IdaxSegment {
     int      visible;
 } IdaxSegment;
 
+/** Owned semantic segment-register descriptor. */
+typedef struct IdaxSegmentRegisterDescriptor {
+    char* name;
+    size_t bit_width;
+    int is_code;
+    int is_data;
+} IdaxSegmentRegisterDescriptor;
+
+/** Copied half-open segment-register range; source uses the public enum order. */
+typedef struct IdaxSegmentRegisterRange {
+    uint64_t start;
+    uint64_t end;
+    int has_value;
+    uint64_t value;
+    int source;
+} IdaxSegmentRegisterRange;
+
 /** Free strings inside an IdaxSegment (does NOT free the struct itself). */
 void idax_segment_free(IdaxSegment* seg);
+void idax_segment_register_descriptors_free(
+    IdaxSegmentRegisterDescriptor* values, size_t count);
+void idax_segment_register_ranges_free(IdaxSegmentRegisterRange* values);
 
 int idax_segment_at(uint64_t ea, IdaxSegment* out);
 int idax_segment_by_name(const char* name, IdaxSegment* out);
@@ -587,6 +607,38 @@ int idax_segment_set_default_segment_register(uint64_t ea, int register_index,
                                               uint64_t value);
 int idax_segment_set_default_segment_register_for_all(int register_index,
                                                       uint64_t value);
+int idax_segment_registers(IdaxSegmentRegisterDescriptor** out, size_t* count);
+int idax_segment_register_value(uint64_t ea, const char* register_name,
+                                int* has_value, uint64_t* out);
+int idax_segment_default_register_value(uint64_t ea,
+                                        const char* register_name,
+                                        int* has_value, uint64_t* out);
+int idax_segment_register_range(uint64_t ea, const char* register_name,
+                                IdaxSegmentRegisterRange* out);
+int idax_segment_previous_register_range(
+    uint64_t ea, const char* register_name,
+    IdaxSegmentRegisterRange* out, int* has_value);
+int idax_segment_register_ranges(const char* register_name,
+                                 IdaxSegmentRegisterRange** out,
+                                 size_t* count);
+int idax_segment_register_range_index(uint64_t ea, const char* register_name,
+                                      size_t* out, int* has_value);
+int idax_segment_split_register_range(uint64_t ea, const char* register_name,
+                                      int has_value, uint64_t value,
+                                      int source);
+int idax_segment_remove_register_range(uint64_t ea,
+                                       const char* register_name);
+int idax_segment_set_default_segment_register_named(
+    uint64_t ea, const char* register_name, int has_value, uint64_t value);
+int idax_segment_set_default_segment_register_for_all_named(
+    const char* register_name, int has_value, uint64_t value);
+int idax_segment_set_default_data_segment(int has_value, uint64_t value);
+int idax_segment_set_register_at_next_code(
+    uint64_t search_start, uint64_t maximum, const char* register_name,
+    int has_value, uint64_t value);
+int idax_segment_copy_register_ranges(const char* destination_register,
+                                      const char* source_register,
+                                      int map_selectors_to_addresses);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Function (ida::function)

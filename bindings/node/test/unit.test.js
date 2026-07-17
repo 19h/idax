@@ -238,6 +238,13 @@ describe('Segment Namespace Structure', () => {
     const EXPECTED_FUNCTIONS = [
         'create', 'remove', 'at', 'byName', 'byIndex', 'count',
         'setName', 'setClass', 'setType', 'setPermissions', 'setBitness',
+        'segmentRegisters', 'segmentRegisterValue',
+        'defaultSegmentRegisterValue', 'segmentRegisterRange',
+        'previousSegmentRegisterRange', 'segmentRegisterRanges',
+        'segmentRegisterRangeIndex', 'splitSegmentRegisterRange',
+        'removeSegmentRegisterRange', 'setDefaultSegmentRegister',
+        'setDefaultSegmentRegisterForAll', 'setDefaultDataSegment',
+        'setSegmentRegisterAtNextCode', 'copySegmentRegisterRanges',
         'comment', 'setComment', 'resize', 'move',
         'all', 'first', 'last', 'next', 'prev',
     ];
@@ -248,6 +255,12 @@ describe('Segment Namespace Structure', () => {
             expect(typeof seg[fn]).toBe('function');
         });
     }
+
+    it('should reject malformed legacy segment-register defaults locally', () => {
+        if (!seg) return;
+        expect(() => seg.setDefaultSegmentRegister(0n, 1.5, 0n)).toThrow();
+        expect(() => seg.setDefaultSegmentRegister(0n, 1, null)).toThrow();
+    });
 });
 
 // ── Function Namespace Functions ────────────────────────────────────────

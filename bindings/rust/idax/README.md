@@ -68,6 +68,15 @@ cargo test -p idax --test integration -- --list
 all registered real-IDA cases already execute sequentially on process main.
 Without `IDADIR`, selected cases are reported as ignored.
 
+## Packaging order
+
+`idax` and `idax-sys` are a lockstep ABI pair. For an unreleased workspace,
+inspect both archives with `cargo package --no-verify`, publish `idax-sys`
+first, and only then run ordinary verification/publish for `idax`. Verifying
+`idax` before the matching `idax-sys` version exists in the registry resolves
+the older registry shim against newer wrapper headers and is not a valid
+release test.
+
 ## Quick start
 
 ```rust
@@ -122,7 +131,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
-| [`segment`] | Segments | CRUD (`at`, `by_name`, `by_index`, `create`, `remove`), properties (`set_name`, `set_permissions`, `set_bitness`, `resize`, `move`), traversal (`next`, `prev`), comments |
+| [`segment`] | Segments | CRUD/properties/traversal/comments plus named segment-register discovery, optional values/defaults, copied provenance ranges, and verified split/delete/next-code/copy mutation |
 | [`function`] | Functions | CRUD, chunks (`chunks`, `add_tail`, `remove_tail`), stack frames (`frame`, `frame_variable_by_name`, `define_stack_variable`), prototype application (`set_prototype`, `apply_decl`), register variables, callers/callees, `item_addresses`, `code_addresses` |
 | [`instruction`] | Instructions | `decode`, `create`, `text`, operand snapshots including `is_read`/`is_written`, introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), formatting (`set_operand_hex`, `set_operand_offset`, named `set_operand_enum`/`operand_enum`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
 | [`data`] | Byte-level I/O | Read/write/patch/originals, fixed-width and processor-aware definitions, owned custom type/format lifecycle, configurable copied string-list options/literals, byte-length string/structure definitions and `undefine`, `find_binary_pattern` |

@@ -63,3 +63,12 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+---
+
+### 7. Opaque Segment-Register State and Ranges (Phase 69)
+
+- **7.1. Exact Runtime Semantics**
+  - 7.1.1. **Action:** Implement Decision 19.76 across C++, Node, Rust, and Python, including isolated exact-IDA 9.4 query/mutation/save-reopen probes for the complete current `segregs.hpp` family; use exact runtime readback to close P69.2 and P69.3.
+  - 7.1.2. **Scope:** Name-based segment-register descriptors, copied ranges, optional sentinel-free values/defaults, closed provenance, verified mutation, and cross-language parity. Keep processor ordinals, `sreg_range_t`, `segment_t`, `sel_t`, `BADSEL`, raw `SR_*` tags, and SDK containers private.
+  - 7.1.3. **Status:** Active / static implementation and local cross-binding validation complete; exact-runtime falsification pending, no blocker. The only local IDA runtime is 9.3 and is admissible solely for stable-operation proxy evidence, so authoritative 9.4 execution remains in the release matrix.

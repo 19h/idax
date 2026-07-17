@@ -9,10 +9,13 @@
 
 #include <ida/error.hpp>
 #include <ida/address.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ida::segment {
 
@@ -39,6 +42,34 @@ struct Permissions {
     bool read    = false;
     bool write   = false;
     bool execute = false;
+};
+
+/// Origin of one segment-register range value.
+enum class SegmentRegisterSource {
+    Inherited,              ///< Inherited from the preceding range.
+    User,                   ///< Explicitly supplied by a user or plugin.
+    Analysis,               ///< Derived by processor analysis.
+    AnalysisAtSegmentStart, ///< Analysis-derived value at a segment start.
+};
+
+/// Owned semantic description of one processor segment register.
+struct SegmentRegisterDescriptor {
+    std::string name;
+    std::size_t bit_width{0};
+    bool is_code{false};
+    bool is_data{false};
+
+    bool operator==(const SegmentRegisterDescriptor&) const = default;
+};
+
+/// Owned half-open range over which a segment-register value is stable.
+struct SegmentRegisterRange {
+    Address start{};
+    Address end{};
+    std::optional<std::uint64_t> value;
+    SegmentRegisterSource source{SegmentRegisterSource::Inherited};
+
+    bool operator==(const SegmentRegisterRange&) const = default;
 };
 
 // ── Segment value object ────────────────────────────────────────────────
@@ -107,13 +138,80 @@ Status set_type(Address address, Type type);
 Status set_permissions(Address address, Permissions perm);
 Status set_bitness(Address address, int bits);
 
+// ── Segment-register state ─────────────────────────────────────────────
+
+/// Discover the active processor's segment registers in processor order.
+Result<std::vector<SegmentRegisterDescriptor>> segment_registers();
+
+/// Effective segment-register value at an address. Unknown is std::nullopt.
+Result<std::optional<std::uint64_t>> segment_register_value(
+    Address address, std::string_view register_name);
+
+/// Segment default used when no range value is known. Unknown is std::nullopt.
+Result<std::optional<std::uint64_t>> default_segment_register_value(
+    Address address, std::string_view register_name);
+
+/// Range containing an address.
+Result<SegmentRegisterRange> segment_register_range(
+    Address address, std::string_view register_name);
+
+/// Range preceding the one containing an address, if any.
+Result<std::optional<SegmentRegisterRange>> previous_segment_register_range(
+    Address address, std::string_view register_name);
+
+/// All ranges for one named segment register, in address order.
+Result<std::vector<SegmentRegisterRange>> segment_register_ranges(
+    std::string_view register_name);
+
+/// Positional index of the range containing an address, if any.
+Result<std::optional<std::size_t>> segment_register_range_index(
+    Address address, std::string_view register_name);
+
+/// Start or replace a range at an address and verify the exact post-state.
+Status split_segment_register_range(
+    Address address,
+    std::string_view register_name,
+    std::optional<std::uint64_t> value,
+    SegmentRegisterSource source = SegmentRegisterSource::User);
+
+/// Remove the range that starts exactly at an address.
+Status remove_segment_register_range(
+    Address range_start, std::string_view register_name);
+
+/// Set or clear the default for the containing segment.
+Status set_default_segment_register(
+    Address address,
+    std::string_view register_name,
+    std::optional<std::uint64_t> value);
+
+/// Set or clear one named default for every segment.
+Status set_default_segment_register_for_all(
+    std::string_view register_name,
+    std::optional<std::uint64_t> value);
+
+/// Set or clear the active processor's semantic data-register default.
+Status set_default_data_segment(std::optional<std::uint64_t> value);
+
+/// Bound a change by assigning the value at the next instruction.
+Status set_segment_register_at_next_code(
+    Address search_start,
+    Address maximum,
+    std::string_view register_name,
+    std::optional<std::uint64_t> value);
+
+/// Replace destination ranges with copies of source ranges.
+Status copy_segment_register_ranges(
+    std::string_view destination_register,
+    std::string_view source_register,
+    bool map_selectors_to_addresses = false);
+
 /// Seed default value of one segment register for the segment containing
-/// \p address. This maps to SDK `set_default_sreg_value(seg, reg, value)`.
+/// \p address. Legacy raw-ordinal overload retained for source compatibility.
 Status set_default_segment_register(Address address,
                                     int register_index,
                                     std::uint64_t value);
 
-/// Seed default value of one segment register for all segments.
+/// Legacy raw-ordinal overload retained for source compatibility.
 Status set_default_segment_register_for_all(int register_index,
                                             std::uint64_t value);
 

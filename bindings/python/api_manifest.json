@@ -513,13 +513,22 @@
       "status": "validated",
       "native_source": "segment_bind.cpp",
       "bound_functions": [
-        "all", "at", "by_index", "by_name", "comment", "count", "create",
-        "first", "last", "move", "next", "prev", "remove", "resize",
-        "set_bitness", "set_class", "set_comment",
+        "all", "at", "by_index", "by_name", "comment",
+        "copy_segment_register_ranges", "count", "create",
+        "default_segment_register_value", "first", "last", "move", "next",
+        "prev", "previous_segment_register_range", "remove",
+        "remove_segment_register_range", "resize", "segment_register_range",
+        "segment_register_range_index", "segment_register_ranges",
+        "segment_register_value", "segment_registers", "set_bitness",
+        "set_class", "set_comment", "set_default_data_segment",
         "set_default_segment_register", "set_default_segment_register_for_all",
-        "set_name", "set_permissions", "set_type"
+        "set_name", "set_permissions", "set_segment_register_at_next_code",
+        "set_type", "split_segment_register_range"
       ],
-      "bound_types": ["Permissions", "Segment", "SegmentRange", "Type"]
+      "bound_types": [
+        "Permissions", "Segment", "SegmentRange", "SegmentRegisterDescriptor",
+        "SegmentRegisterRange", "SegmentRegisterSource", "Type"
+      ]
     },
     {
       "name": "storage",

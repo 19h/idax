@@ -218,10 +218,9 @@ fn run() -> Result<()> {
         )?;
     }
 
-    // Seed default CS/DS register values across all loaded segments.
-    // Assuming register indices for jbc: CS=1, DS=2 (we use arbitrary ones if not exactly mapped, or just ignore errors).
-    let _ = segment::set_default_segment_register_for_all(1, 0);
-    let _ = segment::set_default_segment_register_for_all(2, 0);
+    // Seed defaults through the processor's canonical register names.
+    let _ = segment::set_segment_register_default_for_all("cs", Some(0));
+    let _ = segment::set_segment_register_default_for_all("ds", Some(0));
 
     if code_base != BAD_ADDRESS
         && action_count > 0

@@ -12,7 +12,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~25 free fns]
  |-- ida::path           Portable path splitting and directory checks    [~3 free fns]
  |
- |-- ida::segment        CRUD, properties, permissions                   [1 enum, 1 struct, 3 classes, ~13 free fns]
+ |-- ida::segment        CRUD, properties, semantic register ranges     [2 enums, 3 structs, 3 classes, ~25 free fns]
 |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~29 free fns]
  |-- ida::instruction    Decode/create, opaque operand representation    [3 enums, 2 structs, 2 classes, free-fn surface]
  |
@@ -81,7 +81,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::data` | Byte-level, registered custom-data, and string-inventory access | `TypedValue`, `StringListOptions`, `StringLiteral`, `CustomDataTypeId`, `CustomDataFormatId`, owned definitions, copied metadata/item snapshots |
 | `ida::database` | Database lifecycle and normalized target metadata | `ProcessorId`, `ProcessorProfile`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::path` | Portable path helpers | (free functions only) |
-| `ida::segment` | Segment management | `Segment`, `Permissions`, `Type` (+ default segment-register seeding helpers) |
+| `ida::segment` | Segment management and processor context ranges | `Segment`, `Permissions`, `Type`, `SegmentRegisterSource`, `SegmentRegisterDescriptor`, `SegmentRegisterRange` |
 | `ida::function` | Function analysis, printable prototype readback, and conservative prototype application | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding, processor-reported access modes and encoded-value byte positions, opaque named enum representations, and copied root/member-name struct-offset paths | `Instruction`, `Operand`, `OperandType`, `OperandFormat`, `RegisterCategory`, `OperandEnum`, `StructOffsetPath` |
 

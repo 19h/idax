@@ -344,6 +344,52 @@ fn segment_properties() {
     let _ = seg.is_visible();
 }
 
+fn segment_register_state() {
+    require_db!();
+    let registers = segment::segment_registers().expect("discover segment registers");
+    assert!(!registers.is_empty());
+    assert!(
+        registers
+            .iter()
+            .all(|value| !value.name.is_empty() && value.bit_width > 0)
+    );
+    assert!(registers.iter().any(|value| value.is_code));
+    assert!(registers.iter().any(|value| value.is_data));
+
+    let register = &registers[0];
+    let address = segment::first().expect("first segment").start();
+    let _ = segment::segment_register_value(address, &register.name)
+        .expect("effective segment-register value");
+    let original = segment::default_segment_register_value(address, &register.name)
+        .expect("default segment-register value");
+    let range = segment::segment_register_range(address, &register.name)
+        .expect("containing segment-register range");
+    assert!(range.start <= address && address < range.end);
+    assert!(
+        !segment::segment_register_ranges(&register.name)
+            .expect("segment-register ranges")
+            .is_empty()
+    );
+    assert!(
+        segment::segment_register_range_index(address, &register.name)
+            .expect("segment-register range index")
+            .is_some()
+    );
+
+    segment::set_segment_register_default(address, &register.name, Some(0x234))
+        .expect("set named segment-register default");
+    assert_eq!(
+        segment::default_segment_register_value(address, &register.name)
+            .expect("read changed segment-register default"),
+        Some(0x234)
+    );
+    segment::set_segment_register_default(address, &register.name, original)
+        .expect("restore named segment-register default");
+
+    assert!(segment::segment_register_value(BAD_ADDRESS, &register.name).is_err());
+    assert!(segment::segment_register_value(address, "bad\0name").is_err());
+}
+
 // ===========================================================================
 // Functions
 // ===========================================================================
@@ -3161,6 +3207,7 @@ static TEST_CASES: &[TestCase] = &[
     ("segment_first_last", segment_first_last),
     ("segment_next_prev", segment_next_prev),
     ("segment_properties", segment_properties),
+    ("segment_register_state", segment_register_state),
     ("function_count_nonzero", function_count_nonzero),
     ("function_all_iterator", function_all_iterator),
     ("function_by_index_and_at", function_by_index_and_at),

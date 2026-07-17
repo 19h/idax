@@ -89,9 +89,13 @@ class MyProc : public ida::processor::Processor {
 };
 IDAX_PROCESSOR(MyProc)
 
-// Segment-register default seeding (SDK set_default_sreg_value equivalent)
-ida::segment::set_default_segment_register_for_all(/*cs index*/ 3, 0);
-ida::segment::set_default_segment_register_for_all(/*ds index*/ 4, 0);
+// Segment-register default seeding (SDK set_default_sreg_value_ea equivalent)
+ida::segment::set_default_segment_register_for_all("cs", 0);
+ida::segment::set_default_segment_register_for_all("ds", 0);
+
+// Segment-register range lookup without ordinals, BADSEL, or sreg_range_t.
+auto ranges = ida::segment::segment_register_ranges("ds");
+auto value = ida::segment::segment_register_value(address, "ds");
 ```
 
 ---

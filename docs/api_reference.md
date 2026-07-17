@@ -12,7 +12,7 @@ Public headers:
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, owned custom type/format lifecycle and creation, configurable copied string-list inventory, binary pattern search |
 | `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (input path, IDB path, file type/compiler/imports, raw/verified processor identity, normalized processor profile), snapshots, file/memory transfer |
 | `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
-| `include/ida/segment.hpp` | Segment CRUD, properties, permissions, iteration, default segment-register seeding |
+| `include/ida/segment.hpp` | Segment CRUD/properties plus semantic segment-register discovery, optional values/defaults, copied provenance ranges, and verified mutation |
 | `include/ida/function.hpp` | Function CRUD, chunks, frames, register variables, callers/callees, outlined-flag helpers, prototype export/application |
 | `include/ida/instruction.hpp` | Decode/create, operand access + structured operand metadata (`byte_width`, `register_name`, `register_category`, `is_read`, `is_written`), representation controls including opaque named enum apply/readback and copied root/member-name struct-offset paths, conflict-safe exact-member path ensure, xref conveniences; Node and Rust snapshots preserve both access-mode booleans |
 | `include/ida/name.hpp` | Set/get/force/remove names, filtered copied inventories, address-based and arbitrary-symbol demangling, resolution, properties |
@@ -58,6 +58,7 @@ See also:
 - `docs/cookbook/directory_trees.md` — Built-in tree traversal, organization, ordering, and partial bulk operations
 - `docs/cookbook/persistent_registry.md` — Scoped typed plugin configuration, ordered lists, and cleanup
 - `docs/cookbook/register_tracking.md` — Backward register values, stack-relative candidates, nearest selection, and cache coherence
+- `docs/cookbook/segment_register_state.md` — Named segment-register discovery, copied ranges, defaults, and verified mutation
 - `docs/migration/` — Legacy SDK to idax migration map and snippets
 - `docs/tutorial/first_contact.md` — 5-step beginner walkthrough
 - `docs/tutorial/function_discovery_events.md` — event-hook lifecycle for new-function workflows

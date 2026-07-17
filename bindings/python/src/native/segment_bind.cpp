@@ -34,6 +34,32 @@ void bind_segment(py::module_& module) {
                 + ", execute=" + (value.execute ? "True" : "False") + ")";
         });
 
+    py::native_enum<ida::segment::SegmentRegisterSource>(
+        segment, "SegmentRegisterSource", "enum.Enum")
+        .value("INHERITED", ida::segment::SegmentRegisterSource::Inherited)
+        .value("USER", ida::segment::SegmentRegisterSource::User)
+        .value("ANALYSIS", ida::segment::SegmentRegisterSource::Analysis)
+        .value("ANALYSIS_AT_SEGMENT_START",
+               ida::segment::SegmentRegisterSource::AnalysisAtSegmentStart)
+        .finalize();
+
+    py::class_<ida::segment::SegmentRegisterDescriptor>(
+        segment, "SegmentRegisterDescriptor")
+        .def_readonly("name", &ida::segment::SegmentRegisterDescriptor::name)
+        .def_readonly("bit_width",
+                      &ida::segment::SegmentRegisterDescriptor::bit_width)
+        .def_readonly("is_code",
+                      &ida::segment::SegmentRegisterDescriptor::is_code)
+        .def_readonly("is_data",
+                      &ida::segment::SegmentRegisterDescriptor::is_data);
+
+    py::class_<ida::segment::SegmentRegisterRange>(
+        segment, "SegmentRegisterRange")
+        .def_readonly("start", &ida::segment::SegmentRegisterRange::start)
+        .def_readonly("end", &ida::segment::SegmentRegisterRange::end)
+        .def_readonly("value", &ida::segment::SegmentRegisterRange::value)
+        .def_readonly("source", &ida::segment::SegmentRegisterRange::source);
+
     py::class_<ida::segment::Segment>(segment, "Segment")
         .def_property_readonly("start", &ida::segment::Segment::start)
         .def_property_readonly("end", &ida::segment::Segment::end)
@@ -112,6 +138,108 @@ void bind_segment(py::module_& module) {
             return ida::segment::set_bitness(address, bits);
         });
     }, py::arg("address"), py::arg("bits"));
+    segment.def("segment_registers", [] {
+        return runtime_result("segment.segment_registers",
+                              ida::segment::segment_registers);
+    });
+    segment.def("segment_register_value", [](ida::Address address,
+                                                 std::string register_name) {
+        return runtime_result("segment.segment_register_value", [&] {
+            return ida::segment::segment_register_value(address, register_name);
+        });
+    }, py::arg("address"), py::arg("register_name"));
+    segment.def("default_segment_register_value", [](ida::Address address,
+                                                         std::string register_name) {
+        return runtime_result("segment.default_segment_register_value", [&] {
+            return ida::segment::default_segment_register_value(
+                address, register_name);
+        });
+    }, py::arg("address"), py::arg("register_name"));
+    segment.def("segment_register_range", [](ida::Address address,
+                                                 std::string register_name) {
+        return runtime_result("segment.segment_register_range", [&] {
+            return ida::segment::segment_register_range(address, register_name);
+        });
+    }, py::arg("address"), py::arg("register_name"));
+    segment.def("previous_segment_register_range", [](ida::Address address,
+                                                          std::string register_name) {
+        return runtime_result("segment.previous_segment_register_range", [&] {
+            return ida::segment::previous_segment_register_range(
+                address, register_name);
+        });
+    }, py::arg("address"), py::arg("register_name"));
+    segment.def("segment_register_ranges", [](std::string register_name) {
+        return runtime_result("segment.segment_register_ranges", [&] {
+            return ida::segment::segment_register_ranges(register_name);
+        });
+    }, py::arg("register_name"));
+    segment.def("segment_register_range_index", [](ida::Address address,
+                                                       std::string register_name) {
+        return runtime_result("segment.segment_register_range_index", [&] {
+            return ida::segment::segment_register_range_index(
+                address, register_name);
+        });
+    }, py::arg("address"), py::arg("register_name"));
+    segment.def("split_segment_register_range", [](ida::Address address,
+                                                       std::string register_name,
+                                                       std::optional<std::uint64_t> value,
+                                                       ida::segment::SegmentRegisterSource source) {
+        runtime_status("segment.split_segment_register_range", [&] {
+            return ida::segment::split_segment_register_range(
+                address, register_name, value, source);
+        });
+    }, py::arg("address"), py::arg("register_name"), py::arg("value"),
+       py::arg("source") = ida::segment::SegmentRegisterSource::User);
+    segment.def("remove_segment_register_range", [](ida::Address address,
+                                                        std::string register_name) {
+        runtime_status("segment.remove_segment_register_range", [&] {
+            return ida::segment::remove_segment_register_range(
+                address, register_name);
+        });
+    }, py::arg("range_start"), py::arg("register_name"));
+    segment.def("set_default_segment_register", [](ida::Address address,
+                                                       std::string register_name,
+                                                       std::optional<std::uint64_t> value) {
+        runtime_status("segment.set_default_segment_register", [&] {
+            return ida::segment::set_default_segment_register(
+                address, register_name, value);
+        });
+    }, py::arg("address"), py::arg("register_name"), py::arg("value"));
+    segment.def("set_default_segment_register_for_all", [](
+                    std::string register_name,
+                    std::optional<std::uint64_t> value) {
+        runtime_status("segment.set_default_segment_register_for_all", [&] {
+            return ida::segment::set_default_segment_register_for_all(
+                register_name, value);
+        });
+    }, py::arg("register_name"), py::arg("value"));
+    segment.def("set_default_data_segment", [](
+                    std::optional<std::uint64_t> value) {
+        runtime_status("segment.set_default_data_segment", [=] {
+            return ida::segment::set_default_data_segment(value);
+        });
+    }, py::arg("value"));
+    segment.def("set_segment_register_at_next_code", [](
+                    ida::Address search_start, ida::Address maximum,
+                    std::string register_name,
+                    std::optional<std::uint64_t> value) {
+        runtime_status("segment.set_segment_register_at_next_code", [&] {
+            return ida::segment::set_segment_register_at_next_code(
+                search_start, maximum, register_name, value);
+        });
+    }, py::arg("search_start"), py::arg("maximum"),
+       py::arg("register_name"), py::arg("value"));
+    segment.def("copy_segment_register_ranges", [](
+                    std::string destination_register,
+                    std::string source_register,
+                    bool map_selectors_to_addresses) {
+        runtime_status("segment.copy_segment_register_ranges", [&] {
+            return ida::segment::copy_segment_register_ranges(
+                destination_register, source_register,
+                map_selectors_to_addresses);
+        });
+    }, py::arg("destination_register"), py::arg("source_register"),
+       py::arg("map_selectors_to_addresses") = false);
     segment.def("set_default_segment_register", [](ida::Address address,
                                                       int register_index,
                                                       std::uint64_t value) {

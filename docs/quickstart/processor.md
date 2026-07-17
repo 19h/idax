@@ -125,9 +125,13 @@ For processors that need per-segment default register values (SDK
 `set_default_sreg_value` workflows), use segment helpers:
 
 ```cpp
-ida::segment::set_default_segment_register_for_all(kRegisterCs, 0);
-ida::segment::set_default_segment_register_for_all(kRegisterDs, 0);
+ida::segment::set_default_segment_register_for_all("cs", 0);
+ida::segment::set_default_segment_register_for_all("ds", 0);
 ```
+
+The active processor supplies the canonical names. Use
+`segment_registers()` when a consumer must discover them dynamically; the
+numeric overloads remain only for source compatibility.
 
 See `examples/procmod/minimal_procmod.cpp` and
 `examples/procmod/jbc_full_procmod.cpp`.

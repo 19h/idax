@@ -438,6 +438,23 @@ export namespace segment {
         execute: boolean;
     }
 
+    type SegmentRegisterSource =
+        | 'inherited' | 'user' | 'analysis' | 'analysisAtSegmentStart';
+
+    interface SegmentRegisterDescriptor {
+        name: string;
+        bitWidth: number;
+        isCode: boolean;
+        isData: boolean;
+    }
+
+    interface SegmentRegisterRange {
+        start: Address;
+        end: Address;
+        value: bigint | null;
+        source: SegmentRegisterSource;
+    }
+
     interface Segment {
         start: Address;
         end: Address;
@@ -489,11 +506,59 @@ export namespace segment {
     /** Set the bitness (16, 32, or 64) of the segment. */
     function setBitness(address: Address, bits: number): boolean;
 
-    /** Set a default segment register value for a specific segment. */
+    /** Discover the active processor's semantic segment registers. */
+    function segmentRegisters(): SegmentRegisterDescriptor[];
+
+    /** Effective value at an address, or null when unknown. */
+    function segmentRegisterValue(address: Address, registerName: string): bigint | null;
+
+    /** Default value for the containing segment, or null when unknown. */
+    function defaultSegmentRegisterValue(address: Address, registerName: string): bigint | null;
+
+    /** Copied half-open range containing an address. */
+    function segmentRegisterRange(address: Address, registerName: string): SegmentRegisterRange;
+
+    /** Copied range preceding the containing range, or null. */
+    function previousSegmentRegisterRange(address: Address, registerName: string): SegmentRegisterRange | null;
+
+    /** All copied ranges for a named segment register. */
+    function segmentRegisterRanges(registerName: string): SegmentRegisterRange[];
+
+    /** Range index containing an address, or null. */
+    function segmentRegisterRangeIndex(address: Address, registerName: string): number | null;
+
+    /** Start or replace a range and verify its exact post-state. */
+    function splitSegmentRegisterRange(address: Address, registerName: string,
+        value: bigint | number | null,
+        source?: SegmentRegisterSource): boolean;
+
+    /** Remove the range that starts exactly at an address. */
+    function removeSegmentRegisterRange(rangeStart: Address, registerName: string): boolean;
+
+    /** Set or clear a named default for a specific segment. */
+    function setDefaultSegmentRegister(address: Address, registerName: string,
+        value: bigint | number | null): boolean;
+
+    /** Set a default through the legacy processor ordinal. */
     function setDefaultSegmentRegister(address: Address, regIndex: number, value: bigint | number): boolean;
 
-    /** Set a default segment register value for all segments. */
+    /** Set or clear a named default for all segments. */
+    function setDefaultSegmentRegisterForAll(registerName: string,
+        value: bigint | number | null): boolean;
+
+    /** Set a default through the legacy processor ordinal for all segments. */
     function setDefaultSegmentRegisterForAll(regIndex: number, value: bigint | number): boolean;
+
+    /** Set or clear the semantic data-register default for all segments. */
+    function setDefaultDataSegment(value: bigint | number | null): boolean;
+
+    /** Assign a value at the next instruction within the inclusive bound. */
+    function setSegmentRegisterAtNextCode(searchStart: Address, maximum: Address,
+        registerName: string, value: bigint | number | null): boolean;
+
+    /** Replace destination ranges with copied source ranges. */
+    function copySegmentRegisterRanges(destinationRegister: string,
+        sourceRegister: string, mapSelectorsToAddresses?: boolean): boolean;
 
     // ── Comments ────────────────────────────────────────────────────────
 

@@ -312,4 +312,10 @@ This section captures the intended public API semantics at a concrete level so i
 - Native initialization uses a reserved filtered bootstrap channel because `navstack_t::init` inserts its default when that channel-current record is missing. Public channels cannot enter the reserved namespace, preventing caller-default resurrection after transfer.
 - Node, safe Rust, and Python preserve owned entries, optional boundary/current state, default movement/transfer controls where supported, and RAII/native lifetime containment. The generated C ABI has explicit history-handle and entry/string/array ownership.
 
+### 17.41 Opaque Segment-Register State and Ranges
+- `SegmentRegisterDescriptor` owns a canonical active-processor name, bit width, and semantic code/data roles; callers never receive a processor ordinal.
+- Effective and default values use `std::optional<std::uint64_t>`. `SegmentRegisterRange` owns a half-open address interval, optional value, and closed `SegmentRegisterSource`; native unknown sentinels, tags, records, and containers remain private.
+- Name-based query, enumeration/indexing, split/delete, per-segment/all-segment/data defaults, next-code containment, and range copying cover all 12 current pinned `segregs.hpp` operations. Mutations propagate native rejection and verify observable post-state.
+- Node, safe Rust, and Python preserve the same owned/optional model. The two numeric default setters remain legacy source-compatibility overloads and route through the current address-based SDK operation.
+
 ---
