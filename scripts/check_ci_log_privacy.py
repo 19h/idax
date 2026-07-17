@@ -25,7 +25,12 @@ WINDOWS_HOME_PATTERN = re.compile(
 )
 
 ALLOWED_POSIX_HOMES = {
-    b"/" + root + b"/" + b"runner" for root in (b"home", b"Users")
+    b"/" + root + b"/" + username
+    for root, username in (
+        (b"home", b"runner"),
+        (b"Users", b"runner"),
+        (b"home", b"linuxbrew"),
+    )
 }
 ALLOWED_WINDOWS_USERS = {b"runner", b"runneradmin", b"runner~1"}
 

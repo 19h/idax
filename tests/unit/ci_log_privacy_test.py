@@ -70,6 +70,9 @@ def main() -> int:
                 b"workspace="
                 + windows_home(b"RUNNER~1", b"\\AppData\\Local")
                 + b"\n",
+                b"toolchain="
+                + posix_home(b"home", b"linuxbrew", b"/.linuxbrew/bin")
+                + b"\n",
             ],
         )
         safe_result = run_scanner(safe)
@@ -123,7 +126,7 @@ def main() -> int:
         malformed_result = run_scanner(malformed)
         require(malformed_result.returncode == 1, "malformed archive was accepted")
 
-    print("ci log privacy tests: PASS (4 safe entries, 7 rejection paths)")
+    print("ci log privacy tests: PASS (5 safe entries, 7 rejection paths)")
     return 0
 
 

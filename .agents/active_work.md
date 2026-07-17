@@ -69,8 +69,8 @@
 ### 7. Opaque Register-Value Tracking (Phase 65)
 
 - **7.1. Release Validation and Closure**
-  - 7.1.1. **Action:** Exact-stage/review/push category-only Actions annotations and tag-triggered audit replay, replay Bindings run 29542885658, classify/correct the fail-closed finding, then require three green automatic complete-log audits before closing Phase 65.
-  - 7.1.2. **Evidence:** Auditor commit `b5ae308c` is on `master`; runs 29542885650 (Integrations 3/3), 29542885651 (Validation 6/6), and 29542885658 (Bindings 9/9) pass. Automatic audit runs 29543110353 and 29543262444 pass for Integrations and Validation. Audit 29543894041 fails in the Bindings scan step, but plain stderr produced only a generic public exit-code annotation.
-  - 7.1.3. **Blocker:** The category-only scanner finding is present in an authenticated job log but was not emitted through a public workflow command, so the current environment cannot distinguish a true identifier/path leak from an overbroad CI service-path classification.
-  - 7.1.4. **Mitigation:** Emit only sanitized entry ordinal/category through an Actions error annotation and support scoped replay through tags named `ci-log-privacy-<run-id>`; never expose matched bytes.
-  - 7.1.5. **Status:** Active / Bindings log finding classification in progress.
+  - 7.1.1. **Action:** Exact-stage/review/push the official Linuxbrew service-home classification, replay immutable Bindings run 29542885658, then require three green automatic complete-log audits before closing Phase 65.
+  - 7.1.2. **Evidence:** Auditor diagnostics commit `457bfa0c` is on `master`; tag replay run 29544138787 publicly classifies only entries 73 and 84 as non-runner POSIX home paths, with no canonical license finding. The official GitHub `actions/runner-images` Ubuntu 24.04 inventory documents a preinstalled Linuxbrew service home; Bindings uniquely exercises that toolchain.
+  - 7.1.3. **Blocker:** The scanner currently treats GitHub's service-owned Linuxbrew installation identity as a developer home path, so the otherwise green Bindings archive fails closed.
+  - 7.1.4. **Mitigation:** Allow only the exact fragment-constructed Linuxbrew service home alongside the three existing hosted-runner homes; retain rejection of every other POSIX/Windows home identity and replay the identical archive.
+  - 7.1.5. **Status:** Active / service-path correction and release revalidation in progress.
