@@ -590,3 +590,100 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Windows Python native build, pure tests, typing, declaration audit, and archive inspection pass; initialized idalib execution remains disabled under the established nondiagnostic Windows headless boundary."
+
+  build-swift:
+    name: Swift Bindings - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+
+      - name: Checkout IDA SDK
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          ref: ${{ env.IDA_SDK_REF }}
+          path: ida-sdk
+          submodules: recursive
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.11.28"
+          github-token: ${{ github.token }}
+
+      - name: Install IDA Pro
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
+        shell: bash
+        run: |
+          LICENSE_OUTPUT=$(uvx --from ida-hcli hcli --disable-updates license list)
+          LICENSE_ID=$(printf '%s\n' "$LICENSE_OUTPUT" | python3 scripts/select_hcli_license.py)
+          echo "::add-mask::$LICENSE_ID"
+          echo "Selected active named IDA product license"
+
+          if [[ "$(uname -m)" == "arm64" ]]; then
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_armmac.app.zip"
+          else
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64mac.app.zip"
+          fi
+
+          mkdir -p ./ida-installer
+          uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
+
+          INSTALLER_FILE=$(python3 -c "import glob; files=sorted(glob.glob('ida-installer/*')); print(files[0] if files else '')")
+          if [[ -z "$INSTALLER_FILE" ]]; then
+            echo "error: no installer file found in ./ida-installer"
+            ls -la ./ida-installer
+            exit 1
+          fi
+          echo "Using installer file: $INSTALLER_FILE"
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
+
+      - name: Resolve IDASDK and IDADIR paths
+        shell: bash
+        run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/src/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK CMake entry point in SDK checkout"
+            exit 1
+          fi
+
+          IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
+          if [[ -f "$IDADIR/Contents/MacOS/libida.dylib" ]]; then
+            IDADIR="$IDADIR/Contents/MacOS"
+          fi
+          echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
+          echo "DYLD_LIBRARY_PATH=$IDADIR:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "DYLD_FALLBACK_LIBRARY_PATH=$IDADIR:$DYLD_FALLBACK_LIBRARY_PATH" >> "$GITHUB_ENV"
+
+      - name: Report toolchain
+        shell: bash
+        run: swift --version
+
+      - name: Build native libraries
+        shell: bash
+        run: bindings/swift/scripts/build-libs.sh --arch "$(uname -m)" --build-type "${BUILD_TYPE}"
+
+      - name: Build Swift package
+        shell: bash
+        run: swift build
+
+      - name: Run Swift unit tests
+        shell: bash
+        run: swift test
