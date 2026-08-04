@@ -2788,6 +2788,78 @@ void check_core_surface() {
     (void)wo.poll_interval_ms;
 }
 
+void check_microcode_surface() {
+    (void)ida::microcode::Maturity::Generated;
+    (void)ida::microcode::Maturity::Lvars;
+    (void)ida::microcode::BlockKind::None;
+    (void)ida::microcode::BlockKind::NWay;
+    (void)ida::microcode::Operand::Kind{};
+
+    ida::microcode::Operand operand;
+    (void)operand.numeric_value;
+    (void)operand.stack_offset;
+    (void)operand.global_name;
+    (void)operand.helper_name;
+    (void)operand.string_literal;
+    (void)operand.call_arguments;
+
+    ida::microcode::Instruction instruction;
+    (void)instruction.id;
+    (void)instruction.source_address;
+    (void)instruction.opcode;
+    (void)instruction.opcode_name;
+    (void)instruction.left;
+    (void)instruction.right;
+    (void)instruction.destination;
+
+    ida::microcode::Block block;
+    (void)block.index;
+    (void)block.start_address;
+    (void)block.end_address;
+    (void)block.kind;
+    (void)block.predecessor_indices;
+    (void)block.successor_indices;
+    (void)block.instructions;
+
+    using SnapshotAtMaturityFunction =
+        ida::Result<ida::microcode::FunctionSnapshot>(*)(ida::Address,
+                                                         ida::microcode::Maturity);
+    (void)static_cast<SnapshotAtMaturityFunction>(&ida::microcode::snapshot);
+
+    using FunctionAddressAccessor =
+        ida::Address (ida::microcode::FunctionSnapshot::*)() const noexcept;
+    using MaturityAccessor =
+        ida::microcode::Maturity (ida::microcode::FunctionSnapshot::*)() const noexcept;
+    using StackTotalAccessor =
+        std::int64_t (ida::microcode::FunctionSnapshot::*)() const noexcept;
+    using BlocksAccessor =
+        const std::vector<ida::microcode::Block>&
+            (ida::microcode::FunctionSnapshot::*)() const noexcept;
+    using NestedInstructionAccessor =
+        ida::Result<ida::microcode::Instruction>
+            (ida::microcode::FunctionSnapshot::*)(int) const;
+    using LocalVariablesAccessor =
+        ida::Result<std::vector<ida::decompiler::LocalVariable>>
+            (ida::microcode::FunctionSnapshot::*)() const;
+
+    (void)static_cast<FunctionAddressAccessor>(
+        &ida::microcode::FunctionSnapshot::function_address);
+    (void)static_cast<MaturityAccessor>(
+        &ida::microcode::FunctionSnapshot::maturity);
+    (void)static_cast<StackTotalAccessor>(
+        &ida::microcode::FunctionSnapshot::local_variables_size);
+    (void)static_cast<StackTotalAccessor>(
+        &ida::microcode::FunctionSnapshot::saved_registers_size);
+    (void)static_cast<StackTotalAccessor>(
+        &ida::microcode::FunctionSnapshot::stack_size);
+    (void)static_cast<BlocksAccessor>(
+        &ida::microcode::FunctionSnapshot::blocks);
+    (void)static_cast<NestedInstructionAccessor>(
+        &ida::microcode::FunctionSnapshot::nested_instruction);
+    (void)static_cast<LocalVariablesAccessor>(
+        &ida::microcode::FunctionSnapshot::local_variables);
+}
+
 } // namespace surface_check
 
 // ─── Namespace count verification ────────────────────────────────────────
@@ -2871,10 +2943,11 @@ int main() {
     surface_check::check_lines_surface();      namespaces_verified++;
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
+    surface_check::check_microcode_surface();  namespaces_verified++;
 
-    CHECK(namespaces_verified == 40, "all 40 namespace surfaces verified");
+    CHECK(namespaces_verified == 41, "all 41 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (40 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (41 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }
