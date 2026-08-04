@@ -205,6 +205,22 @@ struct ActionAdapter : public action_handler_t,
 
 } // anonymous namespace
 
+// ── Plugin invocation ───────────────────────────────────────────────────
+
+bool is_plugin_available(std::string_view plugin_name) {
+    std::string name(plugin_name);
+    return ::find_plugin(name.c_str(), /*load_if_needed=*/false) != nullptr;
+}
+
+Status run_plugin(std::string_view plugin_name, std::size_t argument) {
+    if (plugin_name.empty())
+        return std::unexpected(Error::validation("Plugin name cannot be empty"));
+    std::string name(plugin_name);
+    if (!::load_and_run_plugin(name.c_str(), argument))
+        return std::unexpected(Error::sdk("load_and_run_plugin failed", name));
+    return ida::ok();
+}
+
 // ── Public action API ───────────────────────────────────────────────────
 
 Status register_action(const Action& action) {

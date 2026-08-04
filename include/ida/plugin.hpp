@@ -121,6 +121,29 @@ void* make_plugin_export(PluginFactory factory,
 
 } // namespace detail
 
+// ── Plugin invocation ───────────────────────────────────────────────────
+
+/// Check whether a plugin can be located by its name.
+///
+/// @param plugin_name  The plugin's short name (e.g. "dscu") — the base name
+///                     of the plugin module, not a file path.
+/// @return true when the plugin is registered and available to run.
+bool is_plugin_available(std::string_view plugin_name);
+
+/// Load (if needed) and run a plugin by name.
+///
+/// Invokes one of IDA's bundled plugins (such as "dscu", the dyld shared
+/// cache utilities) or any third-party plugin. The meaning of \p argument
+/// is defined entirely by the target plugin.
+///
+/// For dyld shared cache utilities, prefer the typed wrappers in
+/// `<ida/dyld_cache.hpp>` over calling this directly.
+///
+/// @param plugin_name  The plugin's short name.
+/// @param argument     Plugin-specific argument (0 by default).
+/// @return ok() when the plugin executed and reported success.
+Status run_plugin(std::string_view plugin_name, std::size_t argument = 0);
+
 // ── Action registration ─────────────────────────────────────────────────
 
 /// Activation/update context provided to action callbacks.
