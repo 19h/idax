@@ -553,6 +553,22 @@ cpack --config build/CPackConfig.cmake -B build
 # Produces idax-0.1.0-Darwin.tar.gz (or equivalent for your platform)
 ```
 
+### Swift
+
+The Swift package (macOS 13+) links static libraries rather than building them
+through SPM, so build those once first:
+
+```bash
+bindings/swift/scripts/build-libs.sh   # writes bindings/swift/.build-libs/
+swift build
+swift test
+```
+
+`IDADIR` is picked up if set; otherwise the manifest looks for an installed
+IDA under `/Applications`. To hand the C shim to an Xcode project, run
+`swift package build-xcframework`, which packages the same libraries as
+`CIDAX.xcframework`.
+
 ---
 
 ## Testing strategy
