@@ -2860,6 +2860,34 @@ void check_microcode_surface() {
         &ida::microcode::FunctionSnapshot::local_variables);
 }
 
+void check_dyld_cache_surface() {
+    ida::dyld_cache::ModuleInfo module_info;
+    (void)module_info.path;
+    (void)module_info.load_address;
+
+    using IsAvailableFunction = bool(*)();
+    using ListCurrentDatabaseModulesFunction =
+        ida::Result<std::vector<ida::dyld_cache::ModuleInfo>>(*)();
+    using ListCacheFileModulesFunction =
+        ida::Result<std::vector<ida::dyld_cache::ModuleInfo>>(*)(std::string_view);
+    using LoadModuleFunction = ida::Status(*)(std::string_view, bool);
+    using LoadSectionFunction = ida::Status(*)(ida::Address, bool);
+    using LoadDynamicLinkerHeaderFunction = ida::Status(*)(bool);
+    using LoadRegionCountFunction = ida::Result<std::size_t>(*)(bool);
+
+    (void)static_cast<IsAvailableFunction>(&ida::dyld_cache::is_available);
+    (void)static_cast<ListCurrentDatabaseModulesFunction>(&ida::dyld_cache::list_modules);
+    (void)static_cast<ListCacheFileModulesFunction>(&ida::dyld_cache::list_modules);
+    (void)static_cast<LoadModuleFunction>(&ida::dyld_cache::load_module);
+    (void)static_cast<LoadSectionFunction>(&ida::dyld_cache::load_section);
+    (void)static_cast<LoadDynamicLinkerHeaderFunction>(&ida::dyld_cache::load_dyld_header);
+    (void)static_cast<LoadRegionCountFunction>(&ida::dyld_cache::load_branch_islands);
+    (void)static_cast<LoadRegionCountFunction>(&ida::dyld_cache::load_branch_mappings);
+    (void)static_cast<LoadRegionCountFunction>(&ida::dyld_cache::load_global_offset_tables);
+    (void)static_cast<LoadRegionCountFunction>(&ida::dyld_cache::load_gaps);
+    (void)static_cast<LoadRegionCountFunction>(&ida::dyld_cache::load_cache_data);
+}
+
 } // namespace surface_check
 
 // ─── Namespace count verification ────────────────────────────────────────
@@ -2943,11 +2971,12 @@ int main() {
     surface_check::check_lines_surface();      namespaces_verified++;
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
+    surface_check::check_dyld_cache_surface(); namespaces_verified++;
     surface_check::check_microcode_surface();  namespaces_verified++;
 
-    CHECK(namespaces_verified == 41, "all 41 namespace surfaces verified");
+    CHECK(namespaces_verified == 42, "all 42 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (41 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (42 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

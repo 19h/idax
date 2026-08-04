@@ -47,6 +47,7 @@
 #include <ida/ui.hpp>
 #include <ida/lines.hpp>
 #include <ida/path.hpp>
+#include <ida/dyld_cache.hpp>
 #include <ida/microcode.hpp>
 
 #endif // IDAX_IDAX_HPP
