@@ -21,7 +21,11 @@ __pycache__/
 src/bin
 obj/
 build/
-build*/
+# Anchored: unanchored `build*/` also matches nested directories, and on a
+# case-insensitive filesystem it swallows source directories such as
+# bindings/swift/Plugins/BuildXCFramework/. `build/` above still covers
+# nested build directories at any depth.
+/build*/
 
 # Workflow-owned SDK/runtime acquisition roots
 ida-installer/
