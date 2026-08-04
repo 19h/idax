@@ -220,6 +220,10 @@ Status open_non_binary(std::string_view path, OpenMode mode = OpenMode::Analyze)
 /// Wraps save_database().
 Status save();
 
+/// Save the current database to a new file path.
+/// Wraps save_database(output_database_path).
+Status save_to(std::string_view output_database_path);
+
 /// Close the current database.
 /// \param save  if true the database is saved first.
 /// Wraps close_database().
