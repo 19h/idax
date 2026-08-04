@@ -121,6 +121,7 @@ idax_add_integration_test(debugger_ui_graph_event          debugger_ui_graph_eve
 idax_add_integration_test(loader_processor_scenario        loader_processor_scenario_test.cpp)
 idax_add_integration_test(event_stress                      event_stress_test.cpp)
 idax_add_integration_test(decompiler_edge_cases            decompiler_edge_cases_test.cpp)
+idax_add_integration_test(decompiler_ctree_navigation_safety decompiler_ctree_navigation_safety_test.cpp)
 idax_add_integration_test(performance_benchmark            performance_benchmark_test.cpp)
 idax_add_integration_test(codedump_parity_host_gates        codedump_parity_host_gates_test.cpp)
 idax_add_integration_test(diaphora_referent_metadata        diaphora_referent_metadata_test.cpp)

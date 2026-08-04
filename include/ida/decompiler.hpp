@@ -931,8 +931,19 @@ struct LocalVariable {
     /// Storage location classification.
     VariableStorage storage{VariableStorage::Unknown};
 
+    /// Stack-frame offset (vd-offset) for stack variables; `-1` for variables
+    /// that do not live on the stack. Mirrors `lvar_t::get_stkoff()`.
+    std::int64_t stack_offset{-1};
+
     /// User comment on this variable (may be empty).
     std::string comment;
+
+    /// Microcode register number (`mreg_t`) for register variables; `-1` for
+    /// variables that do not live in a register. Mirrors `lvar_t::get_reg1()`.
+    /// On ARM64 the mreg of `x<n>` follows the linear law `8 + 8*n`
+    /// (x0=8, x1=16, ..., x20=168), which lets consumers map argument lvars
+    /// back to the physical ABI registers.
+    int register_number{-1};
 };
 
 /// Serializable saved Hex-Rays local-variable user setting.
@@ -1194,6 +1205,9 @@ public:
         void* raw_parent = nullptr) noexcept
         : raw_(raw), parents_(std::move(parents)), raw_parent_(raw_parent) {}
 
+    /// Return the opaque raw pointer for C interop (valid only during visitor lifetime).
+    [[nodiscard]] const void* raw_handle() const noexcept { return raw_; }
+
 private:
     void* raw_{nullptr};
     std::shared_ptr<const std::vector<CtreeItemView>> parents_{};
@@ -1219,6 +1233,53 @@ public:
 
     /// Parent chain from outermost ancestor to direct parent.
     [[nodiscard]] Result<std::vector<CtreeItemView>> parents() const;
+    // ── Sub-structure navigation ──────────────────────────────────────
+
+    /// For if/for/while/do/switch/return/throw: the condition or value expression.
+    /// - if → condition
+    /// - for → condition (loop test)
+    /// - while → condition
+    /// - do → condition
+    /// - switch → switch expression
+    /// - return → return value expression
+    /// - throw → thrown expression
+    [[nodiscard]] Result<ExpressionView> condition() const;
+
+    /// For StmtIf: the then-branch statement.
+    [[nodiscard]] Result<StatementView> then_branch() const;
+
+    /// For StmtIf: the else-branch statement (error if no else).
+    [[nodiscard]] Result<StatementView> else_branch() const;
+
+    /// For StmtIf: whether an else-branch exists.
+    [[nodiscard]] bool has_else_branch() const noexcept;
+
+    /// For StmtFor/StmtWhile/StmtDo: the loop body statement.
+    [[nodiscard]] Result<StatementView> body() const;
+
+    /// For StmtFor: the initialization expression.
+    [[nodiscard]] Result<ExpressionView> init_expression() const;
+
+    /// For StmtFor: the step (increment) expression.
+    [[nodiscard]] Result<ExpressionView> step_expression() const;
+
+    /// For StmtExpr: the expression in this expression-statement.
+    [[nodiscard]] Result<ExpressionView> expression() const;
+
+    /// For StmtBlock: the number of child statements.
+    [[nodiscard]] Result<std::size_t> block_size() const;
+
+    /// For StmtBlock: get the child statement at the given index.
+    [[nodiscard]] Result<StatementView> block_statement(std::size_t index) const;
+
+    /// For StmtSwitch: the number of cases (including default).
+    [[nodiscard]] Result<std::size_t> switch_case_count() const;
+
+    /// For StmtSwitch: the case values at the given index (empty = default).
+    [[nodiscard]] Result<std::vector<std::uint64_t>> switch_case_values(std::size_t index) const;
+
+    /// For StmtSwitch: the case body statement at the given index.
+    [[nodiscard]] Result<StatementView> switch_case_body(std::size_t index) const;
 
     // ── Internal ────────────────────────────────────────────────────────
     struct Tag {};
@@ -1227,6 +1288,9 @@ public:
         void* raw,
         std::shared_ptr<const std::vector<CtreeItemView>> parents = {}) noexcept
         : raw_(raw), parents_(std::move(parents)) {}
+
+    /// Return the opaque raw pointer for C interop (valid only during visitor lifetime).
+    [[nodiscard]] const void* raw_handle() const noexcept { return raw_; }
 
 private:
     void* raw_{nullptr};
