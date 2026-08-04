@@ -124,6 +124,7 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 |--------|--------|-----------------|
 | [`error`] | Error handling | `Error` (category + code + message + context), `Result<T>`, `Status` |
 | [`address`] | Address primitives | `Address` (`u64`), `Range`, predicates (`is_code`, `is_data`, ...), navigation (`next_head`, `prev_head`), iterators (`HeadIterator`, `PredicateIterator`) |
+| [`database`] | Database lifecycle | `init`, `open`, `open_binary`, `save`, `close`, metadata queries (`input_file_path`, `input_md5`, `image_base`, `processor_name`, ...), import enumeration, snapshots |
 | [`database`] | Database lifecycle | `init`, `open`, `open_binary`, `save`, `close`, metadata queries, raw-plus-optional-typed `ProcessorProfile`, import enumeration, snapshots |
 | [`path`] | Portable paths | `basename`, `dirname`, `is_directory` helpers matching the C++ `ida::path` surface |
 
@@ -131,6 +132,11 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
+| [`segment`] | Segments | CRUD (`at`, `by_name`, `by_index`, `create`, `remove`), properties (`set_name`, `set_permissions`, `set_bitness`, `resize`, `move`), traversal (`next`, `prev`), comments |
+| [`function`] | Functions | CRUD, chunks (`chunks`, `add_tail`, `remove_tail`), stack frames (`frame`, `frame_variable_by_name`, `define_stack_variable`), prototype application (`set_prototype`, `apply_decl`), register variables, callers/callees, `item_addresses`, `code_addresses` |
+| [`instruction`] | Instructions | `decode`, `create`, `text`, operand introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), operand formatting (`set_operand_hex`, `set_operand_offset`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
+| [`data`] | Byte-level I/O | Read (`read_byte` .. `read_qword`, `read_bytes`, `read_string`, `read_typed`), write, patch, originals, define (`define_byte` .. `define_struct`, `undefine`), `find_binary_pattern` |
+| [`name`] | Naming | `get`, `set`, `force_set`, `remove`, `demangled`, `resolve`, `all_user_defined`, properties (`is_public`, `is_weak`) |
 | [`segment`] | Segments | CRUD/properties/traversal/comments plus named segment-register discovery, optional values/defaults, copied provenance ranges, and verified split/delete/next-code/copy mutation |
 | [`function`] | Functions | CRUD, chunks (`chunks`, `add_tail`, `remove_tail`), stack frames (`frame`, `frame_variable_by_name`, `define_stack_variable`), prototype application (`set_prototype`, `apply_decl`), register variables, callers/callees, `item_addresses`, `code_addresses` |
 | [`instruction`] | Instructions | `decode`, `create`, `text`, operand snapshots including `is_read`/`is_written`, introspection (`operand_text`, `operand_byte_width`, `operand_register_name`), formatting (`set_operand_hex`, `set_operand_offset`, named `set_operand_enum`/`operand_enum`, `set_operand_struct_offset_*`), xref conveniences (`code_refs_from`, `call_targets`, `is_call`, `is_jump`), navigation (`next`, `prev`) |
@@ -155,12 +161,14 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
+| [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), introspection (`is_pointer`, `pointee_type`, `members`, ...), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
 | [`types`] | Type introspection & construction | `TypeInfo` (RAII handle with `Drop`), primitives (`void`, `int8` .. `uint64`, `float32`, `float64`), compound types (`pointer_to`, `array_of`, `create_struct`, `create_union`, `function_type`, `enum_type`), copied `PointerDetails` plus metadata-preserving `with_shifted_parent`, explicit `is_forward_declaration`/`forward_declaration_kind` and ordinal-preserving `replace_forward_declaration`, opaque exact-member `member_references`/`ensure_member_reference`, `with_function_argument_type`, `with_function_argument_name`, `with_function_return_type`, and `set_udt_semantics`, rich introspection (`kind`, `name`, `declaration`, `function_details`, `enum_details`, `udt_details`, bitfield/baseclass/vftable member flags), application (`apply`, `retrieve`, `save_as`), bulk declaration import (`parse_declarations`), type libraries (`load_library`, `import`) |
 
 ### Advanced
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
+| [`decompiler`] | Hex-Rays decompiler | `available` plus owned `initialize` / `ScopedSession`, `decompile` / `decompile_range` returning `DecompiledFunction` (RAII), pseudocode (`pseudocode_lines`, `pseudocode_text`), stable local-variable indices and lookup, lvar settings snapshots/comment writeback, ctree traversal with helper/type/parent callback metadata (`ctree_items`, `find_ctree_item_at`), microcode (`microcode` returning `MicrocodeFunction`), ctree/microcode modification, event subscriptions including `on_populating_popup` |
 | [`decompiler`] | Hex-Rays decompiler | `available` plus owned `initialize` / `ScopedSession`, `decompile` returning `DecompiledFunction` (RAII), formatted pseudocode/microcode access, semantic `CommentPosition` read/write and copied persisted `PseudocodeComment` enumeration with explicit save/orphan lifecycle, stable local-variable indices and lookup, lvar settings snapshots/comment writeback, ctree traversal with helper/type/parent callback metadata, maturity-explicit `generate_microcode` returning an owned `MicrocodeFunction` CFG with copied argument locations and recursive instructions plus explicit call-analysis opt-in, microcode filters, and event subscriptions including `on_switch_pseudocode` and `on_populating_popup` |
 | [`debugger`] | Debugger control | Process lifecycle (`start`, `attach`, `detach`, `suspend`, `resume`, `step_*`, `terminate`), breakpoints (`add_breakpoint`, `remove_breakpoint`, `enable_breakpoint`, `breakpoints`), memory (`read_memory`, `write_memory`), registers (`register_value`, `set_register_value`), threads, appcall (`call_function`), module/exception/event subscriptions, custom executor registration |
 | [`storage`] | Netnode storage | `Node` (RAII handle), typed value stores: altval (`set_altval` / `altval`), supval (`set_supval` / `supval`), hashval (`set_hashval` / `hashval`), blob (`set_blob` / `blob`), `create` / `open` / `remove` |
@@ -173,6 +181,11 @@ The crate is organized into modules that mirror the C++ `ida::` namespace hierar
 
 | Module | Domain | Key capabilities |
 |--------|--------|-----------------|
+| [`plugin`] | Plugin lifecycle | Action registration (`register_action` / `register_action_ex`), menu/toolbar/popup attachment, `ActionContext` for context-aware handlers including optional Local Types `TypeRef` payloads |
+| [`loader`] | Loader modules | `InputFileHandle` (seek, read, filename), `LoadFlags` decode/encode, `file_to_database`, `memory_to_database`, `set_processor`, `abort_load` |
+| [`processor`] | Processor modules | `Processor` trait (5 required + 15 optional methods), `InstructionFeature` / `RegisterInfo` / `AssemblerInfo` types |
+| [`graph`] | Custom graphs | `Graph` (RAII handle), `GraphCallback` trait for interactive event handling, `flow_chart` for function CFG extraction |
+| [`ui`] | UI utilities | `message`, `warning`, `error`, `info` dialogs, `ask_*` input prompts, fixed ida-cdump typed-form entrypoints, `WaitBox`, `ChooserImpl` trait for custom list dialogs, widget management, timer scheduling, optional Qt clipboard helpers, UI event subscriptions |
 | [`plugin`] | Plugin lifecycle | Wrapper-owned action registration/activation, drop-based `ScopedHotkey`, menu/toolbar/popup attachment, panic-contained callbacks, and `ActionContext` with optional Local Types `TypeRef` payloads |
 | [`loader`] | Loader modules | `InputFileHandle` (seek, read, filename), `LoadFlags` decode/encode, `file_to_database`, `memory_to_database`, `set_processor`, `abort_load` |
 | [`processor`] | Processor modules | `Processor` trait (5 required + 15 optional methods), `InstructionFeature` / `RegisterInfo` / `AssemblerInfo` types |
@@ -191,6 +204,9 @@ represent without raw SDK escape hatches:
   `ask_form_three_svals_path_two_bitsets` cover the audited fixed typed-form
   packs. They validate empty or NUL-containing markup before opening modal UI.
 - `ui::WaitBox`, `ui::ask_text`, `ui::{copy_to_clipboard, read_clipboard,
+  clipboard_backend}` cover progress UI, multiline fallback text, and optional
+  Qt clipboard behavior. Default non-Qt builds report the clipboard backend as
+  `unsupported`.
   clipboard_backend}` cover progress UI, multiline fallback text, and host
   clipboard behavior through Qt or common external clipboard commands.
 - `decompiler::initialize() -> ScopedSession`,
@@ -199,6 +215,10 @@ represent without raw SDK escape hatches:
   `types::parse_declarations`, `database::idb_path`, and `path::{basename,
   dirname, is_directory}` mirror the C++ parity APIs.
 
+Runtime execution of modal forms, wait boxes, and Qt clipboard still requires
+an interactive IDA UI host. Qt clipboard support also requires idax to be built
+with `IDAX_ENABLE_QT_CLIPBOARD=ON` against an IDA-compatible Qt package built
+with `QT_NAMESPACE=QT`.
 Runtime execution of modal forms and wait boxes still requires an interactive
 IDA UI host. Qt clipboard support requires idax to be built with
 `IDAX_ENABLE_QT_CLIPBOARD=ON` against an IDA-compatible Qt package built with

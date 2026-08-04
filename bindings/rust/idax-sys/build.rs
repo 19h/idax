@@ -365,6 +365,12 @@ fn main() {
 
     let idax_include = idax_root.join("include");
     let shim_dir = manifest_dir.join("shim");
+    // Central C ABI header for the shim — single source shared with the Swift
+    // binding (which keeps a thin re-export under its CIDAX target so SPM's
+    // publicHeaders constraint is satisfied). Both bindings include this
+    // exact file at build time.
+    let c_abi_include_dir = idax_root.join("bindings").join("c").join("include");
+    let c_abi_header = c_abi_include_dir.join("idax_shim.h");
 
     // ── Build idax with CMake ───────────────────────────────────────────
     let mut config = cmake::Config::new(&idax_root);
@@ -434,6 +440,7 @@ fn main() {
     build
         .cpp(true)
         .file(shim_dir.join("idax_shim.cpp"))
+        .include(&c_abi_include_dir)
         .include(&idax_include)
         .include(idasdk.join("include"))
         .define("__EA64__", None)
@@ -522,7 +529,7 @@ fn main() {
 
     // ── Run bindgen ─────────────────────────────────────────────────────
     let bindings = bindgen::Builder::default()
-        .header(shim_dir.join("idax_shim.h").to_str().unwrap())
+        .header(c_abi_header.to_str().unwrap())
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .allowlist_function("idax_.*")
         .allowlist_type("Idax.*")
@@ -540,7 +547,7 @@ fn main() {
         .expect("Failed to write bindings.rs");
     patch_bindgen_output(&bindings_path);
 
-    println!("cargo:rerun-if-changed=shim/idax_shim.h");
+    println!("cargo:rerun-if-changed={}", c_abi_header.display());
     println!("cargo:rerun-if-changed=shim/idax_shim.cpp");
     println!("cargo:rerun-if-env-changed=IDASDK");
     println!("cargo:rerun-if-env-changed=DOCS_RS");

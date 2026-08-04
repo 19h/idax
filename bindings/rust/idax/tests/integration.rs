@@ -102,12 +102,14 @@ fn database_input_file_path() {
     );
 }
 
+#[test]
 fn database_idb_path() {
     require_db!();
     let path = database::idb_path().unwrap();
     assert!(!path.is_empty(), "idb_path should not be empty");
 }
 
+#[test]
 fn database_file_type_name() {
     require_db!();
     let name = database::file_type_name().unwrap();
@@ -133,6 +135,7 @@ fn database_address_bitness() {
     );
 }
 
+#[test]
 fn database_set_address_bitness_idempotent() {
     require_db!();
     let bits = database::address_bitness().unwrap();
@@ -140,6 +143,7 @@ fn database_set_address_bitness_idempotent() {
     assert_eq!(database::address_bitness().unwrap(), bits);
 }
 
+#[test]
 fn database_processor_name() {
     require_db!();
     let pname = database::processor_name().unwrap();

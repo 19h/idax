@@ -1619,7 +1619,15 @@ mod loader_tests {
 
 #[cfg(test)]
 mod database_tests {
-    use crate::database::{OpenMode, ProcessorId};
+    use crate::database::{self, OpenMode, ProcessorId};
+    use crate::error::{ErrorCategory, Status};
+
+    #[test]
+    fn test_save_to_function_signature_and_validation() {
+        let _: fn(&str) -> Status = database::save_to;
+        let error = database::save_to("invalid\0database").unwrap_err();
+        assert_eq!(error.category, ErrorCategory::Validation);
+    }
 
     #[test]
     fn test_open_mode_discriminants() {

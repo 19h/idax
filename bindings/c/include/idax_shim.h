@@ -21,6 +21,34 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Bounds-safety and lifetime annotations for Swift C interop (SE-0447).
+ *
+ * `__counted_by` tells the Swift importer the pointer spans `N` elements;
+ * `__noescape` marks pointers that do not outlive the call. Together they
+ * let the Swift compiler synthesise `Span<T>`-shaped overloads when
+ * `-enable-experimental-feature SafeInteropWrappers` is in effect (the
+ * Swift binding sets this; consumers transparently benefit).
+ *
+ * On Apple Clang the attributes resolve to real attributes when
+ * `<ptrcheck.h>` is available; on every other toolchain they fall back to
+ * no-op macros. The shim implementation file must repeat the same
+ * attributes on every function definition so declarations and definitions
+ * agree on type identity.
+ */
+#if __has_include(<ptrcheck.h>)
+#  include <ptrcheck.h>
+#endif
+#ifndef __counted_by
+#  define __counted_by(N)
+#endif
+#ifndef __noescape
+#  if __has_attribute(noescape)
+#    define __noescape __attribute__((noescape))
+#  else
+#    define __noescape
+#  endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,6 +81,11 @@ const char* idax_last_error_message(void);
 
 /** Free a malloc'd string returned by an idax function. */
 void idax_free_string(char* s);
+
+/// Copy IDA's data-symbol values (callui, dbg, under_debugger) from the loaded
+/// libida dylib into this binary's stub definitions.  Must be called after
+/// idax_database_init() succeeds.
+void idax_sync_ida_globals(void);
 
 /** Free a malloc'd byte array returned by an idax function. */
 void idax_free_bytes(uint8_t* p);
@@ -199,13 +232,14 @@ int idax_database_open(const char* path, int auto_analysis);
 int idax_database_open_binary(const char* path, int mode);
 int idax_database_open_non_binary(const char* path, int mode);
 int idax_database_save(void);
+int idax_database_save_to(const char* output_database_path);
 int idax_database_close(int save);
 
 int idax_database_file_to_database(const char* file_path, int64_t file_offset,
                                    uint64_t ea, uint64_t size,
                                    int patchable, int remote);
-int idax_database_memory_to_database(const uint8_t* bytes, size_t len,
-                                     uint64_t ea, int64_t file_offset);
+int idax_database_memory_to_database(const uint8_t* __counted_by(len) bytes __noescape,
+                                     size_t len, uint64_t ea, int64_t file_offset);
 
 typedef struct IdaxDatabaseCompilerInfo {
     uint32_t id;
@@ -276,6 +310,14 @@ int idax_database_set_address_bitness(int bits);
 int idax_database_is_big_endian(int* out);
 int idax_database_abi_name(char** out);
 int idax_database_address_span(uint64_t* out);
+
+typedef struct {
+    int  quiet;               /* default 0 — suppress idalib progress output */
+    int  disable_user_plugins; /* default 0 — set 1 to skip user plugin loading */
+} IdaxRuntimeOptions;
+
+int idax_database_init_with_options(const IdaxRuntimeOptions* options);
+int idax_database_open_with_intent(const char* path, int intent, int mode);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Path (ida::path)
@@ -925,6 +967,7 @@ typedef struct IdaxInstruction {
     char*        mnemonic;     /**< malloc'd */
     IdaxOperand* operands;     /**< malloc'd array */
     size_t       operand_count;
+    int          branch_condition; /**< ida::instruction::BranchCondition as int (None=0 when N/A) */
 } IdaxInstruction;
 
 /** Free all malloc'd fields inside an IdaxInstruction. */
@@ -951,6 +994,9 @@ int idax_instruction_operand_enum(uint64_t ea, int n,
 int idax_instruction_set_operand_struct_offset_by_name(uint64_t ea, int n,
                                                        const char* structure_name,
                                                        int64_t delta);
+int idax_instruction_set_operand_struct_offset_by_id(uint64_t ea, int n,
+                                                     uint64_t structure_id,
+                                                     int64_t delta);
 int idax_instruction_ensure_operand_struct_member_offset(
     uint64_t ea, int n, const char* structure_name,
     size_t member_byte_offset, int64_t delta, int* out_added);
@@ -986,6 +1032,10 @@ int idax_instruction_is_call(uint64_t ea);
 int idax_instruction_is_return(uint64_t ea);
 int idax_instruction_is_jump(uint64_t ea);
 int idax_instruction_is_conditional_jump(uint64_t ea);
+/** Classify branch condition for the instruction at `ea`.
+ *  Out parameter receives ida::instruction::BranchCondition as int.
+ *  Returns 0 on success; non-zero is reserved for future SDK failures. */
+int idax_instruction_branch_condition(uint64_t ea, int* out);
 int idax_instruction_next(uint64_t ea, IdaxInstruction* out);
 int idax_instruction_prev(uint64_t ea, IdaxInstruction* out);
 
@@ -1063,13 +1113,13 @@ int idax_data_write_byte(uint64_t ea, uint8_t value);
 int idax_data_write_word(uint64_t ea, uint16_t value);
 int idax_data_write_dword(uint64_t ea, uint32_t value);
 int idax_data_write_qword(uint64_t ea, uint64_t value);
-int idax_data_write_bytes(uint64_t ea, const uint8_t* data, size_t len);
+int idax_data_write_bytes(uint64_t ea, const uint8_t* __counted_by(len) data __noescape, size_t len);
 
 int idax_data_patch_byte(uint64_t ea, uint8_t value);
 int idax_data_patch_word(uint64_t ea, uint16_t value);
 int idax_data_patch_dword(uint64_t ea, uint32_t value);
 int idax_data_patch_qword(uint64_t ea, uint64_t value);
-int idax_data_patch_bytes(uint64_t ea, const uint8_t* data, size_t len);
+int idax_data_patch_bytes(uint64_t ea, const uint8_t* __counted_by(len) data __noescape, size_t len);
 
 int idax_data_revert_patch(uint64_t ea);
 int idax_data_revert_patches(uint64_t ea, uint64_t count, uint64_t* reverted);
@@ -1433,9 +1483,11 @@ int idax_comment_clear_anterior(uint64_t ea);
 int idax_comment_clear_posterior(uint64_t ea);
 int idax_comment_remove_anterior_line(uint64_t ea, int line_index);
 int idax_comment_remove_posterior_line(uint64_t ea, int line_index);
-int idax_comment_set_anterior_lines(uint64_t ea, const char* const* lines,
+int idax_comment_set_anterior_lines(uint64_t ea,
+                                    const char* const* __counted_by(count) lines __noescape,
                                     size_t count);
-int idax_comment_set_posterior_lines(uint64_t ea, const char* const* lines,
+int idax_comment_set_posterior_lines(uint64_t ea,
+                                     const char* const* __counted_by(count) lines __noescape,
                                      size_t count);
 int idax_comment_anterior_lines(uint64_t ea, char*** out, size_t* count);
 int idax_comment_posterior_lines(uint64_t ea, char*** out, size_t* count);
@@ -1931,7 +1983,8 @@ int idax_loader_encode_load_flags(const IdaxLoaderLoadFlags* flags, uint16_t* ou
 
 int idax_loader_file_to_database(void* li_handle, int64_t file_offset,
                                  uint64_t ea, uint64_t size, int patchable);
-int idax_loader_memory_to_database(const uint8_t* data, uint64_t ea, uint64_t size);
+int idax_loader_memory_to_database(const uint8_t* __counted_by(size) data __noescape,
+                                   uint64_t ea, uint64_t size);
 void idax_loader_abort_load(const char* message);
 
 int idax_loader_input_size(void* li_handle, int64_t* out);
@@ -1950,13 +2003,266 @@ int idax_loader_create_filename_comment(void);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Processor (ida::processor)
- *
- * Processor module support is primarily compile-time (macros/subclassing).
- * No runtime shim functions needed beyond what plugin/loader provide.
- * Placeholder for future runtime queries.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Reserved for future runtime processor queries. */
+/* ── Bitmask constants ─────────────────────────────────────────────────── */
+
+#define IDAX_INSTRUCTION_FEATURE_NONE       0x00000
+#define IDAX_INSTRUCTION_FEATURE_STOP       0x00001
+#define IDAX_INSTRUCTION_FEATURE_CALL       0x00002
+#define IDAX_INSTRUCTION_FEATURE_CHANGE1    0x00004
+#define IDAX_INSTRUCTION_FEATURE_CHANGE2    0x00008
+#define IDAX_INSTRUCTION_FEATURE_CHANGE3    0x00010
+#define IDAX_INSTRUCTION_FEATURE_CHANGE4    0x00020
+#define IDAX_INSTRUCTION_FEATURE_CHANGE5    0x00040
+#define IDAX_INSTRUCTION_FEATURE_CHANGE6    0x00080
+#define IDAX_INSTRUCTION_FEATURE_USE1       0x00100
+#define IDAX_INSTRUCTION_FEATURE_USE2       0x00200
+#define IDAX_INSTRUCTION_FEATURE_USE3       0x00400
+#define IDAX_INSTRUCTION_FEATURE_USE4       0x00800
+#define IDAX_INSTRUCTION_FEATURE_USE5       0x01000
+#define IDAX_INSTRUCTION_FEATURE_USE6       0x02000
+#define IDAX_INSTRUCTION_FEATURE_JUMP       0x04000
+#define IDAX_INSTRUCTION_FEATURE_SHIFT      0x08000
+#define IDAX_INSTRUCTION_FEATURE_HIGH_LEVEL 0x10000
+
+#define IDAX_PROCESSOR_FLAG_NONE              0x000000
+#define IDAX_PROCESSOR_FLAG_SEGMENTS           0x000001
+#define IDAX_PROCESSOR_FLAG_USE32              0x000002
+#define IDAX_PROCESSOR_FLAG_USE64              0x000004
+#define IDAX_PROCESSOR_FLAG_DEFAULT_SEG32      0x000008
+#define IDAX_PROCESSOR_FLAG_DEFAULT_SEG64      0x000010
+#define IDAX_PROCESSOR_FLAG_TYPE_INFO          0x000020
+#define IDAX_PROCESSOR_FLAG_USE_ARG_TYPES      0x000040
+#define IDAX_PROCESSOR_FLAG_CONDITIONAL_INSNS  0x000080
+#define IDAX_PROCESSOR_FLAG_NO_SEG_MOVE        0x000100
+#define IDAX_PROCESSOR_FLAG_HEX_NUMBERS        0x000200
+#define IDAX_PROCESSOR_FLAG_DECIMAL_NUMBERS    0x000400
+#define IDAX_PROCESSOR_FLAG_OCTAL_NUMBERS      0x000800
+
+#define IDAX_EMULATE_RESULT_DELETE_INSN      (-1)
+#define IDAX_EMULATE_RESULT_NOT_IMPLEMENTED    0
+#define IDAX_EMULATE_RESULT_SUCCESS            1
+
+#define IDAX_OUTPUT_OPERAND_HIDDEN           (-1)
+#define IDAX_OUTPUT_OPERAND_NOT_IMPLEMENTED    0
+#define IDAX_OUTPUT_OPERAND_SUCCESS            1
+
+#define IDAX_OUTPUT_INSTRUCTION_NOT_IMPLEMENTED  0
+#define IDAX_OUTPUT_INSTRUCTION_SUCCESS          1
+
+#define IDAX_SWITCH_TABLE_DENSE     0
+#define IDAX_SWITCH_TABLE_SPARSE    1
+#define IDAX_SWITCH_TABLE_INDIRECT  2
+#define IDAX_SWITCH_TABLE_CUSTOM    3
+
+/* ── C structs ─────────────────────────────────────────────────────────── */
+
+typedef struct IdaxRegisterInfo {
+    char* name;         /**< malloc'd register name. */
+    int   read_only;    /**< 1=read-only, 0=read-write. */
+} IdaxRegisterInfo;
+
+typedef struct IdaxInstructionDescriptor {
+    char*    mnemonic;       /**< malloc'd mnemonic string. */
+    uint32_t feature_flags;  /**< OR-ed IDAX_INSTRUCTION_FEATURE_* values. */
+    uint8_t  operand_count;
+    char*    description;    /**< malloc'd description. */
+    int      privileged;     /**< 1=privileged instruction. */
+} IdaxInstructionDescriptor;
+
+typedef struct IdaxAssemblerInfo {
+    char* name;
+    char* comment_prefix;
+    char* origin;
+    char* end_directive;
+    char  string_delim;
+    char  char_delim;
+    char* byte_directive;
+    char* word_directive;
+    char* dword_directive;
+    char* qword_directive;
+    char* oword_directive;
+    char* float_directive;
+    char* double_directive;
+    char* tbyte_directive;
+    char* align_directive;
+    char* include_directive;
+    char* public_directive;
+    char* weak_directive;
+    char* external_directive;
+    char* current_ip_symbol;
+    int   uppercase_mnemonics;
+    int   uppercase_registers;
+    int   requires_colon_after_labels;
+    int   supports_quoted_names;
+} IdaxAssemblerInfo;
+
+typedef struct IdaxProcessorInfo {
+    int32_t  id;
+
+    char**   short_names;       /**< malloc'd array of malloc'd strings. */
+    size_t   short_name_count;
+    char**   long_names;        /**< malloc'd array of malloc'd strings. */
+    size_t   long_name_count;
+
+    uint32_t flags;             /**< OR-ed IDAX_PROCESSOR_FLAG_* values. */
+    uint32_t flags2;
+
+    int      code_bits_per_byte;
+    int      data_bits_per_byte;
+
+    IdaxRegisterInfo* registers;
+    size_t            register_count;
+    int               code_segment_register;
+    int               data_segment_register;
+    int               first_segment_register;
+    int               last_segment_register;
+    int               segment_register_size;
+
+    IdaxInstructionDescriptor* instructions;
+    size_t                     instruction_count;
+    int                        return_icode;
+
+    IdaxAssemblerInfo* assemblers;
+    size_t             assembler_count;
+
+    int default_bitness;
+} IdaxProcessorInfo;
+
+typedef struct IdaxSwitchCase {
+    int64_t* values;    /**< malloc'd array. */
+    size_t   value_count;
+    uint64_t target;
+} IdaxSwitchCase;
+
+typedef struct IdaxSwitchDescription {
+    int      kind;              /**< IDAX_SWITCH_TABLE_* */
+    uint64_t jump_table;
+    uint64_t values_table;
+    uint64_t default_target;
+    uint64_t idiom_start;
+    uint64_t element_base;
+    int64_t  low_case_value;
+    int64_t  indirect_low_case_value;
+    uint32_t case_count;
+    uint32_t jump_table_entry_count;
+    uint8_t  jump_element_size;
+    uint8_t  value_element_size;
+    uint8_t  shift;
+    int      expression_register;
+    uint8_t  expression_data_type;
+    int      has_default;
+    int      default_in_table;
+    int      values_signed;
+    int      subtract_values;
+    int      self_relative;
+    int      inverted;
+    int      user_defined;
+} IdaxSwitchDescription;
+
+/* ── Callback function pointers ────────────────────────────────────────── */
+
+/** Required callbacks — must NOT be NULL. */
+typedef void (*IdaxProcessorInfoCallback)(void* context, IdaxProcessorInfo* out);
+typedef int  (*IdaxProcessorAnalyzeCallback)(void* context, uint64_t address, int* out_size);
+typedef int  (*IdaxProcessorEmulateCallback)(void* context, uint64_t address);
+typedef void (*IdaxProcessorOutputInstructionCallback)(void* context, uint64_t address);
+typedef int  (*IdaxProcessorOutputOperandCallback)(void* context, uint64_t address, int operand_index);
+
+/** Optional callbacks — may be NULL for default behavior. */
+typedef void (*IdaxProcessorOnFileCallback)(void* context, const char* filename);
+typedef int  (*IdaxProcessorIntQueryCallback)(void* context, uint64_t address);
+typedef int  (*IdaxProcessorIsSaneCallback)(void* context, uint64_t address, int no_code_references);
+typedef int  (*IdaxProcessorIsBasicBlockEndCallback)(void* context, uint64_t address, int call_stops_block);
+typedef int  (*IdaxProcessorCreateFrameCallback)(void* context, uint64_t function_start);
+typedef int  (*IdaxProcessorAdjustBoundsCallback)(void* context, uint64_t function_start,
+                                                   uint64_t max_function_end, int suggested_result);
+typedef int  (*IdaxProcessorAnalyzePrologCallback)(void* context, uint64_t function_start);
+typedef int  (*IdaxProcessorStackDeltaCallback)(void* context, uint64_t address, int64_t* out_delta);
+typedef int  (*IdaxProcessorReturnSizeCallback)(void* context, uint64_t function_start);
+typedef int  (*IdaxProcessorDetectSwitchCallback)(void* context, uint64_t address,
+                                                   IdaxSwitchDescription* out_switch);
+typedef int  (*IdaxProcessorCalcSwitchCasesCallback)(void* context, uint64_t address,
+                                                      const IdaxSwitchDescription* switch_desc,
+                                                      IdaxSwitchCase** out_cases,
+                                                      size_t* out_case_count);
+typedef int  (*IdaxProcessorCreateSwitchRefsCallback)(void* context, uint64_t address,
+                                                       const IdaxSwitchDescription* switch_desc);
+typedef int  (*IdaxProcessorOutputWithContextCallback)(void* context, uint64_t address,
+                                                        void* output_context);
+typedef int  (*IdaxProcessorOutputOperandWithContextCallback)(void* context, uint64_t address,
+                                                               int operand_index,
+                                                               void* output_context);
+
+typedef struct IdaxProcessorCallbacks {
+    void* context;
+
+    /* Required */
+    IdaxProcessorInfoCallback                   info;
+    IdaxProcessorAnalyzeCallback                analyze;
+    IdaxProcessorEmulateCallback                emulate;
+    IdaxProcessorOutputInstructionCallback       output_instruction;
+    IdaxProcessorOutputOperandCallback           output_operand;
+
+    /* Optional (NULL = use default) */
+    IdaxProcessorOnFileCallback                  on_new_file;
+    IdaxProcessorOnFileCallback                  on_old_file;
+    IdaxProcessorIntQueryCallback                is_call;
+    IdaxProcessorIntQueryCallback                is_return;
+    IdaxProcessorIntQueryCallback                may_be_function;
+    IdaxProcessorIsSaneCallback                  is_sane_instruction;
+    IdaxProcessorIntQueryCallback                is_indirect_jump;
+    IdaxProcessorIsBasicBlockEndCallback          is_basic_block_end;
+    IdaxProcessorCreateFrameCallback             create_function_frame;
+    IdaxProcessorAdjustBoundsCallback            adjust_function_bounds;
+    IdaxProcessorAnalyzePrologCallback           analyze_function_prolog;
+    IdaxProcessorStackDeltaCallback              calculate_stack_pointer_delta;
+    IdaxProcessorReturnSizeCallback              get_return_address_size;
+    IdaxProcessorDetectSwitchCallback            detect_switch;
+    IdaxProcessorCalcSwitchCasesCallback         calculate_switch_cases;
+    IdaxProcessorCreateSwitchRefsCallback        create_switch_references;
+    IdaxProcessorOutputWithContextCallback       output_mnemonic_with_context;
+    IdaxProcessorOutputWithContextCallback       output_instruction_with_context;
+    IdaxProcessorOutputOperandWithContextCallback output_operand_with_context;
+} IdaxProcessorCallbacks;
+
+/* ── Registration ──────────────────────────────────────────────────────── */
+
+typedef void* IdaxProcessorHandle;
+
+int  idax_processor_register(const IdaxProcessorCallbacks* callbacks,
+                             IdaxProcessorHandle* out_handle);
+void idax_processor_unregister(IdaxProcessorHandle handle);
+
+/* ── Free helpers ──────────────────────────────────────────────────────── */
+
+void idax_processor_info_free(IdaxProcessorInfo* info);
+void idax_switch_description_free(IdaxSwitchDescription* desc);
+void idax_switch_cases_free(IdaxSwitchCase* cases, size_t count);
+
+/* ── OutputContext functions ───────────────────────────────────────────── */
+
+void idax_output_context_mnemonic(void* ctx, const char* text);
+void idax_output_context_register_name(void* ctx, const char* text);
+void idax_output_context_symbol(void* ctx, const char* text);
+void idax_output_context_keyword(void* ctx, const char* text);
+void idax_output_context_comment(void* ctx, const char* text);
+void idax_output_context_number(void* ctx, const char* text);
+void idax_output_context_operator_symbol(void* ctx, const char* text);
+void idax_output_context_punctuation(void* ctx, const char* text);
+void idax_output_context_whitespace(void* ctx, const char* text);
+void idax_output_context_string_literal(void* ctx, const char* text, char quote);
+void idax_output_context_immediate(void* ctx, int64_t value, int radix);
+void idax_output_context_address(void* ctx, uint64_t address);
+void idax_output_context_character(void* ctx, char ch);
+void idax_output_context_space(void* ctx);
+void idax_output_context_comma(void* ctx);
+void idax_output_context_clear(void* ctx);
+int  idax_output_context_is_empty(void* ctx);
+int  idax_output_context_text(void* ctx, char** out);
+void idax_output_context_append(void* ctx, const char* text);
+void idax_output_context_token(void* ctx, int kind, const char* text);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Debugger (ida::debugger)
@@ -2114,7 +2420,8 @@ int idax_debugger_has_breakpoint(uint64_t address, int* out);
 
 int idax_debugger_read_memory(uint64_t address, uint64_t size,
                               uint8_t** out, size_t* out_len);
-int idax_debugger_write_memory(uint64_t address, const uint8_t* data,
+int idax_debugger_write_memory(uint64_t address,
+                               const uint8_t* __counted_by(len) data __noescape,
                                size_t len);
 
 int idax_debugger_is_request_running(void);
@@ -2354,6 +2661,9 @@ typedef struct IdaxLocalVariable {
     int      storage;       /**< 0=unknown, 1=register, 2=stack */
     char*    comment;
     size_t   index;
+    int64_t  stack_offset;  /**< Stack-frame offset for stack variables; -1 otherwise. */
+    int      register_number; /**< Microcode register number (mreg_t) for register
+                                   variables; -1 otherwise. On ARM64 x<n> = 8 + 8*n. */
 } IdaxLocalVariable;
 
 typedef enum IdaxDecompilerCommentPositionKind {
@@ -2457,6 +2767,114 @@ int idax_decompiler_for_each_item(IdaxDecompiledHandle handle,
                                   IdaxDecompilerStatementVisitor statement_callback,
                                   void* context,
                                   int* out_visited);
+
+/* ── Ctree handle-based API ──────────────────────────────────────────── */
+
+/** Opaque ctree expression handle. Valid only during visitor callback. */
+typedef const void* IdaxCtreeExprHandle;
+/** Opaque ctree statement handle. Valid only during visitor callback. */
+typedef const void* IdaxCtreeStmtHandle;
+
+/** Visitor callback receiving an opaque expression handle.
+ *  Return: 0=Continue, 1=Stop, 2=SkipChildren */
+typedef int (*IdaxCtreeExprVisitor)(void* context, IdaxCtreeExprHandle expr);
+/** Visitor callback receiving an opaque statement handle.
+ *  Return: 0=Continue, 1=Stop, 2=SkipChildren */
+typedef int (*IdaxCtreeStmtVisitor)(void* context, IdaxCtreeStmtHandle stmt);
+
+/** Visit all ctree items with opaque handles.
+ *  Set expr_cb or stmt_cb to NULL to skip that item type. */
+int idax_ctree_visit(IdaxDecompiledHandle handle,
+                     IdaxCtreeExprVisitor expr_cb,
+                     IdaxCtreeStmtVisitor stmt_cb,
+                     void* context,
+                     int post_order,
+                     int* out_visited);
+
+/* ── Expression query functions ──────────────────────────────────────── */
+
+int idax_ctree_expr_type(IdaxCtreeExprHandle expr, int* out);
+int idax_ctree_expr_address(IdaxCtreeExprHandle expr, uint64_t* out);
+int idax_ctree_expr_number_value(IdaxCtreeExprHandle expr, uint64_t* out);
+int idax_ctree_expr_string_value(IdaxCtreeExprHandle expr, char** out);
+int idax_ctree_expr_object_address(IdaxCtreeExprHandle expr, uint64_t* out);
+int idax_ctree_expr_variable_index(IdaxCtreeExprHandle expr, int* out);
+int idax_ctree_expr_operand_count(IdaxCtreeExprHandle expr, int* out);
+int idax_ctree_expr_left(IdaxCtreeExprHandle expr, IdaxCtreeExprHandle* out);
+int idax_ctree_expr_right(IdaxCtreeExprHandle expr, IdaxCtreeExprHandle* out);
+int idax_ctree_expr_call_argument_count(IdaxCtreeExprHandle expr, size_t* out);
+int idax_ctree_expr_call_callee(IdaxCtreeExprHandle expr, IdaxCtreeExprHandle* out);
+int idax_ctree_expr_call_argument(IdaxCtreeExprHandle expr, size_t index,
+                                  IdaxCtreeExprHandle* out);
+int idax_ctree_expr_member_offset(IdaxCtreeExprHandle expr, uint32_t* out);
+int idax_ctree_expr_to_string(IdaxCtreeExprHandle expr, char** out);
+
+/** Read-only snapshot of a parent ctree item.
+ *
+ *  Populated by `idax_ctree_expr_parent` / `idax_ctree_stmt_parent` while
+ *  inside an `idax_ctree_visit` / `idax_ctree_visit_ex` callback. Outside a
+ *  visitor callback (or when no parent was recorded for the given handle)
+ *  `has_value` is 0 and the remaining fields are unspecified.
+ */
+typedef struct IdaxCtreeItemInfo {
+    int      has_value;     /**< 1 if a parent was recorded, 0 otherwise */
+    int      type;          /**< ida::decompiler::ItemType as int */
+    uint64_t address;
+    int      is_expression; /**< 1 if parent is an expression, 0 if statement */
+} IdaxCtreeItemInfo;
+
+/** Return the direct parent of the given expression handle.
+ *
+ *  Sets `out->has_value` to 1 and fills the remaining fields when the
+ *  handle's parent was recorded by the active ctree visitor; otherwise
+ *  sets `out->has_value` to 0 and returns 0 (not an error).
+ *
+ *  Returns non-zero only on argument validation failures.
+ */
+int idax_ctree_expr_parent(IdaxCtreeExprHandle expr, IdaxCtreeItemInfo* out);
+
+/* ── Statement query functions ───────────────────────────────────────── */
+
+int idax_ctree_stmt_type(IdaxCtreeStmtHandle stmt, int* out);
+int idax_ctree_stmt_address(IdaxCtreeStmtHandle stmt, uint64_t* out);
+int idax_ctree_stmt_goto_target_label(IdaxCtreeStmtHandle stmt, int* out);
+
+/** For if/for/while/do/switch/return/throw: the condition or value expression. */
+int idax_ctree_stmt_condition(IdaxCtreeStmtHandle stmt, IdaxCtreeExprHandle* out);
+/** For if: the then-branch. */
+int idax_ctree_stmt_then_branch(IdaxCtreeStmtHandle stmt, IdaxCtreeStmtHandle* out);
+/** For if: the else-branch. Returns error if no else. */
+int idax_ctree_stmt_else_branch(IdaxCtreeStmtHandle stmt, IdaxCtreeStmtHandle* out);
+/** For if: whether an else-branch exists. */
+int idax_ctree_stmt_has_else_branch(IdaxCtreeStmtHandle stmt, int* out);
+/** For for/while/do: the loop body. */
+int idax_ctree_stmt_body(IdaxCtreeStmtHandle stmt, IdaxCtreeStmtHandle* out);
+/** For for: the init expression. */
+int idax_ctree_stmt_init_expression(IdaxCtreeStmtHandle stmt, IdaxCtreeExprHandle* out);
+/** For for: the step expression. */
+int idax_ctree_stmt_step_expression(IdaxCtreeStmtHandle stmt, IdaxCtreeExprHandle* out);
+/** For expr-stmt: the expression. */
+int idax_ctree_stmt_expression(IdaxCtreeStmtHandle stmt, IdaxCtreeExprHandle* out);
+/** For block: number of child statements. */
+int idax_ctree_stmt_block_size(IdaxCtreeStmtHandle stmt, size_t* out);
+/** For block: child statement at index. */
+int idax_ctree_stmt_block_statement(IdaxCtreeStmtHandle stmt, size_t index,
+                                    IdaxCtreeStmtHandle* out);
+/** For switch: number of cases (including default). */
+int idax_ctree_stmt_switch_case_count(IdaxCtreeStmtHandle stmt, size_t* out);
+/** For switch: case values at index (empty values = default case). */
+int idax_ctree_stmt_switch_case_values(IdaxCtreeStmtHandle stmt, size_t index,
+                                       uint64_t** out, size_t* count);
+/** For switch: case body statement at index. */
+int idax_ctree_stmt_switch_case_body(IdaxCtreeStmtHandle stmt, size_t index,
+                                     IdaxCtreeStmtHandle* out);
+void idax_ctree_switch_case_values_free(uint64_t* values);
+
+/** Return the direct parent of the given statement handle.
+ *
+ *  Semantics mirror `idax_ctree_expr_parent`.
+ */
+int idax_ctree_stmt_parent(IdaxCtreeStmtHandle stmt, IdaxCtreeItemInfo* out);
 
 /* Microcode filter support */
 typedef int (*IdaxMicrocodeMatchCallback)(void* context, uint64_t address, int itype);
@@ -2580,6 +2998,77 @@ int idax_decompiler_microcode_context_has_last_emitted_instruction(const void* m
 int idax_decompiler_microcode_context_last_emitted_instruction(const void* mctx,
                                                                IdaxMicrocodeInstruction* out);
 
+
+/* DecompiledFunction extended operations */
+int idax_decompiled_retype_variable(void* handle, const char* variable_name,
+                                     const char* type_declaration);
+int idax_decompiled_retype_variable_by_index(void* handle, size_t variable_index,
+                                              IdaxTypeHandle type_handle);
+int idax_decompiled_refresh(void* handle);
+int idax_decompiled_address_map(void* handle, uint64_t** out_line_numbers,
+                                 uint64_t** out_addresses, size_t* out_count);
+void idax_decompiled_address_map_free(uint64_t* line_numbers, uint64_t* addresses);
+int idax_decompiled_microcode_lines(void* handle, char*** out_lines, size_t* out_count);
+
+/* Extended ctree visitor with leave callbacks */
+typedef int (*IdaxCtreeExprLeaveVisitor)(void* context, const void* expr_handle);
+typedef int (*IdaxCtreeStmtLeaveVisitor)(void* context, const void* stmt_handle);
+
+int idax_ctree_visit_ex(void* handle,
+                         IdaxCtreeExprVisitor visit_expr,
+                         IdaxCtreeStmtVisitor visit_stmt,
+                         IdaxCtreeExprLeaveVisitor leave_expr,
+                         IdaxCtreeStmtLeaveVisitor leave_stmt,
+                         void* context,
+                         int post_order,
+                         int* out_visited);
+
+/* MicrocodeContext mutation operations */
+
+typedef enum {
+    IdaxMicrocodeInsertPolicyAppend  = 0,
+    IdaxMicrocodeInsertPolicyPrepend = 1,
+    IdaxMicrocodeInsertPolicyReplace = 2
+} IdaxMicrocodeInsertPolicy;
+
+typedef struct {
+    int     kind;
+    int     location_kind;
+    int64_t data;
+    int     byte_width;
+} IdaxMicrocodeValue;
+
+int idax_microcode_context_remove_last_emitted(void* mctx);
+int idax_microcode_context_remove_at_index(void* mctx, int index);
+int idax_microcode_context_emit_noop(void* mctx, int policy);
+int idax_microcode_context_emit_instruction(void* mctx,
+    const IdaxMicrocodeInstruction* instr, int policy);
+int idax_microcode_context_load_operand_register(void* mctx,
+    int operand_index, int* out_reg);
+int idax_microcode_context_load_effective_address_register(void* mctx,
+    int operand_index, int* out_reg);
+int idax_microcode_context_allocate_temporary_register(void* mctx,
+    int byte_width, int* out_reg);
+int idax_microcode_context_store_operand_register(void* mctx,
+    int operand_index, int source_reg, int byte_width, int mark_udt);
+int idax_microcode_context_emit_move_register(void* mctx,
+    int src, int dst, int byte_width, int mark_udt, int policy);
+int idax_microcode_context_emit_load_memory_register(void* mctx,
+    int sel, int off, int dst, int byte_width, int off_byte_width,
+    int mark_udt, int policy);
+int idax_microcode_context_emit_store_memory_register(void* mctx,
+    int src, int sel, int off, int byte_width, int off_byte_width,
+    int mark_udt, int policy);
+int idax_microcode_context_emit_helper_call(void* mctx, const char* name);
+int idax_microcode_context_emit_helper_call_with_args(void* mctx,
+    const char* name, const IdaxMicrocodeValue* args, size_t arg_count);
+int idax_microcode_context_emit_helper_call_to_register(void* mctx,
+    const char* name, const IdaxMicrocodeValue* args, size_t arg_count,
+    int dst_reg, int dst_byte_width, int dst_unsigned);
+int idax_microcode_context_emit_helper_call_to_operand(void* mctx,
+    const char* name, const IdaxMicrocodeValue* args, size_t arg_count,
+    int dst_operand_index, int dst_byte_width, int dst_unsigned);
+
 /* ═══════════════════════════════════════════════════════════════════════════
  * Storage (ida::storage)
  * ═══════════════════════════════════════════════════════════════════════════ */
@@ -2604,7 +3093,8 @@ int idax_storage_node_alt_remove(IdaxNodeHandle node, uint64_t index,
 int idax_storage_node_sup_get(IdaxNodeHandle node, uint64_t index,
                               uint8_t tag, uint8_t** out, size_t* out_len);
 int idax_storage_node_sup_set(IdaxNodeHandle node, uint64_t index,
-                              const uint8_t* data, size_t len, uint8_t tag);
+                              const uint8_t* __counted_by(len) data __noescape,
+                              size_t len, uint8_t tag);
 
 int idax_storage_node_hash_get(IdaxNodeHandle node, const char* key,
                                uint8_t tag, char** out);
@@ -2614,7 +3104,8 @@ int idax_storage_node_hash_set(IdaxNodeHandle node, const char* key,
 int idax_storage_node_blob_get(IdaxNodeHandle node, uint64_t index,
                                uint8_t tag, uint8_t** out, size_t* out_len);
 int idax_storage_node_blob_set(IdaxNodeHandle node, uint64_t index,
-                               const uint8_t* data, size_t len, uint8_t tag);
+                               const uint8_t* __counted_by(len) data __noescape,
+                               size_t len, uint8_t tag);
 int idax_storage_node_blob_remove(IdaxNodeHandle node, uint64_t index,
                                   uint8_t tag);
 int idax_storage_node_blob_size(IdaxNodeHandle node, uint64_t index,
@@ -3049,12 +3540,233 @@ typedef struct IdaxLuminaBatchResult {
 int idax_lumina_has_connection(int feature, int* out);
 int idax_lumina_close_connection(int feature);
 int idax_lumina_close_all_connections(void);
-int idax_lumina_pull(const uint64_t* addresses, size_t count,
-                     int auto_apply, int feature,
+int idax_lumina_pull(const uint64_t* __counted_by(count) addresses __noescape,
+                     size_t count, int auto_apply, int feature,
                      IdaxLuminaBatchResult* out);
-int idax_lumina_push(const uint64_t* addresses, size_t count,
-                     int push_mode, int feature,
+int idax_lumina_push(const uint64_t* __counted_by(count) addresses __noescape,
+                     size_t count, int push_mode, int feature,
                      IdaxLuminaBatchResult* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Dyld shared cache (ida::dyld_cache)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/** A single image (module) inside a dyld shared cache.
+ *  Free an array returned by idax_dyld_cache_list_modules() with
+ *  idax_dyld_cache_list_modules_free(). */
+typedef struct IdaxDyldCacheModule {
+    char*    path;
+    uint64_t load_address;
+} IdaxDyldCacheModule;
+
+/* Every load_* function takes a `wait_for_analysis` flag (0/1). When set,
+ * the call drains IDA's auto-analysis queue before returning, which on a
+ * multi-gigabyte macOS dyld shared cache can take tens of minutes. The
+ * safer default in callers is to pass 0 and invoke an explicit analysis
+ * wait once a batch of loads is complete. */
+int idax_dyld_cache_is_available(void);
+int idax_dyld_cache_list_modules(IdaxDyldCacheModule** output_modules,
+                                  size_t* module_count);
+int idax_dyld_cache_list_modules_at_path(const char* cache_path,
+                                         IdaxDyldCacheModule** output_modules,
+                                         size_t* module_count);
+void idax_dyld_cache_list_modules_free(IdaxDyldCacheModule* modules,
+                                       size_t module_count);
+int idax_dyld_cache_load_module(const char* module_path, int wait_for_analysis);
+int idax_dyld_cache_load_section(uint64_t address, int wait_for_analysis);
+int idax_dyld_cache_load_dyld_header(int wait_for_analysis);
+int idax_dyld_cache_load_branch_islands(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_branch_mappings(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_global_offset_tables(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_gaps(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_cache_data(int wait_for_analysis, size_t* out);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Plugin invocation (ida::plugin)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+int idax_plugin_is_plugin_available(const char* plugin_name);
+int idax_plugin_run_plugin(const char* plugin_name, size_t argument);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Microcode snapshot (ida::microcode)
+ *
+ * Post-hoc, value-typed view of a function's Hex-Rays microcode (mba_t).
+ * Distinct from the live MicrocodeContext filter API exposed in the
+ * Decompiler section: the snapshot is built once via gen_microcode() and
+ * then walked off-line without any further SDK interaction.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Opaque handle to a microcode snapshot. Free with
+ *  idax_microcode_snapshot_free(). */
+typedef void* IdaxMicrocodeSnapshotHandle;
+
+/** Maturity selector, mirroring ida::microcode::Maturity. */
+#define IDAX_MICROCODE_MATURITY_GENERATED        1
+#define IDAX_MICROCODE_MATURITY_PREOPTIMIZED     2
+#define IDAX_MICROCODE_MATURITY_LOCOPT           3
+#define IDAX_MICROCODE_MATURITY_CALLED_ARGUMENTS 4
+#define IDAX_MICROCODE_MATURITY_GLBOPT1          5
+#define IDAX_MICROCODE_MATURITY_GLBOPT2          6
+#define IDAX_MICROCODE_MATURITY_GLBOPT3          7
+#define IDAX_MICROCODE_MATURITY_LVARS            8
+
+/** Block kind, mirroring ida::microcode::BlockKind. */
+#define IDAX_MICROCODE_BLOCK_KIND_NONE     0
+#define IDAX_MICROCODE_BLOCK_KIND_STOP     1
+#define IDAX_MICROCODE_BLOCK_KIND_NO_WAY   2
+#define IDAX_MICROCODE_BLOCK_KIND_ONE_WAY  3
+#define IDAX_MICROCODE_BLOCK_KIND_TWO_WAY  4
+#define IDAX_MICROCODE_BLOCK_KIND_N_WAY    5
+#define IDAX_MICROCODE_BLOCK_KIND_EXTERNAL 6
+
+/** Operand kind, mirroring ida::microcode::Operand::Kind. */
+#define IDAX_MICROCODE_OPERAND_NONE                0
+#define IDAX_MICROCODE_OPERAND_REGISTER            1
+#define IDAX_MICROCODE_OPERAND_NUMERIC_CONSTANT    2
+#define IDAX_MICROCODE_OPERAND_STRING_LITERAL      3
+#define IDAX_MICROCODE_OPERAND_NESTED_INSTRUCTION  4
+#define IDAX_MICROCODE_OPERAND_STACK_VARIABLE      5
+#define IDAX_MICROCODE_OPERAND_GLOBAL_ADDRESS      6
+#define IDAX_MICROCODE_OPERAND_BLOCK_REFERENCE     7
+#define IDAX_MICROCODE_OPERAND_CALL_INFO           8
+#define IDAX_MICROCODE_OPERAND_LOCAL_VARIABLE      9
+#define IDAX_MICROCODE_OPERAND_ADDRESS_OF          10
+#define IDAX_MICROCODE_OPERAND_HELPER              11
+#define IDAX_MICROCODE_OPERAND_CASES               12
+#define IDAX_MICROCODE_OPERAND_FLOAT_CONSTANT      13
+#define IDAX_MICROCODE_OPERAND_REGISTER_PAIR       14
+#define IDAX_MICROCODE_OPERAND_SCATTERED           15
+
+/** Flat C representation of a microcode operand snapshot.
+ *  helper_name and string_literal are malloc'd char* (may be NULL); free
+ *  the containing IdaxMicrocodeSnapshotInstruction with
+ *  idax_microcode_snapshot_instruction_free() to release them. */
+typedef struct IdaxMicrocodeSnapshotOperand {
+    int      kind;                       /**< IDAX_MICROCODE_OPERAND_* */
+    int      byte_width;                 /**< NOSIZE (-1) for unknown. */
+    int      register_id;
+    int      second_register_id;
+    int64_t  numeric_value;
+    double   float_value;
+    int64_t  stack_offset;
+    uint64_t global_address;
+    int      local_variable_index;       /**< -1 if not applicable. */
+    int64_t  local_variable_offset;
+    char*    helper_name;                /**< malloc'd or NULL. */
+    char*    string_literal;             /**< malloc'd or NULL. */
+    char*    global_name;                /**< Name at global_address (malloc'd or NULL). */
+    struct IdaxMicrocodeSnapshotOperand* call_arguments; /**< CallInfo args (malloc'd array or NULL). */
+    size_t   call_argument_count;        /**< Number of call_arguments. */
+    /** CallInfo: per-argument mcallarg_t::flags (FAI_* bitmask), index-aligned
+     *  with call_arguments. FAI_RETPTR (0x0002) marks a hidden sret pointer
+     *  argument — the output location for large/existential returns. malloc'd
+     *  array of length call_argument_count, or NULL when there are none. */
+    uint32_t* argument_flags;
+    size_t   argument_flags_count;       /**< Number of argument_flags (== call_argument_count for CallInfo). */
+    /** CallInfo: return register operands (mcallinfo_t::retregs), each a full
+     *  operand (usually a register). The locations the call writes its result
+     *  to. malloc'd array or NULL. Cleared by Hex-Rays once the call is
+     *  propagated — see return_register_ids for a durable source. */
+    struct IdaxMicrocodeSnapshotOperand* return_registers;
+    size_t   return_register_count;      /**< Number of return_registers. */
+    /** CallInfo: micro-register numbers the call returns into
+     *  (mcallinfo_t::return_regs register part). Survives propagation. malloc'd
+     *  int array or NULL. */
+    int*     return_register_ids;
+    size_t   return_register_id_count;   /**< Number of return_register_ids. */
+    /** Cases (mop_c): flattened switch case values, parallel with
+     *  switch_case_target_blocks. malloc'd int64 array or NULL. */
+    int64_t* switch_case_values;
+    size_t   switch_case_value_count;    /**< Number of switch_case_values (== switch_case_target_blocks count). */
+    /** Cases (mop_c): target micro-block serial for each switch_case_values
+     *  entry (parallel, same count). malloc'd int array or NULL. */
+    int*     switch_case_target_blocks;
+    /** Cases (mop_c): default target micro-block serial (the group with empty
+     *  values), or -1 when there is no default case. */
+    int      switch_default_target_block;
+    int      block_index;                /**< -1 if not applicable. */
+    int      nested_instruction_id;      /**< -1 if not applicable. */
+    int      ssa_version;                /**< Valid iff has_ssa_version != 0. */
+    int      has_ssa_version;
+    uint8_t  operand_properties;         /**< Raw mop_t::oprops bitmask. */
+} IdaxMicrocodeSnapshotOperand;
+
+/** Flat C representation of a microcode instruction snapshot. */
+typedef struct IdaxMicrocodeSnapshotInstruction {
+    int                          id;
+    uint64_t                     source_address;
+    int                          opcode;          /**< Raw mcode_t. */
+    char*                        opcode_name;     /**< malloc'd. */
+    IdaxMicrocodeSnapshotOperand left;
+    IdaxMicrocodeSnapshotOperand right;
+    IdaxMicrocodeSnapshotOperand destination;
+    uint32_t                     flags;           /**< minsn_t::iprops snapshot. */
+} IdaxMicrocodeSnapshotInstruction;
+
+/** Flat C representation of a basic block snapshot. predecessor_indices
+ *  and successor_indices are malloc'd int arrays; instructions is a
+ *  malloc'd array of instructions whose internal strings must be freed
+ *  via the containing block's idax_microcode_snapshot_block_free(). */
+typedef struct IdaxMicrocodeSnapshotBlock {
+    int                                index;
+    uint64_t                           start_address;
+    uint64_t                           end_address;
+    int                                kind;                  /**< IDAX_MICROCODE_BLOCK_KIND_* */
+    uint32_t                           flags;
+    int*                               predecessor_indices;
+    size_t                             predecessor_count;
+    int*                               successor_indices;
+    size_t                             successor_count;
+    IdaxMicrocodeSnapshotInstruction*  instructions;
+    size_t                             instruction_count;
+} IdaxMicrocodeSnapshotBlock;
+
+/** Build a microcode snapshot of the function at the given address.
+ *  `maturity` must be one of IDAX_MICROCODE_MATURITY_*; pass 0 for the
+ *  default (IDAX_MICROCODE_MATURITY_LVARS). */
+int idax_microcode_snapshot_create(uint64_t function_address,
+                                   int maturity,
+                                   IdaxMicrocodeSnapshotHandle* out);
+
+/** Release a snapshot built with idax_microcode_snapshot_create(). */
+void idax_microcode_snapshot_free(IdaxMicrocodeSnapshotHandle handle);
+
+int idax_microcode_snapshot_function_address(IdaxMicrocodeSnapshotHandle handle,
+                                             uint64_t* out);
+int idax_microcode_snapshot_maturity(IdaxMicrocodeSnapshotHandle handle,
+                                     int* out);
+int idax_microcode_snapshot_local_variables_size(IdaxMicrocodeSnapshotHandle handle,
+                                                 int64_t* out);
+int idax_microcode_snapshot_saved_registers_size(IdaxMicrocodeSnapshotHandle handle,
+                                                 int64_t* out);
+int idax_microcode_snapshot_stack_size(IdaxMicrocodeSnapshotHandle handle,
+                                       int64_t* out);
+int idax_microcode_snapshot_return_value_variable_index(IdaxMicrocodeSnapshotHandle handle,
+                                                        int* out);
+
+int idax_microcode_snapshot_block_count(IdaxMicrocodeSnapshotHandle handle,
+                                        size_t* out);
+
+/** Copy the block at zero-based `index` into `out`. Free the result with
+ *  idax_microcode_snapshot_block_free(). */
+int idax_microcode_snapshot_block(IdaxMicrocodeSnapshotHandle handle,
+                                  size_t index,
+                                  IdaxMicrocodeSnapshotBlock* out);
+void idax_microcode_snapshot_block_free(IdaxMicrocodeSnapshotBlock* block);
+
+/** Look up a nested microinstruction by id (negative ids are invalid).
+ *  Free the result with idax_microcode_snapshot_instruction_free(). */
+int idax_microcode_snapshot_nested_instruction(IdaxMicrocodeSnapshotHandle handle,
+                                               int nested_instruction_id,
+                                               IdaxMicrocodeSnapshotInstruction* out);
+void idax_microcode_snapshot_instruction_free(IdaxMicrocodeSnapshotInstruction* instruction);
+
+/** Copy the snapshot's local-variable table. Free with
+ *  idax_decompiled_variables_free() (same allocator as the decompiler API). */
+int idax_microcode_snapshot_local_variables(IdaxMicrocodeSnapshotHandle handle,
+                                            IdaxLocalVariable** out,
+                                            size_t* count);
 
 #ifdef __cplusplus
 } /* extern "C" */

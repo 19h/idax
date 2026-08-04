@@ -252,6 +252,14 @@ pub fn save() -> Status {
     error::int_to_status(ret, "database::save failed")
 }
 
+/// Save the current database to a new file path.
+pub fn save_to(output_database_path: &str) -> Status {
+    let output_database_path = CString::new(output_database_path)
+        .map_err(|_| Error::validation("invalid output database path"))?;
+    let return_code = unsafe { idax_sys::idax_database_save_to(output_database_path.as_ptr()) };
+    error::int_to_status(return_code, "database::save_to failed")
+}
+
 /// Close the current database.
 ///
 /// If `save_first` is true the database is saved first.

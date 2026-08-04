@@ -162,6 +162,12 @@ NAN_METHOD(Save) {
     IDAX_CHECK_STATUS(ida::database::save());
 }
 
+NAN_METHOD(SaveTo) {
+    std::string output_database_path;
+    if (!GetStringArg(info, 0, output_database_path)) return;
+    IDAX_CHECK_STATUS(ida::database::save_to(output_database_path));
+}
+
 NAN_METHOD(Close) {
     bool saveBefore = GetOptionalBool(info, 0, false);
     DisposeAllDecompilerFunctions();
@@ -451,6 +457,7 @@ void InitDatabase(v8::Local<v8::Object> target) {
     SetMethod(ns, "openBinary",       OpenBinary);
     SetMethod(ns, "openNonBinary",    OpenNonBinary);
     SetMethod(ns, "save",             Save);
+    SetMethod(ns, "saveTo",           SaveTo);
     SetMethod(ns, "close",            Close);
     SetMethod(ns, "fileToDatabase",   FileToDatabase);
     SetMethod(ns, "memoryToDatabase", MemoryToDatabase);

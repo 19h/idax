@@ -8,6 +8,80 @@ pub const IDAX_ERROR_UNSUPPORTED: u32 = 4;
 pub const IDAX_ERROR_SDK_FAILURE: u32 = 5;
 pub const IDAX_ERROR_INTERNAL: u32 = 6;
 pub const IDAX_BOOKMARK_MAX_SLOTS: u32 = 1024;
+pub const IDAX_INSTRUCTION_FEATURE_NONE: u32 = 0;
+pub const IDAX_INSTRUCTION_FEATURE_STOP: u32 = 1;
+pub const IDAX_INSTRUCTION_FEATURE_CALL: u32 = 2;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE1: u32 = 4;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE2: u32 = 8;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE3: u32 = 16;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE4: u32 = 32;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE5: u32 = 64;
+pub const IDAX_INSTRUCTION_FEATURE_CHANGE6: u32 = 128;
+pub const IDAX_INSTRUCTION_FEATURE_USE1: u32 = 256;
+pub const IDAX_INSTRUCTION_FEATURE_USE2: u32 = 512;
+pub const IDAX_INSTRUCTION_FEATURE_USE3: u32 = 1024;
+pub const IDAX_INSTRUCTION_FEATURE_USE4: u32 = 2048;
+pub const IDAX_INSTRUCTION_FEATURE_USE5: u32 = 4096;
+pub const IDAX_INSTRUCTION_FEATURE_USE6: u32 = 8192;
+pub const IDAX_INSTRUCTION_FEATURE_JUMP: u32 = 16384;
+pub const IDAX_INSTRUCTION_FEATURE_SHIFT: u32 = 32768;
+pub const IDAX_INSTRUCTION_FEATURE_HIGH_LEVEL: u32 = 65536;
+pub const IDAX_PROCESSOR_FLAG_NONE: u32 = 0;
+pub const IDAX_PROCESSOR_FLAG_SEGMENTS: u32 = 1;
+pub const IDAX_PROCESSOR_FLAG_USE32: u32 = 2;
+pub const IDAX_PROCESSOR_FLAG_USE64: u32 = 4;
+pub const IDAX_PROCESSOR_FLAG_DEFAULT_SEG32: u32 = 8;
+pub const IDAX_PROCESSOR_FLAG_DEFAULT_SEG64: u32 = 16;
+pub const IDAX_PROCESSOR_FLAG_TYPE_INFO: u32 = 32;
+pub const IDAX_PROCESSOR_FLAG_USE_ARG_TYPES: u32 = 64;
+pub const IDAX_PROCESSOR_FLAG_CONDITIONAL_INSNS: u32 = 128;
+pub const IDAX_PROCESSOR_FLAG_NO_SEG_MOVE: u32 = 256;
+pub const IDAX_PROCESSOR_FLAG_HEX_NUMBERS: u32 = 512;
+pub const IDAX_PROCESSOR_FLAG_DECIMAL_NUMBERS: u32 = 1024;
+pub const IDAX_PROCESSOR_FLAG_OCTAL_NUMBERS: u32 = 2048;
+pub const IDAX_EMULATE_RESULT_DELETE_INSN: i32 = -1;
+pub const IDAX_EMULATE_RESULT_NOT_IMPLEMENTED: u32 = 0;
+pub const IDAX_EMULATE_RESULT_SUCCESS: u32 = 1;
+pub const IDAX_OUTPUT_OPERAND_HIDDEN: i32 = -1;
+pub const IDAX_OUTPUT_OPERAND_NOT_IMPLEMENTED: u32 = 0;
+pub const IDAX_OUTPUT_OPERAND_SUCCESS: u32 = 1;
+pub const IDAX_OUTPUT_INSTRUCTION_NOT_IMPLEMENTED: u32 = 0;
+pub const IDAX_OUTPUT_INSTRUCTION_SUCCESS: u32 = 1;
+pub const IDAX_SWITCH_TABLE_DENSE: u32 = 0;
+pub const IDAX_SWITCH_TABLE_SPARSE: u32 = 1;
+pub const IDAX_SWITCH_TABLE_INDIRECT: u32 = 2;
+pub const IDAX_SWITCH_TABLE_CUSTOM: u32 = 3;
+pub const IDAX_MICROCODE_MATURITY_GENERATED: u32 = 1;
+pub const IDAX_MICROCODE_MATURITY_PREOPTIMIZED: u32 = 2;
+pub const IDAX_MICROCODE_MATURITY_LOCOPT: u32 = 3;
+pub const IDAX_MICROCODE_MATURITY_CALLED_ARGUMENTS: u32 = 4;
+pub const IDAX_MICROCODE_MATURITY_GLBOPT1: u32 = 5;
+pub const IDAX_MICROCODE_MATURITY_GLBOPT2: u32 = 6;
+pub const IDAX_MICROCODE_MATURITY_GLBOPT3: u32 = 7;
+pub const IDAX_MICROCODE_MATURITY_LVARS: u32 = 8;
+pub const IDAX_MICROCODE_BLOCK_KIND_NONE: u32 = 0;
+pub const IDAX_MICROCODE_BLOCK_KIND_STOP: u32 = 1;
+pub const IDAX_MICROCODE_BLOCK_KIND_NO_WAY: u32 = 2;
+pub const IDAX_MICROCODE_BLOCK_KIND_ONE_WAY: u32 = 3;
+pub const IDAX_MICROCODE_BLOCK_KIND_TWO_WAY: u32 = 4;
+pub const IDAX_MICROCODE_BLOCK_KIND_N_WAY: u32 = 5;
+pub const IDAX_MICROCODE_BLOCK_KIND_EXTERNAL: u32 = 6;
+pub const IDAX_MICROCODE_OPERAND_NONE: u32 = 0;
+pub const IDAX_MICROCODE_OPERAND_REGISTER: u32 = 1;
+pub const IDAX_MICROCODE_OPERAND_NUMERIC_CONSTANT: u32 = 2;
+pub const IDAX_MICROCODE_OPERAND_STRING_LITERAL: u32 = 3;
+pub const IDAX_MICROCODE_OPERAND_NESTED_INSTRUCTION: u32 = 4;
+pub const IDAX_MICROCODE_OPERAND_STACK_VARIABLE: u32 = 5;
+pub const IDAX_MICROCODE_OPERAND_GLOBAL_ADDRESS: u32 = 6;
+pub const IDAX_MICROCODE_OPERAND_BLOCK_REFERENCE: u32 = 7;
+pub const IDAX_MICROCODE_OPERAND_CALL_INFO: u32 = 8;
+pub const IDAX_MICROCODE_OPERAND_LOCAL_VARIABLE: u32 = 9;
+pub const IDAX_MICROCODE_OPERAND_ADDRESS_OF: u32 = 10;
+pub const IDAX_MICROCODE_OPERAND_HELPER: u32 = 11;
+pub const IDAX_MICROCODE_OPERAND_CASES: u32 = 12;
+pub const IDAX_MICROCODE_OPERAND_FLOAT_CONSTANT: u32 = 13;
+pub const IDAX_MICROCODE_OPERAND_REGISTER_PAIR: u32 = 14;
+pub const IDAX_MICROCODE_OPERAND_SCATTERED: u32 = 15;
 unsafe extern "C" {
     #[doc = " Get the error category from the last failed call (thread-local)."]
     pub fn idax_last_error_category() -> ::std::os::raw::c_int;
@@ -23,6 +97,10 @@ unsafe extern "C" {
 unsafe extern "C" {
     #[doc = " Free a malloc'd string returned by an idax function."]
     pub fn idax_free_string(s: *mut ::std::os::raw::c_char);
+}
+unsafe extern "C" {
+    #[doc = " Copy IDA's data-symbol values (callui, dbg, under_debugger) from the loaded\n libida dylib into this binary's stub definitions.  Must be called after\n idax_database_init() succeeds."]
+    pub fn idax_sync_ida_globals();
 }
 unsafe extern "C" {
     #[doc = " Free a malloc'd byte array returned by an idax function."]
@@ -505,6 +583,11 @@ unsafe extern "C" {
     pub fn idax_database_save() -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_database_save_to(
+        output_database_path: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_database_close(save: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
@@ -790,6 +873,33 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_database_address_span(out: *mut u64) -> ::std::os::raw::c_int;
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxRuntimeOptions {
+    pub quiet: ::std::os::raw::c_int,
+    pub disable_user_plugins: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxRuntimeOptions"][::std::mem::size_of::<IdaxRuntimeOptions>() - 8usize];
+    ["Alignment of IdaxRuntimeOptions"][::std::mem::align_of::<IdaxRuntimeOptions>() - 4usize];
+    ["Offset of field: IdaxRuntimeOptions::quiet"]
+        [::std::mem::offset_of!(IdaxRuntimeOptions, quiet) - 0usize];
+    ["Offset of field: IdaxRuntimeOptions::disable_user_plugins"]
+        [::std::mem::offset_of!(IdaxRuntimeOptions, disable_user_plugins) - 4usize];
+};
+unsafe extern "C" {
+    pub fn idax_database_init_with_options(
+        options: *const IdaxRuntimeOptions,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_database_open_with_intent(
+        path: *const ::std::os::raw::c_char,
+        intent: ::std::os::raw::c_int,
+        mode: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_path_basename(
@@ -2887,10 +2997,12 @@ pub struct IdaxInstruction {
     #[doc = "< malloc'd array"]
     pub operands: *mut IdaxOperand,
     pub operand_count: usize,
+    #[doc = "< ida::instruction::BranchCondition as int (None=0 when N/A)"]
+    pub branch_condition: ::std::os::raw::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxInstruction"][::std::mem::size_of::<IdaxInstruction>() - 48usize];
+    ["Size of IdaxInstruction"][::std::mem::size_of::<IdaxInstruction>() - 56usize];
     ["Alignment of IdaxInstruction"][::std::mem::align_of::<IdaxInstruction>() - 8usize];
     ["Offset of field: IdaxInstruction::address"]
         [::std::mem::offset_of!(IdaxInstruction, address) - 0usize];
@@ -2904,6 +3016,8 @@ const _: () = {
         [::std::mem::offset_of!(IdaxInstruction, operands) - 32usize];
     ["Offset of field: IdaxInstruction::operand_count"]
         [::std::mem::offset_of!(IdaxInstruction, operand_count) - 40usize];
+    ["Offset of field: IdaxInstruction::branch_condition"]
+        [::std::mem::offset_of!(IdaxInstruction, branch_condition) - 48usize];
 };
 impl Default for IdaxInstruction {
     fn default() -> Self {
@@ -3002,6 +3116,14 @@ unsafe extern "C" {
         ea: u64,
         n: ::std::os::raw::c_int,
         structure_name: *const ::std::os::raw::c_char,
+        delta: i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_instruction_set_operand_struct_offset_by_id(
+        ea: u64,
+        n: ::std::os::raw::c_int,
+        structure_id: u64,
         delta: i64,
     ) -> ::std::os::raw::c_int;
 }
@@ -3154,6 +3276,13 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_instruction_is_conditional_jump(ea: u64) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " Classify branch condition for the instruction at `ea`.\n  Out parameter receives ida::instruction::BranchCondition as int.\n  Returns 0 on success; non-zero is reserved for future SDK failures."]
+    pub fn idax_instruction_branch_condition(
+        ea: u64,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
     pub fn idax_instruction_next(ea: u64, out: *mut IdaxInstruction) -> ::std::os::raw::c_int;
@@ -6186,6 +6315,700 @@ unsafe extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct IdaxRegisterInfo {
+    #[doc = "< malloc'd register name."]
+    pub name: *mut ::std::os::raw::c_char,
+    #[doc = "< 1=read-only, 0=read-write."]
+    pub read_only: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxRegisterInfo"][::std::mem::size_of::<IdaxRegisterInfo>() - 16usize];
+    ["Alignment of IdaxRegisterInfo"][::std::mem::align_of::<IdaxRegisterInfo>() - 8usize];
+    ["Offset of field: IdaxRegisterInfo::name"]
+        [::std::mem::offset_of!(IdaxRegisterInfo, name) - 0usize];
+    ["Offset of field: IdaxRegisterInfo::read_only"]
+        [::std::mem::offset_of!(IdaxRegisterInfo, read_only) - 8usize];
+};
+impl Default for IdaxRegisterInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxInstructionDescriptor {
+    #[doc = "< malloc'd mnemonic string."]
+    pub mnemonic: *mut ::std::os::raw::c_char,
+    #[doc = "< OR-ed IDAX_INSTRUCTION_FEATURE_* values."]
+    pub feature_flags: u32,
+    pub operand_count: u8,
+    #[doc = "< malloc'd description."]
+    pub description: *mut ::std::os::raw::c_char,
+    #[doc = "< 1=privileged instruction."]
+    pub privileged: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxInstructionDescriptor"]
+        [::std::mem::size_of::<IdaxInstructionDescriptor>() - 32usize];
+    ["Alignment of IdaxInstructionDescriptor"]
+        [::std::mem::align_of::<IdaxInstructionDescriptor>() - 8usize];
+    ["Offset of field: IdaxInstructionDescriptor::mnemonic"]
+        [::std::mem::offset_of!(IdaxInstructionDescriptor, mnemonic) - 0usize];
+    ["Offset of field: IdaxInstructionDescriptor::feature_flags"]
+        [::std::mem::offset_of!(IdaxInstructionDescriptor, feature_flags) - 8usize];
+    ["Offset of field: IdaxInstructionDescriptor::operand_count"]
+        [::std::mem::offset_of!(IdaxInstructionDescriptor, operand_count) - 12usize];
+    ["Offset of field: IdaxInstructionDescriptor::description"]
+        [::std::mem::offset_of!(IdaxInstructionDescriptor, description) - 16usize];
+    ["Offset of field: IdaxInstructionDescriptor::privileged"]
+        [::std::mem::offset_of!(IdaxInstructionDescriptor, privileged) - 24usize];
+};
+impl Default for IdaxInstructionDescriptor {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxAssemblerInfo {
+    pub name: *mut ::std::os::raw::c_char,
+    pub comment_prefix: *mut ::std::os::raw::c_char,
+    pub origin: *mut ::std::os::raw::c_char,
+    pub end_directive: *mut ::std::os::raw::c_char,
+    pub string_delim: ::std::os::raw::c_char,
+    pub char_delim: ::std::os::raw::c_char,
+    pub byte_directive: *mut ::std::os::raw::c_char,
+    pub word_directive: *mut ::std::os::raw::c_char,
+    pub dword_directive: *mut ::std::os::raw::c_char,
+    pub qword_directive: *mut ::std::os::raw::c_char,
+    pub oword_directive: *mut ::std::os::raw::c_char,
+    pub float_directive: *mut ::std::os::raw::c_char,
+    pub double_directive: *mut ::std::os::raw::c_char,
+    pub tbyte_directive: *mut ::std::os::raw::c_char,
+    pub align_directive: *mut ::std::os::raw::c_char,
+    pub include_directive: *mut ::std::os::raw::c_char,
+    pub public_directive: *mut ::std::os::raw::c_char,
+    pub weak_directive: *mut ::std::os::raw::c_char,
+    pub external_directive: *mut ::std::os::raw::c_char,
+    pub current_ip_symbol: *mut ::std::os::raw::c_char,
+    pub uppercase_mnemonics: ::std::os::raw::c_int,
+    pub uppercase_registers: ::std::os::raw::c_int,
+    pub requires_colon_after_labels: ::std::os::raw::c_int,
+    pub supports_quoted_names: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxAssemblerInfo"][::std::mem::size_of::<IdaxAssemblerInfo>() - 168usize];
+    ["Alignment of IdaxAssemblerInfo"][::std::mem::align_of::<IdaxAssemblerInfo>() - 8usize];
+    ["Offset of field: IdaxAssemblerInfo::name"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, name) - 0usize];
+    ["Offset of field: IdaxAssemblerInfo::comment_prefix"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, comment_prefix) - 8usize];
+    ["Offset of field: IdaxAssemblerInfo::origin"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, origin) - 16usize];
+    ["Offset of field: IdaxAssemblerInfo::end_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, end_directive) - 24usize];
+    ["Offset of field: IdaxAssemblerInfo::string_delim"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, string_delim) - 32usize];
+    ["Offset of field: IdaxAssemblerInfo::char_delim"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, char_delim) - 33usize];
+    ["Offset of field: IdaxAssemblerInfo::byte_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, byte_directive) - 40usize];
+    ["Offset of field: IdaxAssemblerInfo::word_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, word_directive) - 48usize];
+    ["Offset of field: IdaxAssemblerInfo::dword_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, dword_directive) - 56usize];
+    ["Offset of field: IdaxAssemblerInfo::qword_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, qword_directive) - 64usize];
+    ["Offset of field: IdaxAssemblerInfo::oword_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, oword_directive) - 72usize];
+    ["Offset of field: IdaxAssemblerInfo::float_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, float_directive) - 80usize];
+    ["Offset of field: IdaxAssemblerInfo::double_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, double_directive) - 88usize];
+    ["Offset of field: IdaxAssemblerInfo::tbyte_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, tbyte_directive) - 96usize];
+    ["Offset of field: IdaxAssemblerInfo::align_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, align_directive) - 104usize];
+    ["Offset of field: IdaxAssemblerInfo::include_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, include_directive) - 112usize];
+    ["Offset of field: IdaxAssemblerInfo::public_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, public_directive) - 120usize];
+    ["Offset of field: IdaxAssemblerInfo::weak_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, weak_directive) - 128usize];
+    ["Offset of field: IdaxAssemblerInfo::external_directive"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, external_directive) - 136usize];
+    ["Offset of field: IdaxAssemblerInfo::current_ip_symbol"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, current_ip_symbol) - 144usize];
+    ["Offset of field: IdaxAssemblerInfo::uppercase_mnemonics"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, uppercase_mnemonics) - 152usize];
+    ["Offset of field: IdaxAssemblerInfo::uppercase_registers"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, uppercase_registers) - 156usize];
+    ["Offset of field: IdaxAssemblerInfo::requires_colon_after_labels"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, requires_colon_after_labels) - 160usize];
+    ["Offset of field: IdaxAssemblerInfo::supports_quoted_names"]
+        [::std::mem::offset_of!(IdaxAssemblerInfo, supports_quoted_names) - 164usize];
+};
+impl Default for IdaxAssemblerInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxProcessorInfo {
+    pub id: i32,
+    #[doc = "< malloc'd array of malloc'd strings."]
+    pub short_names: *mut *mut ::std::os::raw::c_char,
+    pub short_name_count: usize,
+    #[doc = "< malloc'd array of malloc'd strings."]
+    pub long_names: *mut *mut ::std::os::raw::c_char,
+    pub long_name_count: usize,
+    #[doc = "< OR-ed IDAX_PROCESSOR_FLAG_* values."]
+    pub flags: u32,
+    pub flags2: u32,
+    pub code_bits_per_byte: ::std::os::raw::c_int,
+    pub data_bits_per_byte: ::std::os::raw::c_int,
+    pub registers: *mut IdaxRegisterInfo,
+    pub register_count: usize,
+    pub code_segment_register: ::std::os::raw::c_int,
+    pub data_segment_register: ::std::os::raw::c_int,
+    pub first_segment_register: ::std::os::raw::c_int,
+    pub last_segment_register: ::std::os::raw::c_int,
+    pub segment_register_size: ::std::os::raw::c_int,
+    pub instructions: *mut IdaxInstructionDescriptor,
+    pub instruction_count: usize,
+    pub return_icode: ::std::os::raw::c_int,
+    pub assemblers: *mut IdaxAssemblerInfo,
+    pub assembler_count: usize,
+    pub default_bitness: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxProcessorInfo"][::std::mem::size_of::<IdaxProcessorInfo>() - 144usize];
+    ["Alignment of IdaxProcessorInfo"][::std::mem::align_of::<IdaxProcessorInfo>() - 8usize];
+    ["Offset of field: IdaxProcessorInfo::id"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, id) - 0usize];
+    ["Offset of field: IdaxProcessorInfo::short_names"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, short_names) - 8usize];
+    ["Offset of field: IdaxProcessorInfo::short_name_count"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, short_name_count) - 16usize];
+    ["Offset of field: IdaxProcessorInfo::long_names"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, long_names) - 24usize];
+    ["Offset of field: IdaxProcessorInfo::long_name_count"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, long_name_count) - 32usize];
+    ["Offset of field: IdaxProcessorInfo::flags"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, flags) - 40usize];
+    ["Offset of field: IdaxProcessorInfo::flags2"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, flags2) - 44usize];
+    ["Offset of field: IdaxProcessorInfo::code_bits_per_byte"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, code_bits_per_byte) - 48usize];
+    ["Offset of field: IdaxProcessorInfo::data_bits_per_byte"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, data_bits_per_byte) - 52usize];
+    ["Offset of field: IdaxProcessorInfo::registers"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, registers) - 56usize];
+    ["Offset of field: IdaxProcessorInfo::register_count"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, register_count) - 64usize];
+    ["Offset of field: IdaxProcessorInfo::code_segment_register"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, code_segment_register) - 72usize];
+    ["Offset of field: IdaxProcessorInfo::data_segment_register"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, data_segment_register) - 76usize];
+    ["Offset of field: IdaxProcessorInfo::first_segment_register"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, first_segment_register) - 80usize];
+    ["Offset of field: IdaxProcessorInfo::last_segment_register"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, last_segment_register) - 84usize];
+    ["Offset of field: IdaxProcessorInfo::segment_register_size"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, segment_register_size) - 88usize];
+    ["Offset of field: IdaxProcessorInfo::instructions"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, instructions) - 96usize];
+    ["Offset of field: IdaxProcessorInfo::instruction_count"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, instruction_count) - 104usize];
+    ["Offset of field: IdaxProcessorInfo::return_icode"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, return_icode) - 112usize];
+    ["Offset of field: IdaxProcessorInfo::assemblers"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, assemblers) - 120usize];
+    ["Offset of field: IdaxProcessorInfo::assembler_count"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, assembler_count) - 128usize];
+    ["Offset of field: IdaxProcessorInfo::default_bitness"]
+        [::std::mem::offset_of!(IdaxProcessorInfo, default_bitness) - 136usize];
+};
+impl Default for IdaxProcessorInfo {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxSwitchCase {
+    #[doc = "< malloc'd array."]
+    pub values: *mut i64,
+    pub value_count: usize,
+    pub target: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxSwitchCase"][::std::mem::size_of::<IdaxSwitchCase>() - 24usize];
+    ["Alignment of IdaxSwitchCase"][::std::mem::align_of::<IdaxSwitchCase>() - 8usize];
+    ["Offset of field: IdaxSwitchCase::values"]
+        [::std::mem::offset_of!(IdaxSwitchCase, values) - 0usize];
+    ["Offset of field: IdaxSwitchCase::value_count"]
+        [::std::mem::offset_of!(IdaxSwitchCase, value_count) - 8usize];
+    ["Offset of field: IdaxSwitchCase::target"]
+        [::std::mem::offset_of!(IdaxSwitchCase, target) - 16usize];
+};
+impl Default for IdaxSwitchCase {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxSwitchDescription {
+    #[doc = "< IDAX_SWITCH_TABLE_*"]
+    pub kind: ::std::os::raw::c_int,
+    pub jump_table: u64,
+    pub values_table: u64,
+    pub default_target: u64,
+    pub idiom_start: u64,
+    pub element_base: u64,
+    pub low_case_value: i64,
+    pub indirect_low_case_value: i64,
+    pub case_count: u32,
+    pub jump_table_entry_count: u32,
+    pub jump_element_size: u8,
+    pub value_element_size: u8,
+    pub shift: u8,
+    pub expression_register: ::std::os::raw::c_int,
+    pub expression_data_type: u8,
+    pub has_default: ::std::os::raw::c_int,
+    pub default_in_table: ::std::os::raw::c_int,
+    pub values_signed: ::std::os::raw::c_int,
+    pub subtract_values: ::std::os::raw::c_int,
+    pub self_relative: ::std::os::raw::c_int,
+    pub inverted: ::std::os::raw::c_int,
+    pub user_defined: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxSwitchDescription"][::std::mem::size_of::<IdaxSwitchDescription>() - 112usize];
+    ["Alignment of IdaxSwitchDescription"]
+        [::std::mem::align_of::<IdaxSwitchDescription>() - 8usize];
+    ["Offset of field: IdaxSwitchDescription::kind"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, kind) - 0usize];
+    ["Offset of field: IdaxSwitchDescription::jump_table"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, jump_table) - 8usize];
+    ["Offset of field: IdaxSwitchDescription::values_table"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, values_table) - 16usize];
+    ["Offset of field: IdaxSwitchDescription::default_target"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, default_target) - 24usize];
+    ["Offset of field: IdaxSwitchDescription::idiom_start"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, idiom_start) - 32usize];
+    ["Offset of field: IdaxSwitchDescription::element_base"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, element_base) - 40usize];
+    ["Offset of field: IdaxSwitchDescription::low_case_value"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, low_case_value) - 48usize];
+    ["Offset of field: IdaxSwitchDescription::indirect_low_case_value"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, indirect_low_case_value) - 56usize];
+    ["Offset of field: IdaxSwitchDescription::case_count"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, case_count) - 64usize];
+    ["Offset of field: IdaxSwitchDescription::jump_table_entry_count"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, jump_table_entry_count) - 68usize];
+    ["Offset of field: IdaxSwitchDescription::jump_element_size"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, jump_element_size) - 72usize];
+    ["Offset of field: IdaxSwitchDescription::value_element_size"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, value_element_size) - 73usize];
+    ["Offset of field: IdaxSwitchDescription::shift"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, shift) - 74usize];
+    ["Offset of field: IdaxSwitchDescription::expression_register"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, expression_register) - 76usize];
+    ["Offset of field: IdaxSwitchDescription::expression_data_type"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, expression_data_type) - 80usize];
+    ["Offset of field: IdaxSwitchDescription::has_default"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, has_default) - 84usize];
+    ["Offset of field: IdaxSwitchDescription::default_in_table"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, default_in_table) - 88usize];
+    ["Offset of field: IdaxSwitchDescription::values_signed"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, values_signed) - 92usize];
+    ["Offset of field: IdaxSwitchDescription::subtract_values"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, subtract_values) - 96usize];
+    ["Offset of field: IdaxSwitchDescription::self_relative"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, self_relative) - 100usize];
+    ["Offset of field: IdaxSwitchDescription::inverted"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, inverted) - 104usize];
+    ["Offset of field: IdaxSwitchDescription::user_defined"]
+        [::std::mem::offset_of!(IdaxSwitchDescription, user_defined) - 108usize];
+};
+#[doc = " Required callbacks — must NOT be NULL."]
+pub type IdaxProcessorInfoCallback = ::std::option::Option<
+    unsafe extern "C" fn(context: *mut ::std::os::raw::c_void, out: *mut IdaxProcessorInfo),
+>;
+pub type IdaxProcessorAnalyzeCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        out_size: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorEmulateCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorOutputInstructionCallback =
+    ::std::option::Option<unsafe extern "C" fn(context: *mut ::std::os::raw::c_void, address: u64)>;
+pub type IdaxProcessorOutputOperandCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+#[doc = " Optional callbacks — may be NULL for default behavior."]
+pub type IdaxProcessorOnFileCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        filename: *const ::std::os::raw::c_char,
+    ),
+>;
+pub type IdaxProcessorIntQueryCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorIsSaneCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        no_code_references: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorIsBasicBlockEndCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        call_stops_block: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorCreateFrameCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        function_start: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorAdjustBoundsCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        function_start: u64,
+        max_function_end: u64,
+        suggested_result: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorAnalyzePrologCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        function_start: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorStackDeltaCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        out_delta: *mut i64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorReturnSizeCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        function_start: u64,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorDetectSwitchCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        out_switch: *mut IdaxSwitchDescription,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorCalcSwitchCasesCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        switch_desc: *const IdaxSwitchDescription,
+        out_cases: *mut *mut IdaxSwitchCase,
+        out_case_count: *mut usize,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorCreateSwitchRefsCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        switch_desc: *const IdaxSwitchDescription,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorOutputWithContextCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        output_context: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxProcessorOutputOperandWithContextCallback = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        address: u64,
+        operand_index: ::std::os::raw::c_int,
+        output_context: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxProcessorCallbacks {
+    pub context: *mut ::std::os::raw::c_void,
+    pub info: IdaxProcessorInfoCallback,
+    pub analyze: IdaxProcessorAnalyzeCallback,
+    pub emulate: IdaxProcessorEmulateCallback,
+    pub output_instruction: IdaxProcessorOutputInstructionCallback,
+    pub output_operand: IdaxProcessorOutputOperandCallback,
+    pub on_new_file: IdaxProcessorOnFileCallback,
+    pub on_old_file: IdaxProcessorOnFileCallback,
+    pub is_call: IdaxProcessorIntQueryCallback,
+    pub is_return: IdaxProcessorIntQueryCallback,
+    pub may_be_function: IdaxProcessorIntQueryCallback,
+    pub is_sane_instruction: IdaxProcessorIsSaneCallback,
+    pub is_indirect_jump: IdaxProcessorIntQueryCallback,
+    pub is_basic_block_end: IdaxProcessorIsBasicBlockEndCallback,
+    pub create_function_frame: IdaxProcessorCreateFrameCallback,
+    pub adjust_function_bounds: IdaxProcessorAdjustBoundsCallback,
+    pub analyze_function_prolog: IdaxProcessorAnalyzePrologCallback,
+    pub calculate_stack_pointer_delta: IdaxProcessorStackDeltaCallback,
+    pub get_return_address_size: IdaxProcessorReturnSizeCallback,
+    pub detect_switch: IdaxProcessorDetectSwitchCallback,
+    pub calculate_switch_cases: IdaxProcessorCalcSwitchCasesCallback,
+    pub create_switch_references: IdaxProcessorCreateSwitchRefsCallback,
+    pub output_mnemonic_with_context: IdaxProcessorOutputWithContextCallback,
+    pub output_instruction_with_context: IdaxProcessorOutputWithContextCallback,
+    pub output_operand_with_context: IdaxProcessorOutputOperandWithContextCallback,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxProcessorCallbacks"][::std::mem::size_of::<IdaxProcessorCallbacks>() - 200usize];
+    ["Alignment of IdaxProcessorCallbacks"]
+        [::std::mem::align_of::<IdaxProcessorCallbacks>() - 8usize];
+    ["Offset of field: IdaxProcessorCallbacks::context"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, context) - 0usize];
+    ["Offset of field: IdaxProcessorCallbacks::info"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, info) - 8usize];
+    ["Offset of field: IdaxProcessorCallbacks::analyze"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, analyze) - 16usize];
+    ["Offset of field: IdaxProcessorCallbacks::emulate"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, emulate) - 24usize];
+    ["Offset of field: IdaxProcessorCallbacks::output_instruction"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, output_instruction) - 32usize];
+    ["Offset of field: IdaxProcessorCallbacks::output_operand"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, output_operand) - 40usize];
+    ["Offset of field: IdaxProcessorCallbacks::on_new_file"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, on_new_file) - 48usize];
+    ["Offset of field: IdaxProcessorCallbacks::on_old_file"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, on_old_file) - 56usize];
+    ["Offset of field: IdaxProcessorCallbacks::is_call"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, is_call) - 64usize];
+    ["Offset of field: IdaxProcessorCallbacks::is_return"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, is_return) - 72usize];
+    ["Offset of field: IdaxProcessorCallbacks::may_be_function"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, may_be_function) - 80usize];
+    ["Offset of field: IdaxProcessorCallbacks::is_sane_instruction"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, is_sane_instruction) - 88usize];
+    ["Offset of field: IdaxProcessorCallbacks::is_indirect_jump"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, is_indirect_jump) - 96usize];
+    ["Offset of field: IdaxProcessorCallbacks::is_basic_block_end"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, is_basic_block_end) - 104usize];
+    ["Offset of field: IdaxProcessorCallbacks::create_function_frame"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, create_function_frame) - 112usize];
+    ["Offset of field: IdaxProcessorCallbacks::adjust_function_bounds"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, adjust_function_bounds) - 120usize];
+    ["Offset of field: IdaxProcessorCallbacks::analyze_function_prolog"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, analyze_function_prolog) - 128usize];
+    ["Offset of field: IdaxProcessorCallbacks::calculate_stack_pointer_delta"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, calculate_stack_pointer_delta) - 136usize];
+    ["Offset of field: IdaxProcessorCallbacks::get_return_address_size"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, get_return_address_size) - 144usize];
+    ["Offset of field: IdaxProcessorCallbacks::detect_switch"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, detect_switch) - 152usize];
+    ["Offset of field: IdaxProcessorCallbacks::calculate_switch_cases"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, calculate_switch_cases) - 160usize];
+    ["Offset of field: IdaxProcessorCallbacks::create_switch_references"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, create_switch_references) - 168usize];
+    ["Offset of field: IdaxProcessorCallbacks::output_mnemonic_with_context"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, output_mnemonic_with_context) - 176usize];
+    ["Offset of field: IdaxProcessorCallbacks::output_instruction_with_context"][::std::mem::offset_of!(
+        IdaxProcessorCallbacks,
+        output_instruction_with_context
+    ) - 184usize];
+    ["Offset of field: IdaxProcessorCallbacks::output_operand_with_context"]
+        [::std::mem::offset_of!(IdaxProcessorCallbacks, output_operand_with_context) - 192usize];
+};
+impl Default for IdaxProcessorCallbacks {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub type IdaxProcessorHandle = *mut ::std::os::raw::c_void;
+unsafe extern "C" {
+    pub fn idax_processor_register(
+        callbacks: *const IdaxProcessorCallbacks,
+        out_handle: *mut IdaxProcessorHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_processor_unregister(handle: IdaxProcessorHandle);
+}
+unsafe extern "C" {
+    pub fn idax_processor_info_free(info: *mut IdaxProcessorInfo);
+}
+unsafe extern "C" {
+    pub fn idax_switch_description_free(desc: *mut IdaxSwitchDescription);
+}
+unsafe extern "C" {
+    pub fn idax_switch_cases_free(cases: *mut IdaxSwitchCase, count: usize);
+}
+unsafe extern "C" {
+    pub fn idax_output_context_mnemonic(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_register_name(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_symbol(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_keyword(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_comment(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_number(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_operator_symbol(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_punctuation(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_whitespace(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_string_literal(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+        quote: ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_immediate(
+        ctx: *mut ::std::os::raw::c_void,
+        value: i64,
+        radix: ::std::os::raw::c_int,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_address(ctx: *mut ::std::os::raw::c_void, address: u64);
+}
+unsafe extern "C" {
+    pub fn idax_output_context_character(
+        ctx: *mut ::std::os::raw::c_void,
+        ch: ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_space(ctx: *mut ::std::os::raw::c_void);
+}
+unsafe extern "C" {
+    pub fn idax_output_context_comma(ctx: *mut ::std::os::raw::c_void);
+}
+unsafe extern "C" {
+    pub fn idax_output_context_clear(ctx: *mut ::std::os::raw::c_void);
+}
+unsafe extern "C" {
+    pub fn idax_output_context_is_empty(ctx: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_output_context_text(
+        ctx: *mut ::std::os::raw::c_void,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_output_context_append(
+        ctx: *mut ::std::os::raw::c_void,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_output_context_token(
+        ctx: *mut ::std::os::raw::c_void,
+        kind: ::std::os::raw::c_int,
+        text: *const ::std::os::raw::c_char,
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct IdaxThreadInfo {
     pub id: ::std::os::raw::c_int,
     #[doc = "< malloc'd"]
@@ -7351,10 +8174,14 @@ pub struct IdaxLocalVariable {
     pub storage: ::std::os::raw::c_int,
     pub comment: *mut ::std::os::raw::c_char,
     pub index: usize,
+    #[doc = "< Stack-frame offset for stack variables; -1 otherwise."]
+    pub stack_offset: i64,
+    #[doc = "< Microcode register number (mreg_t) for register\nvariables; -1 otherwise. On ARM64 x<n> = 8 + 8*n."]
+    pub register_number: ::std::os::raw::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxLocalVariable"][::std::mem::size_of::<IdaxLocalVariable>() - 48usize];
+    ["Size of IdaxLocalVariable"][::std::mem::size_of::<IdaxLocalVariable>() - 64usize];
     ["Alignment of IdaxLocalVariable"][::std::mem::align_of::<IdaxLocalVariable>() - 8usize];
     ["Offset of field: IdaxLocalVariable::name"]
         [::std::mem::offset_of!(IdaxLocalVariable, name) - 0usize];
@@ -7372,6 +8199,10 @@ const _: () = {
         [::std::mem::offset_of!(IdaxLocalVariable, comment) - 32usize];
     ["Offset of field: IdaxLocalVariable::index"]
         [::std::mem::offset_of!(IdaxLocalVariable, index) - 40usize];
+    ["Offset of field: IdaxLocalVariable::stack_offset"]
+        [::std::mem::offset_of!(IdaxLocalVariable, stack_offset) - 48usize];
+    ["Offset of field: IdaxLocalVariable::register_number"]
+        [::std::mem::offset_of!(IdaxLocalVariable, register_number) - 56usize];
 };
 impl Default for IdaxLocalVariable {
     fn default() -> Self {
@@ -7663,6 +8494,275 @@ unsafe extern "C" {
         statement_callback: IdaxDecompilerStatementVisitor,
         context: *mut ::std::os::raw::c_void,
         out_visited: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+#[doc = " Opaque ctree expression handle. Valid only during visitor callback."]
+pub type IdaxCtreeExprHandle = *const ::std::os::raw::c_void;
+#[doc = " Opaque ctree statement handle. Valid only during visitor callback."]
+pub type IdaxCtreeStmtHandle = *const ::std::os::raw::c_void;
+#[doc = " Visitor callback receiving an opaque expression handle.\n  Return: 0=Continue, 1=Stop, 2=SkipChildren"]
+pub type IdaxCtreeExprVisitor = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        expr: IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int,
+>;
+#[doc = " Visitor callback receiving an opaque statement handle.\n  Return: 0=Continue, 1=Stop, 2=SkipChildren"]
+pub type IdaxCtreeStmtVisitor = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        stmt: IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int,
+>;
+unsafe extern "C" {
+    #[doc = " Visit all ctree items with opaque handles.\n  Set expr_cb or stmt_cb to NULL to skip that item type."]
+    pub fn idax_ctree_visit(
+        handle: IdaxDecompiledHandle,
+        expr_cb: IdaxCtreeExprVisitor,
+        stmt_cb: IdaxCtreeStmtVisitor,
+        context: *mut ::std::os::raw::c_void,
+        post_order: ::std::os::raw::c_int,
+        out_visited: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_type(
+        expr: IdaxCtreeExprHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_address(
+        expr: IdaxCtreeExprHandle,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_number_value(
+        expr: IdaxCtreeExprHandle,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_string_value(
+        expr: IdaxCtreeExprHandle,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_object_address(
+        expr: IdaxCtreeExprHandle,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_variable_index(
+        expr: IdaxCtreeExprHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_operand_count(
+        expr: IdaxCtreeExprHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_left(
+        expr: IdaxCtreeExprHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_right(
+        expr: IdaxCtreeExprHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_call_argument_count(
+        expr: IdaxCtreeExprHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_call_callee(
+        expr: IdaxCtreeExprHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_call_argument(
+        expr: IdaxCtreeExprHandle,
+        index: usize,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_member_offset(
+        expr: IdaxCtreeExprHandle,
+        out: *mut u32,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_expr_to_string(
+        expr: IdaxCtreeExprHandle,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+#[doc = " Read-only snapshot of a parent ctree item.\n\n  Populated by `idax_ctree_expr_parent` / `idax_ctree_stmt_parent` while\n  inside an `idax_ctree_visit` / `idax_ctree_visit_ex` callback. Outside a\n  visitor callback (or when no parent was recorded for the given handle)\n  `has_value` is 0 and the remaining fields are unspecified."]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxCtreeItemInfo {
+    #[doc = "< 1 if a parent was recorded, 0 otherwise"]
+    pub has_value: ::std::os::raw::c_int,
+    #[doc = "< ida::decompiler::ItemType as int"]
+    pub type_: ::std::os::raw::c_int,
+    pub address: u64,
+    #[doc = "< 1 if parent is an expression, 0 if statement"]
+    pub is_expression: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxCtreeItemInfo"][::std::mem::size_of::<IdaxCtreeItemInfo>() - 24usize];
+    ["Alignment of IdaxCtreeItemInfo"][::std::mem::align_of::<IdaxCtreeItemInfo>() - 8usize];
+    ["Offset of field: IdaxCtreeItemInfo::has_value"]
+        [::std::mem::offset_of!(IdaxCtreeItemInfo, has_value) - 0usize];
+    ["Offset of field: IdaxCtreeItemInfo::type_"]
+        [::std::mem::offset_of!(IdaxCtreeItemInfo, type_) - 4usize];
+    ["Offset of field: IdaxCtreeItemInfo::address"]
+        [::std::mem::offset_of!(IdaxCtreeItemInfo, address) - 8usize];
+    ["Offset of field: IdaxCtreeItemInfo::is_expression"]
+        [::std::mem::offset_of!(IdaxCtreeItemInfo, is_expression) - 16usize];
+};
+unsafe extern "C" {
+    #[doc = " Return the direct parent of the given expression handle.\n\n  Sets `out->has_value` to 1 and fills the remaining fields when the\n  handle's parent was recorded by the active ctree visitor; otherwise\n  sets `out->has_value` to 0 and returns 0 (not an error).\n\n  Returns non-zero only on argument validation failures."]
+    pub fn idax_ctree_expr_parent(
+        expr: IdaxCtreeExprHandle,
+        out: *mut IdaxCtreeItemInfo,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_stmt_type(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_stmt_address(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_stmt_goto_target_label(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For if/for/while/do/switch/return/throw: the condition or value expression."]
+    pub fn idax_ctree_stmt_condition(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For if: the then-branch."]
+    pub fn idax_ctree_stmt_then_branch(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For if: the else-branch. Returns error if no else."]
+    pub fn idax_ctree_stmt_else_branch(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For if: whether an else-branch exists."]
+    pub fn idax_ctree_stmt_has_else_branch(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For for/while/do: the loop body."]
+    pub fn idax_ctree_stmt_body(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For for: the init expression."]
+    pub fn idax_ctree_stmt_init_expression(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For for: the step expression."]
+    pub fn idax_ctree_stmt_step_expression(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For expr-stmt: the expression."]
+    pub fn idax_ctree_stmt_expression(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeExprHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For block: number of child statements."]
+    pub fn idax_ctree_stmt_block_size(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For block: child statement at index."]
+    pub fn idax_ctree_stmt_block_statement(
+        stmt: IdaxCtreeStmtHandle,
+        index: usize,
+        out: *mut IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For switch: number of cases (including default)."]
+    pub fn idax_ctree_stmt_switch_case_count(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For switch: case values at index (empty values = default case)."]
+    pub fn idax_ctree_stmt_switch_case_values(
+        stmt: IdaxCtreeStmtHandle,
+        index: usize,
+        out: *mut *mut u64,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " For switch: case body statement at index."]
+    pub fn idax_ctree_stmt_switch_case_body(
+        stmt: IdaxCtreeStmtHandle,
+        index: usize,
+        out: *mut IdaxCtreeStmtHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_ctree_switch_case_values_free(values: *mut u64);
+}
+unsafe extern "C" {
+    #[doc = " Return the direct parent of the given statement handle.\n\n  Semantics mirror `idax_ctree_expr_parent`."]
+    pub fn idax_ctree_stmt_parent(
+        stmt: IdaxCtreeStmtHandle,
+        out: *mut IdaxCtreeItemInfo,
     ) -> ::std::os::raw::c_int;
 }
 pub type IdaxMicrocodeMatchCallback = ::std::option::Option<
@@ -8043,6 +9143,214 @@ unsafe extern "C" {
     pub fn idax_decompiler_microcode_context_last_emitted_instruction(
         mctx: *const ::std::os::raw::c_void,
         out: *mut IdaxMicrocodeInstruction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_retype_variable(
+        handle: *mut ::std::os::raw::c_void,
+        variable_name: *const ::std::os::raw::c_char,
+        type_declaration: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_retype_variable_by_index(
+        handle: *mut ::std::os::raw::c_void,
+        variable_index: usize,
+        type_handle: IdaxTypeHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_refresh(handle: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_address_map(
+        handle: *mut ::std::os::raw::c_void,
+        out_line_numbers: *mut *mut u64,
+        out_addresses: *mut *mut u64,
+        out_count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_address_map_free(line_numbers: *mut u64, addresses: *mut u64);
+}
+unsafe extern "C" {
+    pub fn idax_decompiled_microcode_lines(
+        handle: *mut ::std::os::raw::c_void,
+        out_lines: *mut *mut *mut ::std::os::raw::c_char,
+        out_count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+pub type IdaxCtreeExprLeaveVisitor = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        expr_handle: *const ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type IdaxCtreeStmtLeaveVisitor = ::std::option::Option<
+    unsafe extern "C" fn(
+        context: *mut ::std::os::raw::c_void,
+        stmt_handle: *const ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
+>;
+unsafe extern "C" {
+    pub fn idax_ctree_visit_ex(
+        handle: *mut ::std::os::raw::c_void,
+        visit_expr: IdaxCtreeExprVisitor,
+        visit_stmt: IdaxCtreeStmtVisitor,
+        leave_expr: IdaxCtreeExprLeaveVisitor,
+        leave_stmt: IdaxCtreeStmtLeaveVisitor,
+        context: *mut ::std::os::raw::c_void,
+        post_order: ::std::os::raw::c_int,
+        out_visited: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+pub const IdaxMicrocodeInsertPolicy_IdaxMicrocodeInsertPolicyAppend: IdaxMicrocodeInsertPolicy = 0;
+pub const IdaxMicrocodeInsertPolicy_IdaxMicrocodeInsertPolicyPrepend: IdaxMicrocodeInsertPolicy = 1;
+pub const IdaxMicrocodeInsertPolicy_IdaxMicrocodeInsertPolicyReplace: IdaxMicrocodeInsertPolicy = 2;
+pub type IdaxMicrocodeInsertPolicy = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct IdaxMicrocodeValue {
+    pub kind: ::std::os::raw::c_int,
+    pub location_kind: ::std::os::raw::c_int,
+    pub data: i64,
+    pub byte_width: ::std::os::raw::c_int,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeValue"][::std::mem::size_of::<IdaxMicrocodeValue>() - 24usize];
+    ["Alignment of IdaxMicrocodeValue"][::std::mem::align_of::<IdaxMicrocodeValue>() - 8usize];
+    ["Offset of field: IdaxMicrocodeValue::kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeValue, kind) - 0usize];
+    ["Offset of field: IdaxMicrocodeValue::location_kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeValue, location_kind) - 4usize];
+    ["Offset of field: IdaxMicrocodeValue::data"]
+        [::std::mem::offset_of!(IdaxMicrocodeValue, data) - 8usize];
+    ["Offset of field: IdaxMicrocodeValue::byte_width"]
+        [::std::mem::offset_of!(IdaxMicrocodeValue, byte_width) - 16usize];
+};
+unsafe extern "C" {
+    pub fn idax_microcode_context_remove_last_emitted(
+        mctx: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_remove_at_index(
+        mctx: *mut ::std::os::raw::c_void,
+        index: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_noop(
+        mctx: *mut ::std::os::raw::c_void,
+        policy: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_instruction(
+        mctx: *mut ::std::os::raw::c_void,
+        instr: *const IdaxMicrocodeInstruction,
+        policy: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_load_operand_register(
+        mctx: *mut ::std::os::raw::c_void,
+        operand_index: ::std::os::raw::c_int,
+        out_reg: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_load_effective_address_register(
+        mctx: *mut ::std::os::raw::c_void,
+        operand_index: ::std::os::raw::c_int,
+        out_reg: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_allocate_temporary_register(
+        mctx: *mut ::std::os::raw::c_void,
+        byte_width: ::std::os::raw::c_int,
+        out_reg: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_store_operand_register(
+        mctx: *mut ::std::os::raw::c_void,
+        operand_index: ::std::os::raw::c_int,
+        source_reg: ::std::os::raw::c_int,
+        byte_width: ::std::os::raw::c_int,
+        mark_udt: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_move_register(
+        mctx: *mut ::std::os::raw::c_void,
+        src: ::std::os::raw::c_int,
+        dst: ::std::os::raw::c_int,
+        byte_width: ::std::os::raw::c_int,
+        mark_udt: ::std::os::raw::c_int,
+        policy: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_load_memory_register(
+        mctx: *mut ::std::os::raw::c_void,
+        sel: ::std::os::raw::c_int,
+        off: ::std::os::raw::c_int,
+        dst: ::std::os::raw::c_int,
+        byte_width: ::std::os::raw::c_int,
+        off_byte_width: ::std::os::raw::c_int,
+        mark_udt: ::std::os::raw::c_int,
+        policy: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_store_memory_register(
+        mctx: *mut ::std::os::raw::c_void,
+        src: ::std::os::raw::c_int,
+        sel: ::std::os::raw::c_int,
+        off: ::std::os::raw::c_int,
+        byte_width: ::std::os::raw::c_int,
+        off_byte_width: ::std::os::raw::c_int,
+        mark_udt: ::std::os::raw::c_int,
+        policy: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_helper_call(
+        mctx: *mut ::std::os::raw::c_void,
+        name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_helper_call_with_args(
+        mctx: *mut ::std::os::raw::c_void,
+        name: *const ::std::os::raw::c_char,
+        args: *const IdaxMicrocodeValue,
+        arg_count: usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_helper_call_to_register(
+        mctx: *mut ::std::os::raw::c_void,
+        name: *const ::std::os::raw::c_char,
+        args: *const IdaxMicrocodeValue,
+        arg_count: usize,
+        dst_reg: ::std::os::raw::c_int,
+        dst_byte_width: ::std::os::raw::c_int,
+        dst_unsigned: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_context_emit_helper_call_to_operand(
+        mctx: *mut ::std::os::raw::c_void,
+        name: *const ::std::os::raw::c_char,
+        args: *const IdaxMicrocodeValue,
+        arg_count: usize,
+        dst_operand_index: ::std::os::raw::c_int,
+        dst_byte_width: ::std::os::raw::c_int,
+        dst_unsigned: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 #[doc = " Opaque handle to a storage node. Must be freed with idax_storage_node_free()."]
@@ -9409,5 +10717,438 @@ unsafe extern "C" {
         push_mode: ::std::os::raw::c_int,
         feature: ::std::os::raw::c_int,
         out: *mut IdaxLuminaBatchResult,
+    ) -> ::std::os::raw::c_int;
+}
+#[doc = " A single image (module) inside a dyld shared cache.\n  Free an array returned by idax_dyld_cache_list_modules() with\n  idax_dyld_cache_list_modules_free()."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxDyldCacheModule {
+    pub path: *mut ::std::os::raw::c_char,
+    pub load_address: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxDyldCacheModule"][::std::mem::size_of::<IdaxDyldCacheModule>() - 16usize];
+    ["Alignment of IdaxDyldCacheModule"][::std::mem::align_of::<IdaxDyldCacheModule>() - 8usize];
+    ["Offset of field: IdaxDyldCacheModule::path"]
+        [::std::mem::offset_of!(IdaxDyldCacheModule, path) - 0usize];
+    ["Offset of field: IdaxDyldCacheModule::load_address"]
+        [::std::mem::offset_of!(IdaxDyldCacheModule, load_address) - 8usize];
+};
+impl Default for IdaxDyldCacheModule {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_is_available() -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_list_modules(
+        output_modules: *mut *mut IdaxDyldCacheModule,
+        module_count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_list_modules_at_path(
+        cache_path: *const ::std::os::raw::c_char,
+        output_modules: *mut *mut IdaxDyldCacheModule,
+        module_count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_list_modules_free(
+        modules: *mut IdaxDyldCacheModule,
+        module_count: usize,
+    );
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_module(
+        module_path: *const ::std::os::raw::c_char,
+        wait_for_analysis: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_section(
+        address: u64,
+        wait_for_analysis: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_dyld_header(
+        wait_for_analysis: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_branch_islands(
+        wait_for_analysis: ::std::os::raw::c_int,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_branch_mappings(
+        wait_for_analysis: ::std::os::raw::c_int,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_global_offset_tables(
+        wait_for_analysis: ::std::os::raw::c_int,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_gaps(
+        wait_for_analysis: ::std::os::raw::c_int,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_dyld_cache_load_cache_data(
+        wait_for_analysis: ::std::os::raw::c_int,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_plugin_is_plugin_available(
+        plugin_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_plugin_run_plugin(
+        plugin_name: *const ::std::os::raw::c_char,
+        argument: usize,
+    ) -> ::std::os::raw::c_int;
+}
+#[doc = " Opaque handle to a microcode snapshot. Free with\n  idax_microcode_snapshot_free()."]
+pub type IdaxMicrocodeSnapshotHandle = *mut ::std::os::raw::c_void;
+#[doc = " Flat C representation of a microcode operand snapshot.\n  helper_name and string_literal are malloc'd char* (may be NULL); free\n  the containing IdaxMicrocodeSnapshotInstruction with\n  idax_microcode_snapshot_instruction_free() to release them."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeSnapshotOperand {
+    #[doc = "< IDAX_MICROCODE_OPERAND_*"]
+    pub kind: ::std::os::raw::c_int,
+    #[doc = "< NOSIZE (-1) for unknown."]
+    pub byte_width: ::std::os::raw::c_int,
+    pub register_id: ::std::os::raw::c_int,
+    pub second_register_id: ::std::os::raw::c_int,
+    pub numeric_value: i64,
+    pub float_value: f64,
+    pub stack_offset: i64,
+    pub global_address: u64,
+    #[doc = "< -1 if not applicable."]
+    pub local_variable_index: ::std::os::raw::c_int,
+    pub local_variable_offset: i64,
+    #[doc = "< malloc'd or NULL."]
+    pub helper_name: *mut ::std::os::raw::c_char,
+    #[doc = "< malloc'd or NULL."]
+    pub string_literal: *mut ::std::os::raw::c_char,
+    #[doc = "< Name at global_address (malloc'd or NULL)."]
+    pub global_name: *mut ::std::os::raw::c_char,
+    #[doc = "< CallInfo args (malloc'd array or NULL)."]
+    pub call_arguments: *mut IdaxMicrocodeSnapshotOperand,
+    #[doc = "< Number of call_arguments."]
+    pub call_argument_count: usize,
+    #[doc = " CallInfo: per-argument mcallarg_t::flags (FAI_* bitmask), index-aligned\n  with call_arguments. FAI_RETPTR (0x0002) marks a hidden sret pointer\n  argument — the output location for large/existential returns. malloc'd\n  array of length call_argument_count, or NULL when there are none."]
+    pub argument_flags: *mut u32,
+    #[doc = "< Number of argument_flags (== call_argument_count for CallInfo)."]
+    pub argument_flags_count: usize,
+    #[doc = " CallInfo: return register operands (mcallinfo_t::retregs), each a full\n  operand (usually a register). The locations the call writes its result\n  to. malloc'd array or NULL. Cleared by Hex-Rays once the call is\n  propagated — see return_register_ids for a durable source."]
+    pub return_registers: *mut IdaxMicrocodeSnapshotOperand,
+    #[doc = "< Number of return_registers."]
+    pub return_register_count: usize,
+    #[doc = " CallInfo: micro-register numbers the call returns into\n  (mcallinfo_t::return_regs register part). Survives propagation. malloc'd\n  int array or NULL."]
+    pub return_register_ids: *mut ::std::os::raw::c_int,
+    #[doc = "< Number of return_register_ids."]
+    pub return_register_id_count: usize,
+    #[doc = " Cases (mop_c): flattened switch case values, parallel with\n  switch_case_target_blocks. malloc'd int64 array or NULL."]
+    pub switch_case_values: *mut i64,
+    #[doc = "< Number of switch_case_values (== switch_case_target_blocks count)."]
+    pub switch_case_value_count: usize,
+    #[doc = " Cases (mop_c): target micro-block serial for each switch_case_values\n  entry (parallel, same count). malloc'd int array or NULL."]
+    pub switch_case_target_blocks: *mut ::std::os::raw::c_int,
+    #[doc = " Cases (mop_c): default target micro-block serial (the group with empty\n  values), or -1 when there is no default case."]
+    pub switch_default_target_block: ::std::os::raw::c_int,
+    #[doc = "< -1 if not applicable."]
+    pub block_index: ::std::os::raw::c_int,
+    #[doc = "< -1 if not applicable."]
+    pub nested_instruction_id: ::std::os::raw::c_int,
+    #[doc = "< Valid iff has_ssa_version != 0."]
+    pub ssa_version: ::std::os::raw::c_int,
+    pub has_ssa_version: ::std::os::raw::c_int,
+    #[doc = "< Raw mop_t::oprops bitmask."]
+    pub operand_properties: u8,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeSnapshotOperand"]
+        [::std::mem::size_of::<IdaxMicrocodeSnapshotOperand>() - 200usize];
+    ["Alignment of IdaxMicrocodeSnapshotOperand"]
+        [::std::mem::align_of::<IdaxMicrocodeSnapshotOperand>() - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, kind) - 0usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::byte_width"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, byte_width) - 4usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, register_id) - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::second_register_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, second_register_id) - 12usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::numeric_value"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, numeric_value) - 16usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::float_value"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, float_value) - 24usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::stack_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, stack_offset) - 32usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::global_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, global_address) - 40usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::local_variable_index"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, local_variable_index) - 48usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::local_variable_offset"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, local_variable_offset) - 56usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::helper_name"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, helper_name) - 64usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::string_literal"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, string_literal) - 72usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::global_name"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, global_name) - 80usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::call_arguments"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, call_arguments) - 88usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::call_argument_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, call_argument_count) - 96usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::argument_flags"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, argument_flags) - 104usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::argument_flags_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, argument_flags_count) - 112usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::return_registers"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, return_registers) - 120usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::return_register_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, return_register_count) - 128usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::return_register_ids"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, return_register_ids) - 136usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::return_register_id_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, return_register_id_count) - 144usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::switch_case_values"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, switch_case_values) - 152usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::switch_case_value_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, switch_case_value_count) - 160usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::switch_case_target_blocks"][::std::mem::offset_of!(
+        IdaxMicrocodeSnapshotOperand,
+        switch_case_target_blocks
+    ) - 168usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::switch_default_target_block"][::std::mem::offset_of!(
+        IdaxMicrocodeSnapshotOperand,
+        switch_default_target_block
+    ) - 176usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::block_index"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, block_index) - 180usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::nested_instruction_id"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, nested_instruction_id) - 184usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::ssa_version"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, ssa_version) - 188usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::has_ssa_version"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, has_ssa_version) - 192usize];
+    ["Offset of field: IdaxMicrocodeSnapshotOperand::operand_properties"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotOperand, operand_properties) - 196usize];
+};
+impl Default for IdaxMicrocodeSnapshotOperand {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Flat C representation of a microcode instruction snapshot."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeSnapshotInstruction {
+    pub id: ::std::os::raw::c_int,
+    pub source_address: u64,
+    #[doc = "< Raw mcode_t."]
+    pub opcode: ::std::os::raw::c_int,
+    #[doc = "< malloc'd."]
+    pub opcode_name: *mut ::std::os::raw::c_char,
+    pub left: IdaxMicrocodeSnapshotOperand,
+    pub right: IdaxMicrocodeSnapshotOperand,
+    pub destination: IdaxMicrocodeSnapshotOperand,
+    #[doc = "< minsn_t::iprops snapshot."]
+    pub flags: u32,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeSnapshotInstruction"]
+        [::std::mem::size_of::<IdaxMicrocodeSnapshotInstruction>() - 640usize];
+    ["Alignment of IdaxMicrocodeSnapshotInstruction"]
+        [::std::mem::align_of::<IdaxMicrocodeSnapshotInstruction>() - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::id"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, id) - 0usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::source_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, source_address) - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::opcode"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, opcode) - 16usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::opcode_name"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, opcode_name) - 24usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::left"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, left) - 32usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::right"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, right) - 232usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::destination"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, destination) - 432usize];
+    ["Offset of field: IdaxMicrocodeSnapshotInstruction::flags"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotInstruction, flags) - 632usize];
+};
+impl Default for IdaxMicrocodeSnapshotInstruction {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " Flat C representation of a basic block snapshot. predecessor_indices\n  and successor_indices are malloc'd int arrays; instructions is a\n  malloc'd array of instructions whose internal strings must be freed\n  via the containing block's idax_microcode_snapshot_block_free()."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxMicrocodeSnapshotBlock {
+    pub index: ::std::os::raw::c_int,
+    pub start_address: u64,
+    pub end_address: u64,
+    #[doc = "< IDAX_MICROCODE_BLOCK_KIND_*"]
+    pub kind: ::std::os::raw::c_int,
+    pub flags: u32,
+    pub predecessor_indices: *mut ::std::os::raw::c_int,
+    pub predecessor_count: usize,
+    pub successor_indices: *mut ::std::os::raw::c_int,
+    pub successor_count: usize,
+    pub instructions: *mut IdaxMicrocodeSnapshotInstruction,
+    pub instruction_count: usize,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxMicrocodeSnapshotBlock"]
+        [::std::mem::size_of::<IdaxMicrocodeSnapshotBlock>() - 80usize];
+    ["Alignment of IdaxMicrocodeSnapshotBlock"]
+        [::std::mem::align_of::<IdaxMicrocodeSnapshotBlock>() - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::index"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, index) - 0usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::start_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, start_address) - 8usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::end_address"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, end_address) - 16usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::kind"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, kind) - 24usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::flags"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, flags) - 28usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::predecessor_indices"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, predecessor_indices) - 32usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::predecessor_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, predecessor_count) - 40usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::successor_indices"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, successor_indices) - 48usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::successor_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, successor_count) - 56usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::instructions"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, instructions) - 64usize];
+    ["Offset of field: IdaxMicrocodeSnapshotBlock::instruction_count"]
+        [::std::mem::offset_of!(IdaxMicrocodeSnapshotBlock, instruction_count) - 72usize];
+};
+impl Default for IdaxMicrocodeSnapshotBlock {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    #[doc = " Build a microcode snapshot of the function at the given address.\n  `maturity` must be one of IDAX_MICROCODE_MATURITY_*; pass 0 for the\n  default (IDAX_MICROCODE_MATURITY_LVARS)."]
+    pub fn idax_microcode_snapshot_create(
+        function_address: u64,
+        maturity: ::std::os::raw::c_int,
+        out: *mut IdaxMicrocodeSnapshotHandle,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " Release a snapshot built with idax_microcode_snapshot_create()."]
+    pub fn idax_microcode_snapshot_free(handle: IdaxMicrocodeSnapshotHandle);
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_function_address(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut u64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_maturity(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_local_variables_size(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_saved_registers_size(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_stack_size(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut i64,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_return_value_variable_index(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_block_count(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " Copy the block at zero-based `index` into `out`. Free the result with\n  idax_microcode_snapshot_block_free()."]
+    pub fn idax_microcode_snapshot_block(
+        handle: IdaxMicrocodeSnapshotHandle,
+        index: usize,
+        out: *mut IdaxMicrocodeSnapshotBlock,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_block_free(block: *mut IdaxMicrocodeSnapshotBlock);
+}
+unsafe extern "C" {
+    #[doc = " Look up a nested microinstruction by id (negative ids are invalid).\n  Free the result with idax_microcode_snapshot_instruction_free()."]
+    pub fn idax_microcode_snapshot_nested_instruction(
+        handle: IdaxMicrocodeSnapshotHandle,
+        nested_instruction_id: ::std::os::raw::c_int,
+        out: *mut IdaxMicrocodeSnapshotInstruction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_microcode_snapshot_instruction_free(
+        instruction: *mut IdaxMicrocodeSnapshotInstruction,
+    );
+}
+unsafe extern "C" {
+    #[doc = " Copy the snapshot's local-variable table. Free with\n  idax_decompiled_variables_free() (same allocator as the decompiler API)."]
+    pub fn idax_microcode_snapshot_local_variables(
+        handle: IdaxMicrocodeSnapshotHandle,
+        out: *mut *mut IdaxLocalVariable,
+        count: *mut usize,
     ) -> ::std::os::raw::c_int;
 }
