@@ -115,8 +115,7 @@ void forget_action_attachments(std::string_view action_id) {
     erase_action(g_toolbar_attachments);
 }
 
-struct ActionAdapter : public action_handler_t,
-                       public std::enable_shared_from_this<ActionAdapter> {
+struct ActionAdapter : public action_handler_t {
     std::function<Status()> handler;
     std::function<Status(const ActionContext&)> handler_with_context;
     std::function<bool()>   enabled;
@@ -158,7 +157,6 @@ struct ActionAdapter : public action_handler_t,
     }
 
     int idaapi activate(action_activation_ctx_t *ctx) override {
-        const auto keep_alive = weak_from_this().lock();
         try {
             if (handler_with_context) {
                 auto context = to_action_context(ctx);
@@ -173,7 +171,6 @@ struct ActionAdapter : public action_handler_t,
     }
 
     action_state_t idaapi update(action_update_ctx_t *ctx) override {
-        const auto keep_alive = weak_from_this().lock();
         try {
             if (enabled_with_context) {
                 auto context = to_action_context(ctx);
