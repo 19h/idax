@@ -213,7 +213,7 @@ Status register_action(const Action& action) {
     if (action.label.empty())
         return std::unexpected(Error::validation("Action label cannot be empty"));
 
-    auto adapter = std::make_shared<ActionAdapter>();
+    auto adapter = std::make_unique<ActionAdapter>();
     adapter->handler = action.handler;
     adapter->handler_with_context = action.handler_with_context;
     adapter->enabled = action.enabled;
@@ -228,47 +228,20 @@ Status register_action(const Action& action) {
         action.tooltip.empty() ? nullptr : action.tooltip.c_str(),
         action.icon);
 
-    {
-        std::lock_guard<std::mutex> lock(action_adapter_mutex());
-        const auto insertion = action_adapters().emplace(action.id, adapter);
-        if (!insertion.second) {
-            return std::unexpected(Error::validation("Action is already registered",
-                                                     action.id));
-        }
-    }
-
     if (!register_action(desc)) {
-        std::shared_ptr<ActionAdapter> reclaimed;
-        {
-            std::lock_guard<std::mutex> lock(action_adapter_mutex());
-            auto it = action_adapters().find(action.id);
-            if (it != action_adapters().end() && it->second == adapter) {
-                reclaimed = std::move(it->second);
-                action_adapters().erase(it);
-            }
-        }
         return std::unexpected(Error::sdk("register_action failed",
                                           action.id));
     }
+    (void)adapter.release();
     return ida::ok();
 }
 
 Status unregister_action(std::string_view action_id) {
     std::string id(action_id);
     if (!::unregister_action(id.c_str())) {
-        forget_action_attachments(action_id);
         return std::unexpected(Error::not_found("Action not found", id));
     }
     forget_action_attachments(action_id);
-    std::shared_ptr<ActionAdapter> reclaimed;
-    {
-        std::lock_guard<std::mutex> lock(action_adapter_mutex());
-        auto it = action_adapters().find(id);
-        if (it != action_adapters().end()) {
-            reclaimed = std::move(it->second);
-            action_adapters().erase(it);
-        }
-    }
     return ida::ok();
 }
 
