@@ -91,6 +91,14 @@
     - Rejected: `ida_add_idalib`-only (runtime crashes)
     - Rejected: Require `IDADIR` unconditionally (breaks no-runtime compile rows)
 
+- **2.13. Installed SDK Header Interface**
+  - 2.13.1. **Decision:** Export `idax::idax` against a package-owned `idax::sdk_headers` interface that the installed config reconstructs from an exact IDA SDK 9.4 dependency
+    - 2.13.1.1. Keeps public SDK header requirements transitive without selecting a host-specific link target
+    - 2.13.1.2. Normalize documented CMake/environment `IDASDK` values for both SDK-root and checkout-root layouts before deriving `idasdk_DIR`
+    - 2.13.1.3. Preserve an explicit caller `CMAKE_MSVC_RUNTIME_LIBRARY`; when absent, apply IDAX's configured runtime after SDK dependency loading so downstream targets match the installed archive
+    - Rejected: Require every consumer to define the unnamespaced `idasdk_headers` implementation detail
+    - Rejected: Link `idax::idax` to `idasdk::plugin` (prevents loader, processor-module, and idalib consumers from selecting their host)
+
 ---
 
 

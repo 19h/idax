@@ -12,6 +12,50 @@
 #   find_package(idax REQUIRED)
 #   target_link_libraries(my_plugin PRIVATE idax::idax idasdk::plugin)
 
+include(CMakeFindDependencyMacro)
+
+if(NOT IDASDK AND DEFINED ENV{IDASDK} AND NOT "$ENV{IDASDK}" STREQUAL "")
+    set(IDASDK "$ENV{IDASDK}")
+endif()
+if(IDASDK
+        AND NOT EXISTS "${IDASDK}/cmake/idasdkConfig.cmake"
+        AND EXISTS "${IDASDK}/src/cmake/idasdkConfig.cmake")
+    set(IDASDK "${IDASDK}/src")
+endif()
+if(NOT idasdk_DIR AND IDASDK)
+    set(idasdk_DIR "${IDASDK}/cmake")
+endif()
+
+# The SDK package overwrites this variable. Preserve an explicit caller choice;
+# otherwise keep downstream targets compatible with the installed idax archive.
+if(MSVC)
+    if(DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+        set(_idax_msvc_runtime "${CMAKE_MSVC_RUNTIME_LIBRARY}")
+    else()
+        set(_idax_msvc_runtime "@IDAX_MSVC_RUNTIME_LIBRARY@")
+    endif()
+endif()
+
+find_dependency(idasdk 9.4 EXACT CONFIG)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "${_idax_msvc_runtime}")
+    unset(_idax_msvc_runtime)
+endif()
+
+# Some public idax headers expose SDK types. Keep those compile requirements
+# separate from the host-specific idasdk::* targets, which also link IDA.
+if(NOT TARGET idax::sdk_headers)
+    add_library(idax::sdk_headers INTERFACE IMPORTED)
+    set_target_properties(idax::sdk_headers PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${idasdk_INCLUDE_DIRS}"
+    )
+    target_compile_definitions(idax::sdk_headers INTERFACE __EA64__)
+    target_link_libraries(idax::sdk_headers INTERFACE
+        ida_platform_settings
+        ida_compiler_settings)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/idaxTargets.cmake")
 
 check_required_components(idax)
