@@ -81,9 +81,10 @@ Note:
   - 2.2.4. Linux SDK artifacts: current checkout lacks `x64_linux_clang_64` runtime libs [F112]
     - 2.2.4.1. Addon/tool targets fail under Linux Clang when build toggles on
 - 2.3. CMake Architecture
-  - 2.3.1. `libidax.a` uses custom `idasdk_headers` INTERFACE target [F17]
+  - 2.3.1. `libidax.a` uses package-owned `idax::sdk_headers` INTERFACE target [F17, F632]
     - 2.3.1.1. SDK includes + `__EA64__` + platform settings
     - 2.3.1.2. Consumers bring own `idasdk::plugin`/`idasdk::idalib`
+    - 2.3.1.3. Installed config finds IDA SDK 9.4 and recreates the compile-only interface before importing `idax::idax`
   - 2.3.2. CPack output dir drifts with arbitrary working directories [F41]
     - 2.3.2.1. Fix: invoke with `-B <build-dir>` to pin artifact location
   - 2.3.3. CTest on multi-config generators (Visual Studio): requires explicit `-C <config>` [F77]

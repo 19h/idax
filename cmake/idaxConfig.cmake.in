@@ -12,6 +12,22 @@
 #   find_package(idax REQUIRED)
 #   target_link_libraries(my_plugin PRIVATE idax::idax idasdk::plugin)
 
+include(CMakeFindDependencyMacro)
+find_dependency(idasdk 9.4 EXACT CONFIG)
+
+# Some public idax headers expose SDK types. Keep those compile requirements
+# separate from the host-specific idasdk::* targets, which also link IDA.
+if(NOT TARGET idax::sdk_headers)
+    add_library(idax::sdk_headers INTERFACE IMPORTED)
+    set_target_properties(idax::sdk_headers PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${idasdk_INCLUDE_DIRS}"
+    )
+    target_compile_definitions(idax::sdk_headers INTERFACE __EA64__)
+    target_link_libraries(idax::sdk_headers INTERFACE
+        ida_platform_settings
+        ida_compiler_settings)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/idaxTargets.cmake")
 
 check_required_components(idax)

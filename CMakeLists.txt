@@ -158,13 +158,13 @@ file(GLOB_RECURSE IDAX_SOURCES CONFIGURE_DEPENDS
 # idax needs the SDK headers and __EA64__ to compile, but does NOT
 # propagate a specific link target (plugin/loader/idalib) to consumers.
 # Consumers must link their own idasdk::plugin, idasdk::idalib, etc.
-if(NOT TARGET idasdk_headers)
-    add_library(idasdk_headers INTERFACE IMPORTED)
-    set_target_properties(idasdk_headers PROPERTIES
+if(NOT TARGET idax::sdk_headers)
+    add_library(idax::sdk_headers INTERFACE IMPORTED)
+    set_target_properties(idax::sdk_headers PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${IDAX_SDK_ROOT}/include"
     )
-    target_compile_definitions(idasdk_headers INTERFACE __EA64__)
-    target_link_libraries(idasdk_headers INTERFACE
+    target_compile_definitions(idax::sdk_headers INTERFACE __EA64__)
+    target_link_libraries(idax::sdk_headers INTERFACE
         ida_platform_settings
         ida_compiler_settings)
 endif()
@@ -194,7 +194,7 @@ target_include_directories(idax
 
 # idax compiles against SDK headers but does NOT force a link target.
 # Consumers bring their own idasdk::plugin / idasdk::idalib / etc.
-target_link_libraries(idax PUBLIC idasdk_headers)
+target_link_libraries(idax PUBLIC idax::sdk_headers)
 
 # Qt clipboard support is opt-in because enabling it makes the static idax
 # archive carry Qt symbols into downstream plugin/addon links. IDA requires

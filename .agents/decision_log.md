@@ -91,6 +91,12 @@
     - Rejected: `ida_add_idalib`-only (runtime crashes)
     - Rejected: Require `IDADIR` unconditionally (breaks no-runtime compile rows)
 
+- **2.13. Installed SDK Header Interface**
+  - 2.13.1. **Decision:** Export `idax::idax` against a package-owned `idax::sdk_headers` interface that the installed config reconstructs from an exact IDA SDK 9.4 dependency
+    - 2.13.1.1. Keeps public SDK header requirements transitive without selecting a host-specific link target
+    - Rejected: Require every consumer to define the unnamespaced `idasdk_headers` implementation detail
+    - Rejected: Link `idax::idax` to `idasdk::plugin` (prevents loader, processor-module, and idalib consumers from selecting their host)
+
 ---
 
 
