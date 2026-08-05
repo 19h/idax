@@ -13,6 +13,15 @@
 #   target_link_libraries(my_plugin PRIVATE idax::idax idasdk::plugin)
 
 include(CMakeFindDependencyMacro)
+
+if(NOT idasdk_DIR)
+    if(IDASDK)
+        set(idasdk_DIR "${IDASDK}/cmake")
+    elseif(DEFINED ENV{IDASDK} AND NOT "$ENV{IDASDK}" STREQUAL "")
+        set(idasdk_DIR "$ENV{IDASDK}/cmake")
+    endif()
+endif()
+
 find_dependency(idasdk 9.4 EXACT CONFIG)
 
 # Some public idax headers expose SDK types. Keep those compile requirements

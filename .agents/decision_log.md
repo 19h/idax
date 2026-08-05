@@ -94,6 +94,7 @@
 - **2.13. Installed SDK Header Interface**
   - 2.13.1. **Decision:** Export `idax::idax` against a package-owned `idax::sdk_headers` interface that the installed config reconstructs from an exact IDA SDK 9.4 dependency
     - 2.13.1.1. Keeps public SDK header requirements transitive without selecting a host-specific link target
+    - 2.13.1.2. Preserve an explicit `idasdk_DIR`; otherwise derive it from the CMake `IDASDK` variable or the documented `IDASDK` environment variable before dependency discovery
     - Rejected: Require every consumer to define the unnamespaced `idasdk_headers` implementation detail
     - Rejected: Link `idax::idax` to `idasdk::plugin` (prevents loader, processor-module, and idalib consumers from selecting their host)
 

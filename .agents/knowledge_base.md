@@ -85,6 +85,7 @@ Note:
     - 2.3.1.1. SDK includes + `__EA64__` + platform settings
     - 2.3.1.2. Consumers bring own `idasdk::plugin`/`idasdk::idalib`
     - 2.3.1.3. Installed config finds IDA SDK 9.4 and recreates the compile-only interface before importing `idax::idax`
+    - 2.3.1.4. Config-mode discovery requires translating documented CMake/environment `IDASDK` into `idasdk_DIR` when no explicit package directory was supplied [F633]
   - 2.3.2. CPack output dir drifts with arbitrary working directories [F41]
     - 2.3.2.1. Fix: invoke with `-B <build-dir>` to pin artifact location
   - 2.3.3. CTest on multi-config generators (Visual Studio): requires explicit `-C <config>` [F77]
