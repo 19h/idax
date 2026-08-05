@@ -73,20 +73,6 @@ AttachmentCounts g_toolbar_attachments;
 std::atomic<std::uint64_t> g_hotkey_sequence{1};
 
 struct ActionAdapter;
-using ActionAdapters = std::map<std::string, std::shared_ptr<ActionAdapter>>;
-
-std::mutex& action_adapter_mutex() {
-    static auto* mutex = new std::mutex();
-    return *mutex;
-}
-
-ActionAdapters& action_adapters() {
-    // Deliberately process-lifetime storage: an action that a client fails to
-    // unregister must not be left with a dangling SDK handler during module
-    // teardown. Successful explicit unregister still reclaims immediately.
-    static auto* adapters = new ActionAdapters();
-    return *adapters;
-}
 
 std::string next_hotkey_action_id() {
     const auto module_identity = reinterpret_cast<std::uintptr_t>(&g_hotkey_sequence);
@@ -136,6 +122,7 @@ struct ActionAdapter : public action_handler_t,
     std::function<bool()>   enabled;
     std::function<bool(const ActionContext&)> enabled_with_context;
 
+    // DEFINE_MEMORY_ALLOCATION_FUNCS();
     static ActionContext to_action_context(const action_ctx_base_t* ctx) {
         ActionContext out;
         if (ctx == nullptr)
