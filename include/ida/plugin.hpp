@@ -193,12 +193,17 @@ struct Action {
 
 /// Register a UI action with IDA.
 ///
-/// Callback storage is wrapper-owned and reclaimed by unregister_action().
+/// The SDK owns the registered handler; callback state is independently
+/// retained by the wrapper and reclaimed by unregister_action().
 /// Callers of this named-action API must explicitly unregister during teardown;
 /// use ScopedHotkey for automatic shortcut-only ownership.
 Status register_action(const Action& action);
 
 /// Unregister a UI action.
+///
+/// Calls made by the action's own activation/update callback are deferred to
+/// the next UI loop iteration so the SDK never destroys an executing handler.
+/// In that case, a successful status means the deferred request was accepted.
 Status unregister_action(std::string_view action_id);
 
 /// Activate a registered action by its internal identifier.

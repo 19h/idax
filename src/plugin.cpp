@@ -72,20 +72,20 @@ AttachmentCounts g_menu_attachments;
 AttachmentCounts g_toolbar_attachments;
 std::atomic<std::uint64_t> g_hotkey_sequence{1};
 
-struct ActionAdapter;
-using ActionAdapters = std::map<std::string, std::shared_ptr<ActionAdapter>>;
+struct ActionState;
+using ActionStates = std::map<std::string, std::shared_ptr<ActionState>>;
 
-std::mutex& action_adapter_mutex() {
+std::mutex& action_state_mutex() {
     static auto* mutex = new std::mutex();
     return *mutex;
 }
 
-ActionAdapters& action_adapters() {
-    // Deliberately process-lifetime storage: an action that a client fails to
-    // unregister must not be left with a dangling SDK handler during module
-    // teardown. Successful explicit unregister still reclaims immediately.
-    static auto* adapters = new ActionAdapters();
-    return *adapters;
+ActionStates& action_states() {
+    // The SDK owns each successfully registered adapter. Wrapper-owned state
+    // keeps callbacks alive until explicit unregister and can be reclaimed
+    // deterministically even on hosts that defer adapter destruction.
+    static auto* states = new ActionStates();
+    return *states;
 }
 
 std::string next_hotkey_action_id() {
@@ -129,12 +129,61 @@ void forget_action_attachments(std::string_view action_id) {
     erase_action(g_toolbar_attachments);
 }
 
-struct ActionAdapter : public action_handler_t,
-                       public std::enable_shared_from_this<ActionAdapter> {
+struct ActionState {
     std::function<Status()> handler;
     std::function<Status(const ActionContext&)> handler_with_context;
     std::function<bool()>   enabled;
     std::function<bool(const ActionContext&)> enabled_with_context;
+    std::size_t active_callbacks{0};
+    bool unregister_queued{false};
+    bool unregistering{false};
+};
+
+class ActionCallbackScope {
+public:
+    explicit ActionCallbackScope(std::shared_ptr<ActionState> state)
+        : state_(std::move(state)) {
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        if (!state_->unregistering) {
+            ++state_->active_callbacks;
+            active_ = true;
+        }
+    }
+
+    ~ActionCallbackScope() {
+        if (!active_)
+            return;
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        --state_->active_callbacks;
+    }
+
+    ActionCallbackScope(const ActionCallbackScope&) = delete;
+    ActionCallbackScope& operator=(const ActionCallbackScope&) = delete;
+
+    bool active() const noexcept { return active_; }
+
+private:
+    std::shared_ptr<ActionState> state_;
+    bool active_{false};
+};
+
+class DeferredActionUnregister final : public ui_request_t {
+public:
+    explicit DeferredActionUnregister(std::string action_id)
+        : action_id_(std::move(action_id)) {}
+
+    bool idaapi run() override {
+        (void)ida::plugin::unregister_action(action_id_);
+        return false;
+    }
+
+private:
+    std::string action_id_;
+};
+
+struct ActionAdapter : public action_handler_t {
+    explicit ActionAdapter(std::weak_ptr<ActionState> state)
+        : state_(std::move(state)) {}
 
     static ActionContext to_action_context(const action_ctx_base_t* ctx) {
         ActionContext out;
@@ -171,14 +220,20 @@ struct ActionAdapter : public action_handler_t,
     }
 
     int idaapi activate(action_activation_ctx_t *ctx) override {
-        const auto keep_alive = weak_from_this().lock();
+        const auto state = state_.lock();
+        if (!state)
+            return 0;
+        ActionCallbackScope callback_scope(state);
+        if (!callback_scope.active())
+            return 0;
+
         try {
-            if (handler_with_context) {
+            if (state->handler_with_context) {
                 auto context = to_action_context(ctx);
-                return handler_with_context(context).has_value() ? 1 : 0;
+                return state->handler_with_context(context).has_value() ? 1 : 0;
             }
-            if (handler)
-                return handler().has_value() ? 1 : 0;
+            if (state->handler)
+                return state->handler().has_value() ? 1 : 0;
         } catch (...) {
             return 0;
         }
@@ -186,21 +241,30 @@ struct ActionAdapter : public action_handler_t,
     }
 
     action_state_t idaapi update(action_update_ctx_t *ctx) override {
-        const auto keep_alive = weak_from_this().lock();
+        const auto state = state_.lock();
+        if (!state)
+            return AST_DISABLE;
+        ActionCallbackScope callback_scope(state);
+        if (!callback_scope.active())
+            return AST_DISABLE;
+
         try {
-            if (enabled_with_context) {
+            if (state->enabled_with_context) {
                 auto context = to_action_context(ctx);
-                if (!enabled_with_context(context))
+                if (!state->enabled_with_context(context))
                     return AST_DISABLE;
                 return AST_ENABLE;
             }
-            if (enabled && !enabled())
+            if (state->enabled && !state->enabled())
                 return AST_DISABLE;
             return AST_ENABLE;
         } catch (...) {
             return AST_DISABLE;
         }
     }
+
+private:
+    std::weak_ptr<ActionState> state_;
 };
 
 } // anonymous namespace
@@ -213,24 +277,30 @@ Status register_action(const Action& action) {
     if (action.label.empty())
         return std::unexpected(Error::validation("Action label cannot be empty"));
 
-    auto adapter = std::make_shared<ActionAdapter>();
-    adapter->handler = action.handler;
-    adapter->handler_with_context = action.handler_with_context;
-    adapter->enabled = action.enabled;
-    adapter->enabled_with_context = action.enabled_with_context;
+    auto state = std::make_shared<ActionState>();
+    state->handler = action.handler;
+    state->handler_with_context = action.handler_with_context;
+    state->enabled = action.enabled;
+    state->enabled_with_context = action.enabled_with_context;
 
-    action_desc_t desc = ACTION_DESC_LITERAL_PLUGMOD(
+    // action_handler_t defines the SDK allocator used by ordinary new/delete.
+    // make_shared must not be used here because it bypasses that allocator,
+    // while the kernel deletes owned handlers through action_handler_t.
+    auto adapter = std::make_unique<ActionAdapter>(state);
+
+    action_desc_t desc = ACTION_DESC_LITERAL_OWNER(
         action.id.c_str(),
         action.label.c_str(),
         adapter.get(),
-        nullptr, // plugmod owner (nullptr = global)
+        nullptr,
         action.hotkey.empty() ? nullptr : action.hotkey.c_str(),
         action.tooltip.empty() ? nullptr : action.tooltip.c_str(),
-        action.icon);
+        action.icon,
+        ADF_OWN_HANDLER);
 
     {
-        std::lock_guard<std::mutex> lock(action_adapter_mutex());
-        const auto insertion = action_adapters().emplace(action.id, adapter);
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        const auto insertion = action_states().emplace(action.id, state);
         if (!insertion.second) {
             return std::unexpected(Error::validation("Action is already registered",
                                                      action.id));
@@ -238,35 +308,79 @@ Status register_action(const Action& action) {
     }
 
     if (!register_action(desc)) {
-        std::shared_ptr<ActionAdapter> reclaimed;
+        std::shared_ptr<ActionState> reclaimed;
         {
-            std::lock_guard<std::mutex> lock(action_adapter_mutex());
-            auto it = action_adapters().find(action.id);
-            if (it != action_adapters().end() && it->second == adapter) {
+            std::lock_guard<std::mutex> lock(action_state_mutex());
+            auto it = action_states().find(action.id);
+            if (it != action_states().end() && it->second == state) {
                 reclaimed = std::move(it->second);
-                action_adapters().erase(it);
+                action_states().erase(it);
             }
         }
         return std::unexpected(Error::sdk("register_action failed",
                                           action.id));
     }
+    (void)adapter.release();
     return ida::ok();
 }
 
 Status unregister_action(std::string_view action_id) {
     std::string id(action_id);
+
+    std::shared_ptr<ActionState> state;
+    bool defer_unregister = false;
+    {
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        auto it = action_states().find(id);
+        if (it != action_states().end()) {
+            state = it->second;
+            if (state->active_callbacks != 0) {
+                if (state->unregister_queued)
+                    return ida::ok();
+                state->unregister_queued = true;
+                defer_unregister = true;
+            } else if (state->unregistering) {
+                return ida::ok();
+            } else {
+                state->unregistering = true;
+            }
+        }
+    }
+
+    if (defer_unregister) {
+        const int request_id = execute_ui_requests(
+            new DeferredActionUnregister(id),
+            nullptr);
+        if (request_id != 0)
+            return ida::ok();
+
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        auto it = action_states().find(id);
+        if (it != action_states().end() && it->second == state)
+            state->unregister_queued = false;
+        return std::unexpected(Error::sdk("Could not defer action unregistration", id));
+    }
+
     if (!::unregister_action(id.c_str())) {
+        if (state) {
+            std::lock_guard<std::mutex> lock(action_state_mutex());
+            auto it = action_states().find(id);
+            if (it != action_states().end() && it->second == state) {
+                state->unregister_queued = false;
+                state->unregistering = false;
+            }
+        }
         forget_action_attachments(action_id);
         return std::unexpected(Error::not_found("Action not found", id));
     }
     forget_action_attachments(action_id);
-    std::shared_ptr<ActionAdapter> reclaimed;
+    std::shared_ptr<ActionState> reclaimed;
     {
-        std::lock_guard<std::mutex> lock(action_adapter_mutex());
-        auto it = action_adapters().find(id);
-        if (it != action_adapters().end()) {
+        std::lock_guard<std::mutex> lock(action_state_mutex());
+        auto it = action_states().find(id);
+        if (it != action_states().end()) {
             reclaimed = std::move(it->second);
-            action_adapters().erase(it);
+            action_states().erase(it);
         }
     }
     return ida::ok();

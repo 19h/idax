@@ -704,6 +704,51 @@ void test_plugin_action_and_hotkey_lifecycle() {
               "owned adapter releases callback state on unregister");
     }
 
+    constexpr std::string_view self_unregister_id =
+        "idax:test:self_unregistering_action";
+    bool self_unregister_entered = false;
+    bool self_unregister_succeeded = false;
+    auto self_unregister_state = std::make_shared<int>(29);
+    std::weak_ptr<int> self_unregister_observer = self_unregister_state;
+    ida::plugin::Action self_unregistering_action{
+        .id = std::string(self_unregister_id),
+        .label = "idax self-unregister probe",
+        .handler = [&, retained = self_unregister_state] {
+            (void)retained;
+            self_unregister_entered = true;
+            auto result = ida::plugin::unregister_action(self_unregister_id);
+            self_unregister_succeeded = result.has_value();
+            return result;
+        },
+    };
+
+    auto self_registered =
+        ida::plugin::register_action(self_unregistering_action);
+    CHECK(self_registered.has_value(), "self-unregistering action registers");
+    if (self_registered) {
+        self_unregistering_action.handler = {};
+        self_unregister_state.reset();
+        CHECK(!self_unregister_observer.expired(),
+              "registered self-unregister callback state is retained");
+
+        auto activated = ida::plugin::activate_action(self_unregister_id);
+        if (activated) {
+            CHECK(self_unregister_entered,
+                  "self-unregistering action callback is entered");
+            CHECK(self_unregister_succeeded,
+                  "action can unregister itself during activation");
+            CHECK(!self_unregister_observer.expired(),
+                  "deferred unregister retains callback state through activation");
+            SKIP("callback state is released on the next interactive UI iteration");
+        } else {
+            SKIP("headless host does not dispatch self-unregistering action");
+            CHECK(ida::plugin::unregister_action(self_unregister_id).has_value(),
+                  "self-unregistering action has a fallback teardown");
+            CHECK(self_unregister_observer.expired(),
+                  "fallback teardown releases self-unregister callback state");
+        }
+    }
+
     constexpr std::string_view throwing_id = "idax:test:throwing_action";
     bool throwing_callback_entered = false;
     ida::plugin::Action throwing_action{
