@@ -107,12 +107,14 @@ Result<std::string> ask_text(std::string_view prompt,
 }
 
 Result<bool> ask_form(std::string_view markup) {
-    if (markup.empty())
-        return std::unexpected(Error::validation("Form markup cannot be empty"));
+    auto valid_markup = detail::validate_form_markup(markup);
+    if (!valid_markup)
+        return std::unexpected(valid_markup.error());
 
     qstring qmarkup = ida::detail::to_qstring(markup);
     int rc = ::ask_form(qmarkup.c_str());
-    if (rc < 0)
+    // With BUTTON NO present, the SDK returns -1 for cancellation.
+    if (rc < -1)
         return std::unexpected(Error::sdk("ask_form failed"));
     return rc > 0;
 }

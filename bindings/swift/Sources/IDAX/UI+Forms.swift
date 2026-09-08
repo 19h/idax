@@ -7,6 +7,19 @@ extension UI {
         public var value: Value
         public init(_ value: Value) { self.value = value }
     }
+    /// A typed value cell for caller-authored IDA form markup. Arguments follow
+    /// native placeholder order; each checkbox/radio group contributes one
+    /// argument at its closing bracket. No native storage is exposed.
+    public struct FormArgument {
+        fileprivate let binding: FormBindingKind
+        private init(_ binding: FormBindingKind) { self.binding = binding }
+        public static func integer(_ value: FormBinding<Int64>) -> Self { Self(.integer(value)) }
+        public static func bitset(_ value: FormBinding<UInt16>) -> Self { Self(.bitset(value)) }
+        public static func radio(_ value: FormBinding<UInt16>) -> Self { Self(.radio(value)) }
+        public static func address(_ value: FormBinding<Address>) -> Self { Self(.address(value)) }
+        public static func text(_ value: FormBinding<String>) -> Self { Self(.text(value)) }
+        public static func path(_ value: FormBinding<String>) -> Self { Self(.path(value)) }
+    }
     /// Builds typed controls with private SDK storage. One form supports up to
     /// 64 bound controls; checkbox and radio groups each count as one control.
     public final class FormBuilder {
@@ -85,35 +98,42 @@ extension UI {
                 }
             }
             guard accepted != 0 else { return false }
-            var outputs: [FormOutput] = []
-            for (entry, native) in zip(entries, prepared.fields) {
-                switch entry.binding {
-                case .integer: outputs.append(.integer(native.integer))
-                case .bitset, .radio: outputs.append(.bits(native.bits))
-                case .address: outputs.append(.address(native.address))
-                case .text, .path: outputs.append(.text(try borrowCString(native.output_text, "form.text")))
-                }
-            }
-            for (entry, output) in zip(entries, outputs) {
-                switch (entry.binding, output) {
-                case (.integer(let binding), .integer(let value)): binding.value = value
-                case (.bitset(let binding), .bits(let value)), (.radio(let binding), .bits(let value)):
-                    binding.value = value
-                case (.address(let binding), .address(let value)): binding.value = value
-                case (.text(let binding), .text(let value)), (.path(let binding), .text(let value)):
-                    binding.value = value
-                default: preconditionFailure("Form binding and output kind diverged")
-                }
-            }
+            try commitFormOutputs(entries, prepared)
             return true
         }
     }
-    /// Markup without bound controls. Use FormBuilder for values and controls.
+    /// Markup without arguments. Native layout directives, help text, tabs,
+    /// splitters, and escaped percent signs remain available.
     public static func askForm(markup: String) throws(IDAError) -> Bool {
-        let text = try LifecycleStrings([markup])
+        try askForm(markup: markup, bindings: [])
+    }
+    /// Show caller-authored markup using at most 64 typed arguments. Scalar,
+    /// text, path, checkbox, radio, and compatible dynamic-label placeholders
+    /// are validated before native dispatch. Callback and unsupported native
+    /// pointer controls are rejected. Values commit together only on acceptance.
+    public static func askForm(markup: String, bindings: [FormArgument]) throws(IDAError) -> Bool {
+        let entries = bindings.map { FormEntry(label: "", binding: $0.binding) }
+        let prepared = try PreparedForm(title: markup, includesTitle: true, entries: entries)
         var accepted: Int32 = 0
-        try bridgeCall("ui.askForm") { idax_swift_form_ask_markup(text[0], &accepted, $0) }
-        return accepted != 0
+        try bridgeCall("ui.askForm") { error in
+            prepared.fields.withUnsafeMutableBufferPointer {
+                idax_swift_form_ask_bound(prepared.title, $0.baseAddress, $0.count, &accepted, error)
+            }
+        }
+        guard accepted != 0 else { return false }
+        try commitFormOutputs(entries, prepared)
+        return true
+    }
+    /// The same preparation and validation used by askForm, without opening a
+    /// modal host. Internal so nonmodal regression tests exercise the real path.
+    internal static func validateForm(markup: String, bindings: [FormArgument]) throws(IDAError) {
+        let entries = bindings.map { FormEntry(label: "", binding: $0.binding) }
+        let prepared = try PreparedForm(title: markup, includesTitle: true, entries: entries)
+        try bridgeCall("ui.validateForm") { error in
+            prepared.fields.withUnsafeBufferPointer {
+                idax_swift_form_validate_bound(prepared.title, $0.baseAddress, $0.count, error)
+            }
+        }
     }
 }
 private enum FormOutput {
@@ -122,13 +142,35 @@ private enum FormOutput {
     case address(Address)
     case text(String)
 }
-private enum FormBindingKind {
+fileprivate enum FormBindingKind {
     case integer(UI.FormBinding<Int64>)
     case bitset(UI.FormBinding<UInt16>)
     case radio(UI.FormBinding<UInt16>)
     case address(UI.FormBinding<Address>)
     case text(UI.FormBinding<String>)
     case path(UI.FormBinding<String>)
+}
+private func commitFormOutputs(_ entries: [FormEntry], _ prepared: PreparedForm) throws(IDAError) {
+    var outputs: [FormOutput] = []
+    for (entry, native) in zip(entries, prepared.fields) {
+        switch entry.binding {
+        case .integer: outputs.append(.integer(native.integer))
+        case .bitset, .radio: outputs.append(.bits(native.bits))
+        case .address: outputs.append(.address(native.address))
+        case .text, .path: outputs.append(.text(try borrowCString(native.output_text, "form.text")))
+        }
+    }
+    for (entry, output) in zip(entries, outputs) {
+        switch (entry.binding, output) {
+        case (.integer(let binding), .integer(let value)): binding.value = value
+        case (.bitset(let binding), .bits(let value)), (.radio(let binding), .bits(let value)):
+            binding.value = value
+        case (.address(let binding), .address(let value)): binding.value = value
+        case (.text(let binding), .text(let value)), (.path(let binding), .text(let value)):
+            binding.value = value
+        default: preconditionFailure("Form binding and output kind diverged")
+        }
+    }
 }
 private struct FormEntry {
     let label: String

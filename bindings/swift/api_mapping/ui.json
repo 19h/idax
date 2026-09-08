@@ -1232,14 +1232,19 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "0dd2ed16573e8336fb65"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "edeaf6bf51089d180c8adce04de6d6ccd7362d374b2f081c177797f62bc3c927",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
         }
       ]
     },
@@ -1250,14 +1255,19 @@
       "cpp_signature": "void (Address &) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "0dd2ed16573e8336fb65"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "9069ec4ff08474de45bab984002fb759deab79e1df7d6b292ee586c4ee6ba3f9",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
         }
       ]
     },
@@ -1268,15 +1278,20 @@
       "cpp_signature": "void () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "e34fd09c2c64fbe9de0b",
+        "0dd2ed16573e8336fb65",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "d6be9aee15a264300b2740ffaacdce2c8c2ddddb63e5008e676e1ff59304963f",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addAddress(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addAddress(_ label: String, value: UI.FormBinding<Address>, width: Int32 = 16, visibleWidth: Int32 = 16) -> Self"
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1291,15 +1306,20 @@
       "cpp_signature": "Status () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "e34fd09c2c64fbe9de0b",
+        "0dd2ed16573e8336fb65",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "bc52e332145e463da52bd91fbd30cd3e0a4577bbe29f7f6e5291e68627b4fff7",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addAddress(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addAddress(_ label: String, value: UI.FormBinding<Address>, width: Int32 = 16, visibleWidth: Int32 = 16) -> Self"
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1314,15 +1334,20 @@
       "cpp_signature": "ea_t *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "e34fd09c2c64fbe9de0b",
+        "0dd2ed16573e8336fb65",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "13fc184a102134b67b0b239c950fb48b797b3c9fe6d090b59f8aead89b817aab",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addAddress(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addAddress(_ label: String, value: UI.FormBinding<Address>, width: Int32 = 16, visibleWidth: Int32 = 16) -> Self"
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1589,14 +1614,19 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "314302a576b617a51fa7"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "6f20d85a4589b76885a5b09f545e3d8785d226b43cbc12d1395b001e3c580255",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
         }
       ]
     },
@@ -1607,14 +1637,19 @@
       "cpp_signature": "void (std::int64_t &) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "314302a576b617a51fa7"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "092c26f916bada51fba613d3e63ec16f4d222329733bf5c812b3806bc030f9ea",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
         }
       ]
     },
@@ -1625,15 +1660,20 @@
       "cpp_signature": "void () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "4e3706f99425edc3fd29e46965b75c4590545516197b873b2dab9e6d01aa8ad2",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1648,15 +1688,20 @@
       "cpp_signature": "Status ()",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "49e954bc8dac2a2dab4aed6d42e2968e7114b4d9d489bf6d551fe7272a157ef3",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1671,15 +1716,20 @@
       "cpp_signature": "sval_t *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "f73247d63ab50b7b573874842cf9b4ee28ad05d9fc7ffb60f669db78b910305b",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1694,14 +1744,19 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "4156fa162ad14f3b5eaf"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "99aa2a5411e72e84b2f910cedf1cb65b9dc1b1a0db824b772010a9a2bb722c60",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
         }
       ]
     },
@@ -1712,14 +1767,24 @@
       "cpp_signature": "void (std::string &, bool) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "4156fa162ad14f3b5eaf",
+        "5013e71ecced994256a4"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "f01318bcdd6588745e2ab62db55a21217da78f4d89143acfa1a81b0c67077211",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormBuilder.addPath(_:value:forSaving:visibleWidth:)",
+          "declaration": "@discardableResult func addPath(_ label: String, value: UI.FormBinding<String>, forSaving: Bool = true, visibleWidth: Int32 = 64) -> Self"
         }
       ]
     },
@@ -1730,15 +1795,20 @@
       "cpp_signature": "void ()",
       "mapping": "private_bridge",
       "swift": [
-        "5013e71ecced994256a4",
+        "4156fa162ad14f3b5eaf",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "445b4e1392d9e9f80e1db056be0195b4fa88bab24589d8a899f1f1afa63700dd",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addPath(_:value:forSaving:visibleWidth:)",
-          "declaration": "@discardableResult func addPath(_ label: String, value: UI.FormBinding<String>, forSaving: Bool = true, visibleWidth: Int32 = 64) -> Self"
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1771,15 +1841,20 @@
       "cpp_signature": "Status ()",
       "mapping": "private_bridge",
       "swift": [
-        "5013e71ecced994256a4",
+        "4156fa162ad14f3b5eaf",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "0352fbeabc0c5fb3213e12545e52e97eac2d8019f06669775caf36e6cbfacbc7",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addPath(_:value:forSaving:visibleWidth:)",
-          "declaration": "@discardableResult func addPath(_ label: String, value: UI.FormBinding<String>, forSaving: Bool = true, visibleWidth: Int32 = 64) -> Self"
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1794,15 +1869,20 @@
       "cpp_signature": "char *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "5013e71ecced994256a4",
+        "4156fa162ad14f3b5eaf",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "e8770e4fbea50751cb2a7fbae4b47d2e96667401e2fc0ac0bf431bad4b45aba4",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addPath(_:value:forSaving:visibleWidth:)",
-          "declaration": "@discardableResult func addPath(_ label: String, value: UI.FormBinding<String>, forSaving: Bool = true, visibleWidth: Int32 = 64) -> Self"
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1817,14 +1897,19 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "314302a576b617a51fa7"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "5e22470d077a0478b0c9ff169b58c380f8e40fcb9b96fdf9ca431f4d852fdb26",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
         }
       ]
     },
@@ -1835,14 +1920,19 @@
       "cpp_signature": "void (sval_t &) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "314302a576b617a51fa7"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "35ef52396791c5841fc858d9e492e23c4be9fe51de6794fee481c0d9c87094e8",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
         }
       ]
     },
@@ -1853,15 +1943,20 @@
       "cpp_signature": "void () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "33ea8d7a81dd8fa65277434edf7a1d173804a833e526a5a4f85d190febd81e69",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1876,15 +1971,20 @@
       "cpp_signature": "Status () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "c18ac584a1d625a6727668e98854579715921a9d082f2099e9c3bd396dd1b3b6",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1899,15 +1999,20 @@
       "cpp_signature": "sval_t *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "2ebd9486a02814d25a8a",
+        "314302a576b617a51fa7",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "055ee32ee1318ba208ca79168a9d796b7fde1d392149df0eaf5d124b7593ca4f",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addInteger(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addInteger(_ label: String, value: UI.FormBinding<Int64>, width: Int32 = 10, visibleWidth: Int32 = 10) -> Self"
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1922,14 +2027,19 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "a9aa9784319ce8abefd9"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "6934b2e30c9d3c3d78950125950145c256a9731383eaf9fd83f5d54e36586fac",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
         }
       ]
     },
@@ -1940,14 +2050,19 @@
       "cpp_signature": "void (std::string &) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "a9aa9784319ce8abefd9"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "ea14c43512790128df806892925ff85d6c4680b48e34da7a3f6800c58fd0972d",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
         }
       ]
     },
@@ -1958,15 +2073,20 @@
       "cpp_signature": "void ()",
       "mapping": "private_bridge",
       "swift": [
-        "ec2b5d358d563d141b1a",
+        "a9aa9784319ce8abefd9",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "bb42d452f510fffafbfc99fa5fbd6ad88d5cf13d3f72150def4625ace31ee6ae",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addText(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addText(_ label: String, value: UI.FormBinding<String>, width: Int32 = 256, visibleWidth: Int32 = 40) -> Self"
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -1981,15 +2101,20 @@
       "cpp_signature": "Status ()",
       "mapping": "private_bridge",
       "swift": [
-        "ec2b5d358d563d141b1a",
+        "a9aa9784319ce8abefd9",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "169f01208b72aeb6a85ec7b981d5a8c95f60f12b228bb07fb496a95093a74e5a",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addText(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addText(_ label: String, value: UI.FormBinding<String>, width: Int32 = 256, visibleWidth: Int32 = 40) -> Self"
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -2004,15 +2129,20 @@
       "cpp_signature": "qstring *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "ec2b5d358d563d141b1a",
+        "a9aa9784319ce8abefd9",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "7e3a940e1fdea44c09451a56eb696d866088e5d2c461a2db9b260b54129b2d29",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addText(_:value:width:visibleWidth:)",
-          "declaration": "@discardableResult func addText(_ label: String, value: UI.FormBinding<String>, width: Int32 = 256, visibleWidth: Int32 = 40) -> Self"
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -2027,14 +2157,24 @@
       "cpp_signature": "class",
       "mapping": "adapted",
       "swift": [
-        "f2ffd86e722753d33b05"
+        "f2ffd86e722753d33b05",
+        "5e3c9f1454d33fb326d4",
+        "ee5555d9dbbd34123c05"
       ],
-      "rationale": "The typed FormBinding<Value> reference cell replaces the native binding class; Int64, UInt16, Address, or String matches its canonical storage value.",
+      "rationale": "Typed FormBinding<Value> cells and opaque FormArgument factories replace the native binding class. Numeric, UInt16, Address, and String values remain constructible without exposing SDK argument storage.",
       "cpp_fingerprint": "877e5d25011eec449aadb01f74ac0b716b69c0d5a1319dcb8bcd9c1aa2b27493",
       "swift_targets": [
         {
           "path": "UI.FormBinding",
           "declaration": "final class FormBinding<Value>"
+        },
+        {
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
         }
       ]
     },
@@ -2045,14 +2185,24 @@
       "cpp_signature": "void (std::uint16_t &) noexcept",
       "mapping": "adapted",
       "swift": [
-        "b9206d7c602ae5219029"
+        "b9206d7c602ae5219029",
+        "5e3c9f1454d33fb326d4",
+        "ee5555d9dbbd34123c05"
       ],
-      "rationale": "An owned Swift reference cell replaces a borrowed native lvalue; the builder retains the binding through preparation, modal display, and accepted-result commit.",
+      "rationale": "An owned typed reference cell replaces the native lvalue reference and is retained by its form argument. For path controls, the builder exposes the forSaving Bool; caller-authored f markup supplies the native open/save mode itself.",
       "cpp_fingerprint": "2b81b91023bd1efb6007d175f3ebe5259d02d3cf5daa458f4b73c1c1e71750bf",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
+        },
+        {
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
         }
       ]
     },
@@ -2063,15 +2213,25 @@
       "cpp_signature": "void () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "8c6686dd39d4cb8f785b",
+        "5e3c9f1454d33fb326d4",
+        "ee5555d9dbbd34123c05",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "d33bc503b4a44a9ffa6f24e258ddb79d027722e8cf1fb6ea1cc4aa8b768b9a00",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addBitset(_:value:choices:)",
-          "declaration": "@discardableResult func addBitset(_ label: String, value: UI.FormBinding<UInt16>, choices: [String]) -> Self"
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -2086,15 +2246,25 @@
       "cpp_signature": "Status () noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "8c6686dd39d4cb8f785b",
+        "5e3c9f1454d33fb326d4",
+        "ee5555d9dbbd34123c05",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "df40a83d9aeb6748ceaaf342146092aab0c084ec4e31753751a6b73ae7d5f83b",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addBitset(_:value:choices:)",
-          "declaration": "@discardableResult func addBitset(_ label: String, value: UI.FormBinding<UInt16>, choices: [String]) -> Self"
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -2109,15 +2279,25 @@
       "cpp_signature": "ushort *() noexcept",
       "mapping": "private_bridge",
       "swift": [
-        "8c6686dd39d4cb8f785b",
+        "5e3c9f1454d33fb326d4",
+        "ee5555d9dbbd34123c05",
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "SDK argument storage, preparation, and commit are private implementation stages of the typed form. ask prepares every binding, uses native SDK storage, and commits all converted outputs only when accepted.",
+      "rationale": "SDK argument storage, preparation, and commit remain private in the shared form path. Native placeholder validation determines compatible storage and character-buffer capacity; all outputs are copied and converted before any caller-owned binding is committed on acceptance.",
       "cpp_fingerprint": "282b31e4f106709850d7969cc3a9524f43e11d366a87536d34f751e6d862b4cc",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.addBitset(_:value:choices:)",
-          "declaration": "@discardableResult func addBitset(_ label: String, value: UI.FormBinding<UInt16>, choices: [String]) -> Self"
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
         },
         {
           "path": "UI.FormBuilder.ask()",
@@ -3936,7 +4116,7 @@
       "swift": [
         "29c5e97a8e02ade19700"
       ],
-      "rationale": "The no-binding overload accepts static markup. The variadic binding overload is represented by FormBuilder, which retains typed values and constructs their matching markup before invoking the modal form.",
+      "rationale": "The unbound overload uses the same native-layout validator with zero arguments. Static directives/help/title, tabs, splitters, and escaped percent signs are preserved; missing bound arguments are rejected before native dispatch, and Cancel/No return false.",
       "cpp_fingerprint": "053d17acbcef23a52cab7b39d79de76991820bbf453c824b23663d0ea1d8fade",
       "swift_targets": [
         {
@@ -3952,14 +4132,19 @@
       "cpp_signature": "Result<bool> (std::string_view, Bindings &&...)",
       "mapping": "adapted",
       "swift": [
-        "22cfb44b346894707796"
+        "3de5675ad01c51bf5a21",
+        "cd2d55b9a0803e95dd5f"
       ],
-      "rationale": "The no-binding overload accepts static markup. The variadic binding overload is represented by FormBuilder, which retains typed values and constructs their matching markup before invoking the modal form.",
+      "rationale": "Caller-authored native markup is passed unchanged with ordered opaque typed arguments. The six stock binding kinds preserve numeric/text/path values and checkbox/radio groups; compatible placeholder types and counts are validated before varargs, and copied outputs commit transactionally only on acceptance. Native callbacks and unsupported pointer controls stay private; at most 64 arguments are supported.",
       "cpp_fingerprint": "efc1987cf1d0bc09cb94cef5003c3bd57efb3af3854e837c9dda7e08ac1c2252",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.ask()",
-          "declaration": "func ask() throws(IDAError) -> Bool"
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
+        },
+        {
+          "path": "UI.FormArgument",
+          "declaration": "struct FormArgument"
         }
       ]
     },
@@ -4312,11 +4497,16 @@
       "cpp_signature": "void (Bindings &...)",
       "mapping": "private_bridge",
       "swift": [
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "Markup generation, injection validation, variadic preparation, and atomic accepted-result commit are private builder implementation steps; public markup and ask expose their concrete result without SDK pointers or C++ parameter packs.",
+      "rationale": "Both custom-markup forms and generated forms use the same private preparation and transactional accepted-result commit. No native vararg storage or raw pointer is public.",
       "cpp_fingerprint": "173d075f04bbb9422312b92fff6851dbdb7ccc5690dc611d24849ad1d42703c1",
       "swift_targets": [
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
+        },
         {
           "path": "UI.FormBuilder.ask()",
           "declaration": "func ask() throws(IDAError) -> Bool"
@@ -4330,11 +4520,16 @@
       "cpp_signature": "Status (Bindings &...)",
       "mapping": "private_bridge",
       "swift": [
+        "3de5675ad01c51bf5a21",
         "22cfb44b346894707796"
       ],
-      "rationale": "Markup generation, injection validation, variadic preparation, and atomic accepted-result commit are private builder implementation steps; public markup and ask expose their concrete result without SDK pointers or C++ parameter packs.",
+      "rationale": "Both custom-markup forms and generated forms use the same private preparation and transactional accepted-result commit. No native vararg storage or raw pointer is public.",
       "cpp_fingerprint": "4aea340968df604dabc804b00909da756500734c15cc0dbdc5b44a68079923fa",
       "swift_targets": [
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
+        },
         {
           "path": "UI.FormBuilder.ask()",
           "declaration": "func ask() throws(IDAError) -> Bool"
@@ -4348,14 +4543,24 @@
       "cpp_signature": "Status (std::string_view)",
       "mapping": "private_bridge",
       "swift": [
-        "ee9de1ed1010d064380e"
+        "29c5e97a8e02ade19700",
+        "3de5675ad01c51bf5a21",
+        "22cfb44b346894707796"
       ],
-      "rationale": "Markup generation, injection validation, variadic preparation, and atomic accepted-result commit are private builder implementation steps; public markup and ask expose their concrete result without SDK pointers or C++ parameter packs.",
+      "rationale": "Canonical nonempty/NUL validation and supported placeholder storage/count validation run before native form dispatch. Generated forms and caller-authored layouts share the checked dispatch path.",
       "cpp_fingerprint": "4670cc46317b393e64231cd44ce9912981c3dc3c1129d38877aed4a6e3905ddb",
       "swift_targets": [
         {
-          "path": "UI.FormBuilder.markup",
-          "declaration": "var markup: String { get throws(IDAError) }"
+          "path": "UI.askForm(markup:)",
+          "declaration": "static func askForm(markup: String) throws(IDAError) -> Bool"
+        },
+        {
+          "path": "UI.askForm(markup:bindings:)",
+          "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool"
+        },
+        {
+          "path": "UI.FormBuilder.ask()",
+          "declaration": "func ask() throws(IDAError) -> Bool"
         }
       ]
     },
@@ -4384,12 +4589,17 @@
       "cpp_signature": "FormAddressBinding (Address &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "0dd2ed16573e8336fb65",
         "b9206d7c602ae5219029",
         "e34fd09c2c64fbe9de0b"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "3176f22df02723b9f4158ac48bb6294c1b8844d55011107cbb8821c8dc8eda34",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.address(_:)",
+          "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4407,12 +4617,17 @@
       "cpp_signature": "FormU16Binding (std::uint16_t &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "5e3c9f1454d33fb326d4",
         "b9206d7c602ae5219029",
         "8c6686dd39d4cb8f785b"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "cb5e1d8646ea51fb438484a452c6f5eb5972a3d1c56b59e9e1c3bf27454b5651",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.bitset(_:)",
+          "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4448,12 +4663,17 @@
       "cpp_signature": "FormIntBinding (std::int64_t &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "314302a576b617a51fa7",
         "b9206d7c602ae5219029",
         "2ebd9486a02814d25a8a"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "0d7e4572b8d13388b462242298fae8d2c5f688d18490db2a2dfa76c7198fcb68",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4471,12 +4691,17 @@
       "cpp_signature": "FormPathBinding (std::string &, bool) noexcept",
       "mapping": "adapted",
       "swift": [
+        "4156fa162ad14f3b5eaf",
         "b9206d7c602ae5219029",
         "5013e71ecced994256a4"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "795991a13893364894d8b140f6649233755dce239bc3b1577cbbc5e70e36d5f3",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.path(_:)",
+          "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4494,12 +4719,17 @@
       "cpp_signature": "FormU16Binding (std::uint16_t &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "ee5555d9dbbd34123c05",
         "b9206d7c602ae5219029",
         "c07273cfb31506cbcc68"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "2ddb7d54ce96df9816ca9578f2aef0b07d322dbe0924951304bc7b61f6982f9a",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.radio(_:)",
+          "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4517,12 +4747,17 @@
       "cpp_signature": "FormSvalBinding (sval_t &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "314302a576b617a51fa7",
         "b9206d7c602ae5219029",
         "2ebd9486a02814d25a8a"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "1bcc12f2c95936d80d0f906ae420ee8ad88fb6339b5deae4d4db84ea0133afb5",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.integer(_:)",
+          "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"
@@ -4540,12 +4775,17 @@
       "cpp_signature": "FormTextBinding (std::string &) noexcept",
       "mapping": "adapted",
       "swift": [
+        "a9aa9784319ce8abefd9",
         "b9206d7c602ae5219029",
         "ec2b5d358d563d141b1a"
       ],
-      "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
+      "rationale": "A typed FormBinding cell is retained by an opaque FormArgument for caller-authored markup or by the corresponding FormBuilder control. Native lvalue lifetime becomes owned reference-cell lifetime; successful modal acceptance commits all converted outputs together.",
       "cpp_fingerprint": "63d392780fb986cd0fa211dd0ccb109d952ea45d1af4c1d85395f71a1d25aae1",
       "swift_targets": [
+        {
+          "path": "UI.FormArgument.text(_:)",
+          "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument"
+        },
         {
           "path": "UI.FormBinding.init(_:)",
           "declaration": "init(_ value: Value)"

@@ -6,6 +6,7 @@
 /// use, flowchart generation, event routing, and chooser construction.
 
 #include <ida/idax.hpp>
+#include <cstdarg>
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -23,6 +24,121 @@ static int g_skip = 0;
 
 #define SKIP(msg)                                                              \
     do { ++g_skip; std::printf("  SKIP: %s\n", msg); } while (0)
+
+namespace {
+struct FormDispatchState {
+    int result{};
+    int calls{};
+    int unexpected_calls{};
+    bool mutate_bindings{};
+    bool prepared_values_match{};
+    std::string_view expected_markup;
+};
+
+FormDispatchState* form_dispatch_state{};
+
+callui_t idaapi form_test_dispatch(ui_notification_t notification, ...) {
+    callui_t result{};
+    auto& state = *form_dispatch_state;
+    if (notification != ui_ask_form) {
+        ++state.unexpected_calls;
+        result.i = -2;
+        return result;
+    }
+    ++state.calls;
+    va_list arguments;
+    va_start(arguments, notification);
+    const char* markup = va_arg(arguments, const char*);
+    // vask_form passes its va_list as the second dispatcher argument. Array
+    // va_list ABIs decay to a pointer; pointer va_list ABIs remain unchanged.
+    auto form_arguments = va_arg(arguments, std::decay_t<va_list>);
+    state.prepared_values_match = markup == state.expected_markup;
+    if (state.mutate_bindings) {
+        auto* integer = va_arg(form_arguments, sval_t*);
+        auto* text = va_arg(form_arguments, qstring*);
+        state.prepared_values_match = state.prepared_values_match
+            && *integer == 7 && *text == "before";
+        *integer = 41;
+        *text = "after";
+    }
+    va_end(arguments);
+    result.i = state.result;
+    return result;
+}
+
+class ScopedFormDispatch {
+    decltype(::callui) previous_ = ::callui;
+public:
+    explicit ScopedFormDispatch(FormDispatchState& state) {
+        form_dispatch_state = &state;
+        ::callui = form_test_dispatch;
+    }
+    ~ScopedFormDispatch() {
+        ::callui = previous_;
+        form_dispatch_state = nullptr;
+    }
+};
+} // namespace
+
+void test_form_result_and_commit_semantics() {
+    std::printf("[section] ui: form return codes and transactional bindings\n");
+    // Run before opening a database, so the temporary UI dispatcher is never
+    // installed while automatic analysis or this fixture's UI hooks are active.
+    constexpr std::string_view plain_markup =
+        "BUTTON NO No\nReturn semantics\n\nNo input fields\n";
+    constexpr std::string_view bound_markup =
+        "BUTTON NO No\nReturn semantics\n\n"
+        "<Integer:D:10:10::>\n<Text:q:40:40::>\n";
+    FormDispatchState state;
+    ScopedFormDispatch dispatch(state);
+
+    for (int code : {-2, -1, 0, 1}) {
+        state = {.result = code, .expected_markup = plain_markup};
+        auto plain = ida::ui::ask_form(plain_markup);
+        if (code < -1)
+            CHECK(!plain && plain.error().category == ida::ErrorCategory::SdkFailure,
+                  "unknown negative unbound result is an SDK failure");
+        else
+            CHECK(plain && *plain == (code > 0),
+                  "unbound No/Cancel is false and Yes is true");
+        CHECK(state.calls == 1 && state.prepared_values_match,
+              "unbound form reaches the SDK dispatcher with intact markup");
+        CHECK(state.unexpected_calls == 0, "unbound route has no unrelated UI dispatch");
+
+        std::int64_t integer = 7;
+        std::string text = "before";
+        state = {.result = code, .mutate_bindings = true, .expected_markup = bound_markup};
+        auto bound = ida::ui::ask_form(
+            bound_markup, ida::ui::form_int(integer), ida::ui::form_text(text));
+        if (code < -1)
+            CHECK(!bound && bound.error().category == ida::ErrorCategory::SdkFailure,
+                  "unknown negative bound result is an SDK failure");
+        else
+            CHECK(bound && *bound == (code > 0),
+                  "bound No/Cancel is false and Yes is true");
+        CHECK(integer == (code > 0 ? 41 : 7),
+              "prepared integer mutation commits only on acceptance");
+        CHECK(text == (code > 0 ? "after" : "before"),
+              "prepared text mutation commits only on acceptance");
+        CHECK(state.calls == 1 && state.prepared_values_match,
+              "bound form passes distinct prepared SDK storage in argument order");
+        CHECK(state.unexpected_calls == 0, "bound route has no unrelated UI dispatch");
+    }
+
+    for (const std::string invalid_markup : {
+            std::string{}, std::string("Title\n\nbody\0suffix", 18)}) {
+        state = {.result = 1};
+        auto plain = ida::ui::ask_form(invalid_markup);
+        CHECK(!plain && plain.error().category == ida::ErrorCategory::Validation,
+              "unbound malformed markup is rejected before SDK dispatch");
+        std::int64_t integer = 7;
+        auto bound = ida::ui::ask_form(invalid_markup, ida::ui::form_int(integer));
+        CHECK(!bound && bound.error().category == ida::ErrorCategory::Validation,
+              "bound malformed markup is rejected before SDK dispatch");
+        CHECK(state.calls == 0 && state.unexpected_calls == 0 && integer == 7,
+              "invalid markup neither dispatches nor changes caller storage");
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Graph Object — programmatic (no viewer/UI required)
@@ -764,6 +880,8 @@ int main(int argc, char** argv) {
         std::printf("FATAL: init failed: %s\n", init_r.error().message.c_str());
         return 1;
     }
+
+    test_form_result_and_commit_semantics();
 
     // Open fixture DB (idalib)
     auto open_r = ida::database::open(argv[1]);

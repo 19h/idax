@@ -67,10 +67,3 @@
 ### Phase 72 Fresh Swift Binding and PR 6 Rewrite
 
 - P72.7 Active: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.
-
-
-
-- P72.5 Active: close the final discovered caller-authored bound-form capability gap under P72.7.6; other domain implementation and evidence remain recorded.
-- P72.7.6 Active: Swift currently supports generated bound forms and unbound markup but lacks native ask_form(markup, typed bindings). Add opaque typed arguments, compatible control/count validation and positive nonmodal preparation evidence; retain the explicit interactive host boundary.
-
-- P72.7.8 Active: the SDK documents -1 as user cancellation when BUTTON NO is present; existing native/Swift form paths incorrectly return an SDK error. Correct cancellation/no-commit behavior and make unbound markup use the same NUL validation as the typed template; add isolated nonmodal dispatch evidence.

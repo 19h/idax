@@ -90933,6 +90933,442 @@
     {
       "path": [
         "UI",
+        "FormArgument"
+      ],
+      "kind": "swift.struct",
+      "declaration": "struct FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "id": "cd2d55b9a0803e95dd5f"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "address(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func address(_ value: UI.FormBinding<Address>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Address",
+                "preciseIdentifier": "s:4IDAX7Addressa"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "0dd2ed16573e8336fb65"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "bitset(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func bitset(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UInt16",
+                "preciseIdentifier": "s:s6UInt16V"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "5e3c9f1454d33fb326d4"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "integer(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func integer(_ value: UI.FormBinding<Int64>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Int64",
+                "preciseIdentifier": "s:s5Int64V"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "314302a576b617a51fa7"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "path(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func path(_ value: UI.FormBinding<String>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "String",
+                "preciseIdentifier": "s:SS"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "4156fa162ad14f3b5eaf"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "radio(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func radio(_ value: UI.FormBinding<UInt16>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UInt16",
+                "preciseIdentifier": "s:s6UInt16V"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "ee5555d9dbbd34123c05"
+    },
+    {
+      "path": [
+        "UI",
+        "FormArgument",
+        "text(_:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func text(_ value: UI.FormBinding<String>) -> UI.FormArgument",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "value",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "value"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormBinding",
+                "preciseIdentifier": "s:4IDAX2UIO11FormBindingC"
+              },
+              {
+                "kind": "text",
+                "spelling": "<"
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "String",
+                "preciseIdentifier": "s:SS"
+              },
+              {
+                "kind": "text",
+                "spelling": ">"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UI",
+            "preciseIdentifier": "s:4IDAX2UIO"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "FormArgument",
+            "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+          }
+        ]
+      },
+      "id": "a9aa9784319ce8abefd9"
+    },
+    {
+      "path": [
+        "UI",
         "FormBinding"
       ],
       "kind": "swift.class",
@@ -93739,6 +94175,76 @@
         ]
       },
       "id": "29c5e97a8e02ade19700"
+    },
+    {
+      "path": [
+        "UI",
+        "askForm(markup:bindings:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func askForm(markup: String, bindings: [UI.FormArgument]) throws(IDAError) -> Bool",
+      "source": "bindings/swift/Sources/IDAX/UI+Forms.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "markup",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "markup"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "String",
+                "preciseIdentifier": "s:SS"
+              }
+            ]
+          },
+          {
+            "name": "bindings",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "bindings"
+              },
+              {
+                "kind": "text",
+                "spelling": ": ["
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UI",
+                "preciseIdentifier": "s:4IDAX2UIO"
+              },
+              {
+                "kind": "text",
+                "spelling": "."
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "FormArgument",
+                "preciseIdentifier": "s:4IDAX2UIO12FormArgumentV"
+              },
+              {
+                "kind": "text",
+                "spelling": "]"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "Bool",
+            "preciseIdentifier": "s:Sb"
+          }
+        ]
+      },
+      "id": "3de5675ad01c51bf5a21"
     },
     {
       "path": [
