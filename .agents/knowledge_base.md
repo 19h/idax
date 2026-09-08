@@ -2898,3 +2898,38 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - Assumption SW.A1: the current umbrella and declarations, including separately accepted new semantic capabilities, define the rewrite target. Falsify by finding an intended public declaration outside the audited inventory or a superseding decision not reflected in the model. Dependent result: Phase 72 coverage manifest.
 - Assumption SW.A2: the supported initial Swift envelope can use stable Swift 6.0 and macOS 13 without experimental interop. Falsify with minimum-toolchain compile/public-client checks. Dependent result: package availability contract.
 - Bounded risks [high]: silently dropping existing fields, restoring removed IDs, or treating extension-only protocol methods as dynamically dispatched would regress established semantics. Bounded opportunity [medium]: reusing the mature graph/RAII core allows one audited ownership model across languages. No new global allocator or SDK data-symbol shadowing is required.
+
+### 35.289. Swift Executable and Session Boundary [F636]
+
+- Primary evidence: fresh `Package.swift`, native package build, actual signed XCTest loader failure, `bridge/support.cpp`, and the process-main runtime test source. The ordinary Swift build passes with pkg-config/native archive linkage; the testing launcher requires an executable rpath for `@rpath/libidalib`.
+- Assumptions SW.A2-SW.A5 are recorded in `bindings/swift/CONTRACT.md`. Falsification probes include minimum-toolchain builds, clean transitive consumers, foreign-thread calls, retained values across database reopen, and destructor-order checks. No minimum-toolchain or complete lifecycle result is inferred from a successful typecheck.
+- Bounded impact [high]: wrong-thread or stale-session SDK access; [medium]: runtime library loading and package transitivity. Native holders consume values on adoption and invalidate database-bound resources before database open/close.
+
+### 35.290. Swift Declaration and Transport Separation [F637]
+
+- Primary evidence: `include/ida/search.hpp`, `include/ida/type.hpp`, the canonical C shim, `value_schema.json`, and the new private value adapters. C++ declaration coverage and private transport coverage are separate inventories; fields, overloads, and public construction must be audited independently.
+- Assumptions SW.A1/SW.A7: current headers define scope and mapped C status/allocation conventions match implementation. Falsify through AST inventory drift, public consumer compilation, populated record round trips, false-valued success, empty arrays, and exact allocator/free review.
+- Bounded impact [high]: silent capability or field loss; [medium]: incorrect boolean/status treatment. Scalar conversions remain O(1); copied records/arrays require O(n) time and space. Generation produces explicit pending-adapter evidence and never makes a completion claim for unresolved entries.
+
+### 35.291. Callback and Hex-Rays Dependency Guards [F638]
+
+- Primary evidence: `src/decompiler.cpp` scoped-session release and visitor contracts, `bridge/decompiler.cpp`, `bridge/support.cpp`, and the new Swift ctree/resource wrappers. Generic database LIFO invalidation does not protect explicit early session close.
+- Assumption SW.A8: native callbacks use the runtime owner thread and synchronous SDK entry/exit boundaries identify valid borrow intervals. Falsify with escaped children, callback-triggered close/reopen, explicit session close with live functions/snapshots/filters, callback ARC release, and native destruction counts. Runtime evidence remains active.
+- Bounded impact [high]: invalid ctree dereference or premature decompiler teardown. Dependency acquire/release and lease checks are O(1); copied parent chains are O(depth) time/space; traversal is O(visited items plus copied payload).
+
+### 35.292. Semantic Metadata and Branch Evidence [F639]
+
+- Primary evidence: pinned SDK 9.4 headers, native semantic/branch tests, and Node/Rust/Python populated lifecycle probes. Existing graph fields and numeric discriminants remain compatible; appended fields include optional constants/value numbers, stack/local metadata, semantic call/switch records, and block shape. Value numbers identify equality within one graph, not SSA versions.
+- Assumptions: processor module identity and its instruction identifiers match the pinned SDK; fixtures contain actual branch and metadata forms. Probes require 29 x86 and 24 ARM64 branch cases, all eight microcode maturities, five decompilable functions, and positive switch/FP/stack/call/child records. The x86_64 fixture is analyzed only. Unknown processor predicates remain Unknown.
+- Bounded impact [high]: wrong branch semantics or silently dropped metadata; [medium]: fixture selection. Copy complexity is O(graph and recursive operand payload) time/space; parent snapshots cost O(depth).
+
+### 35.293. Dyld Cache Inventory and Service Boundaries [F640]
+
+- Primary format source: Apple dyld `include/mach-o/dyld_cache_format.h` at commit `fd8d0c4d52320ebf64db34f3cb280310d905c5ae`; primary service source: SDK `dscu.h` at `6929db6868a524496eb66e76e4ec6c9d720a0594`. The public `dyld_cache.hpp` exposes copied module records and semantic load options, not loader-service pointers, netnodes, or SDK containers.
+- Assumptions: cache inventories use one documented layout, and an initialized cache host exposes the exact SDK bootstrap. Probe modern/legacy/image-text variants, malformed tables/path bounds, full 64-bit addresses, modern precedence, non-cache rejection, and real mapped-header/module/section loading. A 66-assertion native test passes with 4,083 real-cache images; bulk all-region loading remains source-audited and negative-tested.
+- Bounded impact [high]: malformed cache reads or loader state mutation; [medium]: service availability. Offline parsing costs O(image count + path bytes) time and O(returned inventory) memory; bulk counts report deduplicated previously unloaded entities.
+
+### 35.294. Node Length-Bearing UTF-8 Inputs [F641]
+
+- Primary evidence: the V8/Nan explicit UTF-8 length, `bindings/node/src/helpers.hpp`, and the new path/plugin suffix regressions. Native core validation can only inspect bytes that survive conversion. Copying the complete string preserves NUL for rejection by APIs that require C-compatible inputs and preserves payload bytes for length-bearing value APIs.
+- Assumption: Nan returns a byte length representable by `size_t`; test empty and embedded-NUL inputs plus existing valid paths. Bounded impact [high]: unintended prefix file/plugin operation; complexity remains O(UTF-8 bytes).

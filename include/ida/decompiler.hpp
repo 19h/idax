@@ -258,9 +258,79 @@ enum class MicrocodeOpcode : int {
     IndirectJump,
     Return,
     Other,
+    // Read-only graph operations. Existing discriminants remain unchanged.
+    Negate,
+    LogicalNot,
+    BitwiseNot,
+    LowPart,
+    HighPart,
+    UnsignedDivide,
+    SignedDivide,
+    UnsignedRemainder,
+    SignedRemainder,
+    CarryFromAdd,
+    OverflowFromAdd,
+    CarryFromShiftLeft,
+    CarryFromShiftRight,
+    SetNegative,
+    SetOverflow,
+    SetParity,
+    SetNotEqual,
+    SetEqual,
+    SetGreaterThanOrEqualUnsigned,
+    SetLessThanUnsigned,
+    SetGreaterThanUnsigned,
+    SetLessThanOrEqualUnsigned,
+    SetGreaterThanSigned,
+    SetGreaterThanOrEqualSigned,
+    SetLessThanSigned,
+    SetLessThanOrEqualSigned,
+    JumpIfNonzero,
+    JumpIfNotEqual,
+    JumpIfEqual,
+    JumpIfGreaterThanOrEqualUnsigned,
+    JumpIfLessThanUnsigned,
+    JumpIfGreaterThanUnsigned,
+    JumpIfLessThanOrEqualUnsigned,
+    JumpIfGreaterThanSigned,
+    JumpIfGreaterThanOrEqualSigned,
+    JumpIfLessThanSigned,
+    JumpIfLessThanOrEqualSigned,
+    JumpTable,
+    Push,
+    Pop,
+    Undefined,
+    External,
+    FloatToSignedInteger,
+    FloatToUnsignedInteger,
+    UnsignedIntegerToFloat,
+    FloatNegate,
+    LoadConstant,
 };
 
 struct MicrocodeInstruction;
+
+/// A contiguous range in the decompiler's byte-addressed register space.
+struct MicrocodeRegisterRange {
+    int register_id{0};
+    int byte_width{0};
+};
+
+/// One copied switch value and its destination basic-block index.
+struct MicrocodeSwitchCase {
+    std::int64_t value{0};
+    int target_block{0};
+};
+
+/// Semantic properties of one call argument, aligned with call_arguments.
+struct MicrocodeCallArgumentProperties {
+    bool hidden{false};
+    bool return_value_pointer{false};
+    bool structure_argument{false};
+    bool array_argument{false};
+    bool unused{false};
+    bool swift_self{false};
+};
 
 /// Operand kind for generic typed microcode emission.
 enum class MicrocodeOperandKind : int {
@@ -280,6 +350,7 @@ enum class MicrocodeOperandKind : int {
     StringConstant,
     FloatingPointConstant,
     Other,
+    SwitchCases,
 };
 
 /// One typed microcode operand.
@@ -304,6 +375,20 @@ struct MicrocodeOperand {
     std::vector<MicrocodeOperand> call_arguments{};
     Address call_target{BadAddress};
     std::string text{};
+
+    /// Owned payloads; floating_point_constant is absent if conversion to
+    /// binary64 is unavailable (the original display remains in text).
+    std::string string_constant{};
+    std::optional<double> floating_point_constant{};
+    std::string global_name{};
+    /// Equal numbers denote equal values within this generated graph.
+    /// This is a value-numbering identifier, not an SSA variable version.
+    std::optional<std::uint16_t> value_number{};
+    std::vector<MicrocodeCallArgumentProperties> call_argument_properties{};
+    std::vector<MicrocodeOperand> call_return_operands{};
+    std::vector<MicrocodeRegisterRange> call_return_registers{};
+    std::vector<MicrocodeSwitchCase> switch_cases{};
+    std::optional<int> switch_default_target{};
 };
 
 /// Generic typed microcode instruction model.
@@ -411,6 +496,17 @@ struct MicrocodeFunctionArgument {
     int byte_width{0};
 };
 
+/// Semantic control-flow shape of a copied microcode basic block.
+enum class MicrocodeBlockKind {
+    Unknown,
+    Exit,
+    NonReturning,
+    SingleSuccessor,
+    Conditional,
+    Switch,
+    External,
+};
+
 /// One copied microcode basic block.
 struct MicrocodeBlock {
     int index{0};
@@ -419,15 +515,7 @@ struct MicrocodeBlock {
     std::vector<int> predecessors{};
     std::vector<int> successors{};
     std::vector<MicrocodeInstruction> instructions{};
-};
-
-/// SDK-independent snapshot of a complete function-level microcode graph.
-struct MicrocodeFunction {
-    Address entry_address{BadAddress};
-    MicrocodeMaturity maturity{MicrocodeMaturity::Generated};
-    std::vector<MicrocodeFunctionArgument> arguments{};
-    std::optional<MicrocodeValueLocation> return_location{};
-    std::vector<MicrocodeBlock> blocks{};
+    MicrocodeBlockKind kind{MicrocodeBlockKind::Unknown};
 };
 
 /// Optional per-argument semantic flags for helper-call arguments.
@@ -531,11 +619,6 @@ enum class MicrocodeFunctionRole : int {
 };
 
 /// Additional call-shaping options for emitted helper calls.
-struct MicrocodeRegisterRange {
-    int register_id{0};
-    int byte_width{0};
-};
-
 struct MicrocodeMemoryRange {
     Address address{BadAddress};
     std::uint64_t byte_size{0};
@@ -933,6 +1016,29 @@ struct LocalVariable {
 
     /// User comment on this variable (may be empty).
     std::string comment;
+
+    /// Offset in bytes from the bottom of the decompiler stack frame;
+    /// -1 when this variable is not stored on the stack.
+    std::int64_t stack_offset{-1};
+    /// Owned register, stack, register-pair, or scattered storage metadata.
+    std::optional<MicrocodeValueLocation> location{};
+    /// Processor register name when a single register can be resolved.
+    std::optional<std::string> processor_register_name{};
+};
+
+/// SDK-independent snapshot of a complete function-level microcode graph.
+struct MicrocodeFunction {
+    Address entry_address{BadAddress};
+    MicrocodeMaturity maturity{MicrocodeMaturity::Generated};
+    std::vector<MicrocodeFunctionArgument> arguments{};
+    std::optional<MicrocodeValueLocation> return_location{};
+    std::vector<MicrocodeBlock> blocks{};
+    /// Stack layout sizes in bytes, in decompiler frame coordinates.
+    std::int64_t stack_frame_size{0};
+    std::int64_t local_stack_size{0};
+    std::int64_t saved_register_size{0};
+    std::optional<std::size_t> return_variable_index{};
+    std::vector<LocalVariable> local_variables{};
 };
 
 /// Serializable saved Hex-Rays local-variable user setting.
@@ -1219,6 +1325,24 @@ public:
 
     /// Parent chain from outermost ancestor to direct parent.
     [[nodiscard]] Result<std::vector<CtreeItemView>> parents() const;
+
+    /// Condition or value of an if, loop, switch, return, or throw statement.
+    [[nodiscard]] Result<ExpressionView> condition() const;
+    [[nodiscard]] Result<StatementView> then_branch() const;
+    [[nodiscard]] Result<StatementView> else_branch() const;
+    [[nodiscard]] bool has_else_branch() const noexcept;
+    /// Body of a for, while, or do loop.
+    [[nodiscard]] Result<StatementView> body() const;
+    [[nodiscard]] Result<ExpressionView> init_expression() const;
+    [[nodiscard]] Result<ExpressionView> step_expression() const;
+    /// Expression of an expression-statement.
+    [[nodiscard]] Result<ExpressionView> expression() const;
+    [[nodiscard]] Result<std::size_t> block_size() const;
+    [[nodiscard]] Result<StatementView> block_statement(std::size_t index) const;
+    [[nodiscard]] Result<std::size_t> switch_case_count() const;
+    /// Empty values identify a default case. Values preserve their bit pattern.
+    [[nodiscard]] Result<std::vector<std::uint64_t>> switch_case_values(std::size_t index) const;
+    [[nodiscard]] Result<StatementView> switch_case_body(std::size_t index) const;
 
     // ── Internal ────────────────────────────────────────────────────────
     struct Tag {};

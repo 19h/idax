@@ -1432,3 +1432,26 @@
   - **19.81.3. Runtime and callbacks:** Record and enforce the initializing OS thread before SDK dispatch. Native callable storage owns shared callback state with exactly one Swift destruction hook, preserving in-flight and deferred-unregister lifetimes. Borrowed callback arguments expire at callback return; close/reopen invalidates database-dependent views. Contain failures at C boundaries and never hold registry locks while invoking or destroying Swift objects.
   - **19.81.4. Packaging:** Build with the pinned SDK and real installed runtime, use explicit non-colliding archive paths, retain ordinary namespace linkage, and define no shadow `callui`, `dbg`, or other SDK globals. Validate a clean external consumer. Plugin/loader/processor support must produce actual `PLUGIN`, `LDSC`, and `LPH` artifacts through existing compiled IDAX bridges.
   - **19.81.5. Coverage and evidence:** Track every current declaration/overload/field and new capability in a reviewed Swift mapping; require public-client construction, ownership/failure/reentrancy/thread tests, exact-release runtime and export evidence, distribution inspection, full existing-binding regression, action/declaration audits, and repository/history/log privacy before completion. Header counts and passing structural tests alone do not establish parity.
+
+### D19.82 Swift transitive package linkage and callback transfer refinement
+
+- Use a private SwiftPM system-library target with generated pkg-config metadata and a CMake-built `idax_swift_native` composite archive. This avoids case-insensitive `IDAX`/`idax` library shadowing and permits ordinary transitive SwiftPM dependencies without unsafe manifest flags. Link actual IDA runtime libraries; do not provide shadow SDK globals or flat-namespace linkage. Validate the installed toolchain and clean external consumers before claiming package support.
+- Private lifecycle entry points consume retained Swift callback contexts unconditionally on entry, including validation and allocation failure. Establish the native shared owner before validation; native callable destruction releases the context exactly once. Swift must not separately release a context after transfer. This refines D19.81 without changing the public ownership contract.
+
+### D19.83 Swift Semantic Generation and Session Ownership
+
+- Use the C++ declaration/field/overload inventory as the acceptance scope and an explicit schema for repetitive C transport conversions. Add direct private semantic C++ adapters for operations absent from that transport. Generated code must report unsupported shapes; never substitute stubs or infer completion from namespace presence.
+- Native resource holders are database-bound when native state can depend on the database. Invalidate them before open/close in reverse acquisition order; retained Swift wrappers remain invalid after reopen. ARC destruction on foreign threads defers native release. This provides an executable lifetime contract beyond non-Sendable annotations.
+- Preserve the established C error display message for existing languages and add exact message/context accessors for structured consumers. Empty native context remains empty. No string-suffix parsing is used for Swift error fidelity.
+
+### D19.84 Swift Callback Borrows and Explicit Decompiler Dependencies
+
+- Pin owned native values during every synchronous use that can reenter Swift. Reject database open/close during native borrowed activity; queue ARC finalizers until a safe owner-thread entry after all activity/pins end.
+- Each ctree callback creates an expiring shared lease for the root and navigated children. Borrowed methods require a live lease before native dereference; copied parent/item summaries remain independent values. Visitor throws cross the private boundary with all canonical error fields and stop traversal.
+- Count actual native decompiler values and callback owners as dependencies of explicit Hex-Rays sessions. Explicit Session.close rejects active dependencies and active native execution. ARC session cleanup uses an allocation-free pending list until dependencies are gone. Database LIFO invalidation and explicit close share these release paths.
+
+### D19.85 Opaque Dyld Cache Inventory and Loading
+
+- Add `ida::dyld_cache` for verified offline image inventories and current-database cache service operations. Prefer modern documented inventory tables; support validated legacy/image-text layouts and fail without partial output for malformed extents or paths.
+- Use exact SDK `dscu.h` bootstrap and mapped-header checks. Expose copied module names/addresses and semantic load options with undo-on-failure defaults; deduplicate bulk requests and return newly loaded counts. Keep native service pointers and loader-private storage internal.
+- Preserve all new core concepts through Node, C/safe Rust, Python, and Swift. Record real header/module/section evidence separately from source-audited bulk-region paths.

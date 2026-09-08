@@ -508,6 +508,53 @@ Result<mcode_t> to_sdk_opcode(MicrocodeOpcode opcode) {
         case MicrocodeOpcode::Goto:
         case MicrocodeOpcode::IndirectJump:
         case MicrocodeOpcode::Return:
+        case MicrocodeOpcode::Negate:
+        case MicrocodeOpcode::LogicalNot:
+        case MicrocodeOpcode::BitwiseNot:
+        case MicrocodeOpcode::LowPart:
+        case MicrocodeOpcode::HighPart:
+        case MicrocodeOpcode::UnsignedDivide:
+        case MicrocodeOpcode::SignedDivide:
+        case MicrocodeOpcode::UnsignedRemainder:
+        case MicrocodeOpcode::SignedRemainder:
+        case MicrocodeOpcode::CarryFromAdd:
+        case MicrocodeOpcode::OverflowFromAdd:
+        case MicrocodeOpcode::CarryFromShiftLeft:
+        case MicrocodeOpcode::CarryFromShiftRight:
+        case MicrocodeOpcode::SetNegative:
+        case MicrocodeOpcode::SetOverflow:
+        case MicrocodeOpcode::SetParity:
+        case MicrocodeOpcode::SetNotEqual:
+        case MicrocodeOpcode::SetEqual:
+        case MicrocodeOpcode::SetGreaterThanOrEqualUnsigned:
+        case MicrocodeOpcode::SetLessThanUnsigned:
+        case MicrocodeOpcode::SetGreaterThanUnsigned:
+        case MicrocodeOpcode::SetLessThanOrEqualUnsigned:
+        case MicrocodeOpcode::SetGreaterThanSigned:
+        case MicrocodeOpcode::SetGreaterThanOrEqualSigned:
+        case MicrocodeOpcode::SetLessThanSigned:
+        case MicrocodeOpcode::SetLessThanOrEqualSigned:
+        case MicrocodeOpcode::JumpIfNonzero:
+        case MicrocodeOpcode::JumpIfNotEqual:
+        case MicrocodeOpcode::JumpIfEqual:
+        case MicrocodeOpcode::JumpIfGreaterThanOrEqualUnsigned:
+        case MicrocodeOpcode::JumpIfLessThanUnsigned:
+        case MicrocodeOpcode::JumpIfGreaterThanUnsigned:
+        case MicrocodeOpcode::JumpIfLessThanOrEqualUnsigned:
+        case MicrocodeOpcode::JumpIfGreaterThanSigned:
+        case MicrocodeOpcode::JumpIfGreaterThanOrEqualSigned:
+        case MicrocodeOpcode::JumpIfLessThanSigned:
+        case MicrocodeOpcode::JumpIfLessThanOrEqualSigned:
+        case MicrocodeOpcode::JumpTable:
+        case MicrocodeOpcode::Push:
+        case MicrocodeOpcode::Pop:
+        case MicrocodeOpcode::Undefined:
+        case MicrocodeOpcode::External:
+        case MicrocodeOpcode::FloatToSignedInteger:
+        case MicrocodeOpcode::FloatToUnsignedInteger:
+        case MicrocodeOpcode::UnsignedIntegerToFloat:
+        case MicrocodeOpcode::FloatNegate:
+        case MicrocodeOpcode::LoadConstant:
         case MicrocodeOpcode::Other:
             return std::unexpected(Error::unsupported(
                 "Microcode opcode is read-only in the generic emitter"));
@@ -545,6 +592,53 @@ Result<MicrocodeOpcode> parse_sdk_opcode(mcode_t op) {
         case m_goto: return MicrocodeOpcode::Goto;
         case m_ijmp: return MicrocodeOpcode::IndirectJump;
         case m_ret: return MicrocodeOpcode::Return;
+        case m_neg: return MicrocodeOpcode::Negate;
+        case m_lnot: return MicrocodeOpcode::LogicalNot;
+        case m_bnot: return MicrocodeOpcode::BitwiseNot;
+        case m_low: return MicrocodeOpcode::LowPart;
+        case m_high: return MicrocodeOpcode::HighPart;
+        case m_udiv: return MicrocodeOpcode::UnsignedDivide;
+        case m_sdiv: return MicrocodeOpcode::SignedDivide;
+        case m_umod: return MicrocodeOpcode::UnsignedRemainder;
+        case m_smod: return MicrocodeOpcode::SignedRemainder;
+        case m_cfadd: return MicrocodeOpcode::CarryFromAdd;
+        case m_ofadd: return MicrocodeOpcode::OverflowFromAdd;
+        case m_cfshl: return MicrocodeOpcode::CarryFromShiftLeft;
+        case m_cfshr: return MicrocodeOpcode::CarryFromShiftRight;
+        case m_sets: return MicrocodeOpcode::SetNegative;
+        case m_seto: return MicrocodeOpcode::SetOverflow;
+        case m_setp: return MicrocodeOpcode::SetParity;
+        case m_setnz: return MicrocodeOpcode::SetNotEqual;
+        case m_setz: return MicrocodeOpcode::SetEqual;
+        case m_setae: return MicrocodeOpcode::SetGreaterThanOrEqualUnsigned;
+        case m_setb: return MicrocodeOpcode::SetLessThanUnsigned;
+        case m_seta: return MicrocodeOpcode::SetGreaterThanUnsigned;
+        case m_setbe: return MicrocodeOpcode::SetLessThanOrEqualUnsigned;
+        case m_setg: return MicrocodeOpcode::SetGreaterThanSigned;
+        case m_setge: return MicrocodeOpcode::SetGreaterThanOrEqualSigned;
+        case m_setl: return MicrocodeOpcode::SetLessThanSigned;
+        case m_setle: return MicrocodeOpcode::SetLessThanOrEqualSigned;
+        case m_jcnd: return MicrocodeOpcode::JumpIfNonzero;
+        case m_jnz: return MicrocodeOpcode::JumpIfNotEqual;
+        case m_jz: return MicrocodeOpcode::JumpIfEqual;
+        case m_jae: return MicrocodeOpcode::JumpIfGreaterThanOrEqualUnsigned;
+        case m_jb: return MicrocodeOpcode::JumpIfLessThanUnsigned;
+        case m_ja: return MicrocodeOpcode::JumpIfGreaterThanUnsigned;
+        case m_jbe: return MicrocodeOpcode::JumpIfLessThanOrEqualUnsigned;
+        case m_jg: return MicrocodeOpcode::JumpIfGreaterThanSigned;
+        case m_jge: return MicrocodeOpcode::JumpIfGreaterThanOrEqualSigned;
+        case m_jl: return MicrocodeOpcode::JumpIfLessThanSigned;
+        case m_jle: return MicrocodeOpcode::JumpIfLessThanOrEqualSigned;
+        case m_jtbl: return MicrocodeOpcode::JumpTable;
+        case m_push: return MicrocodeOpcode::Push;
+        case m_pop: return MicrocodeOpcode::Pop;
+        case m_und: return MicrocodeOpcode::Undefined;
+        case m_ext: return MicrocodeOpcode::External;
+        case m_f2i: return MicrocodeOpcode::FloatToSignedInteger;
+        case m_f2u: return MicrocodeOpcode::FloatToUnsignedInteger;
+        case m_u2f: return MicrocodeOpcode::UnsignedIntegerToFloat;
+        case m_fneg: return MicrocodeOpcode::FloatNegate;
+        case m_ldc: return MicrocodeOpcode::LoadConstant;
         default: return MicrocodeOpcode::Other;
     }
 }
@@ -554,6 +648,8 @@ Result<MicrocodeInstruction> parse_sdk_instruction(const minsn_t* minsn);
 Result<MicrocodeOperand> parse_sdk_operand(const mop_t& mop) {
     MicrocodeOperand result;
     result.byte_width = mop.size;
+    if (mop.valnum != 0)
+        result.value_number = mop.valnum;
     if (mop.is_udt()) result.mark_user_defined_type = true;
     qstring operand_text;
     mop.print(&operand_text, SHINS_SHORT | SHINS_VALNUM);
@@ -585,6 +681,7 @@ Result<MicrocodeOperand> parse_sdk_operand(const mop_t& mop) {
         case mop_v:
             result.kind = MicrocodeOperandKind::GlobalAddress;
             result.global_address = mop.g;
+            result.global_name = ida::detail::to_string(::get_name(mop.g));
             break;
         case mop_b:
             result.kind = MicrocodeOperandKind::BlockReference;
@@ -634,18 +731,75 @@ Result<MicrocodeOperand> parse_sdk_operand(const mop_t& mop) {
                     ? BadAddress
                     : static_cast<Address>(mop.f->callee);
                 result.call_arguments.reserve(mop.f->args.size());
+                result.call_argument_properties.reserve(mop.f->args.size());
                 for (const auto& argument : mop.f->args) {
                     auto parsed = parse_sdk_operand(static_cast<const mop_t&>(argument));
                     if (!parsed) return std::unexpected(parsed.error());
                     result.call_arguments.push_back(std::move(*parsed));
+                    result.call_argument_properties.push_back({
+                        (argument.flags & FAI_HIDDEN) != 0,
+                        (argument.flags & FAI_RETPTR) != 0,
+                        (argument.flags & FAI_STRUCT) != 0,
+                        (argument.flags & FAI_ARRAY) != 0,
+                        (argument.flags & FAI_UNUSED) != 0,
+                        (argument.flags & FAI_SWIFTSELF) != 0,
+                    });
+                }
+                result.call_return_operands.reserve(mop.f->retregs.size());
+                for (const mop_t& operand : mop.f->retregs) {
+                    auto parsed = parse_sdk_operand(operand);
+                    if (!parsed) return std::unexpected(parsed.error());
+                    result.call_return_operands.push_back(std::move(*parsed));
+                }
+                // A bit represents one microregister byte, not one physical
+                // register. Preserve maximal contiguous byte ranges.
+                const auto& registers = mop.f->return_regs.reg;
+                for (auto it = registers.begin(); it != registers.end(); registers.inc(it)) {
+                    const int byte = *it;
+                    if (!result.call_return_registers.empty()) {
+                        auto& range = result.call_return_registers.back();
+                        if (static_cast<std::int64_t>(range.register_id)
+                                + range.byte_width == byte) {
+                            ++range.byte_width;
+                            continue;
+                        }
+                    }
+                    result.call_return_registers.push_back({byte, 1});
                 }
             }
             break;
         case mop_str:
             result.kind = MicrocodeOperandKind::StringConstant;
+            if (mop.cstr != nullptr)
+                result.string_constant = mop.cstr;
             break;
         case mop_fn:
             result.kind = MicrocodeOperandKind::FloatingPointConstant;
+            if (mop.fpc != nullptr) {
+                double converted = 0.0;
+                if (mop.fpc->fnum.to_double(&converted) == REAL_ERROR_OK)
+                    result.floating_point_constant = converted;
+            }
+            break;
+        case mop_c:
+            result.kind = MicrocodeOperandKind::SwitchCases;
+            if (mop.c != nullptr) {
+                if (mop.c->values.size() != mop.c->targets.size()) {
+                    return std::unexpected(Error::internal(
+                        "Microcode switch values and targets have different lengths"));
+                }
+                for (std::size_t index = 0; index < mop.c->values.size(); ++index) {
+                    const int target = mop.c->targets[index];
+                    if (mop.c->values[index].empty()) {
+                        result.switch_default_target = target;
+                    } else {
+                        for (const auto value : mop.c->values[index]) {
+                            result.switch_cases.push_back({
+                                static_cast<std::int64_t>(value), target});
+                        }
+                    }
+                }
+            }
             break;
         default:
             result.kind = MicrocodeOperandKind::Other;
@@ -984,6 +1138,7 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
         case MicrocodeOperandKind::CallArguments:
         case MicrocodeOperandKind::StringConstant:
         case MicrocodeOperandKind::FloatingPointConstant:
+        case MicrocodeOperandKind::SwitchCases:
         case MicrocodeOperandKind::Other:
             return std::unexpected(Error::unsupported(
                 "Microcode operand kind is read-only in the generic emitter",
@@ -3819,6 +3974,19 @@ static LocalVariable make_local_variable(const lvar_t& v, std::size_t index) {
         lv.storage = VariableStorage::Register;
     else
         lv.storage = VariableStorage::Unknown;
+    lv.stack_offset = static_cast<std::int64_t>(v.get_stkoff());
+    auto location = copy_microcode_location(v.location);
+    if (location.kind != MicrocodeValueLocationKind::Unspecified)
+        lv.location = std::move(location);
+    if (v.is_reg1() && v.width > 0) {
+        const int processor_register = mreg2reg(v.get_reg1(), v.width);
+        qstring register_name;
+        if (processor_register >= 0
+            && ::get_reg_name(&register_name, processor_register,
+                              static_cast<std::size_t>(v.width)) > 0) {
+            lv.processor_register_name = ida::detail::to_string(register_name);
+        }
+    }
 
     return lv;
 }
@@ -4000,7 +4168,7 @@ Result<ExpressionView> ExpressionView::left() const {
     auto* e = static_cast<cexpr_t*>(raw_);
     // x is valid for all non-leaf expressions that have sub-operands.
     // Leaf ops: cot_num, cot_fnum, cot_str, cot_obj, cot_var, cot_insn, cot_helper, cot_empty
-    if (e->x == nullptr)
+    if (!op_uses_x(e->op) || e->x == nullptr)
         return std::unexpected(Error::validation("Expression has no left operand (leaf expression)"));
     return ExpressionView(ExpressionView::Tag{}, e->x,
                           append_parent(parents_, static_cast<citem_t*>(e)),
@@ -4012,7 +4180,7 @@ Result<ExpressionView> ExpressionView::right() const {
     auto* e = static_cast<cexpr_t*>(raw_);
     // y is valid for binary expressions. It shares a union with `a` (call args)
     // and `m` (member offset), so only access it for binary ops.
-    if (e->x == nullptr || e->y == nullptr)
+    if (!op_uses_y(e->op) || e->x == nullptr || e->y == nullptr)
         return std::unexpected(Error::validation("Expression has no right operand"));
     // Guard: for calls, y is actually `a` (arglist), not a cexpr_t*
     if (e->op == cot_call)
@@ -4027,17 +4195,17 @@ Result<ExpressionView> ExpressionView::right() const {
 
 int ExpressionView::operand_count() const noexcept {
     if (!raw_) return 0;
-    auto* e = static_cast<cexpr_t*>(raw_);
-    // Leaf expressions (no x pointer)
-    if (e->x == nullptr)
+    const auto* expression = static_cast<const cexpr_t*>(raw_);
+    if (!op_uses_x(expression->op) || expression->x == nullptr)
         return 0;
-    // Unary or binary: check if y/a/m is meaningful
-    // For calls: x = callee, a = args → count as 2 (callee + arglist)
-    // For member access: x = base, m = offset → count as 2
-    // For ternary (cot_tern): x, y, z → count as 3
-    if (e->op == cot_tern)
+    if (op_uses_z(expression->op))
         return 3;
-    if (e->y != nullptr || e->op == cot_call || e->op == cot_memref || e->op == cot_memptr)
+    // Calls and member expressions expose their second structural component
+    // through call_argument()/member_offset(), not through the aliased y slot.
+    if (op_uses_y(expression->op)
+        || expression->op == cot_call
+        || expression->op == cot_memref
+        || expression->op == cot_memptr)
         return 2;
     return 1;
 }
@@ -4045,7 +4213,7 @@ int ExpressionView::operand_count() const noexcept {
 Result<ExpressionView> ExpressionView::third() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
-    if (e->op != cot_tern || e->z == nullptr)
+    if (!op_uses_z(e->op) || e->z == nullptr)
         return std::unexpected(Error::validation("Expression has no third operand"));
     return ExpressionView(ExpressionView::Tag{}, e->z,
                           append_parent(parents_, static_cast<citem_t*>(e)),
@@ -4129,6 +4297,186 @@ Result<std::vector<CtreeItemView>> StatementView::parents() const {
     if (parents_ == nullptr)
         return std::vector<CtreeItemView>{};
     return *parents_;
+}
+
+Result<ExpressionView> StatementView::condition() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    switch (s->op) {
+        case cit_if:
+            if (s->cif == nullptr)
+                return std::unexpected(Error::internal("null if details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cif->expr,
+                                  append_parent(parents_, s), s);
+        case cit_for:
+            if (s->cfor == nullptr)
+                return std::unexpected(Error::internal("null for details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cfor->expr,
+                                  append_parent(parents_, s), s);
+        case cit_while:
+            if (s->cwhile == nullptr)
+                return std::unexpected(Error::internal("null while details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cwhile->expr,
+                                  append_parent(parents_, s), s);
+        case cit_do:
+            if (s->cdo == nullptr)
+                return std::unexpected(Error::internal("null do details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cdo->expr,
+                                  append_parent(parents_, s), s);
+        case cit_switch:
+            if (s->cswitch == nullptr)
+                return std::unexpected(Error::internal("null switch details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cswitch->expr,
+                                  append_parent(parents_, s), s);
+        case cit_return:
+            if (s->creturn == nullptr)
+                return std::unexpected(Error::internal("null return details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->creturn->expr,
+                                  append_parent(parents_, s), s);
+        case cit_throw:
+            if (s->cthrow == nullptr)
+                return std::unexpected(Error::internal("null throw details"));
+            return ExpressionView(ExpressionView::Tag{}, &s->cthrow->expr,
+                                  append_parent(parents_, s), s);
+        default:
+            return std::unexpected(Error::validation("Statement type does not have a condition expression"));
+    }
+}
+
+Result<StatementView> StatementView::then_branch() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_if || s->cif == nullptr)
+        return std::unexpected(Error::validation("Statement is not an if"));
+    if (s->cif->ithen == nullptr)
+        return std::unexpected(Error::internal("null then-branch"));
+    return StatementView(StatementView::Tag{}, s->cif->ithen,
+                                 append_parent(parents_, s));
+}
+
+Result<StatementView> StatementView::else_branch() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_if || s->cif == nullptr)
+        return std::unexpected(Error::validation("Statement is not an if"));
+    if (s->cif->ielse == nullptr)
+        return std::unexpected(Error::validation("If statement has no else-branch"));
+    return StatementView(StatementView::Tag{}, s->cif->ielse,
+                                 append_parent(parents_, s));
+}
+
+bool StatementView::has_else_branch() const noexcept {
+    if (!raw_) return false;
+    auto* s = static_cast<cinsn_t*>(raw_);
+    return s->op == cit_if && s->cif != nullptr && s->cif->ielse != nullptr;
+}
+
+Result<StatementView> StatementView::body() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    switch (s->op) {
+        case cit_for:
+            if (s->cfor == nullptr || s->cfor->body == nullptr)
+                return std::unexpected(Error::internal("null for-loop body"));
+            return StatementView(StatementView::Tag{}, s->cfor->body,
+                                 append_parent(parents_, s));
+        case cit_while:
+            if (s->cwhile == nullptr || s->cwhile->body == nullptr)
+                return std::unexpected(Error::internal("null while-loop body"));
+            return StatementView(StatementView::Tag{}, s->cwhile->body,
+                                 append_parent(parents_, s));
+        case cit_do:
+            if (s->cdo == nullptr || s->cdo->body == nullptr)
+                return std::unexpected(Error::internal("null do-loop body"));
+            return StatementView(StatementView::Tag{}, s->cdo->body,
+                                 append_parent(parents_, s));
+        default:
+            return std::unexpected(Error::validation("Statement is not a loop"));
+    }
+}
+
+Result<ExpressionView> StatementView::init_expression() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_for || s->cfor == nullptr)
+        return std::unexpected(Error::validation("Statement is not a for-loop"));
+    return ExpressionView(ExpressionView::Tag{}, &s->cfor->init,
+                                  append_parent(parents_, s), s);
+}
+
+Result<ExpressionView> StatementView::step_expression() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_for || s->cfor == nullptr)
+        return std::unexpected(Error::validation("Statement is not a for-loop"));
+    return ExpressionView(ExpressionView::Tag{}, &s->cfor->step,
+                                  append_parent(parents_, s), s);
+}
+
+Result<ExpressionView> StatementView::expression() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_expr || s->cexpr == nullptr)
+        return std::unexpected(Error::validation("Statement is not an expression-statement"));
+    return ExpressionView(ExpressionView::Tag{}, s->cexpr,
+                                  append_parent(parents_, s), s);
+}
+
+Result<std::size_t> StatementView::block_size() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_block || s->cblock == nullptr)
+        return std::unexpected(Error::validation("Statement is not a block"));
+    return static_cast<std::size_t>(s->cblock->size());
+}
+
+Result<StatementView> StatementView::block_statement(std::size_t index) const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_block || s->cblock == nullptr)
+        return std::unexpected(Error::validation("Statement is not a block"));
+    if (index >= static_cast<std::size_t>(s->cblock->size()))
+        return std::unexpected(Error::validation("Block statement index out of range"));
+    auto it = s->cblock->begin();
+    for (std::size_t i = 0; i < index; ++i)
+        ++it;
+    return StatementView(StatementView::Tag{}, &*it,
+                                 append_parent(parents_, s));
+}
+
+Result<std::size_t> StatementView::switch_case_count() const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_switch || s->cswitch == nullptr)
+        return std::unexpected(Error::validation("Statement is not a switch"));
+    return static_cast<std::size_t>(s->cswitch->cases.size());
+}
+
+Result<std::vector<std::uint64_t>> StatementView::switch_case_values(std::size_t index) const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_switch || s->cswitch == nullptr)
+        return std::unexpected(Error::validation("Statement is not a switch"));
+    if (index >= static_cast<std::size_t>(s->cswitch->cases.size()))
+        return std::unexpected(Error::validation("Switch case index out of range"));
+    const auto& cc = s->cswitch->cases[index];
+    std::vector<std::uint64_t> vals;
+    vals.reserve(cc.values.size());
+    for (std::size_t i = 0; i < cc.values.size(); ++i)
+        vals.push_back(cc.values[i]);
+    return vals;
+}
+
+Result<StatementView> StatementView::switch_case_body(std::size_t index) const {
+    if (!raw_) return std::unexpected(Error::internal("null statement"));
+    auto* s = static_cast<cinsn_t*>(raw_);
+    if (s->op != cit_switch || s->cswitch == nullptr)
+        return std::unexpected(Error::validation("Statement is not a switch"));
+    if (index >= static_cast<std::size_t>(s->cswitch->cases.size()))
+        return std::unexpected(Error::validation("Switch case index out of range"));
+    // ccase_t inherits from cinsn_t, so we can treat it as a statement
+    return StatementView(StatementView::Tag{}, &s->cswitch->cases[index],
+                                 append_parent(parents_, s));
 }
 
 // ── CtreeVisitor default implementations ────────────────────────────────
@@ -5149,6 +5497,16 @@ generate_microcode(Address function_address,
         ? BadAddress
         : static_cast<Address>(native->entry_ea);
     result.maturity = from_sdk_microcode_maturity(native->maturity);
+    result.stack_frame_size = static_cast<std::int64_t>(native->stacksize);
+    result.local_stack_size = static_cast<std::int64_t>(native->frsize);
+    result.saved_register_size = static_cast<std::int64_t>(native->frregs);
+    result.local_variables.reserve(native->vars.size());
+    for (std::size_t index = 0; index < native->vars.size(); ++index)
+        result.local_variables.push_back(make_local_variable(native->vars[index], index));
+    if (native->retvaridx >= 0
+        && static_cast<std::size_t>(native->retvaridx) < native->vars.size()) {
+        result.return_variable_index = static_cast<std::size_t>(native->retvaridx);
+    }
 
     tinfo_t function_type;
     func_type_data_t function_details;
@@ -5190,6 +5548,15 @@ generate_microcode(Address function_address,
 
         MicrocodeBlock block;
         block.index = native_block->serial;
+        switch (native_block->type) {
+            case BLT_NONE: block.kind = MicrocodeBlockKind::Unknown; break;
+            case BLT_STOP: block.kind = MicrocodeBlockKind::Exit; break;
+            case BLT_0WAY: block.kind = MicrocodeBlockKind::NonReturning; break;
+            case BLT_1WAY: block.kind = MicrocodeBlockKind::SingleSuccessor; break;
+            case BLT_2WAY: block.kind = MicrocodeBlockKind::Conditional; break;
+            case BLT_NWAY: block.kind = MicrocodeBlockKind::Switch; break;
+            case BLT_XTRN: block.kind = MicrocodeBlockKind::External; break;
+        }
         block.start_address = native_block->start == BADADDR
             ? BadAddress
             : static_cast<Address>(native_block->start);

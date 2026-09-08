@@ -249,6 +249,8 @@ set(BINDING_SOURCES
     src/ui_bind.cpp
     src/decompiler_bind.cpp
     src/path_bind.cpp
+    src/plugin_bind.cpp
+    src/dyld_cache_bind.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${BINDING_SOURCES})

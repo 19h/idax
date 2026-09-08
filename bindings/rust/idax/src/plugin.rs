@@ -638,3 +638,20 @@ mod tests {
         unsafe { drop(Box::from_raw(raw_enabled)) };
     }
 }
+
+/// Query the installed plugin inventory without loading the plugin.
+pub fn is_plugin_available(plugin_name: &str) -> bool {
+    let Ok(name) = CString::new(plugin_name) else {
+        return false;
+    };
+    let mut available = 0;
+    let status = unsafe { idax_sys::idax_plugin_is_plugin_available(name.as_ptr(), &mut available) };
+    status == 0 && available != 0
+}
+
+/// Load and invoke a plugin by its configured or original name.
+pub fn run_plugin(plugin_name: &str, argument: usize) -> Status {
+    let name = CString::new(plugin_name).map_err(|_| Error::validation("invalid plugin name"))?;
+    let ret = unsafe { idax_sys::idax_plugin_run_plugin(name.as_ptr(), argument) };
+    error::int_to_status(ret, "plugin::run_plugin failed")
+}

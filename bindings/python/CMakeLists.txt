@@ -44,6 +44,7 @@ set(IDAX_PYTHON_SOURCES
     src/native/decompiler_microcode_bind.cpp
     src/native/decompiler_ctree_bind.cpp
     src/native/plugin_bind.cpp
+    src/native/dyld_cache_bind.cpp
     src/native/loader_bind.cpp
     src/native/processor_bind.cpp
     src/native/ui_bind.cpp

@@ -269,6 +269,30 @@ private:
 
 } // anonymous namespace
 
+bool is_plugin_available(std::string_view plugin_name) {
+    if (plugin_name.empty() || plugin_name.find('\0') != std::string_view::npos)
+        return false;
+    for (const plugin_info_t* plugin = ::get_plugins();
+         plugin != nullptr; plugin = plugin->next) {
+        if (plugin_name == ida::detail::to_string(plugin->idaplg_name)
+            || (plugin->org_name != nullptr && plugin_name == plugin->org_name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Status run_plugin(std::string_view plugin_name, std::size_t argument) {
+    if (plugin_name.empty() || plugin_name.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Plugin name must be nonempty and contain no NUL"));
+    }
+    const std::string name(plugin_name);
+    if (!::load_and_run_plugin(name.c_str(), argument))
+        return std::unexpected(Error::sdk("Plugin execution failed", name));
+    return ida::ok();
+}
+
 // ── Public action API ───────────────────────────────────────────────────
 
 Status register_action(const Action& action) {

@@ -57,6 +57,42 @@ enum class RegisterCategory {
     Other,
 };
 
+/// Predicate controlling a decoded control transfer. Values are independent
+/// of processor-specific instruction and condition-code encodings.
+/// Register tests (Zero/NotZero) and bit tests (BitZero/BitNotZero) refer to
+/// the explicit operands. Counter tests use the instruction's address-size
+/// rules; CountNotZero variants test the value after one decrement.
+enum class BranchCondition {
+    None,
+    Always,
+    Equal,
+    NotEqual,
+    LessThanSigned,
+    LessThanOrEqualSigned,
+    GreaterThanSigned,
+    GreaterThanOrEqualSigned,
+    LessThanUnsigned,
+    LessThanOrEqualUnsigned,
+    GreaterThanUnsigned,
+    GreaterThanOrEqualUnsigned,
+    Zero,
+    NotZero,
+    Negative,
+    NotNegative,
+    Overflow,
+    NoOverflow,
+    Parity,
+    NoParity,
+    CountZero,
+    BitZero,
+    BitNotZero,
+    CountNotZero,
+    CountNotZeroAndEqual,
+    CountNotZeroAndNotEqual,
+    Unknown,
+    Never,
+};
+
 /// Structured representation of an operand struct-offset path.
 ///
 /// Native type/member identities remain private. `member_names` preserves the
@@ -150,6 +186,12 @@ public:
 
     [[nodiscard]] const std::vector<Operand>& operands() const noexcept { return operands_; }
 
+    /// Control-transfer predicate; supported x86 and ARM instructions are
+    /// normalized, and unclassified transfers report Unknown.
+    [[nodiscard]] BranchCondition branch_condition() const noexcept {
+        return branch_condition_;
+    }
+
 private:
     friend struct InstructionAccess;
 
@@ -158,6 +200,7 @@ private:
     std::uint16_t      itype_{};
     std::string        mnemonic_;
     std::vector<Operand> operands_;
+    BranchCondition branch_condition_{BranchCondition::None};
 };
 
 // ── Decode / create ─────────────────────────────────────────────────────
@@ -312,6 +355,10 @@ bool is_jump(Address address);
 
 /// Is the instruction at \p address a conditional jump instruction?
 bool is_conditional_jump(Address address);
+
+/// Classify a control transfer using the same decoder as Instruction::decode.
+/// Non-transfers and addresses that cannot be decoded report None.
+BranchCondition branch_condition(Address address);
 
 /// Decode the next instruction sequentially after \p address.
 Result<Instruction> next(Address address);

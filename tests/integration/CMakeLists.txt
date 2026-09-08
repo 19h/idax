@@ -145,3 +145,29 @@ idax_add_integration_test(string_source_metadata           string_source_metadat
 idax_add_integration_test(cross_domain_torture             cross_domain_torture_test.cpp)
 idax_add_integration_test(type_data_comment_torture        type_data_comment_torture_test.cpp)
 idax_add_integration_test(operand_function_torture         operand_function_torture_test.cpp)
+
+# Source-built disposable fixture for owned metadata and navigation semantics.
+add_executable(idax_decompiler_semantic_fixture
+    ../fixtures/decompiler_semantic_metadata_host.cpp)
+if(APPLE)
+    # The fixture is analyzed, never executed. Use x86-64 so the SDK recognizes
+    # its relative jump table; ARM64 branch semantics have a separate fixture.
+    set_target_properties(idax_decompiler_semantic_fixture PROPERTIES
+        OSX_ARCHITECTURES x86_64)
+endif()
+if(MSVC)
+    target_compile_options(idax_decompiler_semantic_fixture PRIVATE /O1 /Ob0)
+else()
+    target_compile_options(idax_decompiler_semantic_fixture PRIVATE -O1 -fno-inline -g0)
+endif()
+idax_add_integration_test(decompiler_semantic_metadata
+    decompiler_semantic_metadata_test.cpp
+    "$<TARGET_FILE:idax_decompiler_semantic_fixture>")
+add_dependencies(idax_decompiler_semantic_metadata_test
+    idax_decompiler_semantic_fixture)
+idax_add_integration_test(instruction_branch_x86 instruction_branch_semantics_test.cpp)
+idax_add_integration_test(instruction_branch_arm64 instruction_branch_semantics_test.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures/register_tracking_aarch64")
+
+# Offline dyld cache image parsing and initialized non-cache service rejection.
+idax_add_integration_test(dyld_cache dyld_cache_test.cpp)

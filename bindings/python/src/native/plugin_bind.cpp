@@ -328,6 +328,16 @@ void bind_plugin(py::module_& module) {
         callback(context.decompiler_view_host());
     }, py::arg("context"), py::arg("callback"));
 
+    plugin.def("is_plugin_available", [](std::string plugin_name) {
+        return runtime_call("plugin.is_plugin_available", [&] {
+            return ida::plugin::is_plugin_available(plugin_name);
+        });
+    }, py::arg("plugin_name"));
+    plugin.def("run_plugin", [](std::string plugin_name, std::size_t argument) {
+        runtime_status("plugin.run_plugin", [&] {
+            return ida::plugin::run_plugin(plugin_name, argument);
+        });
+    }, py::arg("plugin_name"), py::arg("argument") = 0);
     plugin.def("register_action", [](py::object action_object) {
         ensure_runtime_thread("plugin.register_action");
         const auto& action = action_object.cast<const PythonAction&>();

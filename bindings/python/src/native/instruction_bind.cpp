@@ -47,6 +47,37 @@ void bind_instruction(py::module_& module) {
         .value("DEBUG", ida::instruction::RegisterCategory::Debug)
         .value("OTHER", ida::instruction::RegisterCategory::Other)
         .finalize();
+    py::native_enum<ida::instruction::BranchCondition>(
+        instruction, "BranchCondition", "enum.Enum")
+        .value("NONE", ida::instruction::BranchCondition::None)
+        .value("ALWAYS", ida::instruction::BranchCondition::Always)
+        .value("EQUAL", ida::instruction::BranchCondition::Equal)
+        .value("NOT_EQUAL", ida::instruction::BranchCondition::NotEqual)
+        .value("LESS_THAN_SIGNED", ida::instruction::BranchCondition::LessThanSigned)
+        .value("LESS_THAN_OR_EQUAL_SIGNED", ida::instruction::BranchCondition::LessThanOrEqualSigned)
+        .value("GREATER_THAN_SIGNED", ida::instruction::BranchCondition::GreaterThanSigned)
+        .value("GREATER_THAN_OR_EQUAL_SIGNED", ida::instruction::BranchCondition::GreaterThanOrEqualSigned)
+        .value("LESS_THAN_UNSIGNED", ida::instruction::BranchCondition::LessThanUnsigned)
+        .value("LESS_THAN_OR_EQUAL_UNSIGNED", ida::instruction::BranchCondition::LessThanOrEqualUnsigned)
+        .value("GREATER_THAN_UNSIGNED", ida::instruction::BranchCondition::GreaterThanUnsigned)
+        .value("GREATER_THAN_OR_EQUAL_UNSIGNED", ida::instruction::BranchCondition::GreaterThanOrEqualUnsigned)
+        .value("ZERO", ida::instruction::BranchCondition::Zero)
+        .value("NOT_ZERO", ida::instruction::BranchCondition::NotZero)
+        .value("NEGATIVE", ida::instruction::BranchCondition::Negative)
+        .value("NOT_NEGATIVE", ida::instruction::BranchCondition::NotNegative)
+        .value("OVERFLOW", ida::instruction::BranchCondition::Overflow)
+        .value("NO_OVERFLOW", ida::instruction::BranchCondition::NoOverflow)
+        .value("PARITY", ida::instruction::BranchCondition::Parity)
+        .value("NO_PARITY", ida::instruction::BranchCondition::NoParity)
+        .value("COUNT_ZERO", ida::instruction::BranchCondition::CountZero)
+        .value("BIT_ZERO", ida::instruction::BranchCondition::BitZero)
+        .value("BIT_NOT_ZERO", ida::instruction::BranchCondition::BitNotZero)
+        .value("COUNT_NOT_ZERO", ida::instruction::BranchCondition::CountNotZero)
+        .value("COUNT_NOT_ZERO_AND_EQUAL", ida::instruction::BranchCondition::CountNotZeroAndEqual)
+        .value("COUNT_NOT_ZERO_AND_NOT_EQUAL", ida::instruction::BranchCondition::CountNotZeroAndNotEqual)
+        .value("UNKNOWN", ida::instruction::BranchCondition::Unknown)
+        .value("NEVER", ida::instruction::BranchCondition::Never)
+        .finalize();
     py::class_<ida::instruction::StructOffsetPath>(instruction, "StructOffsetPath")
         .def(py::init<>())
         .def_readwrite("structure_name",
@@ -88,6 +119,7 @@ void bind_instruction(py::module_& module) {
         .def_property_readonly("address", &ida::instruction::Instruction::address)
         .def_property_readonly("size", &ida::instruction::Instruction::size)
         .def_property_readonly("opcode", &ida::instruction::Instruction::opcode)
+        .def_property_readonly("branch_condition", &ida::instruction::Instruction::branch_condition)
         .def_property_readonly("mnemonic", &ida::instruction::Instruction::mnemonic)
         .def_property_readonly("operand_count",
                                &ida::instruction::Instruction::operand_count)
@@ -216,6 +248,7 @@ void bind_instruction(py::module_& module) {
     IDAX_PY_INSTRUCTION_PREDICATE(is_return);
     IDAX_PY_INSTRUCTION_PREDICATE(is_jump);
     IDAX_PY_INSTRUCTION_PREDICATE(is_conditional_jump);
+    IDAX_PY_INSTRUCTION_PREDICATE(branch_condition);
 #undef IDAX_PY_INSTRUCTION_PREDICATE
 }
 

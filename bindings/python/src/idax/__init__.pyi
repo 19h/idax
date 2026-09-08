@@ -6,6 +6,7 @@ from . import data as data, event as event
 from . import exception as exception
 from . import debugger as debugger, graph as graph
 from . import decompiler as decompiler
+from . import dyld_cache as dyld_cache
 from . import database as database, diagnostics as diagnostics
 from . import directory as directory
 from . import registry as registry

@@ -64,15 +64,10 @@
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
 
-### CI Recovery and Swift PR 6 Review
-
-- CI6.1 Active: refresh the independently audited plugin header fingerprint, run Python gates, push, and verify replacement GitHub checks.
-
 ### Phase 72 Fresh Swift Binding and PR 6 Rewrite
 
-- P72.2 Active: finish declaration/ownership/thread/error/package acceptance mapping from the current 38-domain umbrella and superseding decisions.
-- P72.3 Active: author semantic C++ prerequisites with preserved existing graph and name-based identities; then complete Node/Rust/Python parity.
+- P72.2 Active: finish declaration/ownership/thread/error/package acceptance mapping from the current 39-domain umbrella and superseding decisions.
 - P72.4 Active: author Swift foundation, native owner/callback support, and deterministic build/package scripts.
 - P72.5 Active: author all domain APIs and the independently audited dyld-cache capability family.
-- P72.6 Queued: build real plugin/loader/processor exports and demonstrate host callbacks.
+- P72.6 Active: build real plugin/loader/processor exports and demonstrate host callbacks.
 - P72.7 Queued: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.

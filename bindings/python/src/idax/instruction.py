@@ -1,6 +1,8 @@
 """Instruction decode, operands, display, and xrefs."""
 
 from ._native.instruction import (
+    BranchCondition,
+    branch_condition,
     Instruction,
     Operand,
     OperandEnum,
@@ -50,6 +52,7 @@ from ._native.instruction import (
 )
 
 __all__ = [
+    "BranchCondition", "branch_condition",
     "Instruction", "Operand", "OperandEnum", "OperandFormat", "OperandType",
     "RegisterCategory", "StructOffsetPath", "call_targets",
     "clear_operand_representation", "code_refs_from", "create",

@@ -294,6 +294,7 @@ export namespace database {
 
     /** Save the current database. */
     function save(): void;
+    function saveTo(outputDatabasePath: string): void;
 
     /** Close the database. Optionally save before closing. */
     function close(save?: boolean): void;
@@ -867,6 +868,37 @@ export { function_ as function };
 
 export namespace instruction {
 
+    type BranchCondition =
+        | 'none'
+        | 'always'
+        | 'equal'
+        | 'notEqual'
+        | 'lessThanSigned'
+        | 'lessThanOrEqualSigned'
+        | 'greaterThanSigned'
+        | 'greaterThanOrEqualSigned'
+        | 'lessThanUnsigned'
+        | 'lessThanOrEqualUnsigned'
+        | 'greaterThanUnsigned'
+        | 'greaterThanOrEqualUnsigned'
+        | 'zero'
+        | 'notZero'
+        | 'negative'
+        | 'notNegative'
+        | 'overflow'
+        | 'noOverflow'
+        | 'parity'
+        | 'noParity'
+        | 'countZero'
+        | 'bitZero'
+        | 'bitNotZero'
+        | 'countNotZero'
+        | 'countNotZeroAndEqual'
+        | 'countNotZeroAndNotEqual'
+        | 'unknown'
+        | 'never';
+
+
     type OperandType =
         | 'none' | 'register' | 'memoryDirect' | 'memoryPhrase'
         | 'memoryDisplacement' | 'immediate' | 'farAddress' | 'nearAddress'
@@ -907,6 +939,7 @@ export namespace instruction {
         mnemonic: string;
         operandCount: number;
         operands: Operand[];
+        branchCondition: BranchCondition;
     }
 
     interface StructOffsetPath {
@@ -1045,6 +1078,7 @@ export namespace instruction {
     function isJump(address: Address): boolean;
 
     /** Whether this instruction is a conditional jump. */
+    function branchCondition(address: Address): BranchCondition;
     function isConditionalJump(address: Address): boolean;
 
     // ── Sequential navigation ───────────────────────────────────────────
@@ -3094,6 +3128,9 @@ export namespace decompiler {
         hasNiceName: boolean;
         storage: VariableStorage;
         comment: string;
+        stackOffset: bigint;
+        location: MicrocodeValueLocation | null;
+        processorRegisterName: string | null;
     }
 
     interface AddressMapping {
@@ -3115,6 +3152,13 @@ export namespace decompiler {
         typeDeclaration: string | null;
         parent: CtreeItemInfo | null;
         parentDepth: number;
+        parents: CtreeItemInfo[];
+        left: CtreeItemInfo | null;
+        right: CtreeItemInfo | null;
+        third: CtreeItemInfo | null;
+        callCallee: CtreeItemInfo | null;
+        callArguments: CtreeItemInfo[];
+        operandCount: number;
     }
 
     interface StatementInfo {
@@ -3122,6 +3166,16 @@ export namespace decompiler {
         address: Address;
         parent: CtreeItemInfo | null;
         parentDepth: number;
+        parents: CtreeItemInfo[];
+        condition: CtreeItemInfo | null;
+        thenBranch: CtreeItemInfo | null;
+        elseBranch: CtreeItemInfo | null;
+        body: CtreeItemInfo | null;
+        initExpression: CtreeItemInfo | null;
+        stepExpression: CtreeItemInfo | null;
+        expression: CtreeItemInfo | null;
+        blockStatements: CtreeItemInfo[];
+        switchCases: SwitchCaseInfo[];
     }
 
     type VisitAction = 0 | 1 | 2 | 'continue' | 'stop' | 'skipChildren' | void;
@@ -3271,13 +3325,93 @@ export namespace decompiler {
         | 'shiftLeft' | 'shiftRightLogical' | 'shiftRightArithmetic'
         | 'floatAdd' | 'floatSub' | 'floatMul' | 'floatDiv'
         | 'integerToFloat' | 'floatToFloat' | 'signedExtend'
-        | 'call' | 'indirectCall' | 'goto' | 'indirectJump' | 'return' | 'other';
+        | 'call' | 'indirectCall' | 'goto' | 'indirectJump' | 'return' | 'other'
+        | 'negate'
+        | 'logicalNot'
+        | 'bitwiseNot'
+        | 'lowPart'
+        | 'highPart'
+        | 'unsignedDivide'
+        | 'signedDivide'
+        | 'unsignedRemainder'
+        | 'signedRemainder'
+        | 'carryFromAdd'
+        | 'overflowFromAdd'
+        | 'carryFromShiftLeft'
+        | 'carryFromShiftRight'
+        | 'setNegative'
+        | 'setOverflow'
+        | 'setParity'
+        | 'setNotEqual'
+        | 'setEqual'
+        | 'setGreaterThanOrEqualUnsigned'
+        | 'setLessThanUnsigned'
+        | 'setGreaterThanUnsigned'
+        | 'setLessThanOrEqualUnsigned'
+        | 'setGreaterThanSigned'
+        | 'setGreaterThanOrEqualSigned'
+        | 'setLessThanSigned'
+        | 'setLessThanOrEqualSigned'
+        | 'jumpIfNonzero'
+        | 'jumpIfNotEqual'
+        | 'jumpIfEqual'
+        | 'jumpIfGreaterThanOrEqualUnsigned'
+        | 'jumpIfLessThanUnsigned'
+        | 'jumpIfGreaterThanUnsigned'
+        | 'jumpIfLessThanOrEqualUnsigned'
+        | 'jumpIfGreaterThanSigned'
+        | 'jumpIfGreaterThanOrEqualSigned'
+        | 'jumpIfLessThanSigned'
+        | 'jumpIfLessThanOrEqualSigned'
+        | 'jumpTable'
+        | 'push'
+        | 'pop'
+        | 'undefined'
+        | 'external'
+        | 'floatToSignedInteger'
+        | 'floatToUnsignedInteger'
+        | 'unsignedIntegerToFloat'
+        | 'floatNegate'
+        | 'loadConstant';
 
     type MicrocodeOperandKind =
         | 'empty' | 'register' | 'localVariable' | 'registerPair' | 'globalAddress'
         | 'stackVariable' | 'helperReference' | 'blockReference' | 'nestedInstruction'
         | 'unsignedImmediate' | 'signedImmediate' | 'addressReference' | 'callArguments'
-        | 'stringConstant' | 'floatingPointConstant' | 'other';
+        | 'stringConstant' | 'floatingPointConstant' | 'other' | 'switchCases';
+
+    type MicrocodeBlockKind =
+        | 'unknown'
+        | 'exit'
+        | 'nonReturning'
+        | 'singleSuccessor'
+        | 'conditional'
+        | 'switch'
+        | 'external';
+
+    interface MicrocodeRegisterRange {
+        registerId: number;
+        byteWidth: number;
+    }
+
+    interface MicrocodeSwitchCase {
+        value: bigint;
+        targetBlock: number;
+    }
+
+    interface MicrocodeCallArgumentProperties {
+        hidden: boolean;
+        returnValuePointer: boolean;
+        structureArgument: boolean;
+        arrayArgument: boolean;
+        unused: boolean;
+        swiftSelf: boolean;
+    }
+
+    interface SwitchCaseInfo {
+        values: bigint[];
+        body: CtreeItemInfo;
+    }
 
     interface MicrocodeOperand {
         kind: MicrocodeOperandKind;
@@ -3299,6 +3433,15 @@ export namespace decompiler {
         callArguments: MicrocodeOperand[];
         callTarget: Address;
         text: string;
+        stringConstant: string;
+        floatingPointConstant: number | null;
+        globalName: string;
+        valueNumber: number | null;
+        callArgumentProperties: MicrocodeCallArgumentProperties[];
+        callReturnOperands: MicrocodeOperand[];
+        callReturnRegisters: MicrocodeRegisterRange[];
+        switchCases: MicrocodeSwitchCase[];
+        switchDefaultTarget: number | null;
     }
 
     interface MicrocodeInstruction {
@@ -3362,6 +3505,7 @@ export namespace decompiler {
         predecessors: number[];
         successors: number[];
         instructions: MicrocodeInstruction[];
+        kind: MicrocodeBlockKind;
     }
 
     interface MicrocodeFunction {
@@ -3370,6 +3514,11 @@ export namespace decompiler {
         arguments: MicrocodeFunctionArgument[];
         returnLocation: MicrocodeValueLocation | null;
         blocks: MicrocodeBlock[];
+        stackFrameSize: bigint;
+        localStackSize: bigint;
+        savedRegisterSize: bigint;
+        returnVariableIndex: number | null;
+        localVariables: LocalVariable[];
     }
 
     interface MicrocodeContext {
@@ -3451,4 +3600,32 @@ export namespace decompiler {
 
     /** Mark a function and all its callers as dirty. */
     function markDirtyWithCallers(funcAddress: Address, closeViews?: boolean): void;
+}
+
+export namespace plugin {
+    function isPluginAvailable(pluginName: string): boolean;
+    function runPlugin(pluginName: string, argument?: number | bigint): void;
+}
+
+/** Apple dyld shared-cache inventory and incremental loading. */
+export namespace dyldCache {
+    interface ModuleInfo { path: string; loadAddress: bigint; }
+    function isAvailable(): boolean;
+    /** Omit cachePath to query the current database; a path reads the file offline. */
+    function listModules(cachePath?: string): ModuleInfo[];
+    function loadModule(modulePath: string, waitForAnalysis?: boolean): void;
+    /** Image sections load their entire image atomically. */
+    function loadSection(address: bigint | number, waitForAnalysis?: boolean): void;
+    /** Verify the loader-owned header is mapped. */
+    function loadDyldHeader(waitForAnalysis?: boolean): void;
+    /** Count of unique previously unloaded entities loaded. */
+    function loadBranchIslands(waitForAnalysis?: boolean): number;
+    /** Count of unique previously unloaded entities loaded. */
+    function loadBranchMappings(waitForAnalysis?: boolean): number;
+    /** Count of unique previously unloaded entities loaded. */
+    function loadGlobalOffsetTables(waitForAnalysis?: boolean): number;
+    /** Count of unique previously unloaded entities loaded. */
+    function loadGaps(waitForAnalysis?: boolean): number;
+    /** Count of unique previously unloaded entities loaded. */
+    function loadCacheData(waitForAnalysis?: boolean): number;
 }

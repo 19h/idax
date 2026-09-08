@@ -180,6 +180,75 @@ impl Operand {
 // Instruction value object
 // ---------------------------------------------------------------------------
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum BranchCondition {
+    None = 0,
+    Always = 1,
+    Equal = 2,
+    NotEqual = 3,
+    LessThanSigned = 4,
+    LessThanOrEqualSigned = 5,
+    GreaterThanSigned = 6,
+    GreaterThanOrEqualSigned = 7,
+    LessThanUnsigned = 8,
+    LessThanOrEqualUnsigned = 9,
+    GreaterThanUnsigned = 10,
+    GreaterThanOrEqualUnsigned = 11,
+    Zero = 12,
+    NotZero = 13,
+    Negative = 14,
+    NotNegative = 15,
+    Overflow = 16,
+    NoOverflow = 17,
+    Parity = 18,
+    NoParity = 19,
+    CountZero = 20,
+    BitZero = 21,
+    BitNotZero = 22,
+    CountNotZero = 23,
+    CountNotZeroAndEqual = 24,
+    CountNotZeroAndNotEqual = 25,
+    Unknown = 26,
+    Never = 27,
+}
+
+impl BranchCondition {
+    fn from_raw(raw: i32) -> Self {
+        match raw {
+            0 => Self::None,
+            1 => Self::Always,
+            2 => Self::Equal,
+            3 => Self::NotEqual,
+            4 => Self::LessThanSigned,
+            5 => Self::LessThanOrEqualSigned,
+            6 => Self::GreaterThanSigned,
+            7 => Self::GreaterThanOrEqualSigned,
+            8 => Self::LessThanUnsigned,
+            9 => Self::LessThanOrEqualUnsigned,
+            10 => Self::GreaterThanUnsigned,
+            11 => Self::GreaterThanOrEqualUnsigned,
+            12 => Self::Zero,
+            13 => Self::NotZero,
+            14 => Self::Negative,
+            15 => Self::NotNegative,
+            16 => Self::Overflow,
+            17 => Self::NoOverflow,
+            18 => Self::Parity,
+            19 => Self::NoParity,
+            20 => Self::CountZero,
+            21 => Self::BitZero,
+            22 => Self::BitNotZero,
+            23 => Self::CountNotZero,
+            24 => Self::CountNotZeroAndEqual,
+            25 => Self::CountNotZeroAndNotEqual,
+            26 => Self::Unknown,
+            27 => Self::Never,
+            _ => Self::Unknown,
+        }
+    }
+}
+
 /// Decoded instruction.
 #[derive(Debug, Clone)]
 pub struct Instruction {
@@ -187,10 +256,15 @@ pub struct Instruction {
     insn_size: AddressSize,
     itype: u16,
     insn_mnemonic: String,
+    branch_condition: BranchCondition,
     operands: Vec<Operand>,
 }
 
 impl Instruction {
+    pub fn branch_condition(&self) -> BranchCondition {
+        self.branch_condition
+    }
+
     pub fn address(&self) -> Address {
         self.ea
     }
@@ -274,6 +348,7 @@ pub(crate) unsafe fn instruction_from_ffi(raw: &idax_sys::IdaxInstruction) -> Re
         insn_size: raw.size,
         itype: raw.opcode,
         insn_mnemonic,
+        branch_condition: BranchCondition::from_raw(raw.branch_condition),
         operands,
     })
 }
@@ -767,5 +842,16 @@ pub fn prev(address: Address) -> Result<Instruction> {
         let result = instruction_from_ffi(&raw);
         idax_sys::idax_instruction_free(&raw as *const _ as *mut _);
         result
+    }
+}
+
+/// Normalized control-transfer predicate; undecodable addresses return None.
+pub fn branch_condition(address: Address) -> BranchCondition {
+    let mut condition = 0;
+    let status = unsafe { idax_sys::idax_instruction_branch_condition(address, &mut condition) };
+    if status == 0 {
+        BranchCondition::from_raw(condition)
+    } else {
+        BranchCondition::Unknown
     }
 }

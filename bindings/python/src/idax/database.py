@@ -5,6 +5,7 @@ from __future__ import annotations
 from os import PathLike
 from types import TracebackType
 from ._native.database import (
+    save_to,
     CompilerInfo,
     ImportModule,
     ImportSymbol,
@@ -145,6 +146,7 @@ def opened(
 
 
 __all__ = [
+    "save_to",
     "CompilerInfo",
     "DatabaseSession",
     "ImportModule",

@@ -2886,7 +2886,6 @@ int main(int argc, char* argv[]) {
     // Find a function to decompile
     ida::Address fn_ea = ida::BadAddress;
     for (auto f : ida::function::all()) {
-        // Prefer a function with some complexity (not a thunk)
         if (!f.is_thunk() && f.size() > 10) {
             fn_ea = f.start();
             break;
@@ -2900,7 +2899,19 @@ int main(int argc, char* argv[]) {
                   << fn_ea << std::dec << "\n";
         test_ctree_traversal(fn_ea);
         test_expression_view_accessors(fn_ea);
-        test_ctree_readonly_migration_helpers(fn_ea);
+        // Size alone does not establish that a ctree contains local variables.
+        ida::Address variable_fn_ea = fn_ea;
+        for (auto f : ida::function::all()) {
+            if (f.is_thunk()) continue;
+            auto candidate = ida::decompiler::decompile(f.start());
+            if (!candidate) continue;
+            TypeCounterVisitor counter;
+            if (candidate->visit(counter) && counter.variables > 0) {
+                variable_fn_ea = f.start();
+                break;
+            }
+        }
+        test_ctree_readonly_migration_helpers(variable_fn_ea);
         test_for_each_item(fn_ea);
         test_post_order_traversal(fn_ea);
         test_address_mapping(fn_ea);

@@ -138,6 +138,7 @@ pub mod offset;
 pub mod parser;
 pub mod path;
 pub mod plugin;
+pub mod dyld_cache;
 pub mod problem;
 pub mod processor;
 pub mod registers;

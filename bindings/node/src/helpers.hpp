@@ -106,7 +106,7 @@ inline v8::Local<v8::Value> FromAddressSize(ida::AddressSize size) {
 
 inline std::string ToString(v8::Local<v8::Value> val) {
     Nan::Utf8String str(val);
-    return *str ? std::string(*str) : std::string();
+    return *str ? std::string(*str, static_cast<std::size_t>(str.length())) : std::string();
 }
 
 inline v8::Local<v8::String> FromString(const std::string& s) {
@@ -398,6 +398,8 @@ void InitLines(v8::Local<v8::Object> target);
 void InitUi(v8::Local<v8::Object> target);
 void InitDecompiler(v8::Local<v8::Object> target);
 void InitPath(v8::Local<v8::Object> target);
+void InitPlugin(v8::Local<v8::Object> target);
+void InitDyldCache(v8::Local<v8::Object> target);
 
 } // namespace idax_node
 

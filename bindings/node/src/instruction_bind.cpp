@@ -5,6 +5,7 @@
 /// cross-reference queries, and instruction classification to JavaScript.
 
 #include "helpers.hpp"
+#include "instruction_helpers.hpp"
 #include <ida/instruction.hpp>
 
 #include <limits>
@@ -107,6 +108,7 @@ v8::Local<v8::Object> InstructionToObject(const ida::instruction::Instruction& i
         .setAddressSize("size", insn.size())
         .setInt("opcode", static_cast<int>(insn.opcode()))
         .setStr("mnemonic", insn.mnemonic())
+        .setStr("branchCondition", BranchConditionToString(insn.branch_condition()))
         .setInt("operandCount", static_cast<int>(insn.operand_count()))
         .set("operands", operands)
         .build();
@@ -476,6 +478,13 @@ NAN_METHOD(IsJump) {
     info.GetReturnValue().Set(Nan::New(ida::instruction::is_jump(addr)));
 }
 
+NAN_METHOD(BranchCondition) {
+    ida::Address address;
+    if (!GetAddressArg(info, 0, address)) return;
+    info.GetReturnValue().Set(FromString(BranchConditionToString(
+        ida::instruction::branch_condition(address))));
+}
+
 NAN_METHOD(IsConditionalJump) {
     ida::Address addr;
     if (!GetAddressArg(info, 0, addr)) return;
@@ -561,6 +570,7 @@ void InitInstruction(v8::Local<v8::Object> target) {
     SetMethod(ns, "isReturn",           IsReturn);
     SetMethod(ns, "isJump",             IsJump);
     SetMethod(ns, "isConditionalJump",  IsConditionalJump);
+    SetMethod(ns, "branchCondition", BranchCondition);
 
     // Sequential navigation
     SetMethod(ns, "next", Next);

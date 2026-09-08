@@ -51,6 +51,15 @@ int idax_last_error_code(void);
  *  Returns a pointer to a thread-local buffer. Do NOT free. */
 const char* idax_last_error_message(void);
 
+/** Exact context of the last error (empty when absent). Borrowed until the
+ * next shim operation on the same thread. The message accessor retains its
+ * existing human-readable context suffix for source compatibility. */
+const char* idax_last_error_context(void);
+
+/** Exact last error message without the legacy human-readable context suffix.
+ * Borrowed until the next shim operation on the same thread. */
+const char* idax_last_error_message_only(void);
+
 /** Free a malloc'd string returned by an idax function. */
 void idax_free_string(char* s);
 
@@ -199,6 +208,7 @@ int idax_database_open(const char* path, int auto_analysis);
 int idax_database_open_binary(const char* path, int mode);
 int idax_database_open_non_binary(const char* path, int mode);
 int idax_database_save(void);
+int idax_database_save_to(const char* output_database_path);
 int idax_database_close(int save);
 
 int idax_database_file_to_database(const char* file_path, int64_t file_offset,
@@ -918,6 +928,37 @@ typedef struct IdaxOperand {
 } IdaxOperand;
 
 /** Flat C representation of a decoded instruction. */
+typedef enum IdaxBranchCondition {
+    IDAX_BRANCH_NONE = 0,
+    IDAX_BRANCH_ALWAYS = 1,
+    IDAX_BRANCH_EQUAL = 2,
+    IDAX_BRANCH_NOT_EQUAL = 3,
+    IDAX_BRANCH_LESS_THAN_SIGNED = 4,
+    IDAX_BRANCH_LESS_THAN_OR_EQUAL_SIGNED = 5,
+    IDAX_BRANCH_GREATER_THAN_SIGNED = 6,
+    IDAX_BRANCH_GREATER_THAN_OR_EQUAL_SIGNED = 7,
+    IDAX_BRANCH_LESS_THAN_UNSIGNED = 8,
+    IDAX_BRANCH_LESS_THAN_OR_EQUAL_UNSIGNED = 9,
+    IDAX_BRANCH_GREATER_THAN_UNSIGNED = 10,
+    IDAX_BRANCH_GREATER_THAN_OR_EQUAL_UNSIGNED = 11,
+    IDAX_BRANCH_ZERO = 12,
+    IDAX_BRANCH_NOT_ZERO = 13,
+    IDAX_BRANCH_NEGATIVE = 14,
+    IDAX_BRANCH_NOT_NEGATIVE = 15,
+    IDAX_BRANCH_OVERFLOW = 16,
+    IDAX_BRANCH_NO_OVERFLOW = 17,
+    IDAX_BRANCH_PARITY = 18,
+    IDAX_BRANCH_NO_PARITY = 19,
+    IDAX_BRANCH_COUNT_ZERO = 20,
+    IDAX_BRANCH_BIT_ZERO = 21,
+    IDAX_BRANCH_BIT_NOT_ZERO = 22,
+    IDAX_BRANCH_COUNT_NOT_ZERO = 23,
+    IDAX_BRANCH_COUNT_NOT_ZERO_AND_EQUAL = 24,
+    IDAX_BRANCH_COUNT_NOT_ZERO_AND_NOT_EQUAL = 25,
+    IDAX_BRANCH_UNKNOWN = 26,
+    IDAX_BRANCH_NEVER = 27,
+} IdaxBranchCondition;
+
 typedef struct IdaxInstruction {
     uint64_t     address;
     uint64_t     size;
@@ -925,11 +966,13 @@ typedef struct IdaxInstruction {
     char*        mnemonic;     /**< malloc'd */
     IdaxOperand* operands;     /**< malloc'd array */
     size_t       operand_count;
+    int branch_condition; /**< Normalized IdaxBranchCondition value. */
 } IdaxInstruction;
 
 /** Free all malloc'd fields inside an IdaxInstruction. */
 void idax_instruction_free(IdaxInstruction* insn);
 
+int idax_instruction_branch_condition(uint64_t ea, int* out);
 int idax_instruction_decode(uint64_t ea, IdaxInstruction* out);
 int idax_instruction_create(uint64_t ea, IdaxInstruction* out);
 int idax_instruction_text(uint64_t ea, char** out);
@@ -1881,6 +1924,8 @@ int idax_plugin_register_action_ex(const char* id, const char* label,
                                    IdaxActionEnabledCheck enabled_check,
                                    IdaxActionEnabledCheckEx enabled_check_ex,
                                    void* enabled_context);
+int idax_plugin_is_plugin_available(const char* plugin_name, int* out);
+int idax_plugin_run_plugin(const char* plugin_name, size_t argument);
 int idax_plugin_unregister_action(const char* action_id);
 int idax_plugin_activate_action(const char* action_id);
 int idax_plugin_attach_to_menu(const char* menu_path, const char* action_id);
@@ -2261,6 +2306,20 @@ typedef struct IdaxDecompilerItemAtPosition {
     int      is_expression;
 } IdaxDecompilerItemAtPosition;
 
+/** Plain ctree identity summary. No SDK handle or pointer is exposed. */
+typedef struct IdaxDecompilerCtreeItemInfo {
+    int type;
+    uint64_t address;
+    int is_expression;
+} IdaxDecompilerCtreeItemInfo;
+
+/** Arrays and optional summaries below are borrowed for the visitor callback. */
+typedef struct IdaxDecompilerSwitchCaseInfo {
+    const uint64_t* values; /**< Empty identifies a default case. */
+    size_t value_count;
+    IdaxDecompilerCtreeItemInfo body;
+} IdaxDecompilerSwitchCaseInfo;
+
 typedef struct IdaxDecompilerExpressionInfo {
     int         type;
     uint64_t    address;
@@ -2272,6 +2331,15 @@ typedef struct IdaxDecompilerExpressionInfo {
     uint64_t    parent_address;
     int         parent_is_expression;
     size_t      parent_depth;
+    const IdaxDecompilerCtreeItemInfo* parents;
+    size_t parent_count;
+    const IdaxDecompilerCtreeItemInfo* left;
+    const IdaxDecompilerCtreeItemInfo* right;
+    const IdaxDecompilerCtreeItemInfo* third;
+    const IdaxDecompilerCtreeItemInfo* call_callee;
+    const IdaxDecompilerCtreeItemInfo* call_arguments;
+    size_t call_argument_count;
+    int operand_count;
 } IdaxDecompilerExpressionInfo;
 
 typedef struct IdaxDecompilerStatementInfo {
@@ -2282,6 +2350,19 @@ typedef struct IdaxDecompilerStatementInfo {
     uint64_t parent_address;
     int      parent_is_expression;
     size_t   parent_depth;
+    const IdaxDecompilerCtreeItemInfo* parents;
+    size_t parent_count;
+    const IdaxDecompilerCtreeItemInfo* condition;
+    const IdaxDecompilerCtreeItemInfo* then_branch;
+    const IdaxDecompilerCtreeItemInfo* else_branch;
+    const IdaxDecompilerCtreeItemInfo* body;
+    const IdaxDecompilerCtreeItemInfo* init_expression;
+    const IdaxDecompilerCtreeItemInfo* step_expression;
+    const IdaxDecompilerCtreeItemInfo* expression;
+    const IdaxDecompilerCtreeItemInfo* block_statements;
+    size_t block_statement_count;
+    const IdaxDecompilerSwitchCaseInfo* switch_cases;
+    size_t switch_case_count;
 } IdaxDecompilerStatementInfo;
 
 typedef int (*IdaxDecompilerExpressionVisitor)(
@@ -2345,6 +2426,30 @@ int idax_decompiled_header_line_count(IdaxDecompiledHandle handle, int* out);
 int idax_decompiled_declaration(IdaxDecompiledHandle handle, char** out);
 int idax_decompiled_entry_address(IdaxDecompiledHandle handle, uint64_t* out);
 
+typedef struct IdaxMicrocodeLocationPart {
+    int kind;
+    int register_id;
+    int second_register_id;
+    int register_offset;
+    int64_t register_relative_offset;
+    int64_t stack_offset;
+    uint64_t static_address;
+    int byte_offset;
+    int byte_size;
+} IdaxMicrocodeLocationPart;
+
+typedef struct IdaxMicrocodeValueLocation {
+    int kind;
+    int register_id;
+    int second_register_id;
+    int register_offset;
+    int64_t register_relative_offset;
+    int64_t stack_offset;
+    uint64_t static_address;
+    IdaxMicrocodeLocationPart* scattered_parts;
+    size_t scattered_part_count;
+} IdaxMicrocodeValueLocation;
+
 typedef struct IdaxLocalVariable {
     char*    name;
     char*    type_name;
@@ -2354,6 +2459,10 @@ typedef struct IdaxLocalVariable {
     int      storage;       /**< 0=unknown, 1=register, 2=stack */
     char*    comment;
     size_t   index;
+    int64_t stack_offset;
+    IdaxMicrocodeValueLocation* location; /**< Optional owned location. */
+    char* processor_register_name; /**< Optional owned name. */
+    int has_nice_name;
 } IdaxLocalVariable;
 
 typedef enum IdaxDecompilerCommentPositionKind {
@@ -2471,6 +2580,25 @@ int idax_decompiler_unregister_microcode_filter(uint64_t token);
 
 struct IdaxMicrocodeInstruction;
 
+typedef struct IdaxMicrocodeRegisterRange {
+    int register_id;
+    int byte_width;
+} IdaxMicrocodeRegisterRange;
+
+typedef struct IdaxMicrocodeSwitchCase {
+    int64_t value;
+    int target_block;
+} IdaxMicrocodeSwitchCase;
+
+typedef struct IdaxMicrocodeCallArgumentProperties {
+    int hidden;
+    int return_value_pointer;
+    int structure_argument;
+    int array_argument;
+    int unused;
+    int swift_self;
+} IdaxMicrocodeCallArgumentProperties;
+
 typedef struct IdaxMicrocodeOperand {
     int kind;
     int register_id;
@@ -2492,6 +2620,22 @@ typedef struct IdaxMicrocodeOperand {
     size_t call_argument_count;
     uint64_t call_target;
     char* text;
+    char* string_constant;
+    int has_floating_point_constant;
+    double floating_point_constant;
+    char* global_name;
+    int has_value_number;
+    uint16_t value_number;
+    IdaxMicrocodeCallArgumentProperties* call_argument_properties;
+    size_t call_argument_property_count;
+    struct IdaxMicrocodeOperand* call_return_operands;
+    size_t call_return_operand_count;
+    IdaxMicrocodeRegisterRange* call_return_registers;
+    size_t call_return_register_count;
+    IdaxMicrocodeSwitchCase* switch_cases;
+    size_t switch_case_count;
+    int has_switch_default_target;
+    int switch_default_target;
 } IdaxMicrocodeOperand;
 
 typedef struct IdaxMicrocodeInstruction {
@@ -2506,30 +2650,6 @@ typedef struct IdaxMicrocodeInstruction {
 } IdaxMicrocodeInstruction;
 
 void idax_microcode_instruction_free(IdaxMicrocodeInstruction* instruction);
-
-typedef struct IdaxMicrocodeLocationPart {
-    int kind;
-    int register_id;
-    int second_register_id;
-    int register_offset;
-    int64_t register_relative_offset;
-    int64_t stack_offset;
-    uint64_t static_address;
-    int byte_offset;
-    int byte_size;
-} IdaxMicrocodeLocationPart;
-
-typedef struct IdaxMicrocodeValueLocation {
-    int kind;
-    int register_id;
-    int second_register_id;
-    int register_offset;
-    int64_t register_relative_offset;
-    int64_t stack_offset;
-    uint64_t static_address;
-    IdaxMicrocodeLocationPart* scattered_parts;
-    size_t scattered_part_count;
-} IdaxMicrocodeValueLocation;
 
 typedef struct IdaxMicrocodeFunctionArgument {
     char* name;
@@ -2547,6 +2667,7 @@ typedef struct IdaxMicrocodeBlock {
     size_t successor_count;
     IdaxMicrocodeInstruction* instructions;
     size_t instruction_count;
+    int kind; /**< Semantic MicrocodeBlockKind discriminant. */
 } IdaxMicrocodeBlock;
 
 typedef struct IdaxMicrocodeFunction {
@@ -2558,6 +2679,13 @@ typedef struct IdaxMicrocodeFunction {
     IdaxMicrocodeValueLocation return_location;
     IdaxMicrocodeBlock* blocks;
     size_t block_count;
+    int64_t stack_frame_size;
+    int64_t local_stack_size;
+    int64_t saved_register_size;
+    int has_return_variable_index;
+    size_t return_variable_index;
+    IdaxLocalVariable* local_variables;
+    size_t local_variable_count;
 } IdaxMicrocodeFunction;
 
 int idax_decompiler_generate_microcode(uint64_t function_address,
@@ -3055,6 +3183,24 @@ int idax_lumina_pull(const uint64_t* addresses, size_t count,
 int idax_lumina_push(const uint64_t* addresses, size_t count,
                      int push_mode, int feature,
                      IdaxLuminaBatchResult* out);
+
+/* Apple dyld shared-cache inventory and incremental loading. */
+typedef struct IdaxDyldCacheModuleInfo {
+    char* path;
+    uint64_t load_address;
+} IdaxDyldCacheModuleInfo;
+void idax_dyld_cache_modules_free(IdaxDyldCacheModuleInfo* modules, size_t count);
+int idax_dyld_cache_is_available(int* out);
+int idax_dyld_cache_list_modules(IdaxDyldCacheModuleInfo** out, size_t* count);
+int idax_dyld_cache_list_modules_from_file(const char* path, IdaxDyldCacheModuleInfo** out, size_t* count);
+int idax_dyld_cache_load_module(const char* path, int wait_for_analysis);
+int idax_dyld_cache_load_section(uint64_t address, int wait_for_analysis);
+int idax_dyld_cache_load_dyld_header(int wait_for_analysis);
+int idax_dyld_cache_load_branch_islands(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_branch_mappings(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_global_offset_tables(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_gaps(int wait_for_analysis, size_t* out);
+int idax_dyld_cache_load_cache_data(int wait_for_analysis, size_t* out);
 
 #ifdef __cplusplus
 } /* extern "C" */

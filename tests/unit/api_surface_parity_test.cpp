@@ -400,6 +400,15 @@ void check_function_surface() {
 // ─── ida::instruction ───────────────────────────────────────────────────
 
 void check_instruction_surface() {
+    using BranchConditionFn = ida::instruction::BranchCondition(*)(ida::Address);
+    BranchConditionFn condition = &ida::instruction::branch_condition;
+    (void)condition;
+    static_assert(std::is_same_v<
+        decltype(std::declval<const ida::instruction::Instruction&>().branch_condition()),
+        ida::instruction::BranchCondition>);
+    (void)ida::instruction::BranchCondition::CountNotZeroAndEqual;
+    (void)ida::instruction::BranchCondition::CountNotZeroAndNotEqual;
+    (void)ida::instruction::BranchCondition::BitZero;
     (void)ida::instruction::OperandType::None;
     (void)ida::instruction::OperandType::Register;
     (void)ida::instruction::OperandType::Immediate;
@@ -1265,6 +1274,8 @@ void check_registers_surface() {
 // ─── ida::database ──────────────────────────────────────────────────────
 
 void check_database_surface() {
+    ida::Status (*save_to)(std::string_view) = &ida::database::save_to;
+    (void)save_to;
     (void)ida::database::OpenMode::Analyze;
     (void)ida::database::OpenMode::SkipAnalysis;
     (void)ida::database::LoadIntent::AutoDetect;
@@ -1438,6 +1449,10 @@ void check_lumina_surface() {
 // ─── ida::plugin ────────────────────────────────────────────────────────
 
 void check_plugin_surface() {
+    bool (*available)(std::string_view) = &ida::plugin::is_plugin_available;
+    ida::Status (*run)(std::string_view, std::size_t) = &ida::plugin::run_plugin;
+    (void)available;
+    (void)run;
     static_assert(std::is_abstract_v<ida::plugin::Plugin>,
                   "Plugin should be abstract base class");
 
@@ -2121,6 +2136,37 @@ void check_event_surface() {
 // ─── ida::decompiler ────────────────────────────────────────────────────
 
 void check_decompiler_surface() {
+    using namespace ida::decompiler;
+    static_assert(static_cast<int>(MicrocodeOpcode::Other) == 26);
+    static_assert(static_cast<int>(MicrocodeOperandKind::Other) == 15);
+    static_assert(std::is_same_v<decltype(MicrocodeOperand::floating_point_constant),
+                                 std::optional<double>>);
+    static_assert(std::is_same_v<decltype(MicrocodeOperand::value_number),
+                                 std::optional<std::uint16_t>>);
+    static_assert(std::is_same_v<decltype(MicrocodeOperand::call_argument_properties),
+                                 std::vector<MicrocodeCallArgumentProperties>>);
+    static_assert(std::is_same_v<decltype(MicrocodeOperand::switch_cases),
+                                 std::vector<MicrocodeSwitchCase>>);
+    static_assert(std::is_same_v<decltype(MicrocodeFunction::local_variables),
+                                 std::vector<LocalVariable>>);
+    static_assert(std::is_same_v<decltype(LocalVariable::stack_offset), std::int64_t>);
+    static_assert(std::is_same_v<decltype(LocalVariable::location),
+                                 std::optional<MicrocodeValueLocation>>);
+    using ChildExpression = ida::Result<ExpressionView>(StatementView::*)() const;
+    using ChildStatement = ida::Result<StatementView>(StatementView::*)() const;
+    using ChildAt = ida::Result<StatementView>(StatementView::*)(std::size_t) const;
+    ChildExpression condition = &StatementView::condition;
+    ChildExpression init = &StatementView::init_expression;
+    ChildExpression step = &StatementView::step_expression;
+    ChildExpression expression = &StatementView::expression;
+    ChildStatement then_branch = &StatementView::then_branch;
+    ChildStatement else_branch = &StatementView::else_branch;
+    ChildStatement body = &StatementView::body;
+    ChildAt block_child = &StatementView::block_statement;
+    ChildAt case_body = &StatementView::switch_case_body;
+    (void)condition; (void)init; (void)step; (void)expression;
+    (void)then_branch; (void)else_branch; (void)body;
+    (void)block_child; (void)case_body;
     ida::decompiler::LvarSnapshot lvar_snapshot;
     (void)lvar_snapshot.empty();
     (void)lvar_snapshot.saved_variable_count();
@@ -2788,6 +2834,24 @@ void check_core_surface() {
     (void)wo.poll_interval_ms;
 }
 
+
+void check_dyld_cache_surface() {
+    using namespace ida::dyld_cache;
+    static_assert(std::is_same_v<decltype(ModuleInfo{}.path), std::string>);
+    static_assert(std::is_same_v<decltype(ModuleInfo{}.load_address), ida::Address>);
+    static_assert(std::is_same_v<decltype(is_available()), bool>);
+    static_assert(std::is_same_v<decltype(list_modules()), ida::Result<std::vector<ModuleInfo>>>);
+    static_assert(std::is_same_v<decltype(list_modules(std::string_view{})), ida::Result<std::vector<ModuleInfo>>>);
+    static_assert(std::is_same_v<decltype(load_module("/usr/lib/example.dylib")), ida::Status>);
+    static_assert(std::is_same_v<decltype(load_section(ida::Address{})), ida::Status>);
+    static_assert(std::is_same_v<decltype(load_dyld_header()), ida::Status>);
+    static_assert(std::is_same_v<decltype(load_branch_islands()), ida::Result<std::size_t>>);
+    static_assert(std::is_same_v<decltype(load_branch_mappings()), ida::Result<std::size_t>>);
+    static_assert(std::is_same_v<decltype(load_global_offset_tables()), ida::Result<std::size_t>>);
+    static_assert(std::is_same_v<decltype(load_gaps()), ida::Result<std::size_t>>);
+    static_assert(std::is_same_v<decltype(load_cache_data()), ida::Result<std::size_t>>);
+}
+
 } // namespace surface_check
 
 // ─── Namespace count verification ────────────────────────────────────────
@@ -2860,6 +2924,7 @@ int main() {
     surface_check::check_path_surface();       namespaces_verified++;
     surface_check::check_lumina_surface();     namespaces_verified++;
     surface_check::check_plugin_surface();     namespaces_verified++;
+    surface_check::check_dyld_cache_surface(); namespaces_verified++;
     surface_check::check_loader_surface();     namespaces_verified++;
     surface_check::check_processor_surface();  namespaces_verified++;
     surface_check::check_debugger_surface();   namespaces_verified++;
@@ -2872,9 +2937,9 @@ int main() {
     surface_check::check_diagnostics_surface();namespaces_verified++;
     surface_check::check_core_surface();       namespaces_verified++;
 
-    CHECK(namespaces_verified == 40, "all 40 namespace surfaces verified");
+    CHECK(namespaces_verified == 41, "all 41 namespace surfaces verified");
 
-    std::printf("\n=== Results: %d passed, %d failed (40 namespaces) ===\n",
+    std::printf("\n=== Results: %d passed, %d failed (41 namespaces) ===\n",
                 g_pass, g_fail);
     return g_fail > 0 ? 1 : 0;
 }

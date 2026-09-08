@@ -38,6 +38,7 @@
 #include <ida/fixup.hpp>
 #include <ida/event.hpp>
 #include <ida/plugin.hpp>
+#include <ida/dyld_cache.hpp>
 #include <ida/loader.hpp>
 #include <ida/processor.hpp>
 #include <ida/debugger.hpp>

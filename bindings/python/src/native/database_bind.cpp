@@ -272,6 +272,11 @@ void bind_database(py::module_& module) {
             return ida::database::open_non_binary(filesystem_path(path_value), mode);
         });
     }, py::arg("path"), py::arg("mode") = ida::database::OpenMode::Analyze);
+    database.def("save_to", [](py::handle output_database_path) {
+        database_status("database.save_to", [&] {
+            return ida::database::save_to(filesystem_path(output_database_path));
+        });
+    }, py::arg("output_database_path"));
     database.def("save", [] {
         database_status("database.save", [] { return ida::database::save(); });
     });

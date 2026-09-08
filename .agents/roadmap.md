@@ -565,14 +565,14 @@ Current overall phase status:
 
 ### CI Recovery and Swift PR 6 Review (2026-09-08)
 
-- [ ] CI6.1 Re-audit the plugin declarations, repair the Python header fingerprint, validate locally, and require passing default-branch GitHub checks.
+- [x] CI6.1 Re-audit the plugin declarations, repair the Python header fingerprint, validate locally, and require passing default-branch GitHub checks.
 - [x] CI6.2 Review Swift PR 6 at its recorded head, reproduce material findings, and record the review with assumptions and bounded impacts.
 
 ### Phase 72 TODO Action Items (Fresh Swift Binding and PR 6 Rewrite)
 
 - [x] P72.1 Preserve the incoming PR on a reference branch, audit its entire diff against current headers and superseding decisions, and reproduce material defects.
 - [ ] P72.2 Record the complete declaration, ownership, thread, error, packaging, and compatibility contracts for a fresh implementation.
-- [ ] P72.3 Reimplement genuinely missing C++ prerequisites within existing semantic domains; preserve existing APIs and complete all applicable binding parity.
+- [x] P72.3 Reimplement genuinely missing C++ prerequisites within existing semantic domains; preserve existing APIs and complete all applicable binding parity.
 - [ ] P72.4 Implement stable Swift packaging, private native adapters, exact error transport, thread/session guards, and deterministic owner/callback leases.
 - [ ] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
 - [ ] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.

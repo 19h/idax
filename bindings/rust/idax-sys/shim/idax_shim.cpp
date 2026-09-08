@@ -171,6 +171,8 @@ struct ErrorState {
     int         category = IDAX_ERROR_NONE;
     int         code     = 0;
     std::string message;
+    std::string message_only;
+    std::string context;
 };
 
 thread_local ErrorState g_last_error;
@@ -179,6 +181,8 @@ void clear_error() {
     g_last_error.category = IDAX_ERROR_NONE;
     g_last_error.code     = 0;
     g_last_error.message.clear();
+    g_last_error.message_only.clear();
+    g_last_error.context.clear();
 }
 
 void set_error(const ida::Error& err) {
@@ -192,6 +196,8 @@ void set_error(const ida::Error& err) {
     }
     g_last_error.code = err.code;
     g_last_error.message = err.message;
+    g_last_error.message_only = err.message;
+    g_last_error.context = err.context;
     if (!err.context.empty()) {
         g_last_error.message += " [";
         g_last_error.message += err.context;
@@ -365,6 +371,14 @@ int idax_last_error_code(void) {
 
 const char* idax_last_error_message(void) {
     return g_last_error.message.c_str();
+}
+
+const char* idax_last_error_context(void) {
+    return g_last_error.context.c_str();
+}
+
+const char* idax_last_error_message_only(void) {
+    return g_last_error.message_only.c_str();
 }
 
 void idax_free_string(char* s) {
@@ -1300,6 +1314,7 @@ int idax_database_init(int argc, char** argv) {
     if (!g_ida_loader.ensure_loaded()) {
         g_last_error.category = IDAX_ERROR_SDK_FAILURE;
         g_last_error.code     = -1;
+        g_last_error.context.clear();
         g_last_error.message  = "Failed to locate IDA runtime libraries. "
             "Set IDADIR to the directory containing libida"
 #if defined(__APPLE__)
@@ -1308,6 +1323,7 @@ int idax_database_init(int argc, char** argv) {
             ".so"
 #endif
             " (e.g. /Applications/IDA\\ Pro.app/Contents/MacOS)";
+        g_last_error.message_only = g_last_error.message;
         return -1;
     }
 #endif
@@ -1338,6 +1354,12 @@ int idax_database_open_non_binary(const char* path, int mode) {
 
 int idax_database_save(void) {
     RETURN_STATUS(ida::database::save());
+}
+
+int idax_database_save_to(const char* output_database_path) {
+    if (output_database_path == nullptr)
+        return fail(ida::Error::validation("Output database path is null"));
+    RETURN_STATUS(ida::database::save_to(output_database_path));
 }
 
 int idax_database_close(int save) {
@@ -4617,6 +4639,7 @@ void fill_instruction(IdaxInstruction* out, const ida::instruction::Instruction&
     out->address       = insn.address();
     out->size          = insn.size();
     out->opcode        = insn.opcode();
+    out->branch_condition = static_cast<int>(insn.branch_condition());
     out->mnemonic      = dup_string(insn.mnemonic());
     auto& ops = insn.operands();
     out->operand_count = ops.size();
@@ -4660,6 +4683,14 @@ void idax_instruction_free(IdaxInstruction* insn) {
         }
         insn->operand_count = 0;
     }
+}
+
+int idax_instruction_branch_condition(uint64_t ea, int* out) {
+    clear_error();
+    if (out == nullptr)
+        return fail(ida::Error::validation("Branch condition output is null"));
+    *out = static_cast<int>(ida::instruction::branch_condition(ea));
+    return 0;
 }
 
 int idax_instruction_decode(uint64_t ea, IdaxInstruction* out) {
@@ -8483,6 +8514,20 @@ int idax_plugin_register_action_ex(const char* id, const char* label,
     RETURN_STATUS(ida::plugin::register_action(action));
 }
 
+int idax_plugin_is_plugin_available(const char* plugin_name, int* out) {
+    clear_error();
+    if (plugin_name == nullptr || out == nullptr)
+        return fail(ida::Error::validation("Plugin name/output is null"));
+    *out = ida::plugin::is_plugin_available(plugin_name) ? 1 : 0;
+    return 0;
+}
+
+int idax_plugin_run_plugin(const char* plugin_name, size_t argument) {
+    if (plugin_name == nullptr)
+        return fail(ida::Error::validation("Plugin name is null"));
+    RETURN_STATUS(ida::plugin::run_plugin(plugin_name, argument));
+}
+
 int idax_plugin_unregister_action(const char* action_id) {
     RETURN_STATUS(ida::plugin::unregister_action(action_id));
 }
@@ -9849,11 +9894,25 @@ int idax_decompiled_entry_address(IdaxDecompiledHandle handle, uint64_t* out) {
     return 0;
 }
 
+namespace {
+void free_microcode_location(IdaxMicrocodeValueLocation* location);
+ida::Status fill_microcode_location(IdaxMicrocodeValueLocation* out,
+                                    const ida::decompiler::MicrocodeValueLocation& location);
+}
+
 void idax_local_variable_free(IdaxLocalVariable* var) {
     if (var) {
         std::free(var->name);
         std::free(var->type_name);
         std::free(var->comment);
+        std::free(var->processor_register_name);
+        var->processor_register_name = nullptr;
+        if (var->location != nullptr) {
+            free_microcode_location(var->location);
+            std::free(var->location);
+            var->location = nullptr;
+        }
+
         var->name = nullptr;
         var->type_name = nullptr;
         var->comment = nullptr;
@@ -9871,16 +9930,42 @@ void idax_decompiled_variables_free(IdaxLocalVariable* vars, size_t count) {
     std::free(vars);
 }
 
-static void fill_local_variable(IdaxLocalVariable* out,
+static ida::Status fill_local_variable(IdaxLocalVariable* out,
                                 const ida::decompiler::LocalVariable& variable) {
+    std::memset(out, 0, sizeof(*out));
     out->name          = dup_string(variable.name);
     out->type_name     = dup_string(variable.type_name);
     out->is_argument   = variable.is_argument ? 1 : 0;
     out->width         = variable.width;
     out->has_user_name = variable.has_user_name ? 1 : 0;
+    out->has_nice_name = variable.has_nice_name ? 1 : 0;
     out->storage       = static_cast<int>(variable.storage);
     out->comment       = dup_string(variable.comment);
     out->index         = variable.index;
+    out->stack_offset  = variable.stack_offset;
+    if (variable.processor_register_name)
+        out->processor_register_name = dup_string(*variable.processor_register_name);
+    if ((out->name == nullptr && !variable.name.empty())
+        || (out->type_name == nullptr && !variable.type_name.empty())
+        || (out->comment == nullptr && !variable.comment.empty())
+        || (out->processor_register_name == nullptr && variable.processor_register_name)) {
+        idax_local_variable_free(out);
+        return std::unexpected(ida::Error::internal("malloc failed"));
+    }
+    if (variable.location) {
+        out->location = static_cast<IdaxMicrocodeValueLocation*>(
+            std::calloc(1, sizeof(IdaxMicrocodeValueLocation)));
+        if (out->location == nullptr) {
+            idax_local_variable_free(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        auto status = fill_microcode_location(out->location, *variable.location);
+        if (!status) {
+            idax_local_variable_free(out);
+            return status;
+        }
+    }
+    return ida::ok();
 }
 
 int idax_decompiled_variable_count(IdaxDecompiledHandle handle, size_t* out) {
@@ -9898,10 +9983,16 @@ int idax_decompiled_variables(IdaxDecompiledHandle handle,
     *count = v.size();
     if (v.empty()) { *out = nullptr; return 0; }
     *out = static_cast<IdaxLocalVariable*>(
-        std::malloc(v.size() * sizeof(IdaxLocalVariable)));
+        std::calloc(v.size(), sizeof(IdaxLocalVariable)));
     if (!*out) return fail(ida::Error::internal("malloc failed"));
     for (size_t i = 0; i < v.size(); ++i) {
-        fill_local_variable(&(*out)[i], v[i]);
+        auto status = fill_local_variable(&(*out)[i], v[i]);
+        if (!status) {
+            idax_decompiled_variables_free(*out, *count);
+            *out = nullptr;
+            *count = 0;
+            return fail(status.error());
+        }
     }
     return 0;
 }
@@ -9916,8 +10007,8 @@ int idax_decompiled_variable(IdaxDecompiledHandle handle,
     auto r = df->variable(index);
     if (!r) return fail(r.error());
     std::memset(out, 0, sizeof(*out));
-    fill_local_variable(out, *r);
-    return 0;
+    auto status = fill_local_variable(out, *r);
+    return status ? 0 : fail(status.error());
 }
 
 int idax_decompiled_rename_variable(IdaxDecompiledHandle handle,
@@ -10273,10 +10364,45 @@ int idax_decompiler_item_type_name(int item_type, char** out) {
     return 0;
 }
 
+// Owns the ordinary C summary values until the visitor callback returns.
+struct CtreeInfoStorage {
+    std::vector<IdaxDecompilerCtreeItemInfo> parents;
+    std::vector<IdaxDecompilerCtreeItemInfo> children;
+    std::vector<std::vector<std::uint64_t>> case_values;
+    std::vector<IdaxDecompilerSwitchCaseInfo> cases;
+    IdaxDecompilerCtreeItemInfo left{}, right{}, third{}, callee{};
+    IdaxDecompilerCtreeItemInfo condition{}, then_branch{}, else_branch{}, body{};
+    IdaxDecompilerCtreeItemInfo init{}, step{}, expression{};
+};
+
+static IdaxDecompilerCtreeItemInfo ctree_summary(
+    const ida::decompiler::CtreeItemView& item) {
+    return {static_cast<int>(item.type), item.address, item.is_expression ? 1 : 0};
+}
+
+static IdaxDecompilerCtreeItemInfo ctree_summary(
+    const ida::decompiler::ExpressionView& item) {
+    return {static_cast<int>(item.type()), item.address(), 1};
+}
+
+static IdaxDecompilerCtreeItemInfo ctree_summary(
+    const ida::decompiler::StatementView& item) {
+    return {static_cast<int>(item.type()), item.address(), 0};
+}
+
+template <typename View>
+static const IdaxDecompilerCtreeItemInfo* optional_ctree_summary(
+    ida::Result<View> item, IdaxDecompilerCtreeItemInfo& storage) {
+    if (!item) return nullptr;
+    storage = ctree_summary(*item);
+    return &storage;
+}
+
 static void fill_expression_info(IdaxDecompilerExpressionInfo* raw,
                                  ida::decompiler::ExpressionView expr,
                                  std::string* helper_name,
-                                 std::string* type_declaration) {
+                                 std::string* type_declaration,
+                                 CtreeInfoStorage& storage) {
     std::memset(raw, 0, sizeof(*raw));
     raw->type = static_cast<int>(expr.type());
     raw->address = expr.address();
@@ -10304,6 +10430,11 @@ static void fill_expression_info(IdaxDecompilerExpressionInfo* raw,
 
     auto parents = expr.parents();
     if (parents) {
+        storage.parents.reserve(parents->size());
+        for (const auto& parent : *parents)
+            storage.parents.push_back(ctree_summary(parent));
+        raw->parents = storage.parents.data();
+        raw->parent_count = storage.parents.size();
         raw->parent_depth = parents->size();
         if (!parents->empty()) {
             const auto& parent = parents->back();
@@ -10313,16 +10444,37 @@ static void fill_expression_info(IdaxDecompilerExpressionInfo* raw,
             raw->parent_is_expression = parent.is_expression ? 1 : 0;
         }
     }
+    raw->left = optional_ctree_summary(expr.left(), storage.left);
+    raw->right = optional_ctree_summary(expr.right(), storage.right);
+    raw->third = optional_ctree_summary(expr.third(), storage.third);
+    raw->call_callee = optional_ctree_summary(expr.call_callee(), storage.callee);
+    raw->operand_count = expr.operand_count();
+    auto argument_count = expr.call_argument_count();
+    if (argument_count) {
+        storage.children.reserve(*argument_count);
+        for (std::size_t index = 0; index < *argument_count; ++index) {
+            auto child = expr.call_argument(index);
+            if (child) storage.children.push_back(ctree_summary(*child));
+        }
+        raw->call_arguments = storage.children.data();
+        raw->call_argument_count = storage.children.size();
+    }
 }
 
 static void fill_statement_info(IdaxDecompilerStatementInfo* raw,
-                                ida::decompiler::StatementView stmt) {
+                                ida::decompiler::StatementView stmt,
+                                CtreeInfoStorage& storage) {
     std::memset(raw, 0, sizeof(*raw));
     raw->type = static_cast<int>(stmt.type());
     raw->address = stmt.address();
 
     auto parents = stmt.parents();
     if (parents) {
+        storage.parents.reserve(parents->size());
+        for (const auto& parent : *parents)
+            storage.parents.push_back(ctree_summary(parent));
+        raw->parents = storage.parents.data();
+        raw->parent_count = storage.parents.size();
         raw->parent_depth = parents->size();
         if (!parents->empty()) {
             const auto& parent = parents->back();
@@ -10331,6 +10483,38 @@ static void fill_statement_info(IdaxDecompilerStatementInfo* raw,
             raw->parent_address = parent.address;
             raw->parent_is_expression = parent.is_expression ? 1 : 0;
         }
+    }
+    raw->condition = optional_ctree_summary(stmt.condition(), storage.condition);
+    raw->then_branch = optional_ctree_summary(stmt.then_branch(), storage.then_branch);
+    raw->else_branch = optional_ctree_summary(stmt.else_branch(), storage.else_branch);
+    raw->body = optional_ctree_summary(stmt.body(), storage.body);
+    raw->init_expression = optional_ctree_summary(stmt.init_expression(), storage.init);
+    raw->step_expression = optional_ctree_summary(stmt.step_expression(), storage.step);
+    raw->expression = optional_ctree_summary(stmt.expression(), storage.expression);
+    auto block_size = stmt.block_size();
+    if (block_size) {
+        storage.children.reserve(*block_size);
+        for (std::size_t index = 0; index < *block_size; ++index) {
+            auto child = stmt.block_statement(index);
+            if (child) storage.children.push_back(ctree_summary(*child));
+        }
+        raw->block_statements = storage.children.data();
+        raw->block_statement_count = storage.children.size();
+    }
+    auto case_count = stmt.switch_case_count();
+    if (case_count) {
+        storage.case_values.reserve(*case_count);
+        storage.cases.reserve(*case_count);
+        for (std::size_t index = 0; index < *case_count; ++index) {
+            auto values = stmt.switch_case_values(index);
+            auto body = stmt.switch_case_body(index);
+            if (!values || !body) continue;
+            storage.case_values.push_back(std::move(*values));
+            const auto& copied = storage.case_values.back();
+            storage.cases.push_back({copied.data(), copied.size(), ctree_summary(*body)});
+        }
+        raw->switch_cases = storage.cases.data();
+        raw->switch_case_count = storage.cases.size();
     }
 }
 
@@ -10354,7 +10538,8 @@ int idax_decompiler_for_each_expression(IdaxDecompiledHandle handle,
             std::string helper_name;
             std::string type_declaration;
             IdaxDecompilerExpressionInfo raw{};
-            fill_expression_info(&raw, expr, &helper_name, &type_declaration);
+            CtreeInfoStorage storage;
+            fill_expression_info(&raw, expr, &helper_name, &type_declaration, storage);
             return visit_action_from_c_int(callback(context, &raw));
         }
 
@@ -10399,7 +10584,8 @@ int idax_decompiler_for_each_item(IdaxDecompiledHandle handle,
             std::string helper_name;
             std::string type_declaration;
             IdaxDecompilerExpressionInfo raw{};
-            fill_expression_info(&raw, expr, &helper_name, &type_declaration);
+            CtreeInfoStorage storage;
+            fill_expression_info(&raw, expr, &helper_name, &type_declaration, storage);
             return visit_action_from_c_int(expression_callback(context, &raw));
         }
 
@@ -10408,7 +10594,8 @@ int idax_decompiler_for_each_item(IdaxDecompiledHandle handle,
             if (statement_callback == nullptr)
                 return ida::decompiler::VisitAction::Continue;
             IdaxDecompilerStatementInfo raw{};
-            fill_statement_info(&raw, stmt);
+            CtreeInfoStorage storage;
+            fill_statement_info(&raw, stmt, storage);
             return visit_action_from_c_int(statement_callback(context, &raw));
         }
 
@@ -10460,6 +10647,26 @@ void free_microcode_operand(IdaxMicrocodeOperand* operand) {
         operand->call_arguments = nullptr;
     }
     operand->call_argument_count = 0;
+    std::free(operand->string_constant);
+    operand->string_constant = nullptr;
+    std::free(operand->global_name);
+    operand->global_name = nullptr;
+    std::free(operand->call_argument_properties);
+    operand->call_argument_properties = nullptr;
+    operand->call_argument_property_count = 0;
+    if (operand->call_return_operands != nullptr) {
+        for (std::size_t index = 0; index < operand->call_return_operand_count; ++index)
+            free_microcode_operand(&operand->call_return_operands[index]);
+        std::free(operand->call_return_operands);
+        operand->call_return_operands = nullptr;
+    }
+    operand->call_return_operand_count = 0;
+    std::free(operand->call_return_registers);
+    operand->call_return_registers = nullptr;
+    operand->call_return_register_count = 0;
+    std::free(operand->switch_cases);
+    operand->switch_cases = nullptr;
+    operand->switch_case_count = 0;
 }
 
 ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
@@ -10484,9 +10691,19 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
     out->mark_user_defined_type = operand.mark_user_defined_type ? 1 : 0;
     out->call_target = operand.call_target;
     out->text = dup_string(operand.text);
+    out->string_constant = dup_string(operand.string_constant);
+    out->global_name = dup_string(operand.global_name);
+    out->has_floating_point_constant = operand.floating_point_constant.has_value();
+    out->floating_point_constant = operand.floating_point_constant.value_or(0.0);
+    out->has_value_number = operand.value_number.has_value();
+    out->value_number = operand.value_number.value_or(0);
+    out->has_switch_default_target = operand.switch_default_target.has_value();
+    out->switch_default_target = operand.switch_default_target.value_or(0);
 
     if ((out->helper_name == nullptr && !operand.helper_name.empty())
-        || (out->text == nullptr && !operand.text.empty())) {
+        || (out->text == nullptr && !operand.text.empty())
+        || (out->string_constant == nullptr && !operand.string_constant.empty())
+        || (out->global_name == nullptr && !operand.global_name.empty())) {
         free_microcode_operand(out);
         return std::unexpected(ida::Error::internal("malloc failed"));
     }
@@ -10542,6 +10759,65 @@ ida::Status fill_microcode_operand(IdaxMicrocodeOperand* out,
                 free_microcode_operand(out);
                 return status;
             }
+        }
+    }
+
+    if (!operand.call_argument_properties.empty()) {
+        out->call_argument_property_count = operand.call_argument_properties.size();
+        out->call_argument_properties = static_cast<IdaxMicrocodeCallArgumentProperties*>(
+            std::calloc(out->call_argument_property_count, sizeof(IdaxMicrocodeCallArgumentProperties)));
+        if (out->call_argument_properties == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        for (std::size_t index = 0; index < out->call_argument_property_count; ++index) {
+            const auto& source = operand.call_argument_properties[index];
+            out->call_argument_properties[index] = {
+                source.hidden, source.return_value_pointer, source.structure_argument,
+                source.array_argument, source.unused, source.swift_self};
+        }
+    }
+
+    if (!operand.call_return_operands.empty()) {
+        out->call_return_operand_count = operand.call_return_operands.size();
+        out->call_return_operands = static_cast<IdaxMicrocodeOperand*>(
+            std::calloc(out->call_return_operand_count, sizeof(IdaxMicrocodeOperand)));
+        if (out->call_return_operands == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        for (std::size_t index = 0; index < out->call_return_operand_count; ++index) {
+            const auto& source = operand.call_return_operands[index];
+            auto status = fill_microcode_operand(&out->call_return_operands[index], source);
+            if (!status) { free_microcode_operand(out); return status; }
+        }
+    }
+
+    if (!operand.call_return_registers.empty()) {
+        out->call_return_register_count = operand.call_return_registers.size();
+        out->call_return_registers = static_cast<IdaxMicrocodeRegisterRange*>(
+            std::calloc(out->call_return_register_count, sizeof(IdaxMicrocodeRegisterRange)));
+        if (out->call_return_registers == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        for (std::size_t index = 0; index < out->call_return_register_count; ++index) {
+            const auto& source = operand.call_return_registers[index];
+            out->call_return_registers[index] = {source.register_id, source.byte_width};
+        }
+    }
+
+    if (!operand.switch_cases.empty()) {
+        out->switch_case_count = operand.switch_cases.size();
+        out->switch_cases = static_cast<IdaxMicrocodeSwitchCase*>(
+            std::calloc(out->switch_case_count, sizeof(IdaxMicrocodeSwitchCase)));
+        if (out->switch_cases == nullptr) {
+            free_microcode_operand(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        for (std::size_t index = 0; index < out->switch_case_count; ++index) {
+            const auto& source = operand.switch_cases[index];
+            out->switch_cases[index] = {source.value, source.target_block};
         }
     }
 
@@ -10679,6 +10955,9 @@ void free_microcode_function_contents(IdaxMicrocodeFunction* function) {
         function->blocks = nullptr;
     }
     function->block_count = 0;
+    idax_decompiled_variables_free(function->local_variables, function->local_variable_count);
+    function->local_variables = nullptr;
+    function->local_variable_count = 0;
 }
 
 ida::Status fill_microcode_function(
@@ -10690,6 +10969,24 @@ ida::Status fill_microcode_function(
     std::memset(out, 0, sizeof(*out));
     out->entry_address = function.entry_address;
     out->maturity = static_cast<int>(function.maturity);
+    out->stack_frame_size = function.stack_frame_size;
+    out->local_stack_size = function.local_stack_size;
+    out->saved_register_size = function.saved_register_size;
+    out->has_return_variable_index = function.return_variable_index.has_value();
+    out->return_variable_index = function.return_variable_index.value_or(0);
+    if (!function.local_variables.empty()) {
+        out->local_variable_count = function.local_variables.size();
+        out->local_variables = static_cast<IdaxLocalVariable*>(
+            std::calloc(out->local_variable_count, sizeof(IdaxLocalVariable)));
+        if (out->local_variables == nullptr) {
+            free_microcode_function_contents(out);
+            return std::unexpected(ida::Error::internal("malloc failed"));
+        }
+        for (std::size_t index = 0; index < out->local_variable_count; ++index) {
+            auto status = fill_local_variable(&out->local_variables[index], function.local_variables[index]);
+            if (!status) { free_microcode_function_contents(out); return status; }
+        }
+    }
 
     if (!function.arguments.empty()) {
         out->argument_count = function.arguments.size();
@@ -10743,6 +11040,7 @@ ida::Status fill_microcode_function(
             const auto& source = function.blocks[block_index];
             auto& destination = out->blocks[block_index];
             destination.index = source.index;
+            destination.kind = static_cast<int>(source.kind);
             destination.start_address = source.start_address;
             destination.end_address = source.end_address;
 
@@ -12885,4 +13183,88 @@ int idax_lumina_push(const uint64_t* addresses, size_t count,
     out->succeeded = r->succeeded;
     out->failed    = r->failed;
     return 0;
+}
+
+// Owned dyld cache inventories, released by the matching free function.
+void idax_dyld_cache_modules_free(IdaxDyldCacheModuleInfo* modules, size_t count) {
+    if (modules == nullptr) return;
+    for (size_t index = 0; index < count; ++index) std::free(modules[index].path);
+    std::free(modules);
+}
+static int copy_dyld_cache_modules(const ida::Result<std::vector<ida::dyld_cache::ModuleInfo>>& result,
+                                  IdaxDyldCacheModuleInfo** out, size_t* count) {
+    if (!result) { set_error(result.error()); return -1; }
+    if (result->empty()) return 0;
+    auto* modules = static_cast<IdaxDyldCacheModuleInfo*>(std::calloc(result->size(), sizeof(IdaxDyldCacheModuleInfo)));
+    if (modules == nullptr) { set_error(ida::Error::internal("malloc failed")); return -1; }
+    for (size_t index = 0; index < result->size(); ++index) {
+        modules[index].path = dup_string((*result)[index].path);
+        modules[index].load_address = (*result)[index].load_address;
+        if (modules[index].path == nullptr) {
+            idax_dyld_cache_modules_free(modules, result->size());
+            set_error(ida::Error::internal("malloc failed")); return -1;
+        }
+    }
+    *out = modules; *count = result->size(); return 0;
+}
+int idax_dyld_cache_is_available(int* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = ida::dyld_cache::is_available() ? 1 : 0; return 0;
+}
+int idax_dyld_cache_list_modules(IdaxDyldCacheModuleInfo** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = nullptr; *count = 0;
+    try { return copy_dyld_cache_modules(ida::dyld_cache::list_modules(), out, count); }
+    catch (...) { set_error(ida::Error::internal("Cannot allocate dyld cache inventory")); return -1; }
+}
+int idax_dyld_cache_list_modules_from_file(const char* path, IdaxDyldCacheModuleInfo** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = nullptr; *count = 0;
+    if (path == nullptr) { set_error(ida::Error::validation("null cache path")); return -1; }
+    try { return copy_dyld_cache_modules(ida::dyld_cache::list_modules(path), out, count); }
+    catch (...) { set_error(ida::Error::internal("Cannot allocate dyld cache inventory")); return -1; }
+}
+int idax_dyld_cache_load_module(const char* path, int wait_for_analysis) {
+    clear_error();
+    if (path == nullptr) { set_error(ida::Error::validation("null module path")); return -1; }
+    RETURN_STATUS(ida::dyld_cache::load_module(path, wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_section(uint64_t address, int wait_for_analysis) {
+    RETURN_STATUS(ida::dyld_cache::load_section(address, wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_dyld_header(int wait_for_analysis) {
+    RETURN_STATUS(ida::dyld_cache::load_dyld_header(wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_branch_islands(int wait_for_analysis, size_t* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = 0;
+    RETURN_RESULT_VALUE(ida::dyld_cache::load_branch_islands(wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_branch_mappings(int wait_for_analysis, size_t* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = 0;
+    RETURN_RESULT_VALUE(ida::dyld_cache::load_branch_mappings(wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_global_offset_tables(int wait_for_analysis, size_t* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = 0;
+    RETURN_RESULT_VALUE(ida::dyld_cache::load_global_offset_tables(wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_gaps(int wait_for_analysis, size_t* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = 0;
+    RETURN_RESULT_VALUE(ida::dyld_cache::load_gaps(wait_for_analysis != 0));
+}
+int idax_dyld_cache_load_cache_data(int wait_for_analysis, size_t* out) {
+    clear_error();
+    if (out == nullptr) { set_error(ida::Error::validation("null output")); return -1; }
+    *out = 0;
+    RETURN_RESULT_VALUE(ida::dyld_cache::load_cache_data(wait_for_analysis != 0));
 }

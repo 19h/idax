@@ -34,3 +34,8 @@ harness = false
 name = "registers_runtime"
 path = "tests/registers_runtime.rs"
 harness = false
+
+[[test]]
+name = "semantic_metadata_runtime"
+path = "tests/semantic_metadata_runtime.rs"
+harness = false

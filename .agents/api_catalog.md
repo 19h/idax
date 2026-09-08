@@ -333,3 +333,12 @@ This section captures the intended public API semantics at a concrete level so i
 - Node, safe Rust, and Python preserve the same owned model. The generated C ABI uses pointer-plus-length value strings, explicit result destructors, borrowed argument arrays, and owned returned value handles. External IDC-function and third-party-language registration remain separate callback-lifecycle domains.
 
 ---
+
+### 17.44 Decompiler Metadata and Semantic Branch Predicates
+- Existing owned microcode graphs now include copied constants/value numbering, call argument properties and return locations, switch cases/default targets, block shape, stack frame sizes, and complete local-variable locations/names. Existing discriminants and recursive payloads remain compatible.
+- Ctree statement navigation returns callback-scoped children with inherited parent context. Instruction branch predicates distinguish zero-count tests, decrement-and-test loops, signed/unsigned flag conditions, and architecture-specific bit/register tests. Unknown semantics remain explicit.
+- Database save-to validates destination input; named plugin availability and execution avoid exposing native plugin handles. All additions have Node, Rust, and Python parity and populated exact-runtime tests.
+
+### 17.45 Opaque Dyld Cache Capabilities
+- Offline inventories return copied module paths and 64-bit addresses using bounded verified cache layouts. Invalid tables and paths fail without partial output.
+- Current-cache service discovery, mapped-header loading, named/addressed module loading, section loading, and bulk requests use copied inputs, semantic options, deduplication, and observable newly loaded counts. Native service pointers and loader storage remain private.

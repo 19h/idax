@@ -44,6 +44,7 @@ PYBIND11_MODULE(_native, module) {
     idax::python::bind_graph(module);
     idax::python::bind_decompiler(module);
     idax::python::bind_plugin(module);
+    idax::python::bind_dyld_cache(module);
     idax::python::bind_loader(module);
     idax::python::bind_processor(module);
     idax::python::bind_ui(module);
