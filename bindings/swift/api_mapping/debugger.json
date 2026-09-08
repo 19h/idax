@@ -1,0 +1,2598 @@
+{
+  "domain": "debugger",
+  "declarations": [
+    {
+      "cpp_id": "d8da0b70488ba8f42cd2",
+      "cpp_name": "ida::debugger::AppcallExecutor",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "45b4ef7a39cf8081d6a1"
+      ],
+      "rationale": "A retained throwing Swift closure supplies AppcallExecutor.execute. Its registration owner retains callback captures through in-flight invocation and unregisters them on close or ARC release.",
+      "cpp_fingerprint": "d8da0b70488ba8f42cd20e8590aa36d757a73a7a087d91d111e6bb95224b7fe5",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerExecutor(name:execute:)",
+          "declaration": "static func registerExecutor(name: String, execute: @escaping (Debugger.AppcallRequest) throws(IDAError) -> Debugger.AppcallResult) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ea9bb6e11196fd88c5b",
+      "cpp_name": "ida::debugger::AppcallExecutor::execute",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<AppcallResult> (const AppcallRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "45b4ef7a39cf8081d6a1"
+      ],
+      "rationale": "A retained throwing Swift closure supplies AppcallExecutor.execute. Its registration owner retains callback captures through in-flight invocation and unregisters them on close or ARC release.",
+      "cpp_fingerprint": "48ff1e26e936e9cc4946863ddd9456a71b9930c90d34ca62c1dfe39556c915ac",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerExecutor(name:execute:)",
+          "declaration": "static func registerExecutor(name: String, execute: @escaping (Debugger.AppcallRequest) throws(IDAError) -> Debugger.AppcallResult) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29d28d3f1bc709fa14f7",
+      "cpp_name": "ida::debugger::AppcallExecutor::~AppcallExecutor",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "45b4ef7a39cf8081d6a1"
+      ],
+      "rationale": "A retained throwing Swift closure supplies AppcallExecutor.execute. Its registration owner retains callback captures through in-flight invocation and unregisters them on close or ARC release.",
+      "cpp_fingerprint": "3f5d1e86ad3966003bdd8cebc8399732b3e167f06b01aa8369f0f949a0c85b22",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerExecutor(name:execute:)",
+          "declaration": "static func registerExecutor(name: String, execute: @escaping (Debugger.AppcallRequest) throws(IDAError) -> Debugger.AppcallResult) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fcc8cf7d00456cb7d641",
+      "cpp_name": "ida::debugger::AppcallOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f422fc59a1c5dd97c64a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fcc8cf7d00456cb7d641c363b8bd90e2ee62e53ffe244ef855596c4b1f41eabb",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallOptions",
+          "declaration": "struct AppcallOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2b0c1892f01b17f2bbcb",
+      "cpp_name": "ida::debugger::AppcallOptions::include_debug_event",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "25f7002ab24ff60e67fe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ca27de97d783e71cfbd1cb5970357d57c1067c7d45b555ca4b01e65acc9e867e",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallOptions.includeDebugEvent",
+          "declaration": "var includeDebugEvent: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1f04adb32d6174e4bfe",
+      "cpp_name": "ida::debugger::AppcallOptions::manual",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "69eac0ac24066e625e2e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "75d4caaf82f929b194e949b174c5628ac17d3f2e20eba3eabd1979d5e66c6e92",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallOptions.manual",
+          "declaration": "var manual: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "69f4006a6553bae5ccee",
+      "cpp_name": "ida::debugger::AppcallOptions::thread_id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<int>",
+      "mapping": "direct",
+      "swift": [
+        "4002f99693b88266d7b2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "27c1c30b54b440f7bfe701cf488662d7880f8397679da3d24634e4674aa1366f",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallOptions.threadID",
+          "declaration": "var threadID: Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c869e0baa3163e4608ca",
+      "cpp_name": "ida::debugger::AppcallOptions::timeout_milliseconds",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::uint32_t>",
+      "mapping": "direct",
+      "swift": [
+        "930e218d6cac13f8f75d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3eda9d6c6e355b1fdf84ab9192f2e5b44508be1816c033a5f7a1eef800ca6da0",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallOptions.timeoutMilliseconds",
+          "declaration": "var timeoutMilliseconds: UInt32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f2646c199557fcb3dc16",
+      "cpp_name": "ida::debugger::AppcallRequest",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "8b309dbaf5477f2f9c3b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f2646c199557fcb3dc1638583529f9b4185b560a6a55a067877c0b9e9eb83e4a",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallRequest",
+          "declaration": "struct AppcallRequest"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3f4c6953840ae44302db",
+      "cpp_name": "ida::debugger::AppcallRequest::arguments",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<AppcallValue>",
+      "mapping": "direct",
+      "swift": [
+        "a65bfa1e333c45814684"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "744d008b7b588717fbae30fcc392960f15b2c354057827cc8d51e538aa4a1b69",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallRequest.arguments",
+          "declaration": "var arguments: [Debugger.AppcallValue]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e8ef3b94514d2919bdc",
+      "cpp_name": "ida::debugger::AppcallRequest::function_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "bd83b111b4369ab263b5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ef3ae9847bf01d2e430c3d00671be5c2e8cac3ebccc997ff958175d7b14021a",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallRequest.functionAddress",
+          "declaration": "var functionAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0f919ea949edd9feecf",
+      "cpp_name": "ida::debugger::AppcallRequest::function_type",
+      "cpp_kind": "field",
+      "cpp_signature": "ida::type::TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "5fab802c0230d755d908"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "42a3f54c1d049e8d2ee99f580daefa0b3567377f9cb80e9d57ad5ed24573c318",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallRequest.functionType",
+          "declaration": "var functionType: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "12a81edded7b43936cbf",
+      "cpp_name": "ida::debugger::AppcallRequest::options",
+      "cpp_kind": "field",
+      "cpp_signature": "AppcallOptions",
+      "mapping": "direct",
+      "swift": [
+        "de6ad1e0d82711706b65"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "13362b1b6ed1ed3e04488129d6ed3375eba2a6974354c1cebd86fad4153779d9",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallRequest.options",
+          "declaration": "var options: Debugger.AppcallOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8bd78e1ad3584aaef79e",
+      "cpp_name": "ida::debugger::AppcallResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "621d9fa459faa937af58"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8bd78e1ad3584aaef79e28633627fe63ce5f57ddb97bf7fa19ba3793050d306e",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallResult",
+          "declaration": "struct AppcallResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2120d19746da75671e99",
+      "cpp_name": "ida::debugger::AppcallResult::diagnostics",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "abb44baea140c0f760ca"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1ec2201ecbf667715f99d79fe44197ccf88952d24cc863e32287dc747ce29c6c",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallResult.diagnostics",
+          "declaration": "var diagnostics: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "367dbe224657fcf764f0",
+      "cpp_name": "ida::debugger::AppcallResult::return_value",
+      "cpp_kind": "field",
+      "cpp_signature": "AppcallValue",
+      "mapping": "direct",
+      "swift": [
+        "bccf64bbe98daf1a411a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f1a9bfc6379948c1b6d2dd265fe1503d899af3dbe809d26e038fe51b085f0b91",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallResult.returnValue",
+          "declaration": "var returnValue: Debugger.AppcallValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9ae3cdddf6bae875f46",
+      "cpp_name": "ida::debugger::AppcallValue",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "75982434870b1b56f198"
+      ],
+      "rationale": "A Swift associated-value enum carries exactly one of the six native kinds and its typed payload, preventing mismatched tags and inactive scalar fields.",
+      "cpp_fingerprint": "f9ae3cdddf6bae875f464bc9d7fc36e9d7d18587c5c58d271e5ca3e9e9d2c403",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue",
+          "declaration": "enum AppcallValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "836eda4edb0d11081c4a",
+      "cpp_name": "ida::debugger::AppcallValue::address_value",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "a3023f6b2ead6bebdec4"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "3e1c3e6235e3bf8f44c770074a4a566524b8aeac31efb1884367dd12f750a58e",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.address(_:)",
+          "declaration": "case address(Address)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2cbb28853ab3998d8f70",
+      "cpp_name": "ida::debugger::AppcallValue::boolean_value",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "b5e1e33349375e85b36b"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "c7bdf7bfa62e8427f39b2999f65bee5c64d8fa1964cf3022225724d7f7d80851",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.boolean(_:)",
+          "declaration": "case boolean(Bool)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8261a0e57f2c10ca7043",
+      "cpp_name": "ida::debugger::AppcallValue::floating_value",
+      "cpp_kind": "field",
+      "cpp_signature": "double",
+      "mapping": "adapted",
+      "swift": [
+        "554203c70a5e7d264ce8"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "49a5ffe965a489ce962191f52abb723511117fb92012b5c4ef708f0883cd5fff",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.floatingPoint(_:)",
+          "declaration": "case floatingPoint(Double)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5338377e1a0838014482",
+      "cpp_name": "ida::debugger::AppcallValue::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "75982434870b1b56f198"
+      ],
+      "rationale": "Pattern matching on the associated-value enum is the native kind query; the case and payload cannot disagree.",
+      "cpp_fingerprint": "2733660c48ba5820a80cd8a9cc7b2b3a0cf12ed0764de96d92ccb024367ddaef",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue",
+          "declaration": "enum AppcallValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63383a28b42d0c13e071",
+      "cpp_name": "ida::debugger::AppcallValue::signed_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "adapted",
+      "swift": [
+        "8c42007193d15cfa50b7"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "a1fc3830758e69f9b7845f6e1aa76ffc681c06c5e8113a1448116dfffdfa87f7",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.signedInteger(_:)",
+          "declaration": "case signedInteger(Int64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8052e11198d0afbfe229",
+      "cpp_name": "ida::debugger::AppcallValue::string_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "bfd251ca0aff66fc5993"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "5282168d993e7ad91e3c3c5fac835c029048f9b8cff4627014cb263553f384ff",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.string(_:)",
+          "declaration": "case string(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e6114d2d12e62ea693d1",
+      "cpp_name": "ida::debugger::AppcallValue::unsigned_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "adapted",
+      "swift": [
+        "8afba6a85b2876977987"
+      ],
+      "rationale": "Construct or extract the typed payload with the corresponding associated-value case.",
+      "cpp_fingerprint": "5860d8e4bfbcae7a3d4ac470f27d4c409e175cdaae916d1c5051fcb798b8cacb",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.unsignedInteger(_:)",
+          "declaration": "case unsignedInteger(UInt64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "50d91e85803d5f975827",
+      "cpp_name": "ida::debugger::AppcallValueKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class AppcallValueKind { SignedInteger, UnsignedInteger, FloatingPoint, String, Address, Boolean, }",
+      "mapping": "adapted",
+      "swift": [
+        "75982434870b1b56f198"
+      ],
+      "rationale": "The native discriminator is represented by the associated-value enum case.",
+      "cpp_fingerprint": "ac6721e33d192082c454f10218754ebf2b6952157c77a59480f7eaff7fe5860b",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue",
+          "declaration": "enum AppcallValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b6b2bb96ab7d65b29a52",
+      "cpp_name": "ida::debugger::AppcallValueKind::Address",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "a3023f6b2ead6bebdec4"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "7f88ff7d4b58d53e1d0753fd659feef63ce8bede59c0b8d8c727339cd6895eec",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.address(_:)",
+          "declaration": "case address(Address)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff2f875e98b2cd583954",
+      "cpp_name": "ida::debugger::AppcallValueKind::Boolean",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "b5e1e33349375e85b36b"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "880c7ff74168e1a19e6ec17427612927916b5da1a9bdd10fbfcfb367ee0e1c8f",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.boolean(_:)",
+          "declaration": "case boolean(Bool)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c5e943f4309cb53bb40",
+      "cpp_name": "ida::debugger::AppcallValueKind::FloatingPoint",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "554203c70a5e7d264ce8"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "15cc175c98b6c568ab47a893c88b893f00cd0d4583049725477c0ab67223782a",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.floatingPoint(_:)",
+          "declaration": "case floatingPoint(Double)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "160bfd971d616f4a86a6",
+      "cpp_name": "ida::debugger::AppcallValueKind::SignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "8c42007193d15cfa50b7"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "30bfdcd6c0fe6d0cf44429569ebe2e7ae3f9fcfb4ad340ae773a4b29316af381",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.signedInteger(_:)",
+          "declaration": "case signedInteger(Int64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3edfce6ce95de920d79a",
+      "cpp_name": "ida::debugger::AppcallValueKind::String",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "bfd251ca0aff66fc5993"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "8921fce17fad6352f103cb1bf579ad599f8ccf1bbb06162f2c60b2505843ce58",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.string(_:)",
+          "declaration": "case string(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e170163eaa9df0ba9237",
+      "cpp_name": "ida::debugger::AppcallValueKind::UnsignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::AppcallValueKind",
+      "mapping": "adapted",
+      "swift": [
+        "8afba6a85b2876977987"
+      ],
+      "rationale": "The corresponding associated-value case preserves this discriminator and its payload.",
+      "cpp_fingerprint": "69df7bfa29ee0846d73eca13253b82e743bacffc75bc9563d24848e82b251b9b",
+      "swift_targets": [
+        {
+          "path": "Debugger.AppcallValue.unsignedInteger(_:)",
+          "declaration": "case unsignedInteger(UInt64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4c1397038d019c245d0b",
+      "cpp_name": "ida::debugger::BackendInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "120f0268ac4ecfb5bb2b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4c1397038d019c245d0be276b08b8f281ab2054c25be3bb1ba8efb50254edee3",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend",
+          "declaration": "struct Backend"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a6494dee77c73b86d2c6",
+      "cpp_name": "ida::debugger::BackendInfo::display_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "9f58d93f0be9b3fab5e9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e82be9b8e43c485144dcaece76c0be8b58d75abf5791b4d6805174e41156659f",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.displayName",
+          "declaration": "var displayName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a90cbf2ebfc9ddfc7da5",
+      "cpp_name": "ida::debugger::BackendInfo::loaded",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3f2d9ceecd5d5413967b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5f79159a51934dc2d21192bdf1a6630a0a84dbf715075304ca917d50657c1de1",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.loaded",
+          "declaration": "var loaded: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cfb6be58f3632d90caca",
+      "cpp_name": "ida::debugger::BackendInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "bedc99d2f69622d369ab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "535efbafd96496556182b724827983bdb41a7d2365bb16481b80b950c57e9935",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "048228040541c2558f84",
+      "cpp_name": "ida::debugger::BackendInfo::remote",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "bc97f57ec6292c15a2bb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "95b5377313d16654498ff56fbf0c10952da11eca21aa419451fd191e65d7b15c",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.remote",
+          "declaration": "var remote: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63777eb404f959c17123",
+      "cpp_name": "ida::debugger::BackendInfo::supports_appcall",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c655ed0e1674189c5d13"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "85d6dd6e770231cf2f138516f5a9550c4a664580b98e07496a54a38f13e6e55f",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.supportsAppcall",
+          "declaration": "var supportsAppcall: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e9acd34c089854bd34ac",
+      "cpp_name": "ida::debugger::BackendInfo::supports_attach",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "688c77937aee9debca1c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c529d3612fc99d133128ee060080ff40450e7ba65571db08d65aa233e4d14e99",
+      "swift_targets": [
+        {
+          "path": "Debugger.Backend.supportsAttach",
+          "declaration": "var supportsAttach: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67df618997d741ed9c86",
+      "cpp_name": "ida::debugger::BreakpointChange",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class BreakpointChange { Added, Removed, Changed, }",
+      "mapping": "direct",
+      "swift": [
+        "744c20fc9756433c3e2d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a216cc115dcf32d5ba89168063f0117ca5a8a94dc190659dee0c7cf11e845aea",
+      "swift_targets": [
+        {
+          "path": "Debugger.BreakpointChange",
+          "declaration": "enum BreakpointChange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c9a9f164bb161e9dbcdd",
+      "cpp_name": "ida::debugger::BreakpointChange::Added",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::BreakpointChange",
+      "mapping": "direct",
+      "swift": [
+        "23b2ad84e3960dcab7ce"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "04f304c3518b04f6912a7308f60c00c06e91c87761ab689472ce0cd86a240b63",
+      "swift_targets": [
+        {
+          "path": "Debugger.BreakpointChange.added",
+          "declaration": "case added"
+        }
+      ]
+    },
+    {
+      "cpp_id": "014ab5c8b6c0ddcbd274",
+      "cpp_name": "ida::debugger::BreakpointChange::Changed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::BreakpointChange",
+      "mapping": "direct",
+      "swift": [
+        "965ba71e3f3f39ab38c7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4d280d93316dfec3293fa8037f8890b69dba8b90a21bfb259e073780985f928a",
+      "swift_targets": [
+        {
+          "path": "Debugger.BreakpointChange.changed",
+          "declaration": "case changed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b381f4e3e2ecf236e954",
+      "cpp_name": "ida::debugger::BreakpointChange::Removed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::BreakpointChange",
+      "mapping": "direct",
+      "swift": [
+        "adb6b075079a269dbbea"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "74974e17a4e7e3b4d2818c7297f488196999eaf8e2e060c0f4cd6934ea7472fb",
+      "swift_targets": [
+        {
+          "path": "Debugger.BreakpointChange.removed",
+          "declaration": "case removed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d2b54ba6565a03974391",
+      "cpp_name": "ida::debugger::ExceptionInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "3b362ba80f506e5492f1"
+      ],
+      "rationale": "The kind-selected copied debugger Change preserves this native event payload.",
+      "cpp_fingerprint": "d2b54ba6565a039743912f078447b2207dc4abd8a1dfe9bd135606f319dfb1f0",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c1a5621509d94e6fbab6",
+      "cpp_name": "ida::debugger::ExceptionInfo::can_continue",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "ae7f2d953edfef1d7c60"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "1f5d2c30855fdbe6cce260664e4536be34d2670e203e82690b8527d05968c8ed",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.canContinue",
+          "declaration": "let canContinue: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1fae83fcedd04177f480",
+      "cpp_name": "ida::debugger::ExceptionInfo::code",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "adapted",
+      "swift": [
+        "836a2f0fcf631fe92dcb"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "a76229add1b6f9a0e0cf1d2e4a046bb3be8d4dce90c48319a7fa6292e9a046b3",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.exceptionCode",
+          "declaration": "let exceptionCode: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd2394358ff0a37ca44a",
+      "cpp_name": "ida::debugger::ExceptionInfo::ea",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "535dc5ad11135ad4ec81"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "e3a8571a8d2fb8826bdf7f85346f31053d326d3dc28644acdb63f75c98082058",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85e5169598c2f5c261db",
+      "cpp_name": "ida::debugger::ExceptionInfo::message",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "a6b253eaae80683891bd"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "2efe323dc2cd6c62abdec846a0b315d119ddd0f73dd3b6e173905b49b01880dd",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c58b5c9ac46083012699",
+      "cpp_name": "ida::debugger::ModuleInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "3b362ba80f506e5492f1"
+      ],
+      "rationale": "The kind-selected copied debugger Change preserves this native event payload.",
+      "cpp_fingerprint": "c58b5c9ac46083012699eb3c6cbb648e42cf3e095ec6aa2f94e4c493fd306f29",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2de84fa959edfae2cd0",
+      "cpp_name": "ida::debugger::ModuleInfo::base",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "535dc5ad11135ad4ec81"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "775c312a655e5e865a106cdb7414e40d8eae08ba3a6658b9e14efd34fc2b1e69",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c295628020d34ce81510",
+      "cpp_name": "ida::debugger::ModuleInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "a6b253eaae80683891bd"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "30cacf241e1d81e783cb6a2e96b6a3b96e970ba7205214f0babaf71e84a3c440",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11e6e1b177ddcf637fc3",
+      "cpp_name": "ida::debugger::ModuleInfo::size",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "adapted",
+      "swift": [
+        "8a09a1c290e7ec029143"
+      ],
+      "rationale": "This copied Change field carries the corresponding native event member; for exception events name contains the exception diagnostic message.",
+      "cpp_fingerprint": "e95b11920c22f46f18eb26d0bcd78d0b09b04dee5b28219e1fd1f3b6b996adad",
+      "swift_targets": [
+        {
+          "path": "Debugger.Change.size",
+          "declaration": "let size: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79f704f9cd81ffb03204",
+      "cpp_name": "ida::debugger::ProcessState",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ProcessState { NoProcess, Running, Suspended, }",
+      "mapping": "direct",
+      "swift": [
+        "42f59921c667b581d46e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5b28d8c6efbfeb0c1f5ff35ec7aedcc90854bfc54b69579bc1118d57f637c7af",
+      "swift_targets": [
+        {
+          "path": "Debugger.ProcessState",
+          "declaration": "enum ProcessState"
+        }
+      ]
+    },
+    {
+      "cpp_id": "faa69bb7f54ba79b522a",
+      "cpp_name": "ida::debugger::ProcessState::NoProcess",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::ProcessState",
+      "mapping": "direct",
+      "swift": [
+        "7c7dcf2a5c3a91c92378"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5db7385cc1681085f8560b0d37165ebe919897d2f17f11a7d45dcd85f3871935",
+      "swift_targets": [
+        {
+          "path": "Debugger.ProcessState.noProcess",
+          "declaration": "case noProcess"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f287346f95660d7ce2f3",
+      "cpp_name": "ida::debugger::ProcessState::Running",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::ProcessState",
+      "mapping": "direct",
+      "swift": [
+        "9b50c496dccbe3a790b6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "21719905e5b7ae951d82feaafb087295eb5cc4732b426a227e6e359d0002ec05",
+      "swift_targets": [
+        {
+          "path": "Debugger.ProcessState.running",
+          "declaration": "case running"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35078fbfacd4928d51f7",
+      "cpp_name": "ida::debugger::ProcessState::Suspended",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::debugger::ProcessState",
+      "mapping": "direct",
+      "swift": [
+        "5ac824ac197500c409d2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e6a2edab83f3084f13fe2411d032943b2bc4d9c28a3e29620f0195f7c4689867",
+      "swift_targets": [
+        {
+          "path": "Debugger.ProcessState.suspended",
+          "declaration": "case suspended"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2597e1c1fc1b0445bb50",
+      "cpp_name": "ida::debugger::RegisterInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "870f964bcbac0db5f1c5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2597e1c1fc1b0445bb5033c6532f0ba8ea8b2c06ded66ecfa381b1323089809f",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register",
+          "declaration": "struct Register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0536cd2b7fe4fbea526",
+      "cpp_name": "ida::debugger::RegisterInfo::custom_format",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "bfb4ecd4769cf6acb6f0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "940f82489e0617c8bbe6df031cbc524c72adcba00817de8e5c232bdff96ae7db",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.customFormat",
+          "declaration": "var customFormat: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "419d3257f01d55567f1b",
+      "cpp_name": "ida::debugger::RegisterInfo::frame_pointer",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "10b428f50c21785b8be0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6b87229e2670ff226dabb737e0a719a853547a794eb62af7b615573fa1d1f5bc",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.framePointer",
+          "declaration": "var framePointer: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a4b9ad80a9bc5db5c05",
+      "cpp_name": "ida::debugger::RegisterInfo::instruction_pointer",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "022fad4ac1c72560233c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d96802b18bb9c1e65f3b28266b71ed58a3be6d027473fe2199cc9717e8390b5a",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.instructionPointer",
+          "declaration": "var instructionPointer: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5f8117750518873d4723",
+      "cpp_name": "ida::debugger::RegisterInfo::may_contain_address",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "2a5be5858277c171c2cb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "19d22dcbfe55c0c1b0bea5960fd2c0d3825c4ce5a81e369ae1848a650afb8f0f",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.mayContainAddress",
+          "declaration": "var mayContainAddress: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b62718996172dcdaf3af",
+      "cpp_name": "ida::debugger::RegisterInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "69ce0abdc5b6c4bcbad1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d6650a122d1979844177a4678d2d3f75164fcc0e1c3d602dbe40250d4fbd69c4",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8fcc3c82b7bf4fbfb5c",
+      "cpp_name": "ida::debugger::RegisterInfo::read_only",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "81bb89e753c05779fce7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "645125eb6c33ecad12c0ae4cf7e76774e5068beb9810f6355d40b9610f538fd6",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.readOnly",
+          "declaration": "var readOnly: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4cf05fda2580482900ce",
+      "cpp_name": "ida::debugger::RegisterInfo::stack_pointer",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "6e1a56d46f649f8cdd64"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "992e42db6c7f874bb64309e7b31973024c7f3bd8a7a7355356f74497b1f56bb5",
+      "swift_targets": [
+        {
+          "path": "Debugger.Register.stackPointer",
+          "declaration": "var stackPointer: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38fc1c205979d181cd97",
+      "cpp_name": "ida::debugger::ScopedSubscription",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "7c83872f0cf543720c3c"
+      ],
+      "rationale": "The move-only native guard is a Swift reference owner with ARC lifetime; native identity is kept private.",
+      "cpp_fingerprint": "38fc1c205979d181cd97ec6084ebc6e85a63f51c2c5c719ce4b2c0e3f08805a5",
+      "swift_targets": [
+        {
+          "path": "Registration",
+          "declaration": "final class Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "621171da40f87e29f07f",
+      "cpp_name": "ida::debugger::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (ScopedSubscription &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "9ae2b520fe7478f2a5b6d44ffb7b02b0dca72c3c11c078db66dd8526cf6dc0cf",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f65fd33a440d0359f85b",
+      "cpp_name": "ida::debugger::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Token)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "fcec7422ba22a503f758e3f4ded5c1f44c851194119c0aebbb28a9d98cd17627",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee7c81aa075a8d9f22f5",
+      "cpp_name": "ida::debugger::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const ScopedSubscription &)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "354526627790786cb8c011dac47e21698a6f0acf9dcc68928b0b414903fea6ad",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "835151b4693602bb39a3",
+      "cpp_name": "ida::debugger::ScopedSubscription::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedSubscription &(ScopedSubscription &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "c1986e6f9a6c311a72118527b9fb37a013c675c016804b90486540fbcedcaae4",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ac4741ab1b4ffaceafd",
+      "cpp_name": "ida::debugger::ScopedSubscription::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedSubscription &(const ScopedSubscription &)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "55539ea55abe186bee1ad933cafb38747cf289fb6f06be5d6c51e572ba72f1d1",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8ebf31cc0abf56f7de16",
+      "cpp_name": "ida::debugger::ScopedSubscription::token",
+      "cpp_kind": "method",
+      "cpp_signature": "Token () const noexcept",
+      "mapping": "private_bridge",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "fed506f3bb9177926643768aaf4f242b47d0a12e08386e75b1d0f29570dd630b",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b769fc63fd373995413",
+      "cpp_name": "ida::debugger::ScopedSubscription::~ScopedSubscription",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void () noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "796136b5a496e32177adc01f63b74ee927660dbedd7d1a14ca7b9bda34cc2f61",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "793ce47c3ce9c5c6eeb4",
+      "cpp_name": "ida::debugger::ThreadInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2246a42440c64d6480c5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "793ce47c3ce9c5c6eeb42d2da1c83f20f9bcd2440ab1ce5aaf2023fa577cfacf",
+      "swift_targets": [
+        {
+          "path": "Debugger.Thread",
+          "declaration": "struct Thread"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6494b291c9f37a5aab11",
+      "cpp_name": "ida::debugger::ThreadInfo::id",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "ba4320f2be84eb01eacd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c620662ebdce7374e3d8dd826e9aaafb969bf1fc1703892a431a8d4a22883183",
+      "swift_targets": [
+        {
+          "path": "Debugger.Thread.identifier",
+          "declaration": "var identifier: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d841b86f93288c16ec36",
+      "cpp_name": "ida::debugger::ThreadInfo::is_current",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3c30093624ff6b86770a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "94c9f1c8dce17c27fe311c57eaef828ce28f1c2978556dfecc7ff913c3ae2bc1",
+      "swift_targets": [
+        {
+          "path": "Debugger.Thread.isCurrent",
+          "declaration": "var isCurrent: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35049c5842a385d216f6",
+      "cpp_name": "ida::debugger::ThreadInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "5415dea31aa41e2f167a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "19d9ee0c3710cd2b596049200a08ffad47d0d838fdcddebd69937e81fe6e2328",
+      "swift_targets": [
+        {
+          "path": "Debugger.Thread.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4f7d5ddb92f4e6c8e932",
+      "cpp_name": "ida::debugger::Token",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "private_bridge",
+      "swift": [
+        "7c83872f0cf543720c3c"
+      ],
+      "rationale": "The native debugger token remains private inside its owned Swift registration.",
+      "cpp_fingerprint": "85b0d3177dc96f0a5bbc5695a94727e86577455a2090e0f7f9f8529759185f13",
+      "swift_targets": [
+        {
+          "path": "Registration",
+          "declaration": "final class Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d6dd48a21f1a6751f9c",
+      "cpp_name": "ida::debugger::add_breakpoint",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "009f4055278003758179"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6d4e2d3319dc833efc46d3666775d3630c6eded5a2224d178c35ac2fa7d3e0dd",
+      "swift_targets": [
+        {
+          "path": "Debugger.addBreakpoint(_:)",
+          "declaration": "static func addBreakpoint(_ address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "55f1c6e8c416b0494e8d",
+      "cpp_name": "ida::debugger::appcall",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AppcallResult> (const AppcallRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "305a0ab339d81f759dbb"
+      ],
+      "rationale": "One method selects native appcall when executor is nil and the named canonical executor when supplied; request type, six typed argument kinds, options, return value, and diagnostics are preserved.",
+      "cpp_fingerprint": "523dfd9fa595de3cc237dde97a9332a7206c9468dedf4e343fa29bc86b9e1405",
+      "swift_targets": [
+        {
+          "path": "Debugger.appcall(_:executor:)",
+          "declaration": "static func appcall(_ request: Debugger.AppcallRequest, executor: String? = nil) throws(IDAError) -> Debugger.AppcallResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff1bdc3365d7fc4555ec",
+      "cpp_name": "ida::debugger::appcall_with_executor",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AppcallResult> (std::string_view, const AppcallRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "305a0ab339d81f759dbb"
+      ],
+      "rationale": "One method selects native appcall when executor is nil and the named canonical executor when supplied; request type, six typed argument kinds, options, return value, and diagnostics are preserved.",
+      "cpp_fingerprint": "89816fd9971e29751d5aa6e332ec1ad72ab2874d254e55e6c17c7e5752ba46f9",
+      "swift_targets": [
+        {
+          "path": "Debugger.appcall(_:executor:)",
+          "declaration": "static func appcall(_ request: Debugger.AppcallRequest, executor: String? = nil) throws(IDAError) -> Debugger.AppcallResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "75f48f2fb8edefe67545",
+      "cpp_name": "ida::debugger::attach",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "344dc26485a74943c11f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "23d3e2dfbc57d0b351f42acf02bbe7a4d17dd7a63c975750bd2712d228bb5ac7",
+      "swift_targets": [
+        {
+          "path": "Debugger.attach(_:)",
+          "declaration": "static func attach(_ processID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "20daa4491cabc9c6627c",
+      "cpp_name": "ida::debugger::available_backends",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<BackendInfo>> ()",
+      "mapping": "direct",
+      "swift": [
+        "dba1d7495e7c4dee1ac1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f52e7a233ed3fdf9a1624689cdeefe0f37b1429ac63dae0c946711c262d5dbbd",
+      "swift_targets": [
+        {
+          "path": "Debugger.availableBackends()",
+          "declaration": "static func availableBackends() throws(IDAError) -> [Debugger.Backend]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90080295b32ec6411ec4",
+      "cpp_name": "ida::debugger::cleanup_appcall",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::optional<int>)",
+      "mapping": "direct",
+      "swift": [
+        "858d8376a4fefe40019e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5e777197873046e9293513e6fb4cbbcc897924a68409305e6dfd8ed7e94456f9",
+      "swift_targets": [
+        {
+          "path": "Debugger.cleanupAppcall(threadID:)",
+          "declaration": "static func cleanupAppcall(threadID: Int32? = nil) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "726b197f8b130be39c1e",
+      "cpp_name": "ida::debugger::current_backend",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<BackendInfo> ()",
+      "mapping": "direct",
+      "swift": [
+        "c807e0f4237e8db01dc2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a014a6d49dfc14450cc8458f649e204e935c22a3e57c26c52628cc26b4f59518",
+      "swift_targets": [
+        {
+          "path": "Debugger.currentBackend()",
+          "declaration": "static func currentBackend() throws(IDAError) -> Debugger.Backend"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60a4d68da1bacb2def8f",
+      "cpp_name": "ida::debugger::current_thread_id",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<int> ()",
+      "mapping": "direct",
+      "swift": [
+        "ed330933d3077d7bd9bc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8ff1859a3c205bdcc44088ee7fe4cf85de40989b73b65cebdb56d4ef3626b41c",
+      "swift_targets": [
+        {
+          "path": "Debugger.currentThreadId()",
+          "declaration": "static func currentThreadId() throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8c35ee8180a030ad168",
+      "cpp_name": "ida::debugger::detach",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "cdbc37ef98895402eb14"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c72f7696d3c2af18faad25cce1e820876fd4d57fab998f7c3bed64baa1d4b7f1",
+      "swift_targets": [
+        {
+          "path": "Debugger.detach()",
+          "declaration": "static func detach() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac666e50e89a3063fd77",
+      "cpp_name": "ida::debugger::has_breakpoint",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "1268b81e1e126c112520"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3fa03a0f4a7aed26324fc514a3e3f33380dc4fa9475f93c27a2db78a3ed7613f",
+      "swift_targets": [
+        {
+          "path": "Debugger.hasBreakpoint(at:)",
+          "declaration": "static func hasBreakpoint(at address: Address) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ab9ac130c15a4ef27744",
+      "cpp_name": "ida::debugger::instruction_pointer",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "17a0dbc79069703afad7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a150815865854f1cbaaac89ca0a68eee08f452b15f0d4afe57ae7b4b704930d5",
+      "swift_targets": [
+        {
+          "path": "Debugger.instructionPointer()",
+          "declaration": "static func instructionPointer() throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "02d9f398dff0963aeb7c",
+      "cpp_name": "ida::debugger::is_custom_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "92cc3193277a781a37ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bf96af3ef21fbc6065a4a8016da189855bdd59f6934efdb37fc4d124f8e8f0f9",
+      "swift_targets": [
+        {
+          "path": "Debugger.isCustomRegister(_:)",
+          "declaration": "static func isCustomRegister(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8820fc45ef6186d0f7e2",
+      "cpp_name": "ida::debugger::is_floating_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "e8bcf2f11a115f4beb15"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3a8546f8f53c1b82c93f7758a6b15e5d770c00dda651dbf4d4780321fbaac182",
+      "swift_targets": [
+        {
+          "path": "Debugger.isFloatingRegister(_:)",
+          "declaration": "static func isFloatingRegister(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e9382433af75ea5b477e",
+      "cpp_name": "ida::debugger::is_integer_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "49c64f15fd71c2adba14"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0526afe29f8eadf1071624642e91a3de04573baa0d2e96af83be7bd3c9446698",
+      "swift_targets": [
+        {
+          "path": "Debugger.isIntegerRegister(_:)",
+          "declaration": "static func isIntegerRegister(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c236585a7d00e1db9b90",
+      "cpp_name": "ida::debugger::is_request_running",
+      "cpp_kind": "function",
+      "cpp_signature": "bool ()",
+      "mapping": "direct",
+      "swift": [
+        "13ddfaadda9fdf0634ab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5340c50578d92676ff92cef17cd409e1988b2795dfbf22f0851c720ab14950fe",
+      "swift_targets": [
+        {
+          "path": "Debugger.isRequestRunning()",
+          "declaration": "static func isRequestRunning() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c509f5024e7abd269b6",
+      "cpp_name": "ida::debugger::load_backend",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "763903aa492ad76c8eaa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7ad4adf39c872a83ce818d1b635102793e1e3dab79c904cda5a4683fb6a9ed29",
+      "swift_targets": [
+        {
+          "path": "Debugger.loadBackend(_:remote:)",
+          "declaration": "static func loadBackend(_ name: String, remote: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e60f36a230979d91a526",
+      "cpp_name": "ida::debugger::on_breakpoint_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (BreakpointChange, Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "34d43e159f5ba3f160a5"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "2de7734b70c02b05102dbdaf49d8d22cc0da0eaa99df260b382f92fdf0c47da1",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.breakpointChanged",
+          "declaration": "case breakpointChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bdb6428c2729ae748ab4",
+      "cpp_name": "ida::debugger::on_breakpoint_hit",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (int, Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "7d72f1bc21933396403d"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "658c8fc11e920f0d49ceb7473480c45d97d1859fa7570d2ae2fd30dd7661bceb",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.breakpointHit",
+          "declaration": "case breakpointHit"
+        }
+      ]
+    },
+    {
+      "cpp_id": "53692b9239ac031d3f31",
+      "cpp_name": "ida::debugger::on_exception",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ExceptionInfo &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "53b03829bde0ceb297f8"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "27f595b5747b1ebe9a010b445630b99a4eebede1fb0a61c68dfdf3204016762c",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.exception",
+          "declaration": "case exception"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17eae5dc075a14aaf307",
+      "cpp_name": "ida::debugger::on_library_loaded",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ModuleInfo &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "2d82639e725aeb768df7"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "0477c65b73e980c3537d139f5e981f838321d28fed9c50e2cd22135521cda5dd",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.libraryLoaded",
+          "declaration": "case libraryLoaded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "08cf10e9ea0f9355a38d",
+      "cpp_name": "ida::debugger::on_library_unloaded",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (std::string)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "6d8a57b79e75ac55e57f"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "2bfffef505c240835a721d0debe46e176c989655af86d49d7aeabdc2b6e04ff4",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.libraryUnloaded",
+          "declaration": "case libraryUnloaded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d5d2e7013e34996d44f",
+      "cpp_name": "ida::debugger::on_process_exited",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (int)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "55dfa923221f3ea4cfac"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "6c218f11e8880bb5800b0089125bbbc7152d7e4b2eeb15ed76165f67881333a5",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.processExited",
+          "declaration": "case processExited"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d41a497c8e1f85274478",
+      "cpp_name": "ida::debugger::on_process_started",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ModuleInfo &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "058e9b9e444a76ab07ba"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "7ffcad03591e34da8a21e6853e8eb23455b8a07896f8a0c3ecabcc60b129d517",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.processStarted",
+          "declaration": "case processStarted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4cb453a773c4af4c1351",
+      "cpp_name": "ida::debugger::on_process_suspended",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "cba45ed4ac8a1cbe8d20"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "cb696ab69061cad3412fb87ff6c56aebe86b7bc9b1c9023f77f4f082eb5b1944",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.processSuspended",
+          "declaration": "case processSuspended"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b31eeeccef19708a4c76",
+      "cpp_name": "ida::debugger::on_thread_exited",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (int, int)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "863fa8e1648a45781b09"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "bbf836d342ea0f9def1ecc8a6a11aee73bd89031f25cb59e1322da476b92c187",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.threadExited",
+          "declaration": "case threadExited"
+        }
+      ]
+    },
+    {
+      "cpp_id": "01145e38f1327ea5626b",
+      "cpp_name": "ida::debugger::on_thread_started",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (int, std::string)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "45b056a3d3475bf9311d"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "268ee88ed333041c8711da0c3596e63161a179c8596247c7f0ff624876e4ebd1",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.threadStarted",
+          "declaration": "case threadStarted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ebd87231e363d1269a98",
+      "cpp_name": "ida::debugger::on_trace",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<bool (int, Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "b6418e9956459164ac18",
+        "0ba05c03dca84a60d1d9"
+      ],
+      "rationale": "The exact debugger event kind selects this callback; all native arguments are copied into Change. Only trace interprets the returned Bool, preserving native trace-log suppression semantics.",
+      "cpp_fingerprint": "cad080c9a88562481657c4578cc9f0a1ecfd2dc10c5c6c7818b57336d942e4f0",
+      "swift_targets": [
+        {
+          "path": "Debugger.subscribe(to:handler:)",
+          "declaration": "static func subscribe(to kind: Debugger.EventKind, handler: @escaping (Debugger.Change) throws(IDAError) -> Bool) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Debugger.EventKind.trace",
+          "declaration": "case trace"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b442ffc13e94906209c6",
+      "cpp_name": "ida::debugger::read_memory",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "911544cf64536f5e1643"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "326581e32ff2384295ace8785aaaf36ba464f6f11baf4411ea76358df4f205cb",
+      "swift_targets": [
+        {
+          "path": "Debugger.readMemory(at:size:)",
+          "declaration": "static func readMemory(at address: Address, size: UInt64) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "567e9a564188edf99e10",
+      "cpp_name": "ida::debugger::register_executor",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::shared_ptr<AppcallExecutor>)",
+      "mapping": "adapted",
+      "swift": [
+        "45b4ef7a39cf8081d6a1"
+      ],
+      "rationale": "A retained throwing Swift closure supplies AppcallExecutor.execute. Its registration owner retains callback captures through in-flight invocation and unregisters them on close or ARC release.",
+      "cpp_fingerprint": "002e4707f1f1569086ce58dd2678e6f643916404709481167390d247a781eb68",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerExecutor(name:execute:)",
+          "declaration": "static func registerExecutor(name: String, execute: @escaping (Debugger.AppcallRequest) throws(IDAError) -> Debugger.AppcallResult) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25a88b57202623834f38",
+      "cpp_name": "ida::debugger::register_info",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<RegisterInfo> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "6138e1a6cd6ef0c05051"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "75892650cdfb56adca8833a0ccb0b9da0d38a0ab909b353269caabceecd45027",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerInformation(_:)",
+          "declaration": "static func registerInformation(_ name: String) throws(IDAError) -> Debugger.Register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4bc3e64b089b44c14500",
+      "cpp_name": "ida::debugger::register_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint64_t> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "be1417218fb04ef24944"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b585ee2b775b171e65ff9aa0ce603a47351795a758d323f0cfa1f8d2376580c8",
+      "swift_targets": [
+        {
+          "path": "Debugger.registerValue(_:)",
+          "declaration": "static func registerValue(_ name: String) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0f815a2c74ef7a0db6c2",
+      "cpp_name": "ida::debugger::remove_breakpoint",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "89f69f6d8ecdc2daafcd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b09b26f06bb33f490c3f201c5355910535ba4204426ee8cdf0b6886874323e01",
+      "swift_targets": [
+        {
+          "path": "Debugger.removeBreakpoint(_:)",
+          "declaration": "static func removeBreakpoint(_ address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21c75d11a614c534ea57",
+      "cpp_name": "ida::debugger::request_attach",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int, int)",
+      "mapping": "direct",
+      "swift": [
+        "2570182cb80966773327"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d4f55acf32cd4fa7ebb82b008ea5cca0af4706d88fa4b1ac6ee610c986809097",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestAttach(_:eventID:)",
+          "declaration": "static func requestAttach(_ processID: Int32, eventID: Int32 = -1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "006f1e5d2f35e75c2171",
+      "cpp_name": "ida::debugger::request_resume",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "aa2dc92ad8a69b2e4944"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "311f3ce08d58297f120be0b029593c8bed485781897535cfeaf79a740c238d7b",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestResume()",
+          "declaration": "static func requestResume() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cccbdde3f41ebba9ae94",
+      "cpp_name": "ida::debugger::request_resume_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "ac8ff79f42e1b6791352"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4a313fcda2c8777943a934343eed1b27141ef590105cfefb2661aacb7e1fa36a",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestResumeThread(_:)",
+          "declaration": "static func requestResumeThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f6bb0f5ba452a7d224ae",
+      "cpp_name": "ida::debugger::request_run_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "a78d82d775e105bf32ea"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "91eb2485a412089d1f1a5c710dcf293142f334763d32589db612ca68581c4e0d",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestRunTo(_:)",
+          "declaration": "static func requestRunTo(_ address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d76d747509065d01af3f",
+      "cpp_name": "ida::debugger::request_select_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "a4208163d04e3aee8187"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1a17e4ece2aa69d55f169d3ea4cb7d15d52940b1a5ca776babf7931d87213f43",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestSelectThread(_:)",
+          "declaration": "static func requestSelectThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "19bca968a197c4867dc8",
+      "cpp_name": "ida::debugger::request_start",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "39a557a0b75f6358bed8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "09e06d1b33f37c7fd84673de074d28a967efce144d8b8b66b209720b5975331d",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestStart(path:arguments:workingDirectory:)",
+          "declaration": "static func requestStart(path: String = \"\", arguments: String = \"\", workingDirectory: String = \"\") throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7685e52a8db6ac576272",
+      "cpp_name": "ida::debugger::request_step_into",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "42924b68e1d3e5418aad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9f058a8cf7fb8ba34145ad43ffd0c3be1405ae29f09f0c6da15ee19fc868b7d5",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestStepInto()",
+          "declaration": "static func requestStepInto() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a11450320c0a4f86b739",
+      "cpp_name": "ida::debugger::request_step_out",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "62e940fd4412eaa5684f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b7383a72f1601bed035141565b7ab45405feb29ce0b3565e1a32765691b66dc4",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestStepOut()",
+          "declaration": "static func requestStepOut() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f850bda2febe0e566d2f",
+      "cpp_name": "ida::debugger::request_step_over",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "70e41cccfd73dbbb21e3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5f0be3df94a6f51ef2e2b3145fb7a78df6011d56bfff367b7044be3fc5cf2c8d",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestStepOver()",
+          "declaration": "static func requestStepOver() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "145fcac192f5cd1e48dc",
+      "cpp_name": "ida::debugger::request_suspend",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "0a78e20ca0eaf1e1dfe7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "955e24dce6efa0f5566eeb9720dc4478a0932b7d3c5cd9ca3fac027a3613b25a",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestSuspend()",
+          "declaration": "static func requestSuspend() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "40174ed0a977f676e14d",
+      "cpp_name": "ida::debugger::request_suspend_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "c9ff251d1f2f01c30686"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "627d8b4400b0d896ab1fe77ee4b139c761518f9aac18044895eefb4d20fd247e",
+      "swift_targets": [
+        {
+          "path": "Debugger.requestSuspendThread(_:)",
+          "declaration": "static func requestSuspendThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5d60170dfbad1ca616ae",
+      "cpp_name": "ida::debugger::resume",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "ad7b8e8362193051086d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8729c85d303f464e40e5634711c7d85b79c5d8be00360a418fcd0c3c58b3a2e8",
+      "swift_targets": [
+        {
+          "path": "Debugger.resume()",
+          "declaration": "static func resume() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ad2cad80f64befaaa5ff",
+      "cpp_name": "ida::debugger::resume_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "7f5f29c34712786b208e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "30b07099376d659568d3bb54cdaca22f821748f364e0e61155715d15ae1daa47",
+      "swift_targets": [
+        {
+          "path": "Debugger.resumeThread(_:)",
+          "declaration": "static func resumeThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a742a3813735bf45714",
+      "cpp_name": "ida::debugger::run_requests",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "cd15aa2bba9fd5542de6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7272812bfd38ae9125146d841a5a90b7a1911c0b75f0a8a6ed70fffc1dba932c",
+      "swift_targets": [
+        {
+          "path": "Debugger.runRequests()",
+          "declaration": "static func runRequests() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b6cb214c9369c8a52bc1",
+      "cpp_name": "ida::debugger::run_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "99fe8b705365a2245915"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9af58a75543fc3ad1dc7492cf99a13e783d08f5706ec455beed06561baa35202",
+      "swift_targets": [
+        {
+          "path": "Debugger.runTo(_:)",
+          "declaration": "static func runTo(_ address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f1f8bb98dfb735b7fd8e",
+      "cpp_name": "ida::debugger::select_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "a02cca1ad5c116d2eb2d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ee1d267fdc45a7724c57d72e12a3ae014aca537ac1235d0c4c8a9b69ec8fc5b",
+      "swift_targets": [
+        {
+          "path": "Debugger.selectThread(_:)",
+          "declaration": "static func selectThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b00075d101b8d78240d5",
+      "cpp_name": "ida::debugger::set_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "3fda0249c9d27d54b40b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1a328781124b99f1b2bcf9b35ce66a725b92371501067c22dc6a3060d237257c",
+      "swift_targets": [
+        {
+          "path": "Debugger.setRegister(_:value:)",
+          "declaration": "static func setRegister(_ name: String, value: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e12c50ebf5933fc3eae",
+      "cpp_name": "ida::debugger::stack_pointer",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "1661a4ba138074947e94"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1d9d71717fc35b19ccbf1abddaed8c958ef33616be447d88a7d5993f8212c0eb",
+      "swift_targets": [
+        {
+          "path": "Debugger.stackPointer()",
+          "declaration": "static func stackPointer() throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e137eb2922fcdae76d61",
+      "cpp_name": "ida::debugger::start",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "7ba95df8a69d4b830138"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "234f75f0d9211686ccd6eb61a67b6b3f00953f165b523ac62d7c93865b4da928",
+      "swift_targets": [
+        {
+          "path": "Debugger.start(path:arguments:workingDirectory:)",
+          "declaration": "static func start(path: String = \"\", arguments: String = \"\", workingDirectory: String = \"\") throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "403153f84809c62c0471",
+      "cpp_name": "ida::debugger::state",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ProcessState> ()",
+      "mapping": "direct",
+      "swift": [
+        "c2fe5aed4439f5d3f61e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "859f662a4f5c1533dcd60f1664dec08a249f860459f1cf5e4240f9cccb4c2fc3",
+      "swift_targets": [
+        {
+          "path": "Debugger.state()",
+          "declaration": "static func state() throws(IDAError) -> Debugger.ProcessState"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1bc928457a98d9b0eba",
+      "cpp_name": "ida::debugger::step_into",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "cbd0214bbb623a12a481"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "aca245cf635ef49a1c768c384e91a111754bfc5ed2c5e94de8725f1e114df250",
+      "swift_targets": [
+        {
+          "path": "Debugger.stepInto()",
+          "declaration": "static func stepInto() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5d94204f5180fa20d35c",
+      "cpp_name": "ida::debugger::step_out",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "694bd49c0755e19617e1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4d0452e83d41b8f168a3493790e2407124d8381a0cece211e1b546e824412bba",
+      "swift_targets": [
+        {
+          "path": "Debugger.stepOut()",
+          "declaration": "static func stepOut() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d85172d4a8a660a3c3fd",
+      "cpp_name": "ida::debugger::step_over",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "a2ef17d9e89aa020ed3f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "936448e7ff0b57c7faad17d48db87268a3cad3f267c955ed6208a5afde19421b",
+      "swift_targets": [
+        {
+          "path": "Debugger.stepOver()",
+          "declaration": "static func stepOver() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9f17ee8be7f17a363f24",
+      "cpp_name": "ida::debugger::suspend",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "67a5b58628f2489a70bb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dd6190159047a0d4631f88df25f3ea50e8cd2ce787fe9381fe880b04871cc420",
+      "swift_targets": [
+        {
+          "path": "Debugger.suspend()",
+          "declaration": "static func suspend() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "451983cf4958d5afdbf1",
+      "cpp_name": "ida::debugger::suspend_thread",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "3f5cce54a93924a7c105"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "98160551c7d1c40441d4aaa3f8e1d556f778e648f83ac8ea04be2adb3ddb7ffd",
+      "swift_targets": [
+        {
+          "path": "Debugger.suspendThread(_:)",
+          "declaration": "static func suspendThread(_ threadID: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51be6d23e617800f25ea",
+      "cpp_name": "ida::debugger::terminate",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "ff5e021cc13a4530af86"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "591694e5a6defd36f6408beda96e3d0d5edd261df889b597d2e06afabb052e94",
+      "swift_targets": [
+        {
+          "path": "Debugger.terminate()",
+          "declaration": "static func terminate() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6bb1816e17b71c42de8b",
+      "cpp_name": "ida::debugger::thread_count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "6caf8123af593a3f627f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ea8babf16553999719cca530bbd86b638d4ab8e8598b5682144ef46fe32edca6",
+      "swift_targets": [
+        {
+          "path": "Debugger.threadCount()",
+          "declaration": "static func threadCount() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f15605f23372d6d0e076",
+      "cpp_name": "ida::debugger::thread_id_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<int> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "6ceeceae0657b5ed2b47"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5c16fa32f01f325b4c6a61f2b5e9b2d6b753f5176c7536ce5110c0c561e66556",
+      "swift_targets": [
+        {
+          "path": "Debugger.threadID(at:)",
+          "declaration": "static func threadID(at index: Int) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cad890a881734e9b2029",
+      "cpp_name": "ida::debugger::thread_name_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "8db950f15a9eda4ee09a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4bcfeea827b8a28db4c75ebcb1a211367680268359ef4e932586ea18c2dcf736",
+      "swift_targets": [
+        {
+          "path": "Debugger.threadName(at:)",
+          "declaration": "static func threadName(at index: Int) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7adc47e53ac727933a71",
+      "cpp_name": "ida::debugger::threads",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<ThreadInfo>> ()",
+      "mapping": "direct",
+      "swift": [
+        "6fe6fb9728036d609c6c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "eebdd68297c2e5df9f33e10644d03b17c89ed66f460859f423d6fe844eaa01ad",
+      "swift_targets": [
+        {
+          "path": "Debugger.threads()",
+          "declaration": "static func threads() throws(IDAError) -> [Debugger.Thread]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "153aad4ac5bdb78d5d54",
+      "cpp_name": "ida::debugger::unregister_executor",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "The returned executor registration owns its registered name and performs canonical unregistration on close.",
+      "cpp_fingerprint": "ae52ea880a31a91a7175c853e2399f8c4d84f03c454b1e0a4b118464d805f1cf",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3ae1e8f81836be734308",
+      "cpp_name": "ida::debugger::unsubscribe",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Token)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Close unregisters the debugger callback owned by this registration.",
+      "cpp_fingerprint": "ae8b28dedba39f12c448f4f79d189653879937c2aa21943a9ca12c2244a7e954",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4921b34115fbba4e7a2",
+      "cpp_name": "ida::debugger::write_memory",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::span<const std::uint8_t>)",
+      "mapping": "direct",
+      "swift": [
+        "1c9afe5111e818d0570d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9e59d0e8a6d09459d9ce369d6d7814a163e932fdffb32ca93c2ac53fb636142b",
+      "swift_targets": [
+        {
+          "path": "Debugger.writeMemory(at:bytes:)",
+          "declaration": "static func writeMemory(at address: Address, bytes: [UInt8]) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

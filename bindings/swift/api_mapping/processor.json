@@ -1,0 +1,4690 @@
+{
+  "domain": "processor",
+  "declarations": [
+    {
+      "cpp_id": "ca6be92a4c31f95117f6",
+      "cpp_name": "IDAX_PROCESSOR",
+      "cpp_kind": "macro",
+      "cpp_signature": "IDAX_PROCESSOR(ProcessorClass)",
+      "cpp_fingerprint": "9456826398cb57ebb1034bda30552a826f1ec218fb4f8326471c0acaaede834f",
+      "mapping": "adapted",
+      "swift": [
+        "509b2e198f8d8e27ac95",
+        "38a36a575a04f7a6ae23"
+      ],
+      "rationale": "The build-module helper generates canonical IDAX_PROCESSOR LPH entry around the Swift bootstrap. Real kernel processor selection, decode_insn, and generate_disasm_line exercise its actual SDK callbacks.",
+      "swift_targets": [
+        {
+          "path": "Processor.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any ProcessorModule) throws(IDAError)"
+        },
+        {
+          "path": "ProcessorModule",
+          "declaration": "protocol ProcessorModule : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a5e9c050b6143c45460",
+      "cpp_name": "ida::processor::AnalyzeDetails",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "57dc6b37ee8840220ddc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7a5e9c050b6143c45460dfa58b5ba1e7c6e24da2cc47cfdb075b829fa4e67ddb",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeDetails",
+          "declaration": "struct AnalyzeDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7fb1ca2f9049ef7e5a16",
+      "cpp_name": "ida::processor::AnalyzeDetails::instruction_code",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "direct",
+      "swift": [
+        "997f871f5e2587057a63"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ddaacc6f2469dd5f13b44b4d6000ca7803735f7d236f02d1a0b31a7f2451add1",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeDetails.instructionCode",
+          "declaration": "var instructionCode: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "da7995fc51d15bf1ae82",
+      "cpp_name": "ida::processor::AnalyzeDetails::operands",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<AnalyzeOperand>",
+      "mapping": "direct",
+      "swift": [
+        "14997c7ab2e4c29895de"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7d18fcafa70802203726370df67475c819a85144d89b902982caa416e0071267",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeDetails.operands",
+          "declaration": "var operands: [Processor.AnalyzeOperand]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b13358c8c8124800d1a1",
+      "cpp_name": "ida::processor::AnalyzeDetails::size",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "7327ef148224bf5ad165"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "28e6f64cba2dfc68e42e02730019261e328e95b192c22907c02df4a47ce03df3",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeDetails.size",
+          "declaration": "var size: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e1963b91e6239b585c8",
+      "cpp_name": "ida::processor::AnalyzeOperand",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "6b07054fcee0adc9d630"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7e1963b91e6239b585c86613a647809925346b940b3a93681fafccc3aa96f305",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand",
+          "declaration": "struct AnalyzeOperand"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ca24232ce061cc642ea6",
+      "cpp_name": "ida::processor::AnalyzeOperand::data_type_code",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "65ca9a45e32918970044"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3782842033a6e125018ee7a782d618e18a17e9259224d03ee14ba72d1874ca7b",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.dataTypeCode",
+          "declaration": "var dataTypeCode: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f375d44ca8d5272418f4",
+      "cpp_name": "ida::processor::AnalyzeOperand::displacement",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "0a7b54e6463f779e2d93"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4cef2eaaaf191ed37b8fc93e79bcc99c3fdb46e9cd22ec753113b8cc340d5d09",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.displacement",
+          "declaration": "var displacement: Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5992862fd9068c34a45f",
+      "cpp_name": "ida::processor::AnalyzeOperand::has_displacement",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "0a7b54e6463f779e2d93"
+      ],
+      "rationale": "Optional payload presence exactly represents the native has-value flag, preventing disagreement between presence and the associated register, immediate, displacement, or address.",
+      "cpp_fingerprint": "2f25e05a9b890e66bea18d2986b5ef0f5006b783efaf076b983868590a74e9df",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.displacement",
+          "declaration": "var displacement: Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "560d6457c461cf35ef7a",
+      "cpp_name": "ida::processor::AnalyzeOperand::has_immediate",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "f3bdf20212088a426949"
+      ],
+      "rationale": "Optional payload presence exactly represents the native has-value flag, preventing disagreement between presence and the associated register, immediate, displacement, or address.",
+      "cpp_fingerprint": "105afcd1de1fcf13471a571cf22f3d84e020d21d694369c2be7497d0ff6f1a3f",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.immediateValue",
+          "declaration": "var immediateValue: UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1138e966c26c1870e3e3",
+      "cpp_name": "ida::processor::AnalyzeOperand::has_register",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "bb8d1945c3da38145781"
+      ],
+      "rationale": "Optional payload presence exactly represents the native has-value flag, preventing disagreement between presence and the associated register, immediate, displacement, or address.",
+      "cpp_fingerprint": "91276156ef615af448e91a0fa0604c827c23a4be400c5b33cff45b58ebdb5dab",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.registerIndex",
+          "declaration": "var registerIndex: Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "189b1830fcd21d911ca9",
+      "cpp_name": "ida::processor::AnalyzeOperand::has_target_address",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "fd76e4adc1c2461befe5"
+      ],
+      "rationale": "Optional payload presence exactly represents the native has-value flag, preventing disagreement between presence and the associated register, immediate, displacement, or address.",
+      "cpp_fingerprint": "fba9a6631f7577cfadcb7cf9f8064119685e1db10d5800aeff68dc5d6dcb81bc",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.targetAddress",
+          "declaration": "var targetAddress: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fa7d28e71086304a9f4",
+      "cpp_name": "ida::processor::AnalyzeOperand::immediate_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "f3bdf20212088a426949"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ebec3e0133186c3403203260d37eda140afd46d87d4939ba8d7891cf411d6342",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.immediateValue",
+          "declaration": "var immediateValue: UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38068f5b2209a455736e",
+      "cpp_name": "ida::processor::AnalyzeOperand::index",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "e65b7c938bfa7b993188"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fd1568d56cfd992211455fa7cf8f63721d1cd73623919294fd2c0312d6c23895",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.index",
+          "declaration": "var index: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "debc9cac17dae1c1e485",
+      "cpp_name": "ida::processor::AnalyzeOperand::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "acfc5894ebc45618b540"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e444eaa2ca1c54fb69492b88ff6d9cab3e2a20f5a787492f309ea25807a2fd4c",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.kind",
+          "declaration": "var kind: Processor.OperandKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a5cdda400d885f709622",
+      "cpp_name": "ida::processor::AnalyzeOperand::processor_flags",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "13dde5cb7adee8c64d76"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7b85a0aa902ae2c83e1c782777e9afdc8851d677d3c37de74e8c5b00e7b01785",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.processorFlags",
+          "declaration": "var processorFlags: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6e0ec4fe7c5507921c9a",
+      "cpp_name": "ida::processor::AnalyzeOperand::register_index",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "bb8d1945c3da38145781"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "43b6f63be9ead50219005470f5b89a7cfd65fa85048143e3348cb5ea1d7c8584",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.registerIndex",
+          "declaration": "var registerIndex: Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "48fced8251c487db557f",
+      "cpp_name": "ida::processor::AnalyzeOperand::target_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "fd76e4adc1c2461befe5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "767e586cffd627b112f71481bd42709578dd9ad9dec556e5d470fa5d840a195f",
+      "swift_targets": [
+        {
+          "path": "Processor.AnalyzeOperand.targetAddress",
+          "declaration": "var targetAddress: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e715d7739868ae078b9b",
+      "cpp_name": "ida::processor::AnalyzeOperandKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class AnalyzeOperandKind { None, Register, Immediate, NearAddress, FarAddress, DirectMemory, IndirectMemory, Displacement, ProcessorSpecific0, ProcessorSpecific1, ProcessorSpecific2, ProcessorSpecific3, ProcessorSpecific4, ProcessorSpecific5, }",
+      "mapping": "direct",
+      "swift": [
+        "65b2abef19e30187e887"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1cb8d8d7441be3bdd35c829532e2431a02a8cc6f4125ab707f2ac5218cc08667",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind",
+          "declaration": "enum OperandKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cefed62a8d8fb0a70bff",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::DirectMemory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "259792068f2f47003ec9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7a77aeb3d64064e80bb727996b70f5850501f2b5e26b45a166ab6b56b993bdde",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.directMemory",
+          "declaration": "case directMemory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2f5cf41e59dc73a17f7b",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::Displacement",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "6873f3eeded6374a2840"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e16f0a54d05ea4264cca8da9671b52efe4a821a17645e88f59792bbeb3b483fc",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.displacement",
+          "declaration": "case displacement"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c834efcc8668b1f0a4c9",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::FarAddress",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "c83531e9911031481a5e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "36463282538179b86f0e6588ce372efac611d13363453d74b7484e84e9d24abb",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.farAddress",
+          "declaration": "case farAddress"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5439e5d22cca51d96a02",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::Immediate",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "a3f7fa0e0b1ccde715bb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9da84c03463c80ee77095677d76abcd5e77c7630c9ca2489d07fb09e58aac238",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.immediate",
+          "declaration": "case immediate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "803fa82715f29f4acb74",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::IndirectMemory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "2ca74d183d69baebb8b4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "52fc0272ecd8694d50b51a64baa3bf70c01967db096c53f0446432905dfe8b04",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.indirectMemory",
+          "declaration": "case indirectMemory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fda98facce4a8201b2c5",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::NearAddress",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "5bf93d465f5f60995636"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e1089ee0ec87a63bdfa8ba60f5f7ea51bc38ea3c00b9f2793463a4b94b78a703",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.nearAddress",
+          "declaration": "case nearAddress"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea249ad7aa7a40b10313",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "5501c95678749d43f52f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c4e66243e50852b922f234406b80ae6900d2d80df8c366d4aa4631ab95ef7545",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.none",
+          "declaration": "case none"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42ff6c5fcdb88c198fa6",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific0",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "0245bc5865df5c125691"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "94d33dc93088d55cfeaac2c313290ea3cbdb55824116d9a87f40060867a6211c",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific0",
+          "declaration": "case processorSpecific0"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8c77f29b5a073082e20f",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific1",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "fbc99bbb6cc34936d7d9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0552fd7a67188cb26db6b7bffeb1095cd360a1fa12b72cddf9e4d0e5b223909d",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific1",
+          "declaration": "case processorSpecific1"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0f3839c7aa7c9b7caf29",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific2",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "971a5806b310d1cd96ec"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d38801e97cb1a589dafe95c80b2caf4f13fe44ce35e0e5f98b1716ff8221268f",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific2",
+          "declaration": "case processorSpecific2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "949a26b7dde156ddf46e",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific3",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "56bfc774ff4e9f6ea932"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ed61cb7e907dd5bedad799ac0485cf8259a0398097c618028f3cead4b1846084",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific3",
+          "declaration": "case processorSpecific3"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a0b850ca74b7782a967",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific4",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "f14d428dc1074bafd4c8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fbb8634fbf6eaf421b76e81cd055057d1b45ee63d9137147f74cc993fdd26aac",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific4",
+          "declaration": "case processorSpecific4"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bc54971a483ab0e0d56e",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::ProcessorSpecific5",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "db3d2de7cf9534ecc0ea"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6ccded2eb12a98fa689c93167da399e050d8551ed32694bc0a2036a455127688",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.processorSpecific5",
+          "declaration": "case processorSpecific5"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2027e13119f37b9aa5cf",
+      "cpp_name": "ida::processor::AnalyzeOperandKind::Register",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::AnalyzeOperandKind",
+      "mapping": "direct",
+      "swift": [
+        "5e1d7dcae9c019194ff4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4c6b5adc136db4fc680f4eb8355011ece5d56a1417fd5b45ba0c314b7a00f83c",
+      "swift_targets": [
+        {
+          "path": "Processor.OperandKind.register",
+          "declaration": "case register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4ee36fe7f8e38c66edc",
+      "cpp_name": "ida::processor::AssemblerInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "565729ef35eb9da6c182"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b4ee36fe7f8e38c66edc67d42c9e0d12f10b1d40b981fe1e0e6956896cb39b5e",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler",
+          "declaration": "struct Assembler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c857fdfa9091b7c22be",
+      "cpp_name": "ida::processor::AssemblerInfo::align_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "9cdcbbcf1004afadf53d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5cc3259e581ce320cc7c0340e6d773f8d66bf6d39f88b2d5c17b84e6416dd602",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.alignDirective",
+          "declaration": "var alignDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "920b4db9642dc128d495",
+      "cpp_name": "ida::processor::AssemblerInfo::byte_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "03ae883b0549f8bf630e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e8bfa9e59b45d40ad853bf83f863033ca4cf283505baf01cc2306bdde2f8fc57",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.byteDirective",
+          "declaration": "var byteDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0494cdd2b0e82e66f3d7",
+      "cpp_name": "ida::processor::AssemblerInfo::char_delim",
+      "cpp_kind": "field",
+      "cpp_signature": "char",
+      "mapping": "direct",
+      "swift": [
+        "c802b0cf09cda3d6451e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ada9582de424855aca77e1fc8832a34134793c0caacb2ef9f7f46e0f88b73be3",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.characterDelimiter",
+          "declaration": "var characterDelimiter: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1f6be4e0c7b33dd37bc",
+      "cpp_name": "ida::processor::AssemblerInfo::comment_prefix",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "d7e6edaf2f4f2383d352"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0b7b57109a583dd308662aaf8058ef97b606546a7ada8829fa8ec3b80d44c198",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.commentPrefix",
+          "declaration": "var commentPrefix: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b637182f8984c2143d9d",
+      "cpp_name": "ida::processor::AssemblerInfo::current_ip_symbol",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "48b0b379ec08e28a88b1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a837254d3b681f70f6893c515face7991d4fe83036ad507bacde19361719cea0",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.currentIpSymbol",
+          "declaration": "var currentIpSymbol: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4311dbfa917b80dda478",
+      "cpp_name": "ida::processor::AssemblerInfo::double_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "633bfd66c46d2445373e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c89aeb832c4a26c00e790c2c03f649cc7d1effe8179f92ef265afab834a59316",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.doubleDirective",
+          "declaration": "var doubleDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ad1e44b8e3977da3ea96",
+      "cpp_name": "ida::processor::AssemblerInfo::dword_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "d6f4d4ce69c8bd5a95e0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4663c41a392c99b9c0a770778c935f92ed7eb026c29af98195d3c78019fec20d",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.dwordDirective",
+          "declaration": "var dwordDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54ebf8bc2ec6d3bfb0c8",
+      "cpp_name": "ida::processor::AssemblerInfo::end_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "7d48dcb9f3d81f56b304"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "49de9ca6439f5fc5089b0cf028caa833f7008cf970ce9898ead912f7c80f0d75",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.endDirective",
+          "declaration": "var endDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "64244823ab892903934f",
+      "cpp_name": "ida::processor::AssemblerInfo::external_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "e1c6840e4df4bdbfbad3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ae0febb2108ced4ff2aa94acc64f8f264d864921234c8a3aa7df6f118d7910db",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.externalDirective",
+          "declaration": "var externalDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1aa9e7a6ef64db0dc96f",
+      "cpp_name": "ida::processor::AssemblerInfo::float_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "8fee869c40e17c4a0be0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "38d1faf4770c81e6d100f0d80523fea32bc28244d703a90cf79e3576a13a7d44",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.floatDirective",
+          "declaration": "var floatDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "57e94e5e9d874bba64ea",
+      "cpp_name": "ida::processor::AssemblerInfo::include_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "92b1023d168056f8c635"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "17e08f00fc411c9d7407fbd9573c03b26033cc3b1e86defd8e3ea99c5e9f25a0",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.includeDirective",
+          "declaration": "var includeDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b157d5512f7d41b3f276",
+      "cpp_name": "ida::processor::AssemblerInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "0df84390f322a35289a2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ccd59def6da142e4aaa39c22588f20f18636030b85574cfa3a8053a1981be17",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b8f6c2ec9e20f566aef",
+      "cpp_name": "ida::processor::AssemblerInfo::origin",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "2e7f12b060d3534418ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2b27307ee882c5e63aa42f3bb67c2f1dc7999916d4eabfacae7a71d34a29cc50",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.origin",
+          "declaration": "var origin: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "904bb72b212f85887a9d",
+      "cpp_name": "ida::processor::AssemblerInfo::oword_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "9b11758e419f4f4de0b0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "92982b69a1f9a55cca04ac8d920912dcdf954be1c1ed489c4e4101cf805f012e",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.owordDirective",
+          "declaration": "var owordDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2073e04d555bc5bf3edf",
+      "cpp_name": "ida::processor::AssemblerInfo::public_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "726e6c42bd665b325e62"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d88d664e63cfafca11c534bd25629c4d2a8cf278f265239a2547aa4f6eca68cc",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.publicDirective",
+          "declaration": "var publicDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c796896b9e1ace0c63e",
+      "cpp_name": "ida::processor::AssemblerInfo::qword_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "a99c5bf661bbaf65f3c4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e7d4cdc21305bef45a87242349be44a1c4c8d8db221a3813dac06ace33bd7883",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.qwordDirective",
+          "declaration": "var qwordDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d034cc92401055c59a7",
+      "cpp_name": "ida::processor::AssemblerInfo::requires_colon_after_labels",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3cfb2acc27ee7f7bed9e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c5a37c30db31ed3dc084859f3053299ebfd290ea683165bcaca55cd1a01b691a",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.requiresColonAfterLabels",
+          "declaration": "var requiresColonAfterLabels: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "642640182e245ad0998e",
+      "cpp_name": "ida::processor::AssemblerInfo::string_delim",
+      "cpp_kind": "field",
+      "cpp_signature": "char",
+      "mapping": "direct",
+      "swift": [
+        "d41e4c481f3a03a85b82"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5c4eaf2e6f325ad8f1e3b1f744606718a314458905c2c331a1690435bae78196",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.stringDelimiter",
+          "declaration": "var stringDelimiter: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0fd737233347809a6635",
+      "cpp_name": "ida::processor::AssemblerInfo::supports_quoted_names",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "693c0901e9ce6b3827a6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9dda06d7538f3c35db76d473988de14779bb77e4f7b09c71f8141af585de7b96",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.supportsQuotedNames",
+          "declaration": "var supportsQuotedNames: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a22b2f8184ddc3e2053e",
+      "cpp_name": "ida::processor::AssemblerInfo::tbyte_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "22a384cf512d4424d0a9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d6bb9892215b2432f9524025a78106c28b3e83163b18a5671b120e4bc26caf43",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.tbyteDirective",
+          "declaration": "var tbyteDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0447c0641cd131818728",
+      "cpp_name": "ida::processor::AssemblerInfo::uppercase_mnemonics",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c49502ce2ae7bce2c2b3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "89f38a0b15cb49a41661e8ab9cdfadead944c2e5255da70edb7b99e4d6ed1edf",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.uppercaseMnemonics",
+          "declaration": "var uppercaseMnemonics: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "573738c819b9c2aae791",
+      "cpp_name": "ida::processor::AssemblerInfo::uppercase_registers",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f3e4fc21a87190e735db"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "480287c287cc5ee9d59c82d11a3ee59046180eb6a83d5a3684ae7a375fbfff1f",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.uppercaseRegisters",
+          "declaration": "var uppercaseRegisters: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "95a6d05d9722fa31fe15",
+      "cpp_name": "ida::processor::AssemblerInfo::weak_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "a421f054ee5ba836b0eb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5d282662cfba21ea43e3dd9fb96b7a502fcc82f8bed35c13cbd8d2b453e67207",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.weakDirective",
+          "declaration": "var weakDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "570884f5b587b0cc6740",
+      "cpp_name": "ida::processor::AssemblerInfo::word_directive",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "be9072c566cc0979959f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "25e3b2f7519bd6ae50378ca405209e68c36337948c28029adec10da4e8ef2451",
+      "swift_targets": [
+        {
+          "path": "Processor.Assembler.wordDirective",
+          "declaration": "var wordDirective: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "609cc5cc73fe285ecece",
+      "cpp_name": "ida::processor::EmulateResult",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class EmulateResult : int { NotImplemented = 0, Success = 1, DeleteInsn = -1, }",
+      "mapping": "direct",
+      "swift": [
+        "276aee5fd5241fd0189c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "950c35875e96d9605fcb3c4e275ddf1a47a84d1497d4669589d8c469be5aac79",
+      "swift_targets": [
+        {
+          "path": "Processor.EmulateResult",
+          "declaration": "enum EmulateResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb9ba52ec76bfde2f769",
+      "cpp_name": "ida::processor::EmulateResult::DeleteInsn",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::EmulateResult",
+      "mapping": "direct",
+      "swift": [
+        "ea839ed46cc4bc44e830"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f35c54636c39d84b6f45e892d315761732a75c88b04c575302305c79c7a403fc",
+      "swift_targets": [
+        {
+          "path": "Processor.EmulateResult.deleteInstruction",
+          "declaration": "case deleteInstruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd22a4c2378ae1c04c31",
+      "cpp_name": "ida::processor::EmulateResult::NotImplemented",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::EmulateResult",
+      "mapping": "direct",
+      "swift": [
+        "5bfe2fe9e9792a73aa62"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d61330d3dd22bfd98377097d758a10dfb3f645e5c64f0ab1d25ed60f2a618786",
+      "swift_targets": [
+        {
+          "path": "Processor.EmulateResult.notImplemented",
+          "declaration": "case notImplemented"
+        }
+      ]
+    },
+    {
+      "cpp_id": "871a846d68c2843f1311",
+      "cpp_name": "ida::processor::EmulateResult::Success",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::EmulateResult",
+      "mapping": "direct",
+      "swift": [
+        "6e92de85b18add6fb6b0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "789632cfe93113726b6b33d7a6510c79b994acc95f8f7f71856743c605626f13",
+      "swift_targets": [
+        {
+          "path": "Processor.EmulateResult.success",
+          "declaration": "case success"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d779d8600c61c4457546",
+      "cpp_name": "ida::processor::InstructionDescriptor",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "ec84dea4a36dda2f84c7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d779d8600c61c4457546a7ed16ad49d2fd8e013db0ef6065adc7cea52bcfb95a",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor",
+          "declaration": "struct InstructionDescriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42da54b571f858afdc55",
+      "cpp_name": "ida::processor::InstructionDescriptor::description",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "d03d0b02c0c4e717976b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f5b5dcb931d95ea2b26238856709c0da1cb8941c63ce7e4a7c31589c8c6fca9b",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor.description",
+          "declaration": "var description: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "add261bd66570a50879d",
+      "cpp_name": "ida::processor::InstructionDescriptor::feature_flags",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "adapted",
+      "swift": [
+        "174e99ba7874b65e31e8"
+      ],
+      "rationale": "The native bitmask is a typed OptionSet; native output-reference plus handled/not-implemented status becomes an optional Swift return. Mutable output contexts preserve ordered semantic tokens and their joined text.",
+      "cpp_fingerprint": "fb02909398369e1608192f2d2ffd7753e389cb51c98d1798ae0ac349fd8b04d1",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor.features",
+          "declaration": "var features: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0728d47ffc91f510d283",
+      "cpp_name": "ida::processor::InstructionDescriptor::mnemonic",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "336f4dc489b2cf9bc5dd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fec9c07d461f9700f0acd3672a23d55557032fed6c3c7ad53ad6c0855fa52e00",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor.mnemonic",
+          "declaration": "var mnemonic: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63513f565c01d6921507",
+      "cpp_name": "ida::processor::InstructionDescriptor::operand_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "faa39f62dcda25f5f925"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "161d21b44a25346d17f67ba1194fc1ceba41dd1c9bce7e9ef1d8c39076757238",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor.operandCount",
+          "declaration": "var operandCount: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9dd859a709a491901653",
+      "cpp_name": "ida::processor::InstructionDescriptor::privileged",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "b072b6f733f72aa44853"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "adae634864d3d1e70ff00a9eb6c759925475eb6275af0c3f0ab2a082a36fe477",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionDescriptor.privileged",
+          "declaration": "var privileged: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "edbdf72266b514c158d8",
+      "cpp_name": "ida::processor::InstructionFeature",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class InstructionFeature : std::uint32_t { None = 0, Stop = 0x00001, Call = 0x00002, Change1 = 0x00004, Change2 = 0x00008, Change3 = 0x00010, Change4 = 0x00020, Change5 = 0x00040, Change6 = 0x00080, Use1 = 0x00100, Use2 = 0x00200, Use3 = 0x00400, Use4 = 0x00800, Use5 = 0x01000, Use6 = 0x02000, Jump = 0x04000, Shift = 0x08000, HighLevel = 0x10000, Change7 = 0x020000, Change8 = 0x040000, Use7 = 0x080000, Use8 = 0x100000, }",
+      "mapping": "direct",
+      "swift": [
+        "a46be24388ee46ab3be3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ca0a4e55564967678ff474839af5bb6c4de94a57fa3e7ab6dda273e7f3bb056a",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures",
+          "declaration": "struct InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d4e05287dad4dd890cb4",
+      "cpp_name": "ida::processor::InstructionFeature::Call",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "cfa48401a4a2c9b3db9d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c4177a704707f71012614f5fcf1329abdad2e1b413a353cd7a85c4ed7bb31e53",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.call",
+          "declaration": "static let call: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d024fc8299535331f312",
+      "cpp_name": "ida::processor::InstructionFeature::Change1",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "eac749f199fd0ed6f277"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ca6292aac1ba0d8dc2b0914870db24539cc7766a4cc81487c9b467bceaccb1d0",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change1",
+          "declaration": "static let change1: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1e1f1389ab1983f4623",
+      "cpp_name": "ida::processor::InstructionFeature::Change2",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "117d8e385e8dfcfa61d1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "632e1de411c5edc9b2e9bb82563cbd5e2060705aee71cfe67fb1cbf18027774d",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change2",
+          "declaration": "static let change2: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e48b3bdf027d4b8fe496",
+      "cpp_name": "ida::processor::InstructionFeature::Change3",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "ebc1e6c2cc6183bcd208"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e24f0aa50cef15e8d745d28ab60354e4ca850f4c38a7a1764810c52a07a1ae27",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change3",
+          "declaration": "static let change3: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07f5b8dcb0a2dc959ef0",
+      "cpp_name": "ida::processor::InstructionFeature::Change4",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "4aabcc42dd242696c2eb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "22defd2d0dc21f81e00f1bd431b25968f63c7285cdf63a26c235e9e9398d2f17",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change4",
+          "declaration": "static let change4: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "964b238a778879016b35",
+      "cpp_name": "ida::processor::InstructionFeature::Change5",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "3feb21814fce30223f68"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "759e5ddc478a6a48c299cf4019a62cacbe566fd33889eac1f954d247e9e8499a",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change5",
+          "declaration": "static let change5: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f01aa998b671a3d30d2c",
+      "cpp_name": "ida::processor::InstructionFeature::Change6",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "6fbd9d9f96f5cdf89232"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fa96909660f867a641e1d112cc32614f5b464be0a0978aa87ac8e57110310e0c",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change6",
+          "declaration": "static let change6: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8cd122dbef131aa7c995",
+      "cpp_name": "ida::processor::InstructionFeature::Change7",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "a79969d7329d5e656fa8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "addf8f2e5bb278029b1b882728d778ace25f3a4014a0347d7527064c401b3c4a",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change7",
+          "declaration": "static let change7: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3deb12d98645c4af5b7a",
+      "cpp_name": "ida::processor::InstructionFeature::Change8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "1981426739aceb0959fe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2ed6b9658a14f9e5d9512260b64aac29352592b6ac4f5899cbdad6b8001e597d",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.change8",
+          "declaration": "static let change8: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5042e19c0259be8c1cd8",
+      "cpp_name": "ida::processor::InstructionFeature::HighLevel",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "cd8117d278f6e7a8f1de"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "83447c8dd3cf81b5d4ec5f64628fd67f1428c3b7f1fecd6107b9f7bf9219075e",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.highLevel",
+          "declaration": "static let highLevel: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1aa4bce8c979bda2109",
+      "cpp_name": "ida::processor::InstructionFeature::Jump",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "a43ce50212849f7a01f8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4baa1b9772abf22298e94d6fabd1df3ea6b06ebc9b62e7041c9ab119452385a5",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.jump",
+          "declaration": "static let jump: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "008594f9cf08bf53a7bf",
+      "cpp_name": "ida::processor::InstructionFeature::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "adapted",
+      "swift": [
+        "ef1497517d0958c60264"
+      ],
+      "rationale": "The zero-valued native flag is the empty OptionSet, equivalently init(rawValue: 0); all nonzero flags retain their canonical bit positions.",
+      "cpp_fingerprint": "1f896a909e5ff4e2738e8b7626e888dd57069223185fb12088b1d815addceb37",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.init(rawValue:)",
+          "declaration": "init(rawValue: UInt32)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d2ab2abac0e6880e9747",
+      "cpp_name": "ida::processor::InstructionFeature::Shift",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "3fe2f550b95aabb03cbf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "be278f1531490a03ad08f3c8b267aac7e3e16f54077589ab89622e5223786e11",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.shift",
+          "declaration": "static let shift: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a8d1acddcd76a83a6e58",
+      "cpp_name": "ida::processor::InstructionFeature::Stop",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "1ed1b97e44ff3d020d9d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3b8fad4af77bf7e6df59ba001f0eda651acfac4eae6c65551a0b9a60e439bdf7",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.stop",
+          "declaration": "static let stop: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79a5d10a2922f37fd43b",
+      "cpp_name": "ida::processor::InstructionFeature::Use1",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "5ea4cd29c2110faf8294"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e91293c795bfc43561638e6bab40b1292575d3748fd3e6d4e042fb156c46c655",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use1",
+          "declaration": "static let use1: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49cd7aa01611296e5c00",
+      "cpp_name": "ida::processor::InstructionFeature::Use2",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "22dcd95594a8e69bbdb1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "aa9fa443a23f4d90c637bfe243e9e1f000066eb71c0e33866892fe18b278db1f",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use2",
+          "declaration": "static let use2: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "207f81d6db38897f218b",
+      "cpp_name": "ida::processor::InstructionFeature::Use3",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "7f6ea85e1ea98f9c4f6a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "41120190e09a236ccccb3900f7eb199da5f8d52038038842649dce424a9a5002",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use3",
+          "declaration": "static let use3: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e1b2835670af42bf725c",
+      "cpp_name": "ida::processor::InstructionFeature::Use4",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "21641cfd3b6c0022d8b8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2fb1448640a6684b1acc6982ace3bee609e71c08bfcef850aa977970e90f6497",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use4",
+          "declaration": "static let use4: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e17393fdd3e1ede9f29b",
+      "cpp_name": "ida::processor::InstructionFeature::Use5",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "e62230178cf764cc9c36"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f4861e6a45c77a669f72d0d4c5f27c429d77d4f0f24e86fef4fa861d61d6918a",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use5",
+          "declaration": "static let use5: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "71d4e8bf7f8bb13825d6",
+      "cpp_name": "ida::processor::InstructionFeature::Use6",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "05ceb9161d7a45fdea6f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "46312d45c7a3ba2d1a2e462fa1267c676b8977c99334e14c9c73481efb305411",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use6",
+          "declaration": "static let use6: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ed75d32525822c87c598",
+      "cpp_name": "ida::processor::InstructionFeature::Use7",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "b36a63f22f580dccad21"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d33d1b6e8036d055e05047653763c79a886fdf8ff34dad33b49d9fecbea9206d",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use7",
+          "declaration": "static let use7: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bd6b4fdba0ecc3a13aeb",
+      "cpp_name": "ida::processor::InstructionFeature::Use8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::InstructionFeature",
+      "mapping": "direct",
+      "swift": [
+        "8865160699a0b639bebf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3d83f81553ea6f3f76c5bfbae03fe1fb6fd19911a611822096e882da50abedfe",
+      "swift_targets": [
+        {
+          "path": "Processor.InstructionFeatures.use8",
+          "declaration": "static let use8: Processor.InstructionFeatures"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dea9fa1c81314535fe3d",
+      "cpp_name": "ida::processor::OutputContext",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "8ea5515c227bf49374b5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dea9fa1c81314535fe3dce9bba1ac734581262ec50ffb300ad7ec2bd55cfd389",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext",
+          "declaration": "struct OutputContext"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63527162a6311ab71d63",
+      "cpp_name": "ida::processor::OutputContext::address",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(Address)",
+      "mapping": "adapted",
+      "swift": [
+        "cd0a74c64dc4dcb3fd24"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "4d70904711c354b69b31e8cf012ca292ecef5e9c97d8845b0515fbf2e7639777",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.address(_:)",
+          "declaration": "mutating func address(_ address: Address)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73bb984d159f4a6a46ce",
+      "cpp_name": "ida::processor::OutputContext::append",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "9e6f584fd4281469ad73"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "78f97649b0a79eebabcff40a52facf486aa0cbd9694aa82f9568a4c0847aeaac",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.append(_:)",
+          "declaration": "mutating func append(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b6b4d3310c0c87185665",
+      "cpp_name": "ida::processor::OutputContext::character",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(char)",
+      "mapping": "adapted",
+      "swift": [
+        "353cfac82038f1e9dd04"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "41af3355eda16be3bf114045218fe2cf669f8082e12014cde3c6c7c45f84b389",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.character(_:)",
+          "declaration": "mutating func character(_ character: Character)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9c6feb058c1785efc4d5",
+      "cpp_name": "ida::processor::OutputContext::clear",
+      "cpp_kind": "method",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "6cf1e3650451fcba75cf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6577432b2923bd0776f8b24b407c3dde68c9fe2c06eab1ee738de0c732113d73",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.clear()",
+          "declaration": "mutating func clear()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b87e92ed4319fe69fa38",
+      "cpp_name": "ida::processor::OutputContext::comma",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &()",
+      "mapping": "adapted",
+      "swift": [
+        "7132dd045761d9146a08"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "919140bbd0858f275476ae910e09301dca633422e5ba02696594d82fd0163b73",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.comma()",
+          "declaration": "mutating func comma()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51bb46e48bc36faeeb1d",
+      "cpp_name": "ida::processor::OutputContext::comment",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "1cc157e885009165bdc7"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "e160f159da119d4b16af0cc773371e6a76d6abd1db4aa6d52bb6eeadd66448e2",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.comment(_:)",
+          "declaration": "mutating func comment(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b6e4dd5aa5862519f6f",
+      "cpp_name": "ida::processor::OutputContext::empty",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "f7d654538061c92bdaef"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "84e285e7d80649ad7fed74ef7a326a13b65aa4f01c5ac34cfb919806c63e9532",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.isEmpty",
+          "declaration": "var isEmpty: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9b47d0abceedbab99039",
+      "cpp_name": "ida::processor::OutputContext::immediate",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::int64_t, int)",
+      "mapping": "adapted",
+      "swift": [
+        "aecad3165b89104761e7"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "9e6fad3b58bf392358544e5e02d088fdd3a35b13ea03844b65dda5861d816437",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.immediate(_:radix:)",
+          "declaration": "mutating func immediate(_ value: Int64, radix: Int = 16) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "40e54a3f3fa389623313",
+      "cpp_name": "ida::processor::OutputContext::keyword",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "b60538eaf1fc9340c8ff"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "2c0c2d1b37bdbb8c166421a1be3d4b5262036efad81685687c0c1afabe5e2a9a",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.keyword(_:)",
+          "declaration": "mutating func keyword(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "558d6467f3436b12f821",
+      "cpp_name": "ida::processor::OutputContext::mnemonic",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "1035be5faf93103a44b4"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "7974986a20b323830246a3c3cb9968f2c57f693772ee71eed96b636387a5b321",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.mnemonic(_:)",
+          "declaration": "mutating func mnemonic(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65b86458ac45d5e0682c",
+      "cpp_name": "ida::processor::OutputContext::number",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "dc89a1c4fc9160957df8"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "29ea3161fc3622d1f4d67a2907883b895ecb9f862026756f6e28e17ae2310c07",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.number(_:)",
+          "declaration": "mutating func number(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c33ff7f85df65eb841b",
+      "cpp_name": "ida::processor::OutputContext::operator_symbol",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "d7085bd1a28f8964d686"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "4b9995588b65d7cca5c145550aba3c9723ad06f81eb46477b0abb176612f1ef4",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.operatorSymbol(_:)",
+          "declaration": "mutating func operatorSymbol(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f4216b56ef435fa82365",
+      "cpp_name": "ida::processor::OutputContext::punctuation",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "8e7eba7d435f1536337a"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "9ea207f87153efce8f5fa2a60c0bb815026cf6b6bcd01a1a3a2e6d24c4f888fe",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.punctuation(_:)",
+          "declaration": "mutating func punctuation(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bbab9309d1980d154d4e",
+      "cpp_name": "ida::processor::OutputContext::register_name",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "451f73e736272690befa"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "2a2bccd3148c3449a8354042379175dd3ec04d0b657828918fe23477668f9a0e",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.registerName(_:)",
+          "declaration": "mutating func registerName(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68556e1823c02f0be634",
+      "cpp_name": "ida::processor::OutputContext::space",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &()",
+      "mapping": "adapted",
+      "swift": [
+        "6e561c2dff9e08249e92"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "420a752baa3daad31d77ea78c5d07e1d29421fc03e40754ff5af89ad690b17f2",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.space()",
+          "declaration": "mutating func space()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49a064ada1ddcbd4db01",
+      "cpp_name": "ida::processor::OutputContext::string_literal",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view, char)",
+      "mapping": "adapted",
+      "swift": [
+        "5f3ea0fabfee39a032a1"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "d26e66fe1ff0d7e2df32e465353c9196755070b33bb70622bc04e063950e4cc9",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.stringLiteral(_:quote:)",
+          "declaration": "mutating func stringLiteral(_ text: String, quote: Character = \"\\\"\")"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2bed39a1dfd43fdfaeb1",
+      "cpp_name": "ida::processor::OutputContext::symbol",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "29a292672dbaebd05470"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "4133b929e4078ff67db7e20e8b6fd1e964328835f4839d968be7646e792cdaee",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.symbol(_:)",
+          "declaration": "mutating func symbol(_ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83b16f32161c64d67fc2",
+      "cpp_name": "ida::processor::OutputContext::take",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string ()",
+      "mapping": "direct",
+      "swift": [
+        "cc40cf39ffe253c490b5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "530122782ac9c43f907180b96aa7e429af091b09016cbefd109dc613cb47b0b4",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.take()",
+          "declaration": "mutating func take() -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8053a7a2c06b2dfd86d2",
+      "cpp_name": "ida::processor::OutputContext::take_tokens",
+      "cpp_kind": "method",
+      "cpp_signature": "std::vector<OutputToken> ()",
+      "mapping": "direct",
+      "swift": [
+        "f194d1979697b8e86c40"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ea7c564359056f33659c5ba153913908370955359f406441d4ec27fdea6149be",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.takeTokens()",
+          "declaration": "mutating func takeTokens() -> [Processor.OutputToken]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd63dfa04746cc825487",
+      "cpp_name": "ida::processor::OutputContext::text",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::string &() const",
+      "mapping": "adapted",
+      "swift": [
+        "f9dda7134680dd59f570"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "26f6910b0ea67043f4750b3e276bc2ae0ba576c1f998fed427b4908f797cba5a",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.text",
+          "declaration": "var text: String { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "209628400660c6dd1216",
+      "cpp_name": "ida::processor::OutputContext::token",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(OutputTokenKind, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "01d8c3914f2d80c796dd"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "a7a8636f7f914849f49ea1ed60488809a049f766652f007c4d5c1d976348d724",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.token(_:_:)",
+          "declaration": "mutating func token(_ kind: Processor.OutputTokenKind, _ text: String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e8410b3207f0ba59156",
+      "cpp_name": "ida::processor::OutputContext::tokens",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::vector<OutputToken> &() const",
+      "mapping": "adapted",
+      "swift": [
+        "8eefea10a5fc40f2514b"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "95357873ea8d3d0845f308e98b28ed3359a2832c6296d39504022a5bf21f9cac",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.tokens",
+          "declaration": "var tokens: [Processor.OutputToken] { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6ee19b627c9367d697e9",
+      "cpp_name": "ida::processor::OutputContext::whitespace",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputContext &(std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "94ab3d7402c8f82f7973"
+      ],
+      "rationale": "The fluent native reference return becomes a mutating Swift operation or owned value property. Token order and text effects are preserved; sequential calls replace native chaining. Character parameters accept Swift Character and preserve every native character.",
+      "cpp_fingerprint": "e882539ba121f808571baaff3a4eb63f8185ccc17e55fbc4febc4aa059ad482a",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputContext.whitespace(_:)",
+          "declaration": "mutating func whitespace(_ text: String = \" \")"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0a4742a4833ce108cb5",
+      "cpp_name": "ida::processor::OutputInstructionResult",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OutputInstructionResult : int { NotImplemented = 0, Success = 1, }",
+      "mapping": "direct",
+      "swift": [
+        "863d2ca54c0beb63c5f2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a9f850691a0af38e4340e41f08d1bab8ae922c8f0ff0cfa3dafcf53de7c7b31e",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputInstructionResult",
+          "declaration": "enum OutputInstructionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98cc21fe386fe49bec11",
+      "cpp_name": "ida::processor::OutputInstructionResult::NotImplemented",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputInstructionResult",
+      "mapping": "direct",
+      "swift": [
+        "774aa687ca2963bb456f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3e571acab7c32ed061091a1f3614abaf5c13eb1527ec05b34e954c7a2f8f78f5",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputInstructionResult.notImplemented",
+          "declaration": "case notImplemented"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ce18bc30b28234e393e8",
+      "cpp_name": "ida::processor::OutputInstructionResult::Success",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputInstructionResult",
+      "mapping": "direct",
+      "swift": [
+        "a90cc7d6ec635cef84d6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9036010ac8ea299c785c7cd7dad8d2c30bc3f1d31e8a97a583b571ace86eea5a",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputInstructionResult.success",
+          "declaration": "case success"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a76c961306743513978",
+      "cpp_name": "ida::processor::OutputOperandResult",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OutputOperandResult : int { NotImplemented = 0, Success = 1, Hidden = -1, }",
+      "mapping": "direct",
+      "swift": [
+        "cc8c670ff2283a7548fc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d6ca4816981f1d6d18c4d0934b2d35ade68b1e10666b71755e325fb40ed0a86b",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputOperandResult",
+          "declaration": "enum OutputOperandResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c7462d0103da486c331",
+      "cpp_name": "ida::processor::OutputOperandResult::Hidden",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputOperandResult",
+      "mapping": "direct",
+      "swift": [
+        "6e7839115a8f2b3b4dfe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c475ef8da9b06ad98d5d4277495cbdf0815f6a683bea9f340f1edf3293d0c788",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputOperandResult.hidden",
+          "declaration": "case hidden"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a674ab5c48ea88facb9a",
+      "cpp_name": "ida::processor::OutputOperandResult::NotImplemented",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputOperandResult",
+      "mapping": "direct",
+      "swift": [
+        "c0fa735271e4cddfee8e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ae863e90ea16749a9b0585c78f3a9d47734070e53137e5f05ef92322767bc48f",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputOperandResult.notImplemented",
+          "declaration": "case notImplemented"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c99b405679b3e52730b1",
+      "cpp_name": "ida::processor::OutputOperandResult::Success",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputOperandResult",
+      "mapping": "direct",
+      "swift": [
+        "ec172bff9e7815fa859a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fa0971fe9ba80263ebce02606c2a99304981463aca2c937b9d6b6a8c40bc09be",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputOperandResult.success",
+          "declaration": "case success"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2536bd2c4c14a7058ded",
+      "cpp_name": "ida::processor::OutputToken",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "37783802621275a2bac6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2536bd2c4c14a7058deda390f9981430400902e40d79758ce8e6638648f182cc",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputToken",
+          "declaration": "struct OutputToken"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bad34eaa530dff41c60c",
+      "cpp_name": "ida::processor::OutputToken::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "6160f13c15fad0579b64"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a3804565fcf55d2ab04e6d4b0219576fc3f5a8ed9903b3bf5f0faa6ca1c2b662",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputToken.kind",
+          "declaration": "var kind: Processor.OutputTokenKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "706a904ee4df98f17a3d",
+      "cpp_name": "ida::processor::OutputToken::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b9497e58bf52e03e334d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8007562ad37122756e4ffda8f94c6f784566b4b5c43d85240efdd8cebf38e043",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputToken.text",
+          "declaration": "var text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac7dafb53c4ffbdbb91a",
+      "cpp_name": "ida::processor::OutputTokenKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OutputTokenKind { PlainText, Mnemonic, Register, Immediate, Address, Symbol, Comment, Keyword, StringLiteral, Number, OperatorSymbol, Punctuation, Whitespace, }",
+      "mapping": "direct",
+      "swift": [
+        "3bdd8fe19c2ca879205f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "977dfab0df47188db74dc8388f1d312fa134d46b9d853da13abf29632fded303",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind",
+          "declaration": "enum OutputTokenKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a534e96c57727e3aaa21",
+      "cpp_name": "ida::processor::OutputTokenKind::Address",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "ae28fd93e3b5cb5ed096"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b364fa271525470a1e0d3a469084b8ea62388efa1d96d7021193a242de5cbf89",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.address",
+          "declaration": "case address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d2f80e01fa7fa4dcaa0",
+      "cpp_name": "ida::processor::OutputTokenKind::Comment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "c944a2e8b65598651087"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "938ac367be192c2464359c97d50f7dcf89fc1569a86e7b2d6cc47450bebd48af",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.comment",
+          "declaration": "case comment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e948cd0237c7b843527f",
+      "cpp_name": "ida::processor::OutputTokenKind::Immediate",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "555d48bb3c1b3addadfe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6fcd7ca22c5227f1038ffde34180a797a57a1f0454b8853923c3e72c8312783d",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.immediate",
+          "declaration": "case immediate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d3fd86583196fbe973c6",
+      "cpp_name": "ida::processor::OutputTokenKind::Keyword",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "2093f46835c84271ff23"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6fbb45a3afd63f0076a22aa0c0ab47562a49c490d81154689d1f121987cc3730",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.keyword",
+          "declaration": "case keyword"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b5566a9cdb4362f7a8d",
+      "cpp_name": "ida::processor::OutputTokenKind::Mnemonic",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "36b69dfcfea8ac84b4a5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "726ac8ad53888f509ac484ab4cbfaf445d5b9da485126ae53784c59bf06a0803",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.mnemonic",
+          "declaration": "case mnemonic"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb4db1e00c51d16a6e89",
+      "cpp_name": "ida::processor::OutputTokenKind::Number",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "a7fabf9773f124fc590b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7033038c6d15cf165313493dd7b8435fc433caca67db23c49c7c345a61953629",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.number",
+          "declaration": "case number"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d57a0b70918a9401648",
+      "cpp_name": "ida::processor::OutputTokenKind::OperatorSymbol",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "a2fb540847996978ff4a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fb9cf87e6aeceb988268c0a0f1d8d4ec1bffc62a590f53eb3daebbcd5086b9d6",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.operatorSymbol",
+          "declaration": "case operatorSymbol"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5668bb6d807e0980d13e",
+      "cpp_name": "ida::processor::OutputTokenKind::PlainText",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "49014c9f6fd2327a6376"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9a6299f50b0d5bf57a35461c7c4fa5ce511fdb49b76aedec654fcaf1cc477b06",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.plainText",
+          "declaration": "case plainText"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0f07addcf60bfc61c6cb",
+      "cpp_name": "ida::processor::OutputTokenKind::Punctuation",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "6a8e4e526a54170892ed"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "281ca9b905b0aa0523ae0908b7c8bf873be6ba82ba1ee082336b88214995ed9f",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.punctuation",
+          "declaration": "case punctuation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "181cb26d69ecc306365f",
+      "cpp_name": "ida::processor::OutputTokenKind::Register",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "2db3244f902351055c3d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0c6837c92e7ea03dcdc64341fa567f00923c467dfac9cdc48f9afe1f87f2a8df",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.register",
+          "declaration": "case register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "09a07161c5e3fe04e0ad",
+      "cpp_name": "ida::processor::OutputTokenKind::StringLiteral",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "2dee0dbf94feb17f40ed"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7e99362ed0f103548ac7e2b3d2b97d820c7c2a00d9637e6c3ee1d53170686e83",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.stringLiteral",
+          "declaration": "case stringLiteral"
+        }
+      ]
+    },
+    {
+      "cpp_id": "983fb276886a02d53f94",
+      "cpp_name": "ida::processor::OutputTokenKind::Symbol",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "7861875eb6f6b72c3d87"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ca7828170601955cf020ee9f45f8e7b70f048c6363f736f2ef53db769271fff",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.symbol",
+          "declaration": "case symbol"
+        }
+      ]
+    },
+    {
+      "cpp_id": "235461a960e4eecc9542",
+      "cpp_name": "ida::processor::OutputTokenKind::Whitespace",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::OutputTokenKind",
+      "mapping": "direct",
+      "swift": [
+        "eb0eebb8250abe5afcd0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "91996714ac1be4e2e4e6f9dc3d23fc6c106c926491145dea799209f2a0296952",
+      "swift_targets": [
+        {
+          "path": "Processor.OutputTokenKind.whitespace",
+          "declaration": "case whitespace"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0afc777ff414fbf91f92",
+      "cpp_name": "ida::processor::Processor",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "38a36a575a04f7a6ae23"
+      ],
+      "rationale": "The canonical Processor virtual base becomes a dynamically dispatched Swift protocol with default implementations and the same typed callback results.",
+      "cpp_fingerprint": "0afc777ff414fbf91f92f4177a31dd4e5ea106f8790fbeafffff5e292c522a5b",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule",
+          "declaration": "protocol ProcessorModule : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3fe7ae239945fcdfda35",
+      "cpp_name": "ida::processor::Processor::adjust_function_bounds",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "574272d60d64a635d84a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2482b8f5cdec7f7f9e7739e9f20b39ca098eb2e42bf19f6a57f09790fb1f6b1a",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.adjustFunctionBounds(start:maximumEnd:suggestedResult:)",
+          "declaration": "func adjustFunctionBounds(start: Address, maximumEnd: Address, suggestedResult: Int32) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e046d6c6955337ea024",
+      "cpp_name": "ida::processor::Processor::analyze",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<int> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "3747cdbdd4b224fd7d4a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2ddd745b2f5734634ab5e9ee32bc76e43e39ca95483782c75aa12987f2dfe3c5",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.analyze(at:)",
+          "declaration": "func analyze(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ab20852a6a1508e9dd9",
+      "cpp_name": "ida::processor::Processor::analyze_function_prolog",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "0a996b31b14d238b93d3"
+      ],
+      "rationale": "Native result status and output references are represented without information loss: SwitchDetection has notImplemented/notSwitch/found(payload); calculated cases are optional; canonical handled-or-unimplemented callbacks return Bool.",
+      "cpp_fingerprint": "174050c60bb917be79f86714d1f2de6c322e39d71cf72defeea6cdf7aed5b6de",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.analyzeFunctionProlog(at:)",
+          "declaration": "func analyzeFunctionProlog(at address: Address) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5ede596bdfd7bfbf5c35",
+      "cpp_name": "ida::processor::Processor::analyze_with_details",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<AnalyzeDetails> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "d2f81e3b723abc9768bd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f5e6b6e0a19dce160a29852283103b6e10ad6c5107926b8ae09fcba93577ccba",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.analyzeWithDetails(at:)",
+          "declaration": "func analyzeWithDetails(at address: Address) throws(IDAError) -> Processor.AnalyzeDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "877c08e16a3b8240cc80",
+      "cpp_name": "ida::processor::Processor::calculate_stack_pointer_delta",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, std::int64_t &)",
+      "mapping": "adapted",
+      "swift": [
+        "28429b6d9d29c10f94c0"
+      ],
+      "rationale": "The native bitmask is a typed OptionSet; native output-reference plus handled/not-implemented status becomes an optional Swift return. Mutable output contexts preserve ordered semantic tokens and their joined text.",
+      "cpp_fingerprint": "63acaf9eb929c8cad67afb335d538955b09482119c26b36f79c7328a6a85d6ee",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.stackPointerDelta(at:)",
+          "declaration": "func stackPointerDelta(at address: Address) throws(IDAError) -> Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "652c6ee0ceb05840cb94",
+      "cpp_name": "ida::processor::Processor::calculate_switch_cases",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, const SwitchDescription &, std::vector<SwitchCase> &)",
+      "mapping": "adapted",
+      "swift": [
+        "abd436e58c66352f7147"
+      ],
+      "rationale": "Native result status and output references are represented without information loss: SwitchDetection has notImplemented/notSwitch/found(payload); calculated cases are optional; canonical handled-or-unimplemented callbacks return Bool.",
+      "cpp_fingerprint": "3d7f63d853c075995282f6ae06043347621766e96d2e5ae546d80bd4af6aabaa",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.calculateSwitchCases(at:description:)",
+          "declaration": "func calculateSwitchCases(at address: Address, description: Processor.SwitchDescription) throws(IDAError) -> [Processor.SwitchCase]?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eea747811e797e28b1bb",
+      "cpp_name": "ida::processor::Processor::create_function_frame",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "058eb581141084e6927a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ac0dd1861112bb96ec28300b551549ddd1d6490f88f356ce2d4c3b523d54d025",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.createFunctionFrame(at:)",
+          "declaration": "func createFunctionFrame(at address: Address) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3c6230abd504661b2870",
+      "cpp_name": "ida::processor::Processor::create_switch_references",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, const SwitchDescription &)",
+      "mapping": "adapted",
+      "swift": [
+        "191f823af8aad4fb85bd"
+      ],
+      "rationale": "Native result status and output references are represented without information loss: SwitchDetection has notImplemented/notSwitch/found(payload); calculated cases are optional; canonical handled-or-unimplemented callbacks return Bool.",
+      "cpp_fingerprint": "bcbbb4d5f9294cc3f29c6a3c518afbc74c2f46e30e9cdbb673e156cd0503cabd",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.createSwitchReferences(at:description:)",
+          "declaration": "func createSwitchReferences(at address: Address, description: Processor.SwitchDescription) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "157af40b91d3698db89a",
+      "cpp_name": "ida::processor::Processor::detect_switch",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, SwitchDescription &)",
+      "mapping": "adapted",
+      "swift": [
+        "aea64759f9480024e608"
+      ],
+      "rationale": "Native result status and output references are represented without information loss: SwitchDetection has notImplemented/notSwitch/found(payload); calculated cases are optional; canonical handled-or-unimplemented callbacks return Bool.",
+      "cpp_fingerprint": "2f0ea082ec607f166c61c9df9b137be61f2f872c26311cd7d7e3855df4a7d5e1",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.detectSwitch(at:)",
+          "declaration": "func detectSwitch(at address: Address) throws(IDAError) -> Processor.SwitchDetection"
+        }
+      ]
+    },
+    {
+      "cpp_id": "88f54b456c2fa2131c8f",
+      "cpp_name": "ida::processor::Processor::emulate",
+      "cpp_kind": "method",
+      "cpp_signature": "EmulateResult (Address)",
+      "mapping": "direct",
+      "swift": [
+        "50caa219bd7739a7f260"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b514817a151302546bae3ab9ab17edc35313d02d78d8efc2bdaf6a48e72d1a4a",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.emulate(at:)",
+          "declaration": "func emulate(at address: Address) throws(IDAError) -> Processor.EmulateResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "58f9d9a405970d414de3",
+      "cpp_name": "ida::processor::Processor::get_return_address_size",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "direct",
+      "swift": [
+        "81574ba7a011d6eb2175"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "146290609a5bed7062ed5a6b4ca7dd00ba2ac44e1349882b15c2d956e552cff9",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.returnAddressSize(at:)",
+          "declaration": "func returnAddressSize(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c42b8f380159d8cbc107",
+      "cpp_name": "ida::processor::Processor::info",
+      "cpp_kind": "method",
+      "cpp_signature": "ProcessorInfo () const",
+      "mapping": "direct",
+      "swift": [
+        "22c186704cce29be39b2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8a384e0306ff6ad3c67dd399e58302dcfce61e16c3f5c75816b43a2af3f9f301",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.information",
+          "declaration": "var information: Processor.Information { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ce70dda54293f614da5",
+      "cpp_name": "ida::processor::Processor::is_basic_block_end",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "f23b702b897c0a909568"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "14902d42cc900a3432ea3e3a9bbe1dc2a5cd69ce3b4d5198ccf25a43f93dea7c",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.isBasicBlockEnd(at:callInstructionStopsBlock:)",
+          "declaration": "func isBasicBlockEnd(at address: Address, callInstructionStopsBlock: Bool) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1427f68d0cbebf28c90e",
+      "cpp_name": "ida::processor::Processor::is_call",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "direct",
+      "swift": [
+        "d2c9b2aa5e7004bb3db6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "429a00f1c6b11b065af47558823c5f554d5a11f316a45869ba9fb5aee17bf1be",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.isCall(at:)",
+          "declaration": "func isCall(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4d68e5e2510507799941",
+      "cpp_name": "ida::processor::Processor::is_indirect_jump",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "direct",
+      "swift": [
+        "24f83307008db940f8fa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5d227e05b6fd7e8381486fb1dadeff512cbf982fbadd2a0424554753734e32ae",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.isIndirectJump(at:)",
+          "declaration": "func isIndirectJump(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4e1d04afbc2282150f2e",
+      "cpp_name": "ida::processor::Processor::is_return",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "direct",
+      "swift": [
+        "36f8d2d16e6b9d2930ed"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "40ce1fa3d01a32391018492b4ad3e022b35dd14ce991215f65dc449ce2d597f6",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.isReturn(at:)",
+          "declaration": "func isReturn(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dbe4376c218544e4d6c3",
+      "cpp_name": "ida::processor::Processor::is_sane_instruction",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "be1c54c8134e715df3ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6de0e0d9ada8a1c3af3b444f0bf872b120cc6ab353b701ae41953585dec5403a",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.isSaneInstruction(at:noCodeReferences:)",
+          "declaration": "func isSaneInstruction(at address: Address, noCodeReferences: Bool) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "890d8a9f1a15fe2151df",
+      "cpp_name": "ida::processor::Processor::may_be_function",
+      "cpp_kind": "method",
+      "cpp_signature": "int (Address)",
+      "mapping": "direct",
+      "swift": [
+        "50f15af69de630337da9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a50763fbba15ea39188418bde909d5ec155d52438d1012b5d24308df50af6e97",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.mayBeFunction(at:)",
+          "declaration": "func mayBeFunction(at address: Address) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "227551c55eb862ecc7bb",
+      "cpp_name": "ida::processor::Processor::on_new_file",
+      "cpp_kind": "method",
+      "cpp_signature": "void (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "0554f8011b4841badf71"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "db127b942b8871b4d459c80d5380fc43c18b8dfa284b4c32e986eef35a4248fa",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.newFile(_:)",
+          "declaration": "func newFile(_ filename: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38400cfefea44bf5bf3e",
+      "cpp_name": "ida::processor::Processor::on_old_file",
+      "cpp_kind": "method",
+      "cpp_signature": "void (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "fd24d05e23e5eb187a4e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c207ab3ca221f585c89303a1379fae3e194ddfc80586d51b9cf3840a008dd2e2",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.oldFile(_:)",
+          "declaration": "func oldFile(_ filename: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6956b200b23f4cfeb502",
+      "cpp_name": "ida::processor::Processor::output_instruction",
+      "cpp_kind": "method",
+      "cpp_signature": "void (Address)",
+      "mapping": "direct",
+      "swift": [
+        "33e48d362def76af1b0b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5cf54fcb4a77ad8f587f30ee6f8ebda638e8a33a0c512973e4e0e869d3c187aa",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.outputInstruction(at:)",
+          "declaration": "func outputInstruction(at address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5eb19e057cc3c20056f4",
+      "cpp_name": "ida::processor::Processor::output_instruction_with_context",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputInstructionResult (Address, OutputContext &)",
+      "mapping": "adapted",
+      "swift": [
+        "147b93e51ab639d65916"
+      ],
+      "rationale": "The native bitmask is a typed OptionSet; native output-reference plus handled/not-implemented status becomes an optional Swift return. Mutable output contexts preserve ordered semantic tokens and their joined text.",
+      "cpp_fingerprint": "73107a709e3d0285ac893abc0ad039ea72aa68f80bd43192fa85dc70001ac76c",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.outputInstruction(at:output:)",
+          "declaration": "func outputInstruction(at address: Address, output: inout Processor.OutputContext) throws(IDAError) -> Processor.OutputInstructionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f1dbcde059f5bf5a8d60",
+      "cpp_name": "ida::processor::Processor::output_mnemonic_with_context",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputInstructionResult (Address, OutputContext &)",
+      "mapping": "adapted",
+      "swift": [
+        "181708b05af6f948a6d5"
+      ],
+      "rationale": "The native bitmask is a typed OptionSet; native output-reference plus handled/not-implemented status becomes an optional Swift return. Mutable output contexts preserve ordered semantic tokens and their joined text.",
+      "cpp_fingerprint": "76181a1a111d2d3ab0413588cc9ca991dcbbbd1567343f610c0bdaf9ca96a39e",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.outputMnemonic(at:output:)",
+          "declaration": "func outputMnemonic(at address: Address, output: inout Processor.OutputContext) throws(IDAError) -> Processor.OutputInstructionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7bd3b4bb5e25bd3c21ba",
+      "cpp_name": "ida::processor::Processor::output_operand",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputOperandResult (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "55e25103ee9c0ee6706e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f9ece4815ed1dc0f3580f390a96f7cc25b2b717caa729b27e44220d3185100b0",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.outputOperand(at:index:)",
+          "declaration": "func outputOperand(at address: Address, index: Int32) throws(IDAError) -> Processor.OutputOperandResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb54a61f136bb8f7dbe4",
+      "cpp_name": "ida::processor::Processor::output_operand_with_context",
+      "cpp_kind": "method",
+      "cpp_signature": "OutputOperandResult (Address, int, OutputContext &)",
+      "mapping": "adapted",
+      "swift": [
+        "fda83ebca78ee593cc0d"
+      ],
+      "rationale": "The native bitmask is a typed OptionSet; native output-reference plus handled/not-implemented status becomes an optional Swift return. Mutable output contexts preserve ordered semantic tokens and their joined text.",
+      "cpp_fingerprint": "e90fcd146471d50f905171cb1effa431c13a9aefb43a86166ab7ca5e189d80e5",
+      "swift_targets": [
+        {
+          "path": "ProcessorModule.outputOperand(at:index:output:)",
+          "declaration": "func outputOperand(at address: Address, index: Int32, output: inout Processor.OutputContext) throws(IDAError) -> Processor.OutputOperandResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b879cb53ba18b97d9c9",
+      "cpp_name": "ida::processor::Processor::~Processor",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "509b2e198f8d8e27ac95"
+      ],
+      "rationale": "The native LPH adapter owns the Swift processor implementation for the host lifetime and releases it through ARC on teardown.",
+      "cpp_fingerprint": "7e4a32b067567a6614a99955f7983894106159e99af6723b652afe30d895aab6",
+      "swift_targets": [
+        {
+          "path": "Processor.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any ProcessorModule) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "53ff5f68ff69b42cff96",
+      "cpp_name": "ida::processor::ProcessorFlag",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ProcessorFlag : std::uint32_t { None = 0, HexNumbers = 0x000000, Segments = 0x000001, Use32 = 0x000002, DefaultSeg32 = 0x000004, RegisterNames = 0x000008, AdjustSegments = 0x000020, OctalNumbers = 0x000040, DecimalNumbers = 0x000080, BinaryNumbers = 0x0000C0, WordInstructions = 0x000100, NoChange = 0x000200, Assemble = 0x000400, AlignData = 0x000800, TypeInfo = 0x001000, Use64 = 0x002000, SegmentRegistersOther = 0x004000, StackGrowsUp = 0x008000, BinaryMemory = 0x010000, SegmentTranslation = 0x020000, CheckCrossReferences = 0x040000, NoSegMove = 0x080000, UseArgTypes = 0x200000, ScaleStackVariables = 0x400000, DelayedBranches = 0x800000, AlignInstructions = 0x1000000, Purging = 0x2000000, ConditionalInsns = 0x4000000, UseTbyte = 0x8000000, DefaultSeg64 = 0x10000000, OuterOperands = 0x20000000, }",
+      "mapping": "direct",
+      "swift": [
+        "06c1ab5aebeb1f2acb3e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "44a6dfb127e4b7d38e02df5f9efcef8a539267ffad1ed319366ea4a5a99e9bcc",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags",
+          "declaration": "struct Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bda0ab7ac5d6eb59d77e",
+      "cpp_name": "ida::processor::ProcessorFlag2",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ProcessorFlag2 : std::uint32_t { None = 0, Mappings = 0x000001, IdpOptions = 0x000002, Code16Bit = 0x000008, Macro = 0x000010, UseCalcRel = 0x000020, RelativeBits = 0x000040, Force16BitTypes = 0x000080, IgnoreIdaGuess = 0x000100, }",
+      "mapping": "direct",
+      "swift": [
+        "42e716febd132bfdc03b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5b42959df46661e12ed6f8795cee6863b5835db357551366c18caa74cc5457c9",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2",
+          "declaration": "struct Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c9bea8863d363cad5508",
+      "cpp_name": "ida::processor::ProcessorFlag2::Code16Bit",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "76c395dfb345755bd882"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bc392d3adb66dcd008925388b751c74ecb9463f9426eca57073dd0dfbe640490",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.code16Bit",
+          "declaration": "static let code16Bit: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b0ff824593edfd04334",
+      "cpp_name": "ida::processor::ProcessorFlag2::Force16BitTypes",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "d4a9b4bf3d26adb0a596"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1f21df3210fb85608279db2823f15d7e4c1c9c7fcc44c5bfc15b18fc7f8a6373",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.force16BitTypes",
+          "declaration": "static let force16BitTypes: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98856ab44257a7b5b8d0",
+      "cpp_name": "ida::processor::ProcessorFlag2::IdpOptions",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "7d75d11ad97239173847"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e93e4aafb1ca924df16ea2633a922fe66b837cd7c06c51499e86d495abfddc20",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.idpOptions",
+          "declaration": "static let idpOptions: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "529f7b0305202b7d3cea",
+      "cpp_name": "ida::processor::ProcessorFlag2::IgnoreIdaGuess",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "28a6685abf187c9b20d6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "66aa6aeff7545e7319e5e1789855fdf29218351c18df3a9162cd308d1fc0617b",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.ignoreIdaGuess",
+          "declaration": "static let ignoreIdaGuess: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0a5ba0931111cd302b7",
+      "cpp_name": "ida::processor::ProcessorFlag2::Macro",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "606c0ed25c9f14ec430d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1461a110efcf8b86f34cbd685ff900a7c3316bda6b51448372ff228746807806",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.macro",
+          "declaration": "static let macro: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a654cdcd8a88af7d1dc",
+      "cpp_name": "ida::processor::ProcessorFlag2::Mappings",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "63aac5125bb72a87d6d2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b00d42a6daedadd918076b9c6e43ebc16be06050242a6550a08581a8d59c3b3e",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.mappings",
+          "declaration": "static let mappings: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5064bd9b8fdaad9e574c",
+      "cpp_name": "ida::processor::ProcessorFlag2::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "adapted",
+      "swift": [
+        "be4f1ce95ec7563e14ea"
+      ],
+      "rationale": "The zero-valued native flag is the empty OptionSet, equivalently init(rawValue: 0); all nonzero flags retain their canonical bit positions.",
+      "cpp_fingerprint": "9f33056985a953e5d57471f91423e4cb616228b09391e10a02e6cf2824e0c5a3",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.init(rawValue:)",
+          "declaration": "init(rawValue: UInt32)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "872baba39331d42e80d9",
+      "cpp_name": "ida::processor::ProcessorFlag2::RelativeBits",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "1eca425c263cd5c6904a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0cdad4788d89ea62f50f3a7c46846f6e31c06d120bd21f6d5bda9f46e93e5df2",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.relativeBits",
+          "declaration": "static let relativeBits: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d58a59183ddf60db31d5",
+      "cpp_name": "ida::processor::ProcessorFlag2::UseCalcRel",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag2",
+      "mapping": "direct",
+      "swift": [
+        "d30bb32e9d6b1e653852"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "60d4e639d7c850c55ae1827f4bf29641694286629bf816ccad2e6a4937f34899",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags2.useCalcRel",
+          "declaration": "static let useCalcRel: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1cdf50f1d98314abc9a2",
+      "cpp_name": "ida::processor::ProcessorFlag::AdjustSegments",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "ab849628847a6a364345"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0b46aa9d0b57bc70fe5eb07236c91f81649968e11f44dc5e61afb29b78c4ae58",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.adjustSegments",
+          "declaration": "static let adjustSegments: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "493d29efd1b19a2247c0",
+      "cpp_name": "ida::processor::ProcessorFlag::AlignData",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "ac86f834c7a7b63d8b93"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3cfe3fd43f27cd4fa06bd4b6d08238c80834f42b49f5f3635db6f31d0c81bdbd",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.alignData",
+          "declaration": "static let alignData: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "345f6e40d6e52e3c6736",
+      "cpp_name": "ida::processor::ProcessorFlag::AlignInstructions",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "fcc0cd88cc02dbe5300e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "13b9e4f502c24892b98fed25cacd5ee42e66b4a7fdf9f75c727ca32e0d2c6838",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.alignInstructions",
+          "declaration": "static let alignInstructions: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a306a3b7da0a6f365122",
+      "cpp_name": "ida::processor::ProcessorFlag::Assemble",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "87e3bb923bd2cefa8178"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ad3fad2e8be08e4f62a78461fcb8d8b3634098cb2923253d050682a21f8d87d7",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.assemble",
+          "declaration": "static let assemble: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c056f5094d0599529f1",
+      "cpp_name": "ida::processor::ProcessorFlag::BinaryMemory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "43db3a8fef1ea53e71c3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c492d13b06bc0e714673b3a95014651de10dd10fcf2060f7714bdca75bc8f72e",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.binaryMemory",
+          "declaration": "static let binaryMemory: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9fbb62e796b559416f8",
+      "cpp_name": "ida::processor::ProcessorFlag::BinaryNumbers",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "e491c98c29e0f3fa079d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "891f273f4c60e4a0f67336c18dc47267a08a05012a4a7e9c22b0d034094cd1b2",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.binaryNumbers",
+          "declaration": "static let binaryNumbers: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "61cefd77b2eb8289ba35",
+      "cpp_name": "ida::processor::ProcessorFlag::CheckCrossReferences",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "bd688a4df054589c0dce"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a839abe5c341effa492f9c6c872a26cdc82b7e74986b625176faf8a0666c6c33",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.checkCrossReferences",
+          "declaration": "static let checkCrossReferences: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "55934a58cdae2efb3654",
+      "cpp_name": "ida::processor::ProcessorFlag::ConditionalInsns",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "949ca920292ea0d05763"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7be1e20c30cba8daac81094091a74bf32a2584311fa7be665f3f3a64fcddfbc0",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.conditionalInsns",
+          "declaration": "static let conditionalInsns: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "28fbb554ebe737692747",
+      "cpp_name": "ida::processor::ProcessorFlag::DecimalNumbers",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "12275ff73746ba47acab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ab69bf9f0b598271bd9d2fe6916c946d97091045ceb10915fd3fcdd6661bf4c6",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.decimalNumbers",
+          "declaration": "static let decimalNumbers: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83a58184d513babac5f9",
+      "cpp_name": "ida::processor::ProcessorFlag::DefaultSeg32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "f8601fe348df1eeac328"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "907e9c15ede6160cd763b9353592429938e16d5f9930f400fea0b1ed689d8c0a",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.defaultSeg32",
+          "declaration": "static let defaultSeg32: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11e2865b82d1d0dfd382",
+      "cpp_name": "ida::processor::ProcessorFlag::DefaultSeg64",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "fbf6142943b1c01e33f4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "210e37cabbdbe1cb469f3fa8f1f047348a87393063b99c56ec8c9fe94a991062",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.defaultSeg64",
+          "declaration": "static let defaultSeg64: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81f7fefdd28f33fce3b0",
+      "cpp_name": "ida::processor::ProcessorFlag::DelayedBranches",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "90f5461c9a3160fdc410"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3a4c1dbf6ff49b0f2cf128257212e8dfb816973432fe87e95b8f77018a5b5696",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.delayedBranches",
+          "declaration": "static let delayedBranches: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c85f8dc6d9cf407cd694",
+      "cpp_name": "ida::processor::ProcessorFlag::HexNumbers",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "cc31ac376525fa8d3494"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7e233236255aa3c32dae279aec4e8cec034b3189f8f9f93491faed7dd730245e",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.hexNumbers",
+          "declaration": "static let hexNumbers: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "89000982f8e7c3e52487",
+      "cpp_name": "ida::processor::ProcessorFlag::NoChange",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "670e27b4e47638371fe0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "61436d32d9875b43c59cee03ff0d5376bd25151eaffacfb4470fd35b33ce144d",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.noChange",
+          "declaration": "static let noChange: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d6d80521440fd37332e",
+      "cpp_name": "ida::processor::ProcessorFlag::NoSegMove",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "babd87120633e6273a7a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7bd327eede78db18196ab4e1f06af89d0be22ceecbc25bb3e79302c542b42296",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.noSegMove",
+          "declaration": "static let noSegMove: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cfc1ca9b5ee350386195",
+      "cpp_name": "ida::processor::ProcessorFlag::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "adapted",
+      "swift": [
+        "6517f84b15a983895f8b"
+      ],
+      "rationale": "The zero-valued native flag is the empty OptionSet, equivalently init(rawValue: 0); all nonzero flags retain their canonical bit positions.",
+      "cpp_fingerprint": "fa7c5ff8742601e34bf6fbb3c23381ee196eaeb5b7c89bb794283a923f2a958c",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.init(rawValue:)",
+          "declaration": "init(rawValue: UInt32)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0e4d2707b302a7bee1da",
+      "cpp_name": "ida::processor::ProcessorFlag::OctalNumbers",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "3900f7e57c20649d7bdb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "735e87a541667ee392148bab6a608fadd2afd35b164a27149b70f2d17d762788",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.octalNumbers",
+          "declaration": "static let octalNumbers: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73304665fd9a5862805a",
+      "cpp_name": "ida::processor::ProcessorFlag::OuterOperands",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "2f9fee098e4cdc029d43"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c57636f8688baae900a32a833a85ab6a88e833317156376c0f3df4c1ddea03c9",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.outerOperands",
+          "declaration": "static let outerOperands: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "89e4585fe067095d3a87",
+      "cpp_name": "ida::processor::ProcessorFlag::Purging",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "4a7a05240879fc17e0ab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "73f0ce1fc96ea8e511304f8f2d3b4d5000cdd94d6edef642fcbb849d91a65a44",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.purging",
+          "declaration": "static let purging: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4579bf43331bf7b9f968",
+      "cpp_name": "ida::processor::ProcessorFlag::RegisterNames",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "e2be1363f0661826e926"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "12b69bdf22e70ba5284b28fececbbdece6f0f1e2ddf9313381198aa883cada31",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.registerNames",
+          "declaration": "static let registerNames: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5859ea17a35604b670d7",
+      "cpp_name": "ida::processor::ProcessorFlag::ScaleStackVariables",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "fabc4f0638383d09e722"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "29ca6df04dc8a523d5c412c31d5408824583ed3729f7252fa9c1a44c62bc04ed",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.scaleStackVariables",
+          "declaration": "static let scaleStackVariables: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5f9536d2b11679719e6",
+      "cpp_name": "ida::processor::ProcessorFlag::SegmentRegistersOther",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "d1937167c11011f770e0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "95d6b5354456badde7f5b7e164bcb0b2b0c4109aacdb5e3b0b9e6276c62911b4",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.segmentRegistersOther",
+          "declaration": "static let segmentRegistersOther: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "813fc46a1e011bf540e5",
+      "cpp_name": "ida::processor::ProcessorFlag::SegmentTranslation",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "8c57ab15b151dc67d608"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4eebebf66d2f426dcb333ff26ced260b4fd7f825103f194502e0a170b97c80e4",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.segmentTranslation",
+          "declaration": "static let segmentTranslation: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c2d91716a39f0966781c",
+      "cpp_name": "ida::processor::ProcessorFlag::Segments",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "577041ea7f306480f5f9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ad135589130795ecefbc1f431582a703a31ed6b240a089827186197fd7d2711",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.segments",
+          "declaration": "static let segments: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e04d633d0c5617473dd7",
+      "cpp_name": "ida::processor::ProcessorFlag::StackGrowsUp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "41e9f354013e1b794ec6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f9a6921477ac812269ab8b15726da3c3a9296d5dbbe467926373c0fd5b172b79",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.stackGrowsUp",
+          "declaration": "static let stackGrowsUp: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4bd9f69e309e53edf231",
+      "cpp_name": "ida::processor::ProcessorFlag::TypeInfo",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "00ffe396f200bd2406f7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d961163be70b6f80cb2c0b0140608b5ce0a96a7afc7ba3d17b3fae5295c59901",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.typeInfo",
+          "declaration": "static let typeInfo: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "428b7ec7f3a44548b058",
+      "cpp_name": "ida::processor::ProcessorFlag::Use32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "233e32b67f9f7506ac90"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "cea566bffa3bf9b610c638dda9640eec9d72eff293205631e02fc536cdc0e741",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.use32",
+          "declaration": "static let use32: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6cd9fb43bd9200498923",
+      "cpp_name": "ida::processor::ProcessorFlag::Use64",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "3ce08740f8d6cb1906c5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "53e01fbf38871708e1724e2598294ffaed01af0373ee8abdc6ab75da6719afcb",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.use64",
+          "declaration": "static let use64: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3369237ec83be551118b",
+      "cpp_name": "ida::processor::ProcessorFlag::UseArgTypes",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "58fd0e8936e6cc05cf56"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "92d4988156efc0dcdaac985b7b0c8cb1c923131270289260f721305431dffbd4",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.useArgTypes",
+          "declaration": "static let useArgTypes: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d77388921b4085e9dd96",
+      "cpp_name": "ida::processor::ProcessorFlag::UseTbyte",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "3721a08d8dd24773f998"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a078fb27d18b9d9c9f3a061ae9d4846d4ff30ed6f2cb6f1a615f93486f19b607",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.useTbyte",
+          "declaration": "static let useTbyte: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "463010bef9d5d1079e98",
+      "cpp_name": "ida::processor::ProcessorFlag::WordInstructions",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::ProcessorFlag",
+      "mapping": "direct",
+      "swift": [
+        "4e513419857b504bf821"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7579d22389eb1f6b30e22d5f016b3426774d146ad52cb23fd26bf987eab13618",
+      "swift_targets": [
+        {
+          "path": "Processor.Flags.wordInstructions",
+          "declaration": "static let wordInstructions: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a3d0930a811c54241fa",
+      "cpp_name": "ida::processor::ProcessorInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a2074f0a0fea93c85f92"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7a3d0930a811c54241fa22e497ad36ca61867ea838ed8cd88d6263daee5c41db",
+      "swift_targets": [
+        {
+          "path": "Processor.Information",
+          "declaration": "struct Information"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bd5bdcd74ea153a2cd7a",
+      "cpp_name": "ida::processor::ProcessorInfo::assemblers",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<AssemblerInfo>",
+      "mapping": "direct",
+      "swift": [
+        "bd8c875d1c049b73be17"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1460e9683b749a0f5ca2bfc5edae4db81f05be35c4ff0a7721914b68bc12a5ab",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.assemblers",
+          "declaration": "var assemblers: [Processor.Assembler]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15f27b9f10076ff3bd49",
+      "cpp_name": "ida::processor::ProcessorInfo::code_bits_per_byte",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "e7419fd22bd2849755c1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2d72b04bd61db1bdb70ade51e6da448ecaf3011a8d3d25c744ebe09ddbec9e57",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.codeBitsPerByte",
+          "declaration": "var codeBitsPerByte: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f16bfb3b7c6e6cc82fc3",
+      "cpp_name": "ida::processor::ProcessorInfo::code_segment_register",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "cc9c98945a2dd73c24aa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b0a2e2f6ae7d27a2591bac8b90c1a52d157957e7fc9d1a01101105ebaf42000c",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.codeSegmentRegister",
+          "declaration": "var codeSegmentRegister: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "37fa7a6472adb8123b4b",
+      "cpp_name": "ida::processor::ProcessorInfo::data_bits_per_byte",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "010ca572455084850938"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "59a0989a213b08abf38eaaf945e0e14b7b5511d1c44a20126fcaad4765c3554a",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.dataBitsPerByte",
+          "declaration": "var dataBitsPerByte: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11d18a6f56a317b7e777",
+      "cpp_name": "ida::processor::ProcessorInfo::data_segment_register",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "4143eb7a1952573de9eb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6627494099431891d728ad9fb750de885bcc5ae1b63fa84a711ec899205265f3",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.dataSegmentRegister",
+          "declaration": "var dataSegmentRegister: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "657d6a22b4e655de0b24",
+      "cpp_name": "ida::processor::ProcessorInfo::default_bitness",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "c21a36eef7f2b9d4a88e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6ae40a13dd35314245721781fd3587a4bef95b64e60e91ddc24559f533e67b22",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.defaultBitness",
+          "declaration": "var defaultBitness: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b38a3b612db95ccb6f57",
+      "cpp_name": "ida::processor::ProcessorInfo::first_segment_register",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "e543f7c03d163e8cbc40"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9352ac48b934e5d1d53b1c406a83eacaae100a9f5c74659ffadf491cc3a8aadd",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.firstSegmentRegister",
+          "declaration": "var firstSegmentRegister: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f606477a4f19a72bc795",
+      "cpp_name": "ida::processor::ProcessorInfo::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "4c93c8ee00f7306ad7ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c396b84ac27724d18fd164d55796c09bd94f1df5b0397852048aa07cf25ae497",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.flags",
+          "declaration": "var flags: Processor.Flags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ea2f3772e143df989c4",
+      "cpp_name": "ida::processor::ProcessorInfo::flags2",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "0a611c13415fe6523950"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e65502cf0f836da5403454db45a732d05ccc5d08e8e526c48b41af58b09fe593",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.flags2",
+          "declaration": "var flags2: Processor.Flags2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2ee563622e0055c687de",
+      "cpp_name": "ida::processor::ProcessorInfo::id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "945c9b959bcb9622fbd5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1d758b6cfc2fc919e7c8f4b1a2747ce8324cc8e3107becab980a77f44d860e84",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.identifier",
+          "declaration": "var identifier: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f8a95779888f899f007c",
+      "cpp_name": "ida::processor::ProcessorInfo::instructions",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<InstructionDescriptor>",
+      "mapping": "direct",
+      "swift": [
+        "2451811f005443a02fb3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "061952ee8765f09645d972d95e78f3b0d394aac6017717fe632e4e9312ba0474",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.instructions",
+          "declaration": "var instructions: [Processor.InstructionDescriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eddf381737e7eca970a6",
+      "cpp_name": "ida::processor::ProcessorInfo::last_segment_register",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "c19865310ba99a819446"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2cbf1d4510180f9e3afe69b362f2eecdd2da7d4598be02ee2d76de5a2bc3031f",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.lastSegmentRegister",
+          "declaration": "var lastSegmentRegister: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fac7c5e6237973237288",
+      "cpp_name": "ida::processor::ProcessorInfo::long_names",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "38a82cd84f6881a6fcbd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2a38e9200d54cefd576d346a99901baf9ea6d2270a35e3d3bbe2eb22dec32d30",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.longNames",
+          "declaration": "var longNames: [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ea6bebd4ad1c0aaab4f",
+      "cpp_name": "ida::processor::ProcessorInfo::registers",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<RegisterInfo>",
+      "mapping": "direct",
+      "swift": [
+        "48b8d3fc908e33995d9b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ff2ae7bb0b752ac9a07eca55738349f0a30d3e32b7c8cb0d1e1cfb0d2db78309",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.registers",
+          "declaration": "var registers: [Processor.Register]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8577db690e7531f83e89",
+      "cpp_name": "ida::processor::ProcessorInfo::return_icode",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "e8c9ed229eb7467d1fd4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e8acfee3d6a627c9de58333144c8dfb4fb010e657f78a5ccdb438c1c9ac937f8",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.returnInstructionCode",
+          "declaration": "var returnInstructionCode: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cca93914c17b52ec2ee5",
+      "cpp_name": "ida::processor::ProcessorInfo::segment_register_size",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "ed5aa5a510a405cff514"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e0691d90613328320a81a89a27efdc089128365011a6bd0be36747bd3af47abb",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.segmentRegisterSize",
+          "declaration": "var segmentRegisterSize: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ef9bb90c8d6eb6de179",
+      "cpp_name": "ida::processor::ProcessorInfo::short_names",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "fce7f775814be69089f4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7dc45f5065a6a130883bc2e436671ce93533cb7e59e40af9cf7c89711240bd7b",
+      "swift_targets": [
+        {
+          "path": "Processor.Information.shortNames",
+          "declaration": "var shortNames: [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b09f182a7cf026d4220c",
+      "cpp_name": "ida::processor::RegisterInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "1e2968850f0136b79d27"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b09f182a7cf026d4220c148a4b119842ea81a28043a8ebe9bb43638c4cb3e42a",
+      "swift_targets": [
+        {
+          "path": "Processor.Register",
+          "declaration": "struct Register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "12bf0cc9f8dc36afd1e5",
+      "cpp_name": "ida::processor::RegisterInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "ecedf82ac8ddce5eb85b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5f6b89acb342215e6b5f3bcad811b6303e9152c9429c47484d2cc86ff2c32dd1",
+      "swift_targets": [
+        {
+          "path": "Processor.Register.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "597f63052a9ec478c4f8",
+      "cpp_name": "ida::processor::RegisterInfo::read_only",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f6551003518757682c9b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7be497ac367b206e28da1b0d87a966962c5b9c6d4f37fd1897ea76a9bcd4c512",
+      "swift_targets": [
+        {
+          "path": "Processor.Register.readOnly",
+          "declaration": "var readOnly: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "da5eb3f8b88b8348a5c4",
+      "cpp_name": "ida::processor::SwitchCase",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "55c4db1d6170888c8e34"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "da5eb3f8b88b8348a5c41281ab081ca17d1b53ac605330e16abaae5467c56afe",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchCase",
+          "declaration": "struct SwitchCase"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a225b47f61c177203bae",
+      "cpp_name": "ida::processor::SwitchCase::target",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "d86ca6a70377cdd36323"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "60634bbcf342d0e057629ee280711cc0bde94d01cf28e44c000c9253d5ec56c6",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchCase.target",
+          "declaration": "var target: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1dc078d45132c45f839f",
+      "cpp_name": "ida::processor::SwitchCase::values",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::int64_t>",
+      "mapping": "direct",
+      "swift": [
+        "aa563f461408456eb22d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a3e6232bc80f0d984d8d92909ab30b9f447470cf87da68a3e5359fe6b0a66fb4",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchCase.values",
+          "declaration": "var values: [Int64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "95b0f6ad3cb2081d3487",
+      "cpp_name": "ida::processor::SwitchDescription",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "65419cce39065e8842a9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "95b0f6ad3cb2081d3487b7606c5c805d2c7e24ea81bb33d80605330b82099a51",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription",
+          "declaration": "struct SwitchDescription"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e8410eda0a92752f3e3",
+      "cpp_name": "ida::processor::SwitchDescription::case_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "bb6d756462117e7edf1e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d910ac2769c866b567ea35cf595d1fbb21c746d95d87c248a0cf97f57c71c0d1",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.caseCount",
+          "declaration": "var caseCount: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7f478ec012a4337b63c",
+      "cpp_name": "ida::processor::SwitchDescription::default_in_table",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "85e317cf65604ec4f6e9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "326a7bbef80d6a5aca41b390ce11b6c7b7a7f43056a200945585a5c66dc44ec4",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.defaultInTable",
+          "declaration": "var defaultInTable: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82564146de2398122c14",
+      "cpp_name": "ida::processor::SwitchDescription::default_target",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "4abc9fa93b7bff2f091b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fb8579d73419dc2bf9d104c2c3bd7dfc3bbee6cb19966294e7e0b0abaf903366",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.defaultTarget",
+          "declaration": "var defaultTarget: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8639e2ac623e0d67c80d",
+      "cpp_name": "ida::processor::SwitchDescription::element_base",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "cf05d66fe2cf580ac276"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "82a72826228410812cbececa17593954bc30f7cd97b2e69465fee8565466b6f0",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.elementBase",
+          "declaration": "var elementBase: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c00d8396f44cf816ac90",
+      "cpp_name": "ida::processor::SwitchDescription::expression_data_type",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "15df4eb65672bac8a944"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2e677fad7b96160077592c246ffd4940f735fc0b0e5b0c5f2b043dd89b837055",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.expressionDataType",
+          "declaration": "var expressionDataType: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "846548759a46d6853efe",
+      "cpp_name": "ida::processor::SwitchDescription::expression_register",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "fbe48a7f09c5b8fe900a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c0b49e07a0610d4a0374e758bd87791c53fb382749ccebad8db05a481169b849",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.expressionRegister",
+          "declaration": "var expressionRegister: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e0d28d31d22837ecdfa8",
+      "cpp_name": "ida::processor::SwitchDescription::has_default",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "661b87f8b96111210b05"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6049d9121b195569f949ff312fbbba36ef5ad5a38e332a1a1453afa5385693cd",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.hasDefault",
+          "declaration": "var hasDefault: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67fd79113b9ad6ce4a94",
+      "cpp_name": "ida::processor::SwitchDescription::idiom_start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "cff7dfdfcf3c58e59011"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5eae5492507d88c81843318141906f2cc7c9d81a68aade0a1fa389ee3bb8f499",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.idiomStart",
+          "declaration": "var idiomStart: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d3b5cd0714a3d8d6e1f",
+      "cpp_name": "ida::processor::SwitchDescription::indirect_low_case_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "69de698db869fb9d37ae"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c5dc7718e02ba81edae2ffd739a3385cb7ed9740b8778b286b1737ff7b241ac5",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.indirectLowCaseValue",
+          "declaration": "var indirectLowCaseValue: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5f085ac1fca1b1fd483",
+      "cpp_name": "ida::processor::SwitchDescription::inverted",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "21ceb69e88de7707815b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "502f3ea5d45e98121b07d811480294a192fd60c25c054266bcea6f9f12f082ce",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.inverted",
+          "declaration": "var inverted: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ebe4cd9bc754d07fad3",
+      "cpp_name": "ida::processor::SwitchDescription::jump_element_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "a9ee958d367f3d52e165"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0e4f52c6c286511f1c60dbcd38bd7b75ac416a6de8dedd24509b00308c0b3a7c",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.jumpElementSize",
+          "declaration": "var jumpElementSize: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2dd3ab8db8414b086ceb",
+      "cpp_name": "ida::processor::SwitchDescription::jump_table",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "db6a361e9243d6b0c3b5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c9838da0d0e73b3b540564328f1e0395792f431a82a98b5f626ca700f4ba367c",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.jumpTable",
+          "declaration": "var jumpTable: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dcfa9cd486b8e4f7f535",
+      "cpp_name": "ida::processor::SwitchDescription::jump_table_entry_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "121debd21890463ff119"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2c7e0e76378af28c50e270c6f291b332a4896653cfc1d7179e92f2eaa7f2815a",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.jumpTableEntryCount",
+          "declaration": "var jumpTableEntryCount: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "968218b8a752f88b2ca3",
+      "cpp_name": "ida::processor::SwitchDescription::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "SwitchTableKind",
+      "mapping": "direct",
+      "swift": [
+        "f16a6134e730cacad9fa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bebf8a6ad5141b55e6a8c6242724729a00ad62e87735a34275f75e70c1202dd0",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.kind",
+          "declaration": "var kind: Processor.SwitchTableKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e53718aaf92a0ee45700",
+      "cpp_name": "ida::processor::SwitchDescription::low_case_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "82b0e32239021434eb87"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f98749b4543163866b3cc6dd883c61fd01ba9350a5222c76d29f995a31a02512",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.lowCaseValue",
+          "declaration": "var lowCaseValue: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b8f4a08d884c08719ee1",
+      "cpp_name": "ida::processor::SwitchDescription::self_relative",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "afa2ab3793d4a0a330c7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c3da6bc8c159704fd52042141d28e6925f201c58a413010a1c8b7fc2180ffc49",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.selfRelative",
+          "declaration": "var selfRelative: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "130f5b5e826b156fa168",
+      "cpp_name": "ida::processor::SwitchDescription::shift",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "6783e7195a9dd9a3e012"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ebd7449337531e438f047f09de3eee913b984b61d8c30779ce92796dd7eb8296",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.shift",
+          "declaration": "var shift: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f5ec581eb12f635c4852",
+      "cpp_name": "ida::processor::SwitchDescription::subtract_values",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7823769bf0cc5f55a3ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "331252ba70790cea712e012f6c4e86fe82eb62c471d8592408bfd30e6f48c730",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.subtractValues",
+          "declaration": "var subtractValues: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e28a95086b3bb87cb923",
+      "cpp_name": "ida::processor::SwitchDescription::user_defined",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3ec65490f89e26a0fea9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1501e2304558569ca90790c836f5b8bbec393af419ab7ba42213a16ead2ba6a8",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.userDefined",
+          "declaration": "var userDefined: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc6c05321486962626ca",
+      "cpp_name": "ida::processor::SwitchDescription::value_element_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "45c50c18a89c387ddc46"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "617c17767af434724130c1413676cf56f6347f1bdc2ade1f3dd2c1a78d5900bd",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.valueElementSize",
+          "declaration": "var valueElementSize: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d87a349a7dd5cfd3160",
+      "cpp_name": "ida::processor::SwitchDescription::values_signed",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0cdc814b5a9893454f74"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d65087cc6051be07de747cb56c28961ae4eb4dffa5679087b54802369b1b5219",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.valuesSigned",
+          "declaration": "var valuesSigned: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea7980bc258c7e3ea040",
+      "cpp_name": "ida::processor::SwitchDescription::values_table",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "d835922b1c487b9e2f94"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ef7d913a6da2ee41a3b051648e063c7ebeb138b7f7384ef9fccc4de4f0310ca5",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchDescription.valuesTable",
+          "declaration": "var valuesTable: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72743efff0d8e85044ee",
+      "cpp_name": "ida::processor::SwitchTableKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class SwitchTableKind { Dense, Sparse, Indirect, Custom, }",
+      "mapping": "direct",
+      "swift": [
+        "f8b6945ffaaf716a712a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "db9b37c00339e5b33623db2e9eb65b330c9c6030320865c729ef8168065b344d",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchTableKind",
+          "declaration": "enum SwitchTableKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11f37e5d3baa9b135661",
+      "cpp_name": "ida::processor::SwitchTableKind::Custom",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::SwitchTableKind",
+      "mapping": "direct",
+      "swift": [
+        "050538e76318a1c332e8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e3cca3b67835f319e0e9151af2ff854a525abf1ee3022e8ff1a7f71c0350d659",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchTableKind.custom",
+          "declaration": "case custom"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d6f23ce4f2cbf33a0838",
+      "cpp_name": "ida::processor::SwitchTableKind::Dense",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::SwitchTableKind",
+      "mapping": "direct",
+      "swift": [
+        "fe0562d6d7c01ae3e573"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b0ae0956ce6bf7f6d334e360c487e00785633c440641d90e4f46b5eccf9518a4",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchTableKind.dense",
+          "declaration": "case dense"
+        }
+      ]
+    },
+    {
+      "cpp_id": "027cdeb780f786a3ed65",
+      "cpp_name": "ida::processor::SwitchTableKind::Indirect",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::SwitchTableKind",
+      "mapping": "direct",
+      "swift": [
+        "e1a233ecd9c36b3edac1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "101e59706ca70ce1d0c1c516d1f1d2863ad0a90222acd797336a321616ac901f",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchTableKind.indirect",
+          "declaration": "case indirect"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7ececa442dd813af1678",
+      "cpp_name": "ida::processor::SwitchTableKind::Sparse",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::processor::SwitchTableKind",
+      "mapping": "direct",
+      "swift": [
+        "6334bed7530c28578ff9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "208ce7e1b50a54db9b4da7612a62d85a741c15190e2539a027df8a0151326314",
+      "swift_targets": [
+        {
+          "path": "Processor.SwitchTableKind.sparse",
+          "declaration": "case sparse"
+        }
+      ]
+    }
+  ]
+}

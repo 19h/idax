@@ -1,0 +1,1049 @@
+{
+  "domain": "lines",
+  "declarations": [
+    {
+      "cpp_id": "2a19ffa4f09ee58d34fb",
+      "cpp_name": "ida::lines::Color",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Color : std::uint8_t { Default = 0x01, RegularComment = 0x02, RepeatableComment= 0x03, AutoComment = 0x04, Instruction = 0x05, DataName = 0x06, RegularDataName = 0x07, DemangledName = 0x08, Symbol = 0x09, CharLiteral = 0x0A, String = 0x0B, Number = 0x0C, Void = 0x0D, CodeReference = 0x0E, DataReference = 0x0F, CodeRefTail = 0x10, DataRefTail = 0x11, Error = 0x12, Prefix = 0x13, BinaryPrefix = 0x14, Extra = 0x15, AltOperand = 0x16, HiddenName = 0x17, LibraryName = 0x18, LocalName = 0x19, DummyCodeName = 0x1A, AsmDirective = 0x1B, Macro = 0x1C, DataString = 0x1D, DataChar = 0x1E, DataNumber = 0x1F, Keyword = 0x20, Register = 0x21, ImportedName = 0x22, SegmentName = 0x23, UnknownName = 0x24, CodeName = 0x25, UserName = 0x26, Collapsed = 0x27, }",
+      "mapping": "direct",
+      "swift": [
+        "8c13f47c464c4aac2d5d"
+      ],
+      "rationale": "Lines.Color represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "20884bfed0e5a809f0e9e09cd0981f944714ec8f0e961ad09cdf97b126132fec",
+      "swift_targets": [
+        {
+          "path": "Lines.Color",
+          "declaration": "enum Color"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d87dff6d24546a815bc",
+      "cpp_name": "ida::lines::Color::AltOperand",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "7065bca698a54198ea67"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.altOperand; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "30bfc4b68a69c1154834aa16004a4b0433bf9723008ee62ded2805d0cf07a9fe",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.altOperand",
+          "declaration": "case altOperand"
+        }
+      ]
+    },
+    {
+      "cpp_id": "208e62f50c5d85176ddb",
+      "cpp_name": "ida::lines::Color::AsmDirective",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "56aa8349bfd7e8761599"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.asmDirective; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5ee797bf971629ec82eda697760c635cff7920106fda507f7b7ae9a801ac38b2",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.asmDirective",
+          "declaration": "case asmDirective"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a5b6b76f68f8d063ca3b",
+      "cpp_name": "ida::lines::Color::AutoComment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "1bae076e36e3594378ac"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.autoComment; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b7a5e57eac5c5a89dad5ee62c5712bc93eb5371b4c47933febc88cec4133d6d5",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.autoComment",
+          "declaration": "case autoComment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68f235c4cd1643aafd0e",
+      "cpp_name": "ida::lines::Color::BinaryPrefix",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "bdf869b7b7977087ba06"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.binaryPrefix; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "79245133fb244d054c20c86b7ecd632c51665d2d975a12a68b7c214885f8ec3c",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.binaryPrefix",
+          "declaration": "case binaryPrefix"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a8dfbeac576fc7a39a1b",
+      "cpp_name": "ida::lines::Color::CharLiteral",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "00155c5011fd8c7e54f3"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.charLiteral; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "507af53b193044e47a3099e0485c5920613bdc2a285ae88b659fd86765111c91",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.charLiteral",
+          "declaration": "case charLiteral"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dedd0e9ad5f8bdea9f94",
+      "cpp_name": "ida::lines::Color::CodeName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "eaf74d961e3cea99b7e2"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.codeName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3ec4eec1013da01b708cf062b43ba48e97d8205a805e418e2b4901b81f441d98",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.codeName",
+          "declaration": "case codeName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15168c99a07f9d086cbd",
+      "cpp_name": "ida::lines::Color::CodeRefTail",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "874a1217102702d0f5ab"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.codeRefTail; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "37040115580f63f5ebef9c28cbcce6a7ebb04bd975463fcb6c90fc5c913b1058",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.codeRefTail",
+          "declaration": "case codeRefTail"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a3410a6f1a693ec3fe5f",
+      "cpp_name": "ida::lines::Color::CodeReference",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "c711be244a9cd9a85785"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.codeReference; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3bca4c5cd42ec106bd2110a13defb6c46754b741e73a1c90d1285a8e4cdf576b",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.codeReference",
+          "declaration": "case codeReference"
+        }
+      ]
+    },
+    {
+      "cpp_id": "64876dc1795ca14f4376",
+      "cpp_name": "ida::lines::Color::Collapsed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "cfeb5a1d6de210a048ac"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.collapsed; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "47d04a96a22b4e838e0ce317ff26fadd09f593b9e45410dc1474961483339be3",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.collapsed",
+          "declaration": "case collapsed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "751707524307c256bd4a",
+      "cpp_name": "ida::lines::Color::DataChar",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "b0e3b94d72f6b8efcc16"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataChar; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6c160d9f4f4cfea94447e82098d7800a105c3988dde647bb8696d089142dcf80",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataChar",
+          "declaration": "case dataChar"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4941b422a99f06aa7005",
+      "cpp_name": "ida::lines::Color::DataName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "efd0a6024366d75d544d"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "03b3bfb92433061f3a8f36513500ba8ef4fccd07a6741cfaf44132ada01b2d57",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataName",
+          "declaration": "case dataName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2b34c91110cfce546313",
+      "cpp_name": "ida::lines::Color::DataNumber",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "e552a514ad790a842d3a"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataNumber; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2eb2b7ad55136bd85bfca165fa98b4694fb4f9851b5b7aa0d545b0a71913961d",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataNumber",
+          "declaration": "case dataNumber"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35de298120c74a54749b",
+      "cpp_name": "ida::lines::Color::DataRefTail",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "c2643a76d9e456d5c76d"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataRefTail; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "06caacadd855311b0642f255b605caaf4b775a5b7be7fdfb81e2653a87547c73",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataRefTail",
+          "declaration": "case dataRefTail"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dc08ffc5e65dfc721a1a",
+      "cpp_name": "ida::lines::Color::DataReference",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "01521bb9efe7a5e84407"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataReference; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0a489bc7bc4a4792e93977a8c0e0c8a584a90bbc20f0035f825cbbc6c741148b",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataReference",
+          "declaration": "case dataReference"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51b37920f159c2d16ec9",
+      "cpp_name": "ida::lines::Color::DataString",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "c1052f5552db3c535b42"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dataString; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3eabf5b744263bcb97008242faf685d096254cd954fb5583c7320aa44b647421",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dataString",
+          "declaration": "case dataString"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0ebb9635b23dac1a87ad",
+      "cpp_name": "ida::lines::Color::Default",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "19a6fac7e9fff7bc2956"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.default; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "72a4078cd1200f917f1d526d492547fa86328ccf34046c382791c95cf9388c58",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.default",
+          "declaration": "case `default`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "874b9c5507a9a79af450",
+      "cpp_name": "ida::lines::Color::DemangledName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "8165f29c64bac1e2d8fc"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.demangledName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "cc4d751159b1d271b56be6f433a0b2420a12b9f589f0f9417bdebcdf64545aa9",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.demangledName",
+          "declaration": "case demangledName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "632db8836c79a094dfbc",
+      "cpp_name": "ida::lines::Color::DummyCodeName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "f0950cb1857920186d48"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.dummyCodeName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c06845b9349545d432fd69854304724f635c3b964278c190766b9da7a6d13608",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.dummyCodeName",
+          "declaration": "case dummyCodeName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2ab0a0185d55817e2e0f",
+      "cpp_name": "ida::lines::Color::Error",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "5f1b19db4fffae2c40a8"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.error; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a8e98f0b45eaf9ba5d77c526ef7d485d1a773f7b66d3bd3a2b1cb9e5d5af953a",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.error",
+          "declaration": "case error"
+        }
+      ]
+    },
+    {
+      "cpp_id": "541f21e5b4dd7b12f77b",
+      "cpp_name": "ida::lines::Color::Extra",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "22839456a201fbb50ea8"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.extra; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "aac03ad54f89fcf4b44d4d345e4367ed409e121f41bfa5c7a663547f7d051b6d",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.extra",
+          "declaration": "case extra"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87b4c91112843c774e1d",
+      "cpp_name": "ida::lines::Color::HiddenName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "3deca05587924652313e"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.hiddenName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1fb0104f6a953b6541c4c1df1eec826e2d90f81c1721781073e36637d2f41d57",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.hiddenName",
+          "declaration": "case hiddenName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aff0e3a4427235ae8fb3",
+      "cpp_name": "ida::lines::Color::ImportedName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "96ef16cfb55efbb8bb9e"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.importedName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "92a23fe1a4e9f1c9f3668c5928d338a74d4cbfe3a538e677fb73443b2ec879f9",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.importedName",
+          "declaration": "case importedName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60bec383a766ccfc2ed5",
+      "cpp_name": "ida::lines::Color::Instruction",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "aa1ddac1a316e964638a"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.instruction; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9dd7dd80319bd79f8b030e9455d4240d39a597d1dbaa06f6869be125c00b76b0",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.instruction",
+          "declaration": "case instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41a050561b0004989988",
+      "cpp_name": "ida::lines::Color::Keyword",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "62632d0aaeb9c804bedb"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.keyword; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f2d0e76cecacc9b3350aa78f68579b06508a4c6e37dbf7b45fbdba4f4a5afc7e",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.keyword",
+          "declaration": "case keyword"
+        }
+      ]
+    },
+    {
+      "cpp_id": "436b2ae0767e86b1876d",
+      "cpp_name": "ida::lines::Color::LibraryName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "557d6cef14c816cb6759"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.libraryName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9cd9cce38883e461e1cc3379e07e57ac5c65f11a65f9650a3b82e94c606c58e0",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.libraryName",
+          "declaration": "case libraryName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "75232741735e57b4eed2",
+      "cpp_name": "ida::lines::Color::LocalName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "d5d2c9661d725977660b"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.localName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "edc8b46f3dc4719d4241e26198aabed881a36b648d7eda3b4cc30c938493880a",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.localName",
+          "declaration": "case localName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1e2eb8abacf230e96761",
+      "cpp_name": "ida::lines::Color::Macro",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "9b13a27c0563fc76448f"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.macro; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0063626e9f3ab6d300def219477b2b8e1d88c2775bacfad092a9d403b7d21d8f",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.macro",
+          "declaration": "case macro"
+        }
+      ]
+    },
+    {
+      "cpp_id": "defaae8cc3344a26c682",
+      "cpp_name": "ida::lines::Color::Number",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "cc23ef53056a2f9ceed8"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.number; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0952a3d2af0df84b91bd22c9ceffc451bf338f457eaee9aca60e1dde1fe5a537",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.number",
+          "declaration": "case number"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a5dcebd798b862ce9cc",
+      "cpp_name": "ida::lines::Color::Prefix",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "7e5d7e6908c41aad1ae8"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.prefix; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f613d5a2ae9b567a9a998bdf185d5a50159c233e0ec78841ccd4af1fe2668086",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.prefix",
+          "declaration": "case prefix"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a71d0942b665051f445",
+      "cpp_name": "ida::lines::Color::Register",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "b96161877932292fa85a"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.register; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3eeff8f39a1060b926cfb1aa304e1ac608d5a78903351ce2fd4874da1caa3351",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.register",
+          "declaration": "case register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a73d359ae551da85bb7",
+      "cpp_name": "ida::lines::Color::RegularComment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "d71705f9ed25c22c0ba5"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.regularComment; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6d8e481641bf50b9c93f7d8ac0861bb1b2cabbfa07ea09a56bf444f340a1e3c0",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.regularComment",
+          "declaration": "case regularComment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a19985e72422851a200",
+      "cpp_name": "ida::lines::Color::RegularDataName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "5a444345647ce4146e17"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.regularDataName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "bbfdaeda5f3e7d1b1715768d7638fb57ee795b27227083ca88605326c6b32f63",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.regularDataName",
+          "declaration": "case regularDataName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "97f03b58e138635e2384",
+      "cpp_name": "ida::lines::Color::RepeatableComment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "761eb526dcf41c6d49cd"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.repeatableComment; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d045e4e395dbc476bc8e283dc699608f77ab85cfb16e09f50e1a5bd742c3368b",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.repeatableComment",
+          "declaration": "case repeatableComment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2adf67ce0b6172c932d",
+      "cpp_name": "ida::lines::Color::SegmentName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "25e099b752ef52e90d0f"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.segmentName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4e1460cbb961e1c2c472bcb5eae983f39549f2604c201d34a9c5ca76a9ff562e",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.segmentName",
+          "declaration": "case segmentName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82299346111b147810f3",
+      "cpp_name": "ida::lines::Color::String",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "c2ee8465b746cd5ac798"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.string; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6e22f7cb40aff5e64795c3be9663de1a9f181661a3e0b75c931dc0d0746aa80f",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.string",
+          "declaration": "case string"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b9010a5d742736f68f03",
+      "cpp_name": "ida::lines::Color::Symbol",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "9444a09529d8e8237fc7"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.symbol; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "fe55767cd6c67551e25e42fb2135241c75de3aa921d3afbcabd0960907770782",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.symbol",
+          "declaration": "case symbol"
+        }
+      ]
+    },
+    {
+      "cpp_id": "552797e4eb764add12f8",
+      "cpp_name": "ida::lines::Color::UnknownName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "53227e20482767aaf0aa"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.unknownName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e64d867941edb51be3343c320223545f419901313dafc10a105fd9b70b3b1ac0",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.unknownName",
+          "declaration": "case unknownName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6ef8269b81873032c9f2",
+      "cpp_name": "ida::lines::Color::UserName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "c8de976b86a940a4ad40"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.userName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "23bb29267a46b7c92a64a5d8d4a1350e962d3225030a22c5b489170b1238e58b",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.userName",
+          "declaration": "case userName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73d316f3ec22905d2def",
+      "cpp_name": "ida::lines::Color::Void",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lines::Color",
+      "mapping": "direct",
+      "swift": [
+        "7cd6d4e2ca682a1eed02"
+      ],
+      "rationale": "Corresponding typed semantic case Lines.Color.void; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b8c589fa2413ff7e52fac50664fa381da15151993bf71d28331683417d9f4557",
+      "swift_targets": [
+        {
+          "path": "Lines.Color.void",
+          "declaration": "case void"
+        }
+      ]
+    },
+    {
+      "cpp_id": "766f4d90491d90984bce",
+      "cpp_name": "ida::lines::SourceFile",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "6a583f47a277ab796e6c"
+      ],
+      "rationale": "Lines.SourceFile is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "766f4d90491d90984bce70b686b0fc8a058ee1c621f3809674cdfce42415c071",
+      "swift_targets": [
+        {
+          "path": "Lines.SourceFile",
+          "declaration": "struct SourceFile"
+        }
+      ]
+    },
+    {
+      "cpp_id": "16279e77b6a4889aaa4e",
+      "cpp_name": "ida::lines::SourceFile::filename",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "ff8fc3af75edc32f1c65"
+      ],
+      "rationale": "Preserves the filename value as var filename: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "aed32e92d431c4bdb7f2a51753e5388a3904fc5fc1d84986e70a7133753337b7",
+      "swift_targets": [
+        {
+          "path": "Lines.SourceFile.filename",
+          "declaration": "var filename: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b40016a0037fdb5ba46f",
+      "cpp_name": "ida::lines::SourceFile::range",
+      "cpp_kind": "field",
+      "cpp_signature": "ida::address::Range",
+      "mapping": "direct",
+      "swift": [
+        "2526915599968818ff62"
+      ],
+      "rationale": "The semantic half-open range accessor reads and writes the snapshot start/end fields as an Addresses.Range.",
+      "cpp_fingerprint": "f4e5d963727e13b85749405023a6e9a9e620354fe928761dd1a43d975234a284",
+      "swift_targets": [
+        {
+          "path": "Lines.SourceFile.range",
+          "declaration": "var range: Addresses.Range { get set }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "617eed48dc84ea53bf5d",
+      "cpp_name": "ida::lines::add_source_file",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const ida::address::Range &, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "6c3684448a3057841fe3"
+      ],
+      "rationale": "Accepts the semantic Addresses.Range and filename; the adapter forwards the same half-open bounds.",
+      "cpp_fingerprint": "1fd1b56e4056d0bbacbf9408efcb7edaca15a155000a3004a0818ca40fa7128d",
+      "swift_targets": [
+        {
+          "path": "Lines.addSourceFile(range:filename:)",
+          "declaration": "static func addSourceFile(range: Addresses.Range, filename: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "37935a0b2b3bbac6f585",
+      "cpp_name": "ida::lines::colstr",
+      "cpp_kind": "function",
+      "cpp_signature": "std::string (std::string_view, Color)",
+      "mapping": "direct",
+      "swift": [
+        "1e83921ae676436a3128"
+      ],
+      "rationale": "Lines.colstr(text:color:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5f8167e9dfd99ccec1e1ee6989fd2b786f16e463f55467de2f54e67598763eeb",
+      "swift_targets": [
+        {
+          "path": "Lines.colstr(text:color:)",
+          "declaration": "static func colstr(text: String, color: Lines.Color) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "43dad207e0cdc4a56b25",
+      "cpp_name": "ida::lines::decode_addr_tag",
+      "cpp_kind": "function",
+      "cpp_signature": "int (std::string_view, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "bbbb581c9f9a50dd3f78"
+      ],
+      "rationale": "Lines.decodeAddrTag(taggedText:pos:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7a0f7b4797a6fee1e584071a9a87ae3aa928c4da24e1aca37452cfcc176dc2b0",
+      "swift_targets": [
+        {
+          "path": "Lines.decodeAddrTag(taggedText:pos:)",
+          "declaration": "static func decodeAddrTag(taggedText: String, pos: Int) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a23f652ba47365cb85a",
+      "cpp_name": "ida::lines::kColorAddr",
+      "cpp_kind": "constant",
+      "cpp_signature": "const std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "203a83d5be5621a2df97"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "17c5a6175ae164146a068faae4bea1e13b7f97bce58f710f1c02011119d36ff9",
+      "swift_targets": [
+        {
+          "path": "Lines.colorAddr",
+          "declaration": "static let colorAddr: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44528f4f29e6a187a4ab",
+      "cpp_name": "ida::lines::kColorAddrSize",
+      "cpp_kind": "constant",
+      "cpp_signature": "const int",
+      "mapping": "direct",
+      "swift": [
+        "0f147f226a6e7d9aa5df"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "4690d03e35077051b7a3e81795933cf750bc15161eb7c8f360edcfbb489c4e85",
+      "swift_targets": [
+        {
+          "path": "Lines.colorAddrSize",
+          "declaration": "static let colorAddrSize: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c58aadb685c5883b2c7e",
+      "cpp_name": "ida::lines::kColorEsc",
+      "cpp_kind": "constant",
+      "cpp_signature": "const char",
+      "mapping": "direct",
+      "swift": [
+        "5a5f73238b49a0ecddfd"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "ebede7edc097f39db91d0169a13ba4256582162d6544ace3af202c3f5954cd8a",
+      "swift_targets": [
+        {
+          "path": "Lines.colorEsc",
+          "declaration": "static let colorEsc: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fb910134f59e27b26cc4",
+      "cpp_name": "ida::lines::kColorInv",
+      "cpp_kind": "constant",
+      "cpp_signature": "const char",
+      "mapping": "direct",
+      "swift": [
+        "510ee864a9cc8c161dbb"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "1fa44224b5a82b1004b7aad559f902fc22f70e8c40d782354f686c5785a55888",
+      "swift_targets": [
+        {
+          "path": "Lines.colorInv",
+          "declaration": "static let colorInv: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14ec6587d03fcd7572f3",
+      "cpp_name": "ida::lines::kColorOff",
+      "cpp_kind": "constant",
+      "cpp_signature": "const char",
+      "mapping": "direct",
+      "swift": [
+        "228a4287c4cd9cd0ace5"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "2fab16977de0b2456c871e78eddc75660cf82d542a9822f84c9585d01d8498ea",
+      "swift_targets": [
+        {
+          "path": "Lines.colorOff",
+          "declaration": "static let colorOff: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a823565dac398339c96c",
+      "cpp_name": "ida::lines::kColorOn",
+      "cpp_kind": "constant",
+      "cpp_signature": "const char",
+      "mapping": "direct",
+      "swift": [
+        "da09d4bb97a2190e9bc8"
+      ],
+      "rationale": "Preserves the documented tag-control byte or 16-character address-tag width constant.",
+      "cpp_fingerprint": "727318c327ec1e3601c607e0071746b7c101a87e4a65237defc2f6146234bb74",
+      "swift_targets": [
+        {
+          "path": "Lines.colorOn",
+          "declaration": "static let colorOn: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a8875ffd4824ca84d1f6",
+      "cpp_name": "ida::lines::make_addr_tag",
+      "cpp_kind": "function",
+      "cpp_signature": "std::string (int)",
+      "mapping": "direct",
+      "swift": [
+        "17ed4a9c70768daf97e2"
+      ],
+      "rationale": "Lines.makeAddrTag(itemIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "424fe6c2abc08337492ad4c3ced72a460b5ab45406e080674811f81e66c48fcc",
+      "swift_targets": [
+        {
+          "path": "Lines.makeAddrTag(itemIndex:)",
+          "declaration": "static func makeAddrTag(itemIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8b7e5391d94b2acc94ea",
+      "cpp_name": "ida::lines::remove_source_file",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "fefd963fea7136c570c5"
+      ],
+      "rationale": "Lines.removeSourceFile(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "67e184358d7da64067702923ef4157dba4e1fe523623d6442c6465a7895cdeae",
+      "swift_targets": [
+        {
+          "path": "Lines.removeSourceFile(address:)",
+          "declaration": "static func removeSourceFile(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bf4c566f0e8827bf3e74",
+      "cpp_name": "ida::lines::source_file_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<SourceFile> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "f130c0e484a7bd326be1"
+      ],
+      "rationale": "Lines.sourceFileAt(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8b0b5f3ca441402f216124279c6a0a5e5f918767d456a8cefdeb04334277e5e5",
+      "swift_targets": [
+        {
+          "path": "Lines.sourceFileAt(address:)",
+          "declaration": "static func sourceFileAt(address: UInt64) throws(IDAError) -> Lines.SourceFile"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4fa82a1098f29f7629cc",
+      "cpp_name": "ida::lines::tag_advance",
+      "cpp_kind": "function",
+      "cpp_signature": "int (std::string_view, int)",
+      "mapping": "direct",
+      "swift": [
+        "c1935567a628672b019e"
+      ],
+      "rationale": "Lines.tagAdvance(taggedText:pos:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e21c80a12b66d905fbdadc692a62c311c83ee131b8e8b7667d45d8830d909cec",
+      "swift_targets": [
+        {
+          "path": "Lines.tagAdvance(taggedText:pos:)",
+          "declaration": "static func tagAdvance(taggedText: String, pos: Int32) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fcea00eb62767c5b9a0",
+      "cpp_name": "ida::lines::tag_remove",
+      "cpp_kind": "function",
+      "cpp_signature": "std::string (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "899a97f38d5cf0f1b1e2"
+      ],
+      "rationale": "Lines.tagRemove(taggedText:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d870d70bdea4463c42ca0cdc473ca1770b29199f51136a75a87707e5a9809c56",
+      "swift_targets": [
+        {
+          "path": "Lines.tagRemove(taggedText:)",
+          "declaration": "static func tagRemove(taggedText: String) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "889826962e2a22bfdae0",
+      "cpp_name": "ida::lines::tag_strlen",
+      "cpp_kind": "function",
+      "cpp_signature": "std::size_t (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "85910649febbfdaf5565"
+      ],
+      "rationale": "Lines.tagStrlen(taggedText:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a0af0348bcd087952821c72a2a2f0a585afbb031d0be78d0e8fb41a0a5d9e5a3",
+      "swift_targets": [
+        {
+          "path": "Lines.tagStrlen(taggedText:)",
+          "declaration": "static func tagStrlen(taggedText: String) throws(IDAError) -> Int"
+        }
+      ]
+    }
+  ]
+}

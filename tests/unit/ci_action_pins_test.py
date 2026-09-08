@@ -18,7 +18,7 @@ class CiActionPinTests(unittest.TestCase):
     def test_repository_inventory_is_exact(self) -> None:
         failures, counts = pins.scan_repository()
         self.assertEqual(failures, [])
-        self.assertEqual(sum(counts.values()), 35)
+        self.assertEqual(sum(counts.values()), 38)
 
     def test_mutable_reference_is_rejected(self) -> None:
         failures, _ = pins.scan_text(
@@ -73,6 +73,15 @@ class CiActionPinTests(unittest.TestCase):
             self.assertEqual(
                 text.count("package-manager-cache: false"), setup_count
             )
+
+    def test_rewrite_branch_runs_existing_validation_workflows(self) -> None:
+        for name in ("bindings-ci.yml", "integration-ci.yml", "validation-matrix.yml"):
+            text = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+            self.assertIn(
+                "  push:\n    branches: [main, master, rewrite/swift-bindings]", text
+            )
+            self.assertIn("  pull_request:\n    branches: [main, master]", text)
+            self.assertIn("  workflow_dispatch:", text)
 
     def test_homebrew_and_node20_action_references_are_absent(self) -> None:
         workflow_text = "\n".join(

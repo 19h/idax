@@ -1,0 +1,239 @@
+{
+  "domain": "analysis",
+  "declarations": [
+    {
+      "cpp_id": "e76cfef30371a4008357",
+      "cpp_name": "ida::analysis::cancel",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "dcb017918bfd4482d711"
+      ],
+      "rationale": "Analysis.cancel(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "70a234bacbb78043f8986b2994e1cfe051fadcb85b53e16b75c5566cc76b211d",
+      "swift_targets": [
+        {
+          "path": "Analysis.cancel(start:end:)",
+          "declaration": "static func cancel(start: UInt64, end: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8bdb0544978ef4f539a1",
+      "cpp_name": "ida::analysis::is_enabled",
+      "cpp_kind": "function",
+      "cpp_signature": "bool ()",
+      "mapping": "direct",
+      "swift": [
+        "fcc9715b8998e9ae6fe0"
+      ],
+      "rationale": "Analysis.isEnabled() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a239a2ca6962df1ffc083add681fc8b80662e69e499daa09ab3a056d7a8d2155",
+      "swift_targets": [
+        {
+          "path": "Analysis.isEnabled()",
+          "declaration": "static func isEnabled() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cf553d0440c05eb7d6a4",
+      "cpp_name": "ida::analysis::is_idle",
+      "cpp_kind": "function",
+      "cpp_signature": "bool ()",
+      "mapping": "direct",
+      "swift": [
+        "aeb4aa807a9e674d747c"
+      ],
+      "rationale": "Analysis.isIdle() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e99cf3ff02689a43afa4a35e5723973108f670f4536c736ac9fe3c411827d617",
+      "swift_targets": [
+        {
+          "path": "Analysis.isIdle()",
+          "declaration": "static func isIdle() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7599a43b5e87b25d4279",
+      "cpp_name": "ida::analysis::revert_decisions",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "3c1c077791a031a32bd3"
+      ],
+      "rationale": "Analysis.revertDecisions(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f62108a73ed14e9e5e3975901ec1000c1c43131bdbbb37f09b8b8caeb20270bd",
+      "swift_targets": [
+        {
+          "path": "Analysis.revertDecisions(start:end:)",
+          "declaration": "static func revertDecisions(start: UInt64, end: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e2c90ab9121f9fb91e22",
+      "cpp_name": "ida::analysis::schedule",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "71be10f84ae1e41306d1"
+      ],
+      "rationale": "Analysis.schedule(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e415542c50fcec936a38ee5438837655f426930e97260fee1e8d019abfdde6a9",
+      "swift_targets": [
+        {
+          "path": "Analysis.schedule(address:)",
+          "declaration": "static func schedule(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "308a2667bc5b90d0abe8",
+      "cpp_name": "ida::analysis::schedule_code",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "5d76ece30ee7d8224381"
+      ],
+      "rationale": "Analysis.scheduleCode(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7ba49e80ce6c31dc40a7e905abcca8793aa16191804aa4336080aac8a4230134",
+      "swift_targets": [
+        {
+          "path": "Analysis.scheduleCode(address:)",
+          "declaration": "static func scheduleCode(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a6a8df5c73eb3302881",
+      "cpp_name": "ida::analysis::schedule_function",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "4f8d112db6dbceeda7e1"
+      ],
+      "rationale": "Analysis.scheduleFunction(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e61eb765a28f8329c066727e5401a081a38761d84cbdf6e6422d9662d6158fbe",
+      "swift_targets": [
+        {
+          "path": "Analysis.scheduleFunction(address:)",
+          "declaration": "static func scheduleFunction(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c859ed3d52c08e12b4d2",
+      "cpp_name": "ida::analysis::schedule_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "a36f2d382862d625ce98"
+      ],
+      "rationale": "Analysis.scheduleRange(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3de285654b24ab7010d7edb8a6ef0c52bfc279675c478c6855d74902ed894f74",
+      "swift_targets": [
+        {
+          "path": "Analysis.scheduleRange(start:end:)",
+          "declaration": "static func scheduleRange(start: UInt64, end: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5a9b5de85aae2017dced",
+      "cpp_name": "ida::analysis::schedule_reanalysis",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "91c3255c3341e55e919b"
+      ],
+      "rationale": "Analysis.scheduleReanalysis(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4303be89b6b72c4cad21574f8369315925bfee673033e84d5041e56bde476f1b",
+      "swift_targets": [
+        {
+          "path": "Analysis.scheduleReanalysis(address:)",
+          "declaration": "static func scheduleReanalysis(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a205ef3bb191e9de6c94",
+      "cpp_name": "ida::analysis::schedule_reanalysis_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "a0e918ce8bf4ae2806e5"
+      ],
+      "rationale": "Analysis.scheduleReanalysisRange(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "63bc2a36afb6ae527df4d91ec79492b1aabca9e52b7956aebd087822f6f2d142",
+      "swift_targets": [
+        {
+          "path": "Analysis.scheduleReanalysisRange(start:end:)",
+          "declaration": "static func scheduleReanalysisRange(start: UInt64, end: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "945b703cbcfb0c1cab7c",
+      "cpp_name": "ida::analysis::set_enabled",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (bool)",
+      "mapping": "direct",
+      "swift": [
+        "39a90e2f2f1858232827"
+      ],
+      "rationale": "Analysis.setEnabled(enabled:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "98ac425792c6b85bba6495ce7d1937b1c45454b4be1f2d166a3da0e05d559f71",
+      "swift_targets": [
+        {
+          "path": "Analysis.setEnabled(enabled:)",
+          "declaration": "static func setEnabled(enabled: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5fd3c65b2f63e8b5a822",
+      "cpp_name": "ida::analysis::wait",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "f8ab7a4cb87f44702908"
+      ],
+      "rationale": "Analysis.wait() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "34c48ea6914e2a380a86fbe58d1397f6fffb6c46826d72116f8c0b0d2f6951f8",
+      "swift_targets": [
+        {
+          "path": "Analysis.wait()",
+          "declaration": "static func wait() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17abf9e5f6e01321474d",
+      "cpp_name": "ida::analysis::wait_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "4ea620efb58763c0b0b3"
+      ],
+      "rationale": "Analysis.waitRange(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c164de2795b2319ae764a61e730de9632b3ab71d4454cad9dcfa231a0fa39ffe",
+      "swift_targets": [
+        {
+          "path": "Analysis.waitRange(start:end:)",
+          "declaration": "static func waitRange(start: UInt64, end: UInt64) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

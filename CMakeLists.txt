@@ -260,6 +260,11 @@ if(IDAX_BUILD_PYTHON)
     add_subdirectory(bindings/python)
 endif()
 
+option(IDAX_BUILD_SWIFT "Build the native transport for the Swift package" OFF)
+if(IDAX_BUILD_SWIFT)
+    add_subdirectory(bindings/swift)
+endif()
+
 # ── Install / packaging ──────────────────────────────────────────────────
 include(GNUInstallDirs)
 

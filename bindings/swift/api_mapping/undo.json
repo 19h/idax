@@ -1,0 +1,95 @@
+{
+  "domain": "undo",
+  "declarations": [
+    {
+      "cpp_id": "282c5aadc7b5a17970fe",
+      "cpp_name": "ida::undo::create_point",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "f48ea65f8ccb92e2e3cb"
+      ],
+      "rationale": "Undo.createPoint(actionName:label:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1e312cf398c3deebb9bca8f4a50503ca51e262b1cb19a0ef0a6ee01b0fa046e4",
+      "swift_targets": [
+        {
+          "path": "Undo.createPoint(actionName:label:)",
+          "declaration": "static func createPoint(actionName: String, label: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9041e604663c97fe4008",
+      "cpp_name": "ida::undo::perform_redo",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> ()",
+      "mapping": "direct",
+      "swift": [
+        "4ed63a35d0a3154deacc"
+      ],
+      "rationale": "Undo.performRedo() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5b41e71bf1c2e7ecdab1649808401aba412773a51419a9ccd5e24f87215b6b50",
+      "swift_targets": [
+        {
+          "path": "Undo.performRedo()",
+          "declaration": "static func performRedo() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "487573bec440de4ad6b2",
+      "cpp_name": "ida::undo::perform_undo",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> ()",
+      "mapping": "direct",
+      "swift": [
+        "2cde818ff0d3500752e4"
+      ],
+      "rationale": "Undo.performUndo() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "244bcf86d404d52bc8700b9c76a58cf6b09ebffa6951def262724b8b4106cb18",
+      "swift_targets": [
+        {
+          "path": "Undo.performUndo()",
+          "declaration": "static func performUndo() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "306a203b661230db51b5",
+      "cpp_name": "ida::undo::redo_action_label",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::string>> ()",
+      "mapping": "direct",
+      "swift": [
+        "cc15037200c8029d9797"
+      ],
+      "rationale": "Undo.redoActionLabel() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "912493fddc6f24888aecbd3dc708531e71cdc10a37fc14b0506093c092faa59e",
+      "swift_targets": [
+        {
+          "path": "Undo.redoActionLabel()",
+          "declaration": "static func redoActionLabel() throws(IDAError) -> String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7be46d066d4cdfda0c83",
+      "cpp_name": "ida::undo::undo_action_label",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::string>> ()",
+      "mapping": "direct",
+      "swift": [
+        "75f40b9152e7afd71f19"
+      ],
+      "rationale": "Undo.undoActionLabel() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "80544bd50eefa6fdfa9e6c85f705ccb4b02db1d2d67d201adf937e3842bc4ded",
+      "swift_targets": [
+        {
+          "path": "Undo.undoActionLabel()",
+          "declaration": "static func undoActionLabel() throws(IDAError) -> String?"
+        }
+      ]
+    }
+  ]
+}

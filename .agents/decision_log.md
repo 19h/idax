@@ -1468,3 +1468,11 @@
 ### D19.88 Loader Construction Before Descriptor Queries
 - Construct the user loader module with a function-local static in the IDAX_LOADER bridge initializer. The descriptor may query virtual options during dynamic initialization, so the module's construction must precede returning its pointer regardless of translation-unit order.
 - Preserve the public module API and LDSC export. A deterministic descriptor-first CTest establishes the construction-order requirement independently of Swift packaging.
+
+### D19.89 Shared Swift Support with Per-Add-On Factories
+- Link add-ons to one IDAXShared dynamic image containing Swift types and native runtime/resource state. Keep each module's canonical SDK descriptor and factory bridge in its own add-on with hidden factory symbols; expose the documented PLUGIN, LDSC or LPH descriptor.
+- Store the common support library once and use relative loader search paths from add-ons. Validate relocation and multiple module kinds/two plugin instances in one actual host; single-addon symbol inspection is insufficient.
+
+### D19.90 Opaque Custom Registration Generations
+- Give each wrapper-observed custom-data/fixup identity a private generation. An explicit unregister retires its shared owner state before SDK teardown; old ARC owners cannot act on a replacement in the same native slot.
+- Validate generation-bearing identities before all native query/mutation entry points. Keep native numeric IDs private and distinguish the SDK's unobservable external same-slot/same-name replacement boundary in the assumption register. Use database-bound holders for microcode-filter registration and explicit validity reporting.

@@ -1,0 +1,1867 @@
+{
+  "domain": "event",
+  "declarations": [
+    {
+      "cpp_id": "e9b73db4a80494c710d8",
+      "cpp_name": "ida::event::Event",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e9b73db4a80494c710d82aed8e84050b13c55ece0183add8d76a54e023c755f0",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1be959fab11679142fbd",
+      "cpp_name": "ida::event::Event::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "2877f4c3ef634de3e80a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c86891f2c73c2a2b879bff63341f4965c1fbe6e3cfbd590c8ab361eb6e96ad35",
+      "swift_targets": [
+        {
+          "path": "Event.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79c5a91914870da29cb6",
+      "cpp_name": "ida::event::Event::address_mapping_changed",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "08f768e09f592f6b2f75"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "aab9204d2cbc723fd2625be13ca4ff9fa097f67b240749835e7d1614c105d2b9",
+      "swift_targets": [
+        {
+          "path": "Event.Change.addressMappingChanged",
+          "declaration": "let addressMappingChanged: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83d5d92f2885d8aea380",
+      "cpp_name": "ida::event::Event::extra_comment_placement",
+      "cpp_kind": "field",
+      "cpp_signature": "ExtraCommentPlacement",
+      "mapping": "direct",
+      "swift": [
+        "01bbbd122a72734f0f4f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5dff2adbfa31f9ba57b7043de6d9c82e66b1a3f336cd66eab92c7083106d11f0",
+      "swift_targets": [
+        {
+          "path": "Event.Change.extraCommentPlacement",
+          "declaration": "let extraCommentPlacement: Event.ExtraCommentPlacement"
+        }
+      ]
+    },
+    {
+      "cpp_id": "258e04837addb95b968a",
+      "cpp_name": "ida::event::Event::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "EventKind",
+      "mapping": "direct",
+      "swift": [
+        "f899d3ab81ba0c230104"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5139d27ec85fdab8b53f332900221783f420c8a8ce900398034686102b3588d8",
+      "swift_targets": [
+        {
+          "path": "Event.Change.kind",
+          "declaration": "let kind: Event.Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17250f415fcd45026d0a",
+      "cpp_name": "ida::event::Event::line_index",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "619e3688ceffde8936f0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3161e1400c17116f273f34de4224525c27a80d39031cf17443fd030d938980b0",
+      "swift_targets": [
+        {
+          "path": "Event.Change.lineIndex",
+          "declaration": "let lineIndex: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d1300480a9f4318f37ef",
+      "cpp_name": "ida::event::Event::local_type_change",
+      "cpp_kind": "field",
+      "cpp_signature": "LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "4bc9c7a4a73d789d1a42"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8ebb1217dbfa86bfa3e5060c8deb77abc52b7d720abc333617e765d4868a818e",
+      "swift_targets": [
+        {
+          "path": "Event.Change.localTypeChange",
+          "declaration": "let localTypeChange: Event.LocalTypeChange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c76adcf9675d978b2494",
+      "cpp_name": "ida::event::Event::new_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "9630e1528a81d097d546"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f0a087b3689b980bf96c3688906eed0d22954fb66a7501cd7bc0a8336b4ed843",
+      "swift_targets": [
+        {
+          "path": "Event.Change.newName",
+          "declaration": "let newName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4753641430b2b75c08a0",
+      "cpp_name": "ida::event::Event::old_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "d73a5dec69bedc429a35"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a56ae581b2f66c5e72474c8a5843a7e60b2af0adccc9dae6b4f84c97f181a8e6",
+      "swift_targets": [
+        {
+          "path": "Event.Change.oldName",
+          "declaration": "let oldName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9bf235d730b8b01fa12b",
+      "cpp_name": "ida::event::Event::old_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "303c0416b2ecb3ef05c1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7d98fe7bf795f6c59aead31bca863af7be24f615f3e5e1bb074e983b47ed833e",
+      "swift_targets": [
+        {
+          "path": "Event.Change.oldValue",
+          "declaration": "let oldValue: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc78de5149ff3e045e95",
+      "cpp_name": "ida::event::Event::operand_index",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "8b11adfe620a2bf73fc1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "876f3c1c015fb5b157a4b810c3b887c402112a705b4fb099c0b31a2e0aa012e0",
+      "swift_targets": [
+        {
+          "path": "Event.Change.operandIndex",
+          "declaration": "let operandIndex: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "851c2c18e31be7d8a3f3",
+      "cpp_name": "ida::event::Event::repeatable",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "6e6919b868516b9276f8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c007f99df9313b6fa6a18ff7ecca20c3506afd20620dfef482532b72d829ed04",
+      "swift_targets": [
+        {
+          "path": "Event.Change.repeatable",
+          "declaration": "let repeatable: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "30a52021a93734229f8c",
+      "cpp_name": "ida::event::Event::secondary_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "693456dca034e15887fe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "24063ef79601554a483f4835b25832c6139b37cccf5fb04589c723c703521551",
+      "swift_targets": [
+        {
+          "path": "Event.Change.secondaryAddress",
+          "declaration": "let secondaryAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a9ec25f63ecd4256b8cc",
+      "cpp_name": "ida::event::Event::size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "2899719adae1c6a31871"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "67f055146629468c1451853d66578bfd6c72181877fd7fd58081e41441334014",
+      "swift_targets": [
+        {
+          "path": "Event.Change.size",
+          "declaration": "let size: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb2cbc13fe8f3c8b9004",
+      "cpp_name": "ida::event::Event::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "45f77d3791739ebfe89b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "acf3fcf0737bd278de78cb1b467f1fa3d293c35394379d30e7a85eeaf095239e",
+      "swift_targets": [
+        {
+          "path": "Event.Change.text",
+          "declaration": "let text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8712fe28331eec850434",
+      "cpp_name": "ida::event::Event::type_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "e83bf5d12cca9404bcd4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "61a0e50f1442b75b43e8db571d1a2f04fd208f3f8a3f204d463077d12d09b9c1",
+      "swift_targets": [
+        {
+          "path": "Event.Change.typeName",
+          "declaration": "let typeName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e8de6b3161210f6c617",
+      "cpp_name": "ida::event::Event::type_ordinal",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "0e16e83e985bb17c0d2d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ac0a5422ebcf1bf58f8f0fd1d8110505888186744b25cbe6032b6e0b889f8ec7",
+      "swift_targets": [
+        {
+          "path": "Event.Change.typeOrdinal",
+          "declaration": "let typeOrdinal: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "45df1bd3b48bb379f858",
+      "cpp_name": "ida::event::Event::will_disable_range",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "4b9a5a4df7737c30b87a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "90f08165b4b3636318afadb46914b9ee9907634905996f5f43fd119285c635a8",
+      "swift_targets": [
+        {
+          "path": "Event.Change.willDisableRange",
+          "declaration": "let willDisableRange: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0093951e62d573ad3820",
+      "cpp_name": "ida::event::EventKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class EventKind { SegmentAdded = 0, SegmentDeleted = 1, FunctionAdded = 2, FunctionDeleted = 3, Renamed = 4, BytePatched = 5, CommentChanged = 6, SegmentMoved = 7, FunctionUpdated = 8, ItemTypeChanged = 9, OperandTypeChanged = 10, CodeCreated = 11, DataCreated = 12, ItemsDestroyed = 13, ExtraCommentChanged = 14, LocalTypesChanged = 15, }",
+      "mapping": "direct",
+      "swift": [
+        "60d30558d64fb58ff3ab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bbae71663f89650e2970574d1e8d313f8ae4043345cddbf5dac6177e95faf9bc",
+      "swift_targets": [
+        {
+          "path": "Event.Kind",
+          "declaration": "enum Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b757664fe00c44a279b0",
+      "cpp_name": "ida::event::EventKind::BytePatched",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "3e4a4f654f2f1b4332f2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bdbacaa9ff9736b5c8fd4416254bf59511563f752ec57f5755969da9fcc8c2d7",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.bytePatched",
+          "declaration": "case bytePatched"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5360b6a23417d6b7d065",
+      "cpp_name": "ida::event::EventKind::CodeCreated",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "d15c5c0756ca13d4a114"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d693a14da3ee07de0664c200985b2780d039926da2cc3254ad21d6bdd3b33e39",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.codeCreated",
+          "declaration": "case codeCreated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b6ae4fe4bc42333dc4c",
+      "cpp_name": "ida::event::EventKind::CommentChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "2dd6708717879f7d21bc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "86e5de23c4e5f7e20a1971d0a5468517eaddcf061b8655bf1e232bbc2c82c3a7",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.commentChanged",
+          "declaration": "case commentChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f5aad3831e9eb634f399",
+      "cpp_name": "ida::event::EventKind::DataCreated",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "cdfc5572c228bbe6d239"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "31dd55ca0041e29b567851c00956d6ddbb27ca3f04fc773d341abce3dc36e626",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.dataCreated",
+          "declaration": "case dataCreated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "59663bcaae15172492f0",
+      "cpp_name": "ida::event::EventKind::ExtraCommentChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "35e99ab24ca8a0c23cb6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "520d9f82d4990229bfd9ccc231255751d417e2f83fe4eed62982567358aa8b29",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.extraCommentChanged",
+          "declaration": "case extraCommentChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2597a2e73853d221ffa3",
+      "cpp_name": "ida::event::EventKind::FunctionAdded",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "7ed24e4bf43b981af74c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "64b81636598f79ba64fee5ef00ed4b024a2429fae91de7f38838e7f018c74860",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.functionAdded",
+          "declaration": "case functionAdded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6b5ca114086329534a33",
+      "cpp_name": "ida::event::EventKind::FunctionDeleted",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "5c45578e03d1d177464f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "523a2ff5a915e777ca2f40ce007ab7f2931a05d959be6e0555ae928197f2214d",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.functionDeleted",
+          "declaration": "case functionDeleted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc160880487ea286310d",
+      "cpp_name": "ida::event::EventKind::FunctionUpdated",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "4f25e1ebc4e0397be450"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "438ef7b0e1ded9caae165ad02e4f3c44590f102e9e793f13792d8fbfae11270e",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.functionUpdated",
+          "declaration": "case functionUpdated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef61d89dd419872956e1",
+      "cpp_name": "ida::event::EventKind::ItemTypeChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "65aa673bcbbbd0ce5387"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5dadfd19a91fcd3054f35c32cae57206a975c938fbba5e65b0a1d6a4dee86cdc",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.itemTypeChanged",
+          "declaration": "case itemTypeChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bbaec8e8629c47a61a7b",
+      "cpp_name": "ida::event::EventKind::ItemsDestroyed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "3347f5505c047432b9ad"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "93a269eb9eb96c404c95aa1a996fa37bfac5e40214c7951aa01ba018ea1bc4c9",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.itemsDestroyed",
+          "declaration": "case itemsDestroyed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7770184dd77e84998e6e",
+      "cpp_name": "ida::event::EventKind::LocalTypesChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "a73784527a468f01363f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b2b2f6858a87d4cecce1f990040e7fbca30e2168777542976d0fe4256ca3c195",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.localTypesChanged",
+          "declaration": "case localTypesChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e26a3dda7b2f89f0a930",
+      "cpp_name": "ida::event::EventKind::OperandTypeChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "cd878ed9858b4dad0aa8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fed187e2d2993a3339a833b99eaa05f89038834ab0858afb6972fa53363303fe",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.operandTypeChanged",
+          "declaration": "case operandTypeChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c4c5306782549077a39",
+      "cpp_name": "ida::event::EventKind::Renamed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "ff827937e74d345a3896"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7fe75ff8d42584337547ce611c31f28e9c823eecb83e19f65ba9b04c7d3f4d84",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.renamed",
+          "declaration": "case renamed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e282657b461766e9b23",
+      "cpp_name": "ida::event::EventKind::SegmentAdded",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "cedc840747abbbbbe2f2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5729ad66fce2df652f179a46f9d052383a599b65c7507ba23f331eb8e27fac0f",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.segmentAdded",
+          "declaration": "case segmentAdded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "298fb1128b72323609c8",
+      "cpp_name": "ida::event::EventKind::SegmentDeleted",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "f9b13a095bef1c0b8f67"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "55a3cfca5633db6278ff86d622d4f112e608d20a993cb2e5b43298a4c4888329",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.segmentDeleted",
+          "declaration": "case segmentDeleted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e79586b9a305a1fa8fbc",
+      "cpp_name": "ida::event::EventKind::SegmentMoved",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::EventKind",
+      "mapping": "direct",
+      "swift": [
+        "24fa2c17af10122f1a07"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4abceb3cb51d2deef2792af8011d70075abce07b2f36362b6a62bc75aff26144",
+      "swift_targets": [
+        {
+          "path": "Event.Kind.segmentMoved",
+          "declaration": "case segmentMoved"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b63c35092d16ff74e6a1",
+      "cpp_name": "ida::event::ExtraCommentChangedEvent",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Typed event payload is represented by the owned generic Change snapshot selected by its event kind; all canonical payload members are preserved.",
+      "cpp_fingerprint": "b63c35092d16ff74e6a140263456714bf897fcc9b65c4baecb90989d422eacfd",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6bf2fde186f80dc77b1f",
+      "cpp_name": "ida::event::ExtraCommentChangedEvent::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "2877f4c3ef634de3e80a"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "8e02b335b7c6c85554edc0a30eca6737d1a34b8a2e56b3edd00233eb6681cc64",
+      "swift_targets": [
+        {
+          "path": "Event.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "412467f2ea4af5c68020",
+      "cpp_name": "ida::event::ExtraCommentChangedEvent::line_index",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "adapted",
+      "swift": [
+        "619e3688ceffde8936f0"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "9db5e2fedefe3a7505e5a5ceb3a6ef9483af6d60e511fa5ec98efa981db400f1",
+      "swift_targets": [
+        {
+          "path": "Event.Change.lineIndex",
+          "declaration": "let lineIndex: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fdb7a75032515413a554",
+      "cpp_name": "ida::event::ExtraCommentChangedEvent::placement",
+      "cpp_kind": "field",
+      "cpp_signature": "ExtraCommentPlacement",
+      "mapping": "adapted",
+      "swift": [
+        "01bbbd122a72734f0f4f"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "f54c82b9ff2468fb2b9706036cb030649bb5fc73987ce7bd99137b46a5f227a9",
+      "swift_targets": [
+        {
+          "path": "Event.Change.extraCommentPlacement",
+          "declaration": "let extraCommentPlacement: Event.ExtraCommentPlacement"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b71e6b1ab516b4ba892f",
+      "cpp_name": "ida::event::ExtraCommentChangedEvent::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "45f77d3791739ebfe89b"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "7ca0909253162e4bc898e7ea4732b3547d9f9d2662d5fc5c1ae702b8d1fafe29",
+      "swift_targets": [
+        {
+          "path": "Event.Change.text",
+          "declaration": "let text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67db39b2ae9bbea4ebbe",
+      "cpp_name": "ida::event::ExtraCommentPlacement",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ExtraCommentPlacement { Unknown = 0, Anterior = 1, Posterior = 2, }",
+      "mapping": "direct",
+      "swift": [
+        "3f16069f8c7c4b35fd12"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6c89aaf7524dbd6a5cd69b054669c2b01b01beeeba3bea8550ff0963403ccb32",
+      "swift_targets": [
+        {
+          "path": "Event.ExtraCommentPlacement",
+          "declaration": "enum ExtraCommentPlacement"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9039e517536c8f1656e4",
+      "cpp_name": "ida::event::ExtraCommentPlacement::Anterior",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::ExtraCommentPlacement",
+      "mapping": "direct",
+      "swift": [
+        "400f6ae434c9edea0cf0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d3197bfc28e94a9eb1612ccbf9a141d00fb35802ce218b38f3de1863d8456737",
+      "swift_targets": [
+        {
+          "path": "Event.ExtraCommentPlacement.anterior",
+          "declaration": "case anterior"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a71eaf2a90b58262e0dd",
+      "cpp_name": "ida::event::ExtraCommentPlacement::Posterior",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::ExtraCommentPlacement",
+      "mapping": "direct",
+      "swift": [
+        "d8abde6521051e3f26e9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "54e17985641ea30191027802636cf3f0d47c684accf9c8649e480937f6e0c922",
+      "swift_targets": [
+        {
+          "path": "Event.ExtraCommentPlacement.posterior",
+          "declaration": "case posterior"
+        }
+      ]
+    },
+    {
+      "cpp_id": "59b7f24e1e7f023e67a6",
+      "cpp_name": "ida::event::ExtraCommentPlacement::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::ExtraCommentPlacement",
+      "mapping": "direct",
+      "swift": [
+        "63b090c608317a6605d2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8cd87e6bed98201417504674147cfa1ed1c4dc770f2dce301bb94c627a1f93b3",
+      "swift_targets": [
+        {
+          "path": "Event.ExtraCommentPlacement.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14e5d4a2f63f9968b9f1",
+      "cpp_name": "ida::event::ItemCreatedEvent",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Typed event payload is represented by the owned generic Change snapshot selected by its event kind; all canonical payload members are preserved.",
+      "cpp_fingerprint": "14e5d4a2f63f9968b9f18feb06f2cb8a4b7971fe740caf9cd89c3d6110db7d5c",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f4315694e0e835d257fa",
+      "cpp_name": "ida::event::ItemCreatedEvent::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "2877f4c3ef634de3e80a"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "70c8100b1399f6bfd3db3e2993416fe98ade3ef513da1a96b171d3173c4b8f85",
+      "swift_targets": [
+        {
+          "path": "Event.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b337784b0da51fa0e1d0",
+      "cpp_name": "ida::event::ItemCreatedEvent::size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "adapted",
+      "swift": [
+        "2899719adae1c6a31871"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "0a0f17f132dc9c30ae9192ee5ece21e9e89276a68cf062cb5c4cf475239f5422",
+      "swift_targets": [
+        {
+          "path": "Event.Change.size",
+          "declaration": "let size: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "733ac7e0b9485c58ff12",
+      "cpp_name": "ida::event::ItemsDestroyedEvent",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Typed event payload is represented by the owned generic Change snapshot selected by its event kind; all canonical payload members are preserved.",
+      "cpp_fingerprint": "733ac7e0b9485c58ff128a8dbb6899bc3bc02c9853e8681227dba85a5c53a922",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "017f047a312267fad0e9",
+      "cpp_name": "ida::event::ItemsDestroyedEvent::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "693456dca034e15887fe"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "6e7f7ff399274ff4f4bc3b36cd91c2ed4049bc6d8bc367d6f139ec718eb76f8f",
+      "swift_targets": [
+        {
+          "path": "Event.Change.secondaryAddress",
+          "declaration": "let secondaryAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5e22884bf860d75a63d",
+      "cpp_name": "ida::event::ItemsDestroyedEvent::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "2877f4c3ef634de3e80a"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "ec04ac674bcdef25e6a9190bd3b303aaf95e8e835f8be8ba2ebb601d76b0553a",
+      "swift_targets": [
+        {
+          "path": "Event.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3415aba8b4cc4be5c357",
+      "cpp_name": "ida::event::ItemsDestroyedEvent::will_disable_range",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "4b9a5a4df7737c30b87a"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "79e1a3c66b0b5932963efd64363f2dc083e435b2d5a13ad139905097a42726e0",
+      "swift_targets": [
+        {
+          "path": "Event.Change.willDisableRange",
+          "declaration": "let willDisableRange: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "28c81ad494054c6c1955",
+      "cpp_name": "ida::event::LocalTypeChangeKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class LocalTypeChangeKind { None = 0, Added = 1, Deleted = 2, Edited = 3, Aliased = 4, CompilerChanged = 5, LibraryLoaded = 6, LibraryUnloaded = 7, OrdinalsCompacted = 8, }",
+      "mapping": "direct",
+      "swift": [
+        "3e434c896ede99ae7e43"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "53f0250e07b89168462a3f4ff64db028254a5b31b73dd4c0bd87a7c3f0da6b12",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange",
+          "declaration": "enum LocalTypeChange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea94ab402d9acdc2daa4",
+      "cpp_name": "ida::event::LocalTypeChangeKind::Added",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "16cff4e2eaebe2fe8614"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8120c47a90b40d9c014fa140c8898ec64745483890843aedbbcd388b4b469121",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.added",
+          "declaration": "case added"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ba6d94e80f5a99d0f3a8",
+      "cpp_name": "ida::event::LocalTypeChangeKind::Aliased",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "28ff0af13fb7131c1712"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9d7c48058912d707690a42b38e9597be103737f746dfecaad465ca82131cea54",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.aliased",
+          "declaration": "case aliased"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7d0340be5ce1785a915",
+      "cpp_name": "ida::event::LocalTypeChangeKind::CompilerChanged",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "8a924ceee605ba41f7d5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f5c0999a6449a9f9abe24deb90b56cf79c18bcf4ad9885f1db10d04c9d2416cc",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.compilerChanged",
+          "declaration": "case compilerChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d7dab8a34cb1086e579",
+      "cpp_name": "ida::event::LocalTypeChangeKind::Deleted",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "35074fbd71849d901fb7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7eb4d1c3b7da36bd9b483dad353fc3e98500f3e902e4bd1ca89e0a657919506e",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.deleted",
+          "declaration": "case deleted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "906323f2cfd10e28b803",
+      "cpp_name": "ida::event::LocalTypeChangeKind::Edited",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "93d8c9a5b385f38a9457"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "454f82dc3f5d21350e27f0ccaee1dce4007116e21edb02d273656a552ba2eeb7",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.edited",
+          "declaration": "case edited"
+        }
+      ]
+    },
+    {
+      "cpp_id": "760e2e482ab3712e3e15",
+      "cpp_name": "ida::event::LocalTypeChangeKind::LibraryLoaded",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "b75a67d114ac4d5f8ab9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9dddf7df5c2bfe8a64332a5ed7373b159b165434d163035ba2f01676d720f0b9",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.libraryLoaded",
+          "declaration": "case libraryLoaded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "46fc10b3299b0d63e2f3",
+      "cpp_name": "ida::event::LocalTypeChangeKind::LibraryUnloaded",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "efd317044733eb114773"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8c3255ee3432ffe5784d98012f4ddcefad509c7911a4e65695805a410fa5b40b",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.libraryUnloaded",
+          "declaration": "case libraryUnloaded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "905076d4cfce98e7900a",
+      "cpp_name": "ida::event::LocalTypeChangeKind::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "5fdcadd1fe5da414508a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c5fe4995bc718cc5bb7546f4a92846ad4c3573d09c1fc158a6ac1c1316ebfe4f",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.none",
+          "declaration": "case none"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8368b5023b6540486268",
+      "cpp_name": "ida::event::LocalTypeChangeKind::OrdinalsCompacted",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::event::LocalTypeChangeKind",
+      "mapping": "direct",
+      "swift": [
+        "12935391c1990921662d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f57b6ae210c5bd047ff24a6b44bf5ae26595e6dac7b0d9b1b0a4cb31aeffe5d3",
+      "swift_targets": [
+        {
+          "path": "Event.LocalTypeChange.ordinalsCompacted",
+          "declaration": "case ordinalsCompacted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7655837753a6918c1ac2",
+      "cpp_name": "ida::event::LocalTypesChangedEvent",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Typed event payload is represented by the owned generic Change snapshot selected by its event kind; all canonical payload members are preserved.",
+      "cpp_fingerprint": "7655837753a6918c1ac238054a1fbb394b3c23c78b9e824f747a7d8d414e4e05",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7ff6d3ac57e244f0f956",
+      "cpp_name": "ida::event::LocalTypesChangedEvent::change",
+      "cpp_kind": "field",
+      "cpp_signature": "LocalTypeChangeKind",
+      "mapping": "adapted",
+      "swift": [
+        "4bc9c7a4a73d789d1a42"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "949332905796df8908c20313e18922267a11bf9746ac248b546bf039390cb438",
+      "swift_targets": [
+        {
+          "path": "Event.Change.localTypeChange",
+          "declaration": "let localTypeChange: Event.LocalTypeChange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ba22dd151cd3240f050d",
+      "cpp_name": "ida::event::LocalTypesChangedEvent::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "e83bf5d12cca9404bcd4"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "b6a70b6309852bee07c5422a3216d43406db6010e1c0b5fe893ff8c27cf6c23f",
+      "swift_targets": [
+        {
+          "path": "Event.Change.typeName",
+          "declaration": "let typeName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5f501d3e5b86f2590657",
+      "cpp_name": "ida::event::LocalTypesChangedEvent::ordinal",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "adapted",
+      "swift": [
+        "0e16e83e985bb17c0d2d"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "98c7d329ea397668f5a78ceef773a3f781f187c562857daf1f230ea070d0c174",
+      "swift_targets": [
+        {
+          "path": "Event.Change.typeOrdinal",
+          "declaration": "let typeOrdinal: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a00d7ff59827cb743f22",
+      "cpp_name": "ida::event::ScopedSubscription",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "7c83872f0cf543720c3c"
+      ],
+      "rationale": "The move-only native guard is a Swift reference owner with ARC lifetime; native identity is kept private.",
+      "cpp_fingerprint": "a00d7ff59827cb743f22d678c97d5f58f2cfc82f54489bb4f5cb4b2cdafe96be",
+      "swift_targets": [
+        {
+          "path": "Registration",
+          "declaration": "final class Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7978abef0ffff120ccdb",
+      "cpp_name": "ida::event::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "7b945f5434cbe52c81c675a8540ab9b89bb98eaa37daa37b858cfc9dc847d710",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4daa88009dddabf1280a",
+      "cpp_name": "ida::event::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (ScopedSubscription &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "d3becdcdc907a9328cbc0ed8ad5e706d4bb36d030a0f3ecb1af499ff4dafe416",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f18932197567790211f5",
+      "cpp_name": "ida::event::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Token)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "c9a7acbd6f2129812bd33bfc1748b1ac9088d1d0d99cb1b3b342b8f6afcdb01d",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "988c4bab9a5429a81b8b",
+      "cpp_name": "ida::event::ScopedSubscription::ScopedSubscription",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const ScopedSubscription &)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "3e6ddef1fc8dc8f5e5f9caaa6040e5258e02cf65f3d84cdfc1738561aff74e71",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "451463373a734262788c",
+      "cpp_name": "ida::event::ScopedSubscription::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedSubscription &(ScopedSubscription &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "51547073e24d6bb65fecebc3c6269db7850712d5639de3cf074a0756980abd26",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d2704dd983b7e7a63440",
+      "cpp_name": "ida::event::ScopedSubscription::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedSubscription &(const ScopedSubscription &)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "8177b18c6bbfc0505dafbbe7e973c38ef3a6ffd6943d2b2c8e933b3efbe65cff",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3efa47d8cb591e4247c8",
+      "cpp_name": "ida::event::ScopedSubscription::token",
+      "cpp_kind": "method",
+      "cpp_signature": "Token () const noexcept",
+      "mapping": "private_bridge",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "bcfbc641732200e7aeba200118fd3695e2a6f8453c4a838827119dfb1c77a401",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "292395031129493f8711",
+      "cpp_name": "ida::event::ScopedSubscription::~ScopedSubscription",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Native token construction, ownership transfer, and destruction are represented by the retained Swift registration returned by the factory; ARC and explicit close release exactly that native registration. No raw token or copying of native ownership is exposed.",
+      "cpp_fingerprint": "0275ed79741c92b8d154bc8b2dba965592ffa71895ac0b78ee1c749c5aeec826",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f5f9928e2856ade2c3f4",
+      "cpp_name": "ida::event::SegmentMovedEvent",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "d538fca0d6a1512aac67"
+      ],
+      "rationale": "Typed event payload is represented by the owned generic Change snapshot selected by its event kind; all canonical payload members are preserved.",
+      "cpp_fingerprint": "f5f9928e2856ade2c3f492d4c590762603e611147987ea6a89ef50d6f78e5e75",
+      "swift_targets": [
+        {
+          "path": "Event.Change",
+          "declaration": "struct Change"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b25c220e62d967d8c989",
+      "cpp_name": "ida::event::SegmentMovedEvent::address_mapping_changed",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "08f768e09f592f6b2f75"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "fe0d9b123b0a69e4c210ac3fcc213d07ffa4b964962db495a50c257648f9d548",
+      "swift_targets": [
+        {
+          "path": "Event.Change.addressMappingChanged",
+          "declaration": "let addressMappingChanged: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8772ad35c3b6ddade0c7",
+      "cpp_name": "ida::event::SegmentMovedEvent::from",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "2877f4c3ef634de3e80a"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "d5c9e5e2d437491d7e1e682395bdec88a6f25b984b8dcb90e3dd032521b0b561",
+      "swift_targets": [
+        {
+          "path": "Event.Change.address",
+          "declaration": "let address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e39ac08d81d414dfabe7",
+      "cpp_name": "ida::event::SegmentMovedEvent::size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "adapted",
+      "swift": [
+        "2899719adae1c6a31871"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "2c477bbcd971bf75d1fed26bb18d54bcdd68dc8a12b3d854752fe7c9e9c108e6",
+      "swift_targets": [
+        {
+          "path": "Event.Change.size",
+          "declaration": "let size: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "80abe23dae1050f10f41",
+      "cpp_name": "ida::event::SegmentMovedEvent::to",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "693456dca034e15887fe"
+      ],
+      "rationale": "Copied member of the kind-selected Change snapshot; payload meaning matches the typed native event.",
+      "cpp_fingerprint": "80bd927972155ab22c68719d6992abcd725b456381da23e9755c399581cf5a7b",
+      "swift_targets": [
+        {
+          "path": "Event.Change.secondaryAddress",
+          "declaration": "let secondaryAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff5c955af3a22f03693f",
+      "cpp_name": "ida::event::Token",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "private_bridge",
+      "swift": [
+        "7c83872f0cf543720c3c"
+      ],
+      "rationale": "A native subscription token is kept inside the returned Swift registration owner; callers use close instead of manufacturing token integers.",
+      "cpp_fingerprint": "1cdce7773ea7489470bb11a9a323df2bc35994780c147f7ae6c5274afcd6354b",
+      "swift_targets": [
+        {
+          "path": "Registration",
+          "declaration": "final class Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1fe62ca88dc1897aa10",
+      "cpp_name": "ida::event::on_byte_patched",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address, std::uint32_t)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "3e4a4f654f2f1b4332f2"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "5140b851d3c7c9db13d2b6f4f44554b86b04ee39dfbb11a97ea90930baaee83e",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.bytePatched",
+          "declaration": "case bytePatched"
+        }
+      ]
+    },
+    {
+      "cpp_id": "921e0d8bd37f25f2ded4",
+      "cpp_name": "ida::event::on_code_created",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ItemCreatedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "d15c5c0756ca13d4a114"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "faa263402cd12eef322b7dfcd1face0a8c6c9ea6eb2d060b5e859095ce4c6c5e",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.codeCreated",
+          "declaration": "case codeCreated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "603592115390b9883677",
+      "cpp_name": "ida::event::on_comment_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address, bool)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "2dd6708717879f7d21bc"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "d07ce99d4d1c723c78c237241d6eae1bf90e1fead1e1c2675c7738d5fa72cec4",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.commentChanged",
+          "declaration": "case commentChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f1bac04db3c854a98e99",
+      "cpp_name": "ida::event::on_data_created",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ItemCreatedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "cdfc5572c228bbe6d239"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "5be3f4d46d862e8d2f41085e0d8788f9ecf4e9f0e913d4f44e595e7b7740f952",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.dataCreated",
+          "declaration": "case dataCreated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3eb2f9b7c0330387136a",
+      "cpp_name": "ida::event::on_event",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const Event &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "687ebeecf0fb672f0add38b792e5d54735eb81650516fef33af8374db899aaa5",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "01f0a6ca3fb0747d2b2d",
+      "cpp_name": "ida::event::on_event_filtered",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<bool (const Event &)>, std::function<void (const Event &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "69c4adbfc7218a86b0730e2369fcdda6a260a5f167e99c68370d5710a4184e63",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60fe82a63dfcf8e8d840",
+      "cpp_name": "ida::event::on_extra_comment_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ExtraCommentChangedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "35e99ab24ca8a0c23cb6"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "6231bb155881fe233078370ba68844f31fcc133360afc87380aa18a87db7a2fd",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.extraCommentChanged",
+          "declaration": "case extraCommentChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a8a13f91664e9a3ba23e",
+      "cpp_name": "ida::event::on_function_added",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "7ed24e4bf43b981af74c"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "4c0c4f3cb185176a055a2d5ce7b081fc13d2d52915ee3120fd903995491cb04f",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.functionAdded",
+          "declaration": "case functionAdded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7513c522eafe51f02562",
+      "cpp_name": "ida::event::on_function_deleted",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "5c45578e03d1d177464f"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "27134fd473e4d54a1e0905c1f163d2b3e14a4898e8f1112de3cfd22d980da55e",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.functionDeleted",
+          "declaration": "case functionDeleted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "47b79c5c2860d12e336e",
+      "cpp_name": "ida::event::on_function_updated",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "4f25e1ebc4e0397be450"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "fcbc340d75394c3d6742feb484b792e1967835a39f0ccfaee51efa36b9ae3b4e",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.functionUpdated",
+          "declaration": "case functionUpdated"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9b50d1ef8e12e1f24b29",
+      "cpp_name": "ida::event::on_item_type_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "65aa673bcbbbd0ce5387"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "ac39b9e94bfd606af4c46d0c22b55869eb735fdb9b15bb6f4e582f36265dea15",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.itemTypeChanged",
+          "declaration": "case itemTypeChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b0146637f2b4de3ae76",
+      "cpp_name": "ida::event::on_items_destroyed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const ItemsDestroyedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "3347f5505c047432b9ad"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "f218d995f7bae398c046dd93d279d883edf84ea45936a0735e4d804f0c99e87b",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.itemsDestroyed",
+          "declaration": "case itemsDestroyed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "27dabf8ca3e7592ef9ca",
+      "cpp_name": "ida::event::on_local_types_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const LocalTypesChangedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "a73784527a468f01363f"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "07909be94b6536e2c66c789e24e9dc24b978567893201fc0d5062bb6a267c78a",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.localTypesChanged",
+          "declaration": "case localTypesChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "362a0ded7eacca8795db",
+      "cpp_name": "ida::event::on_operand_type_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address, int)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "cd878ed9858b4dad0aa8"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "af4577888d062b62e934b71d1b37fc01c3c517413f5f66e57e59ec83e1d10d85",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.operandTypeChanged",
+          "declaration": "case operandTypeChanged"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8831b0aaf281c35793f2",
+      "cpp_name": "ida::event::on_renamed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address, std::string, std::string)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "ff827937e74d345a3896"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "4c4e3931db5e410cda3129986c8814846b5f0f6f61bd6089be289a52a1e4084b",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.renamed",
+          "declaration": "case renamed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e6581bacdbda36130d46",
+      "cpp_name": "ida::event::on_segment_added",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "cedc840747abbbbbe2f2"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "55b79dee34cea165e84caa84fac28d56bfc6291c9cd41dc233a2f1e8446e4e78",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.segmentAdded",
+          "declaration": "case segmentAdded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c59a1ac96d3dc932da90",
+      "cpp_name": "ida::event::on_segment_deleted",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (Address, Address)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "f9b13a095bef1c0b8f67"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "905c5aaacf9f49e9067b3e745f26baed1deb0e49c76ce6d1599b2fb3930160b4",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.segmentDeleted",
+          "declaration": "case segmentDeleted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1e95d1f9ded6b95d9ddf",
+      "cpp_name": "ida::event::on_segment_moved",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Token> (std::function<void (const SegmentMovedEvent &)>)",
+      "mapping": "adapted",
+      "swift": [
+        "9421cbf32b1e417fa905",
+        "24fa2c17af10122f1a07"
+      ],
+      "rationale": "The subscribe(to:filter:handler:) router selects this exact event kind; its copied Change carries all native callback arguments. The optional predicate supplies canonical filtered subscription behavior, and the returned owner controls unsubscription.",
+      "cpp_fingerprint": "bb75689b4ea0b68e98c76b054eaf890a463df977f04e9468dcb23c43e14826ad",
+      "swift_targets": [
+        {
+          "path": "Event.subscribe(to:filter:handler:)",
+          "declaration": "static func subscribe(to kind: Event.Kind? = nil, filter: ((Event.Change) throws(IDAError) -> Bool)? = nil, handler: @escaping (Event.Change) throws(IDAError) -> Void) throws(IDAError) -> Registration"
+        },
+        {
+          "path": "Event.Kind.segmentMoved",
+          "declaration": "case segmentMoved"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d1838abe576131f6d76",
+      "cpp_name": "ida::event::unsubscribe",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Token)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Unsubscription is an idempotent operation on the registration that owns the native token.",
+      "cpp_fingerprint": "5aa499ca350c11cc0ec62e408f3444587b312e24d05a17fd5f9cbaecbc5e52b7",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

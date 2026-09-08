@@ -1,0 +1,635 @@
+{
+  "domain": "search",
+  "declarations": [
+    {
+      "cpp_id": "d421cf6c89171ac8b2ab",
+      "cpp_name": "ida::search::BinaryPatternOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "27afd98757f1ba4b3168"
+      ],
+      "rationale": "Search.BinaryPatternOptions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "d421cf6c89171ac8b2ab558227c87546961fa73f7cc4214c5d4a6110b078834d",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions",
+          "declaration": "struct BinaryPatternOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b900456b5984fd90a054",
+      "cpp_name": "ida::search::BinaryPatternOptions::break_on_cancel",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8270ce4be5d65ab34ae6"
+      ],
+      "rationale": "Preserves the declared bool value in Search.BinaryPatternOptions.breakOnCancel, including its semantic type and signedness.",
+      "cpp_fingerprint": "56f76f64728eae9f111106d9de0f93ef649ae4502367b88bc3c9358af6736ac2",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions.breakOnCancel",
+          "declaration": "var breakOnCancel: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9590e5a31eed99239b77",
+      "cpp_name": "ida::search::BinaryPatternOptions::direction",
+      "cpp_kind": "field",
+      "cpp_signature": "Direction",
+      "mapping": "direct",
+      "swift": [
+        "f097f506a17a108f3b1e"
+      ],
+      "rationale": "Preserves the declared Direction value in Search.BinaryPatternOptions.direction, including its semantic type and signedness.",
+      "cpp_fingerprint": "099feda910e7e19f58999e5fa467b373c341a5bf9149619155446161f9d6d00b",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions.direction",
+          "declaration": "var direction: Search.Direction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dad033901a45821a421d",
+      "cpp_name": "ida::search::BinaryPatternOptions::no_break",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "86818f37b11d70bdb884"
+      ],
+      "rationale": "Preserves the declared bool value in Search.BinaryPatternOptions.noBreak, including its semantic type and signedness.",
+      "cpp_fingerprint": "561744a8aa144ded376d01bfbf0df09df24ea573626ea409fa5d93fed09ba268",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions.noBreak",
+          "declaration": "var noBreak: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c934fea3071b272abee",
+      "cpp_name": "ida::search::BinaryPatternOptions::no_show",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "785658117569c4927c6f"
+      ],
+      "rationale": "Preserves the declared bool value in Search.BinaryPatternOptions.noShow, including its semantic type and signedness.",
+      "cpp_fingerprint": "7bbb208f746826d6819fa86651a17180de00b956a1aa0d52aac7cc990c95caec",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions.noShow",
+          "declaration": "var noShow: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a578b816fd585c890964",
+      "cpp_name": "ida::search::BinaryPatternOptions::skip_start",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1f1848e3cbc01e65c05e"
+      ],
+      "rationale": "Preserves the declared bool value in Search.BinaryPatternOptions.skipStart, including its semantic type and signedness.",
+      "cpp_fingerprint": "cb9630f14d6040e2f2b871f9c911e6486e374a1d2e6c49fc3c74a7c54e3ad93a",
+      "swift_targets": [
+        {
+          "path": "Search.BinaryPatternOptions.skipStart",
+          "declaration": "var skipStart: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9a0bf9febaf149c378df",
+      "cpp_name": "ida::search::Direction",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Direction { Forward, Backward, }",
+      "mapping": "direct",
+      "swift": [
+        "1ef2796b6068ce3ce4fe"
+      ],
+      "rationale": "Search.Direction represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "b26b6d5122af4606f0b7b974c072fa493ffd9eb68679d1cb365f66244e4fe7cb",
+      "swift_targets": [
+        {
+          "path": "Search.Direction",
+          "declaration": "enum Direction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ec81765f9fb5b0dd01f",
+      "cpp_name": "ida::search::Direction::Backward",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::search::Direction",
+      "mapping": "direct",
+      "swift": [
+        "0ee6cf0095c4c6b0655b"
+      ],
+      "rationale": "Corresponding typed semantic case Search.Direction.backward; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "69dfedf4e27c90c7b6dd30be761139e27afd3a005b621635ed808a8a23d45804",
+      "swift_targets": [
+        {
+          "path": "Search.Direction.backward",
+          "declaration": "case backward"
+        }
+      ]
+    },
+    {
+      "cpp_id": "20b2fb14672db0fd455e",
+      "cpp_name": "ida::search::Direction::Forward",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::search::Direction",
+      "mapping": "direct",
+      "swift": [
+        "0ccb2c9dfb95e52e0018"
+      ],
+      "rationale": "Corresponding typed semantic case Search.Direction.forward; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7f72c4234fb1212110363ffb955d7f201749577ac55b97fa995fde61e5f8e325",
+      "swift_targets": [
+        {
+          "path": "Search.Direction.forward",
+          "declaration": "case forward"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e28259b2d0a82c3b9aee",
+      "cpp_name": "ida::search::ImmediateOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2686a026f056fa5bfb5e"
+      ],
+      "rationale": "Search.ImmediateOptions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "e28259b2d0a82c3b9aee01807cdc3c6d40e452a362d55957dbb63b9c8d0f726a",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions",
+          "declaration": "struct ImmediateOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e74502bf3b366cddb060",
+      "cpp_name": "ida::search::ImmediateOptions::break_on_cancel",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "55ecd8cdad3c7dff49c6"
+      ],
+      "rationale": "Preserves the declared bool value in Search.ImmediateOptions.breakOnCancel, including its semantic type and signedness.",
+      "cpp_fingerprint": "4d6e3b1d0bd2cca07b1946d21b90fbf13624fe43b8b03a60df6636cd350164cc",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions.breakOnCancel",
+          "declaration": "var breakOnCancel: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "61a20c13341659339b10",
+      "cpp_name": "ida::search::ImmediateOptions::direction",
+      "cpp_kind": "field",
+      "cpp_signature": "Direction",
+      "mapping": "direct",
+      "swift": [
+        "72f14b8f2326544e6a28"
+      ],
+      "rationale": "Preserves the declared Direction value in Search.ImmediateOptions.direction, including its semantic type and signedness.",
+      "cpp_fingerprint": "b7b64566443fca2ca5f9c16c0685ecd8953d4c08be27b8ab4d476a8ad43f5c06",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions.direction",
+          "declaration": "var direction: Search.Direction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6ada47d8d3489bb304ea",
+      "cpp_name": "ida::search::ImmediateOptions::no_break",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "30b4d5401f2f9ee30137"
+      ],
+      "rationale": "Preserves the declared bool value in Search.ImmediateOptions.noBreak, including its semantic type and signedness.",
+      "cpp_fingerprint": "b784ac2308ad4fd7a401c530f00acd6cea2ad05bfb675ee6b0729363547dafba",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions.noBreak",
+          "declaration": "var noBreak: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c723af2ca48f7082d640",
+      "cpp_name": "ida::search::ImmediateOptions::no_show",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "69712b3370ad370b1b42"
+      ],
+      "rationale": "Preserves the declared bool value in Search.ImmediateOptions.noShow, including its semantic type and signedness.",
+      "cpp_fingerprint": "5710e28847b02e2c863ec691d4502a7e1263869d3785044a8b1a4411d7e20afa",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions.noShow",
+          "declaration": "var noShow: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5cae52fec1c35fc9e9b7",
+      "cpp_name": "ida::search::ImmediateOptions::skip_start",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ae84ff24bca3ca847fea"
+      ],
+      "rationale": "Preserves the declared bool value in Search.ImmediateOptions.skipStart, including its semantic type and signedness.",
+      "cpp_fingerprint": "f622d59d9092b93cac98c2f2dfc7a857116daca8e0e8cb02cbfe5d45dd51ae81",
+      "swift_targets": [
+        {
+          "path": "Search.ImmediateOptions.skipStart",
+          "declaration": "var skipStart: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "93a4c34a8b8461c221f2",
+      "cpp_name": "ida::search::TextOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "c0dbffaf1b23ffb2e74c"
+      ],
+      "rationale": "Search.TextOptions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "93a4c34a8b8461c221f2a727b0322634c8ac554e1aac45a9bf2192cb06561ea5",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions",
+          "declaration": "struct TextOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bab707c9195061cb1c98",
+      "cpp_name": "ida::search::TextOptions::break_on_cancel",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "73dee1a812dba98b6299"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.breakOnCancel, including its semantic type and signedness.",
+      "cpp_fingerprint": "c2bc959d09b5cf895faeac85e0dd5d62e0e727ddc0509ba952a492db5f9df605",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.breakOnCancel",
+          "declaration": "var breakOnCancel: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "130e0ed3e578fc635970",
+      "cpp_name": "ida::search::TextOptions::case_sensitive",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e008554cebec450e5ba8"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.caseSensitive, including its semantic type and signedness.",
+      "cpp_fingerprint": "88bf6fd3affb38e067173d95f455ae179b3c0b55ba2d45778b6de7a0db95ca9b",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.caseSensitive",
+          "declaration": "var caseSensitive: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fdb8a0fed3bb8f356c2",
+      "cpp_name": "ida::search::TextOptions::direction",
+      "cpp_kind": "field",
+      "cpp_signature": "Direction",
+      "mapping": "direct",
+      "swift": [
+        "046939173b8d75d02f94"
+      ],
+      "rationale": "Preserves the declared Direction value in Search.TextOptions.direction, including its semantic type and signedness.",
+      "cpp_fingerprint": "120cbba5e49ae08e0223694f35655925e6776ffa6585b8e06cd59c25273d629f",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.direction",
+          "declaration": "var direction: Search.Direction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "574fdcac81252f02cb71",
+      "cpp_name": "ida::search::TextOptions::identifier",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "2bada2f2e557605c104f"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.identifier, including its semantic type and signedness.",
+      "cpp_fingerprint": "53c429e8e86f215f00b0a124b8d8429ea57d6eb41fba12da3bfb1978fe2f67a4",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.identifier",
+          "declaration": "var identifier: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4cef1636dd6dfb0d93fc",
+      "cpp_name": "ida::search::TextOptions::no_break",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "2c2fcd839bcbfb08a921"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.noBreak, including its semantic type and signedness.",
+      "cpp_fingerprint": "964fe9f817ab6a3d2f4c572dca1d0aa1c7499df58fbb94bca8486d09dc1a8c1f",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.noBreak",
+          "declaration": "var noBreak: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c3e1256c7644ab0b5bd7",
+      "cpp_name": "ida::search::TextOptions::no_show",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "6fd166e67f619e3a4e3a"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.noShow, including its semantic type and signedness.",
+      "cpp_fingerprint": "3c8194ef56ac765ba2128c4e8513bbda0d6586ef6ccc4cd4740cc25b1dbf1ee9",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.noShow",
+          "declaration": "var noShow: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d130318b10c52f849b8",
+      "cpp_name": "ida::search::TextOptions::regex",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "a437ed8e8209c264df4d"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.regex, including its semantic type and signedness.",
+      "cpp_fingerprint": "669a709eab19600d959507fa378896f9fa30e3c8b938f781492311345ddb1743",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.regex",
+          "declaration": "var regex: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "20f1c904d625849d70c3",
+      "cpp_name": "ida::search::TextOptions::skip_start",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "56134886a2e2ec71b641"
+      ],
+      "rationale": "Preserves the declared bool value in Search.TextOptions.skipStart, including its semantic type and signedness.",
+      "cpp_fingerprint": "36e3a6b04216551a7f25c1644af043e26565ebe355f48dd7ebef5d359b7c2ea6",
+      "swift_targets": [
+        {
+          "path": "Search.TextOptions.skipStart",
+          "declaration": "var skipStart: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38672902624c41e3aafc",
+      "cpp_name": "ida::search::binary_pattern",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::string_view, Address, Direction)",
+      "mapping": "private_bridge",
+      "swift": [
+        "c2a155f130fd3a7a996e"
+      ],
+      "rationale": "Preserves the direction overload and its forward default.",
+      "cpp_fingerprint": "296d9d3c20aaf5673c14307770d787ace7ac5ebcd9d32a204b1fd8a8cc06b5f1",
+      "swift_targets": [
+        {
+          "path": "Search.binaryPattern(_:start:direction:)",
+          "declaration": "static func binaryPattern(_ pattern: String, start: Address, direction: Search.Direction = .forward) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "37acf0d41d007dadf6c5",
+      "cpp_name": "ida::search::binary_pattern",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::string_view, Address, const BinaryPatternOptions &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "f4a537791d5964977a6e"
+      ],
+      "rationale": "Preserves this options-record overload and every option field.",
+      "cpp_fingerprint": "7c96fe399a450ce95a8d79118ee7251c3641030fcbc9d206e43cd6cdc7041747",
+      "swift_targets": [
+        {
+          "path": "Search.binaryPattern(_:start:options:)",
+          "declaration": "static func binaryPattern(_ pattern: String, start: Address, options: Search.BinaryPatternOptions) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5c5172b0860e475da58",
+      "cpp_name": "ida::search::immediate",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::uint64_t, Address, Direction)",
+      "mapping": "private_bridge",
+      "swift": [
+        "d5a501163d01fa91a8c7"
+      ],
+      "rationale": "Preserves the direction overload and its forward default.",
+      "cpp_fingerprint": "fd4561e451dd40eae19958a1b80f099c200372493a509ec70c2742379c7fd0c0",
+      "swift_targets": [
+        {
+          "path": "Search.immediate(_:start:direction:)",
+          "declaration": "static func immediate(_ value: UInt64, start: Address, direction: Search.Direction = .forward) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "859945bcd08af7ad9ce1",
+      "cpp_name": "ida::search::immediate",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::uint64_t, Address, const ImmediateOptions &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "cce980a6475aa58ba8e6"
+      ],
+      "rationale": "Preserves this options-record overload and every option field.",
+      "cpp_fingerprint": "f858e4ec35941e58b5da0bd21e2c484c41c7a7518afa571e867ac89d0c0c3602",
+      "swift_targets": [
+        {
+          "path": "Search.immediate(_:start:options:)",
+          "declaration": "static func immediate(_ value: UInt64, start: Address, options: Search.ImmediateOptions) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5112f47a9e656f71424e",
+      "cpp_name": "ida::search::next_code",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "e7848f3002d014782c63"
+      ],
+      "rationale": "Search.nextCode(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "13ed9e73d78651c9dcf8ea8f554f5e88e03c6dc55a570699b3a242a6c7c1d783",
+      "swift_targets": [
+        {
+          "path": "Search.nextCode(address:)",
+          "declaration": "static func nextCode(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "69f5e0d4ffe8a64b9c7d",
+      "cpp_name": "ida::search::next_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "728dbe87a38f354d835c"
+      ],
+      "rationale": "Search.nextData(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0727715618fe6aa62d1faf3702d0f4327ba7eb3544bd60cc48e633c6773e1bb6",
+      "swift_targets": [
+        {
+          "path": "Search.nextData(address:)",
+          "declaration": "static func nextData(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81f81a4f271572f89574",
+      "cpp_name": "ida::search::next_defined",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "e8f419fbd21df5c3eca8"
+      ],
+      "rationale": "Search.nextDefined(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d843997f896ce80d3f4b73cab9cc9ea4ecdbd04c2f042f38d20ad3f1e20da91c",
+      "swift_targets": [
+        {
+          "path": "Search.nextDefined(address:)",
+          "declaration": "static func nextDefined(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0dc1a5626c4898bacbcb",
+      "cpp_name": "ida::search::next_error",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "0bb15892b94fc22045dd"
+      ],
+      "rationale": "Search.nextError(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b47b71cd0db2978c9c33a1c4cb6341852c2cacd5c7c42f3ebfbdbdec827da4eb",
+      "swift_targets": [
+        {
+          "path": "Search.nextError(address:)",
+          "declaration": "static func nextError(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d694380e23492ed45a2f",
+      "cpp_name": "ida::search::next_unknown",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "504434d1ec2e4d59b50d"
+      ],
+      "rationale": "Search.nextUnknown(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a8f0926ffe49c65c08a64a0d31a6aaec1be25189be321e7ee34a21e3b13f7db6",
+      "swift_targets": [
+        {
+          "path": "Search.nextUnknown(address:)",
+          "declaration": "static func nextUnknown(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e7d8edd1ea7da3996ac7",
+      "cpp_name": "ida::search::text",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::string_view, Address, Direction, bool)",
+      "mapping": "private_bridge",
+      "swift": [
+        "c075d7189a8506b5ce9c"
+      ],
+      "rationale": "Preserves the direction overload and its forward default plus caseSensitive=true.",
+      "cpp_fingerprint": "a4999ef9f2ed8b3e7a0798537f83d49fd8d019dc237a8e47a325bb49b3629fc3",
+      "swift_targets": [
+        {
+          "path": "Search.text(_:start:direction:caseSensitive:)",
+          "declaration": "static func text(_ query: String, start: Address, direction: Search.Direction = .forward, caseSensitive: Bool = true) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "069a7c1ceced5379ddd7",
+      "cpp_name": "ida::search::text",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (std::string_view, Address, const TextOptions &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "8cfa580890baf29118bc"
+      ],
+      "rationale": "Preserves this options-record overload and every option field.",
+      "cpp_fingerprint": "1078af76685c71fa979d898e4e23af67672bd78bfe41dd9775e23f3d5cd356fd",
+      "swift_targets": [
+        {
+          "path": "Search.text(_:start:options:)",
+          "declaration": "static func text(_ query: String, start: Address, options: Search.TextOptions) throws(IDAError) -> Address"
+        }
+      ]
+    }
+  ]
+}

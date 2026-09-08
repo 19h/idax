@@ -43,6 +43,8 @@ ida::database::save();
 ida::database::close();
 ```
 
+[Swift bindings](bindings/swift/README.md) provide a SwiftPM package, checked native owners, typed errors, and executable plugin, loader, and processor examples.
+
 ---
 
 ## Why idax exists

@@ -1,0 +1,1548 @@
+{
+  "domain": "plugin",
+  "declarations": [
+    {
+      "cpp_id": "79024753af77b27242ed",
+      "cpp_name": "IDAX_PLUGIN",
+      "cpp_kind": "macro",
+      "cpp_signature": "IDAX_PLUGIN(ClassName)",
+      "cpp_fingerprint": "b94ec792d16fc9ee89995e289d197a763d619279683d562f9546bff9ec112266",
+      "mapping": "adapted",
+      "swift": [
+        "a925d2253ae5089c2b1c",
+        "332b5c813c2748aff0a8",
+        "d3908effeb3ef2df2203"
+      ],
+      "rationale": "A C bootstrap calls exportModule with a retained PluginModule. The build-module helper emits the canonical IDAX_PLUGIN_WITH_FLAGS export using the full semantic ExportFlags value; default flags reproduce IDAX_PLUGIN. Native PLUGIN_MULTI lifecycle and both default/custom flags are exercised through real SDK load_plugin/run_plugin dispatch.",
+      "swift_targets": [
+        {
+          "path": "Plugin.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any PluginModule) throws(IDAError)"
+        },
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        },
+        {
+          "path": "PluginModule.exportFlags",
+          "declaration": "var exportFlags: Plugin.ExportFlags { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "168ff727021071989f29",
+      "cpp_name": "IDAX_PLUGIN_WITH_FLAGS",
+      "cpp_kind": "macro",
+      "cpp_signature": "IDAX_PLUGIN_WITH_FLAGS(ClassName, ...)",
+      "cpp_fingerprint": "5a575691a3152601ed68c8cc050513a3a5406a9835db40e8c797b4773b11b6ee",
+      "mapping": "adapted",
+      "swift": [
+        "a925d2253ae5089c2b1c",
+        "332b5c813c2748aff0a8",
+        "d3908effeb3ef2df2203"
+      ],
+      "rationale": "A C bootstrap calls exportModule with a retained PluginModule. The build-module helper emits the canonical IDAX_PLUGIN_WITH_FLAGS export using the full semantic ExportFlags value; default flags reproduce IDAX_PLUGIN. Native PLUGIN_MULTI lifecycle and both default/custom flags are exercised through real SDK load_plugin/run_plugin dispatch.",
+      "swift_targets": [
+        {
+          "path": "Plugin.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any PluginModule) throws(IDAError)"
+        },
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        },
+        {
+          "path": "PluginModule.exportFlags",
+          "declaration": "var exportFlags: Plugin.ExportFlags { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ead010f871d8badfbf22",
+      "cpp_name": "ida::plugin::Action",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "b7bb7fd40fd779113119"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ead010f871d8badfbf22b4e726d43dca680f9b5555b786171fde4638d0aaa4df",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action",
+          "declaration": "struct Action"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2694435d8a7054dafd38",
+      "cpp_name": "ida::plugin::Action::enabled",
+      "cpp_kind": "field",
+      "cpp_signature": "std::function<bool ()>",
+      "mapping": "adapted",
+      "swift": [
+        "325bfac7668c2df1f937"
+      ],
+      "rationale": "One context-aware throwing closure represents both native variants. A context-free handler ignores its argument; all copied context fields and checked callback borrows remain available.",
+      "cpp_fingerprint": "c2853d98f66c4040043c1030c6ac8d370c421f61b16febb5dda8e0e64544d6b9",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.isEnabled",
+          "declaration": "var isEnabled: (Plugin.ActionContext) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29752d78642720d7a383",
+      "cpp_name": "ida::plugin::Action::enabled_with_context",
+      "cpp_kind": "field",
+      "cpp_signature": "std::function<bool (const ActionContext &)>",
+      "mapping": "adapted",
+      "swift": [
+        "325bfac7668c2df1f937"
+      ],
+      "rationale": "One context-aware throwing closure represents both native variants. A context-free handler ignores its argument; all copied context fields and checked callback borrows remain available.",
+      "cpp_fingerprint": "b4a6b8b38849897adc90c99fadde08079a9192a9e709248efe65d900c1e053f3",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.isEnabled",
+          "declaration": "var isEnabled: (Plugin.ActionContext) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "80a1108729cdf2a54a4e",
+      "cpp_name": "ida::plugin::Action::handler",
+      "cpp_kind": "field",
+      "cpp_signature": "std::function<Status ()>",
+      "mapping": "adapted",
+      "swift": [
+        "70054f2b8b6a6f40b756"
+      ],
+      "rationale": "One context-aware throwing closure represents both native variants. A context-free handler ignores its argument; all copied context fields and checked callback borrows remain available.",
+      "cpp_fingerprint": "3cb39be6f234c9b3df3372a23145d663ef3f4dff7a43d9cfa24516cb76240cd3",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.handler",
+          "declaration": "var handler: (Plugin.ActionContext) throws(IDAError) -> Void"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41460ea2e61b6a1e8e56",
+      "cpp_name": "ida::plugin::Action::handler_with_context",
+      "cpp_kind": "field",
+      "cpp_signature": "std::function<Status (const ActionContext &)>",
+      "mapping": "adapted",
+      "swift": [
+        "70054f2b8b6a6f40b756"
+      ],
+      "rationale": "One context-aware throwing closure represents both native variants. A context-free handler ignores its argument; all copied context fields and checked callback borrows remain available.",
+      "cpp_fingerprint": "53e2910342fa49b49e4d8c958c3c5e89ee02763b9ce2e4c6365f9bea969506a6",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.handler",
+          "declaration": "var handler: (Plugin.ActionContext) throws(IDAError) -> Void"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7137f335aa7d180b808f",
+      "cpp_name": "ida::plugin::Action::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "50e077c82ee611a98c0e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3edc64a442044d2cb685b35f0506e5ac251000cb882c5a1a62cd314c6e021745",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.shortcut",
+          "declaration": "var shortcut: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7469a17d69864257ed6c",
+      "cpp_name": "ida::plugin::Action::icon",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "d22ded7e9709ba19da3e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "38832404ce8ebbb56e943efe3f3a518d399ae07a809eb2dc29e0bf282b9426df",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.icon",
+          "declaration": "var icon: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b5353492830a4595b913",
+      "cpp_name": "ida::plugin::Action::id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "072aa8c9eba0d10b3882"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f047f811ed1bc4985d237e4bb1d21ebb4f63968c083086e8467cff2e547f33d3",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.identifier",
+          "declaration": "var identifier: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1aad83aaf0213a5d120d",
+      "cpp_name": "ida::plugin::Action::label",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "0d99db88cafac0cc2346"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "36eba8cf9db079e04a8bf5b8c0f807f1366c3d1c9f85c12351649f79879b0c8c",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.label",
+          "declaration": "var label: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72381bcd0686263b6fa2",
+      "cpp_name": "ida::plugin::Action::tooltip",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "947e64835a146ce4e70d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2b06c3c6a2b5099f82d7244f3568d1394052b24fe5e540378c08d2812bd014c0",
+      "swift_targets": [
+        {
+          "path": "Plugin.Action.tooltip",
+          "declaration": "var tooltip: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d33f8db5e8fed29416b",
+      "cpp_name": "ida::plugin::ActionContext",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "0ba604aa6d41e98a9162"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7d33f8db5e8fed29416b841809baf16e701ba7cfc7358883610a20a5363867d1",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext",
+          "declaration": "struct ActionContext"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9967f67bafb7ada6959f",
+      "cpp_name": "ida::plugin::ActionContext::action_id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "51095ca15ad4fdbe819e"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "ea51234c47124351e6057043b2cdec004f0a6ee64b02096c4cbdaf35890e83ee",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.identifier",
+          "declaration": "let identifier: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54b5dd03f5f709385dd2",
+      "cpp_name": "ida::plugin::ActionContext::current_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "e6b66c3e4ca32dddf3e8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "59329034d9285b75597af4767690bea0d0fb67ec58a3108749ea3ea57f40eab3",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.currentAddress",
+          "declaration": "let currentAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d36e846831476d32db1",
+      "cpp_name": "ida::plugin::ActionContext::current_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "e4afcdb1bbe2e32091a3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "01c93e0c7d84cc507f6b4a6f801389ba3f8f53a8c75968f45119a2124733b551",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.currentValue",
+          "declaration": "let currentValue: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "de7ce341ae2ed0cc570b",
+      "cpp_name": "ida::plugin::ActionContext::decompiler_view_handle",
+      "cpp_kind": "field",
+      "cpp_signature": "void *",
+      "mapping": "adapted",
+      "swift": [
+        "1b69bcddd4ce057484f8"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "5fc85834b9e859d04c2f35845ab79209faf7e13a82de9264b192a066c1d5af0d",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.decompilerView()",
+          "declaration": "func decompilerView() throws(IDAError) -> Decompiler.View"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c746b56c5f53a01045f5",
+      "cpp_name": "ida::plugin::ActionContext::focused_widget_handle",
+      "cpp_kind": "field",
+      "cpp_signature": "void *",
+      "mapping": "adapted",
+      "swift": [
+        "571eb35bec9e74943c56"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "0ceafaa57e14023f3564020c06d6ac47d767d577a473dc035214985e1aafcdac",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.focusedWidget()",
+          "declaration": "func focusedWidget() throws(IDAError) -> UI.Widget?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e13690bb6a88597e108c",
+      "cpp_name": "ida::plugin::ActionContext::has_selection",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c58c41c49e570bf74a6e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "67d924f85ca0b8646ad13f893ad2fd422a851db55ebeb129c2a9a0f57472ce5f",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.hasSelection",
+          "declaration": "let hasSelection: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d41e736c8b8c5926a400",
+      "cpp_name": "ida::plugin::ActionContext::is_external_address",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "6a5b219d69c0265c22f9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3affad3958706763e043a885609653aed92d11772ae909db0b2240ab7fbc59c6",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.isExternalAddress",
+          "declaration": "let isExternalAddress: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "963a97f8a721455fdbf7",
+      "cpp_name": "ida::plugin::ActionContext::register_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "7349f5374fea79f26de9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b2edf3c758dd6e2b92c27fbc47f9c63f01f8bd831536d8a108222b006ce0b674",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.registerName",
+          "declaration": "let registerName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3da2c960c3019c758d63",
+      "cpp_name": "ida::plugin::ActionContext::type_ref",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<TypeRef>",
+      "mapping": "adapted",
+      "swift": [
+        "887624c578e0917a9f5f"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "d37bb21fa2ae5b39cef66df0dd3fcf9eff2973a78b44cae899c74ee39bfbc1f6",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.typeReference()",
+          "declaration": "func typeReference() throws(IDAError) -> Plugin.TypeReference?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e0912bbe18c37b5ca36",
+      "cpp_name": "ida::plugin::ActionContext::widget_handle",
+      "cpp_kind": "field",
+      "cpp_signature": "void *",
+      "mapping": "adapted",
+      "swift": [
+        "be1660d0149ee889e8a6"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "4b295af567a531a2ad7f691be47a5c76019ff0e6e7043df2e160c78e28efb0ca",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widget()",
+          "declaration": "func widget() throws(IDAError) -> UI.Widget?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b3ba3979ad41cfa3a6a",
+      "cpp_name": "ida::plugin::ActionContext::widget_title",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "95a8137533d631680ceb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "34934dab1ec8e7044f872c5d03feac32f665a64b6892291eed35260d542ea878",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widgetTitle",
+          "declaration": "let widgetTitle: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aefcccaadddbc1b7f231",
+      "cpp_name": "ida::plugin::ActionContext::widget_type",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "9b03bb147fd8bc7d3ab6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "25d480c7e72b3ea069f7c978c5887f22ccb76739f17bd818772712339d05b108",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widgetType",
+          "declaration": "let widgetType: UI.WidgetType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0f11302312c4ef5acfc2",
+      "cpp_name": "ida::plugin::ActionContextHostCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<Status (void *)>",
+      "mapping": "private_bridge",
+      "swift": [
+        "be1660d0149ee889e8a6",
+        "1b69bcddd4ce057484f8"
+      ],
+      "rationale": "Raw-host callback access is replaced by checked typed widget and decompiler-view borrows, with no SDK pointer in the public surface.",
+      "cpp_fingerprint": "880d05e3df4ba62880fbdbadaf7d9ebcd3d541a1c9cb00c726393db7b8af4bc0",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widget()",
+          "declaration": "func widget() throws(IDAError) -> UI.Widget?"
+        },
+        {
+          "path": "Plugin.ActionContext.decompilerView()",
+          "declaration": "func decompilerView() throws(IDAError) -> Decompiler.View"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d618a8bd15f223f18583",
+      "cpp_name": "ida::plugin::ExportFlags",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "eccc86f45236e7db4103"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d618a8bd15f223f185835f0754c030865d6a804ebb94184f863302205c4c3444",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags",
+          "declaration": "struct ExportFlags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "df9c81f8c9e505fe5021",
+      "cpp_name": "ida::plugin::ExportFlags::debugger_only",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e9bd62f51e064aeff94a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1ec08d328c82a20cb8378a913f60c6e6008efd81b925c7d15cdcb6b8fd5104dc",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.debuggerOnly",
+          "declaration": "var debuggerOnly: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5034af642efe58491a2f",
+      "cpp_name": "ida::plugin::ExportFlags::extra_raw_flags",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "ddef1ad49071caa40e80"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "260998b444d9f8658611cd5aff9b49f834f264361b4c53857dc7ef554e113899",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.extraRawFlags",
+          "declaration": "var extraRawFlags: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "186b644f87b95bd91324",
+      "cpp_name": "ida::plugin::ExportFlags::hidden",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "da5ae09c6a9d733269ec"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c10265a7b3e5b98e0158c102c71b077573ee64bd00ed933fade348deae0a2009",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.hidden",
+          "declaration": "var hidden: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a88e20da850115013db",
+      "cpp_name": "ida::plugin::ExportFlags::load_at_startup",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "574358101992a444b0f0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "524a0c96cb96fbf515314bffcc0d489d3a2df7dcea378755982ca32a9d7b5c33",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.loadAtStartup",
+          "declaration": "var loadAtStartup: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ebddbb85c2da6039d1f9",
+      "cpp_name": "ida::plugin::ExportFlags::modifies_database",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "96d33b64c7f439934a70"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8eb1e31d0c1c05a9e291c5ed24324419b856c67d038a48edcd7506cc5f54bf78",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.modifiesDatabase",
+          "declaration": "var modifiesDatabase: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "055b2001f393dbaa57a7",
+      "cpp_name": "ida::plugin::ExportFlags::processor_specific",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "d7f565b515baed5403f2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "56a00c7411f160e678372c400c043617e00bce6465294ae3e2f38ca9b9d26c65",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.processorSpecific",
+          "declaration": "var processorSpecific: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f8a1d7ec7c75672ac172",
+      "cpp_name": "ida::plugin::ExportFlags::requests_redraw",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8b6dfe4820f745e06457"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e0d8dceed4cc57b8cfea62b36214028438b8d6c885bb891b4159ff7e3217578b",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.requestsRedraw",
+          "declaration": "var requestsRedraw: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "57f27c47dbd3f5902f61",
+      "cpp_name": "ida::plugin::ExportFlags::segment_scoped",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1644213c74334be670f8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "383d4dfc56dafb20026f355de523ea3484629e1deec82316f4a3b31e3843b219",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.segmentScoped",
+          "declaration": "var segmentScoped: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b31cfbe392f809629b95",
+      "cpp_name": "ida::plugin::ExportFlags::unload_after_run",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8227d471d5d232eb9c51"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "034b982c1f53e18c289527791e36b70626f0d18ce3a755a7283d9af1fe574ce8",
+      "swift_targets": [
+        {
+          "path": "Plugin.ExportFlags.unloadAfterRun",
+          "declaration": "var unloadAfterRun: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "577a7e9f86d80b05a6ae",
+      "cpp_name": "ida::plugin::HotkeyCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<Status ()>",
+      "mapping": "adapted",
+      "swift": [
+        "f9a700672d78b8d50d7c"
+      ],
+      "rationale": "The throwing closure returns Void on success and a typed IDAError on failure; registration owns its captured context until close or ARC release.",
+      "cpp_fingerprint": "0d3096af123154e1d229edeb637d2362bc6ec33bb6d213273a59c6141f418388",
+      "swift_targets": [
+        {
+          "path": "Plugin.registerShortcut(_:handler:)",
+          "declaration": "static func registerShortcut(_ shortcut: String, handler: @escaping () throws(IDAError) -> Void) throws(IDAError) -> Plugin.Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3c51574e297237f779ff",
+      "cpp_name": "ida::plugin::Info",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "13fdd0cdee462ad2d3bd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3c51574e297237f779ff92bbc624f6b9de89a5209921becf98b1c60ce5a0ae67",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information",
+          "declaration": "struct Information"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b921bed667f7bfa68c6",
+      "cpp_name": "ida::plugin::Info::comment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "7f0ae36040002999f144"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6fcc79ce4c00f3375ea516f56a93b1a67b7e9787df3cf26e07f9c86e8c7193da",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information.comment",
+          "declaration": "var comment: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d467d8b6ee7d52c2b04d",
+      "cpp_name": "ida::plugin::Info::help",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "04b04b23cbd95660f046"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "25c3debf1f104af1a74ee082350bb9aabc33aef910e4b78d33b86888401657ed",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information.help",
+          "declaration": "var help: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c101001c9d086227806",
+      "cpp_name": "ida::plugin::Info::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "528a13538b444c097b77"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e183d8f09f095085d28cd879ec97040c135c31e079ccd685a9a212eb9856dde6",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information.shortcut",
+          "declaration": "var shortcut: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "956a072c65c6f809187e",
+      "cpp_name": "ida::plugin::Info::icon",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "1b3198a55c2f7aea1cae"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0005a138431a4de9a44ba33ef30eb978918413af816a90b2fcdc8fd7a5ea599d",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information.icon",
+          "declaration": "var icon: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fb6eba3b46327012dc69",
+      "cpp_name": "ida::plugin::Info::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "10ca04aa5b33c2636da6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "399e40230a6d273a57500ea002625c368bd5d58be6a716fa183c9c5bab5777bf",
+      "swift_targets": [
+        {
+          "path": "Plugin.Information.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "522bf6e76ad3ec6e345f",
+      "cpp_name": "ida::plugin::Plugin",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "332b5c813c2748aff0a8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "522bf6e76ad3ec6e345fbc4b4d88aa42ac0584c6db4caeea7f26cd8899f3f7d2",
+      "swift_targets": [
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f72160a972f2508c9843",
+      "cpp_name": "ida::plugin::Plugin::info",
+      "cpp_kind": "method",
+      "cpp_signature": "Info () const",
+      "mapping": "direct",
+      "swift": [
+        "14cbe4888d065e103dcf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ab6b2fe7611fea8d43bd5ccd6882b4619c3dcc9b087427f07d905239812d1a3a",
+      "swift_targets": [
+        {
+          "path": "PluginModule.information",
+          "declaration": "var information: Plugin.Information { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d373baf0fa08f164294",
+      "cpp_name": "ida::plugin::Plugin::init",
+      "cpp_kind": "method",
+      "cpp_signature": "bool ()",
+      "mapping": "direct",
+      "swift": [
+        "df0d78543feef4d0b80b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ede7d040c6159bc11552f380b7a468fc10ac95e3cf3d39b6173dea7382799ab8",
+      "swift_targets": [
+        {
+          "path": "PluginModule.initialize()",
+          "declaration": "func initialize() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eac78f767c150bf62483",
+      "cpp_name": "ida::plugin::Plugin::run",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "4928a55002fb47c3f5c5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f82f6f27bd45190aad369aabb1dfd94ecbd77f85e811fe7e770f7b86856411ea",
+      "swift_targets": [
+        {
+          "path": "PluginModule.run(argument:)",
+          "declaration": "func run(argument: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e384017008c55656a7f0",
+      "cpp_name": "ida::plugin::Plugin::term",
+      "cpp_kind": "method",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "8f0d1325956a7106de5f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "68145073d2bfd61b36ca4438d32c51a4eca87a6fcf510b69de4f3d946c3698ab",
+      "swift_targets": [
+        {
+          "path": "PluginModule.terminate()",
+          "declaration": "func terminate()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9aec223ff447d3406344",
+      "cpp_name": "ida::plugin::Plugin::~Plugin",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "a925d2253ae5089c2b1c",
+        "332b5c813c2748aff0a8",
+        "d3908effeb3ef2df2203"
+      ],
+      "rationale": "A C bootstrap calls exportModule with a retained PluginModule. The build-module helper emits the canonical IDAX_PLUGIN_WITH_FLAGS export using the full semantic ExportFlags value; default flags reproduce IDAX_PLUGIN. Native PLUGIN_MULTI lifecycle and both default/custom flags are exercised through real SDK load_plugin/run_plugin dispatch.",
+      "cpp_fingerprint": "226b04ba32bc2e786a5d343853551411d22e94d87d3322cf1e282651743b28ea",
+      "swift_targets": [
+        {
+          "path": "Plugin.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any PluginModule) throws(IDAError)"
+        },
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        },
+        {
+          "path": "PluginModule.exportFlags",
+          "declaration": "var exportFlags: Plugin.ExportFlags { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92f4e6a50b02d7b56298",
+      "cpp_name": "ida::plugin::PluginFactory",
+      "cpp_kind": "alias",
+      "cpp_signature": "Plugin *(*)()",
+      "mapping": "adapted",
+      "swift": [
+        "a925d2253ae5089c2b1c",
+        "332b5c813c2748aff0a8",
+        "d3908effeb3ef2df2203"
+      ],
+      "rationale": "A C bootstrap calls exportModule with a retained PluginModule. The build-module helper emits the canonical IDAX_PLUGIN_WITH_FLAGS export using the full semantic ExportFlags value; default flags reproduce IDAX_PLUGIN. Native PLUGIN_MULTI lifecycle and both default/custom flags are exercised through real SDK load_plugin/run_plugin dispatch.",
+      "cpp_fingerprint": "4ff1be333e6016dabfc6433319ab75bc7e8d9ad82b610db9c4312c458ccfbeca",
+      "swift_targets": [
+        {
+          "path": "Plugin.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any PluginModule) throws(IDAError)"
+        },
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        },
+        {
+          "path": "PluginModule.exportFlags",
+          "declaration": "var exportFlags: Plugin.ExportFlags { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "afb1c2b3c49f25378295",
+      "cpp_name": "ida::plugin::ScopedHotkey",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "634b25161fee86fe8ffe"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "afb1c2b3c49f25378295b826edf3af60f4d64153f0aeef1fdfaa0c1b97f4c5cd",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut",
+          "declaration": "final class Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14433e07a89a8b3821da",
+      "cpp_name": "ida::plugin::ScopedHotkey::ScopedHotkey",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "f9a700672d78b8d50d7c"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "3b6c27b000e43ceb3a56843a11c5c2bed04502ed61512ddae48724fc5e16c761",
+      "swift_targets": [
+        {
+          "path": "Plugin.registerShortcut(_:handler:)",
+          "declaration": "static func registerShortcut(_ shortcut: String, handler: @escaping () throws(IDAError) -> Void) throws(IDAError) -> Plugin.Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0e529da883c2614576a0",
+      "cpp_name": "ida::plugin::ScopedHotkey::ScopedHotkey",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (ScopedHotkey &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "f9a700672d78b8d50d7c"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "d8fd9140feb4b374cce0793fd52ef4264d6531e49dbed101c787fee5a7686b7a",
+      "swift_targets": [
+        {
+          "path": "Plugin.registerShortcut(_:handler:)",
+          "declaration": "static func registerShortcut(_ shortcut: String, handler: @escaping () throws(IDAError) -> Void) throws(IDAError) -> Plugin.Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff88080cbde2b335b76e",
+      "cpp_name": "ida::plugin::ScopedHotkey::ScopedHotkey",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const ScopedHotkey &)",
+      "mapping": "adapted",
+      "swift": [
+        "f9a700672d78b8d50d7c"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "b14e9b5e8a3f5dbbd071405e7cb991d1da1289d07c75ac4e6d6d1db55930c006",
+      "swift_targets": [
+        {
+          "path": "Plugin.registerShortcut(_:handler:)",
+          "declaration": "static func registerShortcut(_ shortcut: String, handler: @escaping () throws(IDAError) -> Void) throws(IDAError) -> Plugin.Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81e430031e0ed12fb560",
+      "cpp_name": "ida::plugin::ScopedHotkey::activate",
+      "cpp_kind": "method",
+      "cpp_signature": "Status () const",
+      "mapping": "direct",
+      "swift": [
+        "93c4e9b42fdf9a73e59b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f01f4f60158d2c79f070e919f45daf74f2ae9a5d78849a4d498e68cad198f274",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.activate()",
+          "declaration": "func activate() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9415f957cc954530ecd",
+      "cpp_name": "ida::plugin::ScopedHotkey::active",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "618460288f107e850a0b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1e80094e41e86db229d75569ee2ebba1d3cd4bab69c7e585c29252e4da728bdd",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.isActive",
+          "declaration": "var isActive: Bool { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65385f366a69ef10ecac",
+      "cpp_name": "ida::plugin::ScopedHotkey::hotkey",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string_view () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "7871d1b4168a6822ebda"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "80e6f3a2b7111070c1ab7d4111be506d005a7e26051977e99ed2471003520117",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.shortcut",
+          "declaration": "var shortcut: String { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "036130385ac2e29fa0cb",
+      "cpp_name": "ida::plugin::ScopedHotkey::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedHotkey &(ScopedHotkey &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "c7b52523659dab3b3f85"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "2798346b91afe6ed8f77fd10d40773cbd6e04d23d70f43b96cae8d4068d57099",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "118197249dad30bf2c10",
+      "cpp_name": "ida::plugin::ScopedHotkey::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "ScopedHotkey &(const ScopedHotkey &)",
+      "mapping": "adapted",
+      "swift": [
+        "c7b52523659dab3b3f85"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "e3eff373a208c388ad5a87c19f6482a19a3765715e81766a963c10a773992381",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d31cccef75a54b6637dd",
+      "cpp_name": "ida::plugin::ScopedHotkey::release",
+      "cpp_kind": "method",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "c7b52523659dab3b3f85"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e92b8f6ddf930d7c98cc7f0c43e0718b7f54e88131ba915d08a73d8593f8659a",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd3118b106e43b8199e9",
+      "cpp_name": "ida::plugin::ScopedHotkey::~ScopedHotkey",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "c7b52523659dab3b3f85"
+      ],
+      "rationale": "A Swift reference owner replaces native move-only hotkey ownership; registration creates an active owner, ARC or explicit close unregisters it, and ownership is never duplicated.",
+      "cpp_fingerprint": "5d347205d6ca6bad05410c68406bb83755c4dd7a7c5489dc091f8ee4a8c14640",
+      "swift_targets": [
+        {
+          "path": "Plugin.Shortcut.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79c32dca84e7a9aaa974",
+      "cpp_name": "ida::plugin::TypeRef",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "89bf1133a687baacb120"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "79c32dca84e7a9aaa9745d1efc847d4507d52537437cd61e6374c213068b533b",
+      "swift_targets": [
+        {
+          "path": "Plugin.TypeReference",
+          "declaration": "struct TypeReference"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea447ccce629f999cef0",
+      "cpp_name": "ida::plugin::TypeRef::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "c397b77fe59ed88723d9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3a730808b3bcc5a1a202c34a8f210b3d6ca3adb48a95e5c5de35aebe09266c65",
+      "swift_targets": [
+        {
+          "path": "Plugin.TypeReference.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4d290eb52ff3647d06af",
+      "cpp_name": "ida::plugin::TypeRef::type",
+      "cpp_kind": "field",
+      "cpp_signature": "ida::type::TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "4f4297915ab9665ea1ca"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e01cf191074b1718b7134474b29caa094052f6d4bd615d57e91ffe5a248fb118",
+      "swift_targets": [
+        {
+          "path": "Plugin.TypeReference.type",
+          "declaration": "var type: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dacbeef9f0f20374096d",
+      "cpp_name": "ida::plugin::activate_action",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "a8eab793439f6d5403da"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b86ee0b76aa34127d6917986ec8ab15948775223db84de19a81821720a3b1c0f",
+      "swift_targets": [
+        {
+          "path": "Plugin.activateAction(_:)",
+          "declaration": "static func activateAction(_ identifier: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "255d7dd9eeb46ce29996",
+      "cpp_name": "ida::plugin::attach_to_menu",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "e89142501a5439585b87",
+        "cf657ea780a0a36ee6df"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "60d91d101b68b35b9daa59eafcb441192b496a6f51a7fc59199a6d9dc7d93aca",
+      "swift_targets": [
+        {
+          "path": "Plugin.attach(_:to:)",
+          "declaration": "static func attach(_ identifier: String, to attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.menu(_:)",
+          "declaration": "case menu(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0382bcf41dc8da4eedb0",
+      "cpp_name": "ida::plugin::attach_to_popup",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "e89142501a5439585b87",
+        "0726c98beffe27bf1987"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "c4bd8e9058285fcac5cac6308ab3d76c27b1a9bb6712ae0631ed85ef3de98dc3",
+      "swift_targets": [
+        {
+          "path": "Plugin.attach(_:to:)",
+          "declaration": "static func attach(_ identifier: String, to attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.popup(_:)",
+          "declaration": "case popup(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ab3454f281cc652b8438",
+      "cpp_name": "ida::plugin::attach_to_toolbar",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "e89142501a5439585b87",
+        "75ffefda482bd870c51c"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "62a65792a891140b8bb4c9a380a33a5e161e2f7ce68c84f8ef6b7982cfaca8e7",
+      "swift_targets": [
+        {
+          "path": "Plugin.attach(_:to:)",
+          "declaration": "static func attach(_ identifier: String, to attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.toolbar(_:)",
+          "declaration": "case toolbar(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44544cd436694d5a6afb",
+      "cpp_name": "ida::plugin::decompiler_view_host",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<void *> (const ActionContext &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "1b69bcddd4ce057484f8"
+      ],
+      "rationale": "The raw vdui_t pointer remains private. A checked callback lease creates the canonical typed Decompiler.View owner, keeping decompiler and database lifetimes valid.",
+      "cpp_fingerprint": "40c5702a098ce9c070779eb978387d8c34bdb1efd0515f523dfaeeb1c9c724da",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.decompilerView()",
+          "declaration": "func decompilerView() throws(IDAError) -> Decompiler.View"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21faf8f3baa0fda0ba11",
+      "cpp_name": "ida::plugin::detach_from_menu",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "2a0505e48c5951ecc770",
+        "cf657ea780a0a36ee6df"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "5483f242982699f37c017b9440db9fc40e4b1bc6feead2782d8fa2fc01c1d7d0",
+      "swift_targets": [
+        {
+          "path": "Plugin.detach(_:from:)",
+          "declaration": "static func detach(_ identifier: String, from attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.menu(_:)",
+          "declaration": "case menu(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c0e7ed57656102a2221e",
+      "cpp_name": "ida::plugin::detach_from_popup",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "2a0505e48c5951ecc770",
+        "0726c98beffe27bf1987"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "b7edf188595437efa42d48e63105cd67ef9bf22b37022d480b34e9831091ea90",
+      "swift_targets": [
+        {
+          "path": "Plugin.detach(_:from:)",
+          "declaration": "static func detach(_ identifier: String, from attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.popup(_:)",
+          "declaration": "case popup(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "13e2a71e9d3699f9a5a0",
+      "cpp_name": "ida::plugin::detach_from_toolbar",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "2a0505e48c5951ecc770",
+        "75ffefda482bd870c51c"
+      ],
+      "rationale": "A typed Attachment case selects the exact canonical target kind while preserving both action identifier and attachment path.",
+      "cpp_fingerprint": "f945b6c7057a9a68a1623d3059c7a7f936d52cc11b64c1eb47ae0333e9423640",
+      "swift_targets": [
+        {
+          "path": "Plugin.detach(_:from:)",
+          "declaration": "static func detach(_ identifier: String, from attachment: Plugin.Attachment) throws(IDAError)"
+        },
+        {
+          "path": "Plugin.Attachment.toolbar(_:)",
+          "declaration": "case toolbar(String)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "925261fa8f49c6951798",
+      "cpp_name": "ida::plugin::detail::make_plugin_export",
+      "cpp_kind": "function",
+      "cpp_signature": "void *(PluginFactory, const char *, const char *, const char *, const char *, ExportFlags)",
+      "mapping": "private_bridge",
+      "swift": [
+        "a925d2253ae5089c2b1c",
+        "332b5c813c2748aff0a8",
+        "d3908effeb3ef2df2203"
+      ],
+      "rationale": "A C bootstrap calls exportModule with a retained PluginModule. The build-module helper emits the canonical IDAX_PLUGIN_WITH_FLAGS export using the full semantic ExportFlags value; default flags reproduce IDAX_PLUGIN. Native PLUGIN_MULTI lifecycle and both default/custom flags are exercised through real SDK load_plugin/run_plugin dispatch.",
+      "cpp_fingerprint": "61d5b8916f5e3dabd47a2c67db46e73a487d30ad402c9f6c556ef450c26f9afe",
+      "swift_targets": [
+        {
+          "path": "Plugin.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any PluginModule) throws(IDAError)"
+        },
+        {
+          "path": "PluginModule",
+          "declaration": "protocol PluginModule : AnyObject"
+        },
+        {
+          "path": "PluginModule.exportFlags",
+          "declaration": "var exportFlags: Plugin.ExportFlags { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ecfbf86b857590c4b886",
+      "cpp_name": "ida::plugin::is_plugin_available",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "daada903ad9a93c11f53"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fd06c8e78a45321f343e70147837f4c760fe794dd858e9557fc7cdfebe9e113e",
+      "swift_targets": [
+        {
+          "path": "Plugin.isAvailable(_:)",
+          "declaration": "static func isAvailable(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4fb029450f21f3c9b319",
+      "cpp_name": "ida::plugin::register_action",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const Action &)",
+      "mapping": "direct",
+      "swift": [
+        "5ce2a528786d13410396"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0b0e67f88001c8d44954aeaf95a35f3b3526d10536671d57b2a4b297e48a2d88",
+      "swift_targets": [
+        {
+          "path": "Plugin.register(_:)",
+          "declaration": "static func register(_ action: Plugin.Action) throws(IDAError) -> Registration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2b454bff2ca39ba8b6ae",
+      "cpp_name": "ida::plugin::register_hotkey",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ScopedHotkey> (std::string_view, HotkeyCallback)",
+      "mapping": "direct",
+      "swift": [
+        "f9a700672d78b8d50d7c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b562c6728de2aaad440f91f9546dfbe822470bc07d567ca2f641afe3b6c0ad81",
+      "swift_targets": [
+        {
+          "path": "Plugin.registerShortcut(_:handler:)",
+          "declaration": "static func registerShortcut(_ shortcut: String, handler: @escaping () throws(IDAError) -> Void) throws(IDAError) -> Plugin.Shortcut"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d3091d5b463b43ebd33a",
+      "cpp_name": "ida::plugin::run_plugin",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "80582b0222979e27107c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e6b50674b10809a06d55e33ea3c799547a74aeeefa6b16d08fdb54f4431379f2",
+      "swift_targets": [
+        {
+          "path": "Plugin.run(_:argument:)",
+          "declaration": "static func run(_ name: String, argument: Int = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25fa71d21a8d9f4a3a34",
+      "cpp_name": "ida::plugin::unregister_action",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "305c0714eb541b74382e"
+      ],
+      "rationale": "Callback native handles become checked typed borrows or independently retained values; registration destruction is scoped to its returned owner.",
+      "cpp_fingerprint": "e731b9c4e774a25438a8b2a92785217e1cfec755f3653a20e26f23b7bf4e1076",
+      "swift_targets": [
+        {
+          "path": "Registration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2342b3ab2eafbc470853",
+      "cpp_name": "ida::plugin::widget_host",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<void *> (const ActionContext &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "be1660d0149ee889e8a6"
+      ],
+      "rationale": "The SDK widget pointer remains private. A callback lease validates lifetime before creating an independently retained typed Widget alias; typed widget operations preserve the canonical host capability.",
+      "cpp_fingerprint": "851371aa8120a8065f16e09d600b9bec2c18b4e4e748c3a3501158df779a983e",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widget()",
+          "declaration": "func widget() throws(IDAError) -> UI.Widget?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "922e25321a801cc6b3c1",
+      "cpp_name": "ida::plugin::with_decompiler_view_host",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const ActionContext &, ActionContextHostCallback)",
+      "mapping": "private_bridge",
+      "swift": [
+        "1b69bcddd4ce057484f8"
+      ],
+      "rationale": "The raw vdui_t pointer remains private. A checked callback lease creates the canonical typed Decompiler.View owner, keeping decompiler and database lifetimes valid.",
+      "cpp_fingerprint": "576b117bd6271158eeb88ec3c8538380787b4caf0f7721e71f5b0a498f3fe758",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.decompilerView()",
+          "declaration": "func decompilerView() throws(IDAError) -> Decompiler.View"
+        }
+      ]
+    },
+    {
+      "cpp_id": "784704509d9d62ba1ca4",
+      "cpp_name": "ida::plugin::with_widget_host",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const ActionContext &, ActionContextHostCallback)",
+      "mapping": "private_bridge",
+      "swift": [
+        "be1660d0149ee889e8a6"
+      ],
+      "rationale": "The SDK widget pointer remains private. A callback lease validates lifetime before creating an independently retained typed Widget alias; typed widget operations preserve the canonical host capability.",
+      "cpp_fingerprint": "fdf0487382fc6bc3d4fdbefff001181d00321aff2e357e1d413a296cc0be3325",
+      "swift_targets": [
+        {
+          "path": "Plugin.ActionContext.widget()",
+          "declaration": "func widget() throws(IDAError) -> UI.Widget?"
+        }
+      ]
+    }
+  ]
+}

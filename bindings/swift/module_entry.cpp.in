@@ -1,0 +1,10 @@
+#include "module.hpp"
+
+extern "C" void @IDAX_SWIFT_MODULE_SYMBOL@();
+
+class SwiftModule final : public idax::swift::@_idax_swift_adapter@ {
+public:
+    SwiftModule() : @_idax_swift_adapter@(@IDAX_SWIFT_MODULE_SYMBOL@) {}
+};
+
+@_idax_swift_export_call@

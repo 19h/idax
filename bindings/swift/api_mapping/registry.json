@@ -1,0 +1,581 @@
+{
+  "domain": "registry",
+  "declarations": [
+    {
+      "cpp_id": "742c6a49b6cee9bc1967",
+      "cpp_name": "ida::registry::Store",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "346a50a4fbf9140662d9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "742c6a49b6cee9bc1967a35ad29d22c35aed88a109ffb37da7480465f7fb3cb2",
+      "swift_targets": [
+        {
+          "path": "Registry.Store",
+          "declaration": "struct Store"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ded5053c031ea16fba71",
+      "cpp_name": "ida::registry::Store::child",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Store> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "a21ce01e08da1d13b178"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9e976b497507163827fa2f8942c49b85c69d7d810dd5154e8474458223482c58",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.child(_:)",
+          "declaration": "func child(_ name: String) throws(IDAError) -> Registry.Store"
+        }
+      ]
+    },
+    {
+      "cpp_id": "16c6783fc4371dcf1138",
+      "cpp_name": "ida::registry::Store::child_keys",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::string>> () const",
+      "mapping": "direct",
+      "swift": [
+        "96982537df480d649a5b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "371d985d0c60c0310e76eed760eb72272358916eedd55a883e416545a14374c0",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.childKeys()",
+          "declaration": "func childKeys() throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9b0655b197347424b0a9",
+      "cpp_name": "ida::registry::Store::contains",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "ce0c176463be2a45e3c2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e1ab2567fe236b0f85f029828fc8f72d2c0d6c5e3062d68fa3554feeca2feceb",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.contains(_:)",
+          "declaration": "func contains(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb7e1118e2ce388bf55f",
+      "cpp_name": "ida::registry::Store::erase_key",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "mapping": "direct",
+      "swift": [
+        "6d3ba7c719d2fcc5538d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "dca405d8a5997788c1e435c296c24300a27e4c573a93526623c3093e6ccc405e",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.eraseKey()",
+          "declaration": "@discardableResult func eraseKey() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "adc45a11c3f38b285718",
+      "cpp_name": "ida::registry::Store::erase_tree",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "mapping": "direct",
+      "swift": [
+        "200fe5b4010de6166ab5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9a809009afbd1ed091422adf8228fdef6d665f266117b98693901441f660a64b",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.eraseTree()",
+          "declaration": "@discardableResult func eraseTree() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "616ffeb63466d0fcf60a",
+      "cpp_name": "ida::registry::Store::erase_value",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "0fd62a0503ccb3577692"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4b474cf2fd9da699ad34fd0592dcbb7e6b16f94492ca24f9f070f0aa9aec97fa",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.eraseValue(_:)",
+          "declaration": "@discardableResult func eraseValue(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "973de976c8c8a86b78be",
+      "cpp_name": "ida::registry::Store::exists",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "mapping": "direct",
+      "swift": [
+        "35c9f72e8cb418a28cf6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fdadbcbfdfca4012f7d54c9fcb4d57e50ac8c00901afb68540eacfadc136c6f2",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.exists()",
+          "declaration": "func exists() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e0729429e35250ad3b2",
+      "cpp_name": "ida::registry::Store::key",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::string &() const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "291bf0abcec169f3f474"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c451ea5b20007db450e875dae914e1ef7d885e043af431e3f76a3ecf9d1239e9",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.key",
+          "declaration": "let key: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "598cbc60a35a439ee4b3",
+      "cpp_name": "ida::registry::Store::open",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Store> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "366faa836aeb1b275170"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f8c0fd4755497f272476c9d54f03ce6f0317de37f11929be3bfe2b1f6bfcb841",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.open(_:)",
+          "declaration": "static func open(_ key: String) throws(IDAError) -> Registry.Store"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fbb7911d8311337da4f4",
+      "cpp_name": "ida::registry::Store::read_binary",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<std::vector<std::uint8_t>>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "a2c9fab9dc97a68b2990"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8402c216203991b6d8b54167869c6ab8f37ccccdbe36b2950f827bccbb70a5a0",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.readBinary(_:)",
+          "declaration": "func readBinary(_ name: String) throws(IDAError) -> [UInt8]?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2ea0c60c2bd52b20be65",
+      "cpp_name": "ida::registry::Store::read_boolean",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<bool>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "97ce17314919ad273f61"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "78ee5fe54c5a15536f17c8de6056a4cd359a7ed287402b2efef17f49a06cea9b",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.readBoolean(_:)",
+          "declaration": "func readBoolean(_ name: String) throws(IDAError) -> Bool?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8c8eaed13cb20ae47588",
+      "cpp_name": "ida::registry::Store::read_integer",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<std::int32_t>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "6f40e4b1691006a29039"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "11f00ecc6237116183da30a702b051fc9d41bcd4d9bdec0a1b270ede584897c9",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.readInteger(_:)",
+          "declaration": "func readInteger(_ name: String) throws(IDAError) -> Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65de05410dd769e22949",
+      "cpp_name": "ida::registry::Store::read_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<std::string>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "7410bff13675c28d027a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7747c9745ea3634845c3374884d5ccfb0cfeb167f8695f3f16c0b7ded0936553",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.readString(_:)",
+          "declaration": "func readString(_ name: String) throws(IDAError) -> String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7449616c260871e9a41f",
+      "cpp_name": "ida::registry::Store::read_string_list",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::string>> () const",
+      "mapping": "direct",
+      "swift": [
+        "93a4b3d81df7fda8540a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5a33e5b5a6c5cdca5ba6eb2863dd428027c0b6ff1cd26d1dbb6d73190035686e",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.readStringList()",
+          "declaration": "func readStringList() throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b0a06692437c4ad4dc5",
+      "cpp_name": "ida::registry::Store::update_string_list",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (const StringListUpdate &) const",
+      "mapping": "direct",
+      "swift": [
+        "b33b0f5ef4f834c47e21"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3217dbc350e0cf54ebe4fa23ba1c2165694229818e8f6c482c997e81f496a2e9",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.updateStringList(_:)",
+          "declaration": "func updateStringList(_ update: Registry.StringListUpdate) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc5cda1e6f3c5ac161ad",
+      "cpp_name": "ida::registry::Store::value_kind",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<ValueKind>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "94f84bed10dbee26707a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "005f00d6aea5a0ae8458211c06e6ee3219c16261530c7a72872feae080c9edf4",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.valueKind(_:)",
+          "declaration": "func valueKind(_ name: String) throws(IDAError) -> Registry.ValueKind?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "10bc6b1abc63a530b27a",
+      "cpp_name": "ida::registry::Store::value_names",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::string>> () const",
+      "mapping": "direct",
+      "swift": [
+        "4918173cc152e05811be"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a63db4745e2e165fd8f8b344d8d823188ad04f8e39243e6b2504616694131360",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.valueNames()",
+          "declaration": "func valueNames() throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "28ae53e5355629477efa",
+      "cpp_name": "ida::registry::Store::write_binary",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::span<const std::uint8_t>) const",
+      "mapping": "direct",
+      "swift": [
+        "624b01437ba8e8249254"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4df11aea614e10b9ee7079b4370c1af7ce5e926857e7a8a9776c834e661e73a6",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.writeBinary(_:value:)",
+          "declaration": "func writeBinary(_ name: String, value: [UInt8]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "021b31212d3a604a136d",
+      "cpp_name": "ida::registry::Store::write_boolean",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, bool) const",
+      "mapping": "direct",
+      "swift": [
+        "930fa4280d7c2768b6e9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "29c4510fefda4a10b23ad6047bdd14660b42bf859dc665850daa9967a3fd1be1",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.writeBoolean(_:value:)",
+          "declaration": "func writeBoolean(_ name: String, value: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "295319f32043b335f04c",
+      "cpp_name": "ida::registry::Store::write_integer",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::int32_t) const",
+      "mapping": "direct",
+      "swift": [
+        "40b12847defcb164fba8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "07c0b9dd1f5fb46c7464b68eb778c9913e81e878a6c75b20ea271fb811d4051a",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.writeInteger(_:value:)",
+          "declaration": "func writeInteger(_ name: String, value: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be1222f119993caf1b2f",
+      "cpp_name": "ida::registry::Store::write_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "2f0f0cf78fef5df9fb54"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a667530dc6f3747238412da988e65760e60e881c9d17846292ec46e18e7ab098",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.writeString(_:value:)",
+          "declaration": "func writeString(_ name: String, value: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82885c95f3a12af9d580",
+      "cpp_name": "ida::registry::Store::write_string_list",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::span<const std::string>) const",
+      "mapping": "direct",
+      "swift": [
+        "2977db1a9fad9a05cb61"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5e61b271d80d2a62e04806b298d7959244cdee9d6c5f1e2194b2877ba263b365",
+      "swift_targets": [
+        {
+          "path": "Registry.Store.writeStringList(_:)",
+          "declaration": "func writeStringList(_ values: [String]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14c67ca2ecd4c6e6f600",
+      "cpp_name": "ida::registry::StringListUpdate",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "9dd71c6009750d6ad33f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "14c67ca2ecd4c6e6f6001f94964c6547eaa3b5931318d19d3b650a40ad33f2e2",
+      "swift_targets": [
+        {
+          "path": "Registry.StringListUpdate",
+          "declaration": "struct StringListUpdate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "09d2a635621527d70f29",
+      "cpp_name": "ida::registry::StringListUpdate::add",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "fded3cd5510681deb83f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "be84e7350e14c661004f9f0da9e8f90ff63a563d762ba2432812fc3c773418b6",
+      "swift_targets": [
+        {
+          "path": "Registry.StringListUpdate.add",
+          "declaration": "var add: String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5d5ad78630a3e63620fc",
+      "cpp_name": "ida::registry::StringListUpdate::ignore_case",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "881172cb1cdf994a2b1f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "01789718ca658ba869dbd10ea3348e0caffbdd207a047917232027ad71786929",
+      "swift_targets": [
+        {
+          "path": "Registry.StringListUpdate.ignoreCase",
+          "declaration": "var ignoreCase: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ffd488b096bf25b06a46",
+      "cpp_name": "ida::registry::StringListUpdate::max_records",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "adapted",
+      "swift": [
+        "657d33c861a2f2b0c20a"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "5c0696dd49e8a5b01469df6c527550a8317a0dee46afd7a25a240fca39c25fe8",
+      "swift_targets": [
+        {
+          "path": "Registry.StringListUpdate.maximumRecords",
+          "declaration": "var maximumRecords: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd16efddf5742c41e066",
+      "cpp_name": "ida::registry::StringListUpdate::remove",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "d70d69071aee09879d76"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e8e1a00e10d9e0416bdc3a3db3e2c1ef0dd9a176049a6b3c0ea6250635712670",
+      "swift_targets": [
+        {
+          "path": "Registry.StringListUpdate.remove",
+          "declaration": "var remove: String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "643fb3e0de2788897ddb",
+      "cpp_name": "ida::registry::ValueKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ValueKind : std::uint8_t { String = 1, Binary = 3, Integer = 4, }",
+      "mapping": "direct",
+      "swift": [
+        "3918866bbdeb7572693d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a4d563dba3501a872ced4b2a8988994691ebd0fc86ad94133f810b5712a82c22",
+      "swift_targets": [
+        {
+          "path": "Registry.ValueKind",
+          "declaration": "enum ValueKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9e69ccabf7a9b8fb5a9a",
+      "cpp_name": "ida::registry::ValueKind::Binary",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registry::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "bd6a7020b91f75ccbeb8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e800ebd366ec04cc8e4a9281826ec984f9676201785e5668fa78e2d46be73aff",
+      "swift_targets": [
+        {
+          "path": "Registry.ValueKind.binary",
+          "declaration": "case binary"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f94f142748c87fd327b",
+      "cpp_name": "ida::registry::ValueKind::Integer",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registry::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "f38a17f76072b9e3f908"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "da300ae08c5cf289f5943bfdb2730c2746ad9622f80656e32ac4ada3cfbf0a30",
+      "swift_targets": [
+        {
+          "path": "Registry.ValueKind.integer",
+          "declaration": "case integer"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e8a7ada237dad2e046c9",
+      "cpp_name": "ida::registry::ValueKind::String",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registry::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "37c452a06fe6d21ffdfb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1930268bd9ea85318f63159edb9a209958a7fd689630d98b865a026c104028ac",
+      "swift_targets": [
+        {
+          "path": "Registry.ValueKind.string",
+          "declaration": "case string"
+        }
+      ]
+    }
+  ]
+}

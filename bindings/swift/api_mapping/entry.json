@@ -1,0 +1,239 @@
+{
+  "domain": "entry",
+  "declarations": [
+    {
+      "cpp_id": "eb5fe3a2f520fa6e9212",
+      "cpp_name": "ida::entry::EntryPoint",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "0515ab20c4a7b97bb896"
+      ],
+      "rationale": "Entries.EntryPoint is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "eb5fe3a2f520fa6e92129be0eba82d71ac2775abebdc3e3d116f43bc139e9228",
+      "swift_targets": [
+        {
+          "path": "Entries.EntryPoint",
+          "declaration": "struct EntryPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83b6f56e0f4ce172b552",
+      "cpp_name": "ida::entry::EntryPoint::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "5485af3c88bec1164219"
+      ],
+      "rationale": "Preserves the declared Address value in Entries.EntryPoint.address, including its semantic type and signedness.",
+      "cpp_fingerprint": "6d34e5e4cc4bf7bf9984dd09398b1a778dd3cab217ec19691c4402cccf57f396",
+      "swift_targets": [
+        {
+          "path": "Entries.EntryPoint.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e979ce322ec969b83e51",
+      "cpp_name": "ida::entry::EntryPoint::forwarder",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b920630c9748dd0d899e"
+      ],
+      "rationale": "Preserves the forwarder value as var forwarder: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "56001a348c39bfbb2c2875dc4e596a9aba783a1c508cad0ea7979f592d31a0ae",
+      "swift_targets": [
+        {
+          "path": "Entries.EntryPoint.forwarder",
+          "declaration": "var forwarder: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e9d25f32d470c6634985",
+      "cpp_name": "ida::entry::EntryPoint::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "44c090704541e25115e8"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "964e058bc38493bd81de22d6505ce1d0b01851f819781e330af21a1c315534d1",
+      "swift_targets": [
+        {
+          "path": "Entries.EntryPoint.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4789cbdfcb2402208dfd",
+      "cpp_name": "ida::entry::EntryPoint::ordinal",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "c7a8305d327308ebaa10"
+      ],
+      "rationale": "Preserves the declared std::uint64_t value in Entries.EntryPoint.ordinal, including its semantic type and signedness.",
+      "cpp_fingerprint": "14aee18f41f656028ebe66f03fae2aa8fc32644a1d45db9bd484a6617d67b06e",
+      "swift_targets": [
+        {
+          "path": "Entries.EntryPoint.ordinal",
+          "declaration": "var ordinal: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e7712665bd3aba164a0a",
+      "cpp_name": "ida::entry::add",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::uint64_t, Address, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "ea8c3de325bc02bc5887"
+      ],
+      "rationale": "Entries.add(ordinal:address:name:makeCode:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "24b684491e5702f0cdd65b25df87a1d04600aedb5d4507953ee9d9c6daa9583a",
+      "swift_targets": [
+        {
+          "path": "Entries.add(ordinal:address:name:makeCode:)",
+          "declaration": "static func add(ordinal: UInt64, address: UInt64, name: String, makeCode: Bool = true) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ebe8b8e5341fa815f2e3",
+      "cpp_name": "ida::entry::by_index",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<EntryPoint> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "abef1c1ff04ea0487dda"
+      ],
+      "rationale": "Entries.byIndex(index:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "459fa994b71f12c4d4f151b431c59be28ae9fc8762c2cb88f5a0f28b2d2b9215",
+      "swift_targets": [
+        {
+          "path": "Entries.byIndex(index:)",
+          "declaration": "static func byIndex(index: Int) throws(IDAError) -> Entries.EntryPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a0c79998fa330954fb6a",
+      "cpp_name": "ida::entry::by_ordinal",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<EntryPoint> (std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "2cf51046974f10350977"
+      ],
+      "rationale": "Entries.byOrdinal(ordinal:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f7c818c37c0dbc5b1278dc5b65b4497d2172dcc72446a225ae8306a1548736a4",
+      "swift_targets": [
+        {
+          "path": "Entries.byOrdinal(ordinal:)",
+          "declaration": "static func byOrdinal(ordinal: UInt64) throws(IDAError) -> Entries.EntryPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85eff7af0cebbe5ca2b7",
+      "cpp_name": "ida::entry::clear_forwarder",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "f07f34cd858d576a626a"
+      ],
+      "rationale": "Entries.clearForwarder(ordinal:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b3363ec2920fc74ee924fe7a76c96ef6bc2967af49d4d089c0b71ed8f34c2b51",
+      "swift_targets": [
+        {
+          "path": "Entries.clearForwarder(ordinal:)",
+          "declaration": "static func clearForwarder(ordinal: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07039873ab35668c2309",
+      "cpp_name": "ida::entry::count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "7ddba6c967a4fdcba9b5"
+      ],
+      "rationale": "Entries.count() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6cbc1f910c87743a8cb66d7095e3cf9bfc387faa613b61f2fa147194b4f9d254",
+      "swift_targets": [
+        {
+          "path": "Entries.count()",
+          "declaration": "static func count() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "da737dc652e8909e8171",
+      "cpp_name": "ida::entry::forwarder",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "5a189a2047afa923679a"
+      ],
+      "rationale": "Entries.forwarder(ordinal:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7bb5dffc4081b636ceb3c48bd58312ba704966924699857de0c68ed0c2c2c741",
+      "swift_targets": [
+        {
+          "path": "Entries.forwarder(ordinal:)",
+          "declaration": "static func forwarder(ordinal: UInt64) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b8078f0f2338ea1bd4ec",
+      "cpp_name": "ida::entry::rename",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::uint64_t, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "0156098c80a63f81e632"
+      ],
+      "rationale": "Entries.rename(ordinal:name:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "059f370342cd03dd81587eb36c6042d5267f948a30301c7b2e9124b31b02f5e0",
+      "swift_targets": [
+        {
+          "path": "Entries.rename(ordinal:name:)",
+          "declaration": "static func rename(ordinal: UInt64, name: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e53f390373e3d02d1985",
+      "cpp_name": "ida::entry::set_forwarder",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::uint64_t, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "36281db383d6b03921b4"
+      ],
+      "rationale": "Entries.setForwarder(ordinal:target:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6b4f684e399075fb7384bd92396d1c104bcae63b9e22308fcd5d40219d506fe4",
+      "swift_targets": [
+        {
+          "path": "Entries.setForwarder(ordinal:target:)",
+          "declaration": "static func setForwarder(ordinal: UInt64, target: String) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

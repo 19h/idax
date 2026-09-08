@@ -1,0 +1,2507 @@
+{
+  "domain": "instruction",
+  "declarations": [
+    {
+      "cpp_id": "edd54297b0e13358a959",
+      "cpp_name": "ida::instruction::BranchCondition",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class BranchCondition { None, Always, Equal, NotEqual, LessThanSigned, LessThanOrEqualSigned, GreaterThanSigned, GreaterThanOrEqualSigned, LessThanUnsigned, LessThanOrEqualUnsigned, GreaterThanUnsigned, GreaterThanOrEqualUnsigned, Zero, NotZero, Negative, NotNegative, Overflow, NoOverflow, Parity, NoParity, CountZero, BitZero, BitNotZero, CountNotZero, CountNotZeroAndEqual, CountNotZeroAndNotEqual, Unknown, Never, }",
+      "mapping": "direct",
+      "swift": [
+        "c4ab68781497e423fef7"
+      ],
+      "rationale": "Instructions.BranchCondition represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "c7319bbed403d5e94477d0e2dbc662f75f0836c4506100100fda0c84136181c7",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition",
+          "declaration": "enum BranchCondition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e8de5834229841c1ac5",
+      "cpp_name": "ida::instruction::BranchCondition::Always",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "09bfe8ba346013fa4ef0"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.always; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5d0cf4317d773f80540889de8280d6505cf6d9854f8fa5735f0fb25fd18bded1",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.always",
+          "declaration": "case always"
+        }
+      ]
+    },
+    {
+      "cpp_id": "58c8a5391990bbd30a5a",
+      "cpp_name": "ida::instruction::BranchCondition::BitNotZero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "ee5343fcd5f00919ea5e"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.bitNotZero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "68a7acfc6a0e047fad9c769c403d7af701f8a0a9226e83d848eebdb6bef973ee",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.bitNotZero",
+          "declaration": "case bitNotZero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc43cab4afc56d20c1ea",
+      "cpp_name": "ida::instruction::BranchCondition::BitZero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "f43d2ccc0081b9cc4697"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.bitZero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "60b10781ce35490ff73553498e13894072607f150bdec3e72f65cf6b3e036304",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.bitZero",
+          "declaration": "case bitZero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f743545a48677898d1ef",
+      "cpp_name": "ida::instruction::BranchCondition::CountNotZero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "7cd1d35577065d54d999"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.countNotZero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4154154b6a8bc4bf4710ac488f61aa52022f31990f1635862905f517d22aa432",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.countNotZero",
+          "declaration": "case countNotZero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d747d08a6322f20265cc",
+      "cpp_name": "ida::instruction::BranchCondition::CountNotZeroAndEqual",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "805123d7a3ed3c5da52a"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.countNotZeroAndEqual; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a9f47674c2377d82d407d3cdabc461aedd7f6fee6ed37fe5c643d6d0e590fb1e",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.countNotZeroAndEqual",
+          "declaration": "case countNotZeroAndEqual"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e7bb08eed9f5eb8e4f3e",
+      "cpp_name": "ida::instruction::BranchCondition::CountNotZeroAndNotEqual",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "bac74da60d6ce09fa880"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.countNotZeroAndNotEqual; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "43e8852a900a39b9af0df8f0fd6549c0be7b5db051ca8d41e8866a377620c6c1",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.countNotZeroAndNotEqual",
+          "declaration": "case countNotZeroAndNotEqual"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cf8de175b65e08eb3693",
+      "cpp_name": "ida::instruction::BranchCondition::CountZero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "80e5affd5b09278caedb"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.countZero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6f3fc30bcdf56ea5a1892bad3ecbd5e6baf5685732e2dde3c08184988f032d0a",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.countZero",
+          "declaration": "case countZero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d60ef89e060e80177cb9",
+      "cpp_name": "ida::instruction::BranchCondition::Equal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "9a351ad0f9cda390f690"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.equal; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e9c279a7314658d9856e17d9ee7944c2efa2e87ff0072c411cb40f969f0d93ea",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.equal",
+          "declaration": "case equal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ad9eb0db5bb5978cbebc",
+      "cpp_name": "ida::instruction::BranchCondition::GreaterThanOrEqualSigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "a8d83ea44381e5f854d1"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.greaterThanOrEqualSigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2ba83b3fae1b9fd59e1cce0f6e1b96ac6e16503871acc9e4714bed84ea923b98",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.greaterThanOrEqualSigned",
+          "declaration": "case greaterThanOrEqualSigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d6dc36b23cfcc951bee6",
+      "cpp_name": "ida::instruction::BranchCondition::GreaterThanOrEqualUnsigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "d2a247753b8dd4c770ea"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.greaterThanOrEqualUnsigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e70165bc09c546d7017da828fd3fd369b4a02b62c34625ba9c8da92c8d09326e",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.greaterThanOrEqualUnsigned",
+          "declaration": "case greaterThanOrEqualUnsigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8de693c0567a41016a85",
+      "cpp_name": "ida::instruction::BranchCondition::GreaterThanSigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "cd9aeda88fcfd68911d5"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.greaterThanSigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "37a835a547bbe56753f97fde0751f2e69eb39969b40beed051cd05fea0317b70",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.greaterThanSigned",
+          "declaration": "case greaterThanSigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a628cf0e57d3d42c305",
+      "cpp_name": "ida::instruction::BranchCondition::GreaterThanUnsigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "f4052900238961c9ed79"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.greaterThanUnsigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e110c30f66614d5ba6b96e6cf0c6191e1eada89ab24989d295666d3b3d2b6e9b",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.greaterThanUnsigned",
+          "declaration": "case greaterThanUnsigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "548e70545ad8c238c4a7",
+      "cpp_name": "ida::instruction::BranchCondition::LessThanOrEqualSigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "3448140ecf9dd33d5b39"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.lessThanOrEqualSigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3858f873380c7774c0850a78fe7ee38b64f2294643ca84185bad6f33799b3d52",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.lessThanOrEqualSigned",
+          "declaration": "case lessThanOrEqualSigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1fd7440a08308522a4f6",
+      "cpp_name": "ida::instruction::BranchCondition::LessThanOrEqualUnsigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "deb2596928aed136eb5c"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.lessThanOrEqualUnsigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "82001fdcaa4b2264357c231b42eaa2db4b70b6e1992fd3107b9b9a09d2ea1f72",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.lessThanOrEqualUnsigned",
+          "declaration": "case lessThanOrEqualUnsigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "786a0e471dc038a66702",
+      "cpp_name": "ida::instruction::BranchCondition::LessThanSigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "35cb976cb1065cc2e7f1"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.lessThanSigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a6c1e67b8ebb06310ed0dbcec0ab53de6c6754eff719e7833b47690690a2059c",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.lessThanSigned",
+          "declaration": "case lessThanSigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "53b6b68aa7a0edf0cf6c",
+      "cpp_name": "ida::instruction::BranchCondition::LessThanUnsigned",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "97f164639ddcde0e029a"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.lessThanUnsigned; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "00137bf56d801b1634378a415617fb897246b11512b2a9eabc4032462a61c45f",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.lessThanUnsigned",
+          "declaration": "case lessThanUnsigned"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2745c29a22126512d3c1",
+      "cpp_name": "ida::instruction::BranchCondition::Negative",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "9aca647707cdefdecd74"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.negative; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0dfdcfe90fbf554aac0f870f201e56c42787399041cd75c28486c51541800743",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.negative",
+          "declaration": "case negative"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b58e2413621d97bc3666",
+      "cpp_name": "ida::instruction::BranchCondition::Never",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "80044b278a18e83b5422"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.never; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "24a731ff3e5bd577cd119f8216f2f87aefd1fef03c59bd398eb247b519de6cb1",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.never",
+          "declaration": "case never"
+        }
+      ]
+    },
+    {
+      "cpp_id": "10f9227f374463c2709f",
+      "cpp_name": "ida::instruction::BranchCondition::NoOverflow",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "0556d5f8880bd2ad5794"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.noOverflow; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "41f4bd12a3ce28258f30ad5cc8ab925f5707706b746bda3ff4d23913b6d36912",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.noOverflow",
+          "declaration": "case noOverflow"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8c16caf767b256caf1d5",
+      "cpp_name": "ida::instruction::BranchCondition::NoParity",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "3ab1f300f7ab7bf26456"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.noParity; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f8c4d1e46fd8dbc847e10768b948d680cd6514d35c4cd1968778b5544c11bde2",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.noParity",
+          "declaration": "case noParity"
+        }
+      ]
+    },
+    {
+      "cpp_id": "191ba72de3e14790a78a",
+      "cpp_name": "ida::instruction::BranchCondition::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "8158e2a49ab8489fecdb"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.none; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "404443e60e4c4180354267dd4a6a8204edc24d13e449b69e7f3f44643a7748ca",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.none",
+          "declaration": "case none"
+        }
+      ]
+    },
+    {
+      "cpp_id": "555bcda6564a2e19e90a",
+      "cpp_name": "ida::instruction::BranchCondition::NotEqual",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "9c76d63be49d973cfc60"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.notEqual; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3690bd638253ef1caec1e5c04ec17e50f8a4dfce521d87b848887bee33a69d41",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.notEqual",
+          "declaration": "case notEqual"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4f6101ba80b5c6b20330",
+      "cpp_name": "ida::instruction::BranchCondition::NotNegative",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "309a9a3e7a57c7741afa"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.notNegative; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "da7bd0cea23d63d75e34d072c0722a9e33f369bd88daae557826a3d78f94b87b",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.notNegative",
+          "declaration": "case notNegative"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d824ec70c2d2162cb9f",
+      "cpp_name": "ida::instruction::BranchCondition::NotZero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "4529cf5c221e00025e24"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.notZero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ab31fea3b2af708216dab35211686f0936f6ff64799d21be5c7df4c6e8ebe079",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.notZero",
+          "declaration": "case notZero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ca88c4f7af5628a83624",
+      "cpp_name": "ida::instruction::BranchCondition::Overflow",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "61f711c13155c40ce2bc"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.overflow; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "fbb8eb678b4f19d83188176e4554c01e7778d2451b4545c28528bacdeff257a4",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.overflow",
+          "declaration": "case overflow"
+        }
+      ]
+    },
+    {
+      "cpp_id": "987120f418e72d529815",
+      "cpp_name": "ida::instruction::BranchCondition::Parity",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "c160f54ebc34cb03df3e"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.parity; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "10ad91b2ab38969bf6e39f425c57643f9ae9d4f1127f8c8a09478995c8838cfa",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.parity",
+          "declaration": "case parity"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d21495ae29321557437",
+      "cpp_name": "ida::instruction::BranchCondition::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "c2b4cd7e73c86e7ba6d2"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.unknown; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "83e06b3959a6012d2818c78c543809d198c75e9d86d80168820f3609d9a11523",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5b7724550153eb71e071",
+      "cpp_name": "ida::instruction::BranchCondition::Zero",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::BranchCondition",
+      "mapping": "direct",
+      "swift": [
+        "32fdcc3dc3538944a78e"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.BranchCondition.zero; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0bfac5707e834cbb0836bb95ba0230ecbf06f58ae18250afad3552b24a1b5f9d",
+      "swift_targets": [
+        {
+          "path": "Instructions.BranchCondition.zero",
+          "declaration": "case zero"
+        }
+      ]
+    },
+    {
+      "cpp_id": "578dfff73266c4ff482f",
+      "cpp_name": "ida::instruction::Instruction",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "f5dd06367c9191d20a44"
+      ],
+      "rationale": "The C++ snapshot value class is represented by the owned Swift struct Instructions.Instruction; database mutations remain explicit operations.",
+      "cpp_fingerprint": "578dfff73266c4ff482fec9a05eb4a01f195f97fef982d47d625b64bfab18ab1",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction",
+          "declaration": "struct Instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6de0a90297ead099a720",
+      "cpp_name": "ida::instruction::Instruction::address",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "7b44b1e65e1c369b2cb9"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.address, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "67cc6aff77393ff6a24459c30f346501905e9d0233049a2e7902aa07dcc09fa7",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bab77a7b1406a605134f",
+      "cpp_name": "ida::instruction::Instruction::branch_condition",
+      "cpp_kind": "method",
+      "cpp_signature": "BranchCondition () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "586ae04ac72660ddc03a"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.branchCondition, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "d6d7a00fade1267bb89febd9c3ff2ce2d535d05df338cfcdfaf90d36ff0bf413",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.branchCondition",
+          "declaration": "var branchCondition: Instructions.BranchCondition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "48f3d47dcda613b6c489",
+      "cpp_name": "ida::instruction::Instruction::mnemonic",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string () const",
+      "mapping": "adapted",
+      "swift": [
+        "c1b97e1ab8aeba67d044"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.mnemonic, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "0af87ca8e8bb58ca1455e2bfc1c3c94a2915af72603cd02c6f0c0cb0d7bbbee2",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.mnemonic",
+          "declaration": "var mnemonic: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2ee03d9f817692e4756",
+      "cpp_name": "ida::instruction::Instruction::opcode",
+      "cpp_kind": "method",
+      "cpp_signature": "std::uint16_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e85dfec2911e8791f309"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.opcode, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "82b1e7fcd0c62189bb967d46d7b44f10c3e6ecd856bf1d8025f53c89bf4beadb",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.opcode",
+          "declaration": "var opcode: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7fd7de625f6cb10b66d",
+      "cpp_name": "ida::instruction::Instruction::operand",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Operand> (std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "9cd4fc29d3a6ee03a30a"
+      ],
+      "rationale": "Instructions.Instruction.operand(index:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8fa23ec1fbe6b73d86096d20d587f49d6931567144a476dafb39c6f2627bede9",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.operand(index:)",
+          "declaration": "func operand(index: Int) throws(IDAError) -> Instructions.Operand"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6427705f6f96feacd499",
+      "cpp_name": "ida::instruction::Instruction::operand_count",
+      "cpp_kind": "method",
+      "cpp_signature": "std::size_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "6259901f17ccc02807d6"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.operandCount, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "da0927d88c8250017b799de2d7dc0e5fc2ce8da308bed6e1e64e93ed8ba5ce8b",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.operandCount",
+          "declaration": "var operandCount: Int { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11a1e13e5d7263f2bd4a",
+      "cpp_name": "ida::instruction::Instruction::operands",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::vector<Operand> &() const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "bffa060301203ef95cad"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.operands, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "9650d9b0c103f57f0ee602768137ef7ffec2ddb4b240f6fac2933d8c08938637",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.operands",
+          "declaration": "var operands: [Instructions.Operand]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98edfffdb8eae872613c",
+      "cpp_name": "ida::instruction::Instruction::size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "20962b16c1fe388c8725"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Instruction.size, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "032d64fa8902ccf3ae0b5795d8c8162825913bd6bf5ad2d22033a7df7e0663f4",
+      "swift_targets": [
+        {
+          "path": "Instructions.Instruction.size",
+          "declaration": "var size: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c9319f7412263e282d76",
+      "cpp_name": "ida::instruction::Operand",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "e2687e4b52e92b849e4b"
+      ],
+      "rationale": "The C++ snapshot value class is represented by the owned Swift struct Instructions.Operand; database mutations remain explicit operations.",
+      "cpp_fingerprint": "c9319f7412263e282d761ba722419f1b23b1b73c3f631a463d0d11234e57b31f",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand",
+          "declaration": "struct Operand"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ca72c9b4e1390f3bb59",
+      "cpp_name": "ida::instruction::Operand::byte_width",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "c0b1fe20524b57e05e7e"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.byteWidth, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "d78729554cbc1b4d0e5c133e4b3e07e7788e7dc45ca7fb449fe8260591fc92f5",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.byteWidth",
+          "declaration": "var byteWidth: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e4eff93c34fcf7c0560f",
+      "cpp_name": "ida::instruction::Operand::displacement",
+      "cpp_kind": "method",
+      "cpp_signature": "std::int64_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "f9e959f908b382935b09"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.displacement, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1c3497eb9a31b27e84607422a29ffe860b69014fa72357f986ad8a2c51313d51",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.displacement",
+          "declaration": "var displacement: Int64 { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "53aeebd42970608ae5f8",
+      "cpp_name": "ida::instruction::Operand::encoded_value_byte_offset",
+      "cpp_kind": "method",
+      "cpp_signature": "std::optional<std::size_t> () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "35d2e388a83c918d8638"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.encodedValueByteOffset, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "dc81871daf40277022bf9e81e3e5edaa58cbcf0f5cd235f2bf4c3d514543c899",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.encodedValueByteOffset",
+          "declaration": "var encodedValueByteOffset: Int?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fbcdf8b9c49685e4a54c",
+      "cpp_name": "ida::instruction::Operand::index",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "fc00bab51e2273275d95"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.index, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "ee0e760c0b585dad2332cafd3baaac38e476f2842e2cfed101a664b18d6380d8",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.index",
+          "declaration": "var index: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e24bb342f77cfe75acac",
+      "cpp_name": "ida::instruction::Operand::is_immediate",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "7d9312c584146fbf3f53"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isImmediate, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1345f9c7fec43eb1c8761655b3c731fe37bb43898f312ef8ac87805ed7e9021f",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isImmediate",
+          "declaration": "var isImmediate: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "730a5badf2ba155a34f9",
+      "cpp_name": "ida::instruction::Operand::is_mask_register",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "25df8f54d7a1e348b0d7"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isMaskRegister, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "91b78891c72b61e5b6c05e87f9d06c9daee7c6aad97e2937a7279583832b2398",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isMaskRegister",
+          "declaration": "var isMaskRegister: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a785d737a3490b17685b",
+      "cpp_name": "ida::instruction::Operand::is_memory",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "554c0a765b44db37ccdf"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isMemory, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "8a6559b772d0b5b8d6eac24049ee10620a2662314b5e742b950f25ec3fac56b0",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isMemory",
+          "declaration": "var isMemory: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f38b699232e10bb354d8",
+      "cpp_name": "ida::instruction::Operand::is_read",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "acf92dddc4475194e912"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isRead, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "78dfbdc91557558daa18d5c6690a5ddebb2d39af7e7036f7480d74e1cf887887",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isRead",
+          "declaration": "var isRead: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7540a658a324bdc63ac9",
+      "cpp_name": "ida::instruction::Operand::is_register",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "0f69cfe2e39f976d3076"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isRegister, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "09f5e8a06a2813a064c3c47da0ce94018f52b0287eb34d2546f6a45fdd7adb7e",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isRegister",
+          "declaration": "var isRegister: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f000d420970a2c8c5a4f",
+      "cpp_name": "ida::instruction::Operand::is_vector_register",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "c985ef9e413034b408a5"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isVectorRegister, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "70d3f059acbe0f1525d99c7c4c2d1aedbcc8f2abc6d54b78a9d62b8bb55df285",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isVectorRegister",
+          "declaration": "var isVectorRegister: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "003420a384b30bf708e3",
+      "cpp_name": "ida::instruction::Operand::is_written",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e3fec2c26ac1a061a5ff"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.isWritten, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "7992b9112c13a161401ec5d95b282fcc41c1f2304ad102081cd9feca4d8e146a",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.isWritten",
+          "declaration": "var isWritten: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa8aaa0b2cc4367233f0",
+      "cpp_name": "ida::instruction::Operand::register_category",
+      "cpp_kind": "method",
+      "cpp_signature": "RegisterCategory () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "931937325419f7e134ec"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.registerCategory, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1544e9ab46184fc00aa427343c54fc35b6fb8c0a5313cdebffa01b093f336290",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.registerCategory",
+          "declaration": "var registerCategory: Instructions.RegisterCategory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e267f0eb2026d726487",
+      "cpp_name": "ida::instruction::Operand::register_id",
+      "cpp_kind": "method",
+      "cpp_signature": "std::uint16_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "45669c05f90f74049eea"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.registerId, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "84008230ae085561be9818da5ab9a7f1f2ccca32e164b49506e58a9a59d9916f",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.registerId",
+          "declaration": "var registerId: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "74842fe07a09f2e73fbd",
+      "cpp_name": "ida::instruction::Operand::register_name",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string () const",
+      "mapping": "adapted",
+      "swift": [
+        "1ece59871ade0a81ee9a"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.registerName, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "6f8a8c14dfca32ccee5852fbe9ac322eea9085c063929dd27cf584a005e9fd84",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.registerName",
+          "declaration": "var registerName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e93a596f6c7e32c41074",
+      "cpp_name": "ida::instruction::Operand::secondary_encoded_value_byte_offset",
+      "cpp_kind": "method",
+      "cpp_signature": "std::optional<std::size_t> () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4c52df502d305e14f4ee"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.secondaryEncodedValueByteOffset, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "051161f2ec9f1d4198cebb1afcd18b8d4553a69470ee2528d746102be4949ec4",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.secondaryEncodedValueByteOffset",
+          "declaration": "var secondaryEncodedValueByteOffset: Int?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4c308a7cd34d0e4a48f",
+      "cpp_name": "ida::instruction::Operand::target_address",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "5cbe896a081c14fca5e4"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.targetAddress, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "8e24bd85f73457629de9e236a0edb479f374194cb90d6d1d1e59d4daa1c1212b",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.targetAddress",
+          "declaration": "var targetAddress: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5a8b63ab1ebbecc7dfb0",
+      "cpp_name": "ida::instruction::Operand::type",
+      "cpp_kind": "method",
+      "cpp_signature": "OperandType () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e9879ae443c43335be7a"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.type, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "e5f95c6c58d3d5a62fb70dbca56a4cc181b4d3eac8ce45145b9ef1e8b240a086",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.type",
+          "declaration": "var type: Instructions.OperandType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f6ba2ad9dfaa4294d889",
+      "cpp_name": "ida::instruction::Operand::value",
+      "cpp_kind": "method",
+      "cpp_signature": "std::uint64_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "3be2bef0cdaba588129b"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Instructions.Operand.value, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "e27202574b627066fb50504eae2c51e176317b5155da138cdd1955901d6cbffc",
+      "swift_targets": [
+        {
+          "path": "Instructions.Operand.value",
+          "declaration": "var value: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "716d1f2f7bfcaefffc24",
+      "cpp_name": "ida::instruction::OperandEnum",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "326a29b3f3279fde58de"
+      ],
+      "rationale": "Preserves the named owned enum representation record, including the name and UInt8 serial fields.",
+      "cpp_fingerprint": "716d1f2f7bfcaefffc244377bef001f046a386407279adb6548df464f853578d",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandEnum",
+          "declaration": "struct OperandEnum"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6ecc44abee5d7eaae9a1",
+      "cpp_name": "ida::instruction::OperandEnum::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "834846b9b8480bb5e3c0"
+      ],
+      "rationale": "Preserves the named operand-enum field with the same string or UInt8 serial semantics.",
+      "cpp_fingerprint": "a4a44f3114962b086cf6779499cf3590616ba0f63dbba9b0536fde508642f362",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandEnum.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6443d53ce4f4625120be",
+      "cpp_name": "ida::instruction::OperandEnum::serial",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "d41ebded07fa34fa94f3"
+      ],
+      "rationale": "Preserves the named operand-enum field with the same string or UInt8 serial semantics.",
+      "cpp_fingerprint": "a83896d48e5e5bfe771ff50753e608568fe0ace9f0dada614fdbafd0db7cf881",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandEnum.serial",
+          "declaration": "var serial: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc6a88b36f4cbdeb57f5",
+      "cpp_name": "ida::instruction::OperandFormat",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OperandFormat { Default, Hex, Decimal, Octal, Binary, Character, Float, Offset, StackVariable, }",
+      "mapping": "direct",
+      "swift": [
+        "dfa996a6ddfc87af1982"
+      ],
+      "rationale": "Instructions.OperandFormat represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "1640226926b4bd719948d2c1c1d109c2634962e1637532bfcb30d4fce47e200f",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat",
+          "declaration": "enum OperandFormat"
+        }
+      ]
+    },
+    {
+      "cpp_id": "55ac4743f9d813bceaea",
+      "cpp_name": "ida::instruction::OperandFormat::Binary",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "c38a8c3319badf0a65b4"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.binary; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a9c97b96be0fc9ced09bc43d342924aadb5742e6e456e63149337f923442bad6",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.binary",
+          "declaration": "case binary"
+        }
+      ]
+    },
+    {
+      "cpp_id": "705b0a59645494971606",
+      "cpp_name": "ida::instruction::OperandFormat::Character",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "74b8e3b10f05b5b33d71"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.character; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9422952f103449fb3cc958668ce87007fc01f1083ce21c368417e061f6e190f2",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.character",
+          "declaration": "case character"
+        }
+      ]
+    },
+    {
+      "cpp_id": "97e662b27fa8a9a39d6c",
+      "cpp_name": "ida::instruction::OperandFormat::Decimal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "cb06434ca220b61ba57d"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.decimal; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7e2fd018cc445572ee00f50ebdabc23ec44a6c48fbffd083b9ce1ba80d5b71de",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.decimal",
+          "declaration": "case decimal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be8055b7be2dc7729461",
+      "cpp_name": "ida::instruction::OperandFormat::Default",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "466a16a6a87fbbf6e133"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.default; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "220d03146c28509fc7b3f881c6737de7e6b895f93f8eaf02b6df7eb997753aa6",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.default",
+          "declaration": "case `default`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70fce6ba9ea8e1b7c9b3",
+      "cpp_name": "ida::instruction::OperandFormat::Float",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "e39d62d14708047be8b7"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.float; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3a536f7f89366625ca853bef7ca50f9eb0d03d50aace94878861dcaa833af7d9",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.float",
+          "declaration": "case float"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a5acf31978938dfeb8e",
+      "cpp_name": "ida::instruction::OperandFormat::Hex",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "350261b1efb03395392a"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.hex; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c55d899742a89ebef58ac87d89903ae7dfa75753e67802409911987a3afbaec8",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.hex",
+          "declaration": "case hex"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79a1f8384cc551caa2b4",
+      "cpp_name": "ida::instruction::OperandFormat::Octal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "ed11b917b31b9a222db2"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.octal; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "97958d46d0416d56cbc0731b09ba899428d312c6d3fe2a987d9ba3e6c513ed44",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.octal",
+          "declaration": "case octal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a5dde37b7adb5c154105",
+      "cpp_name": "ida::instruction::OperandFormat::Offset",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "f2f63f01a93596e62139"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.offset; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ecaea237a1b3bace12b30e7de6280e6e97784024ad46e2a3226818ec31a08a0d",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.offset",
+          "declaration": "case offset"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d387181ec0e8f31e6393",
+      "cpp_name": "ida::instruction::OperandFormat::StackVariable",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandFormat",
+      "mapping": "direct",
+      "swift": [
+        "9e126931d215bfe29b50"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandFormat.stackVariable; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "75dcaeda73869aa98142a8ad3960b4874c2543021d1e5249b0b77ff0ea232a10",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandFormat.stackVariable",
+          "declaration": "case stackVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b9e0e3f07647a6cca1bd",
+      "cpp_name": "ida::instruction::OperandType",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OperandType { None, Register, MemoryDirect, MemoryPhrase, MemoryDisplacement, Immediate, FarAddress, NearAddress, ProcessorSpecific0, ProcessorSpecific1, ProcessorSpecific2, ProcessorSpecific3, ProcessorSpecific4, ProcessorSpecific5, }",
+      "mapping": "direct",
+      "swift": [
+        "78b8fb324bb9a56a45ee"
+      ],
+      "rationale": "Instructions.OperandType represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "aa971b35d9ae320eec262c92ae68008df16c9f86ed72c7b591f6e987643ea5ed",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType",
+          "declaration": "enum OperandType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd20612b897e9fd8ff09",
+      "cpp_name": "ida::instruction::OperandType::FarAddress",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "a5fb7215221da3970ccb"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.farAddress; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e784fdf64a6870c3b57da220ca68d899844a99842f28818e466d96a5c01e9ca8",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.farAddress",
+          "declaration": "case farAddress"
+        }
+      ]
+    },
+    {
+      "cpp_id": "409f9aa2806d12fc57b2",
+      "cpp_name": "ida::instruction::OperandType::Immediate",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "8aa5199c39ef0a4193ce"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.immediate; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4b57ad89b762f50595adaf0ddfcb2e079e0137a8b4b6e255fa66ae266ccc1c93",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.immediate",
+          "declaration": "case immediate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "26f76a1c1009763cf4e4",
+      "cpp_name": "ida::instruction::OperandType::MemoryDirect",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "66acda96accde5da84cf"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.memoryDirect; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "519410ded289da11e354812f0caf7fc7b873601c8119704b4865c9a93b86347b",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.memoryDirect",
+          "declaration": "case memoryDirect"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c266bf503d52bf233c2",
+      "cpp_name": "ida::instruction::OperandType::MemoryDisplacement",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "badd4b512a57e977b884"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.memoryDisplacement; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d17a60a7854efad4a0485194955c9a060ccacfa3d08c953baf8022fb889e5696",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.memoryDisplacement",
+          "declaration": "case memoryDisplacement"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c27d8d330414b923f319",
+      "cpp_name": "ida::instruction::OperandType::MemoryPhrase",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "028ee1f26aece4845dcb"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.memoryPhrase; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "372290885c3beabc57c21e0e16a91367b05c502658f083708fb1ed3e928c85a0",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.memoryPhrase",
+          "declaration": "case memoryPhrase"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dc6c82f15f0cd6e42e99",
+      "cpp_name": "ida::instruction::OperandType::NearAddress",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "a442d09b5d0e384fe480"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.nearAddress; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "bafaeb8c79f18d964a883082b1c703b33db7cf7501ad71087b75fd1e77418654",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.nearAddress",
+          "declaration": "case nearAddress"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c6049687e0b797236716",
+      "cpp_name": "ida::instruction::OperandType::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "b4e1e149239cc09d321d"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.none; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "79e2c5deccf94af10236041d3b4ba9a2c67d8e0e3b309c1573a04f85d8d55d1f",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.none",
+          "declaration": "case none"
+        }
+      ]
+    },
+    {
+      "cpp_id": "45a5800076668eb4393f",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific0",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "006ef96473321e03d5d3"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific0; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6fe276522d4959d0602b0297acabeef50d8cd9e33092589aba3331bf9947e42e",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific0",
+          "declaration": "case processorSpecific0"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c0737f8690c9b61e3655",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific1",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "b7664d659c8219545b65"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific1; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "28390b16e68f43515baf1a28de56cb704c720b1cb515a21e05f784c1095ea9fd",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific1",
+          "declaration": "case processorSpecific1"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa3426b789a57b142693",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific2",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "f087d5e7f6627c274eed"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific2; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "dc99c0cf118e90704c708711cb352ba97ad2c87d07a4c6151e669f3d6d9e82f8",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific2",
+          "declaration": "case processorSpecific2"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f2e46b05db256cb29b71",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific3",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "53a0d54020d8a2030c32"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific3; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b6111d17aa29f04c5fb0a3f36adb388b845d9115c33bf4add7109e87c8a7c7c0",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific3",
+          "declaration": "case processorSpecific3"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7fe47f513efa6ec056ee",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific4",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "b0edd467fd4ca8a70783"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific4; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "06cd5a5c923e1b14bf934f00a30d46b132c3f175b3538bcf0e79d625846cd501",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific4",
+          "declaration": "case processorSpecific4"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f403bbade9ee897552b5",
+      "cpp_name": "ida::instruction::OperandType::ProcessorSpecific5",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "116c9c550f17fdc6728d"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.processorSpecific5; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2c170a7afc62f02c6c9ad97c6997314854cce15bbe1ba4b3a810c6e501856735",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.processorSpecific5",
+          "declaration": "case processorSpecific5"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9413fccb6245a1da1f45",
+      "cpp_name": "ida::instruction::OperandType::Register",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::OperandType",
+      "mapping": "direct",
+      "swift": [
+        "d3acd4841b940a97b904"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.OperandType.register; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1d1f160396ad2fa0a7774e9be496858385beb86d626b012e9d72bfa4be07d122",
+      "swift_targets": [
+        {
+          "path": "Instructions.OperandType.register",
+          "declaration": "case register"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc953a5783a0c3b31c23",
+      "cpp_name": "ida::instruction::RegisterCategory",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class RegisterCategory { Unknown, GeneralPurpose, Segment, FloatingPoint, Vector, Mask, Control, Debug, Other, }",
+      "mapping": "direct",
+      "swift": [
+        "11d3bd994a35d5972eaf"
+      ],
+      "rationale": "Instructions.RegisterCategory represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "b462fba2fb07c9e2767a78a544fa693fc79c26eca3a9ada5a293db890be6865d",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory",
+          "declaration": "enum RegisterCategory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f17d86704090bbe29b27",
+      "cpp_name": "ida::instruction::RegisterCategory::Control",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "4543abbc3f254bd9963f"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.control; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7d11a6e0c077066950471e4243ff11a8eea073902fabb85b59577512766f8b49",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.control",
+          "declaration": "case control"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c3242bf80db715514f3",
+      "cpp_name": "ida::instruction::RegisterCategory::Debug",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "1d6baf13ef1a88db4799"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.debug; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "662952ffca476566781f3d93bda31c29eb9bf11b320aa1ac78c93fa7e4784995",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.debug",
+          "declaration": "case debug"
+        }
+      ]
+    },
+    {
+      "cpp_id": "966132b237807757feb9",
+      "cpp_name": "ida::instruction::RegisterCategory::FloatingPoint",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "9de49e1d5b7390433904"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.floatingPoint; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1b4c6cb2dfa2075b8689eb0e203e3ba35c6bfa9008fc99dcfa0456a08fde252f",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.floatingPoint",
+          "declaration": "case floatingPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "281e33d91639e9bff0c2",
+      "cpp_name": "ida::instruction::RegisterCategory::GeneralPurpose",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "7979e789c72071fc536b"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.generalPurpose; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e7027db031dd70bc1cc67d449ef86201003ad2195fd2a35e21a7f0d08a46a043",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.generalPurpose",
+          "declaration": "case generalPurpose"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4756132a92f2c626e0b7",
+      "cpp_name": "ida::instruction::RegisterCategory::Mask",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "8b1c3dbce2b30ea105e0"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.mask; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5cd2b95cb84c60b29b743fee5f1bff53e23aafa11d6a96f1ed732967efc9f99e",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.mask",
+          "declaration": "case mask"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05cd2bf8db7c53d6870e",
+      "cpp_name": "ida::instruction::RegisterCategory::Other",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "3ebe7340631ce1d4ca6d"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.other; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "686dc96749fa54b7157f256e3712d7b836121eb7ab5ac1ca7e594849e507df4b",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.other",
+          "declaration": "case other"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa1de861f3ff00e8d0b4",
+      "cpp_name": "ida::instruction::RegisterCategory::Segment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "51f93ab6a238b0838248"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.segment; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1e2788c08092df468b761561668b2570c8e711c36f77c6b9534457aef8f2909f",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.segment",
+          "declaration": "case segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3f7fffe1298253a8d34a",
+      "cpp_name": "ida::instruction::RegisterCategory::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "b521f6a10a2518ed3103"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.unknown; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "343387d131c7d160b13395d0ebef3ac64f8fe4c5f3c96aede1f0ef3bd0ebcb5d",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "31dc8ab55e534d6b2e5b",
+      "cpp_name": "ida::instruction::RegisterCategory::Vector",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::instruction::RegisterCategory",
+      "mapping": "direct",
+      "swift": [
+        "88d1c6815865d99817ac"
+      ],
+      "rationale": "Corresponding typed semantic case Instructions.RegisterCategory.vector; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7a4311e04d89ea6aadd1f4b1aa6df7f79edb3b51aa908658265f88400c698a2d",
+      "swift_targets": [
+        {
+          "path": "Instructions.RegisterCategory.vector",
+          "declaration": "case vector"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d49da8f7ea45a256d1b4",
+      "cpp_name": "ida::instruction::StructOffsetPath",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "8163a404ba3f6449bca7"
+      ],
+      "rationale": "Instructions.StructOffsetPath is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "d49da8f7ea45a256d1b4b69f2f987dd7872dfde8926cb29d658e517df4101941",
+      "swift_targets": [
+        {
+          "path": "Instructions.StructOffsetPath",
+          "declaration": "struct StructOffsetPath"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1e261137aa955d38c3b",
+      "cpp_name": "ida::instruction::StructOffsetPath::delta",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressDelta",
+      "mapping": "direct",
+      "swift": [
+        "bd6de70ae19d8bdbf405"
+      ],
+      "rationale": "Preserves the declared AddressDelta value in Instructions.StructOffsetPath.delta, including its semantic type and signedness.",
+      "cpp_fingerprint": "ad7682a8aacb450298f73d947c74cc1fdb806e823dbe5c009e6f7b2b5dff939e",
+      "swift_targets": [
+        {
+          "path": "Instructions.StructOffsetPath.delta",
+          "declaration": "var delta: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d92573e5a002955d59c",
+      "cpp_name": "ida::instruction::StructOffsetPath::member_names",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "ccd35bbdfd9120f9d0a5"
+      ],
+      "rationale": "Preserves the member_names value as var memberNames: [String]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "e4e4c78dcf830c90fbefd010d03fc473dcbfd011bc39fd49bff4d553cb427376",
+      "swift_targets": [
+        {
+          "path": "Instructions.StructOffsetPath.memberNames",
+          "declaration": "var memberNames: [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5981dbbc3c57bb025dc0",
+      "cpp_name": "ida::instruction::StructOffsetPath::structure_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "672d3d79e6eb6104868d"
+      ],
+      "rationale": "Preserves the structure_name value as var structureName: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "1fcec0ef84f46d612c68b1e2af877529d21d3fe76c1972b3e123b2631e7953c0",
+      "swift_targets": [
+        {
+          "path": "Instructions.StructOffsetPath.structureName",
+          "declaration": "var structureName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "43712d381a40268e909f",
+      "cpp_name": "ida::instruction::branch_condition",
+      "cpp_kind": "function",
+      "cpp_signature": "BranchCondition (Address)",
+      "mapping": "direct",
+      "swift": [
+        "c1502db207b8c285ddfa"
+      ],
+      "rationale": "Instructions.branchCondition(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1fdb6ce0663dace828fdab094d36f81edae2ea6cfff075033493fc0bcff8c3ce",
+      "swift_targets": [
+        {
+          "path": "Instructions.branchCondition(address:)",
+          "declaration": "static func branchCondition(address: UInt64) throws(IDAError) -> Instructions.BranchCondition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3cd54877a2c0168b4382",
+      "cpp_name": "ida::instruction::call_targets",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "f9ef4f3c0cb7cd8a3d73"
+      ],
+      "rationale": "Instructions.callTargets(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3e27132c37501e42390ff6bbc8122c154b5222f5c84c87806a3bbd32bcd803fd",
+      "swift_targets": [
+        {
+          "path": "Instructions.callTargets(address:)",
+          "declaration": "static func callTargets(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2eb3c525cc82f9aa09a",
+      "cpp_name": "ida::instruction::clear_operand_representation",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "ed538d53e0d629c8c9c8"
+      ],
+      "rationale": "Instructions.clearOperandRepresentation(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5ab247f0ca56b80d1fb3171846b1c25e64ba2912b5d7ad8138e7dd64e174ead2",
+      "swift_targets": [
+        {
+          "path": "Instructions.clearOperandRepresentation(address:operandIndex:)",
+          "declaration": "static func clearOperandRepresentation(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f403a09f61b85d54855",
+      "cpp_name": "ida::instruction::code_refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "e8e316bb9f3bcbfeeb6b"
+      ],
+      "rationale": "Instructions.codeRefsFrom(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f0b3c531858d8a5790f1d9686557abbecb11c45d7449e32358447a0882b3377b",
+      "swift_targets": [
+        {
+          "path": "Instructions.codeRefsFrom(address:)",
+          "declaration": "static func codeRefsFrom(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "88a7c488a56adbea90f9",
+      "cpp_name": "ida::instruction::create",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Instruction> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "c521c63dfa5d28e00376"
+      ],
+      "rationale": "Instructions.create(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a71c9280e985a63b812b4f8143a3b33baf2efbee55db0384859d16eb40515cdd",
+      "swift_targets": [
+        {
+          "path": "Instructions.create(address:)",
+          "declaration": "static func create(address: UInt64) throws(IDAError) -> Instructions.Instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f194a953e7fa8c1c9af9",
+      "cpp_name": "ida::instruction::data_refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "cf731b2c1caf3f2bef9f"
+      ],
+      "rationale": "Instructions.dataRefsFrom(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c8ab94e05c12edfc95ee8a497f10cf3e2148af8b2aa0a23c433cc408d9ebc9f6",
+      "swift_targets": [
+        {
+          "path": "Instructions.dataRefsFrom(address:)",
+          "declaration": "static func dataRefsFrom(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "139f3f8b973864b90a48",
+      "cpp_name": "ida::instruction::decode",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Instruction> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "9f481a9e8ee560bbdc43"
+      ],
+      "rationale": "Instructions.decode(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0b4b0d8be7b23b83f17e2a9f38b7f0525e80b3345e386da3d0286bb14c7d4cf9",
+      "swift_targets": [
+        {
+          "path": "Instructions.decode(address:)",
+          "declaration": "static func decode(address: UInt64) throws(IDAError) -> Instructions.Instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e488a3514ead59d2f19c",
+      "cpp_name": "ida::instruction::ensure_operand_struct_member_offset",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address, int, std::string_view, std::size_t, AddressDelta)",
+      "mapping": "direct",
+      "swift": [
+        "57b7f236b4392ce98175"
+      ],
+      "rationale": "Instructions.ensureOperandStructMemberOffset(address:operandIndex:structureName:memberByteOffset:delta:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "dcaacc1566ad086c9b9598502e3c74d70bd86289118b31a5b5aa261a060f02bf",
+      "swift_targets": [
+        {
+          "path": "Instructions.ensureOperandStructMemberOffset(address:operandIndex:structureName:memberByteOffset:delta:)",
+          "declaration": "static func ensureOperandStructMemberOffset(address: UInt64, operandIndex: Int32, structureName: String, memberByteOffset: Int, delta: Int64 = 0) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b71158dfd655ade7a2fc",
+      "cpp_name": "ida::instruction::get_forced_operand",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "6a5d0476122b2f89e557"
+      ],
+      "rationale": "Instructions.getForcedOperand(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "129a70155b82eb07f720ef9580bdf479f964e9df5224066179122f64ca6f9eba",
+      "swift_targets": [
+        {
+          "path": "Instructions.getForcedOperand(address:operandIndex:)",
+          "declaration": "static func getForcedOperand(address: UInt64, operandIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e1234b0ac79e8e4a7bd",
+      "cpp_name": "ida::instruction::has_fall_through",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "56ddf840111418eaa59b"
+      ],
+      "rationale": "Instructions.hasFallThrough(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ae7aa359e313af8f49a0ece8d5e858b4e9b51bf3d7c554c73b055022dab4edcb",
+      "swift_targets": [
+        {
+          "path": "Instructions.hasFallThrough(address:)",
+          "declaration": "static func hasFallThrough(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8362d09ea75f2df0e63",
+      "cpp_name": "ida::instruction::is_call",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "c31f9e71d1ad76ef64d2"
+      ],
+      "rationale": "Instructions.isCall(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d7c666cac5c8c6d0895bdc5742177e0a690d19339e6b0a9c5b8646939be2957b",
+      "swift_targets": [
+        {
+          "path": "Instructions.isCall(address:)",
+          "declaration": "static func isCall(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b778cab2042a6261b82",
+      "cpp_name": "ida::instruction::is_conditional_jump",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "58dabbad5e8ec3de74fa"
+      ],
+      "rationale": "Instructions.isConditionalJump(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "83435cbc12756c261e24323e4a61c24c55c04cad586b1e6b52312998f51399d3",
+      "swift_targets": [
+        {
+          "path": "Instructions.isConditionalJump(address:)",
+          "declaration": "static func isConditionalJump(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b8a57ed15b33e39c5b7f",
+      "cpp_name": "ida::instruction::is_jump",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "09b9e5b9a4233894c7f3"
+      ],
+      "rationale": "Instructions.isJump(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e80448f56b1996c35680991baa26cbc23da3055de9c61b3992b0e7724068abc5",
+      "swift_targets": [
+        {
+          "path": "Instructions.isJump(address:)",
+          "declaration": "static func isJump(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14bbc34c42acdff80ac4",
+      "cpp_name": "ida::instruction::is_return",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "0c9e9e90d4968defccdc"
+      ],
+      "rationale": "Instructions.isReturn(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "619abe1a410f35ef437f69d569a33497d27849226e40496b799c0010a9ae38b0",
+      "swift_targets": [
+        {
+          "path": "Instructions.isReturn(address:)",
+          "declaration": "static func isReturn(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "268ae1a76c63efa2b6bf",
+      "cpp_name": "ida::instruction::jump_targets",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "655232bbf794edacd12a"
+      ],
+      "rationale": "Instructions.jumpTargets(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "890e877044e38e573c131685c239c03110176b1db6c4870986fdae3a773a3a96",
+      "swift_targets": [
+        {
+          "path": "Instructions.jumpTargets(address:)",
+          "declaration": "static func jumpTargets(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "613f4c7dbc5d4aa9ca5e",
+      "cpp_name": "ida::instruction::next",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Instruction> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "a49f4f95101c74b65397"
+      ],
+      "rationale": "Instructions.next(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "731d773607a2eff7d1f0474600f6e231a71ab9a79f3cae18c7a7b53aba46ca9f",
+      "swift_targets": [
+        {
+          "path": "Instructions.next(address:)",
+          "declaration": "static func next(address: UInt64) throws(IDAError) -> Instructions.Instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "454a943402f76160558e",
+      "cpp_name": "ida::instruction::operand_byte_width",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<int> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "ddd51f1bccf26ae81a6a"
+      ],
+      "rationale": "Instructions.operandByteWidth(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f8acbaa685190aca24a8fdb8462319c15cd61b600fd497ca37cd8bcf662a7843",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandByteWidth(address:operandIndex:)",
+          "declaration": "static func operandByteWidth(address: UInt64, operandIndex: Int32) throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2f6c2b204f9841cb1b5",
+      "cpp_name": "ida::instruction::operand_enum",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<OperandEnum> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "0ae5af6558b0cbb3791d"
+      ],
+      "rationale": "Returns the complete named OperandEnum record; both name and UInt8 serial are copied from the canonical result.",
+      "cpp_fingerprint": "496161cc93b732cae0589105a0fd9eda94e04d987268a517e189ddad0b34b2e2",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandEnum(address:operandIndex:)",
+          "declaration": "static func operandEnum(address: Address, operandIndex: Int32) throws(IDAError) -> Instructions.OperandEnum"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1fbc4983e437d9ab82ff",
+      "cpp_name": "ida::instruction::operand_register_category",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<RegisterCategory> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "d830221f9056ac381d97"
+      ],
+      "rationale": "Instructions.operandRegisterCategory(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "95a6a02e3c26536ec4f2964a71916fa6ba713012e40bdaa8e0b5dd8f0af9b293",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandRegisterCategory(address:operandIndex:)",
+          "declaration": "static func operandRegisterCategory(address: UInt64, operandIndex: Int32) throws(IDAError) -> Instructions.RegisterCategory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fca821848b68d3c69023",
+      "cpp_name": "ida::instruction::operand_register_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "91b389cc3acb44f177cc"
+      ],
+      "rationale": "Instructions.operandRegisterName(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "2c87c9d9d4ee69721be995f74e384b2e19ad4190ad7d516f859dc30db6368c3e",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandRegisterName(address:operandIndex:)",
+          "declaration": "static func operandRegisterName(address: UInt64, operandIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c81431c0f98f03564a77",
+      "cpp_name": "ida::instruction::operand_struct_offset_path",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<StructOffsetPath> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "4d7f66768f09b4ed9e70"
+      ],
+      "rationale": "Instructions.operandStructOffsetPath(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "314e4810e7dfc6514578dd50f8afbf892d3fecc6cca375291648efaa472f9ccd",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandStructOffsetPath(address:operandIndex:)",
+          "declaration": "static func operandStructOffsetPath(address: Address, operandIndex: Int32) throws(IDAError) -> Instructions.StructOffsetPath"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4c91892662d556bf2bd4",
+      "cpp_name": "ida::instruction::operand_struct_offset_path_names",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::string>> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "c6202108c4c78d7687bf"
+      ],
+      "rationale": "Instructions.operandStructOffsetPathNames(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "69fe687d11f426801281560dc1bbc3bd16c814cdefaecc2b4b756d11a4631f5f",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandStructOffsetPathNames(address:operandIndex:)",
+          "declaration": "static func operandStructOffsetPathNames(address: UInt64, operandIndex: Int32) throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7cff8c76edff825c48f8",
+      "cpp_name": "ida::instruction::operand_text",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "89629486cece1647d7db"
+      ],
+      "rationale": "Instructions.operandText(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "88ad932f714e6394b7fdf3ccfe704282fbc76b844b27fc9c45eefe13ca4542eb",
+      "swift_targets": [
+        {
+          "path": "Instructions.operandText(address:operandIndex:)",
+          "declaration": "static func operandText(address: UInt64, operandIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bcb358b3894f77b6c961",
+      "cpp_name": "ida::instruction::prev",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Instruction> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "7e952564526314b01c01"
+      ],
+      "rationale": "Instructions.prev(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6ab123e25f5a0cb16609d40ebd6d1408eebf832413298de68b56c9ad2278a246",
+      "swift_targets": [
+        {
+          "path": "Instructions.prev(address:)",
+          "declaration": "static func prev(address: UInt64) throws(IDAError) -> Instructions.Instruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7106f08a6612c0623239",
+      "cpp_name": "ida::instruction::set_forced_operand",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "c557f95dd6cd87a2c5f9"
+      ],
+      "rationale": "Instructions.setForcedOperand(address:operandIndex:text:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3ceb533ad0c6c0fb16d278e43fa4caf31134280d851b2152b2e9efd80cbe4ed9",
+      "swift_targets": [
+        {
+          "path": "Instructions.setForcedOperand(address:operandIndex:text:)",
+          "declaration": "static func setForcedOperand(address: UInt64, operandIndex: Int32, text: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c43e444b50c2f1c29452",
+      "cpp_name": "ida::instruction::set_operand_based_struct_offset",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "6a294c8e3ebf98090424"
+      ],
+      "rationale": "Instructions.setOperandBasedStructOffset(address:operandIndex:operandValue:base:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e13bd03df74aceee60910f5c3f942e7cff50d54fe1356f664c806b9f1c755dca",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandBasedStructOffset(address:operandIndex:operandValue:base:)",
+          "declaration": "static func setOperandBasedStructOffset(address: UInt64, operandIndex: Int32, operandValue: UInt64, base: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a632d87c4d605cae3845",
+      "cpp_name": "ida::instruction::set_operand_binary",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "8cebe531fb11a99e0f47"
+      ],
+      "rationale": "Instructions.setOperandBinary(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "34e3512358ed00934f25b7cf6912ea348a65ec905d2b1db5e1bf4a2230458e90",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandBinary(address:operandIndex:)",
+          "declaration": "static func setOperandBinary(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11a369fd8b94e41a5776",
+      "cpp_name": "ida::instruction::set_operand_character",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "f2d0c2824d03faee7852"
+      ],
+      "rationale": "Instructions.setOperandCharacter(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a15ec93e9196fd4a7a3e103a5b2cf9a954ca4b0f5a19002f490fccd47692525a",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandCharacter(address:operandIndex:)",
+          "declaration": "static func setOperandCharacter(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b556898bdd3cbc680f6",
+      "cpp_name": "ida::instruction::set_operand_decimal",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "4f0baff02993c90fc55b"
+      ],
+      "rationale": "Instructions.setOperandDecimal(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "cf35e9f2d8d01064b659ae7afe8b8f60e8c294f41383d75ece4bdf6ec7f69046",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandDecimal(address:operandIndex:)",
+          "declaration": "static func setOperandDecimal(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c71b2f09a17f651f9c90",
+      "cpp_name": "ida::instruction::set_operand_enum",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::string_view, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "ff7a1e20e1597b20895a"
+      ],
+      "rationale": "Instructions.setOperandEnum(address:operandIndex:enumName:serial:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "58c3b9f39d1ea2eafb091741f616f88f1d4260e55556158a87a112f5e1661985",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandEnum(address:operandIndex:enumName:serial:)",
+          "declaration": "static func setOperandEnum(address: UInt64, operandIndex: Int32, enumName: String, serial: UInt8 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d8530abd318395a84173",
+      "cpp_name": "ida::instruction::set_operand_float",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "eff0d0fa516c3553c4db"
+      ],
+      "rationale": "Instructions.setOperandFloat(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a164ae05d6b9949336364d4b44a268a2bbc41dd83db92cf15ff0bae41764bfbf",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandFloat(address:operandIndex:)",
+          "declaration": "static func setOperandFloat(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f2de72b662e5fc4373a",
+      "cpp_name": "ida::instruction::set_operand_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, OperandFormat, Address)",
+      "mapping": "direct",
+      "swift": [
+        "41cb946c38579219b0be"
+      ],
+      "rationale": "Instructions.setOperandFormat(address:operandIndex:format:base:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ac05ceb15df2d23a8e8a21da66d802aed49f6618d24a1f3dcd808d4f999af55b",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandFormat(address:operandIndex:format:base:)",
+          "declaration": "static func setOperandFormat(address: UInt64, operandIndex: Int32, format: Instructions.OperandFormat, base: UInt64 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3969f2a683c645bbb006",
+      "cpp_name": "ida::instruction::set_operand_hex",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "faf1219e6699c5a6be56"
+      ],
+      "rationale": "Instructions.setOperandHex(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "449c78c0eb999097f25c0ed664df28e1384ccb69eabe142181ee2c4a757df7f0",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandHex(address:operandIndex:)",
+          "declaration": "static func setOperandHex(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42490199478a498558e5",
+      "cpp_name": "ida::instruction::set_operand_octal",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "507515dff9df2976f5d5"
+      ],
+      "rationale": "Instructions.setOperandOctal(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "38b8309c8658345fe7b6731b65cfdc77f2b61a0f7ee72ce92e7cf26f73feb9d9",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandOctal(address:operandIndex:)",
+          "declaration": "static func setOperandOctal(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "71fbeb6bdbf1385b3c05",
+      "cpp_name": "ida::instruction::set_operand_offset",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, Address)",
+      "mapping": "direct",
+      "swift": [
+        "8217316b2404d744b38f"
+      ],
+      "rationale": "Instructions.setOperandOffset(address:operandIndex:base:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "bf8a304a0305efcaa51e2f241432ac607ffba53608e01c6c6fcd5817972f8cba",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandOffset(address:operandIndex:base:)",
+          "declaration": "static func setOperandOffset(address: UInt64, operandIndex: Int32, base: UInt64 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "01136d2f4c4456670f6e",
+      "cpp_name": "ida::instruction::set_operand_stack_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "f6c766c3b6a6e36d986a"
+      ],
+      "rationale": "Instructions.setOperandStackVariable(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c7b345df08710747c52a377834b08e99eb94fbbf2d722b82871c8bb9a27a2905",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandStackVariable(address:operandIndex:)",
+          "declaration": "static func setOperandStackVariable(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "84bc9fff9e6c9a54ae1d",
+      "cpp_name": "ida::instruction::set_operand_struct_offset",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::string_view, AddressDelta)",
+      "mapping": "direct",
+      "swift": [
+        "d706c9815274c04c175b"
+      ],
+      "rationale": "Instructions.setOperandStructOffset(address:operandIndex:structureName:delta:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c6945050c51ce10efc8b45b888dcd8cbfcbd8501d4ad66a2bdbc990583ffb67a",
+      "swift_targets": [
+        {
+          "path": "Instructions.setOperandStructOffset(address:operandIndex:structureName:delta:)",
+          "declaration": "static func setOperandStructOffset(address: Address, operandIndex: Int32, structureName: String, delta: Int64 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5561e8d2829b150aa54",
+      "cpp_name": "ida::instruction::text",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "ab034b5bc0b5a63d0b8a"
+      ],
+      "rationale": "Instructions.text(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fb7fa6f84d3b267bc6e9e82b663eca469a6701a5d13ce3e76b76b189cbb319ee",
+      "swift_targets": [
+        {
+          "path": "Instructions.text(address:)",
+          "declaration": "static func text(address: UInt64) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a4098553c66da853b073",
+      "cpp_name": "ida::instruction::toggle_operand_negate",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "cc85766b3ad9b5d5a430"
+      ],
+      "rationale": "Instructions.toggleOperandNegate(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f5053f89535e494ba25f9afbe8eacc2f2cfa19182d931fc30ead2185867ae528",
+      "swift_targets": [
+        {
+          "path": "Instructions.toggleOperandNegate(address:operandIndex:)",
+          "declaration": "static func toggleOperandNegate(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ad636af343605cf4539",
+      "cpp_name": "ida::instruction::toggle_operand_sign",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "5d2ae1cf4471135f4751"
+      ],
+      "rationale": "Instructions.toggleOperandSign(address:operandIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b6fb6f7bdcf39ac21d4863b9f0c218ba88f1f9a73c7e99aba6dd39588a358f19",
+      "swift_targets": [
+        {
+          "path": "Instructions.toggleOperandSign(address:operandIndex:)",
+          "declaration": "static func toggleOperandSign(address: UInt64, operandIndex: Int32) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

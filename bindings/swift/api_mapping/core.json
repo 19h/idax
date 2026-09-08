@@ -1,0 +1,221 @@
+{
+  "domain": "core",
+  "declarations": [
+    {
+      "cpp_id": "bd1e457b9dec5cd93af3",
+      "cpp_name": "ida::OperationOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "af1ed3d873f974f9bc7a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bd1e457b9dec5cd93af32d3c8e174986ae3eeb8df76f666bf2b021a43fe518f6",
+      "swift_targets": [
+        {
+          "path": "OperationOptions",
+          "declaration": "struct OperationOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8066aca1cbd3c916fd45",
+      "cpp_name": "ida::OperationOptions::allow_partial_results",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "dc6d0bdeb0d0095bc20d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "984910d4ca3f4cbe22ee4c57ce485cef58b30a77ebe48e2f4f5b2efe97944471",
+      "swift_targets": [
+        {
+          "path": "OperationOptions.allowPartialResults",
+          "declaration": "var allowPartialResults: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bd1af3a0563ccb45904a",
+      "cpp_name": "ida::OperationOptions::cancel_on_user_break",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "b30559ddd1c5afd15c29"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "72ab72c324819f323083067fe84559d8001ed3de5f5903cee262266f7e2ffb60",
+      "swift_targets": [
+        {
+          "path": "OperationOptions.cancelOnUserBreak",
+          "declaration": "var cancelOnUserBreak: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "09332725d00000020d1c",
+      "cpp_name": "ida::OperationOptions::quiet",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0644716f5d9909dac80c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9e46ba5e4702c2ce9abfc7231bd0907b1c510b5d31007720f3e1ff182922986b",
+      "swift_targets": [
+        {
+          "path": "OperationOptions.quiet",
+          "declaration": "var quiet: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79266391e279c8f9a28b",
+      "cpp_name": "ida::OperationOptions::strict_validation",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "dd72755c3b7f75262d19"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b7d86ebf0c29304921771b2bfe1975c200f41f0f1a8087dbd1220dd2fe033d9f",
+      "swift_targets": [
+        {
+          "path": "OperationOptions.strictValidation",
+          "declaration": "var strictValidation: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1f3b3ca9fad5624c7d6",
+      "cpp_name": "ida::RangeOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "fd53bb182fbbfe63a998"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a1f3b3ca9fad5624c7d6679121b75e00a935d565d0ea0fac45192668e9ade2df",
+      "swift_targets": [
+        {
+          "path": "RangeOptions",
+          "declaration": "struct RangeOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7052c47f87ed78acfefa",
+      "cpp_name": "ida::RangeOptions::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "e701ade33746c670c109"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "604fd836c1f0c4d346102d29fec964a681900341957cb22ab1a6dad5456cb330",
+      "swift_targets": [
+        {
+          "path": "RangeOptions.end",
+          "declaration": "var end: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3fdad0f0b66401001952",
+      "cpp_name": "ida::RangeOptions::inclusive_end",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "cc60284d240d4fe9c745"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2b9058bd98cd99d289519a031436119a38029663c3685b69c300572ae38d184e",
+      "swift_targets": [
+        {
+          "path": "RangeOptions.inclusiveEnd",
+          "declaration": "var inclusiveEnd: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07cfc1658b6542ac01d0",
+      "cpp_name": "ida::RangeOptions::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "4adc6f2afaa6f8d4483c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d3736476bb4eec521b1adcdc877ef2a96263879374595d0e7e237337efe36040",
+      "swift_targets": [
+        {
+          "path": "RangeOptions.start",
+          "declaration": "var start: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "451af620859e8f73f2b2",
+      "cpp_name": "ida::WaitOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a4195fea727c60a3e498"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "451af620859e8f73f2b20d1ecfefcda380feb44c56c63052defa065892b9ee62",
+      "swift_targets": [
+        {
+          "path": "WaitOptions",
+          "declaration": "struct WaitOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7fe038c0522e8ed1df66",
+      "cpp_name": "ida::WaitOptions::poll_interval_ms",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "0705523bcb4bc4d73e8e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6891221560fb27c70a8f84a0f7b37abe41a0b8122b4244dee1fdfce2360446a0",
+      "swift_targets": [
+        {
+          "path": "WaitOptions.pollIntervalMilliseconds",
+          "declaration": "var pollIntervalMilliseconds: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "53bc16718398ac5b0f76",
+      "cpp_name": "ida::WaitOptions::timeout_ms",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "7f1b418d264fa916af81"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ed3ac9220605ec2c34c1ac59736b51ee1056df930ccf6eb737600a536bf1d1c8",
+      "swift_targets": [
+        {
+          "path": "WaitOptions.timeoutMilliseconds",
+          "declaration": "var timeoutMilliseconds: UInt32"
+        }
+      ]
+    }
+  ]
+}

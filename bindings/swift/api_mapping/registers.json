@@ -1,0 +1,833 @@
+{
+  "domain": "registers",
+  "declarations": [
+    {
+      "cpp_id": "52067e8ca6f548c4d6ac",
+      "cpp_name": "ida::registers::NearestValue",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "6e6ec8beffc5edd1bf91"
+      ],
+      "rationale": "Registers.NearestValue is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "52067e8ca6f548c4d6aca2df48cdfb5b2cf6ae00131e9f1d940f546416a3f8ef",
+      "swift_targets": [
+        {
+          "path": "Registers.NearestValue",
+          "declaration": "struct NearestValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cae08d0ba7cc0e53645a",
+      "cpp_name": "ida::registers::NearestValue::register_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "f00fc818bf824abc508f"
+      ],
+      "rationale": "Preserves the register_name value as var registerName: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "6030a620c1c2b29fd08289e2bfca239ad83a8a942adc6aaa236e7395bc7a630e",
+      "swift_targets": [
+        {
+          "path": "Registers.NearestValue.registerName",
+          "declaration": "var registerName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a35169765da1a2f93dee",
+      "cpp_name": "ida::registers::NearestValue::selected_index",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "a2748b252f9bc299f475"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Registers.NearestValue.selectedIndex, including its semantic type and signedness.",
+      "cpp_fingerprint": "5f55122ae44165792bd18dc3f23d863e015bb98aed0ebd0ec085a2ee8e7f9a34",
+      "swift_targets": [
+        {
+          "path": "Registers.NearestValue.selectedIndex",
+          "declaration": "var selectedIndex: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f09d2a5378c833ef9197",
+      "cpp_name": "ida::registers::NearestValue::value",
+      "cpp_kind": "field",
+      "cpp_signature": "TrackedValue",
+      "mapping": "direct",
+      "swift": [
+        "63dc668fa8ff3be9ba23"
+      ],
+      "rationale": "Preserves the declared TrackedValue value in Registers.NearestValue.value, including its semantic type and signedness.",
+      "cpp_fingerprint": "93abddaeefed64e5b34134a63b8dba20bb2c645b3b8986085f8a38ce9c34c298",
+      "swift_targets": [
+        {
+          "path": "Registers.NearestValue.value",
+          "declaration": "var value: Registers.TrackedValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8cb45801233db11492d4",
+      "cpp_name": "ida::registers::ReferenceMutation",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ReferenceMutation : std::uint8_t { Added, Removed, }",
+      "mapping": "direct",
+      "swift": [
+        "fe6ee15495b5e456aa9d"
+      ],
+      "rationale": "Registers.ReferenceMutation represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "5f2193b86135a600ed916a30eeae8a02ce0386a8ccc89eea86fdc92005609507",
+      "swift_targets": [
+        {
+          "path": "Registers.ReferenceMutation",
+          "declaration": "enum ReferenceMutation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b079b5fdfbd6c79d7857",
+      "cpp_name": "ida::registers::ReferenceMutation::Added",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::ReferenceMutation",
+      "mapping": "direct",
+      "swift": [
+        "f023f7e5b867c2da0252"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.ReferenceMutation.added; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "61ee54b2aa42f214473e947a8163920d3fc2a75be2aaa6581e347b90cba92a9e",
+      "swift_targets": [
+        {
+          "path": "Registers.ReferenceMutation.added",
+          "declaration": "case added"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe1186ed09aca3017f00",
+      "cpp_name": "ida::registers::ReferenceMutation::Removed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::ReferenceMutation",
+      "mapping": "direct",
+      "swift": [
+        "7c32cd1aa64c5b4eba26"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.ReferenceMutation.removed; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c6b695330317531fde6a548bd630873a1f6e29e18b6a6841bded94008aff8b1c",
+      "swift_targets": [
+        {
+          "path": "Registers.ReferenceMutation.removed",
+          "declaration": "case removed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "39783cd124f74aeaf4a1",
+      "cpp_name": "ida::registers::TrackedValue",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "ec5ec313d2489d1e426b"
+      ],
+      "rationale": "Registers.TrackedValue is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "39783cd124f74aeaf4a15fc83682b28f757a5b5b5d4fe5c65a7529e4b641a08e",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue",
+          "declaration": "struct TrackedValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f135f4663474b7e46f17",
+      "cpp_name": "ida::registers::TrackedValue::aborting_depth",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::int32_t>",
+      "mapping": "direct",
+      "swift": [
+        "e2ef18f2f6e6fe78b1bd"
+      ],
+      "rationale": "Registers.TrackedValue.abortingDepth preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "e3e6bb73a97b38be3e44b3ae593561151a146e0d51a586f7d5866c8b814df9f6",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.abortingDepth",
+          "declaration": "var abortingDepth: Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "af8e5c8b6c6f8cbc56ca",
+      "cpp_name": "ida::registers::TrackedValue::candidates",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<ValueCandidate>",
+      "mapping": "direct",
+      "swift": [
+        "a7962e052552000109dd"
+      ],
+      "rationale": "Preserves the candidates value as var candidates: [Registers.ValueCandidate]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "93df5d44d09bff06fbc004cab1bd9eefe5075d360f6e3ab3f993c4b1e1f98b24",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.candidates",
+          "declaration": "var candidates: [Registers.ValueCandidate]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c939e69e33442df7091",
+      "cpp_name": "ida::registers::TrackedValue::cause",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<ValueOrigin>",
+      "mapping": "direct",
+      "swift": [
+        "e52a89492d840c302f97"
+      ],
+      "rationale": "Registers.TrackedValue.cause preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "eb6ef0386a9cf254cabe8b26e333f37846a03fad49e3147f2903bc75692c2c5d",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.cause",
+          "declaration": "var cause: Registers.ValueOrigin?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "76b94389db5e3af94bba",
+      "cpp_name": "ida::registers::TrackedValue::description",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "5ed3128343e6fba59cb3"
+      ],
+      "rationale": "Preserves the description value as var description: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "e82cbc2789924929fc62b17ba456576f082ba20dc0e91d1c3147e6db3d74944a",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.description",
+          "declaration": "var description: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5adc0b71889ab9c54a6",
+      "cpp_name": "ida::registers::TrackedValue::known",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "7e41949635429e9b3977"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Registers.TrackedValue.known, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "c2feb9dad8f375756c077e0ac463293bb5e55bf6c384f6af08507390e3cebe7f",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.known",
+          "declaration": "var known: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "47ce5c5bd5e37f7d5659",
+      "cpp_name": "ida::registers::TrackedValue::state",
+      "cpp_kind": "field",
+      "cpp_signature": "TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "09b60b2869a39345173a"
+      ],
+      "rationale": "Preserves the declared TrackingState value in Registers.TrackedValue.state, including its semantic type and signedness.",
+      "cpp_fingerprint": "fb78474e9dbd4fe4647faf1d3e2ba5326bbb7d6b167245a651738f2f043152fb",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackedValue.state",
+          "declaration": "var state: Registers.TrackingState"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8bfcbdcc1b9d3dbac45f",
+      "cpp_name": "ida::registers::TrackingState",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class TrackingState : std::uint8_t { Undefined, DeadEnd, Aborted, BadInstruction, UnknownInstruction, FunctionInput, LoopVariant, IncompatibleValues, TooManyReferences, TooManyValues, Constant, StackPointerDelta, }",
+      "mapping": "direct",
+      "swift": [
+        "8a03c8a05079fb9dc75e"
+      ],
+      "rationale": "Registers.TrackingState represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "0e2bac45b59c108a2fc4f1c062ddfdb3edebf5ff10ddd13b40ef3678550475e1",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState",
+          "declaration": "enum TrackingState"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2872ec356da7773741a9",
+      "cpp_name": "ida::registers::TrackingState::Aborted",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "ba8847481b4b4652fa7b"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.aborted; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1bb8cd419a05c539dfbd2c904bc48bccc55f8f38c4623407d3a045df3d3a1320",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.aborted",
+          "declaration": "case aborted"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87ecce14557a0701ce1d",
+      "cpp_name": "ida::registers::TrackingState::BadInstruction",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "3da44b714d1671b138bf"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.badInstruction; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "61b75bec7b324c54b121dcb6c475a1211f366b88b31effcb4b71194d82c88da0",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.badInstruction",
+          "declaration": "case badInstruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e6913b30ab971e29730",
+      "cpp_name": "ida::registers::TrackingState::Constant",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "17fbba277ba061d19433"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.constant; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3c8948e301c5798b0179c3afcef19c2a52094fede4817d32ce4cca7b95762c64",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.constant",
+          "declaration": "case constant"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d1099656e48e424eb06",
+      "cpp_name": "ida::registers::TrackingState::DeadEnd",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "992be7a2ba93c5e8b47f"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.deadEnd; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "bed87199eab8c828098fefe48afcee1eaf60ea455735ccf9ed725141a8b44e3d",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.deadEnd",
+          "declaration": "case deadEnd"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5d6c4fc9366d90e3f904",
+      "cpp_name": "ida::registers::TrackingState::FunctionInput",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "de85dd996f79dc3579c1"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.functionInput; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3d419f6bd1dfb8b337bb98bd51f32d747f13001ca98e972bf2a0a6e10668a7c1",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.functionInput",
+          "declaration": "case functionInput"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49734ed956c1ec447d23",
+      "cpp_name": "ida::registers::TrackingState::IncompatibleValues",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "590e4f6977dc934f4654"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.incompatibleValues; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b902194cce358823c4092f5f24fd9d9b16016664e5a5a6b42c4db38b39560bc7",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.incompatibleValues",
+          "declaration": "case incompatibleValues"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63d12186f2742fe3d177",
+      "cpp_name": "ida::registers::TrackingState::LoopVariant",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "a57042ba8be379da0bb0"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.loopVariant; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9cdc6c0d5e73d4abe07cdf1ade7b0ccd61bf1e5e62bd7ef5d3b5e0ef882ded4f",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.loopVariant",
+          "declaration": "case loopVariant"
+        }
+      ]
+    },
+    {
+      "cpp_id": "307e9e550925ea4cb90f",
+      "cpp_name": "ida::registers::TrackingState::StackPointerDelta",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "8442732eee76d2d342c7"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.stackPointerDelta; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "20b5f36ea6f471c3a587b482065436088b43d4d94650f45b0d8360527cc5cb55",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.stackPointerDelta",
+          "declaration": "case stackPointerDelta"
+        }
+      ]
+    },
+    {
+      "cpp_id": "84a0df7ec7251ceaf6f7",
+      "cpp_name": "ida::registers::TrackingState::TooManyReferences",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "43fec045d28c32ec6830"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.tooManyReferences; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f47ca95ba09a65e732e85fe6ead93ba5e6a6758c33f9c126607138fb8821971b",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.tooManyReferences",
+          "declaration": "case tooManyReferences"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dec832f9a535f8b32b5a",
+      "cpp_name": "ida::registers::TrackingState::TooManyValues",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "a6d226966bebdabbf5b1"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.tooManyValues; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c554c01e89351aeb7f6b29662d795957fdcbd287af1c1df2910896176c93c037",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.tooManyValues",
+          "declaration": "case tooManyValues"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44bdc932ed1799549eac",
+      "cpp_name": "ida::registers::TrackingState::Undefined",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "33deff0f73eac4a166fc"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.undefined; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "fce9de27b36336836a98fa6be55d1ce0dd3b12654d62ab25079fbe96e6dc431c",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.undefined",
+          "declaration": "case undefined"
+        }
+      ]
+    },
+    {
+      "cpp_id": "278b18464429d69ded36",
+      "cpp_name": "ida::registers::TrackingState::UnknownInstruction",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::registers::TrackingState",
+      "mapping": "direct",
+      "swift": [
+        "c625656da36ab1dff020"
+      ],
+      "rationale": "Corresponding typed semantic case Registers.TrackingState.unknownInstruction; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "56010475f02aa5ad79f8e3ee52b557b97f943702323e9f983c5dc6d35d8224c7",
+      "swift_targets": [
+        {
+          "path": "Registers.TrackingState.unknownInstruction",
+          "declaration": "case unknownInstruction"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b91acaa1743305add20c",
+      "cpp_name": "ida::registers::ValueCandidate",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "baf448afef0ca1f8a075"
+      ],
+      "rationale": "Registers.ValueCandidate is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "b91acaa1743305add20c681b068a0b3d27ac169f08eaca15b3130632cde0700e",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueCandidate",
+          "declaration": "struct ValueCandidate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "33010a56ac0faae7770c",
+      "cpp_name": "ida::registers::ValueCandidate::constant",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::uint64_t>",
+      "mapping": "direct",
+      "swift": [
+        "22dc9d420c53d0e8f34c"
+      ],
+      "rationale": "Registers.ValueCandidate.constant preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "9186f66d49ba9200eb09ccc2562c64cb812549deaf1b52e73cb111065b91dc06",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueCandidate.constant",
+          "declaration": "var constant: UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51a35d9ede383d318960",
+      "cpp_name": "ida::registers::ValueCandidate::origin",
+      "cpp_kind": "field",
+      "cpp_signature": "ValueOrigin",
+      "mapping": "direct",
+      "swift": [
+        "a0c768b5767b8b1fe63c"
+      ],
+      "rationale": "Preserves the declared ValueOrigin value in Registers.ValueCandidate.origin, including its semantic type and signedness.",
+      "cpp_fingerprint": "e272a2d9a8596061501fe8ea47a8192edca36649978744c1e09b9085bed14e80",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueCandidate.origin",
+          "declaration": "var origin: Registers.ValueOrigin"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c2973f725dccc7d06dba",
+      "cpp_name": "ida::registers::ValueCandidate::stack_pointer_delta",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<AddressDelta>",
+      "mapping": "direct",
+      "swift": [
+        "3818a6391b087f308895"
+      ],
+      "rationale": "Registers.ValueCandidate.stackPointerDelta preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "f2cdc30d077a57ba2becf317263e095269fec467455a560c07db6dd029c73045",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueCandidate.stackPointerDelta",
+          "declaration": "var stackPointerDelta: Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "126d78abb35a4935e04d",
+      "cpp_name": "ida::registers::ValueOrigin",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f8fd1ee536eaa8d51494"
+      ],
+      "rationale": "Registers.ValueOrigin is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "126d78abb35a4935e04daac8ff4c4cf036c9c6867ebf5a59e5bc51df4f0785d8",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin",
+          "declaration": "struct ValueOrigin"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e8855dcf09c613bbff57",
+      "cpp_name": "ida::registers::ValueOrigin::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "6e448f86a0a65cc2d441"
+      ],
+      "rationale": "Preserves the declared Address value in Registers.ValueOrigin.address, including its semantic type and signedness.",
+      "cpp_fingerprint": "acb455c3aa7b198398d2f0ce46c02641463a511646810d404ab7443d9c8f5746",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7ce01aa4205079c89e8c",
+      "cpp_name": "ida::registers::ValueOrigin::global_offset_table_like",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "cfaf274a203878bdb435"
+      ],
+      "rationale": "Preserves the declared bool value in Registers.ValueOrigin.globalOffsetTableLike, including its semantic type and signedness.",
+      "cpp_fingerprint": "94e0dad638bfcab6dfe7186ccc7483eae0e0b3b859934c005220975e088d5c50",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin.globalOffsetTableLike",
+          "declaration": "var globalOffsetTableLike: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70067886845eaba0bd12",
+      "cpp_name": "ida::registers::ValueOrigin::instruction_code",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "direct",
+      "swift": [
+        "c101625fc01d9b8adfc9"
+      ],
+      "rationale": "Preserves the declared std::uint16_t value in Registers.ValueOrigin.instructionCode, including its semantic type and signedness.",
+      "cpp_fingerprint": "b18d593df53fe9c8b4621a9a318c7c32f627d1a5ab924bb08ddf62625d4cd318",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin.instructionCode",
+          "declaration": "var instructionCode: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a058bcad19262e0c4f9",
+      "cpp_name": "ida::registers::ValueOrigin::program_counter_based",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "91820be556f023fb1bea"
+      ],
+      "rationale": "Preserves the declared bool value in Registers.ValueOrigin.programCounterBased, including its semantic type and signedness.",
+      "cpp_fingerprint": "02146d650c06c7916651154f599b2979fe46822c8124e8028c4bc39bc03ea2b8",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin.programCounterBased",
+          "declaration": "var programCounterBased: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6eb40c4c85e2df4cabc9",
+      "cpp_name": "ida::registers::ValueOrigin::short_instruction",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "66ba0a84b209287ff5ac"
+      ],
+      "rationale": "Preserves the declared bool value in Registers.ValueOrigin.shortInstruction, including its semantic type and signedness.",
+      "cpp_fingerprint": "bc5de9567614446c73fe118674962b7c4fc9f8259497603a6b51d4f196089b36",
+      "swift_targets": [
+        {
+          "path": "Registers.ValueOrigin.shortInstruction",
+          "declaration": "var shortInstruction: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6af99051ca1dde94ddcf",
+      "cpp_name": "ida::registers::clear_control_flow_cache",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "73fe7abb6cf93340da9b"
+      ],
+      "rationale": "Registers.clearControlFlowCache() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3f8c30b93fbbd7940047eaf8441d11ac576a8ea463ab1dc26abd5fa3d10155f1",
+      "swift_targets": [
+        {
+          "path": "Registers.clearControlFlowCache()",
+          "declaration": "static func clearControlFlowCache() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "12b088697eb86fe1d503",
+      "cpp_name": "ida::registers::clear_data_reference_cache",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "e2da538ec712e439266f"
+      ],
+      "rationale": "Registers.clearDataReferenceCache() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7aaa528d1b760d8a432bfce196f1807689d9ea312158a68168ffe836f893b644",
+      "swift_targets": [
+        {
+          "path": "Registers.clearDataReferenceCache()",
+          "declaration": "static func clearDataReferenceCache() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dac99b320c1fcea8705c",
+      "cpp_name": "ida::registers::constant_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::uint64_t>> (Address, std::string_view, int)",
+      "mapping": "direct",
+      "swift": [
+        "ae11fa0c7cc98b8298e5"
+      ],
+      "rationale": "Registers.constantAt(address:registerName:maxDepth:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "232bb7e78ac115e994cadc2c1bdd1b1a34f23894c29102e8c1d6535dd9684ed5",
+      "swift_targets": [
+        {
+          "path": "Registers.constantAt(address:registerName:maxDepth:)",
+          "declaration": "static func constantAt(address: UInt64, registerName: String, maxDepth: Int32 = 0) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c2c15b32b88fd208933",
+      "cpp_name": "ida::registers::control_flow_reference_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, ReferenceMutation)",
+      "mapping": "direct",
+      "swift": [
+        "f27876bd47a8337f263c"
+      ],
+      "rationale": "Registers.controlFlowReferenceChanged(from:to:mutation:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "656a3b0ea855a005adef744d063de826247055e446dc41c58037a0a82d182bf8",
+      "swift_targets": [
+        {
+          "path": "Registers.controlFlowReferenceChanged(from:to:mutation:)",
+          "declaration": "static func controlFlowReferenceChanged(from: UInt64, to: UInt64, mutation: Registers.ReferenceMutation) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "99c4bb250278f1e998a0",
+      "cpp_name": "ida::registers::data_reference_changed",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, ReferenceMutation)",
+      "mapping": "direct",
+      "swift": [
+        "dfcca9d193d75c6addc6"
+      ],
+      "rationale": "Registers.dataReferenceChanged(to:mutation:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "43eb8640ccb5de4528d3919d88ae4f6883d342505f4044a3715cfd0c6ac084ee",
+      "swift_targets": [
+        {
+          "path": "Registers.dataReferenceChanged(to:mutation:)",
+          "declaration": "static func dataReferenceChanged(to: UInt64, mutation: Registers.ReferenceMutation) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d019a30d33634e0b7f21",
+      "cpp_name": "ida::registers::nearest_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<NearestValue>> (Address, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "5094ac44cccd9495cf81"
+      ],
+      "rationale": "Registers.nearestAt(address:firstRegister:secondRegister:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "ad365970fabdf5b77eca02b2fcb755128eb63623189f7d3f0ba42a769ffa4540",
+      "swift_targets": [
+        {
+          "path": "Registers.nearestAt(address:firstRegister:secondRegister:)",
+          "declaration": "static func nearestAt(address: UInt64, firstRegister: String, secondRegister: String) throws(IDAError) -> Registers.NearestValue?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8c88a021f785f660fa20",
+      "cpp_name": "ida::registers::stack_delta_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<AddressDelta>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "b34012818342ec666ff9"
+      ],
+      "rationale": "Preserves the implicit active stack-pointer overload; it does not substitute an arbitrary register name.",
+      "cpp_fingerprint": "e42744ab85bb44df02e9d18c9fe335534c706a0fe65d7d1c4d2e67251e9f4569",
+      "swift_targets": [
+        {
+          "path": "Registers.stackDeltaAt(address:)",
+          "declaration": "static func stackDeltaAt(address: Address) throws(IDAError) -> Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "710b1d5a86e099ab4565",
+      "cpp_name": "ida::registers::stack_delta_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<AddressDelta>> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "abd134688b7555444a7c"
+      ],
+      "rationale": "Preserves the named-register overload.",
+      "cpp_fingerprint": "85475bdecb81d730d3f240f8a4814bd8dc14ef8e55993ca712d965e056b98351",
+      "swift_targets": [
+        {
+          "path": "Registers.stackDeltaAt(address:registerName:)",
+          "declaration": "static func stackDeltaAt(address: UInt64, registerName: String) throws(IDAError) -> Int64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ad0478c030efd6dd181b",
+      "cpp_name": "ida::registers::track",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<TrackedValue> (Address, std::string_view, int)",
+      "mapping": "direct",
+      "swift": [
+        "42c993b0500cd5b31085"
+      ],
+      "rationale": "Registers.track(address:registerName:maxDepth:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "96b69c34f875a84d2832d199b8a1957cdf9b68be0e4441e4dda2f47b637f4780",
+      "swift_targets": [
+        {
+          "path": "Registers.track(address:registerName:maxDepth:)",
+          "declaration": "static func track(address: UInt64, registerName: String, maxDepth: Int32 = 0) throws(IDAError) -> Registers.TrackedValue"
+        }
+      ]
+    }
+  ]
+}

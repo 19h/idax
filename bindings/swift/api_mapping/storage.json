@@ -1,0 +1,444 @@
+{
+  "domain": "storage",
+  "declarations": [
+    {
+      "cpp_id": "0f1089c95dd1b7bf34ad",
+      "cpp_name": "ida::storage::Node",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "76f784d5407eaed13e04"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0f1089c95dd1b7bf34adc9b3340dabc7851684112cab1940db9455453afd1182",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bebbf7b960af6ddfbf27",
+      "cpp_name": "ida::storage::Node::Node",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "76f784d5407eaed13e04",
+        "43f9726871cc0180aa61"
+      ],
+      "rationale": "An absent Node is represented by Optional<Node>.none; factories create initialized owners and expose no unusable native default object.",
+      "cpp_fingerprint": "7fd1fd30c22badee2aa04e3eb01be1bcb5be9510caf96bebe6226816c7e2eed2",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        },
+        {
+          "path": "Storage.Node.open(_:create:)",
+          "declaration": "static func open(_ name: String, create: Bool = false) throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e78b0b3f0fd6ac803b6",
+      "cpp_name": "ida::storage::Node::Node",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Node &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "76f784d5407eaed13e04",
+        "7e108810c013425acfd9"
+      ],
+      "rationale": "Swift assignment retains a reference; explicit copy opens an independent wrapper for the same persistent node, matching native copied node identity.",
+      "cpp_fingerprint": "4be654faebfcac01ec66126b4cb5574b5d6a8f0ee4ee7eb7a573d0f45eeab37a",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        },
+        {
+          "path": "Storage.Node.copy()",
+          "declaration": "func copy() throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f37b2e153311fbec9ed5",
+      "cpp_name": "ida::storage::Node::Node",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const Node &)",
+      "mapping": "adapted",
+      "swift": [
+        "76f784d5407eaed13e04",
+        "7e108810c013425acfd9"
+      ],
+      "rationale": "Swift assignment retains a reference; explicit copy opens an independent wrapper for the same persistent node, matching native copied node identity.",
+      "cpp_fingerprint": "306861af3c5d85ae16a4f32c78b9c4b31b29ecdc5dc8b257d4fc5c5e1a449408",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        },
+        {
+          "path": "Storage.Node.copy()",
+          "declaration": "func copy() throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "379f770ba489984d2b82",
+      "cpp_name": "ida::storage::Node::alt",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::uint64_t> (Address, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "9cb54b64282d760d0a77"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3ef45456d2b19f415b64668f435f60ff168caf30b073c2b1dd492bc74ee4f827",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.alt(at:tag:)",
+          "declaration": "func alt(at index: Address, tag: UInt8 = 65) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7d22ae0b80eef5eda90",
+      "cpp_name": "ida::storage::Node::blob",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (Address, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "04d1631762a213584817"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6cd0d378fdf8fce382957f50ea3aefa1994a4d2d7d5c10de86b44753a1c6bad4",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.blob(at:tag:)",
+          "declaration": "func blob(at index: Address, tag: UInt8 = 66) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9df310bf7e6343afa898",
+      "cpp_name": "ida::storage::Node::blob_size",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> (Address, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "b36276dc8f897f6d8ad6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7d84cb3185ea533bcecd0c64ddf4d19b28f2691c9722558fc318b9dfdae859b6",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.blobSize(at:tag:)",
+          "declaration": "func blobSize(at index: Address, tag: UInt8 = 66) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e390b00232cdb68c7152",
+      "cpp_name": "ida::storage::Node::blob_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (Address, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "168f1237beb1370b561e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c64ede967f8aecff52c7ef1fa7966e8e08ffcc4309aaef91740d4d958f25c68d",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.blobString(at:tag:)",
+          "declaration": "func blobString(at index: Address, tag: UInt8 = 66) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "baa7caddede878601606",
+      "cpp_name": "ida::storage::Node::hash",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (std::string_view, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "c60122e1e64ee1d13124"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d60e0fe89caf34eb47a912f7984fafd9a7ae72f8a9ded116f492f9b894aab0a6",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.hash(_:tag:)",
+          "declaration": "func hash(_ key: String, tag: UInt8 = 72) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7adeff7fa426d28f935c",
+      "cpp_name": "ida::storage::Node::id",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::uint64_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "f72d273a25a46c87db62"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7d99b1cd2ff6098c0c3c12dec9bc547aea1844347c5ea7a7600f101d808c4bbf",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.id()",
+          "declaration": "func id() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8d2200f33255761a4d14",
+      "cpp_name": "ida::storage::Node::name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "0e11243819aa8e42718b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1c0556a6ea9c7d42b885ac356e01f765e6272be943f2b63f168624c42863cc0f",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.name()",
+          "declaration": "func name() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f80edf3b7832c9139465",
+      "cpp_name": "ida::storage::Node::open",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Node> (std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "43f9726871cc0180aa61"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a4e7e36c8b4363631014aea9dfd18464e169f1018e8242aa74bffd2bf9c93d0c",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.open(_:create:)",
+          "declaration": "static func open(_ name: String, create: Bool = false) throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "761bb2fea670583c482f",
+      "cpp_name": "ida::storage::Node::open_by_id",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Node> (std::uint64_t)",
+      "mapping": "adapted",
+      "swift": [
+        "9c4d53a5abfd4efd713f"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "b5039d9feb0d98096d88b2f1674ad7839e6d8e194ae7ee866221753cd595b74a",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.open(id:)",
+          "declaration": "static func open(id: UInt64) throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b86d4c81d745985c858",
+      "cpp_name": "ida::storage::Node::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Node &(Node &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "76f784d5407eaed13e04",
+        "7e108810c013425acfd9"
+      ],
+      "rationale": "Swift assignment retains a reference; explicit copy opens an independent wrapper for the same persistent node, matching native copied node identity.",
+      "cpp_fingerprint": "0cb49ae865969930531b7ed8e3eebb574f8c889ca577d9ec237240586777082c",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        },
+        {
+          "path": "Storage.Node.copy()",
+          "declaration": "func copy() throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49940844eef7bfed15d8",
+      "cpp_name": "ida::storage::Node::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Node &(const Node &)",
+      "mapping": "adapted",
+      "swift": [
+        "76f784d5407eaed13e04",
+        "7e108810c013425acfd9"
+      ],
+      "rationale": "Swift assignment retains a reference; explicit copy opens an independent wrapper for the same persistent node, matching native copied node identity.",
+      "cpp_fingerprint": "5f5aa19c2bd624c5b4418b80659e95c8e9e6311f6f47735fb30c104f3313062b",
+      "swift_targets": [
+        {
+          "path": "Storage.Node",
+          "declaration": "final class Node"
+        },
+        {
+          "path": "Storage.Node.copy()",
+          "declaration": "func copy() throws(IDAError) -> Storage.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "036b00c2c83a566d8cb5",
+      "cpp_name": "ida::storage::Node::remove_alt",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "152f9359615a045bcb6d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e1772f407f865d68e913f794992b024ec8aa7a5a2443c25f1ceee3de7b67a08a",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.removeAlt(at:tag:)",
+          "declaration": "func removeAlt(at index: Address, tag: UInt8 = 65) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2be2866ad5b9260460c5",
+      "cpp_name": "ida::storage::Node::remove_blob",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "a19efa91a8e8b9edb809"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b7fb87566bb433f82b6788e1832f33ca58a231f02218cd0882ef7488d232eeb1",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.removeBlob(at:tag:)",
+          "declaration": "func removeBlob(at index: Address, tag: UInt8 = 66) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2b5f7fc942200bbf61bd",
+      "cpp_name": "ida::storage::Node::set_alt",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, std::uint64_t, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "0f91bc92753a508cc3da"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "932fcd970f93af18d5d30e0dbe4bca9744ab12d673e817857595118abdfbcd17",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.setAlt(at:value:tag:)",
+          "declaration": "func setAlt(at index: Address, value: UInt64, tag: UInt8 = 65) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7de9286d2183bb14a4a0",
+      "cpp_name": "ida::storage::Node::set_blob",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, std::span<const std::uint8_t>, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "91a82ae1846dd4d6e776"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cb9fe13b711ee1e901af9e8e85116b50240abdf2973594e79a39536ab179981a",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.setBlob(at:data:tag:)",
+          "declaration": "func setBlob(at index: Address, data: [UInt8], tag: UInt8 = 66) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e5f7f8a69343aaadf8d4",
+      "cpp_name": "ida::storage::Node::set_hash",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::string_view, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "50e1d9d3480d0a781fbc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "aa948bc703d132312e577152e47f57ad8568427fb4784fc7b384c01301e4efd2",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.setHash(_:value:tag:)",
+          "declaration": "func setHash(_ key: String, value: String, tag: UInt8 = 72) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3cdfeef73c4141450f46",
+      "cpp_name": "ida::storage::Node::set_sup",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, std::span<const std::uint8_t>, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "e6a91105c9035348d083"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "19e1325cc3a40a4327df3bb59dd2ccc7e5d5ac31fc0bff2adebd3ded5b440d1d",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.setSup(at:data:tag:)",
+          "declaration": "func setSup(at index: Address, data: [UInt8], tag: UInt8 = 83) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8ab3eca3c83ea6ce8c66",
+      "cpp_name": "ida::storage::Node::sup",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (Address, std::uint8_t) const",
+      "mapping": "direct",
+      "swift": [
+        "b43a7d01500845c6bb5d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "71aa24386e0590e9bb20ccc60fe468af4f37a272c10e414af395931f7720fb6d",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.sup(at:tag:)",
+          "declaration": "func sup(at index: Address, tag: UInt8 = 83) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fcc76025752fdb1aae30",
+      "cpp_name": "ida::storage::Node::~Node",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "860725e3d9ba73c8c687"
+      ],
+      "rationale": "ARC releases the native wrapper; explicit close invalidates this owner deterministically.",
+      "cpp_fingerprint": "4bb48f1778bfabd080f0069a60b1351c0b357cfcca8123cd0d7a510c19022144",
+      "swift_targets": [
+        {
+          "path": "Storage.Node.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

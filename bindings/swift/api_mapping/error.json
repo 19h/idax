@@ -1,0 +1,428 @@
+{
+  "domain": "error",
+  "declarations": [
+    {
+      "cpp_id": "49e48de5484fdd983c3f",
+      "cpp_name": "ida::Error",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "723e96e8346f91f263a6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "49e48de5484fdd983c3fe97681becd7423644afde0e50ceebf2e110fd7453849",
+      "swift_targets": [
+        {
+          "path": "IDAError",
+          "declaration": "struct IDAError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "30ab1aa2cc2ef9a84d61",
+      "cpp_name": "ida::Error::category",
+      "cpp_kind": "field",
+      "cpp_signature": "ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "416bc17c24dbbf3cf84e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "21294b3e739980aec6869e5132d9dddda142cf80296b71733f896aea5319743c",
+      "swift_targets": [
+        {
+          "path": "IDAError.category",
+          "declaration": "let category: IDAError.Category"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a0652b881389254fc9c8",
+      "cpp_name": "ida::Error::code",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "201efa6ab250a4040c4d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "db7be468c5860530cda534b0492b812c283d8d659cb0b6ffb922a90526551f2e",
+      "swift_targets": [
+        {
+          "path": "IDAError.code",
+          "declaration": "let code: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "47d296662e83f069b78d",
+      "cpp_name": "ida::Error::conflict",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "9eb06e3b7b4186ed88ab"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "069e257906ba9036e51117080955bfa09f0ea9bf3fc9787f369eca07dfe30773",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.conflict",
+          "declaration": "case conflict"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ae7c2e43eb8d74ca37f0",
+      "cpp_name": "ida::Error::context",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "edd7b9344b394ebb13ec"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8a74801c6fdca2ed1ea636092d3d595ba4bcbfde4ac17dc59298825a9bdab977",
+      "swift_targets": [
+        {
+          "path": "IDAError.context",
+          "declaration": "let context: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "625ba8ea41b1dbb1d55d",
+      "cpp_name": "ida::Error::internal",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "5fc0f884c5003beac471"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "8d773b6361930ae4101433eb93caa306aa5a9a9caa1d9cef128d1bfd6979862f",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.internalError",
+          "declaration": "case internalError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79de186f9fd865d2e444",
+      "cpp_name": "ida::Error::message",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "323e79273ead7286263b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "14e2ff251edffb7079796c0809b53d7fea8a270dfc705c627ac3fe99d6ab0e53",
+      "swift_targets": [
+        {
+          "path": "IDAError.message",
+          "declaration": "let message: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d701fab398f864ecaa53",
+      "cpp_name": "ida::Error::not_found",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "7d57f5b4f36dfba8efdc"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "f98c6cea9b9c04f836deb2c198668d1e63515cc464db7bcdfd39e5ce5dc968c4",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.notFound",
+          "declaration": "case notFound"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0157f03aa57fe956a010",
+      "cpp_name": "ida::Error::sdk",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "0c7456dc296284449bf9"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "1e8c25e22d348490812ddbab2fee073a573e5c60e792dfda9da4ee2ecc03aa8c",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.sdkFailure",
+          "declaration": "case sdkFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60e139c731cfadcb28e2",
+      "cpp_name": "ida::Error::unsupported",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "f1a69447b38dc5eb0104"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "f62079fbb28a22b7d2d3d81e0b713941160800ffe9f4ddb8ee801cb1083a86da",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.unsupported",
+          "declaration": "case unsupported"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ba4b5cb668a76fe0351",
+      "cpp_name": "ida::Error::validation",
+      "cpp_kind": "method",
+      "cpp_signature": "Error (std::string, std::string)",
+      "mapping": "adapted",
+      "swift": [
+        "69fa3a66705cbe7690d7",
+        "9d97a8207999f2d3d9b6"
+      ],
+      "rationale": "Use the structured initializer with the corresponding category, code zero, and the supplied message/context; default context is empty.",
+      "cpp_fingerprint": "e1e521fe1dac994da6084de50809078f455653f404defd5bf7303a9bcd84133b",
+      "swift_targets": [
+        {
+          "path": "IDAError.init(category:code:message:context:)",
+          "declaration": "init(category: IDAError.Category, code: Int32 = 0, message: String, context: String = \"\")"
+        },
+        {
+          "path": "IDAError.Category.validation",
+          "declaration": "case validation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5535fb5460c0a45e3c83",
+      "cpp_name": "ida::ErrorCategory",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ErrorCategory { Validation, NotFound, Conflict, Unsupported, SdkFailure, Internal, }",
+      "mapping": "direct",
+      "swift": [
+        "b08ae40a2d2085edc7ff"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1f68d7b267eda0d6de4f0df320cd49203cda2a81cb50b2a54623bebcd834e1de",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category",
+          "declaration": "enum Category"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e0db4d333aed1366c61a",
+      "cpp_name": "ida::ErrorCategory::Conflict",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "9eb06e3b7b4186ed88ab"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b73fa5af421560cf769051186e061fe4f23d918f7a95fe92ec4dd921e1f7c66b",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.conflict",
+          "declaration": "case conflict"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a08ab3c2602713d0b1cf",
+      "cpp_name": "ida::ErrorCategory::Internal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "5fc0f884c5003beac471"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b61a8bfec12e5553f06ed0e9e4adace85ee5112574775c0b78107f52368af5c5",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.internalError",
+          "declaration": "case internalError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c08117ac91107ec60db",
+      "cpp_name": "ida::ErrorCategory::NotFound",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "7d57f5b4f36dfba8efdc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "47fc75a34ef88b8bf9ba0aeb9db9ec3bdf562b27cc23c174dadda28b5470b0e6",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.notFound",
+          "declaration": "case notFound"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11dc679252662d465913",
+      "cpp_name": "ida::ErrorCategory::SdkFailure",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "0c7456dc296284449bf9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "affcc3dc46ec59bd605f4bb468ff7a0bf93bf63a82671f712c40ac021d6833b4",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.sdkFailure",
+          "declaration": "case sdkFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d0610143529ca56889a",
+      "cpp_name": "ida::ErrorCategory::Unsupported",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "f1a69447b38dc5eb0104"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ecce9bb6bb8b23f0ce18d6370801a421ce243ef6198c3add4cb5bc6d26cc985e",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.unsupported",
+          "declaration": "case unsupported"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d4f7ec82c1dcd518b700",
+      "cpp_name": "ida::ErrorCategory::Validation",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::ErrorCategory",
+      "mapping": "direct",
+      "swift": [
+        "9d97a8207999f2d3d9b6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9eadcbd2c4432248a072fce1a06dc5e5615a40a0ec6f77d24ca7ca846c877bf8",
+      "swift_targets": [
+        {
+          "path": "IDAError.Category.validation",
+          "declaration": "case validation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a1d2d9c5a4e5e380373",
+      "cpp_name": "ida::Result",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::expected<T, Error>",
+      "mapping": "adapted",
+      "swift": [
+        "68d420016fb7377a5a1d",
+        "de7479ede71d7087db9c"
+      ],
+      "rationale": "C++ expected<T,Error>/expected<void,Error> becomes typed throws(IDAError). Successful calls return T/Void; ordinary return is the ok() equivalent.",
+      "cpp_fingerprint": "5ece1ef9fe35dbbb3b36002f67a1c48308a7808cb08ef9be9b88fab471521006",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.parse(_:)",
+          "declaration": "static func parse(_ value: String) throws(IDAError) -> TypeInfo"
+        },
+        {
+          "path": "TypeInfo.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f5fb90918f443a7f380",
+      "cpp_name": "ida::Status",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::expected<void, Error>",
+      "mapping": "adapted",
+      "swift": [
+        "68d420016fb7377a5a1d",
+        "de7479ede71d7087db9c"
+      ],
+      "rationale": "C++ expected<T,Error>/expected<void,Error> becomes typed throws(IDAError). Successful calls return T/Void; ordinary return is the ok() equivalent.",
+      "cpp_fingerprint": "879d9324f2612b34f51054f63b50a7210a584f62d581d158ee6d54085e210b18",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.parse(_:)",
+          "declaration": "static func parse(_ value: String) throws(IDAError) -> TypeInfo"
+        },
+        {
+          "path": "TypeInfo.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ceb42bd8ed60f552b7f8",
+      "cpp_name": "ida::ok",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "adapted",
+      "swift": [
+        "68d420016fb7377a5a1d",
+        "de7479ede71d7087db9c"
+      ],
+      "rationale": "C++ expected<T,Error>/expected<void,Error> becomes typed throws(IDAError). Successful calls return T/Void; ordinary return is the ok() equivalent.",
+      "cpp_fingerprint": "c9e337a16d7570afa92f7eee75ff887ff00f195b5bba1941aca8b89b4f470986",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.parse(_:)",
+          "declaration": "static func parse(_ value: String) throws(IDAError) -> TypeInfo"
+        },
+        {
+          "path": "TypeInfo.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

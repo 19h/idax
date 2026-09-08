@@ -1,0 +1,1139 @@
+{
+  "domain": "directory",
+  "declarations": [
+    {
+      "cpp_id": "40f2cd6140cb7b852ecf",
+      "cpp_name": "ida::directory::BulkFailure",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "ccacdab490ef94ad56d2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "40f2cd6140cb7b852ecf0963aaa572f84e1a8bf701f0c00e8b87b58e45f180ea",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkFailure",
+          "declaration": "struct BulkFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f42cb2ef326231a6dc86",
+      "cpp_name": "ida::directory::BulkFailure::error",
+      "cpp_kind": "field",
+      "cpp_signature": "OperationError",
+      "mapping": "direct",
+      "swift": [
+        "e62f0d75f43e29d33a77"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fdb0fbb533c4a6105023c5ce8433ca7d879345b8beeba4c32f77536483313e6e",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkFailure.error",
+          "declaration": "let error: Directory.OperationError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25caa2c3d1787c59ada8",
+      "cpp_name": "ida::directory::BulkFailure::input_index",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "700c196d4cd9f4028091"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "22f829af3a9d399f3f3ddea618746604f2b6d3929dbc1d4c7994f33091c2b193",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkFailure.inputIndex",
+          "declaration": "let inputIndex: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79f9f701d358d77ae94b",
+      "cpp_name": "ida::directory::BulkFailure::message",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "42d9dd985b449d4fd80a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4c59d379c65fa6061c5b975142bf799e984aee4da572925d9914b00aeb3810ea",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkFailure.message",
+          "declaration": "let message: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "32e6ed3eaf0d27833dd1",
+      "cpp_name": "ida::directory::BulkFailure::path",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "829ff115afb2171695f2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0b8f4d676cf12b833a10bb43a158fb359d5213ebb3b95218d5046304a9a758f5",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkFailure.path",
+          "declaration": "let path: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "57cc61772f583dc8fc30",
+      "cpp_name": "ida::directory::BulkReport",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f46f4124a8fb3f1ab830"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "57cc61772f583dc8fc30d0b6965aeaf4bd36f3b89651fcb9fc32db1baf548bca",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkReport",
+          "declaration": "struct BulkReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ea35aafcff1557fdb5f",
+      "cpp_name": "ida::directory::BulkReport::affected_paths",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "100e230e34f8b7faafbb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b3838ed0e91af65416cb368532fa434fd34f473cf31a8feba3149f8900a5668f",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkReport.affectedPaths",
+          "declaration": "let affectedPaths: [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bde4b4db834aceba5ecf",
+      "cpp_name": "ida::directory::BulkReport::failures",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<BulkFailure>",
+      "mapping": "direct",
+      "swift": [
+        "9e8705f70a9182175ba4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4a2179040a33ae7e2fa5b5fd7e770d89a574f30486fcc7b30d5d638f3f57fc80",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkReport.failures",
+          "declaration": "let failures: [Directory.BulkFailure]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25239011cade3dffd0cb",
+      "cpp_name": "ida::directory::BulkReport::ok",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "270216b249df2e9c1ca1"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "f56548654db4b338259798c7d2cff59d8f75672e9435ef9626251886692e1acd",
+      "swift_targets": [
+        {
+          "path": "Directory.BulkReport.isOK",
+          "declaration": "var isOK: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c67d780c76aea6f1af4a",
+      "cpp_name": "ida::directory::Entry",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "e154b09f142e0574d0fc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c67d780c76aea6f1af4ac5bfef084f744322c91cc77a5b00ddeab934f5c3814a",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry",
+          "declaration": "struct Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7cc2a9e4913056b47c92",
+      "cpp_name": "ida::directory::Entry::attributes",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "f30a68fc2b75315805be"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8bafcbc3b439ab4cba430895952db6519118727a46b342b6316d66b0a70ea202",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.attributes",
+          "declaration": "let attributes: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d846b341025090a9f23a",
+      "cpp_name": "ida::directory::Entry::display_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "f32d2955055f8626a0af"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0ed58ef3bfef753abae7fd9dcb5be2cdb03e6fdd049d6ef236bafba518b7ff93",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.displayName",
+          "declaration": "let displayName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0dbcf7b853d293cffea6",
+      "cpp_name": "ida::directory::Entry::is_directory",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "c30b237b68cbad06d06c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "925f7075c444a48781bda3b46fefa0dd10fc3a19fb61bf21f875206fcbf2f871",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.isDirectory",
+          "declaration": "var isDirectory: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d61820521c02a6a88443",
+      "cpp_name": "ida::directory::Entry::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "EntryKind",
+      "mapping": "direct",
+      "swift": [
+        "98fd2b328429341d3b61"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4c4b0b0199bdfeeab2ff11c07630142f04baa2b46e9a80a256da61706ceed967",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.kind",
+          "declaration": "let kind: Directory.EntryKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e52bd610749938fa54a2",
+      "cpp_name": "ida::directory::Entry::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "4095e4a374dba586ab51"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "79af226cc672d0cee671011ea6161d0b16718cbdcfd679faa75f7e5c9eb69a96",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4e96d54d10ea2235a77e",
+      "cpp_name": "ida::directory::Entry::path",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "1997424388161a917ff4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6674ca950c37a2407fd8eaab6f382458df17920c4014d5184f9964bb50011b16",
+      "swift_targets": [
+        {
+          "path": "Directory.Entry.path",
+          "declaration": "let path: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "06aee47052ef1094b3bb",
+      "cpp_name": "ida::directory::EntryKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class EntryKind : std::uint8_t { Directory = 0, Item = 1, }",
+      "mapping": "direct",
+      "swift": [
+        "9b933e2411d4bf4e53ec"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e30b3313fa5b75ef97bdff9c4f48448de4fe7635e5b353f4f2c31b309f6bad4d",
+      "swift_targets": [
+        {
+          "path": "Directory.EntryKind",
+          "declaration": "enum EntryKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dca9c2919af9bbca8e39",
+      "cpp_name": "ida::directory::EntryKind::Directory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::EntryKind",
+      "mapping": "direct",
+      "swift": [
+        "b612cd89c88e4362d9eb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2c819da4dfd929bd0339f969a306e089b224fd2b032b4ca04a2bb4ae829bde8d",
+      "swift_targets": [
+        {
+          "path": "Directory.EntryKind.directory",
+          "declaration": "case directory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b127fb328ee60cee2cf5",
+      "cpp_name": "ida::directory::EntryKind::Item",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::EntryKind",
+      "mapping": "direct",
+      "swift": [
+        "cd3d6c3c14084efe1f98"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8d9a7c65cb0977fa0abe2a1b652e586a639e564b372088edebcad2ca6e101777",
+      "swift_targets": [
+        {
+          "path": "Directory.EntryKind.item",
+          "declaration": "case item"
+        }
+      ]
+    },
+    {
+      "cpp_id": "27b03bd42f5e2e40039e",
+      "cpp_name": "ida::directory::Kind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Kind : std::uint8_t { LocalTypes = 0, Functions = 1, Names = 2, Imports = 3, IdaPlaceBookmarks = 4, Breakpoints = 5, LocalTypeBookmarks = 6, Snippets = 7, }",
+      "mapping": "direct",
+      "swift": [
+        "06cdf91b039ae857d98b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1ba7db95276368703ec399837f063d36ecf962d7cec53253ebdf07958b5fa183",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind",
+          "declaration": "enum Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79427f539aad283f8251",
+      "cpp_name": "ida::directory::Kind::Breakpoints",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "c66bc24ffcca9e004af7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5c7e134f7b24168e784cda9e689cc788c7be6436437cba5f5559fd23ffae5e5e",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.breakpoints",
+          "declaration": "case breakpoints"
+        }
+      ]
+    },
+    {
+      "cpp_id": "680954b7961c8d6b47e7",
+      "cpp_name": "ida::directory::Kind::Functions",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "8b52a36719511336d5af"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "807fe9900fdfd69ac6e7e81e74e14148b8b08ef3fc1f37e2e78aa6d9b00edb71",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.functions",
+          "declaration": "case functions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81dc7dd3b4ca61677441",
+      "cpp_name": "ida::directory::Kind::IdaPlaceBookmarks",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "051479d8b5e237d568c6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ed6a5a6f84f54a73a66d4d174d63a8bd265bd620250a4cef4807f00d24bfdd51",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.idaPlaceBookmarks",
+          "declaration": "case idaPlaceBookmarks"
+        }
+      ]
+    },
+    {
+      "cpp_id": "438fe6fce937d3181031",
+      "cpp_name": "ida::directory::Kind::Imports",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "e72c686074f13e5e57a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1bf4218eab84177afefff77f1978cb508ee5267230e72c5c2a359fe3d808c0f9",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.imports",
+          "declaration": "case imports"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b782e3e45d1bfbb8131",
+      "cpp_name": "ida::directory::Kind::LocalTypeBookmarks",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "c4c252533663abbe9a2c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fb91780babc282d69a7d5a9c295a624475ec198fd0e07a30f68f3adad38e6889",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.localTypeBookmarks",
+          "declaration": "case localTypeBookmarks"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dfe5a5169b63a6b86ca4",
+      "cpp_name": "ida::directory::Kind::LocalTypes",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "8bb46ccf42e845a6d0b8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1d4fc07975d80ea9aaf16335175eb9fe2db3d596569d80e99a2485bf60f0e767",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.localTypes",
+          "declaration": "case localTypes"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac9d56f171b6cf84f871",
+      "cpp_name": "ida::directory::Kind::Names",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "94c7d042196176c652c8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "972b219e5980526476f70106e08ba9c13ce5f33f8067b042a939ba6b05900b9c",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.names",
+          "declaration": "case names"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9e0cff826d551f6dbc7e",
+      "cpp_name": "ida::directory::Kind::Snippets",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::Kind",
+      "mapping": "direct",
+      "swift": [
+        "a6af8efcbc91e470b947"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1c4045781e0bcf45e2dcb498cab6d8e9c8ebf193962b216e7b340fdeb9e8fc3f",
+      "swift_targets": [
+        {
+          "path": "Directory.Kind.snippets",
+          "declaration": "case snippets"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4ea018d6efda5ccad8e",
+      "cpp_name": "ida::directory::OperationError",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OperationError : std::uint8_t { AlreadyExists = 1, NotFound = 2, NotDirectory = 3, NotEmpty = 4, BadPath = 5, CannotRename = 6, OwnChild = 7, DirectoryLimit = 8, NotOrderable = 9, SdkFailure = 10, }",
+      "mapping": "direct",
+      "swift": [
+        "32b102c3f2ed5ac8376d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6e80e97fb9f8e6c98ff6866db2f85f58ba1769d1c6cfbbdf2aa17bd90475bd00",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError",
+          "declaration": "enum OperationError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "675a7c5009faf6ddfc22",
+      "cpp_name": "ida::directory::OperationError::AlreadyExists",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "87502203219cb6aebc7d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2826c0eb77537f5e8a6f6c790f688d77668901ac40dd070d8dd7518580449cdd",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.alreadyExists",
+          "declaration": "case alreadyExists"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7cab53d90e633186151",
+      "cpp_name": "ida::directory::OperationError::BadPath",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "fb88411dfd12251b81b4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0bdb694eb1bbace1e9f35717e700f7a615ea499bddd906604f35ce3dff522647",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.badPath",
+          "declaration": "case badPath"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac0bb759a12053359eb3",
+      "cpp_name": "ida::directory::OperationError::CannotRename",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "306770b98a24830a2bf6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "04eeba499d09ca88cc557be11b3ec39daa678c1d99f313cb6525ab1653d3a23a",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.cannotRename",
+          "declaration": "case cannotRename"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d820b4b185c349fb6511",
+      "cpp_name": "ida::directory::OperationError::DirectoryLimit",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "34ab527e0b520201dc20"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fec3bc106f89eea884996c25c631ca7cbe8fbfda4084da7f2500ee1f8ad77909",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.directoryLimit",
+          "declaration": "case directoryLimit"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2afaee6adc4b27182275",
+      "cpp_name": "ida::directory::OperationError::NotDirectory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "dcdff93ac3152400822a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4b8e54c4368c1e7940f9e26d08f1eeb2b1ebe05b37931bec67689fe0946cfaf1",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.notDirectory",
+          "declaration": "case notDirectory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "457b7a45e3d3d9949a50",
+      "cpp_name": "ida::directory::OperationError::NotEmpty",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "6915079ba019bbb5e8b9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a76252955483622c21152aa375c2863f48aade888aa0a008c045a06081542c34",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.notEmpty",
+          "declaration": "case notEmpty"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4c41f95b1760545327c5",
+      "cpp_name": "ida::directory::OperationError::NotFound",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "a0154faa617d11866681"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0633413e3c3a917ca485d0ea08c10584ec4051a79a0eeec55cc63135105181cf",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.notFound",
+          "declaration": "case notFound"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4397b25067520fa66d7",
+      "cpp_name": "ida::directory::OperationError::NotOrderable",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "3df7aa11d7b27d675c06"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1bdbe690ead2bc663d9966fc639db1ad93180e741fffa7e9a413e75edd830873",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.notOrderable",
+          "declaration": "case notOrderable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "36d1ae0c452cddf94bd3",
+      "cpp_name": "ida::directory::OperationError::OwnChild",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "1244a87735a1ca3f0bd7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a0302ced02295ad87fee5e85c4ac7f3bbef313c88351c5cca06850ddd0a870ec",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.ownChild",
+          "declaration": "case ownChild"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ae4a519c174c7870c0fc",
+      "cpp_name": "ida::directory::OperationError::SdkFailure",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::directory::OperationError",
+      "mapping": "direct",
+      "swift": [
+        "c3744a50f6ddececac70"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "edc1ac7905d164b94554d5dc133fa765e04c2f25b92f3e422eb3f8f1966236b1",
+      "swift_targets": [
+        {
+          "path": "Directory.OperationError.sdkFailure",
+          "declaration": "case sdkFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "952d72287b6a208f3f4b",
+      "cpp_name": "ida::directory::Tree",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "0683421b261b0e95880e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "952d72287b6a208f3f4bbeb1d5fa632537aba2dd08f8e855f028760753bd873e",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree",
+          "declaration": "struct Tree"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fde5eb3dda0bf0f9f5e2",
+      "cpp_name": "ida::directory::Tree::absolute_path",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "cb3468ea9ab0dd239da7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0220df931b1245df26c82ba3fb43a76218d170848163d2016e9e2a37975e121f",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.absolutePath(_:)",
+          "declaration": "func absolutePath(_ relativePath: String) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac61142ee6d912bee29b",
+      "cpp_name": "ida::directory::Tree::change_directory",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "94b8ad2aa79d4e81ad62"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "51b1ae25de215998462764a4aadf2b09c9572bb0a3d54fd367e9aa63019939cd",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.changeDirectory(_:)",
+          "declaration": "func changeDirectory(_ path: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "415c80321e06f28a136c",
+      "cpp_name": "ida::directory::Tree::change_rank",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::ptrdiff_t) const",
+      "mapping": "direct",
+      "swift": [
+        "4d1426236750c2ba6ca8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "335a764a8af45c0d1d51b25b58ece01eb5274c5321ddb8f80f5e1d4b26d5adb4",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.changeRank(_:by:)",
+          "declaration": "func changeRank(_ path: String, by delta: Int) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4515d79d7bc3915385f4",
+      "cpp_name": "ida::directory::Tree::children",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Entry>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "f794f577dd1b99383110"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "90a0c5363303cc48acafbcaf22fe52b8f47dd1aa95395bd36dc753312ed09f17",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.children(_:)",
+          "declaration": "func children(_ path: String = \"/\") throws(IDAError) -> [Directory.Entry]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1af2b75e943d32a62c82",
+      "cpp_name": "ida::directory::Tree::contains",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "5725ef7d9f16ea3e9354"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c4419ab7c6b19f582bc374a9b65d3800a8808181918f909dc30ce7fe57f81368",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.contains(_:)",
+          "declaration": "func contains(_ path: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "808ee4bcddaafc03aee9",
+      "cpp_name": "ida::directory::Tree::create_directory",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "fd2419ba58db9958fbe8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1c9775ee479af7635bd1b26749cf0b0e43285b358f25955f77b103eb03162b90",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.createDirectory(_:)",
+          "declaration": "func createDirectory(_ path: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "491294fbe39d26b6c48a",
+      "cpp_name": "ida::directory::Tree::current_directory",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "9b03fb2a9198efbb3ea1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e6df57fe07c2c689e5076698ef232cf6ef4025cfcb865f46dae8ff5130ee28d6",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.currentDirectory()",
+          "declaration": "func currentDirectory() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "75c4346067dc114ab1d8",
+      "cpp_name": "ida::directory::Tree::entry",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Entry> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "fae9acf2fe303be42927"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1fa0d92811f73ef6d4884da8114755b4f450f53f543e57dad2508cf94ca85bc1",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.entry(_:)",
+          "declaration": "func entry(_ path: String) throws(IDAError) -> Directory.Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "492408b81261b05c11a5",
+      "cpp_name": "ida::directory::Tree::find_items",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Entry>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "173942eb2940c27ebad3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a3cf73205c02d25b4f5a2ad3fa9bff00dfa4a1b9bcee00f4e73fa0ffe6c34cda",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.findItems(_:)",
+          "declaration": "func findItems(_ pattern: String) throws(IDAError) -> [Directory.Entry]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a03fe694ba33d49603e0",
+      "cpp_name": "ida::directory::Tree::fold_common_prefix",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "6598bcba5f8436e4f45c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "39aa47237bff48247268cdb6bef34779987c573ef40d89eb4b24f13c04eabf89",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.foldCommonPrefix(_:)",
+          "declaration": "func foldCommonPrefix(_ path: String = \"/\") throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "898b7cb56bb38bbb4e9c",
+      "cpp_name": "ida::directory::Tree::has_natural_order",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "5138804c5bda5c9575c3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6abe39620cc2ecfdae8a211a4b2e143ec10e289cec533e6636c32e0d55e9f831",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.hasNaturalOrder(_:)",
+          "declaration": "func hasNaturalOrder(_ path: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a99b78663324ccd0c3b2",
+      "cpp_name": "ida::directory::Tree::is_orderable",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "mapping": "direct",
+      "swift": [
+        "c078149e372018b1da08"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "816225ff760d089dd8238d2289b55b9ebd24455db6b17405c09ee9cf656b1839",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.isOrderable()",
+          "declaration": "func isOrderable() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc032dbb8b3a93e3b846",
+      "cpp_name": "ida::directory::Tree::kind",
+      "cpp_kind": "method",
+      "cpp_signature": "Kind () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "129c30b53aa2201cfad9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "50452f7917fef5c38a4d33d88d6c36c4873557b6a3550d5894596cad2734b9a7",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.kind",
+          "declaration": "let kind: Directory.Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a622686c83cd6dc1838",
+      "cpp_name": "ida::directory::Tree::link",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "d55e3b60189a05f05a45"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "248f00c8ba4bad171b3d8eb16a9ec31ad0d696feebcddeb736c492547c17a4ff",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.link(_:)",
+          "declaration": "func link(_ path: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51c8b19ffebc598a6375",
+      "cpp_name": "ida::directory::Tree::move",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<BulkReport> (std::span<const std::string>, std::string_view, std::optional<std::size_t>) const",
+      "mapping": "direct",
+      "swift": [
+        "55c0acb69caf0cdedddc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f011c4770ddf82087febcf774261702f2f97863dedfcf052b44a17cc198fe80a",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.move(_:to:rank:)",
+          "declaration": "func move(_ paths: [String], to destinationDirectory: String, rank: Int? = nil) throws(IDAError) -> Directory.BulkReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c5eeaaf572133c53f7e",
+      "cpp_name": "ida::directory::Tree::open",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Tree> (Kind)",
+      "mapping": "direct",
+      "swift": [
+        "f25613724a3c2fb22228"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0326e5e48510300d75ee5f7a7d5c691919a94b73cb2ca281d9ecc135c555ea36",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.open(_:)",
+          "declaration": "static func open(_ kind: Directory.Kind) throws(IDAError) -> Directory.Tree"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94a64835edae62830e1a",
+      "cpp_name": "ida::directory::Tree::rank",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "396d5b3a5a9c86a4f46d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ecc588742e4033322c5be22c53f44e97a7191d3471adde8a22b1241d7e69a4c0",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.rank(_:)",
+          "declaration": "func rank(_ path: String) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68037d633fa9ef15bb54",
+      "cpp_name": "ida::directory::Tree::remove",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<BulkReport> (std::span<const std::string>) const",
+      "mapping": "direct",
+      "swift": [
+        "ba342f30f444c1e1d159"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9b196731b7584cda06d245345e72f3da9857658520098c3a419bd2f3c93e9b4a",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.remove(_:)",
+          "declaration": "func remove(_ paths: [String]) throws(IDAError) -> Directory.BulkReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a946deba8c42e5e0399e",
+      "cpp_name": "ida::directory::Tree::remove_directory",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "cb8ba8bc5abb330d6afe"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "375399a4d840a219c4e66c5ae407e816d30ead183116906902cad8c9941f2534",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.removeDirectory(_:)",
+          "declaration": "func removeDirectory(_ path: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "04c795a6e730239c6d0f",
+      "cpp_name": "ida::directory::Tree::rename",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "54b141c2a20f433f54a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0c267ed483066bbfec72cd635d95c6a8d76207d90aa2d809eaf2f61d772489b7",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.rename(_:to:)",
+          "declaration": "func rename(_ from: String, to: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a8beff515d0ffc3738a",
+      "cpp_name": "ida::directory::Tree::set_natural_order",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, bool) const",
+      "mapping": "direct",
+      "swift": [
+        "2ccae6ef323fe3e98f4b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e3ff6cbe7f59417f56513138ede59d2c1ed6dc0a6191c203bf1293d2885edbce",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.setNaturalOrder(_:enabled:)",
+          "declaration": "func setNaturalOrder(_ path: String, enabled: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9dae1d28d08a0756a26b",
+      "cpp_name": "ida::directory::Tree::snapshot",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Entry>> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "a50646f514e17a891cb2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f394ff8cc395944a3f7e12cd71d1fa3b46890fe1583a92ed40f6a41417f6b60b",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.snapshot(_:)",
+          "declaration": "func snapshot(_ path: String = \"/\") throws(IDAError) -> [Directory.Entry]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "248ce5f66b20d4bfff0f",
+      "cpp_name": "ida::directory::Tree::unlink",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "26280ee9f285a660f215"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "28ceb6baf4616a2602d006c41cca2979396dca675c8f723500350064c693dca8",
+      "swift_targets": [
+        {
+          "path": "Directory.Tree.unlink(_:)",
+          "declaration": "func unlink(_ path: String) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

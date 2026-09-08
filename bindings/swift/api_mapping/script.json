@@ -1,0 +1,1401 @@
+{
+  "domain": "script",
+  "declarations": [
+    {
+      "cpp_id": "d0502cdf9188770f0558",
+      "cpp_name": "ida::script::CompilationResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "4a049f4f3b9706febe31"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d0502cdf9188770f05584d7e9858e952c2aea92b2a1183f0e3d4f4af334664ad",
+      "swift_targets": [
+        {
+          "path": "Script.CompilationResult",
+          "declaration": "struct CompilationResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1349d4c9899e164ba458",
+      "cpp_name": "ida::script::CompilationResult::error",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "702a45afab85ebf2943b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d78670b956f5b9992256afc24194956aade04766c356b8fd8c1e02828717b4ff",
+      "swift_targets": [
+        {
+          "path": "Script.CompilationResult.error",
+          "declaration": "let error: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41798b9e2ef3fdf1b630",
+      "cpp_name": "ida::script::CompilationResult::succeeded",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1c5ce85ae6c59ed604df"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6c0a947db41d274ccfbfe15ebbfe6afaa3d1c0d8c56cff8f7e43374c932a1895",
+      "swift_targets": [
+        {
+          "path": "Script.CompilationResult.succeeded",
+          "declaration": "let succeeded: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1000c5175e22340e993",
+      "cpp_name": "ida::script::CompileOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a59da119b453807f1598"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a1000c5175e22340e993b95c9b9ef6ff3c1a7f684fbcd30dac15f66e83f42468",
+      "swift_targets": [
+        {
+          "path": "Script.CompileOptions",
+          "declaration": "struct CompileOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e7fa9491586b6d26b75",
+      "cpp_name": "ida::script::CompileOptions::only_safe_functions",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e8e6049fa8542a8cde58"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "97c375969ca2a32de3d9d57f85d4d5195c4840f10266e5740a4e6a4fd7010ff9",
+      "swift_targets": [
+        {
+          "path": "Script.CompileOptions.onlySafeFunctions",
+          "declaration": "var onlySafeFunctions: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa1ab28ca28963157641",
+      "cpp_name": "ida::script::CompileOptions::resolved_names",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<ResolvedName>",
+      "mapping": "direct",
+      "swift": [
+        "d1ed3244c6c4d5d210a1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1cb2c150fb98b51d6c251669ea934d52b345f398c12bb45ee93ea0ef78fa4a58",
+      "swift_targets": [
+        {
+          "path": "Script.CompileOptions.resolvedNames",
+          "declaration": "var resolvedNames: [Script.ResolvedName]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d2596849f0dd18e522e",
+      "cpp_name": "ida::script::DereferenceMode",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class DereferenceMode : std::uint8_t { Once, Recursive, }",
+      "mapping": "direct",
+      "swift": [
+        "c873c9ece576a2faaf34"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8e72b1ab4cfa83117f998df63f46b189472788f2b7b823ff3373d7454f2f85f9",
+      "swift_targets": [
+        {
+          "path": "Script.DereferenceMode",
+          "declaration": "enum DereferenceMode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "567e2b66fe6f9e191400",
+      "cpp_name": "ida::script::DereferenceMode::Once",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::DereferenceMode",
+      "mapping": "direct",
+      "swift": [
+        "14c4be0ba86e84fc96e7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ac22eae7928649b3b2d2b9102f49f6f06d912048411b6d02b808f137c086f6bc",
+      "swift_targets": [
+        {
+          "path": "Script.DereferenceMode.once",
+          "declaration": "case once"
+        }
+      ]
+    },
+    {
+      "cpp_id": "355a786dd33b846d8910",
+      "cpp_name": "ida::script::DereferenceMode::Recursive",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::DereferenceMode",
+      "mapping": "direct",
+      "swift": [
+        "ac462e902eaba88cc527"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5ae144fa8433ad1ba905c366deff85919cc09fe5aa45024db84b784ccad6692b",
+      "swift_targets": [
+        {
+          "path": "Script.DereferenceMode.recursive",
+          "declaration": "case recursive"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b3669d461beffb93f10",
+      "cpp_name": "ida::script::ExecutionResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "73fd597b71a212cb7012"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1b3669d461beffb93f1044a338c41a3e32f914d57236b7cfd0b25fb028e42481",
+      "swift_targets": [
+        {
+          "path": "Script.ExecutionResult",
+          "declaration": "struct ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "613ca99317dcde467188",
+      "cpp_name": "ida::script::ExecutionResult::error",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "bd39be3d3d6870360c1a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d06da5fea18a290c6a1717024268efc7fe061158d8e5c1e3e2b205044487a3de",
+      "swift_targets": [
+        {
+          "path": "Script.ExecutionResult.error",
+          "declaration": "let error: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee937436799d889b7b0a",
+      "cpp_name": "ida::script::ExecutionResult::succeeded",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "13c7111f05e6f7ca17f1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "abf01acd2d5777cdfa4696427ed6c5afb040edcfc8c225583de0fd028c74796e",
+      "swift_targets": [
+        {
+          "path": "Script.ExecutionResult.succeeded",
+          "declaration": "let succeeded: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "96593b1b16800f076eaf",
+      "cpp_name": "ida::script::ExecutionResult::value",
+      "cpp_kind": "field",
+      "cpp_signature": "Value",
+      "mapping": "direct",
+      "swift": [
+        "8b18ecac9b4a25341766"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ad4dbe492c0b873ef088b12562d7807fed61cef046bc8e3e706b39f5091d8142",
+      "swift_targets": [
+        {
+          "path": "Script.ExecutionResult.value",
+          "declaration": "let value: Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "edbde06114e77a11ddec",
+      "cpp_name": "ida::script::FileCompileOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2885dc2e522c32384ffb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "edbde06114e77a11ddec51161448eb29d7d33d9dbe4cb08cc5b8cdaab5320782",
+      "swift_targets": [
+        {
+          "path": "Script.FileCompileOptions",
+          "declaration": "struct FileCompileOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d03eb6b36ca80304e39",
+      "cpp_name": "ida::script::FileCompileOptions::allow_program_labels",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "82a9672147b2165950b3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3dc8a8a91bb195a888b849f09271c09813d1e638d55a63bb26cf8afcdb755da3",
+      "swift_targets": [
+        {
+          "path": "Script.FileCompileOptions.allowProgramLabels",
+          "declaration": "var allowProgramLabels: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e40738d1fc81d7f50196",
+      "cpp_name": "ida::script::FileCompileOptions::delete_macros_after_compilation",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e2bdb868a7f701e153e8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8a4aa3b34daa46bb8e0601f2d551478d51acaab6e500a28e5695f0d8171d2c71",
+      "swift_targets": [
+        {
+          "path": "Script.FileCompileOptions.deleteMacrosAfterCompilation",
+          "declaration": "var deleteMacrosAfterCompilation: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29ae44bab3831b075cd0",
+      "cpp_name": "ida::script::FileCompileOptions::only_safe_functions",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "08c11f7b6988f6971e9d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8353a0ff817c8f0e298b48812e2d8f7eafa64d6baf5cb9c2f2a509f5d40434f1",
+      "swift_targets": [
+        {
+          "path": "Script.FileCompileOptions.onlySafeFunctions",
+          "declaration": "var onlySafeFunctions: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a5452e5e4d10b8be07b",
+      "cpp_name": "ida::script::IntegerExecutionResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "3aeb30e4ca7e44c53513"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0a5452e5e4d10b8be07b09245c837004f472f265c4d1e11900ad04ccc665db07",
+      "swift_targets": [
+        {
+          "path": "Script.IntegerExecutionResult",
+          "declaration": "struct IntegerExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "535df1d912de6b25181a",
+      "cpp_name": "ida::script::IntegerExecutionResult::error",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "fb293dab722e74ba5463"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ee6e29fbef3a6d165aff8b693afcfaa29acc7b8e2aad31d27732fd81a27ea840",
+      "swift_targets": [
+        {
+          "path": "Script.IntegerExecutionResult.error",
+          "declaration": "let error: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "782db781dd703b7d9291",
+      "cpp_name": "ida::script::IntegerExecutionResult::succeeded",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "61cdde86101630e82066"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3cf3cecc51a4eb7811a2594de0c6a3bac8b5532ad4ba2184d42bfa0e75872881",
+      "swift_targets": [
+        {
+          "path": "Script.IntegerExecutionResult.succeeded",
+          "declaration": "let succeeded: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1fd97bbf7ac025318e48",
+      "cpp_name": "ida::script::IntegerExecutionResult::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "29362b6a229cb58c1b05"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b2e5ce9bca4da34860561a050dc33a855852de5fd1bd4d4c28398ce747163545",
+      "swift_targets": [
+        {
+          "path": "Script.IntegerExecutionResult.value",
+          "declaration": "let value: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b7a4ecc544cedd8a094",
+      "cpp_name": "ida::script::ResolvedName",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a6ce6632c1a007d46676"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4b7a4ecc544cedd8a094728b49ca3ad2d21679c6213cd8df2fb16eca9aabf48f",
+      "swift_targets": [
+        {
+          "path": "Script.ResolvedName",
+          "declaration": "struct ResolvedName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60f8f0ee8000ccec5650",
+      "cpp_name": "ida::script::ResolvedName::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b4a84b4569e68da2cb0d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "56bcaf0ad7712e5ab3c620db033ece175bde07e95c50c94bd7dd006d968698ea",
+      "swift_targets": [
+        {
+          "path": "Script.ResolvedName.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee7bf03f6e9743d7a52f",
+      "cpp_name": "ida::script::ResolvedName::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "fd5fa9a1947c3bcdd168"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3c6124280ec6e14cb0bc6c2a0c6bd8fbc9946a880e7b50e342256ce6dd5a9106",
+      "swift_targets": [
+        {
+          "path": "Script.ResolvedName.value",
+          "declaration": "var value: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15b35560ad098a761679",
+      "cpp_name": "ida::script::Value",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "b9b476a13adf2bf59221"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "15b35560ad098a76167909971b8999159f8e2b80b19de43146be91d53fe8b37b",
+      "swift_targets": [
+        {
+          "path": "Script.Value",
+          "declaration": "final class Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "74d24dfe706427d580af",
+      "cpp_name": "ida::script::Value::Value",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "2825c2837bdea2c2455a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ba4d31e93930e3d96ee34927c561de00f9ccb5d31b6df33f955512df5321033d",
+      "swift_targets": [
+        {
+          "path": "Script.Value.init(integer:)",
+          "declaration": "convenience init(integer: Int64 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c3a89d265344af134045",
+      "cpp_name": "ida::script::Value::Value",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Value &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "1fb5adf2f8f68afee07b"
+      ],
+      "rationale": "Explicit copy preserves an independently owned native IDC value.",
+      "cpp_fingerprint": "5daf5a7111d0bc11e32562266fa152323b3a7e30cb11f0fd24f1225453c64ade",
+      "swift_targets": [
+        {
+          "path": "Script.Value.copy()",
+          "declaration": "func copy() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51d15662c33d2e26f3ca",
+      "cpp_name": "ida::script::Value::Value",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const Value &)",
+      "mapping": "adapted",
+      "swift": [
+        "1fb5adf2f8f68afee07b"
+      ],
+      "rationale": "Explicit copy preserves an independently owned native IDC value.",
+      "cpp_fingerprint": "7102fa16cd7bbc21dc69906079d4311efc2c062f65b6e92498b589227260599e",
+      "swift_targets": [
+        {
+          "path": "Script.Value.copy()",
+          "declaration": "func copy() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e57b4a871570958a202",
+      "cpp_name": "ida::script::Value::Value",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (std::int64_t)",
+      "mapping": "direct",
+      "swift": [
+        "2825c2837bdea2c2455a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9cfde089ed41062ce2ff801284640745a8c5ce23377bb7e3e49d1fb06dbeaf78",
+      "swift_targets": [
+        {
+          "path": "Script.Value.init(integer:)",
+          "declaration": "convenience init(integer: Int64 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8b4c2aa061e560f0e294",
+      "cpp_name": "ida::script::Value::Value",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "00115c119fd29cdc6cf7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "26caada36b29def8ee6e4fe0239e9639a23f5071a3b01fc6623c42c04cd6597b",
+      "swift_targets": [
+        {
+          "path": "Script.Value.init(string:)",
+          "declaration": "convenience init(string: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60a7128a8c22afdc0c7b",
+      "cpp_name": "ida::script::Value::as_floating",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<double> () const",
+      "mapping": "direct",
+      "swift": [
+        "91ebb2e75aad2fd032d3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c4c7b143f652ca0123a7cebf5f467999a2172b93a3caee9cd5341e46326c741b",
+      "swift_targets": [
+        {
+          "path": "Script.Value.asFloating()",
+          "declaration": "func asFloating() throws(IDAError) -> Double"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9430a42e741c15ac35eb",
+      "cpp_name": "ida::script::Value::as_integer",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::int64_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "c9e2e87c9989eb17506b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bec410a07d2cdd8837f229089dc600bbacb965d0eee217d1eaf1e1f46729386e",
+      "swift_targets": [
+        {
+          "path": "Script.Value.asInteger()",
+          "declaration": "func asInteger() throws(IDAError) -> Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1be36569e17d9b2ed12e",
+      "cpp_name": "ida::script::Value::as_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "83bee0b7d4db8c59630b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7e1572b7ef2625a26f14d66f6fe1e5aacd170c5379c2d5a153770911343ca987",
+      "swift_targets": [
+        {
+          "path": "Script.Value.asString()",
+          "declaration": "func asString() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a736414f36ca7e9b92db",
+      "cpp_name": "ida::script::Value::attribute",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> (std::string_view, bool) const",
+      "mapping": "direct",
+      "swift": [
+        "4cac3cbefc9357fda652"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1539d185d3b94716e092a8d3fbe1253300d0409177d40290198d11fc9f371eaa",
+      "swift_targets": [
+        {
+          "path": "Script.Value.attribute(_:useHandler:)",
+          "declaration": "func attribute(_ name: String, useHandler: Bool = false) throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd1b5f2e7465ca9482ca",
+      "cpp_name": "ida::script::Value::attribute_names",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::string>> () const",
+      "mapping": "direct",
+      "swift": [
+        "7a861756084cf845ac26"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cbdcd6bbf61226d84705f4b895f6f0165cdbcaa524657ba8c679ffc58b69c4c7",
+      "swift_targets": [
+        {
+          "path": "Script.Value.attributeNames()",
+          "declaration": "func attributeNames() throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "988077b44f94a3a395d1",
+      "cpp_name": "ida::script::Value::class_name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "b620b3865f8818772f3f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "08a487aec4d2b766264a8e266703bef7ee7412e79f483ca87a1f609db7101932",
+      "swift_targets": [
+        {
+          "path": "Script.Value.className()",
+          "declaration": "func className() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a6724baa6321ded795cd",
+      "cpp_name": "ida::script::Value::coerce_floating",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<double> () const",
+      "mapping": "direct",
+      "swift": [
+        "fd86028930c2ac8fd4a9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a33d9e732248fa5f9ce343ae79cb45f6736247d2ef6bc956bee083de340b1daf",
+      "swift_targets": [
+        {
+          "path": "Script.Value.coerceFloating()",
+          "declaration": "func coerceFloating() throws(IDAError) -> Double"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9586fe0c0f6c1c4f3d14",
+      "cpp_name": "ida::script::Value::coerce_integer",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::int64_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "13001d712a3e23fc88cc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f91b1671847bbde12ddbfaa111b6c95d4dec64ba2efab906198fb94d11d30041",
+      "swift_targets": [
+        {
+          "path": "Script.Value.coerceInteger()",
+          "declaration": "func coerceInteger() throws(IDAError) -> Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7ab85030effbb9aeda57",
+      "cpp_name": "ida::script::Value::coerce_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "9cb1c46f41d1362b8175"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "250f382517c6d40413bc4850c869f5a38b987082b08164c0c43d416f0243bb78",
+      "swift_targets": [
+        {
+          "path": "Script.Value.coerceString()",
+          "declaration": "func coerceString() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8417f86f76a16684b987",
+      "cpp_name": "ida::script::Value::deep_copy",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> () const",
+      "mapping": "direct",
+      "swift": [
+        "08a06f96834365687829"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b219c2d6bbc334f77993cd03f12ad22125a3ebac988dca4713a2a1db6697c8bb",
+      "swift_targets": [
+        {
+          "path": "Script.Value.deepCopy()",
+          "declaration": "func deepCopy() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72242cd4e5284283b015",
+      "cpp_name": "ida::script::Value::dereference",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> (DereferenceMode) const",
+      "mapping": "direct",
+      "swift": [
+        "e3462cdfa81c61313d8a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "75979856ad10ecad753460d115f322b79c011b426f4f25441e57a2f8b927c118",
+      "swift_targets": [
+        {
+          "path": "Script.Value.dereference(_:)",
+          "declaration": "func dereference(_ mode: Script.DereferenceMode = .recursive) throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe09b12e7977d75378af",
+      "cpp_name": "ida::script::Value::floating",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> (double)",
+      "mapping": "direct",
+      "swift": [
+        "7fbacd46ee7b1e8f9cd7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9d22143c4bd9140922e2be193d305abc1cf2d367e0365892f55d92160033df4f",
+      "swift_targets": [
+        {
+          "path": "Script.Value.floating(_:)",
+          "declaration": "static func floating(_ value: Double) throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3ec6a36b45a51dd0a0a9",
+      "cpp_name": "ida::script::Value::kind",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<ValueKind> () const",
+      "mapping": "direct",
+      "swift": [
+        "75f5cbc9a4932c8efdbb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "562d18e23c6fa507a2a30eb83f1af2a602b7173384f346fff03e4e99509a71fc",
+      "swift_targets": [
+        {
+          "path": "Script.Value.kind()",
+          "declaration": "func kind() throws(IDAError) -> Script.ValueKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b36f2165ec13a7b4787e",
+      "cpp_name": "ida::script::Value::object",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> ()",
+      "mapping": "direct",
+      "swift": [
+        "90c1da0fc817fcd664fd"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "dbf7ba3f5c6b0eca1b96102f85e8ccd3292b480e4acfe82db769cfea8cffd6b1",
+      "swift_targets": [
+        {
+          "path": "Script.Value.object()",
+          "declaration": "static func object() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e8f9e069b2a6db38288",
+      "cpp_name": "ida::script::Value::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Value &(Value &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "b9b476a13adf2bf59221",
+        "1fb5adf2f8f68afee07b"
+      ],
+      "rationale": "Swift assignment retains the existing owner; explicit copy duplicates the C++ copyable native value.",
+      "cpp_fingerprint": "f587394d1607e72b25c594f82ebc43eccd00362357748811c35afbbc0da9bfba",
+      "swift_targets": [
+        {
+          "path": "Script.Value",
+          "declaration": "final class Value"
+        },
+        {
+          "path": "Script.Value.copy()",
+          "declaration": "func copy() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17c062487860b5f2a887",
+      "cpp_name": "ida::script::Value::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Value &(const Value &)",
+      "mapping": "adapted",
+      "swift": [
+        "b9b476a13adf2bf59221",
+        "1fb5adf2f8f68afee07b"
+      ],
+      "rationale": "Swift assignment retains the existing owner; explicit copy duplicates the C++ copyable native value.",
+      "cpp_fingerprint": "eb317293e19bc06b7e6c589bafa39f4a4642904122a36739a5ceef8a951fb55e",
+      "swift_targets": [
+        {
+          "path": "Script.Value",
+          "declaration": "final class Value"
+        },
+        {
+          "path": "Script.Value.copy()",
+          "declaration": "func copy() throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "627e903093235fb1daa3",
+      "cpp_name": "ida::script::Value::remove_attribute",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "f0d0578375c3fd9fdfa0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2698f07b449c3cb552c37b1963e87409dde2e34f126be7320abb907a184d5bb0",
+      "swift_targets": [
+        {
+          "path": "Script.Value.removeAttribute(_:)",
+          "declaration": "@discardableResult func removeAttribute(_ name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f00ad1a66ff0a16e4842",
+      "cpp_name": "ida::script::Value::render",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (std::optional<std::string_view>, std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "a5770906c3c8aa6d6f3b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "34174c7073d94e8a7784a0122688be07fffb1de920a5395186a600d1fb132d3c",
+      "swift_targets": [
+        {
+          "path": "Script.Value.render(name:indent:)",
+          "declaration": "func render(name: String? = nil, indent: Int = 0) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee074be8ca6b7037479f",
+      "cpp_name": "ida::script::Value::replace_slice",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::size_t, std::size_t, const Value &)",
+      "mapping": "direct",
+      "swift": [
+        "a9ebe4adf6ae5feae38c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "780f1b435b2cbe7e89714db3765b95c33c5f4049338ddd702dd6c3297a83a378",
+      "swift_targets": [
+        {
+          "path": "Script.Value.replaceSlice(_:with:)",
+          "declaration": "func replaceSlice(_ range: Range<Int>, with value: Script.Value) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "58e13d5d2f9e529560c3",
+      "cpp_name": "ida::script::Value::set_attribute",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, const Value &, bool)",
+      "mapping": "direct",
+      "swift": [
+        "17398719b1b1ca1ed955"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "44f9536c1772c192c3e53e40e00b5664135f3fece304bb93cd2eee1c4c23fa34",
+      "swift_targets": [
+        {
+          "path": "Script.Value.setAttribute(_:value:useHandler:)",
+          "declaration": "func setAttribute(_ name: String, value: Script.Value, useHandler: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a5ecb8a42d00b59db95",
+      "cpp_name": "ida::script::Value::slice",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Value> (std::size_t, std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "32b53b3e71510eed77cb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ca92542671e9d3f7251e2d74263ac9a4285dd0d9756a9ae819e00598508369e2",
+      "swift_targets": [
+        {
+          "path": "Script.Value.slice(_:)",
+          "declaration": "func slice(_ range: Range<Int>) throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70a8b8410b5aa7abe2e0",
+      "cpp_name": "ida::script::Value::~Value",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void () noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4f1cb9703e50f065768c"
+      ],
+      "rationale": "ARC releases the native value; explicit idempotent close supplies deterministic lifetime.",
+      "cpp_fingerprint": "4502e4f995d89a955ea0213fa0597d881977c636a51c90f60e3e3dd04e01f04d",
+      "swift_targets": [
+        {
+          "path": "Script.Value.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "173f036690892c27b2ce",
+      "cpp_name": "ida::script::ValueKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ValueKind : std::uint8_t { Integer, FloatingPoint, Object, Function, String, OpaquePointer, Reference, }",
+      "mapping": "direct",
+      "swift": [
+        "109bd995037559b7fe12"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2c390acfe6c71940a34246fab3f13ebbd916c14d67ccab709b8120355e2b59e3",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind",
+          "declaration": "enum ValueKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e5cfa262cdf5ec9fc32c",
+      "cpp_name": "ida::script::ValueKind::FloatingPoint",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "9a245a335ebb841e2aa4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d25751d9f76adb8382624941a4f0955968fe2fca10720643937e3f251f1d6b0f",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.floatingPoint",
+          "declaration": "case floatingPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2adb6f4baf8f7d7ce6c",
+      "cpp_name": "ida::script::ValueKind::Function",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "74c1fe0628d962364244"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3957a810b81a1bd1ad1f5282b66301fc133213a3a8f23155d672c59908d185ef",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.function",
+          "declaration": "case function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "78a80301f247f530d77e",
+      "cpp_name": "ida::script::ValueKind::Integer",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "c00ca6a87e88aaf1f74d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "92bc629ac25f24944589b158780b3b37376c0b769f083504eb02815ed26ed52f",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.integer",
+          "declaration": "case integer"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7a89b25fda21e32de47",
+      "cpp_name": "ida::script::ValueKind::Object",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "82a88126bd197f8e4b15"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f5aba564b4c78f275895a2e153ebe7a1df7cd726af6f3aa9b9f539b01d1f05ee",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.object",
+          "declaration": "case object"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07ce76900bcb8c87501f",
+      "cpp_name": "ida::script::ValueKind::OpaquePointer",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "a5946206436166e54551"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "44ebfb85b30efab3ca9bb9f2bbb3452920b68ce9d74cc710edf40a1b748bbef4",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.opaquePointer",
+          "declaration": "case opaquePointer"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4cfedef9b82d7da783f2",
+      "cpp_name": "ida::script::ValueKind::Reference",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "b8cc7030e873e8561e36"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8f5a0976a2e0314231834ee84216289a84823de1d0a7da1f8e000bc4af4b6d60",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.reference",
+          "declaration": "case reference"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0ec5dd7c020ae6700f6e",
+      "cpp_name": "ida::script::ValueKind::String",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::script::ValueKind",
+      "mapping": "direct",
+      "swift": [
+        "41ac3afa19fa188f9bf8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "11f42e7d18f5faec9d3af8816e4caab2f8cc60670e8271208f089a35eb71be48",
+      "swift_targets": [
+        {
+          "path": "Script.ValueKind.string",
+          "declaration": "case string"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0907dbb01bcafc8ea8ea",
+      "cpp_name": "ida::script::append_include_paths",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const std::vector<std::string> &)",
+      "mapping": "direct",
+      "swift": [
+        "30888a503c59a8c1d96e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bb9e82baa281cc5ab7a814612c88cb75572ab1a09cbdb2b9e76e0a6d6b41ee7c",
+      "swift_targets": [
+        {
+          "path": "Script.appendIncludePaths(_:)",
+          "declaration": "static func appendIncludePaths(_ paths: [String]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bf08176699e64970c48d",
+      "cpp_name": "ida::script::call",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ExecutionResult> (std::string_view, const std::vector<Value> &, const std::vector<ResolvedName> &)",
+      "mapping": "direct",
+      "swift": [
+        "a82ae4ef3f7e39a6e1ba"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4c881c2ed7ef6a2e82a07e42f31c6786786f3be19af81803fcfa86377d736a3a",
+      "swift_targets": [
+        {
+          "path": "Script.call(_:arguments:resolvedNames:)",
+          "declaration": "static func call(_ functionName: String, arguments: [Script.Value] = [], resolvedNames: [Script.ResolvedName] = []) throws(IDAError) -> Script.ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5be78af8e2c37130f02",
+      "cpp_name": "ida::script::compile_file",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CompilationResult> (std::string_view, const FileCompileOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "5d6ba4b0849c590bf3fe"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7a7e3ff9fb9e949aae82164ae4bc31ce3ccfadb8beffda92009bc48adad737ea",
+      "swift_targets": [
+        {
+          "path": "Script.compileFile(_:options:)",
+          "declaration": "static func compileFile(_ path: String, options: Script.FileCompileOptions = .init()) throws(IDAError) -> Script.CompilationResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8fbf920dff403df87fb5",
+      "cpp_name": "ida::script::compile_snippet",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CompilationResult> (std::string_view, std::string_view, const CompileOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "c685415aa276d2d465f2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "30d11429d37e3276264ad6221143d00625710757415c38ac6c62a8d4dcda8811",
+      "swift_targets": [
+        {
+          "path": "Script.compileSnippet(functionName:body:options:)",
+          "declaration": "static func compileSnippet(functionName: String, body: String, options: Script.CompileOptions = .init()) throws(IDAError) -> Script.CompilationResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1e5729246e75f47edcf9",
+      "cpp_name": "ida::script::compile_text",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CompilationResult> (std::string_view, const CompileOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "b57d2edd9ade200c1e98"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "629470bc73973c8fd8bbf26a831e2991a7ef54a7f26074c413c3698140df9f23",
+      "swift_targets": [
+        {
+          "path": "Script.compileText(_:options:)",
+          "declaration": "static func compileText(_ source: String, options: Script.CompileOptions = .init()) throws(IDAError) -> Script.CompilationResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0af9662328cd35221514",
+      "cpp_name": "ida::script::evaluate",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ExecutionResult> (std::string_view, Address)",
+      "mapping": "direct",
+      "swift": [
+        "832cebddfae57bd898a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6f2cf84188b50e543dbe06e2f03434498767226b748fae48cb5009dbed25a4f5",
+      "swift_targets": [
+        {
+          "path": "Script.evaluate(_:at:)",
+          "declaration": "static func evaluate(_ expression: String, at address: Address = badAddress) throws(IDAError) -> Script.ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "91383fc4b5a703305768",
+      "cpp_name": "ida::script::evaluate_idc",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ExecutionResult> (std::string_view, Address)",
+      "mapping": "direct",
+      "swift": [
+        "cb0456167623f2d37513"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "348e91c8bf092242d302a6cd7e81babdad3ca55869d5a43a93e2f8a5271f5819",
+      "swift_targets": [
+        {
+          "path": "Script.evaluateIDC(_:at:)",
+          "declaration": "static func evaluateIDC(_ expression: String, at address: Address = badAddress) throws(IDAError) -> Script.ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eab7525855b49ed1919b",
+      "cpp_name": "ida::script::evaluate_integer",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<IntegerExecutionResult> (std::string_view, Address)",
+      "mapping": "direct",
+      "swift": [
+        "2a88b078429b8d1f0e88"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "260addfc5a2a67fdcce6231f46abe70ecaf6a22beb217cbc917fdf16bd93c600",
+      "swift_targets": [
+        {
+          "path": "Script.evaluateInteger(_:at:)",
+          "declaration": "static func evaluateInteger(_ expression: String, at address: Address = badAddress) throws(IDAError) -> Script.IntegerExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef2ccee848a1c5acede5",
+      "cpp_name": "ida::script::evaluate_snippet",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ExecutionResult> (std::string_view, const std::vector<ResolvedName> &)",
+      "mapping": "direct",
+      "swift": [
+        "63bb62ade6b2d819401f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "282a1709ba29268029a09f16ef85e6888b67137a522e6837f98828be416357ae",
+      "swift_targets": [
+        {
+          "path": "Script.evaluateSnippet(_:resolvedNames:)",
+          "declaration": "static func evaluateSnippet(_ source: String, resolvedNames: [Script.ResolvedName] = []) throws(IDAError) -> Script.ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c186ffc964bd2db2dde",
+      "cpp_name": "ida::script::execute_script",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ExecutionResult> (std::string_view, std::string_view, const std::vector<Value> &, const FileCompileOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "aeb7ef342bee96db3334"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "00adee2e27c2e4ccf8dc77128bb33dea6a32644844ba805ad24f2db342da71ba",
+      "swift_targets": [
+        {
+          "path": "Script.executeScript(_:functionName:arguments:options:)",
+          "declaration": "static func executeScript(_ path: String, functionName: String, arguments: [Script.Value] = [], options: Script.FileCompileOptions = .init()) throws(IDAError) -> Script.ExecutionResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a6f01062004244d44770",
+      "cpp_name": "ida::script::execute_system_script",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "1352b8f1e3970b1f2f15"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "258e43e4283332acf2de574f3f8c54dde78e26b4e332973526362de89cb6d9f2",
+      "swift_targets": [
+        {
+          "path": "Script.executeSystemScript(_:complainIfMissing:)",
+          "declaration": "static func executeSystemScript(_ file: String, complainIfMissing: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bbfc5279779f14a509bd",
+      "cpp_name": "ida::script::function_names",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::string>> (std::string_view, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "6aa4c359f678fa7ad575"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "68f350b79b097bf29218c7f58c38126a71e1da71c3dc532bc5018578f3499567",
+      "swift_targets": [
+        {
+          "path": "Script.functionNames(prefix:maximum:)",
+          "declaration": "static func functionNames(prefix: String = \"\", maximum: Int = 1024) throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29ab5e7149dc7ae17a9c",
+      "cpp_name": "ida::script::global",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Value>> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "de9d8317e84b230fc074"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "64a2990a4d252057b72e7cd9de2fe6c5b81f458b58f26a924f75412eb46c005f",
+      "swift_targets": [
+        {
+          "path": "Script.global(_:)",
+          "declaration": "static func global(_ name: String) throws(IDAError) -> Script.Value?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "59b054efec0421c0fd2f",
+      "cpp_name": "ida::script::reference_global",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Value> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "d2bdf106096ad04d64f7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a3f01d53a3628290a9d03e3db57ebed67c5ad53bf433273315d2d8c42ca7bc73",
+      "swift_targets": [
+        {
+          "path": "Script.referenceGlobal(_:)",
+          "declaration": "static func referenceGlobal(_ name: String) throws(IDAError) -> Script.Value"
+        }
+      ]
+    },
+    {
+      "cpp_id": "717c351034ade5baba42",
+      "cpp_name": "ida::script::resolve_file",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::string>> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "103dc1fe7de9ef45bfe1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fd5f56a819aacecbb38571424493234ab7951a1595698c6922e7b2fe52df98d2",
+      "swift_targets": [
+        {
+          "path": "Script.resolveFile(_:)",
+          "declaration": "static func resolveFile(_ file: String) throws(IDAError) -> String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9140746be9ef59aa2526",
+      "cpp_name": "ida::script::set_global",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view, const Value &)",
+      "mapping": "direct",
+      "swift": [
+        "cbf8dfe2fe1d67f1d2a8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "71c622eec3bfd1980615d06b627edb4c9fabc2ef62670df8d22afe2af277f80e",
+      "swift_targets": [
+        {
+          "path": "Script.setGlobal(_:value:)",
+          "declaration": "@discardableResult static func setGlobal(_ name: String, value: Script.Value) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4868cf8172a317ffd50c",
+      "cpp_name": "ida::script::set_include_paths",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const std::vector<std::string> &)",
+      "mapping": "direct",
+      "swift": [
+        "29b2c72327bbb8991a55"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b8273713fbbb386080916c12f60654075f9ea4cad74a7e3115cc0d064005eee4",
+      "swift_targets": [
+        {
+          "path": "Script.setIncludePaths(_:)",
+          "declaration": "static func setIncludePaths(_ paths: [String]) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

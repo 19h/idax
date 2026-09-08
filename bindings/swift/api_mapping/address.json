@@ -1,0 +1,1439 @@
+{
+  "domain": "address",
+  "declarations": [
+    {
+      "cpp_id": "764cdf0e62b3525017e3",
+      "cpp_name": "ida::address::ItemIterator",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The item-head traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "764cdf0e62b3525017e3690525518f42a30bc5091b2c8e291f992a997622e93a",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8848900d1dabf30b851",
+      "cpp_name": "ida::address::ItemIterator::ItemIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "57fa40e2ae4cf554e975846b2e760d276af1947bb0110f3a9d00883a5aaf12ce",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5ac4aca70834df5a3892",
+      "cpp_name": "ida::address::ItemIterator::ItemIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address, Address)",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The collection operation accepts the same address bounds or predicate; Swift creates Array iterators and slices from the resulting owned values. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "af2bc9b9d3da67efa63aaaa67339d902b7d277b28fa5f56844bec602cd09195b",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5957b04c5493948d47f9",
+      "cpp_name": "ida::address::ItemIterator::difference_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "AddressDelta",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Swift Array uses signed Int indices and distances on the supported 64-bit host; no separate C++ iterator difference typedef is needed. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4a499dc234d1587e821e635a630630482009b14fd857c47972acb3796852b2b6",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "55362d7595f5fdeea9d2",
+      "cpp_name": "ida::address::ItemIterator::iterator_category",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::input_iterator_tag",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The returned Swift Array conforms to Sequence and Collection; Swift protocol conformance replaces the C++ iterator-category tag. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "3c9e96527e842eb56a002c1e984fd47ed841b0f798a21588bae6214c16b2da2f",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aab10ae13f81b5cb2d55",
+      "cpp_name": "ida::address::ItemIterator::operator!=",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const ItemIterator &, const ItemIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "11fcb1b792dc67f32689f055bbdfb3cfaaf08a44f12eebbbca2c1562c54be447",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "12422001d68d5aa26609",
+      "cpp_name": "ida::address::ItemIterator::operator*",
+      "cpp_kind": "method",
+      "cpp_signature": "reference () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "015ad5300e075967f32dccc805506703ca8a321312e948b627267664f91f95df",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b80065ca60ba39ccf85",
+      "cpp_name": "ida::address::ItemIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "ItemIterator &()",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "5843c3f190f5731f877d692fd9298ff2427282dcb1cf87dfce6d5b0f426c3315",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d60428048871d848e46",
+      "cpp_name": "ida::address::ItemIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "ItemIterator (int)",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "5ec5bce417b0d7b65d096d73b948516fe9e7a815710fcb35a6b3769d2c6984a4",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea7b4f6731c03b905829",
+      "cpp_name": "ida::address::ItemIterator::operator->",
+      "cpp_kind": "method",
+      "cpp_signature": "pointer () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "dfc3ed7e92a417156b027f028d84eaba3e6907d08e07a82c5355b5563abec7de",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94ea918c4e3cf1e831c0",
+      "cpp_name": "ida::address::ItemIterator::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const ItemIterator &, const ItemIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "cbc804e5408b592d98835a2b743efb3c8a818e81ccb326b5ce01e787f835bc32",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f45d1e6b96b2e3fdb57e",
+      "cpp_name": "ida::address::ItemIterator::pointer",
+      "cpp_kind": "alias",
+      "cpp_signature": "const Address *",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "7b266859824a794fe444e1aaa33d7d6c2e57ce0adcf927d0d891e96b5108f986",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ffaa80ed50947c44994",
+      "cpp_name": "ida::address::ItemIterator::reference",
+      "cpp_kind": "alias",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ce9940801ce7745605a40dc0962d1c7a3c38178bfbb08b22029bf4ce92700b4e",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "80841c518423f5dc11e3",
+      "cpp_name": "ida::address::ItemIterator::value_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "e1eb51bd47c9621b62e069cb5d2cd715438316220dd16b060b632a2a15483e6a",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05b7519e3e23585e0d7d",
+      "cpp_name": "ida::address::ItemRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The item-head traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "05b7519e3e23585e0d7d80f876ed074a193fed545ce32196363ffe106c4ea5e4",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8da153db232792126a10",
+      "cpp_name": "ida::address::ItemRange::ItemRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address, Address)",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The collection operation accepts the same address bounds or predicate; Swift creates Array iterators and slices from the resulting owned values. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "a67a3136ce12842246218d2c6e65a31a94ef26f6809c0dbbc07fe9113a359444",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9cbb82a8605d33e7e9ae",
+      "cpp_name": "ida::address::ItemRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "ItemIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Use Array.startIndex or makeIterator() on the returned snapshot to begin iteration. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "d9ddc8a39961ce556fd384ad2c852bfce93c7e8fe6907dd7ea29505b2ee5c753",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0e52c911663ba60cd4c3",
+      "cpp_name": "ida::address::ItemRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "ItemIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "Use Array.endIndex or Iterator.next() returning nil to detect exhaustion of the returned snapshot. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "fe6cf2747d8eae7b1e646300a1129866e6da93617d201fc312e26784385795b5",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb3e8823e4edefb53779",
+      "cpp_name": "ida::address::Predicate",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Predicate { Mapped, Loaded, Code, Data, Unknown, Head, Tail, }",
+      "mapping": "direct",
+      "swift": [
+        "548bfbbca687e6af8e58"
+      ],
+      "rationale": "Addresses.Predicate represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "d4146ed3bc971599717647cc24f60e1dea9c2311770e74825007fe29a8a7398a",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate",
+          "declaration": "enum Predicate"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff1869ed6b13d436bd8b",
+      "cpp_name": "ida::address::Predicate::Code",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "19f7fdca8adbce7a3640"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.code; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5a708d4a9b708c77a7eb62119faa645258cd70c282f602fe849511082bce5492",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.code",
+          "declaration": "case code"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0898fd79ad2a077d0ec8",
+      "cpp_name": "ida::address::Predicate::Data",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "8e838b4b6c8800ae4faa"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.data; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6a6c30f5b8dd22610a9ef4671f8ee8a359c9a79485fb7cb6be01ae657bba21a6",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.data",
+          "declaration": "case data"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5130eccd190cdacde9a0",
+      "cpp_name": "ida::address::Predicate::Head",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "8b857e6fe794b4db8055"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.head; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "cd0e0d43542b38b30a2d9d9c608980d871e46a8a54624fa99abd93ba739d0813",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.head",
+          "declaration": "case head"
+        }
+      ]
+    },
+    {
+      "cpp_id": "feca2e695e57792941a3",
+      "cpp_name": "ida::address::Predicate::Loaded",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "00bf85ad34d3383b504b"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.loaded; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1699964fc744208ebc5fe2029788c6f467e6c8bfed927e0d9f776d6964a03998",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.loaded",
+          "declaration": "case loaded"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e03c5200a411f4960344",
+      "cpp_name": "ida::address::Predicate::Mapped",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "9456cc3de11aaf8be4ea"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.mapped; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3ba4c889e7823c0c2a1f72da8b16f8a1a53fbb3b7369e9626a06279b6f8f6afe",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.mapped",
+          "declaration": "case mapped"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea7343d5efec7673ae83",
+      "cpp_name": "ida::address::Predicate::Tail",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "7db96e23fa5789de4861"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.tail; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7c83f73ae581247647eda51fcf8fdf2261c779505802fe6b2b6961bb7f8447db",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.tail",
+          "declaration": "case tail"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2ee13e0acb4157e319ac",
+      "cpp_name": "ida::address::Predicate::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::address::Predicate",
+      "mapping": "direct",
+      "swift": [
+        "dc621ed72e56703d7679"
+      ],
+      "rationale": "Corresponding typed semantic case Addresses.Predicate.unknown; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "48f73c1da91e2906894c90fa09560a52d0b313823488bbb70895bf90bff54021",
+      "swift_targets": [
+        {
+          "path": "Addresses.Predicate.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8272d257e1aeab0b01ca",
+      "cpp_name": "ida::address::PredicateIterator",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "The predicate traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "8272d257e1aeab0b01ca8e9ab6cec5365024846bf3a81f4913b2350aa657fcf2",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a10143de73fa53a4259",
+      "cpp_name": "ida::address::PredicateIterator::PredicateIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ef326e5a58033a5f2f6cd45151532b8c2d27fcb6ca7bfa7e57440da80ee95ca1",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be104fc490fd17a81d5f",
+      "cpp_name": "ida::address::PredicateIterator::PredicateIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address, Address, Predicate)",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "The collection operation accepts the same address bounds or predicate; Swift creates Array iterators and slices from the resulting owned values. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "05b87a2bce82564101dd59aa3a2d3d37c2b3cda323932e9e5c5f6b1e3af1d6ce",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1bc861086c953f2fba4b",
+      "cpp_name": "ida::address::PredicateIterator::difference_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "AddressDelta",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Swift Array uses signed Int indices and distances on the supported 64-bit host; no separate C++ iterator difference typedef is needed. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "a5b23164372ce19a2c1cfd5902959b7d19d807d6f2eab02070a765b7d32ede42",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9c98619c66ee4c63ad36",
+      "cpp_name": "ida::address::PredicateIterator::iterator_category",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::input_iterator_tag",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "The returned Swift Array conforms to Sequence and Collection; Swift protocol conformance replaces the C++ iterator-category tag. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "885fe507994a6dbc6b6d5368ce884882c5dd6381502f25d03a652928961678fd",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94d7a82b0fc43d4715dd",
+      "cpp_name": "ida::address::PredicateIterator::operator!=",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const PredicateIterator &, const PredicateIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "3829bcb76b7341cd0088d951498ba6658faee3559d3cbeaf24add90b0292023e",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87fcea225aad1a1efe4a",
+      "cpp_name": "ida::address::PredicateIterator::operator*",
+      "cpp_kind": "method",
+      "cpp_signature": "reference () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "347bb0beb94da0328411cf0629c69f179a9b8577d67c1ca377ba0c3b6f7a5592",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b6c5a742dd456161c1db",
+      "cpp_name": "ida::address::PredicateIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "PredicateIterator &()",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "14ee562a835017211e5f15811c424313df08e1afd8c60feb3cdc90fa0e2f3600",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef037243b0e4964964c3",
+      "cpp_name": "ida::address::PredicateIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "PredicateIterator (int)",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "f7013751d68b59a466ef3576491930fa19ba8c48997b8f6f34bb6a5e50675562",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60ce508c5d0ffca2eccf",
+      "cpp_name": "ida::address::PredicateIterator::operator->",
+      "cpp_kind": "method",
+      "cpp_signature": "pointer () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "da649ca05155221e93ad3bbc7595a937cf3eb4c83fbc456db244e7f6d926167c",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38514c1e79221002cdb8",
+      "cpp_name": "ida::address::PredicateIterator::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const PredicateIterator &, const PredicateIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "5609a3ac21f69aa43b334117c507c074249f920b055bd79b76be322434e94cf1",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e3d69f5be801c5c4ca0f",
+      "cpp_name": "ida::address::PredicateIterator::pointer",
+      "cpp_kind": "alias",
+      "cpp_signature": "const Address *",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "fdd0a6437611c89f83d870c54651e0802d20c129624b03d60090c0b09f7ea14a",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e64bb918cf87b0f206d0",
+      "cpp_name": "ida::address::PredicateIterator::reference",
+      "cpp_kind": "alias",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "102a5785c47afe3c8140dae471f0f09b7edc9dd5c68452e15b027eae1eb3c0bb",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "812b86404bd8822eb2a7",
+      "cpp_name": "ida::address::PredicateIterator::value_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc",
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "The iteration element is an owned Address value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "b41ec97be15d237255c965bfb994fce9eb0c72c624d0aa37ae2101ea94dcda1a",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        },
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a30a48b9864d6af4e00",
+      "cpp_name": "ida::address::PredicateRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "The predicate traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "1a30a48b9864d6af4e007a1af299f3ca05c237d8d2f221ad2551e5d835e7798f",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8d5bf7c569bfe32ec94a",
+      "cpp_name": "ida::address::PredicateRange::PredicateRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address, Address, Predicate)",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "The collection operation accepts the same address bounds or predicate; Swift creates Array iterators and slices from the resulting owned values. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "6bed1aa66c5dfa8e264955c05838ba6beb4fc06fcbc9b28525c028a1bccccb91",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2c9bc036c200a7f9382",
+      "cpp_name": "ida::address::PredicateRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "PredicateIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Use Array.startIndex or makeIterator() on the returned snapshot to begin iteration. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "3e5a0b5bd4a64c4dc7df3d2e541177551f10ff65970b970669737a9459e45eb8",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee7f07c09f1b11483917",
+      "cpp_name": "ida::address::PredicateRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "PredicateIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "e5b77f808b7b5572e9cc"
+      ],
+      "rationale": "Use Array.endIndex or Iterator.next() returning nil to detect exhaustion of the returned snapshot. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "01a6a4139c07ba51eddaaa46b3b6bc8dacc3cc01c0529a3066fba07f78bc4ab4",
+      "swift_targets": [
+        {
+          "path": "Addresses.matching(_:start:end:)",
+          "declaration": "static func matching(_ predicate: Addresses.Predicate, start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5369d3eea4b024c071e7",
+      "cpp_name": "ida::address::Range",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "25b320a6a2c7b34ca73e"
+      ],
+      "rationale": "Addresses.Range is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "5369d3eea4b024c071e7e3bd8f8c8898119902708966b93229acc2edb100d435",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range",
+          "declaration": "struct Range"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e138303e7a0c94834e9",
+      "cpp_name": "ida::address::Range::contains",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (Address) const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "45651145c5f6b54eb47f"
+      ],
+      "rationale": "Addresses.Range.contains(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a871943820a6b9e4a1f5f244484d019a4832f097adb9c09c3dfa2ade1f613b3d",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range.contains(_:)",
+          "declaration": "func contains(_ address: Address) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "03deff707d7a911ef885",
+      "cpp_name": "ida::address::Range::empty",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "284af28c4f27acf8595a"
+      ],
+      "rationale": "Swift isEmpty computes the same start >= end condition for the half-open range.",
+      "cpp_fingerprint": "2353f7e4f05d2a47507ff362e54df82c286ad4adb40475a34fe668f7fb18b0ae",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range.isEmpty",
+          "declaration": "var isEmpty: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98db7c87a41bfe2ed0d6",
+      "cpp_name": "ida::address::Range::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "da726647213371d4a93e"
+      ],
+      "rationale": "Preserves the declared Address value in Addresses.Range.end, including its semantic type and signedness.",
+      "cpp_fingerprint": "f019f286675da0202efb0e9ec08ff7c9716d95663c6463c3029856f3628bea2f",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range.end",
+          "declaration": "var end: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "24933237b56c8b2652c2",
+      "cpp_name": "ida::address::Range::size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "47fe6347625ae48d8303"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Addresses.Range.size, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "17fdd6c69bc778576dfa457ef29624a2ff49e57ae2252f10306023bb5a087fa5",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range.size",
+          "declaration": "var size: UInt64 { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "31ade843da30110abfde",
+      "cpp_name": "ida::address::Range::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "e5ccf95c1d4005c74c45"
+      ],
+      "rationale": "Preserves the declared Address value in Addresses.Range.start, including its semantic type and signedness.",
+      "cpp_fingerprint": "470743224e1124d5c03e1c715f7a4cf8e87d41537274bb322740c7faf79883a3",
+      "swift_targets": [
+        {
+          "path": "Addresses.Range.start",
+          "declaration": "var start: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7bb8b7ebbc7e4273f01",
+      "cpp_name": "ida::address::code_items",
+      "cpp_kind": "function",
+      "cpp_signature": "PredicateRange (Address, Address)",
+      "mapping": "private_bridge",
+      "swift": [
+        "f84954f704560dc8b56a"
+      ],
+      "rationale": "The private bridge enumerates the corresponding C++ range and copies the same ordered addresses into a Swift Array. items retains the SDK item iterator so unmapped gaps are skipped.",
+      "cpp_fingerprint": "8b57008b208c8050bc5b8cca9d681d6c9ba4d6b366408a9782892d9d323c9381",
+      "swift_targets": [
+        {
+          "path": "Addresses.codeItems(start:end:)",
+          "declaration": "static func codeItems(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e4a945bb81693bdb8df0",
+      "cpp_name": "ida::address::data_items",
+      "cpp_kind": "function",
+      "cpp_signature": "PredicateRange (Address, Address)",
+      "mapping": "private_bridge",
+      "swift": [
+        "0f828222186341342050"
+      ],
+      "rationale": "The private bridge enumerates the corresponding C++ range and copies the same ordered addresses into a Swift Array. items retains the SDK item iterator so unmapped gaps are skipped.",
+      "cpp_fingerprint": "958e94ba7f691375b4d5cda5b0a0d7115a20e05b29a65e6ae2948d1dac166185",
+      "swift_targets": [
+        {
+          "path": "Addresses.dataItems(start:end:)",
+          "declaration": "static func dataItems(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2e82c7e53df03bbb36a",
+      "cpp_name": "ida::address::find_first",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address, Predicate)",
+      "mapping": "direct",
+      "swift": [
+        "4002ae57387256c4d5ef"
+      ],
+      "rationale": "Addresses.findFirst(start:end:predicate:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8eb4a4fbea60087edd0b9f1a980209d033059ae7392fc6b8a8f3a32ec9f4f4d6",
+      "swift_targets": [
+        {
+          "path": "Addresses.findFirst(start:end:predicate:)",
+          "declaration": "static func findFirst(start: UInt64, end: UInt64, predicate: Addresses.Predicate) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6cb25e4bf1d9eb1bbf1a",
+      "cpp_name": "ida::address::find_next",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Predicate, Address)",
+      "mapping": "direct",
+      "swift": [
+        "6441d7d55d4b19fa6f1a"
+      ],
+      "rationale": "Addresses.findNext(address:predicate:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "23708835c56143c667aad754144cb92b09e8f2bf93b2640e33a658b01e99f226",
+      "swift_targets": [
+        {
+          "path": "Addresses.findNext(address:predicate:end:)",
+          "declaration": "static func findNext(address: UInt64, predicate: Addresses.Predicate, end: UInt64 = badAddress) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "04ccd614b00a4fcc9521",
+      "cpp_name": "ida::address::is_code",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "fd14b8b5cfcfd22f6cf7"
+      ],
+      "rationale": "Addresses.isCode(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "782b02d592d6188e453641a439b34ff62782ba7080a0e4dd0a6937d72f47b32d",
+      "swift_targets": [
+        {
+          "path": "Addresses.isCode(address:)",
+          "declaration": "static func isCode(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8de33daed5b799ff72b0",
+      "cpp_name": "ida::address::is_data",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "7129d169d2682440dc35"
+      ],
+      "rationale": "Addresses.isData(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1bb69d1483623163e5042890300de945620ceab8c7390e1bbee7dfd5caf10018",
+      "swift_targets": [
+        {
+          "path": "Addresses.isData(address:)",
+          "declaration": "static func isData(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3825125fe81feaad37a4",
+      "cpp_name": "ida::address::is_head",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "5df9d404eead3ad1a03b"
+      ],
+      "rationale": "Addresses.isHead(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "41c780c73aeb3c7916d4447ed57221eeecd1737a5822489a7797474433053df3",
+      "swift_targets": [
+        {
+          "path": "Addresses.isHead(address:)",
+          "declaration": "static func isHead(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e4727d70259582fa82ed",
+      "cpp_name": "ida::address::is_loaded",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "28cb7581d93674179cb6"
+      ],
+      "rationale": "Addresses.isLoaded(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "95cd9a86f732d78ad825d2a0cb69bd9842498b9784b287b5f8171ee705136cc6",
+      "swift_targets": [
+        {
+          "path": "Addresses.isLoaded(address:)",
+          "declaration": "static func isLoaded(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c0e583d88dd4801ae7b",
+      "cpp_name": "ida::address::is_mapped",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "0c6f4036f537a7f594b7"
+      ],
+      "rationale": "Addresses.isMapped(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3f70be3cc7a34638460fbc6f4f12ab4123ff0407cd4f653aa2f6850c5af0f42e",
+      "swift_targets": [
+        {
+          "path": "Addresses.isMapped(address:)",
+          "declaration": "static func isMapped(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6654e89bf0feba8b7244",
+      "cpp_name": "ida::address::is_tail",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "4198b1662ad0c3fdb5a0"
+      ],
+      "rationale": "Addresses.isTail(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ddce7f92916e35f1430ac8760ae6d84f2c5ae1de50a32a92bd7223661b8afaf7",
+      "swift_targets": [
+        {
+          "path": "Addresses.isTail(address:)",
+          "declaration": "static func isTail(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4755040bc2532daf33e",
+      "cpp_name": "ida::address::is_unknown",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "fbd4dde9fe8da1a78c28"
+      ],
+      "rationale": "Addresses.isUnknown(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "55c3c1df55786e10344756bbb9b2dc5a7db1fac56d7197fb8738c24027cd1eec",
+      "swift_targets": [
+        {
+          "path": "Addresses.isUnknown(address:)",
+          "declaration": "static func isUnknown(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e985c91e66889d712596",
+      "cpp_name": "ida::address::item_end",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "00b5c5b404d3a7f87612"
+      ],
+      "rationale": "Addresses.itemEnd(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6b4f32becfa39ab386a57667917de7d2e8c54ccff90ac9ae6a60dbcaca2003be",
+      "swift_targets": [
+        {
+          "path": "Addresses.itemEnd(address:)",
+          "declaration": "static func itemEnd(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dcdbdb847c53faf568cd",
+      "cpp_name": "ida::address::item_size",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "46e4884fcb33a52165c7"
+      ],
+      "rationale": "Addresses.itemSize(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "de87c2a0bbd42518af5b2a9b81806ccf87f696b7ef40ddb1a7f4d116f2bba58a",
+      "swift_targets": [
+        {
+          "path": "Addresses.itemSize(address:)",
+          "declaration": "static func itemSize(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "917eb8194ddd56c2229d",
+      "cpp_name": "ida::address::item_start",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "9c63f62ea3f9c85b2b56"
+      ],
+      "rationale": "Addresses.itemStart(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "782541371d34fe687bc22f60a4a2bb38d8f05467c796c3800df4e288e574d53e",
+      "swift_targets": [
+        {
+          "path": "Addresses.itemStart(address:)",
+          "declaration": "static func itemStart(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "08772fc9ebf420d80af0",
+      "cpp_name": "ida::address::items",
+      "cpp_kind": "function",
+      "cpp_signature": "ItemRange (Address, Address)",
+      "mapping": "private_bridge",
+      "swift": [
+        "dd3c50536fed132d74ee"
+      ],
+      "rationale": "The private bridge enumerates the corresponding C++ range and copies the same ordered addresses into a Swift Array. items retains the SDK item iterator so unmapped gaps are skipped.",
+      "cpp_fingerprint": "95e69d078808eb82a9732cd001f5fc938f61389267202093114d0ee29dd74158",
+      "swift_targets": [
+        {
+          "path": "Addresses.items(start:end:)",
+          "declaration": "static func items(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4645065fe07f2346a02b",
+      "cpp_name": "ida::address::next_defined",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "a00c0f1fd76fa0c80743"
+      ],
+      "rationale": "Addresses.nextDefined(address:limit:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4807e6ef21ef99b75a057afc1f00fde781981f69638a45410d3d753e875a442b",
+      "swift_targets": [
+        {
+          "path": "Addresses.nextDefined(address:limit:)",
+          "declaration": "static func nextDefined(address: Address, limit: Address = badAddress) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "398057776ac05229ffc7",
+      "cpp_name": "ida::address::next_head",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "bb4c7f3b90c3deef6f98"
+      ],
+      "rationale": "Addresses.nextHead(address:limit:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "72901319cbc88780097645cb3fb38bb024d7a0cade5feab7831a5628d5a22efc",
+      "swift_targets": [
+        {
+          "path": "Addresses.nextHead(address:limit:)",
+          "declaration": "static func nextHead(address: UInt64, limit: UInt64 = badAddress) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1cf562517dc4bab08a1",
+      "cpp_name": "ida::address::next_mapped",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "3bceeea68a143729128c"
+      ],
+      "rationale": "Addresses.nextMapped(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "427f1b2949ae9a97a14205d4cb8f1378b9dfc7556e8ccf1ebfa24048a8d6c726",
+      "swift_targets": [
+        {
+          "path": "Addresses.nextMapped(address:)",
+          "declaration": "static func nextMapped(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d47081abddd36251f8dc",
+      "cpp_name": "ida::address::next_not_tail",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "e4829f1d94abf2d55fcc"
+      ],
+      "rationale": "Addresses.nextNotTail(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f7223c2708d88594cf809091bf9298cdf4c2b5999537686a7702350dfff13d12",
+      "swift_targets": [
+        {
+          "path": "Addresses.nextNotTail(address:)",
+          "declaration": "static func nextNotTail(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "506dd6b27e2ec89aabf9",
+      "cpp_name": "ida::address::prev_defined",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "48261966fb6a0b984b4d"
+      ],
+      "rationale": "Addresses.prevDefined(address:limit:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ce843ac86f2ec72bf0dd63e5f0dc35cae91e9fa9c7e3792c4ef1f5ea3206a913",
+      "swift_targets": [
+        {
+          "path": "Addresses.prevDefined(address:limit:)",
+          "declaration": "static func prevDefined(address: Address, limit: Address = 0) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9f479a4d134fa9ebef00",
+      "cpp_name": "ida::address::prev_head",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "ab29a910ac260a8362d8"
+      ],
+      "rationale": "Addresses.prevHead(address:limit:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1ea3ad8febd9ef82174c84b251ddd1ae88216f767fd2c0bca83a0d351601f87e",
+      "swift_targets": [
+        {
+          "path": "Addresses.prevHead(address:limit:)",
+          "declaration": "static func prevHead(address: UInt64, limit: UInt64 = 0) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "646f8976de84471a035c",
+      "cpp_name": "ida::address::prev_mapped",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "24a4923d739e5d590026"
+      ],
+      "rationale": "Addresses.prevMapped(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ab856666884176c5157048d7b03124da70bc932c4fdbc9f98fb61c80a957505d",
+      "swift_targets": [
+        {
+          "path": "Addresses.prevMapped(address:)",
+          "declaration": "static func prevMapped(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cf64dcdab9145f8f1037",
+      "cpp_name": "ida::address::prev_not_tail",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "1acfaed78e3cd182f6aa"
+      ],
+      "rationale": "Addresses.prevNotTail(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e256028ee5f7894c43195e83695ae0a48082bc319b6c3772b2e8330d10cbc59b",
+      "swift_targets": [
+        {
+          "path": "Addresses.prevNotTail(address:)",
+          "declaration": "static func prevNotTail(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7ee29324493da5ff556",
+      "cpp_name": "ida::address::unknown_bytes",
+      "cpp_kind": "function",
+      "cpp_signature": "PredicateRange (Address, Address)",
+      "mapping": "private_bridge",
+      "swift": [
+        "b43a7b08136757234ee7"
+      ],
+      "rationale": "The private bridge enumerates the corresponding C++ range and copies the same ordered addresses into a Swift Array. items retains the SDK item iterator so unmapped gaps are skipped.",
+      "cpp_fingerprint": "95371215863f3aa740f134728ea5d454264ef0aeb839ac890a7ea0f5ee2ac4a0",
+      "swift_targets": [
+        {
+          "path": "Addresses.unknownBytes(start:end:)",
+          "declaration": "static func unknownBytes(start: Address, end: Address) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0e3eefc1d0d2c7943773",
+      "cpp_name": "ida::Address",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "19938e1e0e78560c6109"
+      ],
+      "rationale": "Preserves the public 64-bit address, signed delta, unsigned size, or all-ones invalid-address sentinel exactly.",
+      "cpp_fingerprint": "e98f08d3b0e3ee78d06e9066ace2ebfaf1f9a42abf6e6080bb0c2fa945b8aff1",
+      "swift_targets": [
+        {
+          "path": "Address",
+          "declaration": "typealias Address = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3fe1076f168c510dc42c",
+      "cpp_name": "ida::AddressDelta",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "4ecf5d4d7bc4bbc59131"
+      ],
+      "rationale": "Preserves the public 64-bit address, signed delta, unsigned size, or all-ones invalid-address sentinel exactly.",
+      "cpp_fingerprint": "7360eb4b123ecdd99b57ff465b1903d75ca007dbb53e3d88e4e21517a5237281",
+      "swift_targets": [
+        {
+          "path": "AddressDelta",
+          "declaration": "typealias AddressDelta = Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe443187d12b28225cc3",
+      "cpp_name": "ida::AddressSize",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "d1bedf9e1986b6b13a08"
+      ],
+      "rationale": "Preserves the public 64-bit address, signed delta, unsigned size, or all-ones invalid-address sentinel exactly.",
+      "cpp_fingerprint": "c25473483133df24c2437aeee16a10ea4f1f3c7d847855a88e69e0d38b0b3927",
+      "swift_targets": [
+        {
+          "path": "AddressSize",
+          "declaration": "typealias AddressSize = UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd01164c5e1534573ec6",
+      "cpp_name": "ida::BadAddress",
+      "cpp_kind": "constant",
+      "cpp_signature": "const Address",
+      "mapping": "direct",
+      "swift": [
+        "827f6ab5f20bfde323b3"
+      ],
+      "rationale": "Preserves the public 64-bit address, signed delta, unsigned size, or all-ones invalid-address sentinel exactly.",
+      "cpp_fingerprint": "d6615ccd501b935010fbbcf80b46f0a4fb27c4421f44c181516fd1e705d45e06",
+      "swift_targets": [
+        {
+          "path": "badAddress",
+          "declaration": "let badAddress: Address"
+        }
+      ]
+    }
+  ]
+}

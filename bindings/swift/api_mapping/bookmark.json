@@ -1,0 +1,203 @@
+{
+  "domain": "bookmark",
+  "declarations": [
+    {
+      "cpp_id": "9fe0a75b32e48eb9a13c",
+      "cpp_name": "ida::bookmark::Bookmark",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a46bc5cc0e5951bcff68"
+      ],
+      "rationale": "Bookmarks.Bookmark is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "9fe0a75b32e48eb9a13cea65eb225afcb757a0bf54cb13409bb7e1b89b7babf1",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.Bookmark",
+          "declaration": "struct Bookmark"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8fc02907362f12b6f0c1",
+      "cpp_name": "ida::bookmark::Bookmark::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "19df7a1949d87a829a72"
+      ],
+      "rationale": "Preserves the declared Address value in Bookmarks.Bookmark.address, including its semantic type and signedness.",
+      "cpp_fingerprint": "1c60ede20371dbf7f4450bf4c1de87174fc04539f8531519d93c30127149b798",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.Bookmark.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d9303449ac0a0cd9cd2e",
+      "cpp_name": "ida::bookmark::Bookmark::description",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "c6386d1ed4c37d81eab2"
+      ],
+      "rationale": "Preserves the description value as var description: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "8c5d2c870d6bcd631a6bb14f70f44f838d49a8698e8536feb6bdc3f7b8bb2498",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.Bookmark.description",
+          "declaration": "var description: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b39e2e32882ec2f4a29e",
+      "cpp_name": "ida::bookmark::Bookmark::slot",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "a05aa77f142591a16fe3"
+      ],
+      "rationale": "Preserves the declared std::uint32_t value in Bookmarks.Bookmark.slot, including its semantic type and signedness.",
+      "cpp_fingerprint": "54198b9d47e96addfec0eddba574dd5b148dab402640dc28e156725858248a2e",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.Bookmark.slot",
+          "declaration": "var slot: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "924d1cb73ea96ab25a24",
+      "cpp_name": "ida::bookmark::MaxSlots",
+      "cpp_kind": "constant",
+      "cpp_signature": "const std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "115c439ad3ef8b476c2f"
+      ],
+      "rationale": "The public slot-capacity constant is UInt32(1024), matching the C++ MaxSlots value.",
+      "cpp_fingerprint": "0c1842bb7a95c3a85dfcec23ad3628e2ed2214e06ae9ce12cab44c55b4fcd72d",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.maxSlots",
+          "declaration": "static let maxSlots: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d02005c37693a34318dd",
+      "cpp_name": "ida::bookmark::all",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Bookmark>> ()",
+      "mapping": "direct",
+      "swift": [
+        "a8b4c6fd41acdfa64204"
+      ],
+      "rationale": "Bookmarks.all() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "2b02b853370da4c3d442432e32f3b13ae41fd0c93140e7630c63e6edc8a05433",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.all()",
+          "declaration": "static func all() throws(IDAError) -> [Bookmarks.Bookmark]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21e2817c51ac15cbdf67",
+      "cpp_name": "ida::bookmark::at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Bookmark>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "4599abe423755f202813"
+      ],
+      "rationale": "Bookmarks.at(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "2a6fa7296d5b29e831dcd0ece9f7b04d37b7413dce898f673d214e7dce3ab3de",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.at(address:)",
+          "declaration": "static func at(address: UInt64) throws(IDAError) -> Bookmarks.Bookmark?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a0035202b4a8a5dd9023",
+      "cpp_name": "ida::bookmark::at_slot",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Bookmark>> (std::uint32_t)",
+      "mapping": "direct",
+      "swift": [
+        "4ceb6253825be58a92fc"
+      ],
+      "rationale": "Bookmarks.atSlot(slot:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "23f40550b60267e0eb94abfec8e3c486c6e7718a0fe823b660bf63754ff6e77e",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.atSlot(slot:)",
+          "declaration": "static func atSlot(slot: UInt32) throws(IDAError) -> Bookmarks.Bookmark?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c61178be4e0aacacdef",
+      "cpp_name": "ida::bookmark::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "241a3fb6b92d6cf502d0"
+      ],
+      "rationale": "Bookmarks.remove(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b0010af07e18bae75a3410b069fbd6ec9d87700702a25a67718922bb9d7f8480",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.remove(address:)",
+          "declaration": "static func remove(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29e7a9ecd3fa2f8087f9",
+      "cpp_name": "ida::bookmark::remove_slot",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::uint32_t)",
+      "mapping": "direct",
+      "swift": [
+        "446c4ab79cd4e78b3f94"
+      ],
+      "rationale": "Bookmarks.removeSlot(slot:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "901d9d342ad87dc17c4a35622f0f70212ea4864f3afc69c8efff4eb469f2865d",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.removeSlot(slot:)",
+          "declaration": "static func removeSlot(slot: UInt32) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "84f37452b7f863077e30",
+      "cpp_name": "ida::bookmark::set",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Bookmark> (Address, std::string_view, std::optional<std::uint32_t>)",
+      "mapping": "direct",
+      "swift": [
+        "4ba1d30be216b6a18fbf"
+      ],
+      "rationale": "Bookmarks.set(address:description:slot:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "a4963384b20ce7a7f3af4d8e578e9e53656b0c3ef3ce5846da7b3a799fbe4ce6",
+      "swift_targets": [
+        {
+          "path": "Bookmarks.set(address:description:slot:)",
+          "declaration": "static func set(address: Address, description: String, slot: UInt32? = nil) throws(IDAError) -> Bookmarks.Bookmark"
+        }
+      ]
+    }
+  ]
+}

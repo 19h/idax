@@ -1,0 +1,59 @@
+{
+  "domain": "path",
+  "declarations": [
+    {
+      "cpp_id": "01d6ff18a395e3268a49",
+      "cpp_name": "ida::path::basename",
+      "cpp_kind": "function",
+      "cpp_signature": "std::string (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "fc2e626485bfc12b2619"
+      ],
+      "rationale": "Paths.basename(path:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f151079c46e422b97e7d01e6ee5e1443aed335d87919ed58d0f64a2a456bacb9",
+      "swift_targets": [
+        {
+          "path": "Paths.basename(path:)",
+          "declaration": "static func basename(path: String) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "11db9498fa784b4d0edc",
+      "cpp_name": "ida::path::dirname",
+      "cpp_kind": "function",
+      "cpp_signature": "std::string (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "06319c8e0f5304d32f9b"
+      ],
+      "rationale": "Paths.dirname(path:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "521c875f7eee4289f3edde1e982abc4e3b4f519319b7964289c3ffad3695fb03",
+      "swift_targets": [
+        {
+          "path": "Paths.dirname(path:)",
+          "declaration": "static func dirname(path: String) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0790e4930eec006a2f7",
+      "cpp_name": "ida::path::is_directory",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "7b2940922d217ae3f4a6"
+      ],
+      "rationale": "Paths.isDirectory(path:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "740947708d6e812b44488b78a7def71c2721c29864a309b6a7fc1e90a6540ca5",
+      "swift_targets": [
+        {
+          "path": "Paths.isDirectory(path:)",
+          "declaration": "static func isDirectory(path: String) throws(IDAError) -> Bool"
+        }
+      ]
+    }
+  ]
+}

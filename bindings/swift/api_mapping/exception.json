@@ -1,0 +1,843 @@
+{
+  "domain": "exception",
+  "declarations": [
+    {
+      "cpp_id": "fd37f1bf3974d5b57e10",
+      "cpp_name": "ida::exception::Block",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "4b32b2efc7baa5730096"
+      ],
+      "rationale": "Exceptions.Block is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "fd37f1bf3974d5b57e106568ccea83f0df20e4556f2671d3e38944b370623e8d",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Block",
+          "declaration": "struct Block"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d237974794c985339ef8",
+      "cpp_name": "ida::exception::Block::definition",
+      "cpp_kind": "field",
+      "cpp_signature": "BlockDefinition",
+      "mapping": "direct",
+      "swift": [
+        "58ef2999432b775b991f"
+      ],
+      "rationale": "Preserves the declared BlockDefinition value in Exceptions.Block.definition, including its semantic type and signedness.",
+      "cpp_fingerprint": "5224cc10fec927fe241555ded0787c7f9533cba7e265095d8a638aaaaed6b1c3",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Block.definition",
+          "declaration": "var definition: Exceptions.BlockDefinition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb36b56a8f91180b3a59",
+      "cpp_name": "ida::exception::Block::nesting_level",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "f135320a39757f10fc86"
+      ],
+      "rationale": "Preserves the declared std::uint8_t value in Exceptions.Block.nestingLevel, including its semantic type and signedness.",
+      "cpp_fingerprint": "8ba1ce18189fb46185d30cd7ab8d1e13026199d7effeb3eda1bb95cbf7b61b5f",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Block.nestingLevel",
+          "declaration": "var nestingLevel: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "002767069b6285bc8e37",
+      "cpp_name": "ida::exception::BlockDefinition",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "d327e28f1616db3e529c"
+      ],
+      "rationale": "Exceptions.BlockDefinition is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "002767069b6285bc8e3796d3bc7e0859281441921a17875fef0b167737b433ef",
+      "swift_targets": [
+        {
+          "path": "Exceptions.BlockDefinition",
+          "declaration": "struct BlockDefinition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f76e7d0f8c8912046ed3",
+      "cpp_name": "ida::exception::BlockDefinition::handlers",
+      "cpp_kind": "field",
+      "cpp_signature": "HandlerSet",
+      "mapping": "direct",
+      "swift": [
+        "add1e8d59df789b24f2b"
+      ],
+      "rationale": "Preserves the declared HandlerSet value in Exceptions.BlockDefinition.handlers, including its semantic type and signedness.",
+      "cpp_fingerprint": "47a9f61f76767fab2f753ed2b237e4166a9bb4c35f275a597839e382289298ca",
+      "swift_targets": [
+        {
+          "path": "Exceptions.BlockDefinition.handlers",
+          "declaration": "var handlers: Exceptions.HandlerSet"
+        }
+      ]
+    },
+    {
+      "cpp_id": "707dda89f9ad6699dcf8",
+      "cpp_name": "ida::exception::BlockDefinition::protected_regions",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<address::Range>",
+      "mapping": "direct",
+      "swift": [
+        "32f5ffd12b6d2dc4f7d1"
+      ],
+      "rationale": "Preserves the protected_regions value as var protectedRegions: [Addresses.Range]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "c9190cfded722ee653663552b8658735fa6eef2900153c050e0737e9b1812a2c",
+      "swift_targets": [
+        {
+          "path": "Exceptions.BlockDefinition.protectedRegions",
+          "declaration": "var protectedRegions: [Addresses.Range]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "31860700888dea252ded",
+      "cpp_name": "ida::exception::CatchHandler",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "157c9b2f8bfdea0c83ef"
+      ],
+      "rationale": "Exceptions.CatchHandler is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "31860700888dea252ded0598b09a24bab3d535f61dadc40ef48d943036d66047",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchHandler",
+          "declaration": "struct CatchHandler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98b69ca3ccf27be24f90",
+      "cpp_name": "ida::exception::CatchHandler::metadata",
+      "cpp_kind": "field",
+      "cpp_signature": "HandlerMetadata",
+      "mapping": "direct",
+      "swift": [
+        "338a2c8a2053ece55e18"
+      ],
+      "rationale": "Preserves the declared HandlerMetadata value in Exceptions.CatchHandler.metadata, including its semantic type and signedness.",
+      "cpp_fingerprint": "3b00a34de54a36f715177cc58ff1ba9d2a4c286c61f7922af5ee46947e2e872b",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchHandler.metadata",
+          "declaration": "var metadata: Exceptions.HandlerMetadata"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a87ca0f15bb00aa82af5",
+      "cpp_name": "ida::exception::CatchHandler::object_displacement",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<AddressDelta>",
+      "mapping": "direct",
+      "swift": [
+        "d6b1e9d5e8fcbd920770"
+      ],
+      "rationale": "Exceptions.CatchHandler.objectDisplacement preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "c7e5f6ce6c27baac49422e0e14a96529e6d97ec591421977e8e432d87df7fdf4",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchHandler.objectDisplacement",
+          "declaration": "var objectDisplacement: AddressDelta?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b494854402f62215276",
+      "cpp_name": "ida::exception::CatchHandler::selector",
+      "cpp_kind": "field",
+      "cpp_signature": "CatchSelector",
+      "mapping": "direct",
+      "swift": [
+        "f84584dddd53d7361dbb"
+      ],
+      "rationale": "Preserves the declared CatchSelector value in Exceptions.CatchHandler.selector, including its semantic type and signedness.",
+      "cpp_fingerprint": "aa26da7721d80bcadbd12112cb0144168fdb014337b03dc7840c32188c64f97f",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchHandler.selector",
+          "declaration": "var selector: Exceptions.CatchSelector"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd1dbe0d74cc13a133f6",
+      "cpp_name": "ida::exception::CatchSelector",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "5b6c4828741568854e2e"
+      ],
+      "rationale": "A Swift associated-value enum represents typed(identifier), catch-all, or cleanup and prevents inconsistent selector tag/payload combinations.",
+      "cpp_fingerprint": "cd1dbe0d74cc13a133f671d6a64959df2625409dd0eaf1803d9fe594f683891d",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelector",
+          "declaration": "enum CatchSelector"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b4131496a2aca747ac90",
+      "cpp_name": "ida::exception::CatchSelector::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "CatchSelectorKind",
+      "mapping": "adapted",
+      "swift": [
+        "b107f57e9c6bc594a496"
+      ],
+      "rationale": "The semantic discriminator is computed from the associated-value case rather than independently mutable tag/payload fields.",
+      "cpp_fingerprint": "bd03c66fd3e041f92279035a1d2d45b8bb53269608eced92e235b50210925089",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelector.kind",
+          "declaration": "var kind: Exceptions.CatchSelectorKind { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29d45c9c2d06887687d2",
+      "cpp_name": "ida::exception::CatchSelector::type_identifier",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "adapted",
+      "swift": [
+        "c0c8dba07128518a2244"
+      ],
+      "rationale": "The signed 64-bit identifier is the associated value of typed; the C++ field is meaningful only for that selector kind.",
+      "cpp_fingerprint": "e823e72f223a32a23196658e1d6e91728f7aae6363470a9f37e984924cf43548",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelector.typed(typeIdentifier:)",
+          "declaration": "case typed(typeIdentifier: Int64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ded41f532d8093ae3f55",
+      "cpp_name": "ida::exception::CatchSelectorKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class CatchSelectorKind : std::uint8_t { Typed, CatchAll, Cleanup, }",
+      "mapping": "direct",
+      "swift": [
+        "b90d3fa2b8e6c2ba2ba2"
+      ],
+      "rationale": "Exceptions.CatchSelectorKind represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "8de3a9f1d2ea22fd507ca6937bf7c4bdf1ed7e9808b3a95535c2c50287d4ece4",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelectorKind",
+          "declaration": "enum CatchSelectorKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d61240c6dbbb6785fcc",
+      "cpp_name": "ida::exception::CatchSelectorKind::CatchAll",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::CatchSelectorKind",
+      "mapping": "direct",
+      "swift": [
+        "418a850f16dee9b761ec"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.CatchSelectorKind.catchAll; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "672c088f1d7ae2e455d324ae5fc90a424a698ea057475652462b1c1d5f84c94c",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelectorKind.catchAll",
+          "declaration": "case catchAll"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b120b9ce53da83ded52",
+      "cpp_name": "ida::exception::CatchSelectorKind::Cleanup",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::CatchSelectorKind",
+      "mapping": "direct",
+      "swift": [
+        "5885b152b91cd1ce5c25"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.CatchSelectorKind.cleanup; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a91c41cf45535f618c8b8e2d7eba32950a867c4681aa91493276d5983ff53070",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelectorKind.cleanup",
+          "declaration": "case cleanup"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b0d059d6e979471f650",
+      "cpp_name": "ida::exception::CatchSelectorKind::Typed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::CatchSelectorKind",
+      "mapping": "direct",
+      "swift": [
+        "8523f7af42e07df1c41b"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.CatchSelectorKind.typed; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3205f2c868651d5bf16ae7dc8e29d8eb095509057747f5963d5f3778d42ac66a",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CatchSelectorKind.typed",
+          "declaration": "case typed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eda57157160ccf899a03",
+      "cpp_name": "ida::exception::CppHandlers",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "b6888ce867d1aab6339c"
+      ],
+      "rationale": "Exceptions.CPPHandlers is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "eda57157160ccf899a03cb47dc4e75713ab32c6d6087ee80c1f6c4baef375e23",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CPPHandlers",
+          "declaration": "struct CPPHandlers"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e88fef01585a0b44503",
+      "cpp_name": "ida::exception::CppHandlers::catches",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<CatchHandler>",
+      "mapping": "direct",
+      "swift": [
+        "1464ead277a83a6628cf"
+      ],
+      "rationale": "Preserves the catches value as var catches: [Exceptions.CatchHandler]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "79d8eb19f5687cd3a3a0e32b00a869a61802a2227627d0ddba3fb91bf325feb5",
+      "swift_targets": [
+        {
+          "path": "Exceptions.CPPHandlers.catches",
+          "declaration": "var catches: [Exceptions.CatchHandler]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82a9c48a0d965ec658d5",
+      "cpp_name": "ida::exception::HandlerMetadata",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "3bad1b242b91e3f945db"
+      ],
+      "rationale": "Exceptions.HandlerMetadata is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "82a9c48a0d965ec658d59fc468fbd5a4270465abf3f5bb3389ca72cc2a0d674a",
+      "swift_targets": [
+        {
+          "path": "Exceptions.HandlerMetadata",
+          "declaration": "struct HandlerMetadata"
+        }
+      ]
+    },
+    {
+      "cpp_id": "968bf9b7b8ab8766eef6",
+      "cpp_name": "ida::exception::HandlerMetadata::frame_register",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<int>",
+      "mapping": "direct",
+      "swift": [
+        "8fe8073164a2b78acb9e"
+      ],
+      "rationale": "Exceptions.HandlerMetadata.frameRegister preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "40dd442c5e678da324adfcd8bbae9516dda976682ec04c22326d7f217ca35668",
+      "swift_targets": [
+        {
+          "path": "Exceptions.HandlerMetadata.frameRegister",
+          "declaration": "var frameRegister: Int32?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e5611323009a8d85bbf",
+      "cpp_name": "ida::exception::HandlerMetadata::regions",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<address::Range>",
+      "mapping": "direct",
+      "swift": [
+        "f47726fd28afa6b40f9a"
+      ],
+      "rationale": "Preserves the regions value as var regions: [Addresses.Range]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "0f4b5d0838ef01f3d42ab7982ef25b0639f9ecfc3feadd8106cfce434f814660",
+      "swift_targets": [
+        {
+          "path": "Exceptions.HandlerMetadata.regions",
+          "declaration": "var regions: [Addresses.Range]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7a4b91952fdc8da43be",
+      "cpp_name": "ida::exception::HandlerMetadata::stack_displacement",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<AddressDelta>",
+      "mapping": "direct",
+      "swift": [
+        "a82489cdbe325ed04d6c"
+      ],
+      "rationale": "Exceptions.HandlerMetadata.stackDisplacement preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "c7539cf3787b812dafb3b8f4282bc5fceffd859717a397cbaef0cbe3eb226a1d",
+      "swift_targets": [
+        {
+          "path": "Exceptions.HandlerMetadata.stackDisplacement",
+          "declaration": "var stackDisplacement: AddressDelta?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "097d063b0f7d8d707df7",
+      "cpp_name": "ida::exception::HandlerSet",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::variant<CppHandlers, SehHandler>",
+      "mapping": "adapted",
+      "swift": [
+        "03dfed47228e6c6fda08",
+        "de055ffc90b0b6faae92"
+      ],
+      "rationale": "The C++ variant alternatives become Swift enum cases carrying complete CPPHandlers or SEHHandler values.",
+      "cpp_fingerprint": "816931989ddb23ed6e2d1d5e9ff8eedb5a33cded8fc3ab54ed4957b4b153737f",
+      "swift_targets": [
+        {
+          "path": "Exceptions.HandlerSet.cpp(_:)",
+          "declaration": "case cpp(Exceptions.CPPHandlers)"
+        },
+        {
+          "path": "Exceptions.HandlerSet.seh(_:)",
+          "declaration": "case seh(Exceptions.SEHHandler)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c6f5d5960b23f5dab258",
+      "cpp_name": "ida::exception::Location",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Location : std::uint32_t { CppTry = 0x01, CppHandler = 0x02, SehTry = 0x04, SehHandler = 0x08, SehFilter = 0x10, Any = 0x1F, UnwindFallthrough = 0x20, }",
+      "mapping": "adapted",
+      "swift": [
+        "3643f903660feef114b3"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "93d918d8defe4b9db996be716294f51712e641f26671fc6a452c6ad3e231b6d0",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location",
+          "declaration": "struct Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e8f19c992de01de5f67",
+      "cpp_name": "ida::exception::Location::Any",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "61918794097c982c0058"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "e99544268e0e530c0cdb7270cf449e01a89e02c1e8068059e5d3f74265cb884d",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.any",
+          "declaration": "static let any: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3deece2a7904b95cabdf",
+      "cpp_name": "ida::exception::Location::CppHandler",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "0a3b539b1279d4b069ca"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "d1553e0dbe8d04a4376b5231083f38566f012a17d560ba0a32a0dbe5e5dc40cf",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.cppHandler",
+          "declaration": "static let cppHandler: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee9141df01c3dce752c7",
+      "cpp_name": "ida::exception::Location::CppTry",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "c7f6a1006ba6cd9e512e"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "7d9336ebbe3a10260e99cd0e03cfbd8b5378badb07cd18b169e819d1d0d0dcb8",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.cppTry",
+          "declaration": "static let cppTry: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1714bf328c450a918699",
+      "cpp_name": "ida::exception::Location::SehFilter",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "75ce310562496133ab3b"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "938725be8d51a3e436dd237268dd6194578042f13c4b2c16a737c5d5fbfd73e7",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.sehFilter",
+          "declaration": "static let sehFilter: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25881ce4a0d34da48c4f",
+      "cpp_name": "ida::exception::Location::SehHandler",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "bb3d8d4f9f0aba639bdb"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "8149b6714115742116ae71d3039ab3e27b45fa58650c1e3dc42a611e220e57a4",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.sehHandler",
+          "declaration": "static let sehHandler: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "88632d82f0f796753cc0",
+      "cpp_name": "ida::exception::Location::SehTry",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "dea4a9bb6c9c4851c30b"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "acb13db20ac338f5d5fcae2a813b271aeca5125882d407fb49856faaa7903123",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.sehTry",
+          "declaration": "static let sehTry: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "033187f05ae0a9c2b0a4",
+      "cpp_name": "ida::exception::Location::UnwindFallthrough",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::Location",
+      "mapping": "adapted",
+      "swift": [
+        "d5c5c4502e5e302ade43"
+      ],
+      "rationale": "Exception-membership bits are an OptionSet with the same mask values; Swift set operations combine the named classes.",
+      "cpp_fingerprint": "4a31c500442d576d952e1c8b89ffd00831682c031665e1afa34959083214aed0",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.unwindFallthrough",
+          "declaration": "static let unwindFallthrough: Exceptions.Location"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ee684a44f67e2325748",
+      "cpp_name": "ida::exception::SehDisposition",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class SehDisposition : std::int8_t { ContinueExecution = -1, ContinueSearch = 0, ExecuteHandler = 1, }",
+      "mapping": "direct",
+      "swift": [
+        "e054e4bf6b4742bb1647"
+      ],
+      "rationale": "Exceptions.SehDisposition represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "5b910724a09a103b9d98a3d9d0bd5e593215e306ef15243968fac0c4cdda8890",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SehDisposition",
+          "declaration": "enum SehDisposition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e2cbf2f57906f51cb310",
+      "cpp_name": "ida::exception::SehDisposition::ContinueExecution",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::SehDisposition",
+      "mapping": "direct",
+      "swift": [
+        "cd5b03a67ec061e657e2"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.SehDisposition.continueExecution; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "28a5a5d713edeeb7198846a207a17997721e2a9229d72cd2977005bc703535bc",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SehDisposition.continueExecution",
+          "declaration": "case continueExecution"
+        }
+      ]
+    },
+    {
+      "cpp_id": "955e2e297137bcedc2d2",
+      "cpp_name": "ida::exception::SehDisposition::ContinueSearch",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::SehDisposition",
+      "mapping": "direct",
+      "swift": [
+        "4173987b8c568eb40924"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.SehDisposition.continueSearch; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4d7209115ec87de0613a4ec3676d1798a0717af4afbac8f0b334bdc67e39399c",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SehDisposition.continueSearch",
+          "declaration": "case continueSearch"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a03e8572c517ee01cab",
+      "cpp_name": "ida::exception::SehDisposition::ExecuteHandler",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::exception::SehDisposition",
+      "mapping": "direct",
+      "swift": [
+        "d6a61f6be0f38f87b1e2"
+      ],
+      "rationale": "Corresponding typed semantic case Exceptions.SehDisposition.executeHandler; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "47a282d4ac1ea3f191337ebcf4722912207d58bcc4982fd96c77af32e644d5b6",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SehDisposition.executeHandler",
+          "declaration": "case executeHandler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "59dfd061e11965ff8e47",
+      "cpp_name": "ida::exception::SehHandler",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "c0d4231288244ae33d24"
+      ],
+      "rationale": "Exceptions.SEHHandler is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "59dfd061e11965ff8e47280ac481270fb0e416ba4b9c55e42e0ae40914126cf7",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SEHHandler",
+          "declaration": "struct SEHHandler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b30289a3a2ef2f813e8",
+      "cpp_name": "ida::exception::SehHandler::disposition",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<SehDisposition>",
+      "mapping": "direct",
+      "swift": [
+        "b0d71258790f44c05119"
+      ],
+      "rationale": "Exceptions.SEHHandler.disposition preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "9f7e7c4ecda8159bd5a0a1c2a777b8510572f599ce53dd0a07d32c4c647b2173",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SEHHandler.disposition",
+          "declaration": "var disposition: Exceptions.SehDisposition?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c6e677086d8ef8be2d3",
+      "cpp_name": "ida::exception::SehHandler::filter_regions",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<address::Range>",
+      "mapping": "direct",
+      "swift": [
+        "544ab7567ef3de4cc205"
+      ],
+      "rationale": "Preserves the filter_regions value as var filterRegions: [Addresses.Range]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "8ed4eb7917916279324ddf0eded3f27141f41fe392f4ec4902842b29952555d7",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SEHHandler.filterRegions",
+          "declaration": "var filterRegions: [Addresses.Range]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81a663f10b1dc33b3026",
+      "cpp_name": "ida::exception::SehHandler::metadata",
+      "cpp_kind": "field",
+      "cpp_signature": "HandlerMetadata",
+      "mapping": "direct",
+      "swift": [
+        "cba347d61fa628912b24"
+      ],
+      "rationale": "Preserves the declared HandlerMetadata value in Exceptions.SEHHandler.metadata, including its semantic type and signedness.",
+      "cpp_fingerprint": "421e6fedc4b9011efd37c5aa06766ac4c48ddffe91c964cb699b3f24e3619afc",
+      "swift_targets": [
+        {
+          "path": "Exceptions.SEHHandler.metadata",
+          "declaration": "var metadata: Exceptions.HandlerMetadata"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07b6fd44c62e2bea7e8d",
+      "cpp_name": "ida::exception::add",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const BlockDefinition &)",
+      "mapping": "direct",
+      "swift": [
+        "82d632aa876dd01be2e0"
+      ],
+      "rationale": "Exceptions.add(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "435d44aba2f3e0625e08528346e0409b23f2b9ca0bb0994b6e796986cae3420c",
+      "swift_targets": [
+        {
+          "path": "Exceptions.add(_:)",
+          "declaration": "static func add(_ definition: Exceptions.BlockDefinition) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8724c01d7f9041732fce",
+      "cpp_name": "ida::exception::contains",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address, Location)",
+      "mapping": "direct",
+      "swift": [
+        "893bacc61e3c7e2544e5"
+      ],
+      "rationale": "Exceptions.contains(address:locations:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "2b23d622fb7d5384b85e46ecf0404e207da203866be75aeb9f69481163b39ce9",
+      "swift_targets": [
+        {
+          "path": "Exceptions.contains(address:locations:)",
+          "declaration": "static func contains(address: Address, locations: Exceptions.Location = .any) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6711fb9c323c87677965",
+      "cpp_name": "ida::exception::list",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Block>> (address::Range)",
+      "mapping": "direct",
+      "swift": [
+        "0fe5e962c22a03a779e4"
+      ],
+      "rationale": "Exceptions.list(in:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1bd344a06c4eea2eeb753550c099c0b703496f0fdaa4e88b353ab06bdc5cbcf2",
+      "swift_targets": [
+        {
+          "path": "Exceptions.list(in:)",
+          "declaration": "static func list(in range: Addresses.Range) throws(IDAError) -> [Exceptions.Block]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ad313447dc14be7f5902",
+      "cpp_name": "ida::exception::operator|",
+      "cpp_kind": "function",
+      "cpp_signature": "Location (Location, Location) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "626e65750c407ffb31b4",
+        "6a7c6682322cf8bb776e"
+      ],
+      "rationale": "Swift OptionSet union/array-literal construction combines the same UInt32 membership bits; the raw-value initializer also preserves an explicitly combined mask.",
+      "cpp_fingerprint": "ad2feef60b81509a71cee8d3a01ef3898d0965f9f22bf1ebe0331aec4d71c99e",
+      "swift_targets": [
+        {
+          "path": "Exceptions.Location.init(rawValue:)",
+          "declaration": "init(rawValue: UInt32)"
+        },
+        {
+          "path": "Exceptions.Location.rawValue",
+          "declaration": "let rawValue: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54f3e80488a9ec686945",
+      "cpp_name": "ida::exception::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (address::Range)",
+      "mapping": "direct",
+      "swift": [
+        "14edf4e4e1b904905e54"
+      ],
+      "rationale": "Exceptions.remove(in:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "917ec4fa491bfe4f85e6b9de1ed1ce1454b12eeeae74191212a47d0bf795b68e",
+      "swift_targets": [
+        {
+          "path": "Exceptions.remove(in:)",
+          "declaration": "static func remove(in range: Addresses.Range) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5a36b07fe686fdeee4b",
+      "cpp_name": "ida::exception::system_region_start",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "d91c4bad11f21724f73b"
+      ],
+      "rationale": "Exceptions.systemRegionStart(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "9c868deee20a1032f64f6833ebd45456f4baac88872c0941de0bd051601718c7",
+      "swift_targets": [
+        {
+          "path": "Exceptions.systemRegionStart(address:)",
+          "declaration": "static func systemRegionStart(address: UInt64) throws(IDAError) -> UInt64?"
+        }
+      ]
+    }
+  ]
+}

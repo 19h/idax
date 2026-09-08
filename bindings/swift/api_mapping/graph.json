@@ -1,0 +1,1643 @@
+{
+  "domain": "graph",
+  "declarations": [
+    {
+      "cpp_id": "ed112ee6e9670c2d04c0",
+      "cpp_name": "ida::graph::BasicBlock",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f0ac64a3c866091d1de8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ed112ee6e9670c2d04c0663e23b26672595067ec3ebf17e6c779e256a49a3127",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock",
+          "declaration": "struct BasicBlock"
+        }
+      ]
+    },
+    {
+      "cpp_id": "69a5e70d80c72b0ebbe3",
+      "cpp_name": "ida::graph::BasicBlock::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "4eec394d2dec4bddabd6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "479f05c1754fbb97afcd1fa1123728fcf659e3182e925c1699245202292a9565",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock.end",
+          "declaration": "var end: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b396550b80511db933ab",
+      "cpp_name": "ida::graph::BasicBlock::predecessors",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<int>",
+      "mapping": "direct",
+      "swift": [
+        "28304c9fd2cb69ad7287"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fcd4d70a408fe9f79de55fc8f07ef62e23946afc2ad27f4f6f1c4b1ddfae855c",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock.predecessors",
+          "declaration": "var predecessors: [Int32]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85ed47eba7afc1064bb9",
+      "cpp_name": "ida::graph::BasicBlock::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "51032f757cf9e88a95f0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6da4213896632be16412927a7f31fee34292712f68833de83598c7611a779859",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock.start",
+          "declaration": "var start: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "114baa042e4f7d725afe",
+      "cpp_name": "ida::graph::BasicBlock::successors",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<int>",
+      "mapping": "direct",
+      "swift": [
+        "fafc6c4317d1cadd02bf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d2392ee67d7fd69c99f09e18f5c5153107dbd09f28b34869d51a0e5626e3ee64",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock.successors",
+          "declaration": "var successors: [Int32]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c28fa3e296bc071bd446",
+      "cpp_name": "ida::graph::BasicBlock::type",
+      "cpp_kind": "field",
+      "cpp_signature": "BlockType",
+      "mapping": "direct",
+      "swift": [
+        "df5f36188a6a056ef615"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9b1d33eea102a5e13649947d01920e245c32afa8d32abfe0f8b0e9db49247a38",
+      "swift_targets": [
+        {
+          "path": "Graph.BasicBlock.type",
+          "declaration": "var type: Graph.BlockType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "026dcae626a9be0ef9f9",
+      "cpp_name": "ida::graph::BlockType",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class BlockType { Normal, IndirectJump, Return, ConditionalReturn, NoReturn, ExternalNoReturn, External, Error, }",
+      "mapping": "direct",
+      "swift": [
+        "99743fd2201d5ba409dc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b93c50f2f01c6a18215dfd3363ec51499144089d9d3ce09bcc73e8c316d918f6",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType",
+          "declaration": "enum BlockType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "019d5649a535bc3b0ed3",
+      "cpp_name": "ida::graph::BlockType::ConditionalReturn",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "5b41531eae162beb474e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "84866307eb76c400c14530dc722be5f290c7e5437108ee957c5a821b9c1ddcf2",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.conditionalReturn",
+          "declaration": "case conditionalReturn"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8cf3a478ef406cfb439",
+      "cpp_name": "ida::graph::BlockType::Error",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "d2c3c4ab99604e8eeb73"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dabbbf24255dfa2d5899ac79aa8f79e81f0fc061ac8b4bf75f3957e801f5a3c9",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.error",
+          "declaration": "case error"
+        }
+      ]
+    },
+    {
+      "cpp_id": "367de76f22e748e013f4",
+      "cpp_name": "ida::graph::BlockType::External",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "6959eaab4553ba1040aa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "61c7926cba903798dd87207d1a1c87f38750d09acc664883a7138f90fa1f457c",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.external",
+          "declaration": "case external"
+        }
+      ]
+    },
+    {
+      "cpp_id": "721fb08081178d877cb1",
+      "cpp_name": "ida::graph::BlockType::ExternalNoReturn",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "5b7a7e8a9ac9b27acb23"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e6a4c16ea6b0845a13383926a31d8a4d7453750ff07c179f33a4ad7896259d62",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.externalNoReturn",
+          "declaration": "case externalNoReturn"
+        }
+      ]
+    },
+    {
+      "cpp_id": "930a27397b2a63baa6c4",
+      "cpp_name": "ida::graph::BlockType::IndirectJump",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "e3459f110309ccd6cda3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "850432627eb0c5f00f83cdbc0796c15d3be9698942aaa3dba476fb15a3620bee",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.indirectJump",
+          "declaration": "case indirectJump"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1244f657cf85b1b51540",
+      "cpp_name": "ida::graph::BlockType::NoReturn",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "30ecd2c9ccf9ca0d0287"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "faf4772204132f7c55cdf8d25c0172ff759600bb81bda09ead355044f8d7b534",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.noReturn",
+          "declaration": "case noReturn"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a7dbd722a86cf4d38ef8",
+      "cpp_name": "ida::graph::BlockType::Normal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "a219f8f9c437c73221d6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6279d0877cb2d23192e6269457f4695008773ccbfa9208beed78add8ae7fa074",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.normal",
+          "declaration": "case normal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "880a341bac180c9abdf2",
+      "cpp_name": "ida::graph::BlockType::Return",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::BlockType",
+      "mapping": "direct",
+      "swift": [
+        "41bf7648d441e9abd073"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a9fe6178afc695271722943d32b3d775e5dfbd83f9dbc9ea25afb239a88f612c",
+      "swift_targets": [
+        {
+          "path": "Graph.BlockType.return",
+          "declaration": "case `return`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c269ae13be0c9d11d97",
+      "cpp_name": "ida::graph::Edge",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "e2d0b9755c49ecb51dbd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7c269ae13be0c9d11d971c2e53e4366acd65a8a694403dd1300e56c377a70a37",
+      "swift_targets": [
+        {
+          "path": "Graph.Edge",
+          "declaration": "struct Edge"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd71ea44fed79e51ea42",
+      "cpp_name": "ida::graph::Edge::source",
+      "cpp_kind": "field",
+      "cpp_signature": "NodeId",
+      "mapping": "direct",
+      "swift": [
+        "92d5ac479901a8468f10"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f36a8933114da59f33b541d8f895f70343c4ebf6dd4ffb23f7cfe9bb5c8fd499",
+      "swift_targets": [
+        {
+          "path": "Graph.Edge.source",
+          "declaration": "var source: Graph.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29c5548b1d74d7e3186f",
+      "cpp_name": "ida::graph::Edge::target",
+      "cpp_kind": "field",
+      "cpp_signature": "NodeId",
+      "mapping": "direct",
+      "swift": [
+        "5573c763e5735f72a2b2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a1c3bd00e4f9b629b88a2b97316f848311dcd98d22334775080936d5ab59c097",
+      "swift_targets": [
+        {
+          "path": "Graph.Edge.target",
+          "declaration": "var target: Graph.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd9a95ce4a9a000ec26c",
+      "cpp_name": "ida::graph::EdgeInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "61d77a832d6554235cff"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dd9a95ce4a9a000ec26c7fd9ddd42b8dfba462ca6cb438b766dd8369ddf2f8a1",
+      "swift_targets": [
+        {
+          "path": "Graph.EdgeStyle",
+          "declaration": "struct EdgeStyle"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fad94f424b2c02d2757f",
+      "cpp_name": "ida::graph::EdgeInfo::color",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "957c520dd01dd4399a5c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "edb8da7aa8ae9eeae74a632e692a869d0478db32b115d2f92e548b0c03e651ac",
+      "swift_targets": [
+        {
+          "path": "Graph.EdgeStyle.color",
+          "declaration": "var color: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ffe64f7a884f9c1c5012",
+      "cpp_name": "ida::graph::EdgeInfo::source_port",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "85e7f4b538840e8fd1c9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "617637903c49d34ce677d3452bccd27520bdbf893806354e3b839b021c5c2257",
+      "swift_targets": [
+        {
+          "path": "Graph.EdgeStyle.sourcePort",
+          "declaration": "var sourcePort: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "95a6f8063944e1ddc692",
+      "cpp_name": "ida::graph::EdgeInfo::target_port",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "57e9f2d95c2e4fe5ccbf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9b778fee1479a1386d6f150e7367255117afceff55fd21a015e6a7ad18fa01ad",
+      "swift_targets": [
+        {
+          "path": "Graph.EdgeStyle.targetPort",
+          "declaration": "var targetPort: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e703556c3307569a2146",
+      "cpp_name": "ida::graph::EdgeInfo::width",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "1602df0d90ed2fbcf2ee"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "75d84724582913b1ae9698515f9487529bb5dc6a6a8d76ed180b44761bfaaeee",
+      "swift_targets": [
+        {
+          "path": "Graph.EdgeStyle.width",
+          "declaration": "var width: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b77cf996b5d7f07fddc9",
+      "cpp_name": "ida::graph::Graph",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "949893e28509aee8c82c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b77cf996b5d7f07fddc9483bf8ce80c4252fda85e7fcbbbfa5ff5cb4c66b03fb",
+      "swift_targets": [
+        {
+          "path": "Graph",
+          "declaration": "final class Graph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c853b09a53f46ff35de1",
+      "cpp_name": "ida::graph::Graph::Graph",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "8e16f99558c7669c4b9d"
+      ],
+      "rationale": "Graph is a Swift reference owner: ARC replaces native move-only ownership. Node and edge values preserve all indices; the model is retained by displayed viewers. Named viewers preserve canonical discovery, activation, refresh, and close semantics.",
+      "cpp_fingerprint": "b57c2475d2f1746f9ff79f23a7421f8e0f334a7df364362ae6dc3089f033bcf3",
+      "swift_targets": [
+        {
+          "path": "Graph.init()",
+          "declaration": "init() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "950a1bc700c98d84dca8",
+      "cpp_name": "ida::graph::Graph::Graph",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Graph &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "949893e28509aee8c82c"
+      ],
+      "rationale": "Swift reference assignment retains the existing graph owner and identity; it does not construct a new empty graph. This replaces native move ownership. The native copy constructor is deleted, and no duplicate native graph ownership is exposed.",
+      "cpp_fingerprint": "9c29e4f0462c3d5b4ecedf6afd2400f9958d6c21d61b16a34ec5896a1feb0969",
+      "swift_targets": [
+        {
+          "path": "Graph",
+          "declaration": "final class Graph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5378f6b2836c119c783e",
+      "cpp_name": "ida::graph::Graph::Graph",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const Graph &)",
+      "mapping": "adapted",
+      "swift": [
+        "949893e28509aee8c82c"
+      ],
+      "rationale": "Swift reference assignment retains the existing graph owner and identity; it does not construct a new empty graph. This replaces native move ownership. The native copy constructor is deleted, and no duplicate native graph ownership is exposed.",
+      "cpp_fingerprint": "4d527b9dd8b43e563bffd246ac581c409105f6f63318f93293ed481e43faf173",
+      "swift_targets": [
+        {
+          "path": "Graph",
+          "declaration": "final class Graph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67cf168e341fb13bdf09",
+      "cpp_name": "ida::graph::Graph::add_edge",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId, NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "c4337a514030695823ea"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "3154719150bc6aef9f6d2af784bd40d5dbcf0f4e866be2588d21142935361488",
+      "swift_targets": [
+        {
+          "path": "Graph.addEdge(from:to:style:)",
+          "declaration": "func addEdge(from source: Graph.Node, to target: Graph.Node, style: Graph.EdgeStyle? = nil) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "652536db9e291e3322e1",
+      "cpp_name": "ida::graph::Graph::add_edge",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId, NodeId, const EdgeInfo &)",
+      "mapping": "adapted",
+      "swift": [
+        "c4337a514030695823ea"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "1c9f927fabb40dea13f65edd72c8c091e56f6255ab7783d941d61ac5b6f28ffb",
+      "swift_targets": [
+        {
+          "path": "Graph.addEdge(from:to:style:)",
+          "declaration": "func addEdge(from source: Graph.Node, to target: Graph.Node, style: Graph.EdgeStyle? = nil) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dba96ff8d9671b40ad8e",
+      "cpp_name": "ida::graph::Graph::add_node",
+      "cpp_kind": "method",
+      "cpp_signature": "NodeId ()",
+      "mapping": "direct",
+      "swift": [
+        "437e7ad505395a894c6b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e0d48e8d4e1fe84ff0432ad9652e5d3e180170c72f4607f2a5db8c6396fb339f",
+      "swift_targets": [
+        {
+          "path": "Graph.addNode()",
+          "declaration": "func addNode() throws(IDAError) -> Graph.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "91604a1b57d55e84b0c6",
+      "cpp_name": "ida::graph::Graph::clear",
+      "cpp_kind": "method",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "d34e03e0c362b32039ce"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dc0a09e7abc21231e5c8f2b08b57ef881b46d10026f1cdc24b6d269632e76bc1",
+      "swift_targets": [
+        {
+          "path": "Graph.clear()",
+          "declaration": "func clear() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ab21c6c4144eead91901",
+      "cpp_name": "ida::graph::Graph::create_group",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<NodeId> (const std::vector<NodeId> &)",
+      "mapping": "direct",
+      "swift": [
+        "e5dd2e349aeeb0ad96bf"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ad342ae76cb21a066a10474f3b9d48d779dfd2e9ec0801c71bd54632327a3541",
+      "swift_targets": [
+        {
+          "path": "Graph.createGroup(_:)",
+          "declaration": "func createGroup(_ nodes: [Graph.Node]) throws(IDAError) -> Graph.Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e229943c2536102d8cc8",
+      "cpp_name": "ida::graph::Graph::current_layout",
+      "cpp_kind": "method",
+      "cpp_signature": "Layout () const",
+      "mapping": "adapted",
+      "swift": [
+        "31128f03599beda53a11"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "cc9866c9752df8614b9cb66b2947706a94a612286de90da0c763df6916a530d7",
+      "swift_targets": [
+        {
+          "path": "Graph.layout",
+          "declaration": "var layout: Graph.Layout { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d49b3e4b54f4abee7295",
+      "cpp_name": "ida::graph::Graph::delete_group",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId)",
+      "mapping": "direct",
+      "swift": [
+        "0d31b4b2c695f379e7fa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "21e08a44a3c09b5d34f0816dfe0d7b488c335538ce8c0b2f0c181c9f30bec00a",
+      "swift_targets": [
+        {
+          "path": "Graph.deleteGroup(_:)",
+          "declaration": "func deleteGroup(_ group: Graph.Node) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67cf9e6bfd251b43111a",
+      "cpp_name": "ida::graph::Graph::edges",
+      "cpp_kind": "method",
+      "cpp_signature": "std::vector<Edge> () const",
+      "mapping": "direct",
+      "swift": [
+        "61c2b6ec2f1de0ee14bb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "902c6de70b2e9268754270a756cd9ca31fc33d9d6d75d27bc88707365cd4c692",
+      "swift_targets": [
+        {
+          "path": "Graph.edges",
+          "declaration": "var edges: [Graph.Edge] { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21acd13de52d923d159a",
+      "cpp_name": "ida::graph::Graph::group_members",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<NodeId>> (NodeId) const",
+      "mapping": "adapted",
+      "swift": [
+        "8fc136cf2acb076f96b9"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "8cf34d640930ed93f0bceab468436fc0d3fa03abc818ef6d63c6751dbd9a41f7",
+      "swift_targets": [
+        {
+          "path": "Graph.members(of:)",
+          "declaration": "func members(of group: Graph.Node) throws(IDAError) -> [Graph.Node]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "190987854e0af5ad221d",
+      "cpp_name": "ida::graph::Graph::is_collapsed",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId) const",
+      "mapping": "direct",
+      "swift": [
+        "28403ef263bfe3f0e88f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3fdb154172477db03097d4252c1cabd0d5e418ec9d1979b133567a9633a52d9b",
+      "swift_targets": [
+        {
+          "path": "Graph.isCollapsed(_:)",
+          "declaration": "func isCollapsed(_ group: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81e98bbe60b6609ad6c3",
+      "cpp_name": "ida::graph::Graph::is_group",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId) const",
+      "mapping": "direct",
+      "swift": [
+        "44e4f41b885a960c9d01"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a1a836e54332b5c0f13d3dd44dcce164aa024f3be07d11decef9f87fcf03bd03",
+      "swift_targets": [
+        {
+          "path": "Graph.isGroup(_:)",
+          "declaration": "func isGroup(_ node: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b5acd52cda5a5535e05",
+      "cpp_name": "ida::graph::Graph::node_exists",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId) const",
+      "mapping": "adapted",
+      "swift": [
+        "0930363ef6a018b87e56"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "71943d17f43e52d0e6faef350f015887b23eebf55ceb6efde1ed85d0b5787b93",
+      "swift_targets": [
+        {
+          "path": "Graph.contains(_:)",
+          "declaration": "func contains(_ node: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd1ccfb366828ed496b8",
+      "cpp_name": "ida::graph::Graph::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Graph &(Graph &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "949893e28509aee8c82c"
+      ],
+      "rationale": "Graph is a Swift reference owner: ARC replaces native move-only ownership. Node and edge values preserve all indices; the model is retained by displayed viewers. Named viewers preserve canonical discovery, activation, refresh, and close semantics.",
+      "cpp_fingerprint": "ce54d9fd40adf120b6aa53a072fd7864a863314dd0d535f479ac394b4e5371d4",
+      "swift_targets": [
+        {
+          "path": "Graph",
+          "declaration": "final class Graph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1d6a258d6c2e2b59a21",
+      "cpp_name": "ida::graph::Graph::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "Graph &(const Graph &)",
+      "mapping": "adapted",
+      "swift": [
+        "949893e28509aee8c82c"
+      ],
+      "rationale": "Graph is a Swift reference owner: ARC replaces native move-only ownership. Node and edge values preserve all indices; the model is retained by displayed viewers. Named viewers preserve canonical discovery, activation, refresh, and close semantics.",
+      "cpp_fingerprint": "5c3ddeb0c3d8ff5614ad18eb19095d2eb69f4d7956ac945d56ee6fe0bec3d9df",
+      "swift_targets": [
+        {
+          "path": "Graph",
+          "declaration": "final class Graph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7490d14a8303aad0299d",
+      "cpp_name": "ida::graph::Graph::path_exists",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId, NodeId) const",
+      "mapping": "direct",
+      "swift": [
+        "a5b32656c3fcc25f267d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "cb76f9cf5b1311c30e462b4b57fa22a665ae2f49f08e5899caa43398c63946c4",
+      "swift_targets": [
+        {
+          "path": "Graph.pathExists(from:to:)",
+          "declaration": "func pathExists(from source: Graph.Node, to target: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3c473e064b2d8c6a2b16",
+      "cpp_name": "ida::graph::Graph::predecessors",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<NodeId>> (NodeId) const",
+      "mapping": "direct",
+      "swift": [
+        "e5dfcce2d81b8e417376"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bf6fdc5409f813d0f17e6d85c1a5260b285d711ea7728683be96822aaaa33c47",
+      "swift_targets": [
+        {
+          "path": "Graph.predecessors(of:)",
+          "declaration": "func predecessors(of node: Graph.Node) throws(IDAError) -> [Graph.Node]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ce92f4e32b50e44dd06f",
+      "cpp_name": "ida::graph::Graph::redo_layout",
+      "cpp_kind": "method",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "489075cb732af00199eb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "89802a617c8910f8678ce9b242195f0af1e1b898830e9cef92624de803858901",
+      "swift_targets": [
+        {
+          "path": "Graph.redoLayout()",
+          "declaration": "func redoLayout() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2fbf826e922e06983ea",
+      "cpp_name": "ida::graph::Graph::remove_edge",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId, NodeId)",
+      "mapping": "direct",
+      "swift": [
+        "991412ad3fc4b34cd1d1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d1b4bf8f0e47c149feafc3947ae90ba78e7049529be9d5261ee22289ba72c81b",
+      "swift_targets": [
+        {
+          "path": "Graph.removeEdge(from:to:)",
+          "declaration": "func removeEdge(from source: Graph.Node, to target: Graph.Node) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ce5d316ac2c1d0643d7b",
+      "cpp_name": "ida::graph::Graph::remove_node",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId)",
+      "mapping": "direct",
+      "swift": [
+        "1d69eb8522edc6fe09af"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1e110dbe631a213b4a9e9d5632a324fd80391d9af431df7a77e9ba8f1ce6ed3f",
+      "swift_targets": [
+        {
+          "path": "Graph.removeNode(_:)",
+          "declaration": "func removeNode(_ node: Graph.Node) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0234f3cdbc738ec66cc",
+      "cpp_name": "ida::graph::Graph::replace_edge",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId, NodeId, NodeId, NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "9dfd6ad6576a885725d5"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "c2238d246223d62f25b72c763f03c476c89eb0ed89d5ea5fb6ab4069212e5439",
+      "swift_targets": [
+        {
+          "path": "Graph.replaceEdge(_:with:)",
+          "declaration": "func replaceEdge(_ old: Graph.Edge, with replacement: Graph.Edge) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fa5040d33b40af4bc90d",
+      "cpp_name": "ida::graph::Graph::set_group_expanded",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (NodeId, bool)",
+      "mapping": "direct",
+      "swift": [
+        "13b3a8317d228dbb2137"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c3badaf96995b3089b91c84c16bf7f410d3f4ae7ba4c4c4ecb5210755ba04c66",
+      "swift_targets": [
+        {
+          "path": "Graph.setGroupExpanded(_:expanded:)",
+          "declaration": "func setGroupExpanded(_ group: Graph.Node, expanded: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "989af53065ed1d9785d3",
+      "cpp_name": "ida::graph::Graph::set_layout",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Layout)",
+      "mapping": "direct",
+      "swift": [
+        "18eec2c42f990eed0b98"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "552872cd4c7594132033ea7e0d0d381be3d63a92a37f9a762d1ada60975e6816",
+      "swift_targets": [
+        {
+          "path": "Graph.setLayout(_:)",
+          "declaration": "func setLayout(_ layout: Graph.Layout) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "99198214d631d34135f4",
+      "cpp_name": "ida::graph::Graph::successors",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<NodeId>> (NodeId) const",
+      "mapping": "direct",
+      "swift": [
+        "be984c81fb8cdaaebcf2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "25e6508bb665821c7330cd0a99a0be3f5fc8ab75397327139d3019a60b75a3f0",
+      "swift_targets": [
+        {
+          "path": "Graph.successors(of:)",
+          "declaration": "func successors(of node: Graph.Node) throws(IDAError) -> [Graph.Node]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ed8ccc55d78175eb4ceb",
+      "cpp_name": "ida::graph::Graph::total_node_count",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const",
+      "mapping": "direct",
+      "swift": [
+        "4a09bb164a6de83a760f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e3d4c753b406c038686097ca290e4cbb13bd5cfa1676878d0ae2c2c0c9693024",
+      "swift_targets": [
+        {
+          "path": "Graph.totalNodeCount",
+          "declaration": "var totalNodeCount: Int32 { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ec5c6fdcd07b29b07364",
+      "cpp_name": "ida::graph::Graph::visible_node_count",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const",
+      "mapping": "direct",
+      "swift": [
+        "0aa3c4f0e367ad0f6cd0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "032f14d49ad0fef305005d9aaca26f5c4ae789861c0dd71199e6772d31434fb7",
+      "swift_targets": [
+        {
+          "path": "Graph.visibleNodeCount",
+          "declaration": "var visibleNodeCount: Int32 { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "285b9fd5bdf77b7235dc",
+      "cpp_name": "ida::graph::Graph::visible_nodes",
+      "cpp_kind": "method",
+      "cpp_signature": "std::vector<NodeId> () const",
+      "mapping": "direct",
+      "swift": [
+        "40d6fa59382293fc0022"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "928eed482320058472d88de710319929eb350cfd60c1e5b09c747b6c1c48f245",
+      "swift_targets": [
+        {
+          "path": "Graph.visibleNodes",
+          "declaration": "var visibleNodes: [Graph.Node] { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c879fc60d4cd45339f0",
+      "cpp_name": "ida::graph::Graph::~Graph",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "7e95f6d4307cc1bdac4b"
+      ],
+      "rationale": "Graph is a Swift reference owner: ARC replaces native move-only ownership. Node and edge values preserve all indices; the model is retained by displayed viewers. Named viewers preserve canonical discovery, activation, refresh, and close semantics.",
+      "cpp_fingerprint": "8d3a858a5b078b5b7742b8114aa650d2cc94736ae8c18b2395f4f7fd9422cde5",
+      "swift_targets": [
+        {
+          "path": "Graph.close()",
+          "declaration": "func close()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a60d4bdf1289d953b40d",
+      "cpp_name": "ida::graph::GraphCallback",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "d516a34841989f3ff1ff"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a60d4bdf1289d953b40dd41b3e3ff9009d912f08a006fb27dfa4d7a43a8d0b8b",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks",
+          "declaration": "protocol GraphCallbacks : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d857978e606ba6175a22",
+      "cpp_name": "ida::graph::GraphCallback::on_clicked",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "34297c37abced709a500"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "6a49a7f6e970b121a4385e4bc7aa136dcc072d2b684ff5bc7f39bae5e0892ef1",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.clicked(_:)",
+          "declaration": "func clicked(_ node: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5541c23349fdec834bfd",
+      "cpp_name": "ida::graph::GraphCallback::on_creating_group",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const std::vector<NodeId> &)",
+      "mapping": "adapted",
+      "swift": [
+        "b7a0f1a9307a8261381f"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "a56273e942ea179ae8dd2546d72ecbbc5db263cb365b148c4e8c27f7215c064c",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.creatingGroup(_:)",
+          "declaration": "func creatingGroup(_ nodes: [Graph.Node]) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7636ea89acecd686d308",
+      "cpp_name": "ida::graph::GraphCallback::on_destroyed",
+      "cpp_kind": "method",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "cad11210024eeb00beb9"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "6fd71c0e743569dd8ac5c8fffcf7dd0a0f3d00c05284cbb6329192d7296b3292",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.destroyed()",
+          "declaration": "func destroyed()"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65b992bcbc00a05daec9",
+      "cpp_name": "ida::graph::GraphCallback::on_double_clicked",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "35ae5167d110fc595fb6"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "4ed0ca63e93c8bf5151964d46e6cc32f734d1100127358358acbeb17b744fb34",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.doubleClicked(_:)",
+          "declaration": "func doubleClicked(_ node: Graph.Node) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e37bb972bf9120a2fef6",
+      "cpp_name": "ida::graph::GraphCallback::on_hint",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string (NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "9526881ab1bd692e6307"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "3eb106eaf2aff9c953a6b29f398d62d4f7277b4ad3990869a3d114880bb9baca",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.hint(for:)",
+          "declaration": "func hint(for node: Graph.Node) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14421c3e9c06ecd06b54",
+      "cpp_name": "ida::graph::GraphCallback::on_node_color",
+      "cpp_kind": "method",
+      "cpp_signature": "std::uint32_t (NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "30cf2bdd5734c095b753"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "e97291b3ee2f7ac4109040af57ddbc032283e3355f16b0e44a5a479df82f287f",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.color(for:)",
+          "declaration": "func color(for node: Graph.Node) throws(IDAError) -> UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ab052c9268086e00fff9",
+      "cpp_name": "ida::graph::GraphCallback::on_node_text",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string (NodeId)",
+      "mapping": "adapted",
+      "swift": [
+        "7e4478471428cc5c492f"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "9eab3a3b505a4e2caf77059b9298355c93247f61d3b55f5b650a273cc4a2d7ee",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.text(for:)",
+          "declaration": "func text(for node: Graph.Node) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f5bcfc12d89415ef1368",
+      "cpp_name": "ida::graph::GraphCallback::on_refresh",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (Graph &)",
+      "mapping": "adapted",
+      "swift": [
+        "083e1d1957bb2ff08afb"
+      ],
+      "rationale": "A protocol requirement dynamically dispatches this canonical callback. Node ids are typed Node values, and refresh receives an independently retained alias to the live mutable graph.",
+      "cpp_fingerprint": "a60e540c0287ade91b47b4168aa25885826474dfc07e8de8f89f420f194e5b38",
+      "swift_targets": [
+        {
+          "path": "GraphCallbacks.refresh(_:)",
+          "declaration": "func refresh(_ graph: Graph) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "75f40d2c4bc63b3eccbe",
+      "cpp_name": "ida::graph::GraphCallback::~GraphCallback",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "5aa044667b7b2d72bdee"
+      ],
+      "rationale": "The viewer retains the Swift callback implementation through its last native dispatch; destruction releases its ARC reference after native teardown.",
+      "cpp_fingerprint": "fe4f42ab520b3d3e239d1402fb44d6389464d1a01bfd7af6ce668bdc67967311",
+      "swift_targets": [
+        {
+          "path": "Graph.show(title:callbacks:)",
+          "declaration": "func show(title: String, callbacks: any GraphCallbacks) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3f2fcfce6f5b3e958460",
+      "cpp_name": "ida::graph::Layout",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Layout { None, Digraph, Tree, Circle, PolarTree, Orthogonal, RadialTree, }",
+      "mapping": "direct",
+      "swift": [
+        "c54db958e5b8bd3f7799"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fc0b7895fc1fec85310a5f75a6d737dab74c4ae1d43484e66f4e6a352e395007",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout",
+          "declaration": "enum Layout"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f1bbc927f6c60dc2990f",
+      "cpp_name": "ida::graph::Layout::Circle",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "92a2db649fc99cad5b66"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3f87cee04eef61c0922132346c9285d315677507990ac55d0bf45387d0093a7e",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.circle",
+          "declaration": "case circle"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8a16978c4606f089150",
+      "cpp_name": "ida::graph::Layout::Digraph",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "ed9d60797cb1fc025175"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4118451b3d35472e56ea1b4a51b77f5ea37cedee8b4897a70070d6830e986ece",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.digraph",
+          "declaration": "case digraph"
+        }
+      ]
+    },
+    {
+      "cpp_id": "deafe77f1bc110780c92",
+      "cpp_name": "ida::graph::Layout::None",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "0c2b36744f6aecb63cb0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "841aa3c2cadc8b05746390597c97c06dc988f81cc22583c5b13cc88321e53651",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.none",
+          "declaration": "case none"
+        }
+      ]
+    },
+    {
+      "cpp_id": "888d25206bcf5e556b6b",
+      "cpp_name": "ida::graph::Layout::Orthogonal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "91401cacb51f83763edd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5c4ae9b89fe4dd88e5ff65aa22f69caa8de0cc33d8723c902f50b222f534d9ef",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.orthogonal",
+          "declaration": "case orthogonal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "71a54d3c8f3d15fc40ef",
+      "cpp_name": "ida::graph::Layout::PolarTree",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "dd87e4b61008d6b2d759"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "69d8369eba3311474127cbde43a37241366c04d8924d08c1de2c6394b50e5746",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.polarTree",
+          "declaration": "case polarTree"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a844e873c592df93f8a4",
+      "cpp_name": "ida::graph::Layout::RadialTree",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "8830242995944c80e0dc"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d1f516ad813768422b19fd436071a7888073596ca7219e1e416aa450c11cad77",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.radialTree",
+          "declaration": "case radialTree"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac0059515897eac784ee",
+      "cpp_name": "ida::graph::Layout::Tree",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::graph::Layout",
+      "mapping": "direct",
+      "swift": [
+        "631e2cd7d48fcae7e3cd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3e23c83ad022cc3ec82a7155e6a797657d8b96fba5333b27fc0d39c3f0cd64ef",
+      "swift_targets": [
+        {
+          "path": "Graph.Layout.tree",
+          "declaration": "case tree"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6081f65d2dc0466686ba",
+      "cpp_name": "ida::graph::NodeId",
+      "cpp_kind": "alias",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "6bd4164fae295e00c76a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "74f05b4575eb73163a116b311192a9929054ade6c4b48f2a96f4d0f01e88e4ca",
+      "swift_targets": [
+        {
+          "path": "Graph.Node",
+          "declaration": "struct Node"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f04a080bd33654526ed1",
+      "cpp_name": "ida::graph::NodeInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "30edbb6096a5275c2785"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f04a080bd33654526ed1d02119abf0966ef63ec9d9db5478127e024ce1e70e53",
+      "swift_targets": [
+        {
+          "path": "Graph.NodeInfo",
+          "declaration": "struct NodeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd4f3134e93c6f307104",
+      "cpp_name": "ida::graph::NodeInfo::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "ad99cff47a336c2f81d4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1936b369c9931540e27002eae047184ecf5827199ea0005e75c02d2d4e82d545",
+      "swift_targets": [
+        {
+          "path": "Graph.NodeInfo.address",
+          "declaration": "var address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c5c7e3d4bde7d463986",
+      "cpp_name": "ida::graph::NodeInfo::background_color",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "28085ddd5e981a5cd922"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6c83f0b6e6fe304f075e5c951b1be78b5bfe163e9cb6d0810391630e5dbb46f6",
+      "swift_targets": [
+        {
+          "path": "Graph.NodeInfo.backgroundColor",
+          "declaration": "var backgroundColor: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42146afabb056457180d",
+      "cpp_name": "ida::graph::NodeInfo::frame_color",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "7e8f9b5f931ea449a7af"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c1e70535c60904d05fcdfd8e746597dc279e8b9aa9b1aab1e6039232e16c0f33",
+      "swift_targets": [
+        {
+          "path": "Graph.NodeInfo.frameColor",
+          "declaration": "var frameColor: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a8e9e56f92642803712",
+      "cpp_name": "ida::graph::NodeInfo::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "bdf68648a8f259b0ef1e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c2e63e37e2e5a895fcdeda9c839232509c6ad71ee6b20b8a8ab65552b5909e04",
+      "swift_targets": [
+        {
+          "path": "Graph.NodeInfo.text",
+          "declaration": "var text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d182697515f391bf993",
+      "cpp_name": "ida::graph::SwitchTable",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "3985e3cfef588a38547a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9d182697515f391bf993c527a513e83a2a37651e42b4bea7f2b4051ec014c67d",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchTable",
+          "declaration": "struct SwitchTable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a32a832cb017768e1480",
+      "cpp_name": "ida::graph::SwitchTable::entry_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "a60af149560ed892c3f4"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1a110da70799dc8da98d83a56ba9165a006ea7d74cb4ee77f2cbce1435ee8234",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchTable.entryCount",
+          "declaration": "var entryCount: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "de4cbc5c10f230deceb2",
+      "cpp_name": "ida::graph::SwitchTable::entry_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "8088d7f7356ec42c4d22"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "ba89ac505ccc0fdcaa9107933f78f691a0119730f57e5a76fb85548161677c3b",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchTable.entrySize",
+          "declaration": "var entrySize: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ac19e31b43c2142bb91",
+      "cpp_name": "ida::graph::SwitchTable::table_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "9adcb86f26dfd1695dee"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "51a9f7d09a2e19eda823b7eb4d49815a490aefb2edaade88b427a541cfce4ac2",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchTable.address",
+          "declaration": "var address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c4d91be95735e07dffad",
+      "cpp_name": "ida::graph::activate_graph_viewer",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "cd82cd1dbee66411b7ca"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "160f1d7c3a34960913266369c68572257559708001fb86ba9b6cfe4db6ce451f",
+      "swift_targets": [
+        {
+          "path": "Graph.activateViewer(title:)",
+          "declaration": "static func activateViewer(title: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5b0fda3f450cf8854693",
+      "cpp_name": "ida::graph::close_graph_viewer",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "571a60a5f00e832d0af4"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "5902ff18d54191b8dce68d72e4144cc8503bd05f4f625c52aaf05b3ac2a36e59",
+      "swift_targets": [
+        {
+          "path": "Graph.closeViewer(title:)",
+          "declaration": "static func closeViewer(title: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7bff3462c011727e2876",
+      "cpp_name": "ida::graph::flowchart",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<BasicBlock>> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "e33e24c5253d72d60dee"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "3987c49fa94b25161af9b5ab9a17e378b17b45feee4493365a1f5b7bfc642c41",
+      "swift_targets": [
+        {
+          "path": "Graph.flowchart(at:)",
+          "declaration": "static func flowchart(at functionAddress: Address) throws(IDAError) -> [Graph.BasicBlock]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bf337348c331142abf14",
+      "cpp_name": "ida::graph::flowchart_for_ranges",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<BasicBlock>> (const std::vector<ida::address::Range> &)",
+      "mapping": "adapted",
+      "swift": [
+        "c27d381d2aaa9cc3ee12"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "5ae5bb51df905618047312aade4796e04eef581d55a40e912498903e2b99ddc1",
+      "swift_targets": [
+        {
+          "path": "Graph.flowchart(for:)",
+          "declaration": "static func flowchart(for ranges: [Range<Address>]) throws(IDAError) -> [Graph.BasicBlock]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f4e845aaf32d6e5a9954",
+      "cpp_name": "ida::graph::has_graph_viewer",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "9cac96ef5239d1cf8ad8"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "91925c8a00559210ae0925d99fef102e518736dcdbf2ea484cdf5bb772d61c5d",
+      "swift_targets": [
+        {
+          "path": "Graph.hasViewer(title:)",
+          "declaration": "static func hasViewer(title: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9939f12cffb6987bcf8c",
+      "cpp_name": "ida::graph::is_graph_viewer_visible",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "83aa3c34e7487dd7007b"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "6a9487779964d9261550a33f5e013c8472abfb82bdfa6dd0405b39d9518fc4f0",
+      "swift_targets": [
+        {
+          "path": "Graph.isViewerVisible(title:)",
+          "declaration": "static func isViewerVisible(title: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "538950eb1a1f462f87ca",
+      "cpp_name": "ida::graph::refresh_graph",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "bba962813c86ec39e12b"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "f48ae7cacea724e9abee83cc41b61adb0a4974c99f5ae8f6c3652bd2c23a661b",
+      "swift_targets": [
+        {
+          "path": "Graph.refreshViewer(title:)",
+          "declaration": "static func refreshViewer(title: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2905b2f6fa23ec1c42e3",
+      "cpp_name": "ida::graph::show_graph",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, Graph &, GraphCallback *)",
+      "mapping": "adapted",
+      "swift": [
+        "5aa044667b7b2d72bdee"
+      ],
+      "rationale": "Canonical parameters and results are preserved with Swift argument labels; edge endpoint pairs become typed Edge values, range vectors become Swift ranges, and optional style selects the two add-edge overloads.",
+      "cpp_fingerprint": "6964a6ff22d5074b302037489de3d837c749a93b279165c00b3bb53ef4f3df43",
+      "swift_targets": [
+        {
+          "path": "Graph.show(title:callbacks:)",
+          "declaration": "func show(title: String, callbacks: any GraphCallbacks) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5063d4d15cfd61a10b64",
+      "cpp_name": "ida::graph::switch_table",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<SwitchTable> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "ea35a41ff3fe09968b39"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0ba17c218012967c3e054dc3bfafbc44de993d91af47eed8cfa8776990340254",
+      "swift_targets": [
+        {
+          "path": "Graph.switchTable(at:)",
+          "declaration": "static func switchTable(at address: Address) throws(IDAError) -> Graph.SwitchTable"
+        }
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@ name: Validation Matrix
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, rewrite/swift-bindings]
   pull_request:
     branches: [main, master]
   workflow_dispatch:

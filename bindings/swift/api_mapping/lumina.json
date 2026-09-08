@@ -1,0 +1,527 @@
+{
+  "domain": "lumina",
+  "declarations": [
+    {
+      "cpp_id": "75708f2ab44aef68bca6",
+      "cpp_name": "ida::lumina::BatchResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f3fd55098945409bcb58"
+      ],
+      "rationale": "Lumina.BatchResult is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "75708f2ab44aef68bca6aa045945975fa54932c5f6bbb7415c71dfae368f7abc",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult",
+          "declaration": "struct BatchResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2d50f6558f144ffac478",
+      "cpp_name": "ida::lumina::BatchResult::codes",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<OperationCode>",
+      "mapping": "direct",
+      "swift": [
+        "8980465d5d2d0b7bb9ca"
+      ],
+      "rationale": "Preserves the codes value as var codes: [Lumina.OperationCode]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "d352087831a3ff0c2750608757af9811148c0f458d6f2db5ec781c632fc471d3",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult.codes",
+          "declaration": "var codes: [Lumina.OperationCode]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "23980850c5c3d6cf49ed",
+      "cpp_name": "ida::lumina::BatchResult::completed",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "daf0011ef5012f67ea9d"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Lumina.BatchResult.completed, including its semantic type and signedness.",
+      "cpp_fingerprint": "f42d02c132f7b015731e496b6bf2b453a94c5c842f2aaa8c50d80df32cb81ee6",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult.completed",
+          "declaration": "var completed: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e68d4295086e599d5e0",
+      "cpp_name": "ida::lumina::BatchResult::failed",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "0e01b5cb201b7b53b2c7"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Lumina.BatchResult.failed, including its semantic type and signedness.",
+      "cpp_fingerprint": "e69204311f86abfeca340e74414f6b6ba3af566938d77df064b525efa05b3878",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult.failed",
+          "declaration": "var failed: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c60eed183ea9ae6fbb72",
+      "cpp_name": "ida::lumina::BatchResult::requested",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "a9d60fb66f61408cc3e2"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Lumina.BatchResult.requested, including its semantic type and signedness.",
+      "cpp_fingerprint": "d2d12ea4083fc6ae77a4dc999df34106d3d7b42909a0fb66c14c3a16c6be0da5",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult.requested",
+          "declaration": "var requested: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "977ffba84a6cefbb96a0",
+      "cpp_name": "ida::lumina::BatchResult::succeeded",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "d364ad8842d9675890b8"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Lumina.BatchResult.succeeded, including its semantic type and signedness.",
+      "cpp_fingerprint": "bfe2f7f29a166f8a912fbded1cba89b3f2c0725b5332fa496f57f78e7f550d1b",
+      "swift_targets": [
+        {
+          "path": "Lumina.BatchResult.succeeded",
+          "declaration": "var succeeded: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0903c8eb571c177e090",
+      "cpp_name": "ida::lumina::Feature",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Feature { PrimaryMetadata, Decompiler, Telemetry, SecondaryMetadata, }",
+      "mapping": "direct",
+      "swift": [
+        "9d7c4b977b86b935093f"
+      ],
+      "rationale": "Lumina.Feature represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "69b6d171863365c539e76b48ca2379537deceb6785b5b6e4bacf38c6afb3b4e4",
+      "swift_targets": [
+        {
+          "path": "Lumina.Feature",
+          "declaration": "enum Feature"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be81ea24c693c572daf0",
+      "cpp_name": "ida::lumina::Feature::Decompiler",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::Feature",
+      "mapping": "direct",
+      "swift": [
+        "9bef616b29fdbae76807"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.Feature.decompiler; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7df141479c25ab6718bec69897247da0748a89ca540db0c9cb458b6b3237b99a",
+      "swift_targets": [
+        {
+          "path": "Lumina.Feature.decompiler",
+          "declaration": "case decompiler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29d42c9feffa18c7190e",
+      "cpp_name": "ida::lumina::Feature::PrimaryMetadata",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::Feature",
+      "mapping": "direct",
+      "swift": [
+        "e2a8e383500629fe5107"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.Feature.primaryMetadata; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1ab424eb67810ef6c9857d26a8e6a53b2f9616e051deb716c9760ad9c9822dfb",
+      "swift_targets": [
+        {
+          "path": "Lumina.Feature.primaryMetadata",
+          "declaration": "case primaryMetadata"
+        }
+      ]
+    },
+    {
+      "cpp_id": "99cd30e000a1ff874013",
+      "cpp_name": "ida::lumina::Feature::SecondaryMetadata",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::Feature",
+      "mapping": "direct",
+      "swift": [
+        "c1473a2a20ad45a5e568"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.Feature.secondaryMetadata; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f288e9511266f4fe19ac9f8fbb7f65e7c8e54bda7e100aacf2464ed940aba539",
+      "swift_targets": [
+        {
+          "path": "Lumina.Feature.secondaryMetadata",
+          "declaration": "case secondaryMetadata"
+        }
+      ]
+    },
+    {
+      "cpp_id": "03e32adc2e28ebe665ad",
+      "cpp_name": "ida::lumina::Feature::Telemetry",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::Feature",
+      "mapping": "direct",
+      "swift": [
+        "e957f9c8ee1915a2e544"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.Feature.telemetry; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "84017b20c772d7eba6675b9c57d93ce0108803e78509eeae1ccf17906192d161",
+      "swift_targets": [
+        {
+          "path": "Lumina.Feature.telemetry",
+          "declaration": "case telemetry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a3c511486e3b0576a11",
+      "cpp_name": "ida::lumina::OperationCode",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OperationCode { BadPattern = -3, NotFound = -2, Error = -1, Ok = 0, Added = 1, }",
+      "mapping": "direct",
+      "swift": [
+        "f44c5429d607e2103475"
+      ],
+      "rationale": "Lumina.OperationCode represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "132d141232fde7bcba1cf16f317dbcdb794cd2f2093114844c5d71b499bdd173",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode",
+          "declaration": "enum OperationCode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea45fd9bc6b8c09b449c",
+      "cpp_name": "ida::lumina::OperationCode::Added",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::OperationCode",
+      "mapping": "direct",
+      "swift": [
+        "cd99196a3ab120137c65"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.OperationCode.added; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3c306737700b4e02b12ed31de6e0e581d54dfffab030f827edb65180e2ae3764",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode.added",
+          "declaration": "case added"
+        }
+      ]
+    },
+    {
+      "cpp_id": "851cbdce99e5de9d351a",
+      "cpp_name": "ida::lumina::OperationCode::BadPattern",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::OperationCode",
+      "mapping": "direct",
+      "swift": [
+        "eb80aae2d3188de0441e"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.OperationCode.badPattern; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d43fc37d9591b85afb8ee1ed38149b147c45ef09457cf269a27f5ec1a105b8fc",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode.badPattern",
+          "declaration": "case badPattern"
+        }
+      ]
+    },
+    {
+      "cpp_id": "78c4230e3f0e02ec8dc6",
+      "cpp_name": "ida::lumina::OperationCode::Error",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::OperationCode",
+      "mapping": "direct",
+      "swift": [
+        "a381b57f2bbd78803276"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.OperationCode.error; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2c6acb26663866e3c797175ebdf915fbae7ae7de518a687b9a69d55f0d25e319",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode.error",
+          "declaration": "case error"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fb49a19dd33c638f30c9",
+      "cpp_name": "ida::lumina::OperationCode::NotFound",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::OperationCode",
+      "mapping": "direct",
+      "swift": [
+        "91698c0625da288b831a"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.OperationCode.notFound; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "235db75b6fc0cab77ed3ad3e01f92516969f201c2adc60e93f6c3117adf2c08b",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode.notFound",
+          "declaration": "case notFound"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1498c9081677be177346",
+      "cpp_name": "ida::lumina::OperationCode::Ok",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::OperationCode",
+      "mapping": "direct",
+      "swift": [
+        "56a4076ae1db1fed5ff1"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.OperationCode.ok; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c9c796f34461d0a13f7f40a6480e9a3f44b3ce816cbc0f2f78008bb0045fff38",
+      "swift_targets": [
+        {
+          "path": "Lumina.OperationCode.ok",
+          "declaration": "case ok"
+        }
+      ]
+    },
+    {
+      "cpp_id": "974d7d8fc6ed75d417c3",
+      "cpp_name": "ida::lumina::PushMode",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class PushMode { PreferBetterOrDifferent, Override, KeepExisting, Merge, }",
+      "mapping": "direct",
+      "swift": [
+        "0d567e751c1d7414b30d"
+      ],
+      "rationale": "Lumina.PushMode represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "e938c0ee0b459df2cae9a5fe0899158be26f448738e49d89cbb84ec633231014",
+      "swift_targets": [
+        {
+          "path": "Lumina.PushMode",
+          "declaration": "enum PushMode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a589dee63a70a3ae9dc",
+      "cpp_name": "ida::lumina::PushMode::KeepExisting",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::PushMode",
+      "mapping": "direct",
+      "swift": [
+        "2d70595b9b95fce124ae"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.PushMode.keepExisting; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "591237682d0b8694385362ed987c7961e4cdf20815bd2fb3c4b75c629a1a5556",
+      "swift_targets": [
+        {
+          "path": "Lumina.PushMode.keepExisting",
+          "declaration": "case keepExisting"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f96fc058bff3532a5999",
+      "cpp_name": "ida::lumina::PushMode::Merge",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::PushMode",
+      "mapping": "direct",
+      "swift": [
+        "e5ce08ff3a02797ae6d6"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.PushMode.merge; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "72c78442eabe09458148ae257ee3bf1e1793c2682e2f5726b1240f944b441ecc",
+      "swift_targets": [
+        {
+          "path": "Lumina.PushMode.merge",
+          "declaration": "case merge"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0026b1109532168f2445",
+      "cpp_name": "ida::lumina::PushMode::Override",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::PushMode",
+      "mapping": "direct",
+      "swift": [
+        "aeae4b5a31d717214364"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.PushMode.override; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1db640a0fe2ce1fe888d493f1a55498020c0210590827989ba672268a26b7e66",
+      "swift_targets": [
+        {
+          "path": "Lumina.PushMode.override",
+          "declaration": "case override"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fa4e6f25c9adcbf2160",
+      "cpp_name": "ida::lumina::PushMode::PreferBetterOrDifferent",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::lumina::PushMode",
+      "mapping": "direct",
+      "swift": [
+        "a5641d9a69f9759ef2c2"
+      ],
+      "rationale": "Corresponding typed semantic case Lumina.PushMode.preferBetterOrDifferent; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3b9822b1c6fcdf54e2436cf4acf843063566e21f34249f53fabb733cd00a7d46",
+      "swift_targets": [
+        {
+          "path": "Lumina.PushMode.preferBetterOrDifferent",
+          "declaration": "case preferBetterOrDifferent"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a09e17a4e2fbffde4f21",
+      "cpp_name": "ida::lumina::close_all_connections",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "cb0cf25fc9302463a00b"
+      ],
+      "rationale": "Lumina.closeAllConnections() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "97c79d09ae1f3a2b82edec3ee8b43db257b722335bcb31911c5d32f2dd59ea07",
+      "swift_targets": [
+        {
+          "path": "Lumina.closeAllConnections()",
+          "declaration": "static func closeAllConnections() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee1d3ace6b4c42e763bd",
+      "cpp_name": "ida::lumina::close_connection",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Feature)",
+      "mapping": "direct",
+      "swift": [
+        "ea0d2d5cb8995e4dd6d8"
+      ],
+      "rationale": "Lumina.closeConnection(feature:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1ee4cde7bd1c7098eb52f645932a7074fad9f62913b55cab9432fd89f239587b",
+      "swift_targets": [
+        {
+          "path": "Lumina.closeConnection(feature:)",
+          "declaration": "static func closeConnection(feature: Lumina.Feature = .primaryMetadata) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ab0d0acdf69ddb4f1982",
+      "cpp_name": "ida::lumina::has_connection",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Feature)",
+      "mapping": "direct",
+      "swift": [
+        "4de55354ece61f2c08f9"
+      ],
+      "rationale": "Lumina.hasConnection(feature:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "22798bbc67ac02312ae63aa19defcbbffe1413e0e0c33fffe9964bb8c3b45b07",
+      "swift_targets": [
+        {
+          "path": "Lumina.hasConnection(feature:)",
+          "declaration": "static func hasConnection(feature: Lumina.Feature = .primaryMetadata) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14e9c8ad7f39d0bcecb9",
+      "cpp_name": "ida::lumina::pull",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<BatchResult> (Address, bool, bool, Feature)",
+      "mapping": "private_bridge",
+      "swift": [
+        "d7acd44618dc40ffe41b"
+      ],
+      "rationale": "The private bridge forwards this exact single-address or batch overload and all defaulted options, and returns complete counters plus per-function OperationCode values.",
+      "cpp_fingerprint": "01bde823a38577c27554640173499521b63236dfece3e872a5e064d5d5f7df63",
+      "swift_targets": [
+        {
+          "path": "Lumina.pull(address:autoApply:skipFrequencyUpdate:feature:)",
+          "declaration": "static func pull(address: Address, autoApply: Bool = true, skipFrequencyUpdate: Bool = false, feature: Lumina.Feature = .primaryMetadata) throws(IDAError) -> Lumina.BatchResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d44bbd13715ef628d698",
+      "cpp_name": "ida::lumina::pull",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<BatchResult> (std::span<const Address>, bool, bool, Feature)",
+      "mapping": "private_bridge",
+      "swift": [
+        "689f0af7295663b90c0f"
+      ],
+      "rationale": "The private bridge forwards this exact single-address or batch overload and all defaulted options, and returns complete counters plus per-function OperationCode values.",
+      "cpp_fingerprint": "fc64abe742d7a5b2b372fbf5571fc3116c623f931283985291b201351a132ef7",
+      "swift_targets": [
+        {
+          "path": "Lumina.pull(addresses:autoApply:skipFrequencyUpdate:feature:)",
+          "declaration": "static func pull(addresses: [Address], autoApply: Bool = true, skipFrequencyUpdate: Bool = false, feature: Lumina.Feature = .primaryMetadata) throws(IDAError) -> Lumina.BatchResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "27586331a9b2277d3f64",
+      "cpp_name": "ida::lumina::push",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<BatchResult> (Address, PushMode, Feature)",
+      "mapping": "private_bridge",
+      "swift": [
+        "6d6327c091f393598792"
+      ],
+      "rationale": "The private bridge forwards this exact single-address or batch overload and all defaulted options, and returns complete counters plus per-function OperationCode values.",
+      "cpp_fingerprint": "2f0fbdd20e6b8bef31487b7f404e724166d25f6b7f48302f919b51302a175758",
+      "swift_targets": [
+        {
+          "path": "Lumina.push(address:mode:feature:)",
+          "declaration": "static func push(address: Address, mode: Lumina.PushMode = .preferBetterOrDifferent, feature: Lumina.Feature = .primaryMetadata) throws(IDAError) -> Lumina.BatchResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "00819082d5cd713e1a98",
+      "cpp_name": "ida::lumina::push",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<BatchResult> (std::span<const Address>, PushMode, Feature)",
+      "mapping": "private_bridge",
+      "swift": [
+        "dacf4d3fb2e6b380c7bf"
+      ],
+      "rationale": "The private bridge forwards this exact single-address or batch overload and all defaulted options, and returns complete counters plus per-function OperationCode values.",
+      "cpp_fingerprint": "26cf8f7419bc2bbd026ca63bb5489cfdf0c9b0d2e3e7029ec21bd99fcfcfe928",
+      "swift_targets": [
+        {
+          "path": "Lumina.push(addresses:mode:feature:)",
+          "declaration": "static func push(addresses: [Address], mode: Lumina.PushMode = .preferBetterOrDifferent, feature: Lumina.Feature = .primaryMetadata) throws(IDAError) -> Lumina.BatchResult"
+        }
+      ]
+    }
+  ]
+}

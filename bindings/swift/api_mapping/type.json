@@ -1,0 +1,3427 @@
+{
+  "domain": "type",
+  "declarations": [
+    {
+      "cpp_id": "82ad7859afdf1f1f186f",
+      "cpp_name": "ida::type::CallingConvention",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class CallingConvention { Unknown, Cdecl, Stdcall, Pascal, Fastcall, Thiscall, Swift, Golang, UserDefined, }",
+      "mapping": "direct",
+      "swift": [
+        "b0cfced200233bd151cc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "dc9675d184d3f2a7fa7011bc9b6f4e32b01684f0185f25d8f068aa016d3777e5",
+      "swift_targets": [
+        {
+          "path": "CallingConvention",
+          "declaration": "enum CallingConvention"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a710abfc58ae768ea4c7",
+      "cpp_name": "ida::type::CallingConvention::Cdecl",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "b91687b9989c79e2ef95"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "36e85a1b1a2b4ebf9cce849fe7621cb71bae77bc12f9b6d523d480dba9531411",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.cdecl",
+          "declaration": "case cdecl"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72d175a0e31c48859fee",
+      "cpp_name": "ida::type::CallingConvention::Fastcall",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "9b23fe056270060bd65b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cfbb8b24d6f61262d004420625a33b106dee21c768845c4cfaeb7962facf7b45",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.fastcall",
+          "declaration": "case fastcall"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2cbf7ebd476247dc5258",
+      "cpp_name": "ida::type::CallingConvention::Golang",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "06067a6f221cf81197d3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "11aec666d328d67f79bfcea05d9c565e6214b3206b48082c8a3a4207c8ab9250",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.golang",
+          "declaration": "case golang"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e99e2e579426a4a43522",
+      "cpp_name": "ida::type::CallingConvention::Pascal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "c56daea45e204cc38a49"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a14d68b95477777f78a5d0ef238ee57c386e241e74f5bd9b7cfd4f50803e39c3",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.pascal",
+          "declaration": "case pascal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9e7a94335954670d8c65",
+      "cpp_name": "ida::type::CallingConvention::Stdcall",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "f2d0222d6633b3f5eab1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3f55d316f855f0d09719cb465004562d98c0228565087f7351d71e54208718ce",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.stdcall",
+          "declaration": "case stdcall"
+        }
+      ]
+    },
+    {
+      "cpp_id": "590caea928918d03ea2c",
+      "cpp_name": "ida::type::CallingConvention::Swift",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "30ddde3c5304157be7ab"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9d74ad63682042510ac24539204306974280b5cb5c593f341b2624aad2713c09",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.swift",
+          "declaration": "case swift"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a39e42f8132e71b06ee",
+      "cpp_name": "ida::type::CallingConvention::Thiscall",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "1e452b2f7ce9bbbb7a0f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "47227eec1635a8db91e8768a986880ed3df5c4f87be3ad08ae5eec3d94adcb52",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.thiscall",
+          "declaration": "case thiscall"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e690c6d30ef7518e4073",
+      "cpp_name": "ida::type::CallingConvention::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "b5984d184a89453ceec1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a32b3811a36e623f8a062c43357b3fee56b7ca431c77b82af5a59dc7e2a55580",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c162ab548d566473160a",
+      "cpp_name": "ida::type::CallingConvention::UserDefined",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "c2ff6ccd68a05764217b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "32eef408072afcea06d24af724899f355450e99402a1dd0353802ca29a7c366b",
+      "swift_targets": [
+        {
+          "path": "CallingConvention.userDefined",
+          "declaration": "case userDefined"
+        }
+      ]
+    },
+    {
+      "cpp_id": "472065803c80afa1daae",
+      "cpp_name": "ida::type::EnumDetails",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "5ad64ed9db5bfcb6a1a9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "472065803c80afa1daae4b93514992001373ce010742244e023ce611633d55ee",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumDetails",
+          "declaration": "struct EnumDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "89bdf979efc7d9502ddb",
+      "cpp_name": "ida::type::EnumDetails::byte_width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "5159b3c55b696e3a6e1e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e6d33f661a367bf2f6f9e12d3a73bacdd916e966fb456538e75fbd0ff013ec6c",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumDetails.byteWidth",
+          "declaration": "var byteWidth: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b977b85872468d33840",
+      "cpp_name": "ida::type::EnumDetails::members",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<EnumMember>",
+      "mapping": "direct",
+      "swift": [
+        "71269a72ed9a6310c4a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5d70032d9067ffaf0ac7e52f42b51f02d007753e3c3ee6d20c0e9357c00f5788",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumDetails.members",
+          "declaration": "var members: [TypeInfo.EnumMember]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85afee66bcaea036df17",
+      "cpp_name": "ida::type::EnumDetails::radix",
+      "cpp_kind": "field",
+      "cpp_signature": "EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "a1bb1c6889b975b63d02"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ede5a9ab974dcf3c725919b642ad78314b680340bdb1527c36eec1b8fcc4b988",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumDetails.radix",
+          "declaration": "var radix: EnumRadix"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8af70362d9200819c24d",
+      "cpp_name": "ida::type::EnumDetails::signed_values",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "2028328aed6d5f23add9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "dfed1c2061feea89e4de41213a22bd66db099e39cec5d971522bd90014c0cd4b",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumDetails.signedValues",
+          "declaration": "var signedValues: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "502acdeb67e893b71767",
+      "cpp_name": "ida::type::EnumMember",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "e686a9209ca9fc887ae6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "502acdeb67e893b71767a5ca58338b6fecf23de289bb82e64be936b37962cf05",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumMember",
+          "declaration": "struct EnumMember"
+        }
+      ]
+    },
+    {
+      "cpp_id": "047bc01f43a522f54adb",
+      "cpp_name": "ida::type::EnumMember::comment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "dcc6f1a20e45c680619e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "08f26b15cbf81cfe888b3c3670bc62d217a60128f27ea12a0a34a8249bba28e3",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumMember.comment",
+          "declaration": "var comment: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7b06b4c1505cbeef3b3",
+      "cpp_name": "ida::type::EnumMember::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "486087b879b196d41e46"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d428e78e974f95b7789d8dfb9b076f4a63a5d2e889766c917f7d425baab0c3fa",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumMember.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81fcd9d32e24af1108cd",
+      "cpp_name": "ida::type::EnumMember::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "5f980b2c5fec6c3fb366"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e149ea81a9e6b84e8c783a6c8906ee54eae7314b278cecd53e698e36f98b98af",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.EnumMember.value",
+          "declaration": "var value: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "605713948be5aeb5c162",
+      "cpp_name": "ida::type::EnumRadix",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class EnumRadix { Unknown, Binary, Octal, Decimal, Hexadecimal, }",
+      "mapping": "direct",
+      "swift": [
+        "097ce5e831ace615f6b2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0beaed5d6b8592d64911a99d5c50ff9af88aa09ef4d40d246740fb7a3ae282fc",
+      "swift_targets": [
+        {
+          "path": "EnumRadix",
+          "declaration": "enum EnumRadix"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5b25cd98306759aa945c",
+      "cpp_name": "ida::type::EnumRadix::Binary",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "c893e78e8d45aa973281"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "154fa5385a30dab9d1d718ccac7a77f639b8ba42d9704653d59d75d3ef8a972c",
+      "swift_targets": [
+        {
+          "path": "EnumRadix.binary",
+          "declaration": "case binary"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d74bd560d0bac1296e3c",
+      "cpp_name": "ida::type::EnumRadix::Decimal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "5cf4e479f8ba9cbbc00d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a5cbfcfcf9fb102c0a64be26ba0d02f51500ae04546f193fe95532cc05ed3755",
+      "swift_targets": [
+        {
+          "path": "EnumRadix.decimal",
+          "declaration": "case decimal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f439133ce49a47b23ecf",
+      "cpp_name": "ida::type::EnumRadix::Hexadecimal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "5f77de4d40aa70e75fec"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5de6eb2271eb9503a9e5df4851a94fe7531bc878b13e6ccfc11bce25d10fe691",
+      "swift_targets": [
+        {
+          "path": "EnumRadix.hexadecimal",
+          "declaration": "case hexadecimal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5730f65e40af62ceec23",
+      "cpp_name": "ida::type::EnumRadix::Octal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "6f7f885d63c10a319973"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "02ba5391046a0ccbe0f0c7717d7806fe2f7afa0976c884cac31ba88cb3f93568",
+      "swift_targets": [
+        {
+          "path": "EnumRadix.octal",
+          "declaration": "case octal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "669013874fe6cf660898",
+      "cpp_name": "ida::type::EnumRadix::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::EnumRadix",
+      "mapping": "direct",
+      "swift": [
+        "b864a2de7945987dcbac"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8bed7fbbc7772a5dce1f4bad5f77bf11700f06a67b0ff9671f639ee5228cab4d",
+      "swift_targets": [
+        {
+          "path": "EnumRadix.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2033e76a2d2664ba1974",
+      "cpp_name": "ida::type::FunctionArgument",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f0f7d15e0ec6ee4caefd"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2033e76a2d2664ba1974cee1736eaf70191aaff778ec3c02fdf3233c2d6c74b2",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionArgument",
+          "declaration": "struct FunctionArgument"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b569328cd629a1e5626",
+      "cpp_name": "ida::type::FunctionArgument::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "ec3a1feb31285eac44df"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "641412f8f4ad3da3f6dbb7273676ae6c0bff54431e84cd976e481174ee14f344",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionArgument.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be1cb9bcaa960b36c6e1",
+      "cpp_name": "ida::type::FunctionArgument::type",
+      "cpp_kind": "field",
+      "cpp_signature": "TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "fd304badc9c2bfec54d6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cbf6c7a9be1e7beee5dd6d04922d00db2f5bd9be48b49520c9c8a78ec53d4235",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionArgument.type",
+          "declaration": "var type: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e0ce6b685c04f3f32fcd",
+      "cpp_name": "ida::type::FunctionDetails",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "5c023990fe6efa831e08"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e0ce6b685c04f3f32fcd5a55835bfea9e66df6792554799ff5c95f7103df0e6c",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionDetails",
+          "declaration": "struct FunctionDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f91e8074e1804a1f29a5",
+      "cpp_name": "ida::type::FunctionDetails::arguments",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<FunctionArgument>",
+      "mapping": "direct",
+      "swift": [
+        "1c302b19d8b0f5296c1d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a33f0e3d663c135e9e432b66105050af57ea4e4a2d2ba46d20bda3b19dda94e3",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionDetails.arguments",
+          "declaration": "var arguments: [TypeInfo.FunctionArgument]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5f8fd99c2dcd82c05167",
+      "cpp_name": "ida::type::FunctionDetails::calling_convention",
+      "cpp_kind": "field",
+      "cpp_signature": "CallingConvention",
+      "mapping": "direct",
+      "swift": [
+        "10a1cc1729345990d1a1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2dc5764d9b08a2e4e2288960fb9c603c020145b535cc63866cdecb751f6c3896",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionDetails.callingConvention",
+          "declaration": "var callingConvention: CallingConvention"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d297a11f7e384be5572",
+      "cpp_name": "ida::type::FunctionDetails::return_type",
+      "cpp_kind": "field",
+      "cpp_signature": "TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "9e32497dec38ecb11eb1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3386ab22d7341204538a47f16e5f47c27514572a602d34fe4cd301fdb0bc303c",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionDetails.returnType",
+          "declaration": "var returnType: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3899d2bbcf9855ee8f9e",
+      "cpp_name": "ida::type::FunctionDetails::variadic",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8fadbedc2eb4a2e4c082"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1d10189e540ecfda2900d383ee4ddc56214f33702ebf55e92f151e6af372688a",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.FunctionDetails.variadic",
+          "declaration": "var variadic: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25853d689cea750ddfa9",
+      "cpp_name": "ida::type::Member",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "bb912aae19d7ff4ecafe"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "25853d689cea750ddfa94d01dd7b443617a9b0c159912ef5fd82297d8dc2263a",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member",
+          "declaration": "struct Member"
+        }
+      ]
+    },
+    {
+      "cpp_id": "22fc31ea254b584217a4",
+      "cpp_name": "ida::type::Member::bit_offset",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "8106c21e6ecd80175170"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "898cfddc193aa65023465e4b54e56d87d07ea3875614a4b5c2d197e888050e26",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.bitOffset",
+          "declaration": "var bitOffset: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6fa26f78ea934e9e96e1",
+      "cpp_name": "ida::type::Member::bit_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "c2e326847e060575df7d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "60388a281cf2855dec76ba342045246ae3b59da1d7af93a054948a9156f493db",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.bitSize",
+          "declaration": "var bitSize: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bc21d8b64e0a0b0f610f",
+      "cpp_name": "ida::type::Member::byte_offset",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "74536820ecfb90de5bd7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ed376b646e2c8b3a598a32508c327efb460591b62b7706381cf8fbce58ab9977",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.byteOffset",
+          "declaration": "var byteOffset: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a44feba0a1fa16e53d8e",
+      "cpp_name": "ida::type::Member::comment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "cd8242c6225b699da163"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f3cd95605865706473777922aea8f242f619bbdf1303cad55fa573bc0a31cfc8",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.comment",
+          "declaration": "var comment: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5bec5e2b28635ff4319",
+      "cpp_name": "ida::type::Member::is_baseclass",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "87741f445f7b0e7df959"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0555a6d42e63aad35445cdf1cd659f81264d9f2af170df9b79423632457a2902",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.isBaseclass",
+          "declaration": "var isBaseclass: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8a5cb76af4bf05b29caa",
+      "cpp_name": "ida::type::Member::is_bitfield",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "b60792935109e616b7f5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "756eddde88a3aff4ec9bb4f7c4600616783ef9d11b62c9438e2eb9702963d15a",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.isBitfield",
+          "declaration": "var isBitfield: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f514ebda8791049efdee",
+      "cpp_name": "ida::type::Member::is_gap",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "eeb327182e0629efa0e6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ac4a2ec5600b3ef6eeccbfadd729aa5a618698ddf926a1587a0765c0bbb4be81",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.isGap",
+          "declaration": "var isGap: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "58b81b4f80f5f1ec918e",
+      "cpp_name": "ida::type::Member::is_vftable",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "996f8f983d03da5414fb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "28b864eb44b4783291393732896c5ef55466179242b3093ee736e3df9af8f778",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.isVFTable",
+          "declaration": "var isVFTable: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e45c82712890ae3a82b",
+      "cpp_name": "ida::type::Member::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "a186673a152718d5f351"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "70a84931193ae1a4c39e2394c3f5987cb692171c1478b82ea661e5c6d0854590",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8054fd50ba842054d165",
+      "cpp_name": "ida::type::Member::storage_byte_width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "c91789443cd2e73c954d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d07e1892c59b878b4b441b0003e3f216abedb84e77f1408bd6474f736e2eeae2",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.storageByteWidth",
+          "declaration": "var storageByteWidth: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "758e74991015ceead964",
+      "cpp_name": "ida::type::Member::type",
+      "cpp_kind": "field",
+      "cpp_signature": "TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "1b5343711ab81265a0c5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0d60827114a9d564971c4068fd8b30f0a6f578cde46681f95c6e7984775a5938",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.Member.type",
+          "declaration": "var type: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6b1cbaa19b8ad19ede17",
+      "cpp_name": "ida::type::ParseDeclarationsOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "79e31045cb6a6f1dee92"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6b1cbaa19b8ad19ede170b33d3214e9141cd063f5c2cb264b514703414a9e80e",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions",
+          "declaration": "struct ParseDeclarationsOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "712dc4f948e82e29cd70",
+      "cpp_name": "ida::type::ParseDeclarationsOptions::no_mangle",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ed41248811e24ecdbd6d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fb6a39a9b9231210b8e593bd4b8b76994c8e1e2c0c6e17645579e1c466d25893",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions.noMangle",
+          "declaration": "var noMangle: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92deb3e33b184a9c3f7f",
+      "cpp_name": "ida::type::ParseDeclarationsOptions::pack_alignment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "ba8e78de0b6730e79da9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ddab0e8d06968bdf4d3349e05011501bd419d9a6ba579a3caa2398cf3211bda8",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions.packAlignment",
+          "declaration": "var packAlignment: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e906561a3148f1ba9d0f",
+      "cpp_name": "ida::type::ParseDeclarationsOptions::raw_argument_names",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f2f10782d54c79172662"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "10c9a4dc0ffd62524755778746d52c2fa1d720df604bf21d4dadaaf45023ed77",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions.rawArgumentNames",
+          "declaration": "var rawArgumentNames: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14842db472b1fed89923",
+      "cpp_name": "ida::type::ParseDeclarationsOptions::relaxed_namespaces",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "4500d93786e6b306f000"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d247a206c615ccaf886122c802bebec0aa08e15403de66551dfc8018dee46ff0",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions.relaxedNamespaces",
+          "declaration": "var relaxedNamespaces: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fcfe29b51b321f524a1c",
+      "cpp_name": "ida::type::ParseDeclarationsOptions::suppress_warnings",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "bb3319044d6115e9c31a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bc41cb4985ed56fb8e093e9d8d4b534d7f0d926bf98ca1f90a4f898705a05115",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsOptions.suppressWarnings",
+          "declaration": "var suppressWarnings: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f03be980fd41e5cc4c51",
+      "cpp_name": "ida::type::ParseDeclarationsReport",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2091957a4dc3da07274d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f03be980fd41e5cc4c5116c2626de4aff1c8d4d427cd58b5caa0faa679dcd5dc",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsReport",
+          "declaration": "struct ParseDeclarationsReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9980e52f51bf7574ccd6",
+      "cpp_name": "ida::type::ParseDeclarationsReport::error_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "9b94485172125a25f16a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1da828870b330379cc586e7026cc4d0313b384d5e9e7a368027687e11447774f",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsReport.errorCount",
+          "declaration": "var errorCount: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5703b2b45d645df10da",
+      "cpp_name": "ida::type::ParseDeclarationsReport::ok",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "71675480612a6c20cb2e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "810934263f3275f7f83517808cee3cc591e67b6d0e32d1ca4c8d071d1995a4c9",
+      "swift_targets": [
+        {
+          "path": "Types.ParseDeclarationsReport.ok",
+          "declaration": "var ok: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ddaf64aa0eeeacffd7a7",
+      "cpp_name": "ida::type::PointerDetails",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "540d5e89d5630476c52e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ddaf64aa0eeeacffd7a7a15e22413c83929b3778b09779f97a63071e8cfe4484",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.PointerDetails",
+          "declaration": "struct PointerDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "50aeec626b8f1869f15b",
+      "cpp_name": "ida::type::PointerDetails::is_shifted",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1aa4758133e6454e24f7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d1f6d471510b8899b210316050e856f0195fb251fbecdad6d90d3203e719c68d",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.PointerDetails.isShifted",
+          "declaration": "var isShifted: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ccc2c5634656f1bfab7",
+      "cpp_name": "ida::type::PointerDetails::pointee_type",
+      "cpp_kind": "field",
+      "cpp_signature": "TypeInfo",
+      "mapping": "direct",
+      "swift": [
+        "65abb978e71e8313bf47"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3fd4d712fff7634841e9b24fbd73e37fc55576b8ab6c6216fdc8c484d0b2ad98",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.PointerDetails.pointeeType",
+          "declaration": "var pointeeType: TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c13ad90d260d9f95fd22",
+      "cpp_name": "ida::type::PointerDetails::shift_delta",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "b408495bc59116741815"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "dd8e11d16eba9f0c67ca398e9fad5da0261b191526d13f727d6715324a8fac45",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.PointerDetails.shiftDelta",
+          "declaration": "var shiftDelta: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fa604cdc9508f1a297c0",
+      "cpp_name": "ida::type::PointerDetails::shifted_parent",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<TypeInfo>",
+      "mapping": "direct",
+      "swift": [
+        "0bc302cdf419c7797e9e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7ea1a5b21ee2e08c52c0e931f491d5ac4065873e203f2e598578a0ec410f8a84",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.PointerDetails.shiftedParent",
+          "declaration": "var shiftedParent: TypeInfo?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6801998027ff734e5275",
+      "cpp_name": "ida::type::TypeDeclaration",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a7f1c819ba700365c214"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6801998027ff734e5275c9998b1a052c8f4b9eabe5cfb383d8e193e191059b47",
+      "swift_targets": [
+        {
+          "path": "Types.Declaration",
+          "declaration": "struct Declaration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fcf2b21179d1e43d2883",
+      "cpp_name": "ida::type::TypeDeclaration::declaration",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "0671a1d66eab742ffc9c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "64581d0bc36557978d2bb3aaf2d225c59599664b055078adcd7d025a510ef2c0",
+      "swift_targets": [
+        {
+          "path": "Types.Declaration.declaration",
+          "declaration": "var declaration: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ada9486664bb9c264520",
+      "cpp_name": "ida::type::TypeDeclaration::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "5a91dffc848ec4c31bbb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bcd36debcffa86b3089770ef1c66f05017a938e5f18f8e5db0a44773a17975d2",
+      "swift_targets": [
+        {
+          "path": "Types.Declaration.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c0575199b3339ab9260",
+      "cpp_name": "ida::type::TypeDeclaration::ordinal",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "f6a2806cab8009c8f7a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0053cf0f5588c1bbdd5d6ab22131db8b95091406c1b236fc79aa882bcb6b7a85",
+      "swift_targets": [
+        {
+          "path": "Types.Declaration.ordinal",
+          "declaration": "var ordinal: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21beca68764995e1e9c7",
+      "cpp_name": "ida::type::TypeGraphOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "bb883947360ecf0f22fd"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "21beca68764995e1e9c7ab8ac016b4f9994315fac9cf4f359d7221a4ba520c78",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions",
+          "declaration": "struct GraphOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9e551dc1313bafa57cf8",
+      "cpp_name": "ida::type::TypeGraphOptions::Mode",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Mode { Simple, Table, }",
+      "mapping": "direct",
+      "swift": [
+        "dad8ea5c37afa5f43e4d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5a892279b1218ceb3e1c4e71398f0aa789523c6c1c4f7a96f25c909d06182d4e",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.Mode",
+          "declaration": "enum Mode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a22945c18eab153ecd84",
+      "cpp_name": "ida::type::TypeGraphOptions::Mode::Simple",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeGraphOptions::Mode",
+      "mapping": "direct",
+      "swift": [
+        "402ebd666fa45fd6f8f0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bcbed979cc48702f835c828a6f3d9434d3410be1bcd6cf67e9c494f0e12abd9b",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.Mode.simple",
+          "declaration": "case simple"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f1a58c75441bb13c25a4",
+      "cpp_name": "ida::type::TypeGraphOptions::Mode::Table",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeGraphOptions::Mode",
+      "mapping": "direct",
+      "swift": [
+        "09629abc5da8f7e81cec"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "afa24126aec64d301d4e6866fce935dfd8dc12884f02a6fbd3af825780012f3c",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.Mode.table",
+          "declaration": "case table"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e2a61fb7cc86d69e82b",
+      "cpp_name": "ida::type::TypeGraphOptions::include_enums",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "d58e6d8e03752136775a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b99799d6434c8ffc1d4f10648b2cf8f1bdbb57821b9110b791b88246981a893d",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.includeEnums",
+          "declaration": "var includeEnums: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7109470b70448aed270d",
+      "cpp_name": "ida::type::TypeGraphOptions::include_typedefs",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0490f59bb541b204d05f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9598b75fd2f8b2d219fa6b1ce5f854e4fd6ee470d55b8a7eca38dc2ce2645afb",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.includeTypedefs",
+          "declaration": "var includeTypedefs: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1b76f4fb19cabfce7c4",
+      "cpp_name": "ida::type::TypeGraphOptions::max_depth",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "1a51db6187b63c3a59d2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b9f6a0af92799a90ad3e6e475b998ef5df2cedec562cb78165fb6ecf5d07b4bf",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.maxDepth",
+          "declaration": "var maxDepth: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2d07e0a827ebb0a4fe9",
+      "cpp_name": "ida::type::TypeGraphOptions::mode",
+      "cpp_kind": "field",
+      "cpp_signature": "Mode",
+      "mapping": "direct",
+      "swift": [
+        "f57ea5d016b171639c0d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4c7f43079c93d2988caf5602443c9a605bdf34833d58953d0f675ee6717f1d21",
+      "swift_targets": [
+        {
+          "path": "Types.GraphOptions.mode",
+          "declaration": "var mode: Types.GraphOptions.Mode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3ed8d52aa4d5c4bec363",
+      "cpp_name": "ida::type::TypeInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "0491030992eac6a6a673"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3ed8d52aa4d5c4bec363dba86736d0f6a548690e5b74d23f532b41782b3ebb5e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo",
+          "declaration": "final class TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90743b2e4b01ca52d86f",
+      "cpp_name": "ida::type::TypeInfo::TypeInfo",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "6249b1c02bcd13e42120"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e5c776acf2d999ba1a449d09ab90131829c1ac1f64cc0e26b12cbc97bd9ed7fa",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.init()",
+          "declaration": "convenience init() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2569d106f6c403bb6942",
+      "cpp_name": "ida::type::TypeInfo::TypeInfo",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (TypeInfo &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "0491030992eac6a6a673",
+        "38744a26307259f4c984"
+      ],
+      "rationale": "Swift reference assignment and explicit independent native copy replace C++ assignment/copy/move syntax.",
+      "cpp_fingerprint": "56489ee66e9ebf0ee0a06a0575036800779510f20f0b033fa073f7b962cbce56",
+      "swift_targets": [
+        {
+          "path": "TypeInfo",
+          "declaration": "final class TypeInfo"
+        },
+        {
+          "path": "TypeInfo.copy()",
+          "declaration": "func copy() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "af0f2134bda77580b46f",
+      "cpp_name": "ida::type::TypeInfo::TypeInfo",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (const TypeInfo &)",
+      "mapping": "adapted",
+      "swift": [
+        "0491030992eac6a6a673",
+        "38744a26307259f4c984"
+      ],
+      "rationale": "Swift reference assignment and explicit independent native copy replace C++ assignment/copy/move syntax.",
+      "cpp_fingerprint": "c7ee280e0ace709235284a383c457af2706dc953c27635862fc35c26bb593bac",
+      "swift_targets": [
+        {
+          "path": "TypeInfo",
+          "declaration": "final class TypeInfo"
+        },
+        {
+          "path": "TypeInfo.copy()",
+          "declaration": "func copy() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6e7aa64d4e12e7b6685f",
+      "cpp_name": "ida::type::TypeInfo::add_member",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view, const TypeInfo &, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "894935c731558d9fa95b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "014c792af9cb5d92ace5df6e99ae3e77d5dd40607674fc668379c8206bcc3f93",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.addMember(named:type:byteOffset:)",
+          "declaration": "func addMember(named name: String, type: TypeInfo, byteOffset: Int = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90b2cbed79f49c441408",
+      "cpp_name": "ida::type::TypeInfo::apply",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address) const",
+      "mapping": "direct",
+      "swift": [
+        "9083752fe7a3c8ef6a13"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9d33e9c11699b3169b5c24bc280d801b9c642d4a50b33158f8ef46386cb13763",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.apply(at:)",
+          "declaration": "func apply(at address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6b07d674a48682b2aabf",
+      "cpp_name": "ida::type::TypeInfo::array_element_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> () const",
+      "mapping": "direct",
+      "swift": [
+        "617bdf1f9d8e43f90c85"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f1cd1d0328b706ccde851a56e600d9c93763b6a43eb7a0576e88acb3145ba8ca",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.arrayElementType()",
+          "declaration": "func arrayElementType() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fa9c46d46f9368bc3eee",
+      "cpp_name": "ida::type::TypeInfo::array_length",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "f269ecc79d54ff5e8db7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "375ad75344847b30561f65d3f792d7a4132acf9c7a464372a7148f4a564f0598",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.arrayLength()",
+          "declaration": "func arrayLength() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "166932a18421d58424d0",
+      "cpp_name": "ida::type::TypeInfo::array_of",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo (const TypeInfo &, std::size_t)",
+      "mapping": "adapted",
+      "swift": [
+        "c16a80fedd064b30b9d0"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "78dc783c59dd6b918b66a60993114010dec72ff0d69c9ed3036f98030af13b20",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.array(of:count:)",
+          "declaration": "static func array(of element: TypeInfo, count: Int) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "303c738bc0b711bc9fa7",
+      "cpp_name": "ida::type::TypeInfo::by_name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "b2a9c8dfff3b718ff82a"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "7e65a220ce1de3b193157ac527043d5803136c497c9ea727ad8cb1a016e802c4",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.named(_:)",
+          "declaration": "static func named(_ value: String) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4fd02bd26d4a7422ee31",
+      "cpp_name": "ida::type::TypeInfo::calling_convention",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<CallingConvention> () const",
+      "mapping": "direct",
+      "swift": [
+        "d519f1431432bb9e5e40"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bc3351d901a3b1120eac9a5b5207f803ce54388e128b3c9b6e5d2e210f821ca4",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.callingConvention()",
+          "declaration": "func callingConvention() throws(IDAError) -> CallingConvention"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eb76bee0237107823ca2",
+      "cpp_name": "ida::type::TypeInfo::create_struct",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "adapted",
+      "swift": [
+        "d1a3e56eec0dd6b0e415"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "15d2c4ac29c09c0e0753f2c00dff27fcb64895c0be1e92ba7166e71d22315e23",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.structure()",
+          "declaration": "static func structure() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "32fc31a17c563b9957b2",
+      "cpp_name": "ida::type::TypeInfo::create_union",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "adapted",
+      "swift": [
+        "fe01cc0e70b6c2b8433e"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "6bbee4bd36a82ef062a71228b525ba6d622ad607530d1dcab19038c43ff3e5c1",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.unionType()",
+          "declaration": "static func unionType() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "352b83f04eee6f4e2e58",
+      "cpp_name": "ida::type::TypeInfo::declaration",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "19a063b76130be54811a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8839163abdd3d27d1e6e44ff90dc28fa3bcc4bb4b3d9bc5ee1769f510c043493",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.declaration(named:)",
+          "declaration": "func declaration(named name: String = \"\") throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82042080c1c9aaf58c18",
+      "cpp_name": "ida::type::TypeInfo::ensure_member_reference",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (std::size_t, Address) const",
+      "mapping": "direct",
+      "swift": [
+        "eb101acd0a85d7682fd7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "27740ed91c0b4bd690f26cc01ba2621b9fa36e38a802c2e1d36da40d401528a5",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.ensureMemberReference(atByteOffset:sourceAddress:)",
+          "declaration": "func ensureMemberReference(atByteOffset offset: Int, sourceAddress: Address) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2d9ac2c25fb17b5adfd1",
+      "cpp_name": "ida::type::TypeInfo::enum_details",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<EnumDetails> () const",
+      "mapping": "direct",
+      "swift": [
+        "ebbd2de33d23d790a6b3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "392e3029b4932f7be934a51e0852c48f9e50219e42ed623a6518677ce6728629",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.enumDetails()",
+          "declaration": "func enumDetails() throws(IDAError) -> TypeInfo.EnumDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2efd65b010a868a8bc70",
+      "cpp_name": "ida::type::TypeInfo::enum_members",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<EnumMember>> () const",
+      "mapping": "direct",
+      "swift": [
+        "2bafee6779d55be4d582"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "53a8c304661ab237e381ac343c5091305fad6386f27fd8ada93eee5a8871ef42",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.enumMembers()",
+          "declaration": "func enumMembers() throws(IDAError) -> [TypeInfo.EnumMember]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db978e9dc8e9a0e9126b",
+      "cpp_name": "ida::type::TypeInfo::enum_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (const std::vector<EnumMember> &, std::size_t, bool)",
+      "mapping": "adapted",
+      "swift": [
+        "4945b1012a4b49102e85"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "0e1f16355ee845011d143a657a8bccac64dfbc8c13eb391c68be41be2181029e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.enumeration(members:byteWidth:bitmask:)",
+          "declaration": "static func enumeration(members: [TypeInfo.EnumMember], byteWidth: Int = 4, bitmask: Bool = false) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "110502d1409f7189531b",
+      "cpp_name": "ida::type::TypeInfo::float32",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "2f53cc8b5d6d48f9e700"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "266f7e9a944676aadaccbd61faa7eb8299310788981b5ee68b601f5eecf8514f",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.float32()",
+          "declaration": "static func float32() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0bb7ab7ba9985ad035fe",
+      "cpp_name": "ida::type::TypeInfo::float64",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "516b7bbc10e4dad27e82"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "11193981ea99defbc999f4a7853e45b774cd86bf4b4f626ca967baa824eca9d6",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.float64()",
+          "declaration": "static func float64() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8ab65ffc38f59f764ce0",
+      "cpp_name": "ida::type::TypeInfo::forward_declaration_kind",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeKind () const",
+      "mapping": "direct",
+      "swift": [
+        "2ffd11f079dd7ddd43a9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "845180a128ea8c0c326a0e7fd839b64baaedd3cdacc9de402a233f0bc639b9e2",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.forwardDeclarationKind()",
+          "declaration": "func forwardDeclarationKind() throws(IDAError) -> TypeKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dc49b8e51aab6717937b",
+      "cpp_name": "ida::type::TypeInfo::from_declaration",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "68d420016fb7377a5a1d"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "342ba7f2be35320434cda023c9ecf81d8219d711aeef2238816fb0155a5429b8",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.parse(_:)",
+          "declaration": "static func parse(_ value: String) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ec2da0e4645fccafa904",
+      "cpp_name": "ida::type::TypeInfo::function_argument_types",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<TypeInfo>> () const",
+      "mapping": "direct",
+      "swift": [
+        "e17e347f7c284d61732c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "66cdc456658dcb7328809765e2fbaa584e677125163116cd8a542556f38c1b07",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.functionArgumentTypes()",
+          "declaration": "func functionArgumentTypes() throws(IDAError) -> [TypeInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4fe6bb781b999836a732",
+      "cpp_name": "ida::type::TypeInfo::function_details",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<FunctionDetails> () const",
+      "mapping": "direct",
+      "swift": [
+        "b85d34406c57b34fc719"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "02169cdb91b7544c7fa58207bc5cd1aacd0dcfaedd1887e1887d8d2bbea791ee",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.functionDetails()",
+          "declaration": "func functionDetails() throws(IDAError) -> TypeInfo.FunctionDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ddd7e14cc7519e77305d",
+      "cpp_name": "ida::type::TypeInfo::function_return_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> () const",
+      "mapping": "direct",
+      "swift": [
+        "c2230ab679f883ad0c3f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0bb493089c8cce2ac45ee8cbe7b169bb9820889b37e3ff424cc22aa22f9ba61d",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.functionReturnType()",
+          "declaration": "func functionReturnType() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8a81f9ecec1ed194f38a",
+      "cpp_name": "ida::type::TypeInfo::function_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (const TypeInfo &, const std::vector<TypeInfo> &, CallingConvention, bool)",
+      "mapping": "adapted",
+      "swift": [
+        "f4e3d6ca12627ff88e92"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "8ba59bf5235f751510a79111476a0149ac79fd3713a3ccc9b5d3959004df5463",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.function(returnType:arguments:convention:variadic:)",
+          "declaration": "static func function(returnType: TypeInfo, arguments: [TypeInfo] = [], convention: CallingConvention = .unknown, variadic: Bool = false) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73844dfc41dd235cc99c",
+      "cpp_name": "ida::type::TypeInfo::int16",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "7ada27b7b598b95ac626"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2b6a6c43f6517a2cdee34ecaaaaadf07183e383b9b3ecd5f2132b4d0a2c3a45d",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.int16()",
+          "declaration": "static func int16() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "30f3ee2c3275ea7ad127",
+      "cpp_name": "ida::type::TypeInfo::int32",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "11e0491c468140c895ef"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "56caf110a440a88357e8981f60595254fe961f0726d7a7b7c1e87d330c950184",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.int32()",
+          "declaration": "static func int32() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ade08cb6d1e882f402c4",
+      "cpp_name": "ida::type::TypeInfo::int64",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "e7f7c301dedde0464636"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ccce97c88c0a56f4a0a2231d4420444c9917240d0da9e265b0748e4d757c1569",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.int64()",
+          "declaration": "static func int64() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac31a175b64083559420",
+      "cpp_name": "ida::type::TypeInfo::int8",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "e8ec2037b39702aba31b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "aad690a54a015100aa24b0a5a2aeea0368488016fedb73eeccf6c9c8dc1a7a09",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.int8()",
+          "declaration": "static func int8() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6656350b5ec3bbc708cb",
+      "cpp_name": "ida::type::TypeInfo::is_array",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "b356c24c1f3231d875b2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6ec722cbff9445b41e6e0c181eef6b3fbbe1bb7c666d51fe1490792a67b2ee8e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isArray()",
+          "declaration": "func isArray() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b62c1c41d2057bf6ac31",
+      "cpp_name": "ida::type::TypeInfo::is_bool",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "3d23436b9aa138eaa97b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f24e688323e8932099abab52674a4448c5e52a7cb33da38f591ab9643b79a0f0",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isBool()",
+          "declaration": "func isBool() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0409dacb9f915d4ac86",
+      "cpp_name": "ida::type::TypeInfo::is_char",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "b90c542b3a75b1a83dbc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "42dc924b39b2814a72c5f30d34b1661dda626ebf86b958095c01c89a8387a9df",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isChar()",
+          "declaration": "func isChar() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "132825fd68ad938b1f73",
+      "cpp_name": "ida::type::TypeInfo::is_enum",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "a6461dc3539978aca56c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d04b4f1b473e1410de377ad800e80e80f9073e86be9cfd6430e5bce4a8ef5649",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isEnum()",
+          "declaration": "func isEnum() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29bf97a0a9141bbbe528",
+      "cpp_name": "ida::type::TypeInfo::is_floating_point",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "cabfa9ada5a00244b488"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "28a51e6a93ffeeb2064cce8d1144aaf5f8bab251b945f55aac6bda0e6f345e67",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isFloatingPoint()",
+          "declaration": "func isFloatingPoint() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc673f6b4b86f875dc45",
+      "cpp_name": "ida::type::TypeInfo::is_forward_declaration",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "d68204b530c671143e81"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1cd5157949ec414b91c0c63fc8047123b7207d7e53fc98554723d786a99abbb8",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isForwardDeclaration()",
+          "declaration": "func isForwardDeclaration() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0983de75500f55c8623",
+      "cpp_name": "ida::type::TypeInfo::is_function",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "c3eb2c149c6447fe3744"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5c41a780e4654227f7d20c0039f65804294ac945e33552439469733c2eb038a5",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isFunction()",
+          "declaration": "func isFunction() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4c571734ac8d239ae455",
+      "cpp_name": "ida::type::TypeInfo::is_integer",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "0bb11a79cb5c6c767789"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2d6416ac4d1f2e67b85e67f74ee9a997483b3ada534e6df00e4cb43529d1520c",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isInteger()",
+          "declaration": "func isInteger() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee6d062ffd69656bd532",
+      "cpp_name": "ida::type::TypeInfo::is_pointer",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "9d50b06951e73640f3e7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fd6da8a1135d9f4a11f8fa909f5887fc03f49db7afb18c5d29eac2a0894a7d82",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isPointer()",
+          "declaration": "func isPointer() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7210776e8d2175e1830",
+      "cpp_name": "ida::type::TypeInfo::is_signed",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "e2785e23f9023e1e4447"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ef7ff6e83056c3eae2c943d1e4ce5cb74ba6575f30217322c58ae8a049c2e2fe",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isSigned()",
+          "declaration": "func isSigned() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4164ea8cfb4e1ee303d8",
+      "cpp_name": "ida::type::TypeInfo::is_struct",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "e4a22421da3dfd9fb79c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a38c2103ee7325e4c7d74584f5c78a43c9359527b137f40007c2cba9ee145235",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isStruct()",
+          "declaration": "func isStruct() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f77be731815a4749c942",
+      "cpp_name": "ida::type::TypeInfo::is_typedef",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "6a3f09284231c0bf12e9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "68517cc21c54b1b8bf1b9217de13617df3ef0b524b08c06fd28804d99b02e9df",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isTypedef()",
+          "declaration": "func isTypedef() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9443ce38080978edcb0f",
+      "cpp_name": "ida::type::TypeInfo::is_union",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "39adc6f0a4b0d586c780"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2fcce79f7ca77d90d3328c7d7a58dd74f5a6031ab9af7e13f05177da606e6953",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isUnion()",
+          "declaration": "func isUnion() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b37d17e0d6299a410561",
+      "cpp_name": "ida::type::TypeInfo::is_unsigned_char",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "d2be1ddcf486449c53a4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b73b78f0f5c9f8c166bf5d4948ac32541a6a21fe7acac86d241a66749c562c85",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isUnsignedChar()",
+          "declaration": "func isUnsignedChar() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b536ad905abdf97a2348",
+      "cpp_name": "ida::type::TypeInfo::is_variadic_function",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "mapping": "direct",
+      "swift": [
+        "68ddcf3bb26dd3f4e833"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1b26f5686a1626edebea1eced53d106dcb22866b8cf2208a21325e51ab1b21ab",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isVariadicFunction()",
+          "declaration": "func isVariadicFunction() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "96b2cecbbfe16990b358",
+      "cpp_name": "ida::type::TypeInfo::is_void",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const",
+      "mapping": "direct",
+      "swift": [
+        "e197c04ac1e2abf0dede"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cc0fc8f9b96509c6320ca46e696cd512c0448bcd2d1b007011b21cf79f1c7a28",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.isVoid()",
+          "declaration": "func isVoid() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a98019eb818e62ab98ca",
+      "cpp_name": "ida::type::TypeInfo::kind",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeKind () const",
+      "mapping": "direct",
+      "swift": [
+        "e45d62bdab1369ebe209"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8a9669d23e827e48ca281838d22dd08e72bb3530b864b3219d474da1433e2a6d",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.kind()",
+          "declaration": "func kind() throws(IDAError) -> TypeKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dae475aeb3148427f55a",
+      "cpp_name": "ida::type::TypeInfo::member_by_name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<struct Member> (std::string_view) const",
+      "mapping": "adapted",
+      "swift": [
+        "d341ca66c947c66e783e"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "ac159c7d50e2715ed09648fb4c27dc95b79e6e88eebc8646ac772d08f49aa359",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.member(named:)",
+          "declaration": "func member(named name: String) throws(IDAError) -> TypeInfo.Member"
+        }
+      ]
+    },
+    {
+      "cpp_id": "333b359245496522e349",
+      "cpp_name": "ida::type::TypeInfo::member_by_offset",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<struct Member> (std::size_t) const",
+      "mapping": "adapted",
+      "swift": [
+        "8cf14988e50197b77909"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "54e6bbe96632ad799a749630f8622d3e4f3b448b1e24e041e7d5536b30ab9916",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.member(atByteOffset:)",
+          "declaration": "func member(atByteOffset offset: Int) throws(IDAError) -> TypeInfo.Member"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9887af4a9a891a396111",
+      "cpp_name": "ida::type::TypeInfo::member_count",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "441aa94979d18b6f0751"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "07fa3d33fcddc370cedf6928dc89f3aac598f733f13710f9ad3d73d4982dd857",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.memberCount()",
+          "declaration": "func memberCount() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0c867b12149f98f6a39",
+      "cpp_name": "ida::type::TypeInfo::member_references",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Address>> (std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "d90b1e89f393ec059719"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e24e787c283d2ad0afc0335509870b488fa82af7c8176f7422423d6082cfc348",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.memberReferences(atByteOffset:)",
+          "declaration": "func memberReferences(atByteOffset offset: Int) throws(IDAError) -> [Address]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fa9e0bfeffada633d12e",
+      "cpp_name": "ida::type::TypeInfo::members",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<struct Member>> () const",
+      "mapping": "direct",
+      "swift": [
+        "ebb7d554923d73367dcf"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f4a2b137ada740731f7cc3630cfa5450bc294e1af6a49edf579d700f5c0415c4",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.members()",
+          "declaration": "func members() throws(IDAError) -> [TypeInfo.Member]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7681e76a8b6889e0a981",
+      "cpp_name": "ida::type::TypeInfo::name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "e46e4a38896b0cfa1bbd"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "130252dcf485ee5cc1ff880e2d1fa3d13311cd479dce2f69e8b68e6d40389050",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.name()",
+          "declaration": "func name() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "334adae3540a3db569bb",
+      "cpp_name": "ida::type::TypeInfo::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo &(TypeInfo &&) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "0491030992eac6a6a673",
+        "38744a26307259f4c984"
+      ],
+      "rationale": "Swift reference assignment and explicit independent native copy replace C++ assignment/copy/move syntax.",
+      "cpp_fingerprint": "1d1f2a582b307e86cab7284c78112f1f8e5f85852426f440cb2949ff2e0beaa4",
+      "swift_targets": [
+        {
+          "path": "TypeInfo",
+          "declaration": "final class TypeInfo"
+        },
+        {
+          "path": "TypeInfo.copy()",
+          "declaration": "func copy() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd6ae1f5c341c8552503",
+      "cpp_name": "ida::type::TypeInfo::operator=",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo &(const TypeInfo &)",
+      "mapping": "adapted",
+      "swift": [
+        "0491030992eac6a6a673",
+        "38744a26307259f4c984"
+      ],
+      "rationale": "Swift reference assignment and explicit independent native copy replace C++ assignment/copy/move syntax.",
+      "cpp_fingerprint": "a80562daafdb5faf58c45014856ac1e17e034cdf8a3041592a095bf2784bf9a5",
+      "swift_targets": [
+        {
+          "path": "TypeInfo",
+          "declaration": "final class TypeInfo"
+        },
+        {
+          "path": "TypeInfo.copy()",
+          "declaration": "func copy() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9b4b83f7884f6c85ccf1",
+      "cpp_name": "ida::type::TypeInfo::pointee_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> () const",
+      "mapping": "direct",
+      "swift": [
+        "3d30502ff29048a13944"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "91042103498074a02d18f41626543c7e335d4bed565dfa6200461d56b3c4d34e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.pointeeType()",
+          "declaration": "func pointeeType() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c73a367c4d3abc73af0",
+      "cpp_name": "ida::type::TypeInfo::pointer_details",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<PointerDetails> () const",
+      "mapping": "direct",
+      "swift": [
+        "6e13dbdf78de07cb03ca"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "199cc2bd36641f0d68d89d0ad720c31d121294e71fb435181a39e751f5a051c4",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.pointerDetails()",
+          "declaration": "func pointerDetails() throws(IDAError) -> TypeInfo.PointerDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b7ad89bf1818e7daf5c",
+      "cpp_name": "ida::type::TypeInfo::pointer_to",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo (const TypeInfo &)",
+      "mapping": "adapted",
+      "swift": [
+        "8bf220ab479afb08c337"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "a3da29f60206b44fca53b8327f70a0981fe5cec491c39d5c49bdfaf155617e40",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.pointer(to:)",
+          "declaration": "static func pointer(to target: TypeInfo) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "21b5f02cd206de9aefc9",
+      "cpp_name": "ida::type::TypeInfo::replace_forward_declaration",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (std::string_view) const",
+      "mapping": "adapted",
+      "swift": [
+        "0434ea4ab617d11b2217"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "a795e8f539ae986705e101c932f43dbb8dc27ce62f53beff838ce875081a1a09",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.replacingForwardDeclaration(named:)",
+          "declaration": "func replacingForwardDeclaration(named name: String) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "19b7146c5ba10d9c61c1",
+      "cpp_name": "ida::type::TypeInfo::resolve_typedef",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> () const",
+      "mapping": "adapted",
+      "swift": [
+        "ee69235516ec61f23b5c"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "00da0ed69632d18691555a7c2747315afc76ede8af4f5599d6e0f3e6ea488373",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.resolvingTypedef()",
+          "declaration": "func resolvingTypedef() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d7d2a142743514cac3f4",
+      "cpp_name": "ida::type::TypeInfo::save_as",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::string_view) const",
+      "mapping": "adapted",
+      "swift": [
+        "8cf9e4f9247bd9b3b2cc"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "20cef0a0b4bbcb3378f4d51fa0d30d3a406e27208544db3f8ceadf336c3a26d7",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.save(as:)",
+          "declaration": "func save(as name: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68d9ff6a0bcaac95d95a",
+      "cpp_name": "ida::type::TypeInfo::set_udt_semantics",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (bool, bool)",
+      "mapping": "direct",
+      "swift": [
+        "c77cbaa17b3d42bde333"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "533e98ce1b5e022b7d8d59313a05bbf76f2b39afe5529ce637b4958d2bd29054",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.setUDTSemantics(isCPPObject:isVFTable:)",
+          "declaration": "func setUDTSemantics(isCPPObject: Bool, isVFTable: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "158900ee0ebdebd9bcd6",
+      "cpp_name": "ida::type::TypeInfo::size",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "cf54f0d7195f14ff741d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f7f548259a6b6162244fa68f9875e784f9f9a4a8c37ffb17a2083061c45d2e74",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.size()",
+          "declaration": "func size() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a848f742f020bf10804",
+      "cpp_name": "ida::type::TypeInfo::to_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "adapted",
+      "swift": [
+        "bbbb69e08b7ddef8e54e"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "5a03b46cdcc9856d1a3b652d2d8f5923b18f3babcf9c0d44cd306017b5683fbb",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.render()",
+          "declaration": "func render() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db2bd1e075eb5993ac12",
+      "cpp_name": "ida::type::TypeInfo::udt_details",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<UdtDetails> () const",
+      "mapping": "direct",
+      "swift": [
+        "c46bd19f825f84aa1204"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bad5a84202272b13985c6a7e2badd82d9ac6ccd229e7ead4dc237c8b1f9ca70e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.udtDetails()",
+          "declaration": "func udtDetails() throws(IDAError) -> TypeInfo.UDTDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d8bce80932038fd82fee",
+      "cpp_name": "ida::type::TypeInfo::uint16",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "a07d80666f13a7ebdf0c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b3317956ddefefedfca58d4efd013954e087c80aee7e9c0ed9e69ca361ee0516",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.uint16()",
+          "declaration": "static func uint16() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e6d95416a87e31080701",
+      "cpp_name": "ida::type::TypeInfo::uint32",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "2463baa168c30916da7d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "72fcf24644bdace03132a7875cb64397cd2ae882cd0fbaa25b9a6cfb87d4b1b6",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.uint32()",
+          "declaration": "static func uint32() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bd31463768445ce3c632",
+      "cpp_name": "ida::type::TypeInfo::uint64",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "34ee5a86d5d3bd1cdf1a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d15ca7bcb6950f971fc4bc401c2bf738d4253ebb9f5f8c35feca6937433e48b6",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.uint64()",
+          "declaration": "static func uint64() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a0d3d3db08e3ae968c9b",
+      "cpp_name": "ida::type::TypeInfo::uint8",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "8531c7ac33c7d4f11daf"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2788893d965bd46522a3700fc1562ee9f5e74f13dfa1bc8890aa293bbacc9f32",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.uint8()",
+          "declaration": "static func uint8() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c48cc21b36710340da41",
+      "cpp_name": "ida::type::TypeInfo::void_type",
+      "cpp_kind": "method",
+      "cpp_signature": "TypeInfo ()",
+      "mapping": "direct",
+      "swift": [
+        "f191129ae5a8a39ffa21"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "21d98185330030ea060dea9f6299aad06d35c66a94db83983e163f4fb5b4eb39",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.voidType()",
+          "declaration": "static func voidType() throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bd9926cbd1d20bdbeed7",
+      "cpp_name": "ida::type::TypeInfo::with_function_argument_name",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (std::size_t, std::string_view) const",
+      "mapping": "direct",
+      "swift": [
+        "6201f060a923b646e811"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fde6664014a66aad2557cae12c569beb3503c8a00fe9f6395a3202fe72b4f17e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.withFunctionArgumentName(at:name:)",
+          "declaration": "func withFunctionArgumentName(at index: Int, name: String) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0be12fb92582cebd6920",
+      "cpp_name": "ida::type::TypeInfo::with_function_argument_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (std::size_t, const TypeInfo &) const",
+      "mapping": "direct",
+      "swift": [
+        "4876bbff7e8d9669b6e4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "339c49d51bd950f72c70bb9dbf9e5a903616ec395206cda457fce3c75d096554",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.withFunctionArgumentType(at:replacement:)",
+          "declaration": "func withFunctionArgumentType(at index: Int, replacement: TypeInfo) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9553ad7d72b95190b92b",
+      "cpp_name": "ida::type::TypeInfo::with_function_return_type",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (const TypeInfo &) const",
+      "mapping": "direct",
+      "swift": [
+        "6093ad9cdce0b326d991"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "02d2742ac36ce1a344452688c6a4812569fafbf4ce72b71baaf35b2b852995f2",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.withFunctionReturnType(_:)",
+          "declaration": "func withFunctionReturnType(_ replacement: TypeInfo) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c66c1b4599eed090833",
+      "cpp_name": "ida::type::TypeInfo::with_shifted_parent",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<TypeInfo> (const TypeInfo &, std::int64_t) const",
+      "mapping": "direct",
+      "swift": [
+        "61c430630f02f52dc6ac"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3096b651c1221c1b8dd8ad5a3796aac37abb978b11391877ba4fafe0e5123341",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.withShiftedParent(_:byteDelta:)",
+          "declaration": "func withShiftedParent(_ parent: TypeInfo, byteDelta: Int64) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9f5b5b395e407260c58",
+      "cpp_name": "ida::type::TypeInfo::~TypeInfo",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void () noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "de7479ede71d7087db9c"
+      ],
+      "rationale": "ARC releases the owned tinfo value; explicit close performs deterministic invalidation.",
+      "cpp_fingerprint": "b2f31f3cf0261049dbc4c7db547e12db7aad769498923f6ebac475619dee0c4f",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d4fbfd47f156d2ac499",
+      "cpp_name": "ida::type::TypeKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class TypeKind { Unknown, Void, Bool, Character, SignedInteger, UnsignedInteger, FloatingPoint, Pointer, Array, Function, Struct, Union, Enum, Typedef, }",
+      "mapping": "direct",
+      "swift": [
+        "6bdae5cd58725690661a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "61c7f1750c456237e47d46eec435805b3f1f9095068080f20bdcddb48938c640",
+      "swift_targets": [
+        {
+          "path": "TypeKind",
+          "declaration": "enum TypeKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9602d5c4896797c91171",
+      "cpp_name": "ida::type::TypeKind::Array",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "a31de8e0fb99e655d6c3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d873a26994b6faccc4eabc15a8810ac59e3db5eeae9b5f37a73bfa360e6e0578",
+      "swift_targets": [
+        {
+          "path": "TypeKind.array",
+          "declaration": "case array"
+        }
+      ]
+    },
+    {
+      "cpp_id": "03c68fa163a64aba1680",
+      "cpp_name": "ida::type::TypeKind::Bool",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "c65f81ae1436c58a1b56"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fce7cebb1a15dc45ff2325d23150da52cf954564746db8606b167025d2a7fbcc",
+      "swift_targets": [
+        {
+          "path": "TypeKind.bool",
+          "declaration": "case bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "43271f69f896bdc35e75",
+      "cpp_name": "ida::type::TypeKind::Character",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "c1418b86d9b467d6f7d6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6d72f92ed42112d75616e8417da186bdb49618f5a3c9884d0a54a3ad78b3ae1e",
+      "swift_targets": [
+        {
+          "path": "TypeKind.character",
+          "declaration": "case character"
+        }
+      ]
+    },
+    {
+      "cpp_id": "37fa946579a7bf6943de",
+      "cpp_name": "ida::type::TypeKind::Enum",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "c96f0c95ca94a2a35e44"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7caf250bcee940a35e0816f88ef3964b471a64a85bbfe74950218ab61032caa1",
+      "swift_targets": [
+        {
+          "path": "TypeKind.enum",
+          "declaration": "case `enum`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d0f6f148ca3b4d240e4",
+      "cpp_name": "ida::type::TypeKind::FloatingPoint",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "16d36855139b72a336a7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9bab7f667bc88e4490eab260ea30485f38025fff4ee330cb0e2dcf9c689551dd",
+      "swift_targets": [
+        {
+          "path": "TypeKind.floatingPoint",
+          "declaration": "case floatingPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67a9998f0d8dd72cd417",
+      "cpp_name": "ida::type::TypeKind::Function",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "2786aa6c049b67a3bf95"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6bca9f051f16c5fc9da2ae21ed60a8b9f38250d980f5f32a01e08bc9cd07eeca",
+      "swift_targets": [
+        {
+          "path": "TypeKind.function",
+          "declaration": "case function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c68ece85fa24b9991169",
+      "cpp_name": "ida::type::TypeKind::Pointer",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "51e4e7622899d0381b37"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3262bd0a76ef9211ecbe2d701f7d154d8cebd5c090716f0c208149dfafa56f20",
+      "swift_targets": [
+        {
+          "path": "TypeKind.pointer",
+          "declaration": "case pointer"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db29be57c7351e77602d",
+      "cpp_name": "ida::type::TypeKind::SignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "726e7177ddfb7893107a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "be689d917d89bfadbf23f32dd4ffe0943219854638f44bdf5ebd6fd03bc114e9",
+      "swift_targets": [
+        {
+          "path": "TypeKind.signedInteger",
+          "declaration": "case signedInteger"
+        }
+      ]
+    },
+    {
+      "cpp_id": "208d278258c7be0c611b",
+      "cpp_name": "ida::type::TypeKind::Struct",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "14ed0dac562a78c19854"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d715f84459d253bf447994d2e1e8a80b5843cb1e306344766eb786afe3511296",
+      "swift_targets": [
+        {
+          "path": "TypeKind.struct",
+          "declaration": "case `struct`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d2f3658e834b0c67a03a",
+      "cpp_name": "ida::type::TypeKind::Typedef",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "fb4b785d04b1a7d018a8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ec6e136dccf6632e3a5916ed6f8a5cde1f20f71596b147ceca9c97b6e51afb89",
+      "swift_targets": [
+        {
+          "path": "TypeKind.typedef",
+          "declaration": "case typedef"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d1dd1064b008139ab95",
+      "cpp_name": "ida::type::TypeKind::Union",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "c3ebb365181927f0618a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fedef36290319eb738202741085f5791f2288565b61e480fb8fa22db0786d7aa",
+      "swift_targets": [
+        {
+          "path": "TypeKind.union",
+          "declaration": "case union"
+        }
+      ]
+    },
+    {
+      "cpp_id": "def3da91e7317736cbfd",
+      "cpp_name": "ida::type::TypeKind::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "02b997dd19590d695e80"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "019a8fda99b774b35456cc62657fe280f4d98139eb3d5073397db5b4d786b329",
+      "swift_targets": [
+        {
+          "path": "TypeKind.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e63ede824bb6c71bf7f1",
+      "cpp_name": "ida::type::TypeKind::UnsignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "9c04a6819e13d722b221"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6b77b100a3f523798588e7eafab816b0c1b432192a6e251fc1325e554d24882a",
+      "swift_targets": [
+        {
+          "path": "TypeKind.unsignedInteger",
+          "declaration": "case unsignedInteger"
+        }
+      ]
+    },
+    {
+      "cpp_id": "16bf9d8169bf4282bd42",
+      "cpp_name": "ida::type::TypeKind::Void",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::type::TypeKind",
+      "mapping": "direct",
+      "swift": [
+        "e8d0f20312e5f4dc42b8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "475ee811a86cb58c8586e1cc1e855c31f629ce98a1a6d3041cfddd4cc3474f3e",
+      "swift_targets": [
+        {
+          "path": "TypeKind.void",
+          "declaration": "case void"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db3dccc852aa04ec97bc",
+      "cpp_name": "ida::type::TypeRenderOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2f8265ccf1e237c9f932"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "db3dccc852aa04ec97bc72fdcc2e006154a0c1905d3925ac4c66f26cc7fb9d44",
+      "swift_targets": [
+        {
+          "path": "Types.RenderOptions",
+          "declaration": "struct RenderOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e599a20330dedb4c23ca",
+      "cpp_name": "ida::type::TypeRenderOptions::size_comments",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "290630921bf1e2602d89"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "95374b2d0f429d108c297678a79b73a724704735d9e6397d6800a15208756a09",
+      "swift_targets": [
+        {
+          "path": "Types.RenderOptions.sizeComments",
+          "declaration": "var sizeComments: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8381c71058d7f37fb5f",
+      "cpp_name": "ida::type::TypeRenderOptions::trim_unreferenced",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "fbbbfae21c280cdb026c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a9bba101b2515225064b449a1c86f26ce188fa31f0d4160580d5e75620827994",
+      "swift_targets": [
+        {
+          "path": "Types.RenderOptions.trimUnreferenced",
+          "declaration": "var trimUnreferenced: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "67fa7ef8b32e442b1cb7",
+      "cpp_name": "ida::type::TypeRenderOptions::used_offsets",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<UsedMemberOffsets>",
+      "mapping": "direct",
+      "swift": [
+        "c74cd0beea39d3d56f2d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "77801a46bca9af8885dbcdcfe14fb8a065ad03edf0a357d2bb170425ff92fa48",
+      "swift_targets": [
+        {
+          "path": "Types.RenderOptions.usedOffsets",
+          "declaration": "var usedOffsets: [Types.UsedMemberOffsets]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b75ba442d2a52a6db1eb",
+      "cpp_name": "ida::type::UdtDetails",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "90865dfd6dd0e1718e23"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b75ba442d2a52a6db1eb1e6144c0608456bb79d4687b3e11447b77fbc8b07618",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails",
+          "declaration": "struct UDTDetails"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e798b51674a278840d4",
+      "cpp_name": "ida::type::UdtDetails::is_cpp_object",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "93151ecc2e033231b5d3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ad253954de131171323224cc3a4d0fe13872fde4aafccd2816f7cbb117e3de5b",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails.isCPPObject",
+          "declaration": "var isCPPObject: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a169dff059befe7150ce",
+      "cpp_name": "ida::type::UdtDetails::is_union",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "91206b264ebda3ea2ad4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6bde93c5700539fddb7dde19e29267a1ab258e428154b51805bbdc2cbfeab433",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails.isUnion",
+          "declaration": "var isUnion: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "950c393ef648b48c5c85",
+      "cpp_name": "ida::type::UdtDetails::is_vftable",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0ba503905d120b9432ce"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "68b062ec4b619b606f85265a9f289c377d75f7d33deb3b6a8fbab00e47d4df3e",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails.isVFTable",
+          "declaration": "var isVFTable: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e25b08c142312ebe6875",
+      "cpp_name": "ida::type::UdtDetails::members",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<Member>",
+      "mapping": "direct",
+      "swift": [
+        "d9c3b3fb412dce4d262b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "afbbb89c85f7609423c1c19f9291837d75852cb8624150690f5b51e89e9b1e4b",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails.members",
+          "declaration": "var members: [TypeInfo.Member]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85be88b4bde87a061125",
+      "cpp_name": "ida::type::UdtDetails::total_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "37d3c4695d3e18421e26"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "37b8650470287639f6cd85cb2bbeb82d8c75b70e1ec5371734ebf443d5b82fb0",
+      "swift_targets": [
+        {
+          "path": "TypeInfo.UDTDetails.totalSize",
+          "declaration": "var totalSize: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f8dbe51500fced85d5b",
+      "cpp_name": "ida::type::UsedMemberOffsets",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "227766b9ee0cb14235c7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6f8dbe51500fced85d5b7b64de32c00cfd435d124eb410304a9f1216bc1265c1",
+      "swift_targets": [
+        {
+          "path": "Types.UsedMemberOffsets",
+          "declaration": "struct UsedMemberOffsets"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bbfc825c3b0190c0fecc",
+      "cpp_name": "ida::type::UsedMemberOffsets::byte_offsets",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<int>",
+      "mapping": "direct",
+      "swift": [
+        "17c4417174668ca354ad"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "849d69ba84f926d9c85ec0a5b778891cbee5699ea3be87e576b31dd493095727",
+      "swift_targets": [
+        {
+          "path": "Types.UsedMemberOffsets.byteOffsets",
+          "declaration": "var byteOffsets: [Int32]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ca3aff89ce210d9bd33f",
+      "cpp_name": "ida::type::UsedMemberOffsets::type_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b699e6ae187026d6e392"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "44cceb1980dea04857b382d6956aa89134504d98400a8b72a809d43cde226960",
+      "swift_targets": [
+        {
+          "path": "Types.UsedMemberOffsets.typeName",
+          "declaration": "var typeName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "33c90f69d9ca289454c3",
+      "cpp_name": "ida::type::apply_named_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "9be5c08841d38893ed9a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f54b26fb9614d21de6a0549f7fa5d230c454cfa939beb22e23417a8cdbff4883",
+      "swift_targets": [
+        {
+          "path": "Types.applyNamedType(_:at:)",
+          "declaration": "static func applyNamedType(_ name: String, at address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e4d84792b2b6c48297cc",
+      "cpp_name": "ida::type::declarations_for_ordinals",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<TypeDeclaration>> (const std::vector<std::uint32_t> &)",
+      "mapping": "adapted",
+      "swift": [
+        "c2c33f455b27445468b5"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "ecee1913fc3e124e9b50ddf7b48be0a9f8ce6ef0296d96ce637180b96391b0f2",
+      "swift_targets": [
+        {
+          "path": "Types.declarations(forOrdinals:)",
+          "declaration": "static func declarations(forOrdinals ordinals: [UInt32]) throws(IDAError) -> [Types.Declaration]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c1d605a98fbf32228f0b",
+      "cpp_name": "ida::type::ensure_named_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<TypeInfo> (std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "86e1b0f6d3f15dac9838"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "44edaab51d3a078d3796a8c4bfb2d61f339e5b1199faf40ce2428f9b8b9bc159",
+      "swift_targets": [
+        {
+          "path": "Types.ensureNamedType(_:fromLibrary:)",
+          "declaration": "static func ensureNamedType(_ name: String, fromLibrary library: String = \"\") throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17e1c3e716d360ed5566",
+      "cpp_name": "ida::type::import_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "c3437c289dae2b0d1ff6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b862d7ffde7873816d5395cf82dcdacc80096fe10e9f5a780a575ae5944dbb05",
+      "swift_targets": [
+        {
+          "path": "Types.importType(named:fromLibrary:)",
+          "declaration": "static func importType(named name: String, fromLibrary library: String = \"\") throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51fb0a12a6ca2b6be20e",
+      "cpp_name": "ida::type::load_type_library",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "a8a162fa8ffef8f4466b"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "d3817bf2b3522523744d5faf93425c07924bf05073f44d3747ecfefc940be422",
+      "swift_targets": [
+        {
+          "path": "Types.loadLibrary(named:)",
+          "declaration": "static func loadLibrary(named name: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b50655d4ffcdfbccb64a",
+      "cpp_name": "ida::type::local_type_count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "702ca8e95eec2cfd2031"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "460a392547fe329f24b35f5fb1cdf0b3e6a2ff5e15e0258531b10075534802a0",
+      "swift_targets": [
+        {
+          "path": "Types.localTypeCount()",
+          "declaration": "static func localTypeCount() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a6ad8b79ea23e8e809f",
+      "cpp_name": "ida::type::local_type_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "e1977019c11f35c28160"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c1fe3028b2340109e7032942dba3ca167f5ac6c0d150108cd7390012df9c1ffb",
+      "swift_targets": [
+        {
+          "path": "Types.localTypeName(ordinal:)",
+          "declaration": "static func localTypeName(ordinal: Int) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0cfc1a011633844e2fde",
+      "cpp_name": "ida::type::parse_declarations",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ParseDeclarationsReport> (std::string_view, const ParseDeclarationsOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "ff8d8714d3c48f290ec9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7a41db78bc93cddabbbd9b686c722e420791f6a36480fb269e22f07d478a430e",
+      "swift_targets": [
+        {
+          "path": "Types.parseDeclarations(_:options:)",
+          "declaration": "static func parseDeclarations(_ declarations: String, options: Types.ParseDeclarationsOptions = .init()) throws(IDAError) -> Types.ParseDeclarationsReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3f008e5b63a1d2315c79",
+      "cpp_name": "ida::type::remove_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "bb721de340f9335ff79b"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "21d54fdf0d4afd6a9becbcb6bafef3433a85b5b5673ed1fc48c1f3c9dbe766d3",
+      "swift_targets": [
+        {
+          "path": "Types.remove(at:)",
+          "declaration": "static func remove(at address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ae2a31752e97a7b96bdc",
+      "cpp_name": "ida::type::render_named_declarations",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (const std::vector<std::string> &, int, const TypeRenderOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "8ce95e38c549b6118f8c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8548bb2063b6836e5c463b146a4a5e4d5384895fee91e9caf1c95d0709d60ba1",
+      "swift_targets": [
+        {
+          "path": "Types.renderNamedDeclarations(_:maxDepth:options:)",
+          "declaration": "static func renderNamedDeclarations(_ names: [String], maxDepth: Int32 = -1, options: Types.RenderOptions = .init()) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "12d2f2996cb9e52a2479",
+      "cpp_name": "ida::type::render_ordinal_declarations",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (const std::vector<std::uint32_t> &, const TypeRenderOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "9928cfddf6b49aa09dad"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0bd247a334e0941822019da6a84d74f9504a7b3e11feb0d0d2f337f45515051c",
+      "swift_targets": [
+        {
+          "path": "Types.renderOrdinalDeclarations(_:options:)",
+          "declaration": "static func renderOrdinalDeclarations(_ ordinals: [UInt32], options: Types.RenderOptions = .init()) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f174ade1d7f27e82b457",
+      "cpp_name": "ida::type::render_type_graph",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::string_view, const TypeGraphOptions &)",
+      "mapping": "adapted",
+      "swift": [
+        "3e62c2920670694cc5cb"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "39d3b9889b43c28a1fafc6ff40a88daeb7feb199aec0d2ff11f1fab0f1a731b1",
+      "swift_targets": [
+        {
+          "path": "Types.renderGraph(rootName:options:)",
+          "declaration": "static func renderGraph(rootName: String, options: Types.GraphOptions = .init()) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe2360efbbfd1d493729",
+      "cpp_name": "ida::type::retrieve",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<TypeInfo> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "037ac1879fbb472ad6bb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "22e4be52a0fb57e949648bf3b2a62d6e894c8a90d578055a8026429478db8a5e",
+      "swift_targets": [
+        {
+          "path": "Types.retrieve(at:)",
+          "declaration": "static func retrieve(at address: Address) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e29b1dcc27ac131fb68",
+      "cpp_name": "ida::type::retrieve_operand",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<TypeInfo> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "b9e9361ab6cdc1782b99"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "705fcddaba288986e50305b66ddb595b41add3c748343febb0125b37b980d593",
+      "swift_targets": [
+        {
+          "path": "Types.retrieveOperand(at:operandIndex:)",
+          "declaration": "static func retrieveOperand(at address: Address, operandIndex: Int32) throws(IDAError) -> TypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b571643b9bc7ff84c2d",
+      "cpp_name": "ida::type::unload_type_library",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "a36ea41439f39a3ebf50"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "4a18b58ce2d40f6a711d42dab69017859485afb5ecadbe3dcfe7404f800d7cff",
+      "swift_targets": [
+        {
+          "path": "Types.unloadLibrary(named:)",
+          "declaration": "static func unloadLibrary(named name: String) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

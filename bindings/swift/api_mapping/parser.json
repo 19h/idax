@@ -1,0 +1,743 @@
+{
+  "domain": "parser",
+  "declarations": [
+    {
+      "cpp_id": "3f0aa2ee1f02643870f1",
+      "cpp_name": "ida::parser::InputKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class InputKind : std::uint8_t { SourceText, FilePath, }",
+      "mapping": "direct",
+      "swift": [
+        "79f2c6585d5182c456fb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "db12a7ae79c84fa3f4f6fc24c1c9fd8b135506ac62d90dc2c1baf29ba0a70d92",
+      "swift_targets": [
+        {
+          "path": "Parser.InputKind",
+          "declaration": "enum InputKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d8930b29212a62311153",
+      "cpp_name": "ida::parser::InputKind::FilePath",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::InputKind",
+      "mapping": "direct",
+      "swift": [
+        "966e552f89bc14ff250b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d0879e0bf08c7bdc1aa33bf879258a1549c4a145592d6f695706ca8e18a31f9b",
+      "swift_targets": [
+        {
+          "path": "Parser.InputKind.filePath",
+          "declaration": "case filePath"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f1621b353d927df41c1",
+      "cpp_name": "ida::parser::InputKind::SourceText",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::InputKind",
+      "mapping": "direct",
+      "swift": [
+        "23472748a267913187b5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c7954f9581977bd99a11ce7cf32b28483b27d7334d503c1753fe318afcca5f54",
+      "swift_targets": [
+        {
+          "path": "Parser.InputKind.sourceText",
+          "declaration": "case sourceText"
+        }
+      ]
+    },
+    {
+      "cpp_id": "58e6913d17abac69a6ee",
+      "cpp_name": "ida::parser::Language",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Language : std::uint32_t { C = 0x01, Cpp = 0x02, ObjectiveC = 0x04, Swift = 0x08, Go = 0x10, ObjectiveCpp = 0x20, }",
+      "mapping": "direct",
+      "swift": [
+        "56f099a791e0b1436a26"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "278f62616edd09ec9bcec54891b450b35c580d6ece876054428203be05607128",
+      "swift_targets": [
+        {
+          "path": "Parser.Language",
+          "declaration": "struct Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "563b7f4660381c376029",
+      "cpp_name": "ida::parser::Language::C",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "41c60891987bbc235fd2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a6a350010eb32ee02513230941d772bf376931d7875cb1316a9fdc79625b57a0",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.c",
+          "declaration": "static let c: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "557b26f55444f2c94ba7",
+      "cpp_name": "ida::parser::Language::Cpp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "5c9884e3dc90bb6ae396"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8c709daf13e8981b86ebfbb24ca424b3d955da265d9eeed2a45bce4b207e6928",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.cpp",
+          "declaration": "static let cpp: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "36756d612c1b8e0e31c8",
+      "cpp_name": "ida::parser::Language::Go",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "0f997f3662f1c49b620c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fb8a2b3ab6efa05740cec1654891d816cf1ec7dff9667d09455c14e1796498b1",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.go",
+          "declaration": "static let go: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c48afbd1d78ab567b14",
+      "cpp_name": "ida::parser::Language::ObjectiveC",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "f4aebf65fa15a300c0c9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5e6746d3ce55fad44f3c9ca38bea8715dbd9a2c1ade2693570ab04abe0aff610",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.objectiveC",
+          "declaration": "static let objectiveC: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "949f09c8e49fce567e4e",
+      "cpp_name": "ida::parser::Language::ObjectiveCpp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "4bfaa4761a3eac2b0300"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "332cf9b7b08af7ef7193fd6797c1cb622bb983e4391b8df4f5cec3ec3468ac4f",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.objectiveCpp",
+          "declaration": "static let objectiveCpp: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8bacb68401bc270b39e9",
+      "cpp_name": "ida::parser::Language::Swift",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::parser::Language",
+      "mapping": "direct",
+      "swift": [
+        "897db9fe6d07f0fb6b5f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7fbe85999cde4e4e6abfefcf19ee27776cef39b0ebd4df56f49174112e489838",
+      "swift_targets": [
+        {
+          "path": "Parser.Language.swift",
+          "declaration": "static let swift: Parser.Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f6ae717e806e7d88a0cc",
+      "cpp_name": "ida::parser::ParseOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "428d3a4e87c0e58586af"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f6ae717e806e7d88a0cc7a65afe5f7e01de2213ed272e57734d0ca33b8e15a8c",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions",
+          "declaration": "struct ParseOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41971ac39a16a7c095f5",
+      "cpp_name": "ida::parser::ParseOptions::allow_missing_semicolon",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "866694b47482c0a437aa"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "89f6bc2b3644eb2a26dc0d0861e06fd1bb4d489f523e1cd68347c5f9b27afc3a",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.allowMissingSemicolon",
+          "declaration": "var allowMissingSemicolon: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e139cf4c58aedfdbc20f",
+      "cpp_name": "ida::parser::ParseOptions::allow_redeclarations",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "edacd993edc665aece03"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9c34604cb3183557924b18d8f9896834728ca971576a5aface4712a38ef26329",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.allowRedeclarations",
+          "declaration": "var allowRedeclarations: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7888a3d3a8ccd96f189",
+      "cpp_name": "ida::parser::ParseOptions::allow_void",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e2577ffd861b4e06ed4a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e458530d58c7c1470d83e761d0aef61afe79f1e02c42551eec6b3c0411270131",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.allowVoid",
+          "declaration": "var allowVoid: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5cd14b92404afa51c20",
+      "cpp_name": "ida::parser::ParseOptions::assume_high_level",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ef1640af241650c9e849"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e4a4b0306e7b673fee0698baf3eefc779723faacf29f4f0bb58a8ace3acc52d2",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.assumeHighLevel",
+          "declaration": "var assumeHighLevel: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "04ad30f82f48604b87b6",
+      "cpp_name": "ida::parser::ParseOptions::define_base_macros",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c7d2f906768fef4b8605"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "eae77b8e5ab5fd15c9b4372cecaf33f51cc60ea17e2123e65a07d1a1fd6032b4",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.defineBaseMacros",
+          "declaration": "var defineBaseMacros: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49df9395ace46ec3b05b",
+      "cpp_name": "ida::parser::ParseOptions::discard_result",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "b93c31561c0f08e8c26d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ee17b5e5f7a0836f123cab42e4d67e5745ee50c3179ca169d18e2786a240887f",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.discardResult",
+          "declaration": "var discardResult: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "61b4eeb55a7ef01a8199",
+      "cpp_name": "ida::parser::ParseOptions::exclude_base_types",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7a4ee4b6954996c3d86c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "207cbd028e53e89115e6bc1ba9b00afa4e88452855abc96ecce66fd49750e665",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.excludeBaseTypes",
+          "declaration": "var excludeBaseTypes: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bfa54f4bef782ffb8f63",
+      "cpp_name": "ida::parser::ParseOptions::ignore_errors",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3859a868d8c9cad7acf8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ea37574d221b0087c465be33eb212c29a366cfce7814a247c237b29f6873c0de",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.ignoreErrors",
+          "declaration": "var ignoreErrors: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "29b3221e95894bcd05fa",
+      "cpp_name": "ida::parser::ParseOptions::input_kind",
+      "cpp_kind": "field",
+      "cpp_signature": "InputKind",
+      "mapping": "direct",
+      "swift": [
+        "c3b1795272b45560ed0d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4be91390313fca8fa85b441bb6048c06a2a2ea77bd765e712aa15a27c54447da",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.inputKind",
+          "declaration": "var inputKind: Parser.InputKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "02fe0b7ce0da4ca1c5c5",
+      "cpp_name": "ida::parser::ParseOptions::lower_prototypes",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3916565ecfacf99bed16"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "69e4a416faf13b98ee130451132b0468e50960c0e70730f873ebeef290aaf2a4",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.lowerPrototypes",
+          "declaration": "var lowerPrototypes: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "248e4a610c1d0d754984",
+      "cpp_name": "ida::parser::ParseOptions::no_decorate",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8049ab5cc34deb36e821"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "654a7a6e827c6f609e45c3db68c4b87b81a49c138408088bd31b150c72fe1daf",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.noDecorate",
+          "declaration": "var noDecorate: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4929a9a496e3e3363dd2",
+      "cpp_name": "ida::parser::ParseOptions::no_mangle",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "33ffb3d8bd14369349b3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c377dd3b72127c6f0818f73c7fb546a24e615cfea7b98af0bfbc1f88c5aec503",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.noMangle",
+          "declaration": "var noMangle: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a20e4f12e910925ba372",
+      "cpp_name": "ida::parser::ParseOptions::pack_alignment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "50bc18eb054b663e2204"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c53ca32026e38f95095becc2528a793b108fb2dc09a6755b2de9398c0dfe4faf",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.packAlignment",
+          "declaration": "var packAlignment: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "608306852398b3582bec",
+      "cpp_name": "ida::parser::ParseOptions::raw_argument_names",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "a3cae247be7ca6f6e4f6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e95252da6f77abce7f32ac0bd6a9208e986bb02a86c980485d2a8d5bdce7684a",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.rawArgumentNames",
+          "declaration": "var rawArgumentNames: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "259a349d9f91442c207d",
+      "cpp_name": "ida::parser::ParseOptions::relaxed_namespaces",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7ee1487765a9463f9c43"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e624c657c60292d51d20e2d6631589542440226b63a479d801becbdc630c8267",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.relaxedNamespaces",
+          "declaration": "var relaxedNamespaces: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0eb05cc96dfea9ac833e",
+      "cpp_name": "ida::parser::ParseOptions::standalone_declaration",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "245d5d92818de5ac7840"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "20d4f962972402c79153ddc30f8df8e6e061fb42340e312e40e93912f17ddd93",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.standaloneDeclaration",
+          "declaration": "var standaloneDeclaration: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25c187db2e1a46682659",
+      "cpp_name": "ida::parser::ParseOptions::suppress_warnings",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ee6bcd8cf1321fd0ab9f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1d3cf88eb10f0161c00a13f56fb9aad56b2b667f9ecd1427eb1a64f60fc425e2",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseOptions.suppressWarnings",
+          "declaration": "var suppressWarnings: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72941c7eeeb26517dd4c",
+      "cpp_name": "ida::parser::ParseReport",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "542a1c76a5316601921f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "72941c7eeeb26517dd4c167d7cd198fe21d3a068d19663e71569016ba1f9c4be",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseReport",
+          "declaration": "struct ParseReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "97577bff22bb8867cad5",
+      "cpp_name": "ida::parser::ParseReport::error_count",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "32c46ef18249ef4813d9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "303e3aaeaac99c69ad2126160bf166f79b943ab74f0e98db8fdf1176c159d64c",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseReport.errorCount",
+          "declaration": "var errorCount: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d73bc9f8939221e59ee",
+      "cpp_name": "ida::parser::ParseReport::ok",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "94a34e3ead4a6f05d84e"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "cf3aff0a577690637d87fa5dc8713566cbe93b19edb12e91f22ff770c52db446",
+      "swift_targets": [
+        {
+          "path": "Parser.ParseReport.isOK",
+          "declaration": "var isOK: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54e324fa2220f42705bb",
+      "cpp_name": "ida::parser::operator|",
+      "cpp_kind": "function",
+      "cpp_signature": "Language (Language, Language) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "56f099a791e0b1436a26"
+      ],
+      "rationale": "OptionSet union and array-literal construction combine the documented language bits; each named bit remains public.",
+      "cpp_fingerprint": "9562a190850161e22866036261966ffbdff7e06c809a19a5e7447985626dc095",
+      "swift_targets": [
+        {
+          "path": "Parser.Language",
+          "declaration": "struct Language"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7429646980e83fc06d7f",
+      "cpp_name": "ida::parser::option",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "a8c8afddda519b50ec1e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ab2757252f92b1812acb2342e9e8f9c43b7636d71a57fd7c1b51b0b5db711f27",
+      "swift_targets": [
+        {
+          "path": "Parser.option(parserName:optionName:)",
+          "declaration": "static func option(parserName: String, optionName: String) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "554416ced66b1341dccd",
+      "cpp_name": "ida::parser::parse_for",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ParseReport> (Language, std::string_view, InputKind)",
+      "mapping": "direct",
+      "swift": [
+        "944a7039a7279a092f84"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f57b4ac77cb4cfbac37fe1e44e7596f00d729bd236de4bf4199e03817f7009b2",
+      "swift_targets": [
+        {
+          "path": "Parser.parseFor(languages:input:inputKind:)",
+          "declaration": "static func parseFor(languages: Parser.Language, input: String, inputKind: Parser.InputKind = .sourceText) throws(IDAError) -> Parser.ParseReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c7ee583d9d4350a6732",
+      "cpp_name": "ida::parser::parse_with",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ParseReport> (std::string_view, std::string_view, InputKind)",
+      "mapping": "direct",
+      "swift": [
+        "e88ecfede0e849b09b1c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9c3bcb1f82d9cecf0bf9dda2aadac892464ea4369c230c0e234e4d8f42abd28a",
+      "swift_targets": [
+        {
+          "path": "Parser.parseWith(parserName:input:inputKind:)",
+          "declaration": "static func parseWith(parserName: String, input: String, inputKind: Parser.InputKind = .sourceText) throws(IDAError) -> Parser.ParseReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d0ee04e2e2ee96e1cfd",
+      "cpp_name": "ida::parser::parse_with_options",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ParseReport> (std::string_view, std::string_view, const ParseOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "42169580957be6189f87"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "91b9416cdb614ff64d17f10989a2f2ffd092fb91093f100fb97045505ac94e76",
+      "swift_targets": [
+        {
+          "path": "Parser.parseWithOptions(parserName:input:options:)",
+          "declaration": "static func parseWithOptions(parserName: String, input: String, options: Parser.ParseOptions = .init()) throws(IDAError) -> Parser.ParseReport"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a878ebe344ff4673242",
+      "cpp_name": "ida::parser::select",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::optional<std::string_view>)",
+      "mapping": "direct",
+      "swift": [
+        "faf61cb57590326b5ccf"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ac1eb4216175f0ad812c28de5263147d2cdd53ccf0388dae1e6457b4fc6a4e31",
+      "swift_targets": [
+        {
+          "path": "Parser.select(name:)",
+          "declaration": "static func select(name: String? = nil) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "890a99c759cc8a190409",
+      "cpp_name": "ida::parser::select_for",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Language)",
+      "mapping": "direct",
+      "swift": [
+        "cfbacbaead659f56834c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c5188a5f8974c40bd7b166423c75749f3213fa744342d2e611902c23b5609ced",
+      "swift_targets": [
+        {
+          "path": "Parser.selectFor(languages:)",
+          "declaration": "static func selectFor(languages: Parser.Language) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "346c1f79efbd48ba9bb4",
+      "cpp_name": "ida::parser::selected_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::string>> ()",
+      "mapping": "direct",
+      "swift": [
+        "839c80f2e147a2356497"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "288880b64005115148c574768aebc3b130894167aa891115c04c488199c898de",
+      "swift_targets": [
+        {
+          "path": "Parser.selectedName()",
+          "declaration": "static func selectedName() throws(IDAError) -> String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5aff986f0414b74195e0",
+      "cpp_name": "ida::parser::set_arguments",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "08107a7a94efda4391c6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d8b86aa486074dfbfe64d340437e8c473fe82667dd3a3c94b0eee09742f65c5b",
+      "swift_targets": [
+        {
+          "path": "Parser.setArguments(parserName:arguments:)",
+          "declaration": "static func setArguments(parserName: String, arguments: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a59d591eac6db6d13d7",
+      "cpp_name": "ida::parser::set_option",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "9d1c02a36fe1fbf73611"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2d3889218d0e59b10928fd2f4d57bd485d8c9d5e4fff311435a7152b4041d27b",
+      "swift_targets": [
+        {
+          "path": "Parser.setOption(parserName:optionName:value:)",
+          "declaration": "static func setOption(parserName: String, optionName: String, value: String) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}
