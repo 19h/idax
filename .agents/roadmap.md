@@ -586,6 +586,8 @@ Current overall phase status:
 
 - [x] P72.7.4 Preserve native FormBuilder default versus explicit empty-title construction and add nonmodal markup evidence.
 
-- [ ] P72.7.5 Remove identity-bearing compiler paths from the native distribution archive and verify every packaged member bytewise.
+- [x] P72.7.5 Remove identity-bearing compiler paths from the native distribution archive and verify every packaged member bytewise.
 
 - [ ] P72.7.6 Preserve caller-authored form markup with typed bound values through an opaque Swift argument model and nonmodal validation.
+
+- [x] P72.7.7 Normalize source-equivalent Clang AST output across supported Swift toolchains without omitting declared API entries.

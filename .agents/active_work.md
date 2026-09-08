@@ -69,7 +69,6 @@
 - P72.7 Active: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.
 
 
-- P72.7.5 Active: CPack creates a valid archive, but bytewise artifact privacy detects an identity-bearing absolute path in libidax.a. Impact: native distribution would contain a compiler path; archive remains local. Next action: identify the object/compiler origin, apply deterministic prefix mapping, rebuild and rescan all members.
 
 - P72.5 Active: close the final discovered caller-authored bound-form capability gap under P72.7.6; other domain implementation and evidence remain recorded.
 - P72.7.6 Active: Swift currently supports generated bound forms and unbound markup but lacks native ask_form(markup, typed bindings). Add opaque typed arguments, compatible control/count validation and positive nonmodal preparation evidence; retain the explicit interactive host boundary.

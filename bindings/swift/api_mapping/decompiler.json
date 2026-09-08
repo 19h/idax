@@ -14205,7 +14205,7 @@
         "a4902977305c7057a670"
       ],
       "rationale": "Member placement and owned registrations/leases replace explicit function handles and tokens; operation semantics and typed errors are retained.",
-      "cpp_fingerprint": "31b720c56da1ed8f2daad9d0b7b25712ea15e8744e509fa7914aa52eeadf9248",
+      "cpp_fingerprint": "27466c5bdd1182509b183c222aecbce2e9b7e61844921b98dd1e06fb82742572",
       "swift_targets": [
         {
           "path": "Decompiler.isExpressionType(_:)",
@@ -14223,7 +14223,7 @@
         "bbca67f1453c3fdf202d"
       ],
       "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
-      "cpp_fingerprint": "05dd588dbf270bd9ada59fde45daed7564688c635c2a3dc30e24acb521433169",
+      "cpp_fingerprint": "683da5f54670e4338a507352c8322d6030909c61ea7890435d33a4ce12e6ed6c",
       "swift_targets": [
         {
           "path": "Decompiler.isStatementType(_:)",
@@ -14259,7 +14259,7 @@
         "bab2e373728c1e67df24"
       ],
       "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
-      "cpp_fingerprint": "02932c7bf54c1e2d5f2fbdefe0fa6fc1d0231ad14f935db137c03e5485be1d8c",
+      "cpp_fingerprint": "4c7549cbf1b26e0c16fff1c364a610bdb4a7733578b9ac27bb857f2be76a6db9",
       "swift_targets": [
         {
           "path": "Decompiler.itemTypeName(itemType:)",

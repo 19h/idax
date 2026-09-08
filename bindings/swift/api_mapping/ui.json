@@ -4099,7 +4099,7 @@
         "d239048a9770f96c53ca"
       ],
       "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
-      "cpp_fingerprint": "6891ab9e8bf0f6dd4c9ad83f0139e8534851212b19af6071e68d2adb37129e2e",
+      "cpp_fingerprint": "11a39515b06d284ff3797438eb7dba3204a36490f33696c07b1fa48f609efd94",
       "swift_targets": [
         {
           "path": "UI.clipboardBackend()",
@@ -4388,7 +4388,7 @@
         "e34fd09c2c64fbe9de0b"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "d79c5d147a24a530e30b14ae5cce182870b7d8fa68f90017601f51ae1fa64981",
+      "cpp_fingerprint": "3176f22df02723b9f4158ac48bb6294c1b8844d55011107cbb8821c8dc8eda34",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4411,7 +4411,7 @@
         "8c6686dd39d4cb8f785b"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "b32ee8454985273f1546d71ce08d06231a5fa4ff37833175ff34dc5f0d902bba",
+      "cpp_fingerprint": "cb5e1d8646ea51fb438484a452c6f5eb5972a3d1c56b59e9e1c3bf27454b5651",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4433,7 +4433,7 @@
         "f4cb4cddf3b63b1a06c4"
       ],
       "rationale": "The empty C++ template builder becomes one typed Swift builder owner; title and subsequent controls preserve the canonical form markup.",
-      "cpp_fingerprint": "c41022c222ff8b8c86a6d54f551665b64381330d42e285e5897a1edc15408d6c",
+      "cpp_fingerprint": "4fdf6693204cec6c4bb30138920861381c881232e05e2fe7df3b5c144a277fa1",
       "swift_targets": [
         {
           "path": "UI.FormBuilder.init(title:)",
@@ -4452,7 +4452,7 @@
         "2ebd9486a02814d25a8a"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "00b39d085b107ef49d112df5306bb77c5a8551b9634da8eee30f9881b95613b5",
+      "cpp_fingerprint": "0d7e4572b8d13388b462242298fae8d2c5f688d18490db2a2dfa76c7198fcb68",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4475,7 +4475,7 @@
         "5013e71ecced994256a4"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "c1308db6e9efd8b14cc69a4c5e151101d283083768641228060d02260ea1260d",
+      "cpp_fingerprint": "795991a13893364894d8b140f6649233755dce239bc3b1577cbbc5e70e36d5f3",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4498,7 +4498,7 @@
         "c07273cfb31506cbcc68"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "0bd2f3bb19af442527b317830b69718f5e267437710629ec261c59233d9d75fc",
+      "cpp_fingerprint": "2ddb7d54ce96df9816ca9578f2aef0b07d322dbe0924951304bc7b61f6982f9a",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4521,7 +4521,7 @@
         "2ebd9486a02814d25a8a"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "ee89ecd2bd2c4a745eff3a43020210a7821bbc6c149429c003372779535f6b4d",
+      "cpp_fingerprint": "1bcc12f2c95936d80d0f906ae420ee8ad88fb6339b5deae4d4db84ea0133afb5",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",
@@ -4544,7 +4544,7 @@
         "ec2b5d358d563d141b1a"
       ],
       "rationale": "The native reference-binding factory becomes a typed FormBinding cell supplied to the corresponding builder control. The cell retains its value across preparation and accepted-result commit without exposing SDK storage.",
-      "cpp_fingerprint": "fc1ff94a7127cd8954472bb6ff9c5176f330206b518177c2e39bf7139d2a6627",
+      "cpp_fingerprint": "63d392780fb986cd0fa211dd0ccb109d952ea45d1af4c1d85395f71a1d25aae1",
       "swift_targets": [
         {
           "path": "UI.FormBinding.init(_:)",

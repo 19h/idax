@@ -184,6 +184,38 @@ endif()
 add_library(idax STATIC ${IDAX_SOURCES})
 add_library(idax::idax ALIAS idax)
 
+# Keep host source, build, and SDK paths out of distributed native objects.
+# File-prefix mapping covers debug information and __FILE__/__builtin_FILE()
+# strings. These options are private so installed targets retain no host paths.
+set(IDAX_PATH_MAP_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(IDAX_PATH_MAP_BINARY_ROOT "${CMAKE_CURRENT_BINARY_DIR}")
+function(idax_remap_build_paths target)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" OR MSVC)
+        return()
+    endif()
+
+    foreach(_idax_root_variable IN ITEMS
+            IDAX_PATH_MAP_SOURCE_ROOT IDAX_PATH_MAP_BINARY_ROOT IDAX_SDK_ROOT)
+        if(_idax_root_variable STREQUAL "IDAX_PATH_MAP_SOURCE_ROOT")
+            set(_idax_path_token "<repo-root>")
+        elseif(_idax_root_variable STREQUAL "IDAX_PATH_MAP_BINARY_ROOT")
+            set(_idax_path_token "<build-root>")
+        else()
+            set(_idax_path_token "<ida-sdk-root>")
+        endif()
+
+        set(_idax_root "${${_idax_root_variable}}")
+        file(REAL_PATH "${_idax_root}" _idax_real_root)
+        set(_idax_root_spellings "${_idax_root}" "${_idax_real_root}")
+        list(REMOVE_DUPLICATES _idax_root_spellings)
+        foreach(_idax_prefix IN LISTS _idax_root_spellings)
+            target_compile_options(${target} PRIVATE
+                "-ffile-prefix-map=${_idax_prefix}=${_idax_path_token}")
+        endforeach()
+    endforeach()
+endfunction()
+idax_remap_build_paths(idax)
+
 target_include_directories(idax
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

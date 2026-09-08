@@ -19,6 +19,24 @@ from urllib.parse import unquote, urlparse
 ROOT = Path(__file__).resolve().parents[3]
 OUTPUT = ROOT / 'bindings/swift/swift_api_inventory.json'
 
+def report_difference(expected, actual):
+    """Report bounded public identities and changed fields without raw metadata."""
+    before={entry['id']:entry for entry in expected.get('declarations',[])}
+    after={entry['id']:entry for entry in actual.get('declarations',[])}
+    details=[]
+    for identity in sorted(before.keys()|after.keys()):
+        symbol=after.get(identity,before.get(identity))
+        name='.'.join(symbol['path'])+' ('+symbol['kind']+')'
+        if identity not in before or identity not in after:
+            details.append(name+': declaration '+('added' if identity in after else 'removed'))
+        elif before[identity]!=after[identity]:
+            fields=sorted(field for field in before[identity].keys()|after[identity].keys()
+                          if before[identity].get(field)!=after[identity].get(field))
+            details.append(name+': changed '+', '.join(fields))
+    for message in details[:30]:print('Inventory difference: '+message,file=sys.stderr)
+    if len(details)>30:print(f'Inventory difference: {len(details)-30} additional changes',file=sys.stderr)
+    if not details:print('Inventory difference: document metadata or declaration ordering changed',file=sys.stderr)
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true')
     parser.add_argument('--configuration',default='debug',choices=['debug','release'])
@@ -57,7 +75,10 @@ def main():
         document={'schema_version':1,'module':'IDAX','declarations':sorted(unique.values(),key=lambda x:('.'.join(x['path']),x['kind'],x['declaration']))}
         content=json.dumps(document,indent=2)+'\n'
         if options.check:
-            if not OUTPUT.exists() or OUTPUT.read_text()!=content:raise SystemExit('Public Swift declarations changed; repeat the semantic mapping audit')
+            if not OUTPUT.exists():raise SystemExit('Public Swift declaration inventory is missing')
+            if OUTPUT.read_text()!=content:
+                report_difference(json.loads(OUTPUT.read_text()),document)
+                raise SystemExit('Public Swift declarations changed; repeat the semantic mapping audit')
         else:OUTPUT.write_text(content)
         print('Swift public declarations:',len(document['declarations']))
 

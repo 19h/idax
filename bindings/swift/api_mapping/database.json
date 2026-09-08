@@ -2657,7 +2657,7 @@
         "8d449a0304d7f489546f"
       ],
       "rationale": "Database.processorIdFromRaw(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
-      "cpp_fingerprint": "bbcccd2f4e26e6590e001a6dc9bbc7939b3a2b1d911b5a7d14aecb1bbf4d714f",
+      "cpp_fingerprint": "0c50cf81a765a2af30d59c4e4f127a688c1fc8df4ed22968175fa7cfb0083e59",
       "swift_targets": [
         {
           "path": "Database.processorIdFromRaw(_:)",
