@@ -70,5 +70,4 @@
 - P72.4 Active: author Swift foundation, native owner/callback support, and deterministic build/package scripts.
 - P72.5 Active: author all domain APIs and the independently audited dyld-cache capability family.
 - P72.6 Active: build real plugin/loader/processor exports and demonstrate host callbacks.
-- P72.7 Queued: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.
-
+- P72.7 Active: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.

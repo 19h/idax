@@ -174,6 +174,115 @@ void inspect_graph(const MicrocodeFunction& graph) {
         }
     }
 }
+
+class NestedWidthFilter final : public MicrocodeFilter {
+public:
+    bool attempted{false};
+    int emitted{0};
+    int rejected{0};
+    bool helper_emitted{false};
+
+    bool match(const MicrocodeContext&) override { return !attempted; }
+    MicrocodeApplyResult apply(MicrocodeContext& context) override {
+        attempted = true;
+        auto before = context.block_instruction_count();
+        auto temporary = context.allocate_temporary_register(4);
+        CHECK(before && temporary);
+        if (!before || !temporary) return MicrocodeApplyResult::Error;
+        auto restore_block = [&] {
+            for (;;) {
+                auto count = context.block_instruction_count();
+                CHECK(count);
+                if (!count) return false;
+                if (*count <= *before) return *count == *before;
+                auto removed = context.remove_instruction_at_index(*before);
+                CHECK(removed);
+                if (!removed) return false;
+            }
+        };
+        MicrocodeInstruction nested;
+        nested.opcode = MicrocodeOpcode::Add;
+        nested.left.kind = MicrocodeOperandKind::Register;
+        nested.left.register_id = *temporary;
+        nested.left.byte_width = 4;
+        nested.right.kind = MicrocodeOperandKind::UnsignedImmediate;
+        nested.right.unsigned_immediate = 9;
+        nested.right.byte_width = 4;
+        // The destination is empty, as in a copied SDK nested instruction.
+        MicrocodeInstruction outer;
+        outer.opcode = MicrocodeOpcode::Move;
+        outer.left.kind = MicrocodeOperandKind::NestedInstruction;
+        outer.left.nested_instruction = std::make_shared<MicrocodeInstruction>(nested);
+        outer.left.byte_width = 4;
+        outer.destination = nested.left;
+        auto check_emission = [&](const MicrocodeInstruction& instruction) {
+            auto result = context.emit_instruction(instruction);
+            CHECK(result);
+            if (result) {
+                ++emitted;
+                auto copied = context.last_emitted_instruction();
+                CHECK(copied);
+                if (copied) {
+                    // codegen may flatten mov(nested add) into a block-level add.
+                    const auto* arithmetic = copied->opcode == MicrocodeOpcode::Add
+                        ? &*copied : copied->left.nested_instruction.get();
+                    CHECK(arithmetic && arithmetic->opcode == MicrocodeOpcode::Add);
+                    CHECK(arithmetic && arithmetic->right.unsigned_immediate == 9);
+                }
+            }
+            CHECK(restore_block());
+        };
+        check_emission(outer);
+
+        auto malformed = outer;
+        malformed.left.byte_width = 0;
+        auto reject = [&](const MicrocodeInstruction& instruction) {
+            auto result = context.emit_instruction(instruction);
+            CHECK(!result && result.error().category == ida::ErrorCategory::Validation);
+            if (!result && result.error().category == ida::ErrorCategory::Validation) ++rejected;
+            auto count = context.block_instruction_count();
+            CHECK(count && *count == *before);
+        };
+        reject(malformed);
+        malformed.left.byte_width = -1;
+        reject(malformed);
+        malformed = outer;
+        malformed.left.nested_instruction = std::make_shared<MicrocodeInstruction>(nested);
+        malformed.left.nested_instruction->destination = outer.destination;
+        malformed.left.nested_instruction->destination.byte_width = 8;
+        reject(malformed);
+        malformed.left.nested_instruction->destination = {};
+        malformed.left.nested_instruction->opcode = MicrocodeOpcode::NoOperation;
+        reject(malformed);
+
+        auto explicit_destination = outer;
+        explicit_destination.left.nested_instruction = std::make_shared<MicrocodeInstruction>(nested);
+        explicit_destination.left.nested_instruction->destination = outer.destination;
+        explicit_destination.left.byte_width = 0;
+        check_emission(explicit_destination);
+
+        MicrocodeValue argument;
+        argument.kind = MicrocodeValueKind::NestedInstruction;
+        argument.nested_instruction = std::make_shared<MicrocodeInstruction>(nested);
+        argument.byte_width = 4;
+        auto helper = context.emit_helper_call_with_arguments("idax_nested_width", {argument});
+        CHECK(helper);
+        helper_emitted = helper.has_value();
+        CHECK(restore_block());
+        return MicrocodeApplyResult::NotHandled;
+    }
+};
+void test_nested_width_reemission(ida::Address address) {
+    auto filter = std::make_shared<NestedWidthFilter>();
+    auto token = register_microcode_filter(filter);
+    CHECK(token);
+    if (!token) return;
+    ScopedMicrocodeFilter registration(*token);
+    auto graph = generate_microcode(address);
+    CHECK(graph);
+    CHECK(filter->attempted && filter->emitted == 2);
+    CHECK(filter->rejected == 4 && filter->helper_emitted);
+}
 }
 
 int main(int argc, char** argv) {
@@ -192,10 +301,15 @@ int main(int argc, char** argv) {
     if (available && *available) {
         std::vector<MicrocodeFunction> retained;
         std::size_t functions = 0;
+        bool nested_width_tested = false;
         for (const auto& function : ida::function::all()) {
             if (function.name().find("idax_metadata_") == std::string::npos)
                 continue;
             ++functions;
+            if (!nested_width_tested) {
+                test_nested_width_reemission(function.start());
+                nested_width_tested = true;
+            }
             auto decompiled = decompile(function.start());
             CHECK(decompiled.has_value());
             if (!decompiled) continue;

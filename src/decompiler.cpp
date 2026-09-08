@@ -924,6 +924,7 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
 [[nodiscard]] bool is_empty_operand(const MicrocodeOperand& operand) noexcept;
 
 Result<minsn_t> build_typed_nested_instruction(const MicrocodeInstruction& instruction,
+                                               int containing_byte_width,
                                                mba_t* mba,
                                                ea_t instruction_address,
                                                std::string_view role,
@@ -938,15 +939,33 @@ Result<minsn_t> build_typed_nested_instruction(const MicrocodeInstruction& instr
     if (!sdk_opcode)
         return std::unexpected(sdk_opcode.error());
 
+    if (!is_mcode_propagatable(*sdk_opcode)) {
+        return std::unexpected(Error::validation(
+            "Microcode opcode cannot be used as a nested instruction",
+            std::string(role)));
+    }
+    if (containing_byte_width < 0) {
+        return std::unexpected(Error::validation(
+            "Nested instruction byte width cannot be negative",
+            std::string(role)));
+    }
+    const bool destination_empty = is_empty_operand(instruction.destination);
+    if (destination_empty && containing_byte_width == 0) {
+        return std::unexpected(Error::validation(
+            "Nested instruction with an empty destination requires a positive containing byte width",
+            std::string(role)));
+    }
+    if (instruction.destination.byte_width > 0 && containing_byte_width > 0
+        && instruction.destination.byte_width != containing_byte_width) {
+        return std::unexpected(Error::validation(
+            "Nested instruction destination width does not match containing byte width",
+            std::string(role)));
+    }
     if (instruction.opcode == MicrocodeOpcode::LoadMemory
-        || instruction.opcode == MicrocodeOpcode::StoreMemory) {
-        if (is_empty_operand(instruction.left)
-            || is_empty_operand(instruction.right)
-            || is_empty_operand(instruction.destination)) {
-            return std::unexpected(Error::validation(
-                "Nested load/store memory instructions require non-empty left/right/destination operands",
-                std::string(role)));
-        }
+        && (is_empty_operand(instruction.left) || is_empty_operand(instruction.right))) {
+        return std::unexpected(Error::validation(
+            "Nested memory load requires non-empty selector and offset operands",
+            std::string(role)));
     }
 
     auto left = build_typed_instruction_operand(instruction.left,
@@ -970,6 +989,20 @@ Result<minsn_t> build_typed_nested_instruction(const MicrocodeInstruction& instr
                                                        depth + 1);
     if (!destination)
         return std::unexpected(destination.error());
+    // create_from_insn() derives the nested operand's size from the discarded
+    // destination. Copied nested instructions normally have an empty destination.
+    if (destination_empty)
+        destination->size = containing_byte_width;
+    if (destination->size <= 0) {
+        return std::unexpected(Error::validation(
+            "Nested instruction destination must have a positive byte width",
+            std::string(role)));
+    }
+    if (containing_byte_width > 0 && destination->size != containing_byte_width) {
+        return std::unexpected(Error::validation(
+            "Nested instruction destination width does not match containing byte width",
+            std::string(role)));
+    }
 
     minsn_t nested(instruction_address);
     nested.opcode = *sdk_opcode;
@@ -1098,6 +1131,7 @@ Result<mop_t> build_typed_instruction_operand(const MicrocodeOperand& operand,
             }
             {
                 auto nested = build_typed_nested_instruction(*operand.nested_instruction,
+                                                             operand.byte_width,
                                                              mba,
                                                              instruction_address,
                                                              role,
@@ -2031,6 +2065,7 @@ Result<CallArgumentsBuildResult> build_call_arguments(const std::vector<Microcod
                 }
 
                 auto nested = build_typed_nested_instruction(*argument.nested_instruction,
+                                                             argument.byte_width,
                                                              mba,
                                                              instruction_address,
                                                              "call_argument_nested:" + std::to_string(i),
