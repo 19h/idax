@@ -569,7 +569,7 @@
         "56f099a791e0b1436a26"
       ],
       "rationale": "OptionSet union and array-literal construction combine the documented language bits; each named bit remains public.",
-      "cpp_fingerprint": "9562a190850161e22866036261966ffbdff7e06c809a19a5e7447985626dc095",
+      "cpp_fingerprint": "4cf85d8a4922ef6eaf4bec10ac3fc79d6efed5c912415e728c8477fcbe8182c0",
       "swift_targets": [
         {
           "path": "Parser.Language",

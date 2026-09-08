@@ -34,6 +34,7 @@ set(_idax_swift_native_sources
     bridge/lifecycle.cpp
 )
 add_library(idax_swift_native STATIC ${_idax_swift_native_sources})
+idax_remap_build_paths(idax_swift_native)
 # ida-cmake makes SDK modules hidden by default. The shared Swift support image
 # also provides the C transport and C++ adapter methods to separately linked
 # addon entries, so those definitions must remain visible at that boundary.
@@ -99,6 +100,7 @@ if(IDAX_SWIFT_MODULE_KIND)
     add_library(idax_swift_module_entry STATIC
         "${CMAKE_CURRENT_BINARY_DIR}/module_entry.cpp"
         "${CMAKE_CURRENT_BINARY_DIR}/module_bridge.cpp")
+    idax_remap_build_paths(idax_swift_module_entry)
     target_include_directories(idax_swift_module_entry PRIVATE
         "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/bridge")

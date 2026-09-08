@@ -1240,7 +1240,7 @@
         "44660921acfaf1cd55e6"
       ],
       "rationale": "Swift throws a typed error to unwind Swift frames; the canonical LDSC bridge reports loader failure after the callback returns, avoiding an SDK longjmp across Swift frames.",
-      "cpp_fingerprint": "0a68a10625b296d3dbdae206be284495db7966526fc3b5a2b1ca7e1d096526ca",
+      "cpp_fingerprint": "e7b170d8630f6598cd95f06002abf960d0c3856dbfa1fe93397cee8fea377a1f",
       "swift_targets": [
         {
           "path": "Loader.abortLoad(_:)",

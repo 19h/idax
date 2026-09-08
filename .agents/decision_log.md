@@ -1476,3 +1476,11 @@
 ### D19.90 Opaque Custom Registration Generations
 - Give each wrapper-observed custom-data/fixup identity a private generation. An explicit unregister retires its shared owner state before SDK teardown; old ARC owners cannot act on a replacement in the same native slot.
 - Validate generation-bearing identities before all native query/mutation entry points. Keep native numeric IDs private and distinguish the SDK's unobservable external same-slot/same-name replacement boundary in the assumption register. Use database-bound holders for microcode-filter registration and explicit validity reporting.
+
+### D19.91 Private Native Compiler Path Mapping
+- Apply file-prefix maps privately to native library and Swift native/entry targets for GNU/Clang frontends outside MSVC mode. Map lexical and resolved source, build and SDK roots to semantic tokens; installed target interfaces retain no host-specific options.
+- Use file-prefix rather than debug-prefix mapping because SDK helpers can also embed __FILE__/__builtin_FILE() string literals. Probe both DWARF and literal paths, then scan complete native distribution member bytes. MSVC path rewriting is outside this validated compiler change.
+
+### D19.92 Opaque Typed Arguments for Custom Form Markup
+- Preserve caller-authored supported form layouts through an opaque heterogeneous argument value containing checked typed FormBinding owners. Private native slots hold the required SDK scalar, string and path storage; no public native pointers or varargs are exposed.
+- Validate compatible supported controls and argument ordering/count before native vararg dispatch, and convert every accepted output before updating Swift bindings. Keep generated FormBuilder construction and unbound markup as clients of the same storage/validation boundary. Interactive acceptance evidence remains separately host-gated.

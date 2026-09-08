@@ -28,6 +28,32 @@ def objects(text):
         if pos==len(text):break
         value,pos=decoder.raw_decode(text,pos);yield value
 
+def report_difference(expected, actual):
+    """Print bounded declaration identities and changed fields, never paths."""
+    previous={domain['domain']:domain for domain in expected.get('domains',[])}
+    current={domain['domain']:domain for domain in actual.get('domains',[])}
+    details=[]
+    for name in sorted(previous.keys()|current.keys()):
+        if name not in previous or name not in current:
+            details.append(name+': domain '+('added' if name in current else 'removed'))
+            continue
+        before=previous[name];after=current[name]
+        if before.get('sha256')!=after.get('sha256'):details.append(name+': header fingerprint changed')
+        def declarations(domain):
+            return {(item['name'],item['kind'],item['signature']):item for item in domain['declarations']}
+        old=declarations(before);new=declarations(after)
+        for key in sorted(old.keys()|new.keys()):
+            identity=key[0]+' ('+key[1]+')'
+            if key not in old or key not in new:
+                details.append(identity+': declaration '+('added' if key in new else 'removed'))
+            elif old[key]!=new[key]:
+                fields=sorted(field for field in old[key].keys()|new[key].keys()
+                              if old[key].get(field)!=new[key].get(field))
+                details.append(identity+': changed '+', '.join(fields))
+    for message in details[:30]:print('Inventory difference: '+message,file=sys.stderr)
+    if len(details)>30:print(f'Inventory difference: {len(details)-30} additional changes',file=sys.stderr)
+    if not details:print('Inventory difference: document metadata or declaration ordering changed',file=sys.stderr)
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true')
     parser.add_argument('--clang',default=os.environ.get('CXX'))
@@ -52,6 +78,15 @@ def main():
         def spelling(node,without_body=False):
             span=node.get('range',{});begin=span.get('begin',{}).get('offset');endnode=span.get('end',{});end=endnode.get('offset')
             if begin is None or end is None:return ''
+            # Older Clang ranges begin after leading C++ attributes. Attribute
+            # child offsets still identify their spelling in this source file.
+            # Keep that public declaration evidence identical across compilers.
+            for child in node.get('inner',[]):
+                if not child.get('kind','').endswith('Attr') or child.get('inherited'):continue
+                attribute=child.get('range',{}).get('begin',{}).get('offset')
+                if attribute is None or attribute>=begin:continue
+                start=source_bytes.rfind(b'[[',0,attribute+1)
+                if start>=0 and source_bytes.find(b']]',attribute,begin)>=0:begin=min(begin,start)
             stop=end+endnode.get('tokLen',0)
             if without_body:
                 for child in node.get('inner',[]):
@@ -69,6 +104,12 @@ def main():
                 if access=='public':
                     for child in node.get('inner',[]):
                         if child.get('kind') not in ['TemplateTypeParmDecl','NonTypeTemplateParmDecl']:
+                            # Some Clang versions omit isImplicit on instantiated
+                            # function-template copies. Inventory the declared
+                            # pattern, whose children have no TemplateArgument.
+                            if child.get('kind')=='FunctionDecl' and any(
+                                item.get('kind')=='TemplateArgument' for item in child.get('inner',[])):
+                                continue
                             walk(child,scope,access)
                 return
             if kind in ['NamespaceDecl']:
@@ -142,7 +183,10 @@ def main():
     data={'schema_version':2,'authoritative_umbrella':str(UMBRELLA.relative_to(ROOT)),'domains':results}
     content=json.dumps(data,indent=2)+'\n'
     if options.check:
-        if not OUTPUT.exists() or OUTPUT.read_text()!=content:raise SystemExit('C++ declaration inventory changed; repeat the Swift API mapping audit')
+        if not OUTPUT.exists():raise SystemExit('C++ declaration inventory is missing')
+        if OUTPUT.read_text()!=content:
+            report_difference(json.loads(OUTPUT.read_text()),data)
+            raise SystemExit('C++ declaration inventory changed; repeat the Swift API mapping audit')
     else:OUTPUT.write_text(content)
     for d in results:print(d['domain'],len(d['declarations']))
     print('Total',sum(len(d['declarations']) for d in results))

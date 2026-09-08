@@ -4101,7 +4101,7 @@
           "name": "ida::database::processor_id_from_raw",
           "kind": "function",
           "signature": "std::optional<ProcessorId> (std::int32_t) noexcept",
-          "declaration": "constexpr std::optional<ProcessorId> processor_id_from_raw(std::int32_t raw_id) noexcept",
+          "declaration": "[[nodiscard]] constexpr std::optional<ProcessorId> processor_id_from_raw(std::int32_t raw_id) noexcept",
           "parameters": [
             {
               "name": "raw_id",
@@ -11153,7 +11153,7 @@
           "name": "ida::decompiler::is_expression",
           "kind": "function",
           "signature": "bool (ItemType) noexcept",
-          "declaration": "inline bool is_expression(ItemType t) noexcept",
+          "declaration": "[[nodiscard]] inline bool is_expression(ItemType t) noexcept",
           "parameters": [
             {
               "name": "t",
@@ -11165,7 +11165,7 @@
           "name": "ida::decompiler::is_statement",
           "kind": "function",
           "signature": "bool (ItemType) noexcept",
-          "declaration": "inline bool is_statement(ItemType t) noexcept",
+          "declaration": "[[nodiscard]] inline bool is_statement(ItemType t) noexcept",
           "parameters": [
             {
               "name": "t",
@@ -11197,7 +11197,7 @@
           "name": "ida::decompiler::item_type_name",
           "kind": "function",
           "signature": "std::string (ItemType)",
-          "declaration": "std::string item_type_name(ItemType type)",
+          "declaration": "[[nodiscard]] std::string item_type_name(ItemType type)",
           "parameters": [
             {
               "name": "type",
@@ -13645,7 +13645,7 @@
           "name": "ida::exception::operator|",
           "kind": "function",
           "signature": "Location (Location, Location) noexcept",
-          "declaration": "constexpr Location operator|(Location lhs, Location rhs) noexcept",
+          "declaration": "[[nodiscard]] constexpr Location operator|(Location lhs, Location rhs) noexcept",
           "parameters": [
             {
               "name": "lhs",
@@ -18166,7 +18166,7 @@
           "name": "ida::loader::abort_load",
           "kind": "function",
           "signature": "void (std::string_view)",
-          "declaration": "void abort_load(std::string_view message)",
+          "declaration": "[[noreturn]] void abort_load(std::string_view message)",
           "parameters": [
             {
               "name": "message",
@@ -19897,7 +19897,7 @@
           "name": "ida::parser::operator|",
           "kind": "function",
           "signature": "Language (Language, Language) noexcept",
-          "declaration": "constexpr Language operator|(Language lhs, Language rhs) noexcept",
+          "declaration": "[[nodiscard]] constexpr Language operator|(Language lhs, Language rhs) noexcept",
           "parameters": [
             {
               "name": "lhs",
@@ -29237,7 +29237,7 @@
           "name": "ida::ui::clipboard_backend",
           "kind": "function",
           "signature": "std::string_view () noexcept",
-          "declaration": "std::string_view clipboard_backend() noexcept"
+          "declaration": "[[nodiscard]] std::string_view clipboard_backend() noexcept"
         },
         {
           "name": "ida::ui::close_custom_viewer",
@@ -29468,7 +29468,7 @@
           "name": "ida::ui::form_address",
           "kind": "function",
           "signature": "FormAddressBinding (Address &) noexcept",
-          "declaration": "inline FormAddressBinding form_address(Address& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormAddressBinding form_address(Address& value) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29480,7 +29480,7 @@
           "name": "ida::ui::form_bitset",
           "kind": "function",
           "signature": "FormU16Binding (std::uint16_t &) noexcept",
-          "declaration": "inline FormU16Binding form_bitset(std::uint16_t& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormU16Binding form_bitset(std::uint16_t& value) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29492,7 +29492,7 @@
           "name": "ida::ui::form_builder",
           "kind": "function",
           "signature": "EmptyFormBuilder (std::string_view)",
-          "declaration": "inline EmptyFormBuilder form_builder(std::string_view title)",
+          "declaration": "[[nodiscard]] inline EmptyFormBuilder form_builder(std::string_view title)",
           "parameters": [
             {
               "name": "title",
@@ -29504,7 +29504,7 @@
           "name": "ida::ui::form_int",
           "kind": "function",
           "signature": "FormIntBinding (std::int64_t &) noexcept",
-          "declaration": "inline FormIntBinding form_int(std::int64_t& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormIntBinding form_int(std::int64_t& value) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29516,7 +29516,7 @@
           "name": "ida::ui::form_path",
           "kind": "function",
           "signature": "FormPathBinding (std::string &, bool) noexcept",
-          "declaration": "inline FormPathBinding form_path(std::string& value, bool for_saving = true) noexcept",
+          "declaration": "[[nodiscard]] inline FormPathBinding form_path(std::string& value, bool for_saving = true) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29533,7 +29533,7 @@
           "name": "ida::ui::form_radio",
           "kind": "function",
           "signature": "FormU16Binding (std::uint16_t &) noexcept",
-          "declaration": "inline FormU16Binding form_radio(std::uint16_t& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormU16Binding form_radio(std::uint16_t& value) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29545,7 +29545,7 @@
           "name": "ida::ui::form_sval",
           "kind": "function",
           "signature": "FormSvalBinding (sval_t &) noexcept",
-          "declaration": "inline FormSvalBinding form_sval(sval_t& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormSvalBinding form_sval(sval_t& value) noexcept",
           "parameters": [
             {
               "name": "value",
@@ -29557,7 +29557,7 @@
           "name": "ida::ui::form_text",
           "kind": "function",
           "signature": "FormTextBinding (std::string &) noexcept",
-          "declaration": "inline FormTextBinding form_text(std::string& value) noexcept",
+          "declaration": "[[nodiscard]] inline FormTextBinding form_text(std::string& value) noexcept",
           "parameters": [
             {
               "name": "value",

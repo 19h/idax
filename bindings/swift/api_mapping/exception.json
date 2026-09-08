@@ -791,7 +791,7 @@
         "6a7c6682322cf8bb776e"
       ],
       "rationale": "Swift OptionSet union/array-literal construction combines the same UInt32 membership bits; the raw-value initializer also preserves an explicitly combined mask.",
-      "cpp_fingerprint": "ad2feef60b81509a71cee8d3a01ef3898d0965f9f22bf1ebe0331aec4d71c99e",
+      "cpp_fingerprint": "3f31cead8dc860cd607d50f747a9879e4b4a452f82932f16d26ab3fd8addf2f1",
       "swift_targets": [
         {
           "path": "Exceptions.Location.init(rawValue:)",
