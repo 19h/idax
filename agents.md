@@ -1,7 +1,7 @@
 # agents.md - IDA SDK Intuitive Wrapper Program
 
-Last updated: 2026-07-15
-Status: Implementation substantially complete; 27/27 native CTest targets passing; release candidate ready
+Last updated: 2026-09-08
+Status: 39 native domains and four language bindings implemented; Phase 72 validation complete; host-evidence limits documented
 Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper over the IDA SDK for first-time users while preserving full power for expert workflows.
 
 ---
@@ -120,7 +120,7 @@ If any of the above changes and the corresponding file is not updated immediatel
 
 Program-level:
 - Architecture definition: complete
-- Implementation: complete — all core domains implemented; 26/26 native test targets, 232/232 Node structural checks, and 93/93 Rust initialized-host checks passing; release candidate ready
+- Implementation: 39 native domains plus Node, Rust, Python and Swift bindings implemented. Phase 72 evidence includes 46/46 local native CTests, 32/32 Swift XCTest cases and 20/20 final implementation CI jobs; see [Swift rewrite validation](docs/reviews/swift-rewrite-validation.md) for exact revisions, runtime/distribution checks and evidence limits.
 - Documentation baseline file: complete
 - Build system: working (CMake + ida-cmake, C++23, static library, install/export/CPack packaging)
 - Test infrastructure: working (idalib-based integration tests with real IDA dylibs; compile-only API surface parity check)
@@ -128,6 +128,7 @@ Program-level:
 Phase completion estimates:
 - Phase 0-21 and 23-36: complete
 - Phase 22: ~99% complete; remaining evidence requires interactive modal-form and clipboard hosts
+- Phase 72: complete; fresh Swift rewrite, native module dispatch, declaration mappings, CI and privacy evidence recorded
 - See `.agents/roadmap.md` for detailed phase status
 
 Blocker status:

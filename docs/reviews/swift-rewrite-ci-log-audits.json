@@ -1,0 +1,238 @@
+{
+  "implementation_revision": "2efc56f2b82d47aa9c0cadb710b7a7f3b8587699",
+  "audits": [
+    {
+      "run_id": 34190905249,
+      "head_sha": "2efc56f2b82d47aa9c0cadb710b7a7f3b8587699",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "job_id": 101948590066,
+          "bytes": 155886,
+          "lines": 1588,
+          "sha256": "1a8cbcec3f2511809072a283bd69b12578d87911aa90e99258f8df1410f096f2",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:36:22Z",
+          "aggregate_completed_at": "2026-09-08T05:36:25Z"
+        },
+        {
+          "job_id": 101948590126,
+          "bytes": 141463,
+          "lines": 1268,
+          "sha256": "db63adbcae77a48e962727934078dd8b19072242f21e7384f37c5bf3cf49b2af",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:40:02Z",
+          "aggregate_completed_at": "2026-09-08T05:40:03Z"
+        },
+        {
+          "job_id": 101948590156,
+          "bytes": 173176,
+          "lines": 1750,
+          "sha256": "2d9279e5336a504f6dc214bb505fb63bf57268cb9603b9b66d1a2a1ffbdfcb09",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:38:23Z",
+          "aggregate_completed_at": "2026-09-08T05:38:26Z"
+        },
+        {
+          "job_id": 101948590173,
+          "bytes": 147196,
+          "lines": 1604,
+          "sha256": "925a1a66ad5c3101a31eb4a896605efecc25b09dffbd6bd227040b5edea30f20",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:35:39Z",
+          "aggregate_completed_at": "2026-09-08T05:35:42Z"
+        },
+        {
+          "job_id": 101948590178,
+          "bytes": 164694,
+          "lines": 1773,
+          "sha256": "9f5e81ff4ea951849c0d8a16e2ec43057608e0c0578e1a1520d446aea8f490f0",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:38:07Z",
+          "aggregate_completed_at": "2026-09-08T05:38:10Z"
+        },
+        {
+          "job_id": 101948590206,
+          "bytes": 114211,
+          "lines": 1054,
+          "sha256": "330ba8f3551d3582d7e9876997e2dddc0f154f72d83306d7052650e7b528c787",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:37:50Z",
+          "aggregate_completed_at": "2026-09-08T05:37:52Z"
+        }
+      ],
+      "total_bytes": 896626,
+      "archive_sha256": "e1b57dfc5c6c235af7acabfbfa99c61a3459f374389d764cfa2e909f33b3ac81",
+      "scanner_exit_code": 0,
+      "scanner_summary": "CI log privacy: PASS (6 entries, 896626 uncompressed bytes)"
+    },
+    {
+      "run_id": 34190905262,
+      "head_sha": "2efc56f2b82d47aa9c0cadb710b7a7f3b8587699",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "job_id": 101948590018,
+          "bytes": 195120,
+          "lines": 2119,
+          "sha256": "25aee708265e21057c8f3b27c460ecea7ebf5627ecb7e8e39d488f13f426ed4b",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:35:51Z",
+          "aggregate_completed_at": "2026-09-08T05:35:54Z"
+        },
+        {
+          "job_id": 101948590121,
+          "bytes": 237374,
+          "lines": 2496,
+          "sha256": "9902cac53fc0faff619fc238665e4166ab406f3aa55258bb085020874ec972e6",
+          "steps": 15,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:35:32Z",
+          "aggregate_completed_at": "2026-09-08T05:35:35Z"
+        },
+        {
+          "job_id": 101948590150,
+          "bytes": 1281859,
+          "lines": 12091,
+          "sha256": "8dd9296ec0e7902eb97d3d8aef3437cf2b0315b53df5cb80610c32d5d5960f4a",
+          "steps": 20,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:38:44Z",
+          "aggregate_completed_at": "2026-09-08T05:38:46Z"
+        },
+        {
+          "job_id": 101948590152,
+          "bytes": 154863,
+          "lines": 1630,
+          "sha256": "efa9d09288985e45da1f3e81825c05390747d627e66d329b3b2a48edc9c00cad",
+          "steps": 17,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:40:05Z",
+          "aggregate_completed_at": "2026-09-08T05:40:07Z"
+        },
+        {
+          "job_id": 101948590166,
+          "bytes": 1336429,
+          "lines": 11012,
+          "sha256": "50a23b88df755f52efe41a362e10e70721266c85fe419838c43bf13697020b6b",
+          "steps": 20,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:34:44Z",
+          "aggregate_completed_at": "2026-09-08T05:34:45Z"
+        },
+        {
+          "job_id": 101948590175,
+          "bytes": 244624,
+          "lines": 1894,
+          "sha256": "40d546937ce7fbf9e21b2d70a0392b014e0aad0d0847ff535a220031891a28bd",
+          "steps": 25,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:34:09Z",
+          "aggregate_completed_at": "2026-09-08T05:34:12Z"
+        },
+        {
+          "job_id": 101948590188,
+          "bytes": 155208,
+          "lines": 1467,
+          "sha256": "6de13831607e2f9da7034a014b6db8356e0b34a1386bdc6354d6140b81dc6df0",
+          "steps": 17,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:38:16Z",
+          "aggregate_completed_at": "2026-09-08T05:38:17Z"
+        },
+        {
+          "job_id": 101948590211,
+          "bytes": 129912,
+          "lines": 1080,
+          "sha256": "f938c06bece33b341a89b9fb08bd025802d593ebb612d19627e4c8d3c620f034",
+          "steps": 17,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:56:53Z",
+          "aggregate_completed_at": "2026-09-08T05:56:55Z"
+        },
+        {
+          "job_id": 101948590215,
+          "bytes": 284810,
+          "lines": 2427,
+          "sha256": "4de5c85d0d412f33c86344eb376266efb4dfe83fa1f693d45ae9fafeefbab9bd",
+          "steps": 25,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:33:30Z",
+          "aggregate_completed_at": "2026-09-08T05:33:33Z"
+        },
+        {
+          "job_id": 101948590224,
+          "bytes": 270486,
+          "lines": 1769,
+          "sha256": "22d035a059ba2d5750c2b912227c2cfd944cc73db8393d6fc03c40f247d56a74",
+          "steps": 25,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:36:12Z",
+          "aggregate_completed_at": "2026-09-08T05:36:13Z"
+        },
+        {
+          "job_id": 101948590242,
+          "bytes": 1367657,
+          "lines": 11284,
+          "sha256": "13f09d58f3cc3761a0df08a85aa74a52f52a11cbaa677752b05bf263a98b4f3c",
+          "steps": 20,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:36:51Z",
+          "aggregate_completed_at": "2026-09-08T05:36:53Z"
+        }
+      ],
+      "total_bytes": 5658342,
+      "archive_sha256": "5356831a6e9341403ba9e4ee6e7ab8395530f800c21213934289dcacb08f16f2",
+      "scanner_exit_code": 0,
+      "scanner_summary": "CI log privacy: PASS (11 entries, 5658342 uncompressed bytes)"
+    },
+    {
+      "run_id": 34190905299,
+      "head_sha": "2efc56f2b82d47aa9c0cadb710b7a7f3b8587699",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "job_id": 101948590052,
+          "bytes": 79619,
+          "lines": 836,
+          "sha256": "876f422a8f6a9d8db940235895447ecce62dbd8899d8219382c68a4d3d978dbb",
+          "steps": 13,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:35:50Z",
+          "aggregate_completed_at": "2026-09-08T05:35:51Z"
+        },
+        {
+          "job_id": 101948590315,
+          "bytes": 216828,
+          "lines": 2337,
+          "sha256": "7b0d2ede99d5b07abc9feb89b5289a0e43a5156446b8e2d7592d8b7e6fc74496",
+          "steps": 13,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:37:33Z",
+          "aggregate_completed_at": "2026-09-08T05:37:37Z"
+        },
+        {
+          "job_id": 101948590329,
+          "bytes": 222477,
+          "lines": 2131,
+          "sha256": "a367d5640db489d50702115e49edd73e8fe19cd4a847802ce470df19ae200217",
+          "steps": 13,
+          "complete_markers": true,
+          "terminal_step_completed_at": "2026-09-08T05:34:31Z",
+          "aggregate_completed_at": "2026-09-08T05:34:32Z"
+        }
+      ],
+      "total_bytes": 518924,
+      "archive_sha256": "615a997671742f054f01db3da39b4cd4930716fd511d42aa0dc2e3b1a00d1e83",
+      "scanner_exit_code": 0,
+      "scanner_summary": "CI log privacy: PASS (3 entries, 518924 uncompressed bytes)"
+    }
+  ]
+}

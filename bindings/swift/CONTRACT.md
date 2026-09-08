@@ -18,7 +18,7 @@ Lifecycle registration consumes a retained Swift callback context on native entr
 
 ## Packaging
 
-SwiftPM uses stable Swift language mode 6 and declares macOS 13 as its deployment baseline. CMake builds the non-colliding `idax_swift_native` archive, including the canonical Rust C transport and private Swift adapters. A private system-library target consumes generated pkg-config metadata. The manifest contains no unsafe linker flags or experimental interop features. Executable clients supply an rpath to their actual licensed IDA runtime; source distributions do not contain the proprietary runtime, host paths, or compiled local products.
+SwiftPM uses stable Swift language mode 6 and declares macOS 13 as its deployment baseline. CMake builds the non-colliding `idax_swift_native` archive, including the canonical Rust C transport and private Swift adapters. A private system-library target consumes generated pkg-config metadata. The manifest contains no unsafe linker flags or experimental interop features. Executable clients supply an rpath to their actual licensed IDA runtime; source distributions do not contain the proprietary runtime, identity-bearing absolute host paths, or compiled local products.
 
 Add-ons link one shared `IDAXShared` image for Swift classes and native runtime state. Each add-on separately owns its SDK descriptor and factory symbols; those factories use hidden visibility to prevent interposition between add-ons. The helper installs relative support-library search paths, and relocated multi-add-on host probes validate that layout.
 
@@ -38,7 +38,7 @@ Plugin, loader, and processor examples must produce real native `PLUGIN`, `LDSC`
 
 Bounded impacts: omitted overloads, lifetime errors, and broken native module dispatch **high**; package transitivity and semantic metadata loss **medium**. The generated value layer costs O(n) time and space for n copied records/bytes. With R retained native holders and Q queued finalizers, the owner-thread guard scans up to R holders; draining queued holder releases can cost O(R + QR), in addition to native destruction and callback work. Database invalidation can scan retained closed holders repeatedly, giving an O(R²) worst case. Individual holder-state access after these guards is O(1). Offsets explicitly identify bytes or bits, and wait configuration explicitly identifies milliseconds.
 
-This contract is an acceptance specification. Phase 72 remains active until declaration mapping, regression/runtime evidence, package checks, existing-language CI, privacy audits, staged review, commits, and pushes are complete.
+This contract is an acceptance specification. The [validation report](../../docs/reviews/swift-rewrite-validation.md) records Phase 72 evidence and status for declaration mapping, regression/runtime checks, packages, existing-language CI and privacy audits. The assumptions and host-evidence limits here continue to apply after implementation closure.
 
 - **SW.A8 — synchronous native borrow boundaries.** SDK callbacks execute on the runtime owner thread within guarded native operations. Probe escaped ctree children, callback close/reopen, early Hex-Rays session closure, and ARC release during dispatch. Session and lease-dependent results require these probes; no runtime pass is inferred from source compilation.
 
