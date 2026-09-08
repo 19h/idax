@@ -63,7 +63,3 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
-
-### Phase 72 Fresh Swift Binding and PR 6 Rewrite
-
-- P72.7 Active: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.

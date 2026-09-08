@@ -59,6 +59,7 @@ Current overall phase status:
 - Phase 46: complete (Symless RTTI-adjusted vtable-load reachability and statically seeded virtual-method propagation)
 - Phase 47: complete (Symless deterministic microcode operand-root selection and exact before/after root injection)
 - Phase 48: complete (Diaphora 3.4.0 deterministic exact-fingerprint manifest, conservative metadata import, and encoded-operand/declaration binding closure)
+- Phase 72: complete (fresh opaque Swift implementation, complete declaration mappings, actual module exports/dispatch, exact-SDK runtime and distribution evidence, 20 passing CI jobs and complete-log privacy audits; host-evidence limits remain explicit in the binding contract)
 
 ### Phase 18 TODO Action Items (Complete)
 
@@ -576,7 +577,7 @@ Current overall phase status:
 - [x] P72.4 Implement stable Swift packaging, private native adapters, exact error transport, thread/session guards, and deterministic owner/callback leases.
 - [x] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
 - [x] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.
-- [ ] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
+- [x] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
 
 - [x] P72.7.1 Correct and regress newly reproduced core pseudocode-coordinate and bitmask-enum construction defects discovered by Swift parity tests.
 
