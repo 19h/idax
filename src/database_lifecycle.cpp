@@ -7,12 +7,13 @@
 /// link units that reference ida::database query APIs (input_file_path,
 /// image_base, etc.) will not pull in these unresolvable symbols.
 
-#include "detail/sdk_bridge.hpp"
-#include <ida/database.hpp>
-
+// Load standard headers before the SDK's forbidden-I/O macro definitions.
 #include <chrono>
 #include <filesystem>
 #include <system_error>
+
+#include "detail/sdk_bridge.hpp"
+#include <ida/database.hpp>
 
 namespace ida::database {
 
