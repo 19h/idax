@@ -343,6 +343,46 @@ void test_in_range_helper() {
 }
 
 // ---------------------------------------------------------------------------
+// Test: empty and terminal traversal preserve the documented sentinel result.
+// ---------------------------------------------------------------------------
+void test_traversal_exhaustion() {
+    std::cout << "--- fixup traversal exhaustion ---\n";
+    std::vector<ida::fixup::Descriptor> original;
+    for (auto descriptor : ida::fixup::all()) original.push_back(descriptor);
+    for (const auto& descriptor : original) CHECK_OK(ida::fixup::remove(descriptor.source));
+
+    auto empty_first = ida::fixup::first();
+    auto empty_next = ida::fixup::next(0);
+    auto empty_prev = ida::fixup::prev(ida::BadAddress);
+    CHECK(empty_first && *empty_first == ida::BadAddress);
+    CHECK(empty_next && *empty_next == ida::BadAddress);
+    CHECK(empty_prev && *empty_prev == ida::BadAddress);
+    auto empty = ida::fixup::all();
+    CHECK(empty.begin() == empty.end());
+
+    auto minimum = ida::database::min_address();
+    CHECK_OK(minimum);
+    if (minimum) {
+        const auto source = *minimum + 0x880;
+        ida::fixup::Descriptor descriptor;
+        descriptor.offset = *minimum;
+        CHECK_OK(ida::fixup::set(source, descriptor));
+        auto first = ida::fixup::first();
+        auto after = ida::fixup::next(source);
+        auto before = ida::fixup::prev(source);
+        CHECK(first && *first == source);
+        CHECK(after && *after == ida::BadAddress);
+        CHECK(before && *before == ida::BadAddress);
+        auto forward = ida::fixup::next(source - 1);
+        auto backward = ida::fixup::prev(source + 1);
+        CHECK(forward && *forward == source);
+        CHECK(backward && *backward == source);
+        CHECK_OK(ida::fixup::remove(source));
+    }
+    for (const auto& descriptor : original) CHECK_OK(ida::fixup::set(descriptor.source, descriptor));
+}
+
+// ---------------------------------------------------------------------------
 // Test: error paths
 // ---------------------------------------------------------------------------
 void test_error_paths() {
@@ -429,6 +469,7 @@ int main(int argc, char* argv[]) {
     test_traversal();
     test_range_iteration();
     test_in_range_helper();
+    test_traversal_exhaustion();
     test_error_paths();
     test_custom_fixup_lifecycle();
 

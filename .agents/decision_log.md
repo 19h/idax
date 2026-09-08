@@ -1460,3 +1460,7 @@
 
 - Resolve pseudocode positions through the SDK item-coordinate helper. Sort and deduplicate actual `(line, address)` pairs; `line_to_address` chooses a member of the requested line's mapped address set and returns BadAddress for a valid unmapped line, matching its existing contract. Ctree item identity never substitutes for a text coordinate.
 - Build enum constants in a regular SDK enum and then apply `set_enum_is_bitmask()`, following the exact SDK's construction sequence. Preserve width, member bit patterns, names, and comments; propagate conversion failure without exposing partial success.
+
+### D19.87 Existing Sentinel and Nested-Width Contracts
+- Preserve public fixup exhaustion as successful BadAddress and derive mapped/unknown predicates from SDK presence rather than nonzero metadata.
+- Reconstruct a nested instruction's Empty destination width from the containing operand; explicit destination width remains authoritative and must agree when both are given. Validate propagatable opcode and positive result size before native construction. This restores replay of copied graph values without adding raw SDK identities or new public APIs.

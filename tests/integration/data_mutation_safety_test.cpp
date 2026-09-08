@@ -225,6 +225,49 @@ void test_define_undefine_unknown() {
     }
 }
 
+void test_zero_metadata_address_predicates() {
+    std::cout << "--- mapped unknown bytes with zero metadata flags ---\n";
+    auto maximum = ida::database::max_address();
+    CHECK_OK(maximum);
+    if (!maximum || *maximum > ida::BadAddress - 0x3000) return;
+    const ida::Address start = (*maximum + 0xfff) & ~ida::Address{0xfff};
+    auto segment = ida::segment::create(start, start + 0x1000,
+        "idax_zero_metadata_test", "DATA", ida::segment::Type::Data);
+    CHECK_OK(segment);
+    if (!segment) return;
+
+    CHECK(ida::address::is_mapped(start));
+    CHECK(ida::address::is_unknown(start));
+    CHECK(!ida::address::is_loaded(start));
+    CHECK(!ida::address::is_mapped(start + 0x1000));
+    CHECK(!ida::address::is_unknown(start + 0x1000));
+    CHECK(!ida::address::is_mapped(ida::BadAddress));
+    CHECK(!ida::address::is_unknown(ida::BadAddress));
+
+    const std::vector<std::uint8_t> bytes(8, 0);
+    CHECK_OK(ida::data::write_bytes(start, bytes));
+    CHECK(ida::address::is_loaded(start));
+    CHECK(ida::address::is_mapped(start));
+    CHECK(ida::address::is_unknown(start));
+    std::vector<ida::Address> unknown;
+    for (auto address : ida::address::unknown_bytes(start, start + 8)) unknown.push_back(address);
+    CHECK(unknown.size() == 8);
+    CHECK(unknown.size() == 8 && unknown.front() == start && unknown.back() == start + 7);
+    auto first = ida::address::find_first(start, start + 8, ida::address::Predicate::Unknown);
+    CHECK(first && *first == start);
+
+    CHECK_OK(ida::data::define_dword(start, 1));
+    CHECK(ida::address::is_data(start));
+    CHECK(!ida::address::is_unknown(start));
+    CHECK(ida::address::is_tail(start + 1));
+    CHECK(!ida::address::is_unknown(start + 1));
+    unknown.clear();
+    for (auto address : ida::address::unknown_bytes(start, start + 8)) unknown.push_back(address);
+    CHECK(unknown == std::vector<ida::Address>({start + 4, start + 5, start + 6, start + 7}));
+    CHECK_OK(ida::segment::remove(start));
+    CHECK(!ida::address::is_mapped(start));
+}
+
 void test_element_definition_units() {
     std::cout << "--- data-definition element counts ---\n";
 
@@ -694,6 +737,7 @@ int main(int argc, char* argv[]) {
     }
 
     test_define_undefine_unknown();
+    test_zero_metadata_address_predicates();
     test_element_definition_units();
     test_custom_data_lifecycle();
     test_error_paths();

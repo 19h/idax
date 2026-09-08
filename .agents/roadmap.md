@@ -579,3 +579,5 @@ Current overall phase status:
 - [ ] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
 
 - [x] P72.7.1 Correct and regress newly reproduced core pseudocode-coordinate and bitmask-enum construction defects discovered by Swift parity tests.
+
+- [x] P72.7.2 Correct and regress mapped-byte predicates, fixup traversal exhaustion, and copied nested-instruction width contracts exposed by Swift clients.

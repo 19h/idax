@@ -136,22 +136,16 @@ Result<std::vector<Descriptor>> in_range(Address start, Address end) {
 
 Result<Address> first() {
     ea_t ea = ::get_first_fixup_ea();
-    if (ea == BADADDR)
-        return std::unexpected(Error::not_found("No fixups in database"));
     return static_cast<Address>(ea);
 }
 
 Result<Address> next(Address ea) {
     ea_t nea = ::get_next_fixup_ea(static_cast<ea_t>(ea));
-    if (nea == BADADDR)
-        return std::unexpected(Error::not_found("No more fixups"));
     return static_cast<Address>(nea);
 }
 
 Result<Address> prev(Address ea) {
     ea_t pea = ::get_prev_fixup_ea(static_cast<ea_t>(ea));
-    if (pea == BADADDR)
-        return std::unexpected(Error::not_found("No earlier fixups"));
     return static_cast<Address>(pea);
 }
 
