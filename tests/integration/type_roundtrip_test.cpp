@@ -3,6 +3,7 @@
 
 #include <ida/idax.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -782,6 +783,36 @@ void test_enum_workflows() {
     CHECK(!bad_enum.has_value());
     if (!bad_enum)
         CHECK(bad_enum.error().category == ida::ErrorCategory::Validation);
+
+    // The SDK's regular enum builder cannot consume BTE_BITMASK directly.
+    // Exercise the supported conversion with high-bit values and comments,
+    // which previously failed before any metadata could be read.
+    for (const std::size_t width : {std::size_t{4}, std::size_t{8}}) {
+        const auto high_bit = std::uint64_t{1} << (width * 8 - 1);
+        const std::vector<ida::type::EnumMember> flags = {
+            {"IDAX_FLAG_LOW", 1, "low flag"},
+            {"IDAX_FLAG_HIGH", high_bit, "high flag"},
+        };
+        auto bitmask = ida::type::TypeInfo::enum_type(flags, width, true);
+        CHECK_OK(bitmask);
+        if (!bitmask)
+            continue;
+        auto details = bitmask->enum_details();
+        CHECK_OK(details);
+        if (!details)
+            continue;
+        CHECK(details->byte_width == width);
+        CHECK(details->members.size() == flags.size());
+        for (const auto& expected : flags) {
+            auto found = std::find_if(details->members.begin(), details->members.end(),
+                [&](const auto& actual) { return actual.name == expected.name; });
+            CHECK(found != details->members.end());
+            if (found != details->members.end()) {
+                CHECK(found->value == expected.value);
+                CHECK(found->comment == expected.comment);
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

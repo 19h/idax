@@ -2933,3 +2933,11 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 
 - Primary evidence: the V8/Nan explicit UTF-8 length, `bindings/node/src/helpers.hpp`, and the new path/plugin suffix regressions. Native core validation can only inspect bytes that survive conversion. Copying the complete string preserves NUL for rejection by APIs that require C-compatible inputs and preserves payload bytes for length-bearing value APIs.
 - Assumption: Nan returns a byte length representable by `size_t`; test empty and embedded-NUL inputs plus existing valid paths. Bounded impact [high]: unintended prefix file/plugin operation; complexity remains O(UTF-8 bytes).
+
+### 35.295. Pseudocode Coordinates [F642]
+- Primary evidence: pinned `hexrays.hpp` item-index and coordinate APIs, existing mapping implementation, and a failing populated Swift fixture. Assumption: `find_item_coords()` returns current generated pseudocode coordinates; falsify with line bounds, multiple addresses on one line, header/unmapped lines, and refresh. [High] incorrect source/binary correspondence. The corrected map sorts/deduplicates actual coordinates; SDK coordinate lookup complexity is unknown, with wrapper O(n log n) sorting and O(n) storage for n addressable items.
+
+### 35.296. Bitmask Enum Construction [F643]
+- Primary evidence: pinned `typeinf.hpp` at SDK revision `6929db6868a524496eb66e76e4ec6c9d720a0594`, direct canonical C++ construction probes, and `src/type.cpp`. Assumption: post-construction `set_enum_is_bitmask()` preserves representable member values; falsify with ordinary/high-bit constants, exact member inventories, underlying width/signedness, and both bitmask states. [High] previously unusable public constructor; focused correction and regression remain active.
+
+- **35.295-35.296 validation update:** Corrected core coordinate mapping passes the native populated semantic test and the Swift grouped-address/line-bounds probe. Corrected enum construction passes native type_roundtrip 415 assertions and full Swift type metadata round trips. The exact SDK/IDA runtime is 9.4; pre-fix failures and post-fix positive assertions distinguish these results from declaration-only checks.

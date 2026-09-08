@@ -71,3 +71,4 @@
 - P72.5 Active: author all domain APIs and the independently audited dyld-cache capability family.
 - P72.6 Active: build real plugin/loader/processor exports and demonstrate host callbacks.
 - P72.7 Queued: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.
+
