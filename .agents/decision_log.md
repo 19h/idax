@@ -1455,3 +1455,8 @@
 - Add `ida::dyld_cache` for verified offline image inventories and current-database cache service operations. Prefer modern documented inventory tables; support validated legacy/image-text layouts and fail without partial output for malformed extents or paths.
 - Use exact SDK `dscu.h` bootstrap and mapped-header checks. Expose copied module names/addresses and semantic load options with undo-on-failure defaults; deduplicate bulk requests and return newly loaded counts. Keep native service pointers and loader-private storage internal.
 - Preserve all new core concepts through Node, C/safe Rust, Python, and Swift. Record real header/module/section evidence separately from source-audited bulk-region paths.
+
+### D19.86 Pseudocode Coordinate and Bitmask Constructor Corrections
+
+- Resolve pseudocode positions through the SDK item-coordinate helper. Sort and deduplicate actual `(line, address)` pairs; `line_to_address` chooses a member of the requested line's mapped address set and returns BadAddress for a valid unmapped line, matching its existing contract. Ctree item identity never substitutes for a text coordinate.
+- Build enum constants in a regular SDK enum and then apply `set_enum_is_bitmask()`, following the exact SDK's construction sequence. Preserve width, member bit patterns, names, and comments; propagate conversion failure without exposing partial success.

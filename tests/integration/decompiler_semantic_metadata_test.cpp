@@ -199,6 +199,35 @@ int main(int argc, char** argv) {
             auto decompiled = decompile(function.start());
             CHECK(decompiled.has_value());
             if (!decompiled) continue;
+            auto lines = decompiled->lines();
+            auto mappings = decompiled->address_map();
+            CHECK(lines.has_value());
+            CHECK(mappings.has_value());
+            CHECK(mappings && !mappings->empty());
+            if (lines && mappings) {
+                std::unordered_set<int> mapped_lines;
+                for (const auto& mapping : *mappings) {
+                    CHECK(mapping.line_number >= 0);
+                    CHECK(static_cast<std::size_t>(mapping.line_number) < lines->size());
+                    CHECK(mapping.address != ida::BadAddress);
+                    auto resolved = decompiled->line_to_address(mapping.line_number);
+                    CHECK(resolved.has_value());
+                    bool belongs_to_line = false;
+                    for (const auto& candidate : *mappings)
+                        if (resolved && candidate.line_number == mapping.line_number
+                            && candidate.address == *resolved) belongs_to_line = true;
+                    CHECK(belongs_to_line);
+                    mapped_lines.insert(mapping.line_number);
+                }
+                for (std::size_t line = 0; line < lines->size(); ++line) {
+                    auto resolved = decompiled->line_to_address(static_cast<int>(line));
+                    CHECK(resolved.has_value());
+                    if (!mapped_lines.contains(static_cast<int>(line)))
+                        CHECK(resolved && *resolved == ida::BadAddress);
+                }
+                CHECK(!decompiled->line_to_address(-1));
+                CHECK(!decompiled->line_to_address(static_cast<int>(lines->size())));
+            }
             NavigationVisitor visitor;
             VisitOptions visit_options;
             visit_options.track_parents = true;

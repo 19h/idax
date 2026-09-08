@@ -5290,67 +5290,44 @@ Address DecompiledFunction::entry_address() const {
 
 Result<Address> DecompiledFunction::line_to_address(int line_number) const {
     CHECK_IMPL();
-
-    // The pseudocode uses treeitems to map indices to items.
-    // A simpler approach: walk the eamap to find which ea maps to lines
-    // near the requested line, then correlate with pseudocode.
-    const strvec_t& sv = impl_->cfunc->get_pseudocode();
-    if (line_number < 0 || static_cast<std::size_t>(line_number) >= sv.size())
+    const strvec_t& lines = impl_->cfunc->get_pseudocode();
+    if (line_number < 0 || static_cast<std::size_t>(line_number) >= lines.size())
         return std::unexpected(Error::validation("Line number out of range"));
 
-    // After get_pseudocode(), treeitems should be populated.
-    // Each pseudocode line has an associated ea via the ctree items.
-    // We use the boundaries map for a reliable mapping.
-    // Note: get_boundaries()/get_eamap() are available for advanced mapping
-    // but treeitems (populated by get_pseudocode) is more direct for line mapping.
-
-    // Use treeitems for the given line.
-    int hdr = impl_->cfunc->hdrlines;
-    int item_line = line_number - hdr;
-
-    if (item_line >= 0
-        && static_cast<std::size_t>(item_line) < impl_->cfunc->treeitems.size()) {
-        const citem_t* item = impl_->cfunc->treeitems[item_line];
-        if (item != nullptr && item->ea != BADADDR)
-            return item->ea;
-    }
-
-    // Fallback: scan treeitems around the target line.
-    for (int delta = 1; delta <= 5; ++delta) {
-        for (int dir : {-1, 1}) {
-            int probe = item_line + dir * delta;
-            if (probe >= 0
-                && static_cast<std::size_t>(probe) < impl_->cfunc->treeitems.size()) {
-                const citem_t* item = impl_->cfunc->treeitems[probe];
-                if (item != nullptr && item->ea != BADADDR)
-                    return item->ea;
-            }
-        }
-    }
-
-    return std::unexpected(Error::not_found("No address mapping for line",
-                                             std::to_string(line_number)));
+    auto mappings = address_map();
+    if (!mappings)
+        return std::unexpected(mappings.error());
+    const auto found = std::lower_bound(mappings->begin(), mappings->end(), line_number,
+        [](const AddressMapping& mapping, int line) { return mapping.line_number < line; });
+    if (found != mappings->end() && found->line_number == line_number)
+        return found->address;
+    return BadAddress;
 }
 
 Result<std::vector<AddressMapping>> DecompiledFunction::address_map() const {
     CHECK_IMPL();
-
-    // Ensure pseudocode is generated (populates treeitems).
-    impl_->cfunc->get_pseudocode();
-
-    int hdr = impl_->cfunc->hdrlines;
+    const strvec_t& lines = impl_->cfunc->get_pseudocode();
     std::vector<AddressMapping> result;
-
-    for (std::size_t i = 0; i < impl_->cfunc->treeitems.size(); ++i) {
-        const citem_t* item = impl_->cfunc->treeitems[i];
-        if (item != nullptr && item->ea != BADADDR) {
-            AddressMapping am;
-            am.address = item->ea;
-            am.line_number = static_cast<int>(i) + hdr;
-            result.push_back(am);
+    // treeitems indexes identify ctree nodes, not pseudocode lines. Ask the
+    // decompiler for each displayed item's actual text coordinates.
+    for (const citem_t* item : impl_->cfunc->treeitems) {
+        if (item == nullptr || item->ea == BADADDR)
+            continue;
+        int column = -1;
+        int line = -1;
+        if (impl_->cfunc->find_item_coords(item, &column, &line)
+            && line >= 0 && static_cast<std::size_t>(line) < lines.size()) {
+            result.push_back({item->ea, line});
         }
     }
-
+    std::sort(result.begin(), result.end(), [](const AddressMapping& left, const AddressMapping& right) {
+        if (left.line_number != right.line_number)
+            return left.line_number < right.line_number;
+        return left.address < right.address;
+    });
+    result.erase(std::unique(result.begin(), result.end(), [](const AddressMapping& left, const AddressMapping& right) {
+        return left.line_number == right.line_number && left.address == right.address;
+    }), result.end());
     return result;
 }
 

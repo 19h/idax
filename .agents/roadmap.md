@@ -577,3 +577,5 @@ Current overall phase status:
 - [ ] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
 - [ ] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.
 - [ ] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
+
+- [x] P72.7.1 Correct and regress newly reproduced core pseudocode-coordinate and bitmask-enum construction defects discovered by Swift parity tests.
