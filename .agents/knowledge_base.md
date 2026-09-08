@@ -2953,3 +2953,9 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 
 ### 35.300. Nullable String Results [F647]
 - Primary evidence: `undo.hpp`, `problem.hpp`, `database.hpp`, and their canonical C allocation/status paths. Assumption: null is absence and allocated empty string is presence; falsify with explicit ABI nil/empty records and absent runtime undo/problem descriptions. [Medium] false errors and loss of optional semantics. String copies cost O(UTF-8 bytes), absent results O(1). Final integrated Swift validation remains active.
+
+### 35.301. Loader Descriptor Initialization Order [F648]
+- Primary evidence: `IDAX_LOADER` in `loader.hpp`, LDSC dynamic initialization in `src/loader.cpp`, and the two-translation-unit `loader_initialization_order_test.cpp`. Assumption: descriptor initialization may precede user module dynamic initialization; falsification deliberately orders the descriptor translation unit first. The original macro terminates with SIGSEGV; the lazy module fixture and actual SDK loader discovery/load pass. [High] load-time native crash; function-local initialization is one-time, with constant wrapper access cost after construction.
+
+### 35.302. Shared Swift Add-On Definitions [F649]
+- Primary evidence: emitted object/link commands and actual IDAlib discovery diagnostics for multiple generated add-ons. Assumption: add-ons coexist in a single IDA process; falsify by loading plugin, loader and processor together and checking callbacks, class diagnostics and teardown. [High] duplicate runtime classes/state. Shared support packaging and actual multi-addon execution remain active; no causal attribution to a crash is made without an independent reproduction.

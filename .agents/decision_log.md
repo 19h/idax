@@ -1464,3 +1464,7 @@
 ### D19.87 Existing Sentinel and Nested-Width Contracts
 - Preserve public fixup exhaustion as successful BadAddress and derive mapped/unknown predicates from SDK presence rather than nonzero metadata.
 - Reconstruct a nested instruction's Empty destination width from the containing operand; explicit destination width remains authoritative and must agree when both are given. Validate propagatable opcode and positive result size before native construction. This restores replay of copied graph values without adding raw SDK identities or new public APIs.
+
+### D19.88 Loader Construction Before Descriptor Queries
+- Construct the user loader module with a function-local static in the IDAX_LOADER bridge initializer. The descriptor may query virtual options during dynamic initialization, so the module's construction must precede returning its pointer regardless of translation-unit order.
+- Preserve the public module API and LDSC export. A deterministic descriptor-first CTest establishes the construction-order requirement independently of Swift packaging.

@@ -274,14 +274,12 @@ Status create_filename_comment();
 /// Place at file scope in your loader source file.
 /// The macro creates the loader_t LDSC export symbol that IDA expects.
 #define IDAX_LOADER(LoaderClass)                                             \
-    namespace {                                                              \
-    static LoaderClass g_idax_loader_instance;                               \
-    }                                                                        \
     extern "C" {                                                             \
     void idax_loader_bridge_init(void** out_loader, void** out_input);       \
     }                                                                        \
     void idax_loader_bridge_init(void** out_loader, void** out_input) {      \
-        *out_loader = &g_idax_loader_instance;                               \
+        static LoaderClass loader_instance;                                 \
+        *out_loader = &loader_instance;                                      \
         (void)out_input;                                                     \
     }
 

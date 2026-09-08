@@ -581,3 +581,5 @@ Current overall phase status:
 - [x] P72.7.1 Correct and regress newly reproduced core pseudocode-coordinate and bitmask-enum construction defects discovered by Swift parity tests.
 
 - [x] P72.7.2 Correct and regress mapped-byte predicates, fixup traversal exhaustion, and copied nested-instruction width contracts exposed by Swift clients.
+
+- [x] P72.7.3 Correct the loader macro static-initialization order and demonstrate native descriptor loading.

@@ -171,3 +171,10 @@ idax_add_integration_test(instruction_branch_arm64 instruction_branch_semantics_
 
 # Offline dyld cache image parsing and initialized non-cache service rejection.
 idax_add_integration_test(dyld_cache dyld_cache_test.cpp)
+
+# Place the descriptor's initializer before the user registration translation
+# unit to exercise loader construction without relying on normal archive order.
+idax_add_integration_test(loader_initialization_order
+    "${PROJECT_SOURCE_DIR}/src/loader.cpp")
+target_sources(idax_loader_initialization_order_test PRIVATE
+    loader_initialization_order_test.cpp)
