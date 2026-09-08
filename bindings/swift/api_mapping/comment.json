@@ -1,0 +1,347 @@
+{
+  "domain": "comment",
+  "declarations": [
+    {
+      "cpp_id": "4283041ebd0bdfff2e7f",
+      "cpp_name": "ida::comment::add_anterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "edf840e305b86c79bdfb"
+      ],
+      "rationale": "Comments.addAnterior(address:text:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5bbc888c794431de81f2af90a9adecccb3bd68e425321a9da4d8f57502d80112",
+      "swift_targets": [
+        {
+          "path": "Comments.addAnterior(address:text:)",
+          "declaration": "static func addAnterior(address: UInt64, text: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d37f2e3dd416f4e439b",
+      "cpp_name": "ida::comment::add_posterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "599314867ddf0cb6e2b7"
+      ],
+      "rationale": "Comments.addPosterior(address:text:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6eec31fd1c0a1c2e6268fd4be817caa8836688e9063ad40558caf24eee39a79b",
+      "swift_targets": [
+        {
+          "path": "Comments.addPosterior(address:text:)",
+          "declaration": "static func addPosterior(address: UInt64, text: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3bafa0255035c68aa629",
+      "cpp_name": "ida::comment::anterior_lines",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::string>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "42913b54a89282e15e03"
+      ],
+      "rationale": "Comments.anteriorLines(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f01ec29617fd34c9545e533ba3a40117068f01221c125c87f8db6c01ffcfbbac",
+      "swift_targets": [
+        {
+          "path": "Comments.anteriorLines(address:)",
+          "declaration": "static func anteriorLines(address: UInt64) throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ce7da00341cf20640682",
+      "cpp_name": "ida::comment::append",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "ee4e68ef8d644daddebc"
+      ],
+      "rationale": "Comments.append(address:text:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e88972f24570c00ab5afe58ec512bbfa786c568ab9706517aea85837f36e9000",
+      "swift_targets": [
+        {
+          "path": "Comments.append(address:text:repeatable:)",
+          "declaration": "static func append(address: UInt64, text: String, repeatable: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d4360d872ae8566263f6",
+      "cpp_name": "ida::comment::clear_anterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "1a4ce7b0ff4ae0757d4a"
+      ],
+      "rationale": "Comments.clearAnterior(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "27d4ec62088cf0b3a9b04eeeebcfeff6eb06c4e9e7266754ac9941abd37e64ad",
+      "swift_targets": [
+        {
+          "path": "Comments.clearAnterior(address:)",
+          "declaration": "static func clearAnterior(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fde8a9cccc9c5f24156c",
+      "cpp_name": "ida::comment::clear_posterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "75c8a88012a35fd7608b"
+      ],
+      "rationale": "Comments.clearPosterior(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4a1f1c4c763a928e967129ca0dfd9a73ae4ac3abbb87b93ab194f15335455f79",
+      "swift_targets": [
+        {
+          "path": "Comments.clearPosterior(address:)",
+          "declaration": "static func clearPosterior(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1cfed9e3b663f60d3ad3",
+      "cpp_name": "ida::comment::get",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "a5ddcd619180aa3930ed"
+      ],
+      "rationale": "Comments.get(address:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fbd7fee5d01f4b43174bd8b699b6e5fd2c8493c8a490145bcfba5de78ee68020",
+      "swift_targets": [
+        {
+          "path": "Comments.get(address:repeatable:)",
+          "declaration": "static func get(address: UInt64, repeatable: Bool = false) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3821bcc2acdd85877464",
+      "cpp_name": "ida::comment::get_anterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "040c5b11f148f5f91748"
+      ],
+      "rationale": "Comments.getAnterior(address:lineIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "02f1e84fd07254322f456f5d499e80dcd8635bc3ab433a6111b1c89b70bb1b30",
+      "swift_targets": [
+        {
+          "path": "Comments.getAnterior(address:lineIndex:)",
+          "declaration": "static func getAnterior(address: UInt64, lineIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f7bd849288052198b33",
+      "cpp_name": "ida::comment::get_posterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "f45edab49417da2ae959"
+      ],
+      "rationale": "Comments.getPosterior(address:lineIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "bf5f199ef7df44e4461123df374bfe549ef75c9cdbba592c5e3440f3a08d78ef",
+      "swift_targets": [
+        {
+          "path": "Comments.getPosterior(address:lineIndex:)",
+          "declaration": "static func getPosterior(address: UInt64, lineIndex: Int32) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "792777822b1df62a30b3",
+      "cpp_name": "ida::comment::posterior_lines",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::string>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "1963884be18b22b9aade"
+      ],
+      "rationale": "Comments.posteriorLines(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5139a974e265bc9ec99caf5e7b26bc096e80f7cadcb7c4f56df55239644c9962",
+      "swift_targets": [
+        {
+          "path": "Comments.posteriorLines(address:)",
+          "declaration": "static func posteriorLines(address: UInt64) throws(IDAError) -> [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe34a21a8f55234e4564",
+      "cpp_name": "ida::comment::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "9bb3112b0b1a224f376d"
+      ],
+      "rationale": "Comments.remove(address:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fb72458ed2306a929c62ec939f0c6fd4e0685348d00b047452f4b817f2bb03aa",
+      "swift_targets": [
+        {
+          "path": "Comments.remove(address:repeatable:)",
+          "declaration": "static func remove(address: UInt64, repeatable: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0ba76c91d2cdb9278d3c",
+      "cpp_name": "ida::comment::remove_anterior_line",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "041b7967b5c7a662e896"
+      ],
+      "rationale": "Comments.removeAnteriorLine(address:lineIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "609cab12379d302f9ba20803478209a33c50af006d48ac5ef5a929198f789c9e",
+      "swift_targets": [
+        {
+          "path": "Comments.removeAnteriorLine(address:lineIndex:)",
+          "declaration": "static func removeAnteriorLine(address: UInt64, lineIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92706b48a881fa706595",
+      "cpp_name": "ida::comment::remove_posterior_line",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "aeeac431ad2583cb1eb4"
+      ],
+      "rationale": "Comments.removePosteriorLine(address:lineIndex:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "164a2099e4d363c2fb44ad6efb6f6d74d03bd69e64c39fccc1e778a65adb13e5",
+      "swift_targets": [
+        {
+          "path": "Comments.removePosteriorLine(address:lineIndex:)",
+          "declaration": "static func removePosteriorLine(address: UInt64, lineIndex: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d24745b47c9d9dc1bff2",
+      "cpp_name": "ida::comment::render",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, bool, bool)",
+      "mapping": "direct",
+      "swift": [
+        "3effd147a513a049a700"
+      ],
+      "rationale": "Comments.render(address:includeRepeatable:includeExtraLines:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d6e89a84e73c96abe431049750d497322a3ef66c8b8ee29612d9cbce2f03f775",
+      "swift_targets": [
+        {
+          "path": "Comments.render(address:includeRepeatable:includeExtraLines:)",
+          "declaration": "static func render(address: UInt64, includeRepeatable: Bool = true, includeExtraLines: Bool = true) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6fb00c48a8c58cbd91c9",
+      "cpp_name": "ida::comment::set",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "79053ebe2155281f906b"
+      ],
+      "rationale": "Comments.set(address:text:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c343cc1f39af9afc00e2e63cb07602f25a872a1f8986f4ffa95ff1db691cc660",
+      "swift_targets": [
+        {
+          "path": "Comments.set(address:text:repeatable:)",
+          "declaration": "static func set(address: UInt64, text: String, repeatable: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d8479425f80bc5b6ad9d",
+      "cpp_name": "ida::comment::set_anterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "6c15be6d6854af3c9f53"
+      ],
+      "rationale": "Comments.setAnterior(address:lineIndex:text:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8672a333e633d1072971b852dcacda308cf47eb602a9381ea7c07b1af6e2aff2",
+      "swift_targets": [
+        {
+          "path": "Comments.setAnterior(address:lineIndex:text:)",
+          "declaration": "static func setAnterior(address: UInt64, lineIndex: Int32, text: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ccfb9e2992e5903d6979",
+      "cpp_name": "ida::comment::set_anterior_lines",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const std::vector<std::string> &)",
+      "mapping": "direct",
+      "swift": [
+        "01dc6a2081a523824e51"
+      ],
+      "rationale": "Comments.setAnteriorLines(address:lines:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b2af7c9072467f9d358d9f6135bf48c17b95fdd2a7a019db5817b468bc186db7",
+      "swift_targets": [
+        {
+          "path": "Comments.setAnteriorLines(address:lines:)",
+          "declaration": "static func setAnteriorLines(address: UInt64, lines: [String]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a3b945a4a8def00fc949",
+      "cpp_name": "ida::comment::set_posterior",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "f2afc2dfa64867a29c18"
+      ],
+      "rationale": "Comments.setPosterior(address:lineIndex:text:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "78574aed508e2a77b1f111ab3046f2e9d16f30c3882d9898cced7a71646cc557",
+      "swift_targets": [
+        {
+          "path": "Comments.setPosterior(address:lineIndex:text:)",
+          "declaration": "static func setPosterior(address: UInt64, lineIndex: Int32, text: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb396717e1225bab59fe",
+      "cpp_name": "ida::comment::set_posterior_lines",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const std::vector<std::string> &)",
+      "mapping": "direct",
+      "swift": [
+        "2486b2e7112a62aa712d"
+      ],
+      "rationale": "Comments.setPosteriorLines(address:lines:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a0b75535f19eeb97f5fe8a373bdd4ca623bd5598b3e3a8e2df2c112558bfdbe2",
+      "swift_targets": [
+        {
+          "path": "Comments.setPosteriorLines(address:lines:)",
+          "declaration": "static func setPosteriorLines(address: UInt64, lines: [String]) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

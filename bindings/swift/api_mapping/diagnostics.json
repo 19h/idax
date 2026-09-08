@@ -1,0 +1,293 @@
+{
+  "domain": "diagnostics",
+  "declarations": [
+    {
+      "cpp_id": "63c0ee0725a2aa01edbd",
+      "cpp_name": "ida::diagnostics::LogLevel",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class LogLevel { Error = 0, Warning, Info, Debug, Trace, }",
+      "mapping": "direct",
+      "swift": [
+        "c4a670de8ced0d83c0bb"
+      ],
+      "rationale": "Diagnostics.LogLevel represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "d06258dc59beeab46b17682d660553be7b298b3d9765ab9da1c321a1b48f3a91",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel",
+          "declaration": "enum LogLevel"
+        }
+      ]
+    },
+    {
+      "cpp_id": "581dee49a21c2785baec",
+      "cpp_name": "ida::diagnostics::LogLevel::Debug",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::diagnostics::LogLevel",
+      "mapping": "direct",
+      "swift": [
+        "6283f2292db2d313810e"
+      ],
+      "rationale": "Corresponding typed semantic case Diagnostics.LogLevel.debug; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "8851150fcc54e5093e6439d0f01d6833647f0901f51377128e0ecc92413b5605",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel.debug",
+          "declaration": "case debug"
+        }
+      ]
+    },
+    {
+      "cpp_id": "838fdbbff6d43f6867bb",
+      "cpp_name": "ida::diagnostics::LogLevel::Error",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::diagnostics::LogLevel",
+      "mapping": "direct",
+      "swift": [
+        "948384cebcdd4de18eab"
+      ],
+      "rationale": "Corresponding typed semantic case Diagnostics.LogLevel.error; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d0e0ec6fe7ca1ed61e5f0fe738466bfd699e3560a292f562c1b6944f69c71948",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel.error",
+          "declaration": "case error"
+        }
+      ]
+    },
+    {
+      "cpp_id": "571a16b3c6886a112b0c",
+      "cpp_name": "ida::diagnostics::LogLevel::Info",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::diagnostics::LogLevel",
+      "mapping": "direct",
+      "swift": [
+        "464e44dbdaef46e5be52"
+      ],
+      "rationale": "Corresponding typed semantic case Diagnostics.LogLevel.info; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9d1075699f8a80ccfa88fe3b986901108ac2f79d6511aa26bb00047b5ef86a2c",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel.info",
+          "declaration": "case info"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d8bb3dc235325da8ed0",
+      "cpp_name": "ida::diagnostics::LogLevel::Trace",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::diagnostics::LogLevel",
+      "mapping": "direct",
+      "swift": [
+        "1a158249cca17d977ed5"
+      ],
+      "rationale": "Corresponding typed semantic case Diagnostics.LogLevel.trace; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "868e150d78ea91a99ea338d9aadc337e4e8b8dd5f37c13a1648b7831db7dc50d",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel.trace",
+          "declaration": "case trace"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5f479d03ef75bec84e8d",
+      "cpp_name": "ida::diagnostics::LogLevel::Warning",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::diagnostics::LogLevel",
+      "mapping": "direct",
+      "swift": [
+        "8ccf5f002ffb4eb3d6d1"
+      ],
+      "rationale": "Corresponding typed semantic case Diagnostics.LogLevel.warning; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5e318cd5269af168359cfbd7fabc3ccd1d5da4a9c2646df679a19637ede4eabd",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.LogLevel.warning",
+          "declaration": "case warning"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e5121ee7e41bd64e266",
+      "cpp_name": "ida::diagnostics::PerformanceCounters",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "133a320396fbb45a9ade"
+      ],
+      "rationale": "Diagnostics.PerformanceCounters is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "3e5121ee7e41bd64e26674a4b36050b92218e50a7302bac888d1f7ba8bda290f",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.PerformanceCounters",
+          "declaration": "struct PerformanceCounters"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87d57cc06750a43fd887",
+      "cpp_name": "ida::diagnostics::PerformanceCounters::invariant_failures",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "4cc72614633b62067832"
+      ],
+      "rationale": "Preserves the declared std::uint64_t value in Diagnostics.PerformanceCounters.invariantFailures, including its semantic type and signedness.",
+      "cpp_fingerprint": "2f7d66b39872ca08f1dc9541c1b548d73779ccf5eb0ab66af88ac6f3443bb6b6",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.PerformanceCounters.invariantFailures",
+          "declaration": "var invariantFailures: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cdd31f11ac3e3895317d",
+      "cpp_name": "ida::diagnostics::PerformanceCounters::log_messages",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "77dda9a12e8a9b362369"
+      ],
+      "rationale": "Preserves the declared std::uint64_t value in Diagnostics.PerformanceCounters.logMessages, including its semantic type and signedness.",
+      "cpp_fingerprint": "be13dee23debb155504456d22d2895ab5f38057206519be95e8ab50b00aa838b",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.PerformanceCounters.logMessages",
+          "declaration": "var logMessages: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "34240a3041feff990feb",
+      "cpp_name": "ida::diagnostics::assert_invariant",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (bool, std::string_view)",
+      "mapping": "private_bridge",
+      "swift": [
+        "f3dddaecd0d5e7cb9e7a"
+      ],
+      "rationale": "Calls the C++ invariant function through the private bridge, preserving its performance counter, log emission, and native error fields.",
+      "cpp_fingerprint": "56dfacf83d396999323cc5421c2bf5ad17eb56d279b2b7ec65e7f11c0d982a76",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.assertInvariant(_:message:)",
+          "declaration": "static func assertInvariant(_ condition: Bool, message: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "805de885d0fd539e7628",
+      "cpp_name": "ida::diagnostics::enrich",
+      "cpp_kind": "function",
+      "cpp_signature": "Error (Error, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "a137308dd267a6979da0"
+      ],
+      "rationale": "Builds a new IDAError with unchanged category/code/message and the same context suffix and separator semantics.",
+      "cpp_fingerprint": "196a34f3b7a73cc919add7512dbc6d109199cfff88ef6abb6898acb48acfccfa",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.enrich(_:contextSuffix:)",
+          "declaration": "static func enrich(_ error: IDAError, contextSuffix: String) -> IDAError"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c50a9314dc27318355e",
+      "cpp_name": "ida::diagnostics::log",
+      "cpp_kind": "function",
+      "cpp_signature": "void (LogLevel, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "e9aefa796ceb01256709"
+      ],
+      "rationale": "Diagnostics.log(level:domain:message:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ba38072b9d1949440585378faa33d80e424bc1d12677ad7e0e8f75057d385a96",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.log(level:domain:message:)",
+          "declaration": "static func log(level: Diagnostics.LogLevel, domain: String, message: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05c83246051917683c3a",
+      "cpp_name": "ida::diagnostics::log_level",
+      "cpp_kind": "function",
+      "cpp_signature": "LogLevel ()",
+      "mapping": "direct",
+      "swift": [
+        "772989724a3b1dea0b50"
+      ],
+      "rationale": "Diagnostics.logLevel() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f1d365a3aa9f121b61209a5a68d85c19f7aa9188324293a97c7c40c1d92dbad4",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.logLevel()",
+          "declaration": "static func logLevel() throws(IDAError) -> Diagnostics.LogLevel"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d340b6ee30e7f84867b",
+      "cpp_name": "ida::diagnostics::performance_counters",
+      "cpp_kind": "function",
+      "cpp_signature": "PerformanceCounters ()",
+      "mapping": "direct",
+      "swift": [
+        "511c24872e70d71bd201"
+      ],
+      "rationale": "Diagnostics.performanceCounters() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "283e38ec2d93a4466ab3cc64645c7acdf7cf7ac8adc323422ce0da154bae81bb",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.performanceCounters()",
+          "declaration": "static func performanceCounters() throws(IDAError) -> Diagnostics.PerformanceCounters"
+        }
+      ]
+    },
+    {
+      "cpp_id": "205601239b9315fb0c05",
+      "cpp_name": "ida::diagnostics::reset_performance_counters",
+      "cpp_kind": "function",
+      "cpp_signature": "void ()",
+      "mapping": "direct",
+      "swift": [
+        "191947df3caba69511c6"
+      ],
+      "rationale": "Diagnostics.resetPerformanceCounters() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e65d4a8774b9290b5297ed16e2f710e2df93f6d2822acc3d823aab0f052d4be3",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.resetPerformanceCounters()",
+          "declaration": "static func resetPerformanceCounters() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d767194bed360ad3e7f8",
+      "cpp_name": "ida::diagnostics::set_log_level",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (LogLevel)",
+      "mapping": "direct",
+      "swift": [
+        "b02b8743c804ec87f154"
+      ],
+      "rationale": "Diagnostics.setLogLevel(level:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c8fd7dac87a2caf67830ebfef9d4ef8996a5d20acd3f7d28fda859b45e7779ca",
+      "swift_targets": [
+        {
+          "path": "Diagnostics.setLogLevel(level:)",
+          "declaration": "static func setLogLevel(level: Diagnostics.LogLevel) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+module CIDAX [system] {
+    header "include/CIDAX.h"
+    link "idax_swift_native"
+    export *
+}

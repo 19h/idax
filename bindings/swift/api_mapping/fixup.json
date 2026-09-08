@@ -1,0 +1,1297 @@
+{
+  "domain": "fixup",
+  "declarations": [
+    {
+      "cpp_id": "7974f447d23a63a9b905",
+      "cpp_name": "ida::fixup::CustomHandler",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "70a4c3cd7b253190f760"
+      ],
+      "rationale": "Fixups.CustomHandler is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "7974f447d23a63a9b905212454aab1d21c3ee49c91e06b61ff94525d6669ba56",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler",
+          "declaration": "struct CustomHandler"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5a96cf0cc3cd80101844",
+      "cpp_name": "ida::fixup::CustomHandler::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "fecca6ab45a51aea1f03"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "b2be8e1d91b25d8e6c51636a856157efcee90280bce6855b88e1581c0c75bd68",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2123d92889c03113f8d2",
+      "cpp_name": "ida::fixup::CustomHandler::properties",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "adapted",
+      "swift": [
+        "2193357aff624b5953db",
+        "f4d46267fd62910357fc"
+      ],
+      "rationale": "The UInt32 property mask becomes a named OptionSet; rawValue construction preserves the complete bit pattern.",
+      "cpp_fingerprint": "5e961456169d39a65d5a2ce5bd76d309ae6ca36237c6cbc05c46e4b3ba149673",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.properties",
+          "declaration": "var properties: Fixups.HandlerProperties"
+        },
+        {
+          "path": "Fixups.HandlerProperties.init(rawValue:)",
+          "declaration": "init(rawValue: UInt32)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "452734d2e392077966ed",
+      "cpp_name": "ida::fixup::CustomHandler::reference_type",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "c7b4a009d9115417a733"
+      ],
+      "rationale": "Preserves the declared std::uint32_t value in Fixups.CustomHandler.referenceType, including its semantic type and signedness.",
+      "cpp_fingerprint": "8eb28659a9ac4a7c6163b34817e57e9f4886b5a2e3716a8e625b1ac7ff0cb162",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.referenceType",
+          "declaration": "var referenceType: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aff669aa694ab23b288c",
+      "cpp_name": "ida::fixup::CustomHandler::shift",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "63e361009e26e94e4b20"
+      ],
+      "rationale": "Preserves the declared std::uint8_t value in Fixups.CustomHandler.shift, including its semantic type and signedness.",
+      "cpp_fingerprint": "29744e9475e617f02c12ca1f1f9577882af54a5d662135b2927a65bae5838a47",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.shift",
+          "declaration": "var shift: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "951ac5415b41f424272a",
+      "cpp_name": "ida::fixup::CustomHandler::size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "65f003dac38d9596d298"
+      ],
+      "rationale": "Preserves the declared std::uint8_t value in Fixups.CustomHandler.size, including its semantic type and signedness.",
+      "cpp_fingerprint": "f1fa3c697c08ddb603f5c44d3ea93d62b1f8cea7e5ea2072fed2150bc48586b3",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.size",
+          "declaration": "var size: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "18c66087be4a255b0737",
+      "cpp_name": "ida::fixup::CustomHandler::width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint8_t",
+      "mapping": "direct",
+      "swift": [
+        "ecae0d4f9116002fede8"
+      ],
+      "rationale": "Preserves the declared std::uint8_t value in Fixups.CustomHandler.width, including its semantic type and signedness.",
+      "cpp_fingerprint": "088450a9af1f2f1bd5adb7bd36be9af9953747e91c23cd204e619653564fe08f",
+      "swift_targets": [
+        {
+          "path": "Fixups.CustomHandler.width",
+          "declaration": "var width: UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e32ea6db70cb0a4adba4",
+      "cpp_name": "ida::fixup::Descriptor",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "02423ce1c204d9b9c982"
+      ],
+      "rationale": "Fixups.Descriptor is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "e32ea6db70cb0a4adba4994d5c499a7459519eaf313ee4ad12c7d55986dab4ed",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor",
+          "declaration": "struct Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "486c6047456c8fef612d",
+      "cpp_name": "ida::fixup::Descriptor::base",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "92b35a629de411ab4923"
+      ],
+      "rationale": "Preserves the declared Address value in Fixups.Descriptor.base, including its semantic type and signedness.",
+      "cpp_fingerprint": "80604680090faae21631f054a9c8bd49b3b57ce91d6a8320b884210dba44c760",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.base",
+          "declaration": "var base: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65664b3e8315926e4375",
+      "cpp_name": "ida::fixup::Descriptor::displacement",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressDelta",
+      "mapping": "direct",
+      "swift": [
+        "b1a98baf3e68c91d1909"
+      ],
+      "rationale": "Preserves the declared AddressDelta value in Fixups.Descriptor.displacement, including its semantic type and signedness.",
+      "cpp_fingerprint": "e876b549887f8e5daa442ee0b781b5137343cff883b5a17e7047e91f5b640d5b",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.displacement",
+          "declaration": "var displacement: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a66b2797cd103b093e49",
+      "cpp_name": "ida::fixup::Descriptor::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "01cd85f870ff53d4565e"
+      ],
+      "rationale": "Preserves the declared std::uint32_t value in Fixups.Descriptor.flags, including its semantic type and signedness.",
+      "cpp_fingerprint": "1407f796ec5500c74778a5d1d85104b7d39f09f484790a8b4d53edb178b93341",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.flags",
+          "declaration": "var flags: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7c24decec5658e04b8b",
+      "cpp_name": "ida::fixup::Descriptor::offset",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "500124404aa15b30017b"
+      ],
+      "rationale": "Preserves the declared Address value in Fixups.Descriptor.offset, including its semantic type and signedness.",
+      "cpp_fingerprint": "10b41aba635988eef93d82524338df28a2eee4bf1b45a749f91bdf82778d0507",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.offset",
+          "declaration": "var offset: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa3a8a944d6e4e387567",
+      "cpp_name": "ida::fixup::Descriptor::selector",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "direct",
+      "swift": [
+        "45d409d593ab6e4a5b08"
+      ],
+      "rationale": "Preserves the declared std::uint16_t value in Fixups.Descriptor.selector, including its semantic type and signedness.",
+      "cpp_fingerprint": "6103dd56c4da075c9b2aae6b6d323662405a24b0260a1bf0ededa8d7f45dbb81",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.selector",
+          "declaration": "var selector: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d325cca7663f4f645d3d",
+      "cpp_name": "ida::fixup::Descriptor::source",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "ba7f0cf32e59beb2f121"
+      ],
+      "rationale": "Preserves the declared Address value in Fixups.Descriptor.source, including its semantic type and signedness.",
+      "cpp_fingerprint": "992f56b793ac06b5d3175b31427c1e9d1739e0a1ec1fbda99f0517be97546780",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.source",
+          "declaration": "var source: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2eb7b3a7e516b2493e4",
+      "cpp_name": "ida::fixup::Descriptor::target",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "9a5ae2ece46120590344"
+      ],
+      "rationale": "Preserves the declared Address value in Fixups.Descriptor.target, including its semantic type and signedness.",
+      "cpp_fingerprint": "e1089c8274e95efa98cf9c961621b7a6a84f17ee9e58a59574f6cb2d4d260661",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.target",
+          "declaration": "var target: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5175ca90e860ae5b63ab",
+      "cpp_name": "ida::fixup::Descriptor::type",
+      "cpp_kind": "field",
+      "cpp_signature": "Type",
+      "mapping": "direct",
+      "swift": [
+        "89ab5a99bdd5104e8f45"
+      ],
+      "rationale": "Preserves the declared Type value in Fixups.Descriptor.type, including its semantic type and signedness.",
+      "cpp_fingerprint": "30c5bf2c65b57d10d81f471cdf8558b5023e1aa792c18fc54dc3c6f59a3f95a6",
+      "swift_targets": [
+        {
+          "path": "Fixups.Descriptor.type",
+          "declaration": "var type: Fixups.Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b37070d797f916eb582",
+      "cpp_name": "ida::fixup::FixupIterator",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "The fixup traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4b37070d797f916eb582d3cd78e38cde1bba492d45d2381041dea3af08329ec2",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d2998bcce7da90ce389",
+      "cpp_name": "ida::fixup::FixupIterator::FixupIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "b8e106299ebb140035af84f690834a6b22b61c9dfe768dea8b5b721e43d53393",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b840f1400fea10a77566",
+      "cpp_name": "ida::fixup::FixupIterator::FixupIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "e0b17f958d3e7000517e",
+        "1747dd15d5c5179d91a7",
+        "45b8fa318e79e41815e0"
+      ],
+      "rationale": "Address-bounded fixup traversal is collected by inRange, complete traversal by all, and direct dereference by at; ordinary Array slices/indices replace explicit C++ cursor construction.",
+      "cpp_fingerprint": "f7a0cba45dc7395465ca645100218acff8b3f2976355eca38690923674fa5df2",
+      "swift_targets": [
+        {
+          "path": "Fixups.inRange(start:end:)",
+          "declaration": "static func inRange(start: UInt64, end: UInt64) throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.at(source:)",
+          "declaration": "static func at(source: UInt64) throws(IDAError) -> Fixups.Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c189c3bc494f41b5d1cb",
+      "cpp_name": "ida::fixup::FixupIterator::difference_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::ptrdiff_t",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Swift Array uses signed Int indices and distances on the supported 64-bit host; no separate C++ iterator difference typedef is needed. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "d7d1ecb37d7fa0659290e88d14fa3981eb5930a32b4cdeeff13cc067e894804e",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42b3bbd1d20785654a7d",
+      "cpp_name": "ida::fixup::FixupIterator::iterator_category",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::input_iterator_tag",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "The returned Swift Array conforms to Sequence and Collection; Swift protocol conformance replaces the C++ iterator-category tag. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "37742d747638552bc58645da83941bdddc42d1cefc7e0f12662b7d41e62821cc",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "526db562e3b81863b3ca",
+      "cpp_name": "ida::fixup::FixupIterator::operator!=",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const FixupIterator &, const FixupIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "08d6f69f1214bbe7ad467e18cc652d6587efa206840e4550ff24eaa83c870a20",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fbefa6825dbba6257334",
+      "cpp_name": "ida::fixup::FixupIterator::operator*",
+      "cpp_kind": "method",
+      "cpp_signature": "reference () const",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "62f8e17da3385c9f41977f89581f0d6d86ffb95a8087c7b18dd5e8af874df43e",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68e1dbe9afef8ab2814c",
+      "cpp_name": "ida::fixup::FixupIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "FixupIterator &()",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "a17730b89e3d472b56082522721ad6cbbaff99ebbf4bf13c66abfde50bef4dba",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7db5ba128f86cf857e72",
+      "cpp_name": "ida::fixup::FixupIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "FixupIterator (int)",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ab4896397fdae212ca176f28008368d190134820d7e53991f5c89d7a35f83cba",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "447abd0447d2d1546fef",
+      "cpp_name": "ida::fixup::FixupIterator::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const FixupIterator &, const FixupIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "1ae00f49407b11a0af92381ded94d2965a493e0a27bab0fb869a4e52298c52c0",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d20861ba13b4e05f05bf",
+      "cpp_name": "ida::fixup::FixupIterator::pointer",
+      "cpp_kind": "alias",
+      "cpp_signature": "const Descriptor *",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7",
+        "02423ce1c204d9b9c982"
+      ],
+      "rationale": "The iteration element is an owned Fixups.Descriptor value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "a15cbbbf9bbb7196c853c62cfb31055bdae2a795fad8c6b226073ce62bef0ad2",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.Descriptor",
+          "declaration": "struct Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4d82e0799c28da1de57d",
+      "cpp_name": "ida::fixup::FixupIterator::reference",
+      "cpp_kind": "alias",
+      "cpp_signature": "Descriptor",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7",
+        "02423ce1c204d9b9c982"
+      ],
+      "rationale": "The iteration element is an owned Fixups.Descriptor value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "b2309a002abe9fffad1b7dd0143bb88d0e4058ed1de7f41436e9e722f900274d",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.Descriptor",
+          "declaration": "struct Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5a620a3493d56b422575",
+      "cpp_name": "ida::fixup::FixupIterator::value_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "Descriptor",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7",
+        "02423ce1c204d9b9c982"
+      ],
+      "rationale": "The iteration element is an owned Fixups.Descriptor value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "f79294e31c98e2dc602ed6a4602b9ec3a09a698bbdf7c77c216c89eeed7dbd6a",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.Descriptor",
+          "declaration": "struct Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9c014879f1d50272a5d",
+      "cpp_name": "ida::fixup::FixupRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "The fixup traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "f9c014879f1d50272a5d51c4525cd094f180ef8bc401d45d052b4e4c0ab4d810",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "34508efd7f85b73b0961",
+      "cpp_name": "ida::fixup::FixupRange::FixupRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "114dec63bbcdfc46adf2223fa0ad3a0db51cdc7e11b226f4722051f5c1019131",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c695bccec873868e609",
+      "cpp_name": "ida::fixup::FixupRange::FixupRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (Address, Address)",
+      "mapping": "adapted",
+      "swift": [
+        "e0b17f958d3e7000517e",
+        "1747dd15d5c5179d91a7",
+        "45b8fa318e79e41815e0"
+      ],
+      "rationale": "Address-bounded fixup traversal is collected by inRange, complete traversal by all, and direct dereference by at; ordinary Array slices/indices replace explicit C++ cursor construction.",
+      "cpp_fingerprint": "ff02e448b854aa5709cc170e8eda7b57a4784fc6053f13411bb5577ff61abf27",
+      "swift_targets": [
+        {
+          "path": "Fixups.inRange(start:end:)",
+          "declaration": "static func inRange(start: UInt64, end: UInt64) throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        },
+        {
+          "path": "Fixups.at(source:)",
+          "declaration": "static func at(source: UInt64) throws(IDAError) -> Fixups.Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eba05217a2c37e8ee68d",
+      "cpp_name": "ida::fixup::FixupRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "FixupIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Use Array.startIndex or makeIterator() on the returned snapshot to begin iteration. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "5cd4c07c3bed9a1ce3c2b90073c4ab502dd6a6f5133f56346fde3a3b5bbb1f30",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a9d230f30188f3cf107b",
+      "cpp_name": "ida::fixup::FixupRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "FixupIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Use Array.endIndex or Iterator.next() returning nil to detect exhaustion of the returned snapshot. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ac5ae318edfe877c4e7c7aaae98a1779b1e62b67ec89dd17ff6027998ecc4056",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "685b6bb72fabbbdaeb90",
+      "cpp_name": "ida::fixup::HandlerProperty",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class HandlerProperty : std::uint32_t { Verify = 0x0001, Code = 0x0002, ForceCode = 0x0004, AbsoluteOp = 0x0008, SignedOp = 0x0010, }",
+      "mapping": "adapted",
+      "swift": [
+        "408f991dd751d8999950"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "947e826765b5911f0e41f46c530e05e8e49dfd4da088c83c681260020828c595",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties",
+          "declaration": "struct HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a053be5a1912397d8d40",
+      "cpp_name": "ida::fixup::HandlerProperty::AbsoluteOp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::HandlerProperty",
+      "mapping": "adapted",
+      "swift": [
+        "e1f80e6e3d10c8300fdc"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "e4bde4453f3fb1d975e5dfbc1820445f97bc93bff88744fe1f353deb4d32adff",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties.absoluteOperand",
+          "declaration": "static let absoluteOperand: Fixups.HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b55a858725ddd93af9a3",
+      "cpp_name": "ida::fixup::HandlerProperty::Code",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::HandlerProperty",
+      "mapping": "adapted",
+      "swift": [
+        "4a39391ce19d98c176c0"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "26d98199325711ef4b8c258f5b1d21aba33fd23017d21334fe6339d633b6bf1b",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties.code",
+          "declaration": "static let code: Fixups.HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ca6cded9723730e3bd8d",
+      "cpp_name": "ida::fixup::HandlerProperty::ForceCode",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::HandlerProperty",
+      "mapping": "adapted",
+      "swift": [
+        "65b03f74a71d832fc34d"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "2a85138747293d3ea4235beb24eae877e2f57269051b6e652d236d2970fed8d2",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties.forceCode",
+          "declaration": "static let forceCode: Fixups.HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d39488a39544167db3c9",
+      "cpp_name": "ida::fixup::HandlerProperty::SignedOp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::HandlerProperty",
+      "mapping": "adapted",
+      "swift": [
+        "914b00c0f4aaff01c9a4"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "5c5366cdbd1af7dd7580ccf56c379f1b036c3f82abac239b8964c7193e0b262c",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties.signedOperand",
+          "declaration": "static let signedOperand: Fixups.HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "16d5458cec7c31f29ae4",
+      "cpp_name": "ida::fixup::HandlerProperty::Verify",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::HandlerProperty",
+      "mapping": "adapted",
+      "swift": [
+        "9bc69a02853a2ff70ab7"
+      ],
+      "rationale": "Handler properties use a UInt32 OptionSet; each named flag preserves the C++ mask and flags can be combined.",
+      "cpp_fingerprint": "8d2c263ea17f8b004538a1cd4a6b91151fd5471e3d86d1b8ed1458d05c9b1ca9",
+      "swift_targets": [
+        {
+          "path": "Fixups.HandlerProperties.verify",
+          "declaration": "static let verify: Fixups.HandlerProperties"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73c0185bec2398f9a9d4",
+      "cpp_name": "ida::fixup::Type",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Type { Off8, Off16, Seg16, Ptr16, Off32, Ptr32, Hi8, Hi16, Low8, Low16, Off64, Off8Signed, Off16Signed, Off32Signed, Custom, }",
+      "mapping": "direct",
+      "swift": [
+        "a0f9311aa4807a2869f8"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "34a4aac7edb8c3048bd93a6011e6182109770845f7adf598a26da8de956b51a1",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind",
+          "declaration": "enum Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d2f470dcac3d92e260b",
+      "cpp_name": "ida::fixup::Type::Custom",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "c6ca0e8ad1302abf0696"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "37e4b97136f85cf49759789a1e13f714e1d69fcbb1118b712dd28a6b0c1583fe",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.custom",
+          "declaration": "case custom"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4f0a53c4ad21edb3aa02",
+      "cpp_name": "ida::fixup::Type::Hi16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "3f59295f79aba1fc92b6"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "f90cb105007b52e7967451471b22db53a08fbeb92b2dd3b23a6310f6715f8ef5",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.hi16",
+          "declaration": "case hi16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb228b257fe8e0fac3e9",
+      "cpp_name": "ida::fixup::Type::Hi8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "649fe2f5605b9a0d3e53"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "cec302c1b1d8ca387a850cf922899e4a94ae8fd0779f8bfcccb49ba4682f2bae",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.hi8",
+          "declaration": "case hi8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1011c33512e96ea01832",
+      "cpp_name": "ida::fixup::Type::Low16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "b24136867a532719af23"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "41affe2689fa72c5be31a065d9f668d219f1679faba08bf446486d3e0d08b4d2",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.low16",
+          "declaration": "case low16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8689b75e9f16d7b85ddc",
+      "cpp_name": "ida::fixup::Type::Low8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "9e9dc3b70a140d7f76ba"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "eff4cc16d2d1a9134fabe3d5f04fa03317895b9ec71561354455ec219b2e8339",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.low8",
+          "declaration": "case low8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "791d142d2a319b9f4b4d",
+      "cpp_name": "ida::fixup::Type::Off16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "69273c8dc6d79982adf8"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "b0f24c9a395af495c6fd00b1d75e5f303e4d6e745070f174b852e52cdb1c4d69",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off16",
+          "declaration": "case off16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "614a371b7181fc34be28",
+      "cpp_name": "ida::fixup::Type::Off16Signed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "43ee3907ab88114f089b"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "2f5839f7fcf2eb98963829f55ea3c014fdfa75658c006ac200398c069943dadf",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off16Signed",
+          "declaration": "case off16Signed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63d7839d72b24b5efde6",
+      "cpp_name": "ida::fixup::Type::Off32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "52ed651c1cd9a74d23bb"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "7eb4626e74bc37a4b4628f18abe2d66a8f9ccafd90374e83516b2aa76951d30c",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off32",
+          "declaration": "case off32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5e220fc9b527e858252",
+      "cpp_name": "ida::fixup::Type::Off32Signed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "cb846348a70d8aadfb0c"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "721cfbe25e7f20e38be09499f0289dc69eded1eea0b97bf8d46bf29442730295",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off32Signed",
+          "declaration": "case off32Signed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7c7bb6875492eb26270",
+      "cpp_name": "ida::fixup::Type::Off64",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "93cb7826b2c03b182c64"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "ee98169565506004cdc400663cab80df8ec47df707ebcb136a31f265e90485cc",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off64",
+          "declaration": "case off64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cba998c04561fef6d10e",
+      "cpp_name": "ida::fixup::Type::Off8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "fb0a0adeb007176d4fd9"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "aedd53743da92ba58abb827e62f6158984e3be69b63b89cb75095470206af591",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off8",
+          "declaration": "case off8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef5d5f1a10b9635823cb",
+      "cpp_name": "ida::fixup::Type::Off8Signed",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "f2cc369c30e27ac87a44"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "b5161f241c9f88056220fdc6ba50911918c66024e5598be2062c7531aeacb752",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.off8Signed",
+          "declaration": "case off8Signed"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd5f2f12fbc7f4333535",
+      "cpp_name": "ida::fixup::Type::Ptr16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "522bac95c252dcd561ef"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "b334591ca0cf4058546f81f82cc16764b7a19c14e603c2ef58fc16a16af9ac21",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.ptr16",
+          "declaration": "case ptr16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a5c411ff270c4e6b843",
+      "cpp_name": "ida::fixup::Type::Ptr32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "7ada253bd5ee0de225de"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "11ba996ad93716f0e1361a97e855f9e06acceb1e569e75a9e12e688ad2397dfc",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.ptr32",
+          "declaration": "case ptr32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e52b9c3a14f8a16858e0",
+      "cpp_name": "ida::fixup::Type::Seg16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::fixup::Type",
+      "mapping": "direct",
+      "swift": [
+        "db24cd1e0a93d58b86df"
+      ],
+      "rationale": "The C++ relocation Type is named Kind in Swift; this is the corresponding normalized fixup classification.",
+      "cpp_fingerprint": "6c5aff03c2e43b9c62f89dae8e8c4263e721ab73e9533d1fe263603a9de6883f",
+      "swift_targets": [
+        {
+          "path": "Fixups.Kind.seg16",
+          "declaration": "case seg16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5ac7381a4ea859be676d",
+      "cpp_name": "ida::fixup::all",
+      "cpp_kind": "function",
+      "cpp_signature": "FixupRange ()",
+      "mapping": "adapted",
+      "swift": [
+        "1747dd15d5c5179d91a7"
+      ],
+      "rationale": "Collects the same ascending fixup sequence into an owned Swift Array; empty and terminal traversal use the documented BadAddress sentinel internally.",
+      "cpp_fingerprint": "7c76631ce4b9eed6616d428207049542f150347cda1afd56de3d907bf0989d5c",
+      "swift_targets": [
+        {
+          "path": "Fixups.all()",
+          "declaration": "static func all() throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb27e22eb7980a9d8294",
+      "cpp_name": "ida::fixup::at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Descriptor> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "45b8fa318e79e41815e0"
+      ],
+      "rationale": "Fixups.at(source:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c4aaf45e97bd46af2c15a6dd15f9f634903ae34ef059533b48d10b414b7be1bf",
+      "swift_targets": [
+        {
+          "path": "Fixups.at(source:)",
+          "declaration": "static func at(source: UInt64) throws(IDAError) -> Fixups.Descriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35d7cd073147a86a6bc0",
+      "cpp_name": "ida::fixup::contains",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "5172c8165c1e530c718a"
+      ],
+      "rationale": "Fixups.contains(start:size:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6aa6d955829773dd829bbf2c7669ac7522d228723d16502763952d17cc564952",
+      "swift_targets": [
+        {
+          "path": "Fixups.contains(start:size:)",
+          "declaration": "static func contains(start: UInt64, size: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8c72c147f6d3198f4b8",
+      "cpp_name": "ida::fixup::exists",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (Address)",
+      "mapping": "direct",
+      "swift": [
+        "13c7025db4acfd00aa9a"
+      ],
+      "rationale": "Fixups.exists(source:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "86fc9ff9a87b6ce444c9d297979b9357ef87be07828af47260a69755e638154c",
+      "swift_targets": [
+        {
+          "path": "Fixups.exists(source:)",
+          "declaration": "static func exists(source: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db8842edb06211255081",
+      "cpp_name": "ida::fixup::find_custom",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint16_t> (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "c06aa5faf65a35500d20"
+      ],
+      "rationale": "Name lookup returns the matching opaque CustomTypeID, preserving identity without exposing its underlying native ordinal.",
+      "cpp_fingerprint": "56304bbbd443003175cb314a1016d6539d02a931eaa8de6fd77ca2daa20daf1e",
+      "swift_targets": [
+        {
+          "path": "Fixups.findCustom(named:)",
+          "declaration": "static func findCustom(named name: String) throws(IDAError) -> Fixups.CustomTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d857f4ae477fab76a8a4",
+      "cpp_name": "ida::fixup::first",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "7ec5d7130f936804fd42"
+      ],
+      "rationale": "Fixups.first() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "339d36ef7278a3a9b7ec457f79df61c948e59a1803a36ef13d8b916475139352",
+      "swift_targets": [
+        {
+          "path": "Fixups.first()",
+          "declaration": "static func first() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "025d815d2c2b7080942c",
+      "cpp_name": "ida::fixup::in_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Descriptor>> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "e0b17f958d3e7000517e"
+      ],
+      "rationale": "Fixups.inRange(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f27e18a0d204b6166af4ba37c0b66a9823d0758c8d8ca90f2ab0b2e1f262e028",
+      "swift_targets": [
+        {
+          "path": "Fixups.inRange(start:end:)",
+          "declaration": "static func inRange(start: UInt64, end: UInt64) throws(IDAError) -> [Fixups.Descriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e30690188d33624dd99e",
+      "cpp_name": "ida::fixup::next",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "7470ab139e7a17ce4ca5"
+      ],
+      "rationale": "Fixups.next(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "9e2fed5174db947bd049fa40887baf5ab37472b0b767db0f25428a15c209ecef",
+      "swift_targets": [
+        {
+          "path": "Fixups.next(address:)",
+          "declaration": "static func next(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f7ba736192fda6b75c3",
+      "cpp_name": "ida::fixup::prev",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "c05ef0863df0cf87a9fe"
+      ],
+      "rationale": "Fixups.prev(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a325f504f3d67cf6df422e204343a4fcd7f124d478874a5536756c05f8076e73",
+      "swift_targets": [
+        {
+          "path": "Fixups.prev(address:)",
+          "declaration": "static func prev(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e2321c9b1823ae5da86b",
+      "cpp_name": "ida::fixup::register_custom",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint16_t> (const CustomHandler &)",
+      "mapping": "adapted",
+      "swift": [
+        "795d0bd70645b38d971d",
+        "fde1edfe025ad8a19b9f",
+        "1380ec20e15624f54a4d"
+      ],
+      "rationale": "Registration returns an ARC-owned CustomRegistration with an opaque generation-tagged type identity; close or ARC unregisters without exposing an SDK resource handle.",
+      "cpp_fingerprint": "cdf0f886fb674d347d11385bbe2b755c3fbb837c424d174e60be7e4d9be62601",
+      "swift_targets": [
+        {
+          "path": "Fixups.registerCustom(_:)",
+          "declaration": "static func registerCustom(_ handler: Fixups.CustomHandler) throws(IDAError) -> Fixups.CustomRegistration"
+        },
+        {
+          "path": "Fixups.CustomRegistration.id",
+          "declaration": "let id: Fixups.CustomTypeID"
+        },
+        {
+          "path": "Fixups.CustomRegistration.close()",
+          "declaration": "func close() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0026f3dded1779a92509",
+      "cpp_name": "ida::fixup::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "b60ecbf42559eb8eb3ca"
+      ],
+      "rationale": "Fixups.remove(source:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "23eefa72d566c14dd590da1e00922a09689f27829aa0e248e53c7b2ac5b66239",
+      "swift_targets": [
+        {
+          "path": "Fixups.remove(source:)",
+          "declaration": "static func remove(source: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7071f06adba660fd361b",
+      "cpp_name": "ida::fixup::set",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const Descriptor &)",
+      "mapping": "direct",
+      "swift": [
+        "1ba74e428ca25b0f1e7f"
+      ],
+      "rationale": "Fixups.set(at:descriptor:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b0f99cb5d15a9a8632cb49b4d02961d9d931257ce12ba7ed083f3f9cd6577678",
+      "swift_targets": [
+        {
+          "path": "Fixups.set(at:descriptor:)",
+          "declaration": "static func set(at address: Address, descriptor: Fixups.Descriptor) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "467d947319e6836553df",
+      "cpp_name": "ida::fixup::unregister_custom",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::uint16_t)",
+      "mapping": "adapted",
+      "swift": [
+        "c3ada59701b54445aafc"
+      ],
+      "rationale": "Consumes an opaque CustomTypeID alias and checks its generation; stale aliases cannot unregister a replacement handler.",
+      "cpp_fingerprint": "2714e87482d374db9f00aad6ee2bb2d8f558f986eb1bac4d688e13dfdb59a1c7",
+      "swift_targets": [
+        {
+          "path": "Fixups.unregisterCustom(_:)",
+          "declaration": "static func unregisterCustom(_ id: Fixups.CustomTypeID) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

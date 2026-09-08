@@ -1,0 +1,1247 @@
+{
+  "domain": "offset",
+  "declarations": [
+    {
+      "cpp_id": "172f58effafd6faa66bb",
+      "cpp_name": "ida::offset::ExpressionComplexity",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ExpressionComplexity { Simple, Complex, }",
+      "mapping": "direct",
+      "swift": [
+        "86386acb02f3c993b5a5"
+      ],
+      "rationale": "Offsets.ExpressionComplexity represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "6bc6db28989c0c61fe45f314921c2aaa3bdc38ce723f0be89b89be9a4377da6d",
+      "swift_targets": [
+        {
+          "path": "Offsets.ExpressionComplexity",
+          "declaration": "enum ExpressionComplexity"
+        }
+      ]
+    },
+    {
+      "cpp_id": "acedbfbeb0acc31881a7",
+      "cpp_name": "ida::offset::ExpressionComplexity::Complex",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ExpressionComplexity",
+      "mapping": "direct",
+      "swift": [
+        "28bad7f75d6fca5a8867"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ExpressionComplexity.complex; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5b976db0c8aecd328516bfa4ea15b08eb110de40ee619a0cc5a7d9be4f0af99b",
+      "swift_targets": [
+        {
+          "path": "Offsets.ExpressionComplexity.complex",
+          "declaration": "case complex"
+        }
+      ]
+    },
+    {
+      "cpp_id": "69c027a42a10e3306932",
+      "cpp_name": "ida::offset::ExpressionComplexity::Simple",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ExpressionComplexity",
+      "mapping": "direct",
+      "swift": [
+        "21baf2130c266d97ef72"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ExpressionComplexity.simple; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "73d459c96224177f36fdc653f05e526d1019cbc6c3846ff0bd1cd03abc6256fd",
+      "swift_targets": [
+        {
+          "path": "Offsets.ExpressionComplexity.simple",
+          "declaration": "case simple"
+        }
+      ]
+    },
+    {
+      "cpp_id": "57e7b8e4d4c0ff7bd704",
+      "cpp_name": "ida::offset::OperandLocation",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "dbc0a65ea1b9ef5cd099"
+      ],
+      "rationale": "Offsets.OperandLocation is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "57e7b8e4d4c0ff7bd704257f7f747135f017305a18fb3f230f2ec131275b7c4c",
+      "swift_targets": [
+        {
+          "path": "Offsets.OperandLocation",
+          "declaration": "struct OperandLocation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3fb6401712a8dd75a572",
+      "cpp_name": "ida::offset::OperandLocation::index",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "0747170fa413b93c43a4"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Offsets.OperandLocation.index, including its semantic type and signedness.",
+      "cpp_fingerprint": "9a628d0b72c3fac0f40e6fbee52e2c1b666dbfb73ddf324c34741aa2cda39313",
+      "swift_targets": [
+        {
+          "path": "Offsets.OperandLocation.index",
+          "declaration": "var index: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e1b99545eed6ebcd2387",
+      "cpp_name": "ida::offset::OperandLocation::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const OperandLocation &) const",
+      "mapping": "adapted",
+      "swift": [
+        "dbc0a65ea1b9ef5cd099"
+      ],
+      "rationale": "Compiler-synthesized Swift Equatable conformance compares every stored field of this record, including nested options and optional endpoints.",
+      "cpp_fingerprint": "6f06c1b511e14a4e39a73f6a2abcf59092b5ef8349a6970d9ff3ecb0edcfc4f5",
+      "swift_targets": [
+        {
+          "path": "Offsets.OperandLocation",
+          "declaration": "struct OperandLocation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4aa79efe2eccfcbffbc8",
+      "cpp_name": "ida::offset::OperandLocation::outer",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "889d543cea9a5d1b83e1"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.OperandLocation.outer, including its semantic type and signedness.",
+      "cpp_fingerprint": "d6c3504456b427fe228c67064ab6768a4ea7a0be52df4c51b3758ffda9cd949a",
+      "swift_targets": [
+        {
+          "path": "Offsets.OperandLocation.outer",
+          "declaration": "var outer: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cf600982b2d3c994c65e",
+      "cpp_name": "ida::offset::ReferenceCalculation",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "949888055e64fdb88510"
+      ],
+      "rationale": "Offsets.ReferenceCalculation is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "cf600982b2d3c994c65efb41bc3c4cb8ce0ebbd02bb8c9f10dbaab2838936501",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceCalculation",
+          "declaration": "struct ReferenceCalculation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b14af0ceb6a8121ee2cf",
+      "cpp_name": "ida::offset::ReferenceCalculation::base",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<Address>",
+      "mapping": "direct",
+      "swift": [
+        "3e7d2dd378dcea4de2f6"
+      ],
+      "rationale": "Offsets.ReferenceCalculation.base preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "a64239bc26179d2abf287725b93fe7142013be2998e7f67031124d140cc2d996",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceCalculation.base",
+          "declaration": "var base: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c18aa2108ab1bf87651c",
+      "cpp_name": "ida::offset::ReferenceCalculation::target",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<Address>",
+      "mapping": "direct",
+      "swift": [
+        "596d3c2ce18dfad2b4cc"
+      ],
+      "rationale": "Offsets.ReferenceCalculation.target preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "cbabcbf26b0929edac4a5a736d1028b55549a10af378c580ae881ddcd531aa04",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceCalculation.target",
+          "declaration": "var target: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d9f4d0f9f69f00d9b28a",
+      "cpp_name": "ida::offset::ReferenceInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a974673884604efbeedf"
+      ],
+      "rationale": "Offsets.ReferenceInfo is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "d9f4d0f9f69f00d9b28ae3e3ff64d0adfebe2c7a357c48789c87a1428cf858cf",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo",
+          "declaration": "struct ReferenceInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a6cc3b576adda26d28e3",
+      "cpp_name": "ida::offset::ReferenceInfo::base",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<Address>",
+      "mapping": "direct",
+      "swift": [
+        "0f4f817684ada0804d97"
+      ],
+      "rationale": "Offsets.ReferenceInfo.base preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "d8daea8cc952483fcfa7cb3fe17239d2fc6d55ce63d1d4b8870621963953d207",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo.base",
+          "declaration": "var base: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "556891b47a1f369362d9",
+      "cpp_name": "ida::offset::ReferenceInfo::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const ReferenceInfo &) const",
+      "mapping": "adapted",
+      "swift": [
+        "a974673884604efbeedf"
+      ],
+      "rationale": "Compiler-synthesized Swift Equatable conformance compares every stored field of this record, including nested options and optional endpoints.",
+      "cpp_fingerprint": "518591b50e661aad8bd879e97a01dde4476b4ca2a2e59b3625cd97e76fb98c97",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo",
+          "declaration": "struct ReferenceInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b78b862e37fe1e306f29",
+      "cpp_name": "ida::offset::ReferenceInfo::options",
+      "cpp_kind": "field",
+      "cpp_signature": "ReferenceOptions",
+      "mapping": "direct",
+      "swift": [
+        "625311fd5451c2779714"
+      ],
+      "rationale": "Preserves the declared ReferenceOptions value in Offsets.ReferenceInfo.options, including its semantic type and signedness.",
+      "cpp_fingerprint": "46b4afe68faad3317495fdacf53a984527e6aaed02cd51422d603b6eb2dfe231",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo.options",
+          "declaration": "var options: Offsets.ReferenceOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a276806e6a1df968a879",
+      "cpp_name": "ida::offset::ReferenceInfo::target",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<Address>",
+      "mapping": "direct",
+      "swift": [
+        "fa1991194b16c17fe207"
+      ],
+      "rationale": "Offsets.ReferenceInfo.target preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "3fa7c39d471e2562ae05a04e30112a79aaf4b639fcee74e752206df3187fce4e",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo.target",
+          "declaration": "var target: Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eb5802bc248b456603b1",
+      "cpp_name": "ida::offset::ReferenceInfo::target_delta",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressDelta",
+      "mapping": "direct",
+      "swift": [
+        "52b52cf940e19427b2a5"
+      ],
+      "rationale": "Preserves the declared AddressDelta value in Offsets.ReferenceInfo.targetDelta, including its semantic type and signedness.",
+      "cpp_fingerprint": "3aa08a392becdcbfb85b048a20c8e912509581d88c28b6175206a824d3c4fec5",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo.targetDelta",
+          "declaration": "var targetDelta: AddressDelta"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a0e096786f7ec12a481",
+      "cpp_name": "ida::offset::ReferenceInfo::type",
+      "cpp_kind": "field",
+      "cpp_signature": "ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "297f2453bbe681bad8ad"
+      ],
+      "rationale": "Preserves the declared ReferenceType value in Offsets.ReferenceInfo.type, including its semantic type and signedness.",
+      "cpp_fingerprint": "b0b5dce87ee0cbcf44ecdd7386f61b8c8d29304f93fda6cc3fa98078e3c9292d",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceInfo.type",
+          "declaration": "var type: Offsets.ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14092eff23d3ccd8c49d",
+      "cpp_name": "ida::offset::ReferenceKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ReferenceKind { Offset8, Offset16, Offset32, Offset64, Low8, Low16, Low32, High8, High16, High32, Custom, }",
+      "mapping": "direct",
+      "swift": [
+        "5fb875e0433732973e8f"
+      ],
+      "rationale": "Offsets.ReferenceKind represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "c760520aece080f56322f1af1d934e480e82ae5de13978ec63a353c6a4e1d1b0",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind",
+          "declaration": "enum ReferenceKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8fbdaee390a057940a6d",
+      "cpp_name": "ida::offset::ReferenceKind::Custom",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "63cdd004641f5878fbde"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.custom; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a85cddda148d1d4e2dd2b3bbc2b77a8a2004fefe5677cdf94834485695472c57",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.custom",
+          "declaration": "case custom"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d3623e3399e04cc361de",
+      "cpp_name": "ida::offset::ReferenceKind::High16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "440c2419dbcc937ef6fe"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.high16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4f55c884e7905f01b3ba3f8deaea25fd18855dc8c996e945add38858dd47a2e1",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.high16",
+          "declaration": "case high16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a6dbdec2d6e11446d73",
+      "cpp_name": "ida::offset::ReferenceKind::High32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "f5a7d716fcc4dab53236"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.high32; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "dd5d1af22e21307de7e027acaee0f080c77e4a4982a10b988570d7b1511af655",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.high32",
+          "declaration": "case high32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "25ff52374443ffd435e5",
+      "cpp_name": "ida::offset::ReferenceKind::High8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "75473b3d22fd18996ae2"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.high8; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "713693038c7bda716d8ec7d875e13041cbfd3ce62dd02a03e4f453873f3883fb",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.high8",
+          "declaration": "case high8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1753d8cc1913ef9f982e",
+      "cpp_name": "ida::offset::ReferenceKind::Low16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "f806c6af3cb1f1212c4f"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.low16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f4165e8207997a7f78ecc0b02eec8b77b508d005c92742506911aece697f2fa3",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.low16",
+          "declaration": "case low16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83599cf287203e115b57",
+      "cpp_name": "ida::offset::ReferenceKind::Low32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "76294e06eb3efe0d4dd0"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.low32; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "da54d9c0244b7de4d827182ea36f418a1275ef99501a724d351efce697ee2f91",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.low32",
+          "declaration": "case low32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "798d2da653480848260b",
+      "cpp_name": "ida::offset::ReferenceKind::Low8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "200011035faacb920bab"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.low8; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c230dbe5253bcb7015e22918fc9470d306fc6d95ec51b9e6fc99e22286061b5a",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.low8",
+          "declaration": "case low8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "59d93a16322fb78a05b5",
+      "cpp_name": "ida::offset::ReferenceKind::Offset16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "5c8f90dadd114170eab5"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.offset16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "71e831defa4a31b53c8615f7f3f95e46dfaeb2efae5b0aaa8aae5a0afde23b52",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.offset16",
+          "declaration": "case offset16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fc60165efb843f524c2",
+      "cpp_name": "ida::offset::ReferenceKind::Offset32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "79bb461347e4aa8e0da0"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.offset32; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "27d8a92678d67c90ed4622e5b1fb8cb6125779414e0ded8c9c50622149d55163",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.offset32",
+          "declaration": "case offset32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1babb133eb4132d7a028",
+      "cpp_name": "ida::offset::ReferenceKind::Offset64",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "5cf0c8048f6b5ce7deb8"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.offset64; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "653b79f07a6734d5927681b8398e3076d631ffc2e180ff65119118852dde7e93",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.offset64",
+          "declaration": "case offset64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ae436914287cf8afac74",
+      "cpp_name": "ida::offset::ReferenceKind::Offset8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::offset::ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "439071b55c746ee86018"
+      ],
+      "rationale": "Corresponding typed semantic case Offsets.ReferenceKind.offset8; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "45b5280d6e5cc1a6fb5afa9595398e494012682e8e4811ed6444a363463b53a1",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceKind.offset8",
+          "declaration": "case offset8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "183f6b84d3f32678339b",
+      "cpp_name": "ida::offset::ReferenceOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "2b0e601ee1081383bba7"
+      ],
+      "rationale": "Offsets.ReferenceOptions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "183f6b84d3f32678339bbdd788c1a7c40094f06c77b9e608e49294ad822cb80b",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions",
+          "declaration": "struct ReferenceOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b0573e0e7ca8f98574e",
+      "cpp_name": "ida::offset::ReferenceOptions::accept_zero",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ba59996abcfb1d68bef1"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.acceptZero, including its semantic type and signedness.",
+      "cpp_fingerprint": "3f7af1cd3a3746ada0d042e0487ff596c749c8a32f2d13293d54c0daef4d049c",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.acceptZero",
+          "declaration": "var acceptZero: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d57511f46f40cd5d1307",
+      "cpp_name": "ida::offset::ReferenceOptions::allow_past_end",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1a7f42ffa3c2d5bb6d3c"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.allowPastEnd, including its semantic type and signedness.",
+      "cpp_fingerprint": "ff3aa61c049e11b6d7fdb6c3246cd553c697796dbd50373c7a93a048977f5589",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.allowPastEnd",
+          "declaration": "var allowPastEnd: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c38c01d48dea5f40384",
+      "cpp_name": "ida::offset::ReferenceOptions::ignore_fixup",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "e844f4aa1185f0a5e1f8"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.ignoreFixup, including its semantic type and signedness.",
+      "cpp_fingerprint": "cecd44c6f56b9b406bfa71245ac0a7c3d9007e7181f248e79f8c9c3c6ee71244",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.ignoreFixup",
+          "declaration": "var ignoreFixup: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "106cb2e9a71695b1cabc",
+      "cpp_name": "ida::offset::ReferenceOptions::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const ReferenceOptions &) const",
+      "mapping": "adapted",
+      "swift": [
+        "2b0e601ee1081383bba7"
+      ],
+      "rationale": "Compiler-synthesized Swift Equatable conformance compares every stored field of this record, including nested options and optional endpoints.",
+      "cpp_fingerprint": "5467c7d08d986c2aa9219dc8d21d282325e2bbf67791d38c2a389e0ee154849f",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions",
+          "declaration": "struct ReferenceOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7da7b114a0ec36e75508",
+      "cpp_name": "ida::offset::ReferenceOptions::reject_all_ones",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "47d514f7c5e1d9f45b9c"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.rejectAllOnes, including its semantic type and signedness.",
+      "cpp_fingerprint": "404bb16368f4bac2f62f3907f6fe75b38bb7a4d4df5ca7400f0faa1923f34c84",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.rejectAllOnes",
+          "declaration": "var rejectAllOnes: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "658a8aa2cf6105cc8ce7",
+      "cpp_name": "ida::offset::ReferenceOptions::relative_virtual_address",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "aee17fb7c647c76b8d7f"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.relativeVirtualAddress, including its semantic type and signedness.",
+      "cpp_fingerprint": "d5d24d327ef26d76256e10ce756c330f703fceab7b8a3f28aa186be24f3f2285",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.relativeVirtualAddress",
+          "declaration": "var relativeVirtualAddress: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e527b03c798f7e6bc457",
+      "cpp_name": "ida::offset::ReferenceOptions::self_relative",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "a992903d035979435f84"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.selfRelative, including its semantic type and signedness.",
+      "cpp_fingerprint": "e632e00439523a559157f7d8ade91118f2cc8d48c41ad19b93394ba2b007e0a0",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.selfRelative",
+          "declaration": "var selfRelative: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f92f6265e56fd908c42",
+      "cpp_name": "ida::offset::ReferenceOptions::sign_extend_operand",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1de73c8a8907c6cef3b5"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.signExtendOperand, including its semantic type and signedness.",
+      "cpp_fingerprint": "7648474bafeb6c1f2db5318149596ed590fef6c02e7526895e7a0cce8f1025f0",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.signExtendOperand",
+          "declaration": "var signExtendOperand: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f37cbf34206ce2ae115c",
+      "cpp_name": "ida::offset::ReferenceOptions::subtract_operand",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "125a390319ed6d469382"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.subtractOperand, including its semantic type and signedness.",
+      "cpp_fingerprint": "fff6cfce5484a2b1327c8690c69a3d3e273416a474a7ed170469a3397c6e8fcd",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.subtractOperand",
+          "declaration": "var subtractOperand: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ffd343f29daac2ba4219",
+      "cpp_name": "ida::offset::ReferenceOptions::suppress_base_reference",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7e330590337c23a2bbe2"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceOptions.suppressBaseReference, including its semantic type and signedness.",
+      "cpp_fingerprint": "34edbffe1ce063c50b95541932916227263ccf179ca83249a3a0a22eb8ddde29",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceOptions.suppressBaseReference",
+          "declaration": "var suppressBaseReference: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4e819d733db0b5454da8",
+      "cpp_name": "ida::offset::ReferenceType",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "471eca4235616f853108"
+      ],
+      "rationale": "Offsets.ReferenceType is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "4e819d733db0b5454da850524fb1112352be0daa67c66c698774c2cb50bc3512",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceType",
+          "declaration": "struct ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a0efc9fb9c1e306cb1d",
+      "cpp_name": "ida::offset::ReferenceType::custom_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "c7ca6d928671e5663b3d"
+      ],
+      "rationale": "Preserves the custom_name value as var customName: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "539304936ea6ef2ad69bead7933d2292d3b2af07cc978e2757a1ea584e26f677",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceType.customName",
+          "declaration": "var customName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "786f8c0e09ad69ec35cf",
+      "cpp_name": "ida::offset::ReferenceType::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "ReferenceKind",
+      "mapping": "direct",
+      "swift": [
+        "cfbeaadc7bdb995ad83f"
+      ],
+      "rationale": "Preserves the declared ReferenceKind value in Offsets.ReferenceType.kind, including its semantic type and signedness.",
+      "cpp_fingerprint": "be9b4862740b7fe62676b7bf52b9b0820b1ef77ae6d68fe6d3395b7ccad5ddd0",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceType.kind",
+          "declaration": "var kind: Offsets.ReferenceKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "07bd248f257915c8f199",
+      "cpp_name": "ida::offset::ReferenceType::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const ReferenceType &) const",
+      "mapping": "adapted",
+      "swift": [
+        "471eca4235616f853108"
+      ],
+      "rationale": "Compiler-synthesized Swift Equatable conformance compares every stored field of this record, including nested options and optional endpoints.",
+      "cpp_fingerprint": "28d68bc515311de03cd73e6f8232aacf439e2f43b550b4ea404951abd70b4747",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceType",
+          "declaration": "struct ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "47071b40c037eef9959b",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f449a507b873bc62da7f"
+      ],
+      "rationale": "Offsets.ReferenceTypeDescriptor is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "47071b40c037eef9959bd71e65b613e10115c9bb0d832906b80898737d815231",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor",
+          "declaration": "struct ReferenceTypeDescriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc4b33ce3acffdfd738e",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor::description",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "0ec0c676eebbf4125cc2"
+      ],
+      "rationale": "Preserves the description value as var description: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "25965111008456be7e8c2bdf5c4f9eac301403c755a9cf63e04909afb0a28612",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor.description",
+          "declaration": "var description: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b38f2d34940c266aa05e",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b18978e9a1e6d4a34afa"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "c94f779fa9c6b8f8385775c0676ab3fcef5ae4eaa2f8b3d562d2e29530d431a0",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff7aca6e685f230f464a",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const ReferenceTypeDescriptor &) const",
+      "mapping": "adapted",
+      "swift": [
+        "f449a507b873bc62da7f"
+      ],
+      "rationale": "Compiler-synthesized Swift Equatable conformance compares every stored field of this record, including nested options and optional endpoints.",
+      "cpp_fingerprint": "1b831f92fb19e9e3b8e5478d437be9c9a6cc53dc230e13f81b144fea51d80b1c",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor",
+          "declaration": "struct ReferenceTypeDescriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4e216a1e87fec0b5cf8d",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor::target_optional",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "2ef2bf82863b3f3ff0df"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.ReferenceTypeDescriptor.targetOptional, including its semantic type and signedness.",
+      "cpp_fingerprint": "6faa537d8dc9ce4bdee4a80722f2586e2869328ac4444d31a9844fb0b32597bc",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor.targetOptional",
+          "declaration": "var targetOptional: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "96d4244a611c5d0f3b5c",
+      "cpp_name": "ida::offset::ReferenceTypeDescriptor::type",
+      "cpp_kind": "field",
+      "cpp_signature": "ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "59e1360aeda649408404"
+      ],
+      "rationale": "Preserves the declared ReferenceType value in Offsets.ReferenceTypeDescriptor.type, including its semantic type and signedness.",
+      "cpp_fingerprint": "ed744a2d95a089614c93b555be6392fe600460b3578a6d732b7524fbd506b19d",
+      "swift_targets": [
+        {
+          "path": "Offsets.ReferenceTypeDescriptor.type",
+          "declaration": "var type: Offsets.ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a9b85b394154d266e912",
+      "cpp_name": "ida::offset::RenderOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "c43efec83ff8594b60e0"
+      ],
+      "rationale": "Offsets.RenderOptions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "a9b85b394154d266e9125c62b653ccdd78f7e45b13161e0899072478c1fbdf90",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderOptions",
+          "declaration": "struct RenderOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb87b11f38b03b31a155",
+      "cpp_name": "ida::offset::RenderOptions::append_zero_field",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "02a9b7c3257729935bdb"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.RenderOptions.appendZeroField, including its semantic type and signedness.",
+      "cpp_fingerprint": "59174a5e8dba2bb1085bb8bfe96c9f77a6b49422bc0b2e774c31dc5c161cedc1",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderOptions.appendZeroField",
+          "declaration": "var appendZeroField: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83d8ba5efb87571aa435",
+      "cpp_name": "ida::offset::RenderOptions::avoid_dummy_names",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "78904d76fd24034d5c5a"
+      ],
+      "rationale": "Preserves the declared bool value in Offsets.RenderOptions.avoidDummyNames, including its semantic type and signedness.",
+      "cpp_fingerprint": "b5891b72866e6d819bba92e322d4334a5fa1345d1c8aaa55947c82f6f3e1bff3",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderOptions.avoidDummyNames",
+          "declaration": "var avoidDummyNames: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb45c8ad62dff5e5759b",
+      "cpp_name": "ida::offset::RenderedExpression",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "761f323ff3333e5b9843"
+      ],
+      "rationale": "Offsets.RenderedExpression is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "cb45c8ad62dff5e5759b47ff3774bdcc98472ea73225b43fd65bd69230c48b2d",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderedExpression",
+          "declaration": "struct RenderedExpression"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f0e7c89dda51245d54a",
+      "cpp_name": "ida::offset::RenderedExpression::complexity",
+      "cpp_kind": "field",
+      "cpp_signature": "ExpressionComplexity",
+      "mapping": "direct",
+      "swift": [
+        "ba12dba676685ba42f6a"
+      ],
+      "rationale": "Preserves the declared ExpressionComplexity value in Offsets.RenderedExpression.complexity, including its semantic type and signedness.",
+      "cpp_fingerprint": "bfa3a5a16f4bba74aff1b51e931ac52026925d9cf667c865fcf746df17678e7b",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderedExpression.complexity",
+          "declaration": "var complexity: Offsets.ExpressionComplexity"
+        }
+      ]
+    },
+    {
+      "cpp_id": "afe3f042972e1c7305f9",
+      "cpp_name": "ida::offset::RenderedExpression::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "382057e9b187081d6ae9"
+      ],
+      "rationale": "Preserves the text value as var text: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "0b2bc6418da2d2bdec933f8efef1abd26f92d435fd9cda94eedd1d467305b6ad",
+      "swift_targets": [
+        {
+          "path": "Offsets.RenderedExpression.text",
+          "declaration": "var text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5422aaca7c13d816b446",
+      "cpp_name": "ida::offset::add_operand_data_references",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, OperandLocation, xref::DataType)",
+      "mapping": "direct",
+      "swift": [
+        "dffe17e0b97226f1a725"
+      ],
+      "rationale": "Offsets.addOperandDataReferences(at:location:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "278740c24c477bbe4125ad8088301ca4d9bfd2830e1d44d16c1c4bbc53e803f2",
+      "swift_targets": [
+        {
+          "path": "Offsets.addOperandDataReferences(at:location:type:)",
+          "declaration": "static func addOperandDataReferences(at address: Address, location: Offsets.OperandLocation, type: CrossReferences.DataType = .offset) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4723d981a8b61ee3f913",
+      "cpp_name": "ida::offset::apply_reference",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, OperandLocation, const ReferenceInfo &)",
+      "mapping": "direct",
+      "swift": [
+        "15aea62a410f87e8fa08"
+      ],
+      "rationale": "Offsets.applyReference(at:location:info:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ba60e2e81b115318ab462e3656175f9d3151cc7f3f8c49804dcf115c6146027a",
+      "swift_targets": [
+        {
+          "path": "Offsets.applyReference(at:location:info:)",
+          "declaration": "static func applyReference(at address: Address, location: Offsets.OperandLocation, info: Offsets.ReferenceInfo) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2923a44ba0faf5fc2de4",
+      "cpp_name": "ida::offset::calculate_base_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "ad60623f681f19ef53fe"
+      ],
+      "rationale": "Offsets.calculateBaseValue(target:base:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "7b9a76c885e150b02008bff50960d28ece4696b2c06cc6f77845946bae7cf49d",
+      "swift_targets": [
+        {
+          "path": "Offsets.calculateBaseValue(target:base:)",
+          "declaration": "static func calculateBaseValue(target: UInt64, base: UInt64) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f58272aa419bb8ab603f",
+      "cpp_name": "ida::offset::calculate_offset_base",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Address, OperandLocation)",
+      "mapping": "direct",
+      "swift": [
+        "cfcf77ec0bc3e3cddd41"
+      ],
+      "rationale": "Offsets.calculateOffsetBase(at:location:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "49a90d31f2a88f3759e253fda1d57f92df30aecdcedf5a735e9e0109496680a0",
+      "swift_targets": [
+        {
+          "path": "Offsets.calculateOffsetBase(at:location:)",
+          "declaration": "static func calculateOffsetBase(at address: Address, location: Offsets.OperandLocation) throws(IDAError) -> Address?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1df2b5fe4a9dc16c38c7",
+      "cpp_name": "ida::offset::calculate_reference",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceCalculation> (Address, const ReferenceInfo &, AddressDelta)",
+      "mapping": "direct",
+      "swift": [
+        "2d297a748b63c0d1c5ce"
+      ],
+      "rationale": "Offsets.calculateReference(from:info:operandValue:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8c03f3fa7865bf9e514c3079f6be4836a8a76bfc9698f0dc731fa85b2505eb8f",
+      "swift_targets": [
+        {
+          "path": "Offsets.calculateReference(from:info:operandValue:)",
+          "declaration": "static func calculateReference(from: Address, info: Offsets.ReferenceInfo, operandValue: AddressDelta) throws(IDAError) -> Offsets.ReferenceCalculation"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc3efb0c7ab3ecaebad3",
+      "cpp_name": "ida::offset::default_reference_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceType> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "cde4adde3706753ebe0d"
+      ],
+      "rationale": "Offsets.defaultReferenceType(at:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3dd364db3cc83682e4ee130202ce6197f75a81ac086199207a183d993c24e8a8",
+      "swift_targets": [
+        {
+          "path": "Offsets.defaultReferenceType(at:)",
+          "declaration": "static func defaultReferenceType(at address: Address) throws(IDAError) -> Offsets.ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "19d64d181d075a84cfed",
+      "cpp_name": "ida::offset::possible_offset32_target",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "993a24edd49091111d62"
+      ],
+      "rationale": "Offsets.possibleOffset32Target(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "9bcadaf7fc30401b1f27dc64009fc31b26243be457339dfb32bef5d8e88b53ce",
+      "swift_targets": [
+        {
+          "path": "Offsets.possibleOffset32Target(address:)",
+          "declaration": "static func possibleOffset32Target(address: UInt64) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c2386559e685a9054290",
+      "cpp_name": "ida::offset::probable_base",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Address, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "3fe95e9211576aca7b53"
+      ],
+      "rationale": "Offsets.probableBase(address:operandValue:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "2ee82dfc6c06274ee86a9868cf1fcb6f373de26c45419b09e3fe0c2275d49990",
+      "swift_targets": [
+        {
+          "path": "Offsets.probableBase(address:operandValue:)",
+          "declaration": "static func probableBase(address: UInt64, operandValue: UInt64) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "34a5d01fc27ca93598c3",
+      "cpp_name": "ida::offset::reference_info",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<ReferenceInfo>> (Address, OperandLocation)",
+      "mapping": "direct",
+      "swift": [
+        "6f80badcf3db28905e48"
+      ],
+      "rationale": "Offsets.referenceInfo(at:location:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "783cebb019fe80ef677bfcd50005a18cd70290bc1c91d51e3e45cac6b2fca572",
+      "swift_targets": [
+        {
+          "path": "Offsets.referenceInfo(at:location:)",
+          "declaration": "static func referenceInfo(at address: Address, location: Offsets.OperandLocation) throws(IDAError) -> Offsets.ReferenceInfo?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "37ba02fc04c20c5d45fb",
+      "cpp_name": "ida::offset::reference_types",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<ReferenceTypeDescriptor>> ()",
+      "mapping": "direct",
+      "swift": [
+        "1c492725a1da20d2bd72"
+      ],
+      "rationale": "Offsets.referenceTypes() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8a202c9a205864edc5eaca4d963c89d79796bb06ff3bfabdbde59ed21cb6c70b",
+      "swift_targets": [
+        {
+          "path": "Offsets.referenceTypes()",
+          "declaration": "static func referenceTypes() throws(IDAError) -> [Offsets.ReferenceTypeDescriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d95a9f09c7eec5c5c9de",
+      "cpp_name": "ida::offset::remove_reference",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address, OperandLocation)",
+      "mapping": "direct",
+      "swift": [
+        "2973c174c6acd2aa761b"
+      ],
+      "rationale": "Offsets.removeReference(at:location:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "486b893061898871d299c9766f5adb0fbafc7d2ccdd23a4b4b090da23c25ba7b",
+      "swift_targets": [
+        {
+          "path": "Offsets.removeReference(at:location:)",
+          "declaration": "static func removeReference(at address: Address, location: Offsets.OperandLocation) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2826c1273d115e2fe26",
+      "cpp_name": "ida::offset::render_expression",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<RenderedExpression> (Address, OperandLocation, const ReferenceInfo &, Address, AddressDelta, RenderOptions)",
+      "mapping": "direct",
+      "swift": [
+        "9a64edbb15f24fd122c1"
+      ],
+      "rationale": "Offsets.renderExpression(at:location:info:from:operandValue:options:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7f8c1a94722d09f6e072aee554c7ca194210c33e2d35ac3389f42e64c6c20b07",
+      "swift_targets": [
+        {
+          "path": "Offsets.renderExpression(at:location:info:from:operandValue:options:)",
+          "declaration": "static func renderExpression(at address: Address, location: Offsets.OperandLocation, info: Offsets.ReferenceInfo, from: Address, operandValue: AddressDelta, options: Offsets.RenderOptions = .init()) throws(IDAError) -> Offsets.RenderedExpression"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc728280039e830299a0",
+      "cpp_name": "ida::offset::render_stored_expression",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<RenderedExpression> (Address, OperandLocation, Address, AddressDelta, RenderOptions)",
+      "mapping": "direct",
+      "swift": [
+        "b3f7ef2bb02413bbe10a"
+      ],
+      "rationale": "Offsets.renderStoredExpression(at:location:from:operandValue:options:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ff95c48da5eb7ffa1720c840c8c06990fa173ab38d2f6915cb7e24c1dc392517",
+      "swift_targets": [
+        {
+          "path": "Offsets.renderStoredExpression(at:location:from:operandValue:options:)",
+          "declaration": "static func renderStoredExpression(at address: Address, location: Offsets.OperandLocation, from: Address, operandValue: AddressDelta, options: Offsets.RenderOptions = .init()) throws(IDAError) -> Offsets.RenderedExpression"
+        }
+      ]
+    }
+  ]
+}

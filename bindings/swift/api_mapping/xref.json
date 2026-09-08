@@ -1,0 +1,1121 @@
+{
+  "domain": "xref",
+  "declarations": [
+    {
+      "cpp_id": "c5baeb6f5a83147bde2c",
+      "cpp_name": "ida::xref::CodeType",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class CodeType { CallFar, CallNear, JumpFar, JumpNear, Flow, }",
+      "mapping": "direct",
+      "swift": [
+        "0efdf217c0d63bc3b93a"
+      ],
+      "rationale": "CrossReferences.CodeType represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "27afe4c4c856a91ba52326e6d28c82af0d6c3ef2fdfd8f3c3ef19f73f58ff817",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType",
+          "declaration": "enum CodeType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f39a2984058e4b777d3c",
+      "cpp_name": "ida::xref::CodeType::CallFar",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::CodeType",
+      "mapping": "direct",
+      "swift": [
+        "0c0262ee91d266cd746e"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.CodeType.callFar; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5f9194b4c441a3537b3457c40b8bd59f6977e3be73cf4dc49dffcd4acdad5b7d",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType.callFar",
+          "declaration": "case callFar"
+        }
+      ]
+    },
+    {
+      "cpp_id": "96a60521ee206b942c39",
+      "cpp_name": "ida::xref::CodeType::CallNear",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::CodeType",
+      "mapping": "direct",
+      "swift": [
+        "2faf54dd84e424c9ee8d"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.CodeType.callNear; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4ff2035b67537ce307c96f5317f60f61ff5f555fe802788a4ecf2c93f6868611",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType.callNear",
+          "declaration": "case callNear"
+        }
+      ]
+    },
+    {
+      "cpp_id": "39aa09b5f484e7718001",
+      "cpp_name": "ida::xref::CodeType::Flow",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::CodeType",
+      "mapping": "direct",
+      "swift": [
+        "c79b9e6f93ae935388d8"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.CodeType.flow; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "cb5e3792e9cb0d9f9b1137d6fdc72f7891e030cd9bf67b62809a3b7c1dc1b523",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType.flow",
+          "declaration": "case flow"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ef73ecd72fb9da2f32e",
+      "cpp_name": "ida::xref::CodeType::JumpFar",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::CodeType",
+      "mapping": "direct",
+      "swift": [
+        "0240acae44d3cabdd711"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.CodeType.jumpFar; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "35b35a8ff944a9e8a03eb5ce9660b9b91a81eb170fc1fbf5277b484eba7994b0",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType.jumpFar",
+          "declaration": "case jumpFar"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2eb3e7c27e3d51ce152c",
+      "cpp_name": "ida::xref::CodeType::JumpNear",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::CodeType",
+      "mapping": "direct",
+      "swift": [
+        "dc379ae8d83a9894c5ee"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.CodeType.jumpNear; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0d1449d9c3c8dd3810acadd6c18b7391c732239c6645e05490cfb78d04be7ec8",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.CodeType.jumpNear",
+          "declaration": "case jumpNear"
+        }
+      ]
+    },
+    {
+      "cpp_id": "10f4b89fa1d9347ec7c6",
+      "cpp_name": "ida::xref::DataType",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class DataType { Offset, Write, Read, Text, Informational, }",
+      "mapping": "direct",
+      "swift": [
+        "bb95f744c7301b660cf9"
+      ],
+      "rationale": "CrossReferences.DataType represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "2f23d390473e250dfb73d732d360394df26e6294a82d2513f71c594828a19036",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType",
+          "declaration": "enum DataType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7a0ff7c29d0f9d27a12",
+      "cpp_name": "ida::xref::DataType::Informational",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::DataType",
+      "mapping": "direct",
+      "swift": [
+        "00429a6955327434e758"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.DataType.informational; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "580fee5de41e05ed6c9e6064f8940b925db175ae6bc869d5dd92b58134c5ab94",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType.informational",
+          "declaration": "case informational"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5cc98f604e331b5b3b61",
+      "cpp_name": "ida::xref::DataType::Offset",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::DataType",
+      "mapping": "direct",
+      "swift": [
+        "3fad0b61c127664f1da1"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.DataType.offset; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "add0fa99982af21d295fce6783b98d78729e583b0b8323e6633991947c0ae759",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType.offset",
+          "declaration": "case offset"
+        }
+      ]
+    },
+    {
+      "cpp_id": "01a1314340b488769dd3",
+      "cpp_name": "ida::xref::DataType::Read",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::DataType",
+      "mapping": "direct",
+      "swift": [
+        "643ed00a900c238a0682"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.DataType.read; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "adf3e8abd114af6099ed57b0f02af03c09b6394611ecc610ed28c5ff1b0aa77e",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType.read",
+          "declaration": "case read"
+        }
+      ]
+    },
+    {
+      "cpp_id": "faaf982eda67ec6082b8",
+      "cpp_name": "ida::xref::DataType::Text",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::DataType",
+      "mapping": "direct",
+      "swift": [
+        "c742243d1c900f2aa93f"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.DataType.text; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e99900c3adfd236f31de03ae46ec00addc8038b76d1085ef0862ec17006f72a7",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType.text",
+          "declaration": "case text"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d34902a5530605db75e3",
+      "cpp_name": "ida::xref::DataType::Write",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::DataType",
+      "mapping": "direct",
+      "swift": [
+        "b2882b9fc00594914680"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.DataType.write; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "446cd3d9f9ec7545ee2c7ddd3b443401a6d90d836058e45dd4ca69bd651b1d05",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.DataType.write",
+          "declaration": "case write"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c37a996b60773ef98380",
+      "cpp_name": "ida::xref::Reference",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "edacb071bbdd6e9c5113"
+      ],
+      "rationale": "CrossReferences.Reference is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "c37a996b60773ef98380dc0711fd2bd5001f719cc9a524c6e44b6224e331587c",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference",
+          "declaration": "struct Reference"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2221ed2b3f381385486",
+      "cpp_name": "ida::xref::Reference::from",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "6c6c574fc277ff9c87a9"
+      ],
+      "rationale": "Preserves the declared Address value in CrossReferences.Reference.from, including its semantic type and signedness.",
+      "cpp_fingerprint": "4b77e38aa3df364f348def7f1a8270728c2e7592f665fea3b2f59ac68c125015",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference.from",
+          "declaration": "var from: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "234db8366228d23d1933",
+      "cpp_name": "ida::xref::Reference::is_code",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f643121641b2b4654406"
+      ],
+      "rationale": "Preserves the declared bool value in CrossReferences.Reference.isCode, including its semantic type and signedness.",
+      "cpp_fingerprint": "aea83545f01dc33d8e9774fd9dbe1115f7a94183445dd2f75df18161a2bab153",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference.isCode",
+          "declaration": "var isCode: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "06321cd574bc65ec7bf7",
+      "cpp_name": "ida::xref::Reference::to",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "8fdd58243edb5885e3d1"
+      ],
+      "rationale": "Preserves the declared Address value in CrossReferences.Reference.to, including its semantic type and signedness.",
+      "cpp_fingerprint": "785403504392d06976a42e749eaf2b71c42e09dedae3c088c29a03bacfa5ec70",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference.to",
+          "declaration": "var to: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b3d5aa45cc059f2ba6e",
+      "cpp_name": "ida::xref::Reference::type",
+      "cpp_kind": "field",
+      "cpp_signature": "ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "081e2b4fe316fc232da3"
+      ],
+      "rationale": "Preserves the declared ReferenceType value in CrossReferences.Reference.type, including its semantic type and signedness.",
+      "cpp_fingerprint": "fb2c6480fb0923c9a6b88fc61b888b9272719342915b33973c96fea2fa3480bc",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference.type",
+          "declaration": "var type: CrossReferences.ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a08d4604802d08691f9",
+      "cpp_name": "ida::xref::Reference::user_defined",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "d71cbc13116b8a4e69ef"
+      ],
+      "rationale": "Preserves the declared bool value in CrossReferences.Reference.userDefined, including its semantic type and signedness.",
+      "cpp_fingerprint": "96f91dede9e2df17eeafd5d7eb2f24ef76ddde2585e8163d741d133d342158c5",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.Reference.userDefined",
+          "declaration": "var userDefined: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "93ceb5ebb1679a970f7f",
+      "cpp_name": "ida::xref::ReferenceRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "93ceb5ebb1679a970f7fb677575749038d69e9692601f1f2857a9cb5863f99a8",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e66e22437ae0dc68b60",
+      "cpp_name": "ida::xref::ReferenceRange::ReferenceRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "8a1ef72052c070c8a178466181cd172cd89479e8f8dd5ae5f17463d4b67d9cad",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c64d014182e42c91b131",
+      "cpp_name": "ida::xref::ReferenceRange::ReferenceRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (std::vector<Reference>)",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "d93c2d554a9ff44c5347ed83eb059fa7d1021c8ba76599ee62527711e6b758e1",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3749e8bd07277e6e68ae",
+      "cpp_name": "ida::xref::ReferenceRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "const_iterator () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "5bb2f3e81cf6d451e8f1f428398ff46acdd89627073fa62735edd10fe16f36bb",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6bbe1d9637c0ef81f193",
+      "cpp_name": "ida::xref::ReferenceRange::const_iterator",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::vector<Reference>::const_iterator",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "86cd5c3d7b4c663b6c787985ae4c179861f9367a601958e1113c4cad6126bfd2",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "42fec72e4d2c07a482d2",
+      "cpp_name": "ida::xref::ReferenceRange::empty",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "70a09cd20c3d0da8a401d7813489bfd18517c2f85e2f70c8b482092f00a85199",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3fb639a2e89f22199a9f",
+      "cpp_name": "ida::xref::ReferenceRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "const_iterator () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "7089390b3d819d8efb5b43ad6f0b8df0d57f7ba99e242750fdde73c0aa3b394c",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "60fb2b4f82a55d7c2bf1",
+      "cpp_name": "ida::xref::ReferenceRange::size",
+      "cpp_kind": "method",
+      "cpp_signature": "std::size_t () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4cb0e14b9cd890ae840f"
+      ],
+      "rationale": "ReferenceRange is an explicit alias for [Reference]. Swift Array initialization, startIndex/endIndex, makeIterator, count, and isEmpty supply the corresponding owned-vector construction/traversal/query operation.",
+      "cpp_fingerprint": "a28ac82063d33d97f465cf865463bfd710a59d0ce81f8cea4bcbe2d8a7a6f526",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceRange",
+          "declaration": "typealias ReferenceRange = [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2fdf7a8f8b09037b7b2c",
+      "cpp_name": "ida::xref::ReferenceType",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ReferenceType { Unknown, Flow, CallNear, CallFar, JumpNear, JumpFar, Offset, Read, Write, Text, Informational, }",
+      "mapping": "direct",
+      "swift": [
+        "77bd5f370a529be9addd"
+      ],
+      "rationale": "CrossReferences.ReferenceType represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "5506d742291b3cc2d0749fc3d7729ef4310b6981d2f8b4e5449b8e0d202f3b4a",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType",
+          "declaration": "enum ReferenceType"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1216826d29a4fb4e6583",
+      "cpp_name": "ida::xref::ReferenceType::CallFar",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "93caa797031bcdecbf61"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.callFar; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d7fe751da36b0193681ebaf3a0bcdef0680ec9a8d9b0773716edb47371e10fb9",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.callFar",
+          "declaration": "case callFar"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ed741dfb5ed3b77f7cac",
+      "cpp_name": "ida::xref::ReferenceType::CallNear",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "e5cb67d7c7bf49a509b9"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.callNear; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "49d3391963b541a0d7971d23e933045c1d78041ec96cd4097a949db23e6e3498",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.callNear",
+          "declaration": "case callNear"
+        }
+      ]
+    },
+    {
+      "cpp_id": "689e218877ce932b8a12",
+      "cpp_name": "ida::xref::ReferenceType::Flow",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "2efc4f44a41bdf57c06f"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.flow; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b3052e992a635c806f697ff78f256bcc293c5019743acd1456793032344980bb",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.flow",
+          "declaration": "case flow"
+        }
+      ]
+    },
+    {
+      "cpp_id": "069c4669602e710e287a",
+      "cpp_name": "ida::xref::ReferenceType::Informational",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "f8415766ac7deea8c307"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.informational; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b048c1d914b6a12e1e8df4e9e55ff2afda18ba1e43fffa52944a20925c25241a",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.informational",
+          "declaration": "case informational"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9839fd40c871ad994d24",
+      "cpp_name": "ida::xref::ReferenceType::JumpFar",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "2cb6cf67b3a14389f146"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.jumpFar; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f12fc6b0e8e24ddffe1daa40ae734918397b3ca85bc9ce357c3ee45c2d355f58",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.jumpFar",
+          "declaration": "case jumpFar"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2084bda2b34966c76a5",
+      "cpp_name": "ida::xref::ReferenceType::JumpNear",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "54aafa29cd0e134b8a84"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.jumpNear; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1a8c13d33a4fd527ff4b6abff6f0ab9d4af5cf4b18b5681bff167c3d51fbe885",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.jumpNear",
+          "declaration": "case jumpNear"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e094f507f4ddafe93e0b",
+      "cpp_name": "ida::xref::ReferenceType::Offset",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "e490fdac0dc44c5e33f0"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.offset; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "519bffb626bc9fe6d53256d3aa5244d77bbe03e609252e701194460f1eaa95e0",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.offset",
+          "declaration": "case offset"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f7e8df7b2ab4b86e14e",
+      "cpp_name": "ida::xref::ReferenceType::Read",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "b27c93490f7aed403d01"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.read; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2b99c2c4759cc5028f731e2a98675e5d91130fd99c9b568345737f20c09ed4e9",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.read",
+          "declaration": "case read"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d0aee227d7e526a4131",
+      "cpp_name": "ida::xref::ReferenceType::Text",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "091b4d4b406f7862e055"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.text; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "de4bddf9dd3d8cbe616b34261ff6f6174f6f152cfaf96edfb3105c6d1fc54e9d",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.text",
+          "declaration": "case text"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5be91180adf452df1557",
+      "cpp_name": "ida::xref::ReferenceType::Unknown",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "4c6812c7c7b2f544eebc"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.unknown; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ea22efba4cf2bec5e28c62ddcdb1ca2b95efc6d76046e602e6f8cca4afa1b1b3",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.unknown",
+          "declaration": "case unknown"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3107b53b61c3650e7215",
+      "cpp_name": "ida::xref::ReferenceType::Write",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::xref::ReferenceType",
+      "mapping": "direct",
+      "swift": [
+        "0614b5df768b448d30fa"
+      ],
+      "rationale": "Corresponding typed semantic case CrossReferences.ReferenceType.write; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3560ff1748ed4ed0e2640ab4c1984c05b104bd2f634dcfc2b25c0583768d5f9c",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.ReferenceType.write",
+          "declaration": "case write"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e525c007f1dead292de2",
+      "cpp_name": "ida::xref::add_code",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, CodeType)",
+      "mapping": "direct",
+      "swift": [
+        "143ef50499f185239a43"
+      ],
+      "rationale": "CrossReferences.addCode(from:to:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "5297ded0b3c08c7d3f887074222c469cbfbe9a32efeb10ef1525d007afb2d5eb",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.addCode(from:to:type:)",
+          "declaration": "static func addCode(from: UInt64, to: UInt64, type: CrossReferences.CodeType) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d0c3f14f9fbb37652d1",
+      "cpp_name": "ida::xref::add_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, DataType)",
+      "mapping": "direct",
+      "swift": [
+        "bc8c6e6b3a40e18b84c9"
+      ],
+      "rationale": "CrossReferences.addData(from:to:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3152fa51583b81e4286c57e873c3856528af8ae0c0f28ff8a138bb98be3c5378",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.addData(from:to:type:)",
+          "declaration": "static func addData(from: UInt64, to: UInt64, type: CrossReferences.DataType) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d82c5e3a430aef8905c",
+      "cpp_name": "ida::xref::code_refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "67510c08a0ff02cbe2fe"
+      ],
+      "rationale": "Filters complete Reference snapshots by isCode; endpoint, semantic type, and user-defined fields are retained rather than reduced to addresses.",
+      "cpp_fingerprint": "c215f9f0e2b02765964a58e88af3e8dc05c6e04ca32219f93b197dca1d6e6934",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.codeRefsFrom(address:)",
+          "declaration": "static func codeRefsFrom(address: Address) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c26309c6fa769221952",
+      "cpp_name": "ida::xref::code_refs_from_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "6c45b789de3e53115abe"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "81e57b6f73f7e9ef31e5b4c2d0acf2d69f2952dc87cb69702bcf184d18c08a24",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.codeRefsFromRange(address:)",
+          "declaration": "static func codeRefsFromRange(address: Address) throws(IDAError) -> CrossReferences.ReferenceRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "142e9b7f328f20d3a900",
+      "cpp_name": "ida::xref::code_refs_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "90eb49632e2e4706a539"
+      ],
+      "rationale": "Filters complete Reference snapshots by isCode; endpoint, semantic type, and user-defined fields are retained rather than reduced to addresses.",
+      "cpp_fingerprint": "0653ec57e1503cba5a7e5f18d47e377067b7c57e3b9a017af90d36c8364808ba",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.codeRefsTo(address:)",
+          "declaration": "static func codeRefsTo(address: Address) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "383b7e05ddc15a7b8d58",
+      "cpp_name": "ida::xref::code_refs_to_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "98f0b9f6e3bf176d98f9"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "5d2d2aa248595c3ca2f7e8e1c7b9ed5f178d1fcdb922a0a2c7344cb167b84787",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.codeRefsToRange(address:)",
+          "declaration": "static func codeRefsToRange(address: Address) throws(IDAError) -> CrossReferences.ReferenceRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4826126492632fdb895c",
+      "cpp_name": "ida::xref::data_refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "c18a8e3d5a2dd1dd4132"
+      ],
+      "rationale": "Filters complete Reference snapshots by isCode; endpoint, semantic type, and user-defined fields are retained rather than reduced to addresses.",
+      "cpp_fingerprint": "9150dfdb2e474d909e444ddaffc4d56892deac09659f6e56e56642f6e2a71eac",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.dataRefsFrom(address:)",
+          "declaration": "static func dataRefsFrom(address: Address) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f33a03a3cba0c0588611",
+      "cpp_name": "ida::xref::data_refs_from_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "4b90487bbbadac510695"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "2db7c4687ed784713f4a1a3082d639d7e0be44d929c4c47cfe5789448ba4cea9",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.dataRefsFromRange(address:)",
+          "declaration": "static func dataRefsFromRange(address: Address) throws(IDAError) -> CrossReferences.ReferenceRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d10358562106a046aca9",
+      "cpp_name": "ida::xref::data_refs_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "46e955ef82d657aabe0e"
+      ],
+      "rationale": "Filters complete Reference snapshots by isCode; endpoint, semantic type, and user-defined fields are retained rather than reduced to addresses.",
+      "cpp_fingerprint": "ee826da8cbd233fbe0790be90f3c5e61b41f6c0d84ce43566773ed63a17e32b4",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.dataRefsTo(address:)",
+          "declaration": "static func dataRefsTo(address: Address) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a4ee3ed2a7c9d977701",
+      "cpp_name": "ida::xref::data_refs_to_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "39a805b41729b400367a"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "0e89b9f195f3c857da90fb063f3c720b1d41d40966026f60a71870c922d7a6b2",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.dataRefsToRange(address:)",
+          "declaration": "static func dataRefsToRange(address: Address) throws(IDAError) -> CrossReferences.ReferenceRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bbae5a617ec944dc200b",
+      "cpp_name": "ida::xref::is_call",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "c04e573fa65a8cb27435"
+      ],
+      "rationale": "CrossReferences.isCall(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b18e023031f78a5d2e9082794a77fea994cd7cd6c6fb00bfcac9ddd1b323d28e",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isCall(_:)",
+          "declaration": "static func isCall(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4790363e99b3b4318c30",
+      "cpp_name": "ida::xref::is_data",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "bb123e12716700148a4e"
+      ],
+      "rationale": "CrossReferences.isData(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d98a8db2857acc465a3312611afd5264994be2802929d4ac1c1c6609024bd35f",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isData(_:)",
+          "declaration": "static func isData(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a3f1f7ff401fe48692b9",
+      "cpp_name": "ida::xref::is_data_read",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "d874c60271443776f6a3"
+      ],
+      "rationale": "CrossReferences.isDataRead(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "36204cb47e81b847feb0fe8a7ab10f43221e0810d8cd16d27c33aa01be335a7e",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isDataRead(_:)",
+          "declaration": "static func isDataRead(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b8a26f1d206a654bcec",
+      "cpp_name": "ida::xref::is_data_write",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "68832f4a6ad251ddf712"
+      ],
+      "rationale": "CrossReferences.isDataWrite(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3b02aa38d0504a9e0cf325c39aa31ad5bbeffacd9cec065a37be834428ed2399",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isDataWrite(_:)",
+          "declaration": "static func isDataWrite(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "abc7e7c649440c902b5c",
+      "cpp_name": "ida::xref::is_flow",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "5ac8d923bf407743855a"
+      ],
+      "rationale": "CrossReferences.isFlow(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1095a6f41ff442c2af123aa9e6b7404e9c338671bf741ab1a40c284b1e5e4da5",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isFlow(_:)",
+          "declaration": "static func isFlow(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "254b42edb813563a23a9",
+      "cpp_name": "ida::xref::is_jump",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "279d68b5bdda9c22396f"
+      ],
+      "rationale": "CrossReferences.isJump(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f21f484938a5b97a4177018106d8166df74cfa291643352fd0b79d19c3bd7419",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.isJump(_:)",
+          "declaration": "static func isJump(_ type: CrossReferences.ReferenceType) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "00c88051142a515b2553",
+      "cpp_name": "ida::xref::refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "422e08f98fa738532e67"
+      ],
+      "rationale": "Returns every complete Reference record for the requested direction, with type and user-defined metadata.",
+      "cpp_fingerprint": "6a28094aaf5154ee9cc0df2a1d362989298c77fe44f21e36043d13cc367bc9c6",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsFrom(address:)",
+          "declaration": "static func refsFrom(address: UInt64) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ace36541bf1a69392715",
+      "cpp_name": "ida::xref::refs_from",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address, ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "c731d851b2b782160181"
+      ],
+      "rationale": "Preserves the typed ReferenceType filter overload and complete Reference records.",
+      "cpp_fingerprint": "71e234f034365c620e0d9137bfc0a1c9f2ed4e59d8777d3940f3e86c1668dd30",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsFrom(address:type:)",
+          "declaration": "static func refsFrom(address: Address, type: CrossReferences.ReferenceType) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1cd8c21af8ebe97d6a26",
+      "cpp_name": "ida::xref::refs_from_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "2c387fdc96303b4ebdd2"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "4530d96f00ba6565b11d5acf8a88af99a07938231ef9b1a663570e2b469f57c8",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsFromRange(address:)",
+          "declaration": "static func refsFromRange(address: UInt64) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a771197d376523142e29",
+      "cpp_name": "ida::xref::refs_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "4dbdf054e49135b4e1bb"
+      ],
+      "rationale": "Returns every complete Reference record for the requested direction, with type and user-defined metadata.",
+      "cpp_fingerprint": "6c71568ac6b3434742f99bd625425fed96edbd73faed28a2ea054d13cc4b0df3",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsTo(address:)",
+          "declaration": "static func refsTo(address: UInt64) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d650b8e9ccbe8bafa739",
+      "cpp_name": "ida::xref::refs_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Reference>> (Address, ReferenceType)",
+      "mapping": "direct",
+      "swift": [
+        "92dd50c238adf66b2e3f"
+      ],
+      "rationale": "Preserves the typed ReferenceType filter overload and complete Reference records.",
+      "cpp_fingerprint": "e0661dd12f07d6e0b3e97de3e173f6742dd88e3320e570e87b20d9fa7822045e",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsTo(address:type:)",
+          "declaration": "static func refsTo(address: Address, type: CrossReferences.ReferenceType) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c98f1a94877790d8e58",
+      "cpp_name": "ida::xref::refs_to_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ReferenceRange> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "e0b147947674a7000fb7"
+      ],
+      "rationale": "Returns the corresponding complete reference sequence as an owned Swift Array/ReferenceRange, with ordinary Swift Collection operations.",
+      "cpp_fingerprint": "4694dc6d0da8976a07c20c3581a2a997cbcba03eceac23b2c55b6bb8e8b19698",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.refsToRange(address:)",
+          "declaration": "static func refsToRange(address: UInt64) throws(IDAError) -> [CrossReferences.Reference]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d3f426730ffe199bdf7f",
+      "cpp_name": "ida::xref::remove_code",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "cd09c24c3a6fa58a87ae"
+      ],
+      "rationale": "CrossReferences.removeCode(from:to:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e79b9087935a94af724327e2de0097a207f930571d437006d7a62a96ec6b10b3",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.removeCode(from:to:)",
+          "declaration": "static func removeCode(from: UInt64, to: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f081c0ece7284780aacc",
+      "cpp_name": "ida::xref::remove_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "e2fc0481f8d06bc4ee5d"
+      ],
+      "rationale": "CrossReferences.removeData(from:to:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "bc0c19b3c2b847192b2cc500d6f96bb539e924d7b7f8faa6c4f4ede8de906e19",
+      "swift_targets": [
+        {
+          "path": "CrossReferences.removeData(from:to:)",
+          "declaration": "static func removeData(from: UInt64, to: UInt64) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

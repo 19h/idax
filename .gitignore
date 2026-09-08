@@ -41,3 +41,10 @@ Desktop.ini
 *.pdb
 node_modules/
 target/
+
+# SwiftPM local products and workspace metadata
+.build/
+.swiftpm/
+
+# Node native build may be a symlink to an external build directory.
+/bindings/node/build

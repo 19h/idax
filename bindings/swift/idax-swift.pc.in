@@ -1,0 +1,7 @@
+libdir=${pcfiledir}/..
+ida_runtime_dir=@IDAX_SWIFT_RUNTIME_DIR@
+
+Name: IDAX Swift native transport
+Description: Opaque IDAX Swift transport and complete native IDAX implementation
+Version: @PROJECT_VERSION@
+Libs: -L"${libdir}" -lidax_swift_native -L"${ida_runtime_dir}" -lidalib -lida -l@_idax_swift_cxx_library@

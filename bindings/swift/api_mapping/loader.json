@@ -1,0 +1,1360 @@
+{
+  "domain": "loader",
+  "declarations": [
+    {
+      "cpp_id": "3a8d0be5768656280a34",
+      "cpp_name": "IDAX_LOADER",
+      "cpp_kind": "macro",
+      "cpp_signature": "IDAX_LOADER(LoaderClass)",
+      "cpp_fingerprint": "c1ff10daa38de4f1b8e4b084a1117c059e52f06b0799f38d91ab1dcdc1282c8c",
+      "mapping": "adapted",
+      "swift": [
+        "ee603aa4d4f7336fb141",
+        "6f07c658d687a5f0ea1c"
+      ],
+      "rationale": "The build-module helper generates the canonical IDAX_LOADER descriptor entry around a C bootstrap that calls exportModule; actual SDK loader discovery and dispatch are verified by the relocated module-host fixture.",
+      "swift_targets": [
+        {
+          "path": "Loader.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any LoaderModule) throws(IDAError)"
+        },
+        {
+          "path": "LoaderModule",
+          "declaration": "protocol LoaderModule : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35e64a7ee0f9d6a3db74",
+      "cpp_name": "ida::loader::AcceptResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "a5514098640f696b0c6b"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "35e64a7ee0f9d6a3db7460570eb4e03c622f1ab691fd286c94fe79aafd4e48ba",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult",
+          "declaration": "struct AcceptResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d1f742f90662be056309",
+      "cpp_name": "ida::loader::AcceptResult::archive_loader",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "577556fde6f166ed966a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "31b414bcd439bd5541fa531baf9b6873c89ae7cb10b9e38398df45c8a36cd374",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.archiveLoader",
+          "declaration": "var archiveLoader: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a8b2ab1642667cfcaa5",
+      "cpp_name": "ida::loader::AcceptResult::continue_probe",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1c1fab9fe2692aeb46a0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "eeee194f988dbd94ccbfba72099ad5213af8bcd6d8f3910dbe745d3992f03d1b",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.continueProbe",
+          "declaration": "var continueProbe: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c501ba46f945ac8b3c47",
+      "cpp_name": "ida::loader::AcceptResult::format_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "e0f4807e99d35790fdd5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "73d17a91fa98c4e86fe4c4d0e9168643e223d76f1cd1056829f1a1bf68b94216",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.formatName",
+          "declaration": "var formatName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "036cf53df1d64dcd657d",
+      "cpp_name": "ida::loader::AcceptResult::prefer_first",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1215af155d12635df851"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "fe1737ffaef5e24a3739c2482f56fd65e70994363f0c23f44f5ea0219ebad224",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.preferFirst",
+          "declaration": "var preferFirst: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e8130ee24e7daa0bc72",
+      "cpp_name": "ida::loader::AcceptResult::priority",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "b6f57a0d631524edb34d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "499a42393a6cc4152bd950c23251b73c0433ee00b0299f0dee0dddc4f5e40a55",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.priority",
+          "declaration": "var priority: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "10a15251ee7655bd35bc",
+      "cpp_name": "ida::loader::AcceptResult::processor_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "612cdb9c6a4c00c10eb0"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6801b00aa059eb17be1c374ed16eb403e53e73eabccfc9ecbaf8e501d3a7723a",
+      "swift_targets": [
+        {
+          "path": "Loader.AcceptResult.processorName",
+          "declaration": "var processorName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5ad31df71257a03caaff",
+      "cpp_name": "ida::loader::ArchiveMemberRequest",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "d4820f6fc481b3db64e9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "5ad31df71257a03caaff89057a62413f6e4e6e484b69362eeb9920d1c8205475",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberRequest",
+          "declaration": "struct ArchiveMemberRequest"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0f861a9a375dbc42cbb",
+      "cpp_name": "ida::loader::ArchiveMemberRequest::archive_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b690219e3f4d1e2f3ad8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7d8712eb9791de407b10222272ca4ed944aa7aafe134e0d517b9edb49b0ae9c5",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberRequest.archiveName",
+          "declaration": "var archiveName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd8787f6fd53b34fedc2",
+      "cpp_name": "ida::loader::ArchiveMemberRequest::default_member",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "ee53747b1f7efbd04c16"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "a725045678eca3b8f485c17075c8e46be24dd13e07a7c96188b5c3c00ce9f20b",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberRequest.defaultMember",
+          "declaration": "var defaultMember: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cf783e8a27df3d250be2",
+      "cpp_name": "ida::loader::ArchiveMemberRequest::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "LoadFlags",
+      "mapping": "direct",
+      "swift": [
+        "63bd125dc5e28b26ef0d"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "bb44ae31f833518ec7d8aa2ff788ad071705a5b5a0985d76375ac4363c1e98dd",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberRequest.flags",
+          "declaration": "var flags: Loader.LoadFlags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "974ba0ad21a8260e3f71",
+      "cpp_name": "ida::loader::ArchiveMemberResult",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "31a16c1b783225325246"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "974ba0ad21a8260e3f71fa03117f9cb718bfeb8551eb3e7178a8ee079dc14571",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberResult",
+          "declaration": "struct ArchiveMemberResult"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db7a1e2f887bee49b181",
+      "cpp_name": "ida::loader::ArchiveMemberResult::extracted_file",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "4d92b5cb721deae3f2e2"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "816f7ae4172f987dcf95965c497c0bc424847500285d4930aa052b13bf29a1f9",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberResult.extractedFile",
+          "declaration": "var extractedFile: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c192dfbcb0369ebdbb51",
+      "cpp_name": "ida::loader::ArchiveMemberResult::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "LoadFlags",
+      "mapping": "direct",
+      "swift": [
+        "f03675176979e8dd50ca"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "09b3965cb48121b82da5d53d46ee7651556f65a055172f1d2f7e44ce99109003",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberResult.flags",
+          "declaration": "var flags: Loader.LoadFlags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dbd781bf61a471a98aaa",
+      "cpp_name": "ida::loader::ArchiveMemberResult::member_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "358e53819bd64c7666ea"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c392bfeda155fdf7ca7cecf0d48bb4ec69ce0edbfa663ad8a8e3128c9a563967",
+      "swift_targets": [
+        {
+          "path": "Loader.ArchiveMemberResult.memberName",
+          "declaration": "var memberName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17b98f36666de2cc0b07",
+      "cpp_name": "ida::loader::InputFile",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "00493c12c8c456871f00"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "17b98f36666de2cc0b076af99c32a0105391ef3c559397463952ee539eb77eb8",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile",
+          "declaration": "final class InputFile"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82a14a03ab935570f5bc",
+      "cpp_name": "ida::loader::InputFile::filename",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> () const",
+      "mapping": "direct",
+      "swift": [
+        "6548e35180bf59ce4e5a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "379278f9521061127e57ef84c2282285befdc609de084a2950fb6dcc1fcdb934",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.filename",
+          "declaration": "var filename: String { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c9716ac5c6c4398085e9",
+      "cpp_name": "ida::loader::InputFile::handle",
+      "cpp_kind": "method",
+      "cpp_signature": "void *() const noexcept",
+      "mapping": "private_bridge",
+      "swift": [
+        "b42406adb25fcfed8484"
+      ],
+      "rationale": "The loader input handle stays inside a checked callback lease. The typed InputFile operations provide file-to-database access without exposing linput_t pointers.",
+      "cpp_fingerprint": "cb140e945ba085dc59f368edac4ca73a89a15f6192bd147e9698ebb5cf391e5e",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.copyToDatabase(fileOffset:address:size:patchable:)",
+          "declaration": "func copyToDatabase(fileOffset: Int64, address: Address, size: UInt64, patchable: Bool = true) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79f15c983910eaed1f41",
+      "cpp_name": "ida::loader::InputFile::read_bytes",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "86223a8ae06ab45e6cec"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "328382716e5dee9a819d2cf34ca3f674caf3a433adbf46469ab2a5ad84452682",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.read(count:)",
+          "declaration": "func read(count: Int) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2d74d5495df6b5f59a54",
+      "cpp_name": "ida::loader::InputFile::read_bytes_at",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (std::int64_t, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "33252a9cdf38e085f554"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "17aabbb76f8e1431331f4fddb83b3bf54da85cdb02a79ab9208eee85a3c79d78",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.read(at:count:)",
+          "declaration": "func read(at offset: Int64, count: Int) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0166ac60ec0b8f97509",
+      "cpp_name": "ida::loader::InputFile::read_string",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::string> (std::int64_t, std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "6eafe86ecfe72f980484"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f09f588c5f22ce2ada3e48ab10ab2f451c889353f4fa99d62cef2b93ddc50edf",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.readString(at:maximumLength:)",
+          "declaration": "func readString(at offset: Int64, maximumLength: Int = 1024) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "316c15dc4c212cba7381",
+      "cpp_name": "ida::loader::InputFile::seek",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::int64_t> (std::int64_t)",
+      "mapping": "direct",
+      "swift": [
+        "55ff90fe2af0c00dbf51"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2d8e3ab7504b14cd2f49de3d0ec9993275167982757e09c144deead09bb9cde9",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.seek(to:)",
+          "declaration": "@discardableResult func seek(to offset: Int64) throws(IDAError) -> Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "842ec4f4a76e950f0eaa",
+      "cpp_name": "ida::loader::InputFile::size",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::int64_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "94745502f90ec236e8b3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "17d7b8fec210f607dd300c0928c48633cfc95ad26a5da976e3a39087243d20a9",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.size",
+          "declaration": "var size: Int64 { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "62ebd6aeea21c8f2b09d",
+      "cpp_name": "ida::loader::InputFile::tell",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::int64_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "f6acf7b00725250589b7"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8eb3e4d18160035cc4d3f557a637ab69703ebb0b4764aa7151fd4f134a738196",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.position",
+          "declaration": "var position: Int64 { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94899ce1bbe0311a8c28",
+      "cpp_name": "ida::loader::LoadFlags",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "eb626e9a521b419cbfab"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "94899ce1bbe0311a8c2847610cd7ca147ee055671da4370441b069314cf27969",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags",
+          "declaration": "struct LoadFlags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "341c21d130462b888f0c",
+      "cpp_name": "ida::loader::LoadFlags::auto_flat_group",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "12f81dcd76c136869cc3"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c75ae816b85111eb754daba395faad30bdd49383a2e0be0bf2926648b57a25d7",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.autoFlatGroup",
+          "declaration": "var autoFlatGroup: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90908b807b38c2fa1574",
+      "cpp_name": "ida::loader::LoadFlags::binary_code_segment",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "90bf4ba242282046a755"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "7a8aef63993ab3d1850c0e1bd18bc1d8b6cbc50b3e0a95738a97977feafe7132",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.binaryCodeSegment",
+          "declaration": "var binaryCodeSegment: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9e3b4712fa499dc7dd8f",
+      "cpp_name": "ida::loader::LoadFlags::create_import_segment",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7dee48c2dcd38f7b51fd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "b5a69d319660ee9cad318e23ab82de4b054671cf72848870aa5d3889a6d78933",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.createImportSegment",
+          "declaration": "var createImportSegment: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea89acbe456523e27bc1",
+      "cpp_name": "ida::loader::LoadFlags::create_segments",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "9a271469e66dd0ccdccb"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f7780f34f330002f5477457b68a675de708abef499c960e9eb41a2cdb343e439",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.createSegments",
+          "declaration": "var createSegments: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb9d812bdaa7300410cb",
+      "cpp_name": "ida::loader::LoadFlags::fill_gaps",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "16d735176d1d7f565e92"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "88eb987fba8cfd4b5fc7e771ebd7b462b49d9f7e9a3ea9dd937b3625a6fc3e11",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.fillGaps",
+          "declaration": "var fillGaps: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9c4b6d8225fd060f8229",
+      "cpp_name": "ida::loader::LoadFlags::first_file",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "958b2a3612b5f791fdf9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "0bae63190028c15c53e74c299ac5aa197cc6bd4991babda7f4d90ae744b5108a",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.firstFile",
+          "declaration": "var firstFile: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e7bd11deb9fbe28a8b19",
+      "cpp_name": "ida::loader::LoadFlags::load_all_segments",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "14b9eb143b4e78547311"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "333446d4c96c99542b433762cc6f4f7aeb5ab62e01ff9af2399f1db6e5f6a797",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.loadAllSegments",
+          "declaration": "var loadAllSegments: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0172bfb9ce110d6d7e0b",
+      "cpp_name": "ida::loader::LoadFlags::load_resources",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "482488c43400c8d60bc9"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "94eb21c3e75fbd1706b64607e44b57fc0dd9e1184f1445ebb5962f15ce1f13b1",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.loadResources",
+          "declaration": "var loadResources: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "944d31c7c1d97bba6a27",
+      "cpp_name": "ida::loader::LoadFlags::loader_options_dialog",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "8cfb5e749b368a84af28"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9ee9f58f81c3bd611a824488a124545abd2771ee430d5fdc150782ccc0e86771",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.loaderOptionsDialog",
+          "declaration": "var loaderOptionsDialog: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "de43200a731f17562e73",
+      "cpp_name": "ida::loader::LoadFlags::manual_load",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "425128d51ca40049dc08"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "424e58a42d5dc9d79bb7eac48efbfd702660b2f1ea99aa4f39d753b60b79dad6",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.manualLoad",
+          "declaration": "var manualLoad: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "448f7b5fb0454cb63878",
+      "cpp_name": "ida::loader::LoadFlags::mini_database",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "744c17d2f2a0c1edf124"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "88bdca851d08cc62dc382fa873f9645ffb54a972e39ca05f109b6d9cce2d572a",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.miniDatabase",
+          "declaration": "var miniDatabase: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea4086aba61213ed9d12",
+      "cpp_name": "ida::loader::LoadFlags::reload",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "a551ab2f4d59981f651a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "06ca222e893de08c926abebfd3c739254cf3b28af91a2af21c719b225fa01241",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.reload",
+          "declaration": "var reload: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "96bfa7cb742c4847949a",
+      "cpp_name": "ida::loader::LoadFlags::rename_entries",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0daee07e6b4cfacd9538"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "9a662412ea95fa6f5e29adf545f9a9fc549430b17a98f9037ae9fbf9bfa20955",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.renameEntries",
+          "declaration": "var renameEntries: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94048eb87b1e9f26fe74",
+      "cpp_name": "ida::loader::LoadRequest",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "eb703dd88128e4dbdac1"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "94048eb87b1e9f26fe74f26bfe97dbd4a1b19997a1767504727d1059ace2efeb",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest",
+          "declaration": "struct LoadRequest"
+        }
+      ]
+    },
+    {
+      "cpp_id": "13daddc1f9cd574f57a2",
+      "cpp_name": "ida::loader::LoadRequest::archive_member_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "06aed8be6d94ed2ebb97"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d302e6380bfbce7da0a9a0418529c961ed2d4581f670f4124d0b20804f81e94d",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.archiveMemberName",
+          "declaration": "var archiveMemberName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "74b10a456497459df0d6",
+      "cpp_name": "ida::loader::LoadRequest::archive_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b31fb20dc92671f86c42"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "d5d34991232ca4d3c6a83d21effe479c9e68b15e773765b67e95676bd2ec8666",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.archiveName",
+          "declaration": "var archiveName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "23727f84c1f922cee543",
+      "cpp_name": "ida::loader::LoadRequest::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "LoadFlags",
+      "mapping": "direct",
+      "swift": [
+        "f2e39023acd422dffe98"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "f461a5c94b3eebc037feac4aa3bfe86503cd95aededa11be9ced8268df73d09d",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.flags",
+          "declaration": "var flags: Loader.LoadFlags"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ec13d54ced516b253634",
+      "cpp_name": "ida::loader::LoadRequest::format_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "15334d8b4df68a4e6aed"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "8b69efb0dc03e5f7e35b74a83da29083ab7e691231a783dd5e29e63e4cecbb89",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.formatName",
+          "declaration": "var formatName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "630f1ac65f582026ea68",
+      "cpp_name": "ida::loader::LoadRequest::input_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "6af9edd4320b23c53342"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "59bd9c0312fb3d404182479b6fbc53124655c9963a15998cbe3c734c52ed7a65",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.inputName",
+          "declaration": "var inputName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "68cca5f58f20beaf0633",
+      "cpp_name": "ida::loader::LoadRequest::is_remote",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "cf9b08b95ba0bf58f288"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "07d1c0e7d7f216fa38e2d87be1e782600b671048d6cff953ec99cb07a4aa0965",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadRequest.isRemote",
+          "declaration": "var isRemote: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a11f46e93a1493a80940",
+      "cpp_name": "ida::loader::Loader",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "6f07c658d687a5f0ea1c"
+      ],
+      "rationale": "The native Loader base class is the LoaderModule protocol; exportModule installs its retained implementation behind canonical LDSC callbacks.",
+      "cpp_fingerprint": "a11f46e93a1493a809401cac66a8a0cd5013203d0bb73965d76a51830932c003",
+      "swift_targets": [
+        {
+          "path": "LoaderModule",
+          "declaration": "protocol LoaderModule : AnyObject"
+        }
+      ]
+    },
+    {
+      "cpp_id": "48147f4eba3d3ad8938f",
+      "cpp_name": "ida::loader::Loader::accept",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<AcceptResult>> (InputFile &)",
+      "mapping": "adapted",
+      "swift": [
+        "e94c36790d429e0ebc52"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "4b0b530a89631b9fea53d75c444dcc03e5036e27fa3eca8d28fbd425400c7c73",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.accept(_:)",
+          "declaration": "func accept(_ file: Loader.InputFile) throws(IDAError) -> Loader.AcceptResult?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0c0fef8f02c690c61db",
+      "cpp_name": "ida::loader::Loader::load",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (InputFile &, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "84b404b4ebcfdb504488"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "f6e351e275d009b22df19559fe5245620988899fbcbc957bd81d716ef4db9a7d",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.load(_:formatName:)",
+          "declaration": "func load(_ file: Loader.InputFile, formatName: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5403e03f32922e55d7cd",
+      "cpp_name": "ida::loader::Loader::load_with_request",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (InputFile &, const LoadRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "cf6d03757323baf85466"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "295836de4075df525dedd1a87198a83934e087b1c5b87d1eff060100f4418abe",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.load(_:request:)",
+          "declaration": "func load(_ file: Loader.InputFile, request: Loader.LoadRequest) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "443b614a1c679b8b5c9c",
+      "cpp_name": "ida::loader::Loader::move_segment",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, Address, AddressSize, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "a7040353b38eb63212c2"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "ccb42136dda72bf1e7f70f2aa98189552dd8e7d5bcf5699f997cac23b667735d",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.moveSegment(from:to:size:formatName:)",
+          "declaration": "func moveSegment(from: Address, to: Address, size: UInt64, formatName: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d7ac325d6b240e632957",
+      "cpp_name": "ida::loader::Loader::move_segment_with_request",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (Address, Address, AddressSize, const MoveSegmentRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "acb5fa31f99004ad0225"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "1e6acdab25dc88e5937b36c57a61a486b01b08e056189587562051adf3d3a182",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.moveSegment(from:to:size:request:)",
+          "declaration": "func moveSegment(from: Address, to: Address, size: UInt64, request: Loader.MoveSegmentRequest) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0bb2e617ade27d71d2a",
+      "cpp_name": "ida::loader::Loader::options",
+      "cpp_kind": "method",
+      "cpp_signature": "LoaderOptions () const",
+      "mapping": "adapted",
+      "swift": [
+        "3998db3325d7aac1836a"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "2df5bcaaa5fdc54edc34c6a6c0c77ea0ae7f04693ffdbce0cd4d6cc68981cab4",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.options",
+          "declaration": "var options: Loader.Options { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9f8a9cc13a722ecde165",
+      "cpp_name": "ida::loader::Loader::process_archive",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<ArchiveMemberResult>> (InputFile &, const ArchiveMemberRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "9fc727b42718814a4a2b"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "fd75b051c34f89500220cf4f7649cd95548817d7b4371fcedcee113f59978606",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.processArchive(_:request:)",
+          "declaration": "func processArchive(_ file: Loader.InputFile, request: Loader.ArchiveMemberRequest) throws(IDAError) -> Loader.ArchiveMemberResult?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "93993f2bb88df5e3e513",
+      "cpp_name": "ida::loader::Loader::save",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (void *, std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "5ec455c30ba13aa5eaab"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "00baa8dee23d621557627b9a70447c82623d3d99bf42478f4cc6f91159c65788",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.save(_:formatName:)",
+          "declaration": "func save(_ file: Loader.OutputFile?, formatName: String) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a2ddf213772e92fab88",
+      "cpp_name": "ida::loader::Loader::save_with_request",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> (void *, const SaveRequest &)",
+      "mapping": "adapted",
+      "swift": [
+        "cee7df2dd2da8455db14"
+      ],
+      "rationale": "Native virtual customization is a dynamically dispatched Swift protocol requirement with its matching payload. Save FILE handles are checked callback-scoped OutputFile borrows; nil denotes a capability query.",
+      "cpp_fingerprint": "2f9cf007e3f0830d3bd5a587e481ad1c661ebaf8ff7f29f3c15985a690b9093a",
+      "swift_targets": [
+        {
+          "path": "LoaderModule.save(_:request:)",
+          "declaration": "func save(_ file: Loader.OutputFile?, request: Loader.SaveRequest) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3bbcef342ef1d075ea62",
+      "cpp_name": "ida::loader::Loader::~Loader",
+      "cpp_kind": "destructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "ee603aa4d4f7336fb141"
+      ],
+      "rationale": "The native adapter retains the Swift module until its canonical loader lifetime ends; ARC releases the implementation after native destruction.",
+      "cpp_fingerprint": "18e31e62c03f2d4f46f6a9dc632ab09df0128faa9ebea9b97d794dea2c70099a",
+      "swift_targets": [
+        {
+          "path": "Loader.exportModule(_:)",
+          "declaration": "static func exportModule(_ module: any LoaderModule) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a42bb88c50ab838b424",
+      "cpp_name": "ida::loader::LoaderOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "031ac9fa0ac97cd942b8"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2a42bb88c50ab838b424854ff71d87398f4884fb51c163d5e0248e9c5ef3a86c",
+      "swift_targets": [
+        {
+          "path": "Loader.Options",
+          "declaration": "struct Options"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe3c22fbd0beef79863c",
+      "cpp_name": "ida::loader::LoaderOptions::requires_processor",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "68ff70fb4a13e327ff05"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "dc9b96d8ad357ffff62860884f8648b08a98e963252dcf191012c9b70f2c0cd5",
+      "swift_targets": [
+        {
+          "path": "Loader.Options.requiresProcessor",
+          "declaration": "var requiresProcessor: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b2d96e1a9cf4f2ea9f59",
+      "cpp_name": "ida::loader::LoaderOptions::supports_reload",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "9ddeeb442cbdeb92e627"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "6ec82f774a106cd160e06656bfc07bd9707776610d009db0bfd18c2356018365",
+      "swift_targets": [
+        {
+          "path": "Loader.Options.supportsReload",
+          "declaration": "var supportsReload: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "977ef2df1d489157169c",
+      "cpp_name": "ida::loader::MoveSegmentRequest",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f6338fabdc9dbb99d6fa"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "977ef2df1d489157169c09f85a771f4777983ad7d6b9b6b602beb3a293a2157c",
+      "swift_targets": [
+        {
+          "path": "Loader.MoveSegmentRequest",
+          "declaration": "struct MoveSegmentRequest"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b64893cb662adc4128d5",
+      "cpp_name": "ida::loader::MoveSegmentRequest::format_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "bc0cedca70d255a894e6"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "16fde1fbe53cdfbe139ac9fb543f63933caba4d17f9625132cd62bb4fd641019",
+      "swift_targets": [
+        {
+          "path": "Loader.MoveSegmentRequest.formatName",
+          "declaration": "var formatName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1406a7e1183bf91bab22",
+      "cpp_name": "ida::loader::MoveSegmentRequest::reload",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "82295aa8dc3f6e0f4018"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "1b4f02715e4aea1340eb5d670a581d99671acf00f35e73d9922723fbb578c24b",
+      "swift_targets": [
+        {
+          "path": "Loader.MoveSegmentRequest.reload",
+          "declaration": "var reload: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "356f5359be2bd430a993",
+      "cpp_name": "ida::loader::MoveSegmentRequest::whole_program_rebase",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "73060a3bbd04b16bf4da"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "cd8e68f40f3168f9c3b9aee939082e32fa9b886674574e021c2746cc9c5a8113",
+      "swift_targets": [
+        {
+          "path": "Loader.MoveSegmentRequest.wholeProgramRebase",
+          "declaration": "var wholeProgramRebase: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c39a0393385e9413fdc7",
+      "cpp_name": "ida::loader::SaveRequest",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "b971b262faf779204c1c"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c39a0393385e9413fdc7edbafd7d7ef051c7730bc0b81b01fb15d7d00ebccc9e",
+      "swift_targets": [
+        {
+          "path": "Loader.SaveRequest",
+          "declaration": "struct SaveRequest"
+        }
+      ]
+    },
+    {
+      "cpp_id": "13fb0557dc7757be4617",
+      "cpp_name": "ida::loader::SaveRequest::capability_query",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0eabf69c4260bf60d24f"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "e339eddf4041b3154a389ca34c9c839f4269e2823041ff71f04ba563b43e2d9e",
+      "swift_targets": [
+        {
+          "path": "Loader.SaveRequest.capabilityQuery",
+          "declaration": "var capabilityQuery: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d85bb1b67fdbd18db75c",
+      "cpp_name": "ida::loader::SaveRequest::format_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "cc592fe9e41ac8e91a00"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3ef66fea86c74c880e6cd09ba0516f6b50b9307817e1ceffc858e4d07080b1a3",
+      "swift_targets": [
+        {
+          "path": "Loader.SaveRequest.formatName",
+          "declaration": "var formatName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "acda09c0506f9b1c3a30",
+      "cpp_name": "ida::loader::SaveRequest::is_remote",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "9c443fa15531589468b5"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "2c57496aa135430f3a0c3bd9da03e9df94d4e8e005c44ab2744bc5334ba1a2b3",
+      "swift_targets": [
+        {
+          "path": "Loader.SaveRequest.isRemote",
+          "declaration": "var isRemote: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b607375412be5e0af7e",
+      "cpp_name": "ida::loader::abort_load",
+      "cpp_kind": "function",
+      "cpp_signature": "void (std::string_view)",
+      "mapping": "adapted",
+      "swift": [
+        "44660921acfaf1cd55e6"
+      ],
+      "rationale": "Swift throws a typed error to unwind Swift frames; the canonical LDSC bridge reports loader failure after the callback returns, avoiding an SDK longjmp across Swift frames.",
+      "cpp_fingerprint": "0a68a10625b296d3dbdae206be284495db7966526fc3b5a2b1ca7e1d096526ca",
+      "swift_targets": [
+        {
+          "path": "Loader.abortLoad(_:)",
+          "declaration": "static func abortLoad(_ message: String) throws(IDAError) -> Never"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef749587ff9e33370c4e",
+      "cpp_name": "ida::loader::create_filename_comment",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "b3001a326dccffaa96ba"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "3138e734846979b9ed56233ad2353bdf0c61b8bdd0627438d85d55a51af65bae",
+      "swift_targets": [
+        {
+          "path": "Loader.createFilenameComment()",
+          "declaration": "static func createFilenameComment() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "78a0bd8955f4995a930d",
+      "cpp_name": "ida::loader::decode_load_flags",
+      "cpp_kind": "function",
+      "cpp_signature": "LoadFlags (std::uint16_t)",
+      "mapping": "direct",
+      "swift": [
+        "25dad1883446c5c4d5bd"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "c38571fcb35119bbb65ae9f79b05506f3e04bf9cc70b9be14b1b449d48a9ed06",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.init(rawValue:)",
+          "declaration": "init(rawValue: UInt16) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14003c502751afcf57cf",
+      "cpp_name": "ida::loader::encode_load_flags",
+      "cpp_kind": "function",
+      "cpp_signature": "std::uint16_t (const LoadFlags &)",
+      "mapping": "direct",
+      "swift": [
+        "311f1958fe34ddbb451e"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "23d34ccc5f6307a9d7824e56a08ca232f620f778858151b683f68c1dbd15339a",
+      "swift_targets": [
+        {
+          "path": "Loader.LoadFlags.rawValue",
+          "declaration": "var rawValue: UInt16 { get throws(IDAError) }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1dd3ce1b41d49c5f2429",
+      "cpp_name": "ida::loader::file_to_database",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (void *, std::int64_t, Address, AddressSize, bool)",
+      "mapping": "adapted",
+      "swift": [
+        "b42406adb25fcfed8484"
+      ],
+      "rationale": "The raw file handle plus offsets become a method on a checked InputFile borrow; file offset, destination address, size, and patchability are preserved.",
+      "cpp_fingerprint": "4c954a06174594e61543bf6c5f694e5ba4cb579cdb0129f937156b2cf398fb77",
+      "swift_targets": [
+        {
+          "path": "Loader.InputFile.copyToDatabase(fileOffset:address:size:patchable:)",
+          "declaration": "func copyToDatabase(fileOffset: Int64, address: Address, size: UInt64, patchable: Bool = true) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "66255cdb1cd6fd13d9e3",
+      "cpp_name": "ida::loader::memory_to_database",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const void *, Address, AddressSize)",
+      "mapping": "adapted",
+      "swift": [
+        "808963f574da184c4844"
+      ],
+      "rationale": "The pointer and byte count are replaced by an owned byte array; destination and byte-for-byte contents are preserved.",
+      "cpp_fingerprint": "9441770dec8aa212a224d7a042ec7938252e3c85d1f77c9c6ff4605121bdf2b1",
+      "swift_targets": [
+        {
+          "path": "Loader.memoryToDatabase(_:at:)",
+          "declaration": "static func memoryToDatabase(_ bytes: [UInt8], at address: Address) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0db2b1c80a8582749c25",
+      "cpp_name": "ida::loader::set_processor",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "60fcdd83bdcb96b8761a"
+      ],
+      "rationale": "Same semantic declaration with Swift naming, owned values, and typed error propagation; signatures and payload fields reviewed against the canonical header.",
+      "cpp_fingerprint": "4a66e3dce682bea205e22bed60c3d8e792c5de363a1a33cf0bd8b1f798dfe634",
+      "swift_targets": [
+        {
+          "path": "Loader.setProcessor(_:)",
+          "declaration": "static func setProcessor(_ name: String) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

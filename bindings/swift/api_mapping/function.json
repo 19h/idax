@@ -1,0 +1,1699 @@
+{
+  "domain": "function",
+  "declarations": [
+    {
+      "cpp_id": "6bd56591c5514d46b1d7",
+      "cpp_name": "ida::function::Chunk",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "3110ba09425cea17a94d"
+      ],
+      "rationale": "Functions.Chunk is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "6bd56591c5514d46b1d7212140459e0ee60a047c716117cba9033096c32f78d8",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk",
+          "declaration": "struct Chunk"
+        }
+      ]
+    },
+    {
+      "cpp_id": "34ceb104a02987817f8a",
+      "cpp_name": "ida::function::Chunk::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "d2bfa2541d88ca28b83f"
+      ],
+      "rationale": "Preserves the declared Address value in Functions.Chunk.end, including its semantic type and signedness.",
+      "cpp_fingerprint": "749bb71124aede9f670ae6661e0c19439947b1c3cd17baaf061bfe51aae64d8d",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk.end",
+          "declaration": "var end: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee3af7d1c17de61366d6",
+      "cpp_name": "ida::function::Chunk::is_tail",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "9e0d2490c38d475296af"
+      ],
+      "rationale": "Preserves the declared bool value in Functions.Chunk.isTail, including its semantic type and signedness.",
+      "cpp_fingerprint": "e27477075e8cf7193b318aae30daab955ba5856b8343932981c41aed3dd0af14",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk.isTail",
+          "declaration": "var isTail: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f66051e8412e9ba95529",
+      "cpp_name": "ida::function::Chunk::owner",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "e53fc7936c74266b92d4"
+      ],
+      "rationale": "Preserves the declared Address value in Functions.Chunk.owner, including its semantic type and signedness.",
+      "cpp_fingerprint": "40d4315ca2964c6d26d3ab98a5334a5ea8626af9b0df2b4eef64448cfdb3fac1",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk.owner",
+          "declaration": "var owner: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63427e5a0b2c33c4d5dc",
+      "cpp_name": "ida::function::Chunk::size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "160a2236e5ebf4399466"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Chunk.size, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "06b4108372fa0ec72ad90ebc967f1f67b47988e7d0e3900634c2f2047d391374",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk.size",
+          "declaration": "var size: UInt64 { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "754a9cde454b59c38e1b",
+      "cpp_name": "ida::function::Chunk::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "b99190857a3772114def"
+      ],
+      "rationale": "Preserves the declared Address value in Functions.Chunk.start, including its semantic type and signedness.",
+      "cpp_fingerprint": "e9334b0d2acbb8cb3c91f7f2508b3e612794ececbdc1aed01e5e7b53e9d5bf51",
+      "swift_targets": [
+        {
+          "path": "Functions.Chunk.start",
+          "declaration": "var start: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4f88d4b92ddeb8a63965",
+      "cpp_name": "ida::function::FrameVariable",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "cf8011c1abce9008a3c9"
+      ],
+      "rationale": "Functions.FrameVariable is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "4f88d4b92ddeb8a639653f7962c34b14d8815c5a30033a94ee2c182f0614bc90",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable",
+          "declaration": "struct FrameVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f48a5b3b0c92e7a1ef39",
+      "cpp_name": "ida::function::FrameVariable::byte_offset",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "b0ad44d3da151a615640"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Functions.FrameVariable.byteOffset, including its semantic type and signedness.",
+      "cpp_fingerprint": "3295b3b7c3b6fffa32aa121fa1f40ae1a3b2dc923db138a80cbe6c911d557d11",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable.byteOffset",
+          "declaration": "var byteOffset: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44407ae0a74fabce590d",
+      "cpp_name": "ida::function::FrameVariable::byte_size",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "64a1c3830ad40c80c7c5"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Functions.FrameVariable.byteSize, including its semantic type and signedness.",
+      "cpp_fingerprint": "d226da76c608cdf3fecbd85bf71f5d48164d483aa90f1859af437d926eb0f06e",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable.byteSize",
+          "declaration": "var byteSize: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a99502eec7a2849fca4",
+      "cpp_name": "ida::function::FrameVariable::comment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "4cf42d92017c8ccafe2f"
+      ],
+      "rationale": "Preserves the comment value as var comment: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "920799353702cd8e0b9f8f192e712858c4b0481a31990de2f7ab531e27040511",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable.comment",
+          "declaration": "var comment: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b9593b4da9f763f0afe3",
+      "cpp_name": "ida::function::FrameVariable::is_special",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "648e69af6d636f580bae"
+      ],
+      "rationale": "Preserves the declared bool value in Functions.FrameVariable.isSpecial, including its semantic type and signedness.",
+      "cpp_fingerprint": "16b15ec7db49e9ec310227ffb4771d3018bdcc0233e86de7022711417682f0c9",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable.isSpecial",
+          "declaration": "var isSpecial: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd5f52da2a46db223e76",
+      "cpp_name": "ida::function::FrameVariable::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "7545ec4139f94c940c44"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "d25a77f66df3f733e8e19c503fb4ee7227ff009b7bf7a95f269a4697a24aa9a6",
+      "swift_targets": [
+        {
+          "path": "Functions.FrameVariable.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "13b0717c63dc835256d0",
+      "cpp_name": "ida::function::Function",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "fc2d6f99c4a1ae26ba56"
+      ],
+      "rationale": "The C++ snapshot value class is represented by the owned Swift struct Functions.Function; database mutations remain explicit operations.",
+      "cpp_fingerprint": "13b0717c63dc835256d04145d240b9602a177edced058fc1334d264519b2e9c8",
+      "swift_targets": [
+        {
+          "path": "Functions.Function",
+          "declaration": "struct Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c263ee8eeca723c80e97",
+      "cpp_name": "ida::function::Function::bitness",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "3c8c8f5e3a0fd5eacc7e"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.bitness, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "3d27be231a20746a7e8edd8c4b33009820e7dec4242d584d72a7a56f3c0a4643",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.bitness",
+          "declaration": "var bitness: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d4c8bf002637ddb146dc",
+      "cpp_name": "ida::function::Function::end",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "e8fd895e7e3ce4c8be06"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.end, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "7f9418fb4039d7e92741a70b26e5a3f9f1d4a544638003993c965dd703b5a424",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.end",
+          "declaration": "var end: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d20e3fdee6feb0e825b",
+      "cpp_name": "ida::function::Function::frame_args_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "64ecaa0d7bdbec5951d9"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.frameArgsSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "38f7409949e1fe0cc8318e9a4e6cb33ae4b092027f6710d269f15bb65d7df564",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.frameArgsSize",
+          "declaration": "var frameArgsSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41a7fbc6a50c380ae6f3",
+      "cpp_name": "ida::function::Function::frame_local_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "497d6d4b277172ba81f5"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.frameLocalSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "60dda5e936e5df2ad03a25cb5412e886aa9d8f9488842d137a7906ddde50c41a",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.frameLocalSize",
+          "declaration": "var frameLocalSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e51b76d07e83d9349283",
+      "cpp_name": "ida::function::Function::frame_regs_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "257f50e8558debcdbf6b"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.frameRegsSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1fe7368eb56545f396e87ecde62b5176598c57790aabc2af795311447532532d",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.frameRegsSize",
+          "declaration": "var frameRegsSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a64f9f2fda62d3f6e76",
+      "cpp_name": "ida::function::Function::is_library",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "18ca519a87d41ccde8a6"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.isLibrary, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "b24db9f29fcc33766bc759f4ffa6be2105d06bbae8909039d2509ccddcf92a4d",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.isLibrary",
+          "declaration": "var isLibrary: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a4eedacca877e0ae96d1",
+      "cpp_name": "ida::function::Function::is_thunk",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "3022d912cb3abb8f0573"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.isThunk, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "6549d8ea307b793924f9e5f0de5402ad1e7da4950624a059576674a880d6b523",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.isThunk",
+          "declaration": "var isThunk: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "213b733a02a6325017c3",
+      "cpp_name": "ida::function::Function::is_visible",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "0c3241bb1ff5368443e7"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.isVisible, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "18311049edebdffd31ca6bd26fd61a63e9aa15c9f7595096223f435532fd9bc8",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.isVisible",
+          "declaration": "var isVisible: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83615cc15d72668c9b17",
+      "cpp_name": "ida::function::Function::name",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string () const",
+      "mapping": "adapted",
+      "swift": [
+        "ea80f1b1f3686da1b47d"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.name, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "4257ea04faa601b20cd8c6886da1d1007d1195117c0447d9a2b1eaf59846453a",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "52dee71dd887d5cda52f",
+      "cpp_name": "ida::function::Function::refresh",
+      "cpp_kind": "method",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "3de3e00727313389aa70"
+      ],
+      "rationale": "Functions.Function.refresh() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "42a86125d922bf20e0961afbe902865b68bf052e75fb59689dea06a5b02aa1cc",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.refresh()",
+          "declaration": "mutating func refresh() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1217c67fce87cb3464c0",
+      "cpp_name": "ida::function::Function::returns",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "91f79c8bf43d779df429"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.returns, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "eeef15bc95140b4db3b2b901952039a7e27cb69af923c21508272eeb397df7ad",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.returns",
+          "declaration": "var returns: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d6154a78cc78c026d88",
+      "cpp_name": "ida::function::Function::size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "19af03cee73b8f87b9a4"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.size, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1596d6af153338cfdaeab23c9ea64d5c0a9e2ae46028c51d940439301e36b619",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.size",
+          "declaration": "var size: UInt64 { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d6bce91169cabe4a283f",
+      "cpp_name": "ida::function::Function::start",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "98932d176ad42e2ba918"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.Function.start, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1b1697f7faa5f4abf5f3a6fcc364bc357cdbb01c9d9988169ad2d772454d4e89",
+      "swift_targets": [
+        {
+          "path": "Functions.Function.start",
+          "declaration": "var start: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e303f0716a84ddcc2cc9",
+      "cpp_name": "ida::function::FunctionIterator",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "The function traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "e303f0716a84ddcc2cc9a6d34b7f4d98febd9251008bc063bb8eecec9ceda6de",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6b5011d370a0d1bf92f2",
+      "cpp_name": "ida::function::FunctionIterator::FunctionIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4a8c366607d85c6dbe123d8912b8c41ceae025987eda92ca521ec41d48eed5ce",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "750cca96f7c90bf7079b",
+      "cpp_name": "ida::function::FunctionIterator::FunctionIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (std::size_t, std::size_t)",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0",
+        "d528530ae9e564087135"
+      ],
+      "rationale": "The requested positional interval is expressed by Swift Array slicing; byIndex supplies direct indexed access without constructing a C++ cursor. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "f69e9451ac93e14a6a451aee7c1a702bc6d0b05f295a432673f0ff10e80859c1",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        },
+        {
+          "path": "Functions.byIndex(index:)",
+          "declaration": "static func byIndex(index: Int) throws(IDAError) -> Functions.Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c46b4f06aae2baa18881",
+      "cpp_name": "ida::function::FunctionIterator::difference_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::ptrdiff_t",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Swift Array uses signed Int indices and distances on the supported 64-bit host; no separate C++ iterator difference typedef is needed. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "42690717c82a209299a934e7739f696b4925154186a95b341940111a27a8a8bf",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8a371f52d386e5d750f2",
+      "cpp_name": "ida::function::FunctionIterator::iterator_category",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::input_iterator_tag",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "The returned Swift Array conforms to Sequence and Collection; Swift protocol conformance replaces the C++ iterator-category tag. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "2608b08534810fee8f1f52297d26f315da9f3580dbb9a6e299792a8a6745cc5f",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e9114d50be4975847ad",
+      "cpp_name": "ida::function::FunctionIterator::operator!=",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const FunctionIterator &, const FunctionIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "c77f74f65c55aa73c7e188cac1cb1f3bfa25ed9e5fa4d87b0ff3d13b25606400",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d468779de0ff371a896",
+      "cpp_name": "ida::function::FunctionIterator::operator*",
+      "cpp_kind": "method",
+      "cpp_signature": "reference () const",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "9582f6c68dc6b0efa03b5d5c9f0ea8e419650e272091bbaa1f62df20f53077b5",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8d140ca83ed591085623",
+      "cpp_name": "ida::function::FunctionIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "FunctionIterator &()",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "8b88024ea845af63420d73fbaf8d524b94534ab010c773fe25e181f6fca73e1a",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c3b8107851ded6476bd",
+      "cpp_name": "ida::function::FunctionIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "FunctionIterator (int)",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ab2789d891615ec6959b52622d54f5d4e28a4275edab6db21a5f0d0359ea2e0f",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d735e64a03204175b99",
+      "cpp_name": "ida::function::FunctionIterator::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const FunctionIterator &, const FunctionIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "839f22fae5de4a09c68aa1f9580a5e755efeb198e94dbe86e438d800c928a11a",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9cc05020df636041fc2c",
+      "cpp_name": "ida::function::FunctionIterator::pointer",
+      "cpp_kind": "alias",
+      "cpp_signature": "const Function *",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0",
+        "fc2d6f99c4a1ae26ba56"
+      ],
+      "rationale": "The iteration element is an owned Functions.Function value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ef319956669d9eb7a81bc92b33db64ede0831829c09b5fc5750fab8c90ca5736",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        },
+        {
+          "path": "Functions.Function",
+          "declaration": "struct Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3e554a017be534b4e5a3",
+      "cpp_name": "ida::function::FunctionIterator::reference",
+      "cpp_kind": "alias",
+      "cpp_signature": "Function",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0",
+        "fc2d6f99c4a1ae26ba56"
+      ],
+      "rationale": "The iteration element is an owned Functions.Function value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "0500d986c9ae9d188b8d591816e74bd187044e1fa34e9dfd694caa2df95c37e9",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        },
+        {
+          "path": "Functions.Function",
+          "declaration": "struct Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c2ca44d8d76241ec256e",
+      "cpp_name": "ida::function::FunctionIterator::value_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "Function",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0",
+        "fc2d6f99c4a1ae26ba56"
+      ],
+      "rationale": "The iteration element is an owned Functions.Function value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4b3f18abdd055d19cae7f636988dfd37d3ba5b3cbd4289260b18c34d5a2524e5",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        },
+        {
+          "path": "Functions.Function",
+          "declaration": "struct Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ec762f41ff23924591fe",
+      "cpp_name": "ida::function::FunctionRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "The function traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ec762f41ff23924591fee640d2a8b76b814890af9ee8bad3c919fac7b16d508d",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c1f50db0bcc87bd86b43",
+      "cpp_name": "ida::function::FunctionRange::FunctionRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "9ffc62b6fab1f62c094836342da0d47b1e8283f0801226a4fcffcb6d98563d1c",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6acab68603b3e1c04de1",
+      "cpp_name": "ida::function::FunctionRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "FunctionIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Use Array.startIndex or makeIterator() on the returned snapshot to begin iteration. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ff44ae126e13da6ab5c6d667fece5d0ab51df1009cd18fdf0b0d37e1adbb7274",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5fa10ae2897be606c6ed",
+      "cpp_name": "ida::function::FunctionRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "FunctionIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Use Array.endIndex or Iterator.next() returning nil to detect exhaustion of the returned snapshot. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "796a0759f884e87d3c80ac4d05d4f87962280e4a729d250f5dba7f592d4e7bc4",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d72d331ecce5d4134e63",
+      "cpp_name": "ida::function::RegisterVariable",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "7bffe0d338d49494b138"
+      ],
+      "rationale": "Functions.RegisterVariable is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "d72d331ecce5d4134e637372502c5a6921e655970f6d6d21414637bfa52a20bf",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable",
+          "declaration": "struct RegisterVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f05ed8f5be2b04c539eb",
+      "cpp_name": "ida::function::RegisterVariable::canonical_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "b09a7787fb9e3cc84437"
+      ],
+      "rationale": "Preserves the canonical_name value as var canonicalName: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "6b8fa2cdc7ba84de3f3fec6032571103b0fbc1c4b8cb91777d1501cfea56312f",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable.canonicalName",
+          "declaration": "var canonicalName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ed3977a8630a92e7a77c",
+      "cpp_name": "ida::function::RegisterVariable::comment",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "dae13bb2086a9970f4bf"
+      ],
+      "rationale": "Preserves the comment value as var comment: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "7b9cc8619b0ba7bc5f084dbbe9bd4826aa24b015dc60ef17daf24e13c01977a1",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable.comment",
+          "declaration": "var comment: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90f03532848c126703d7",
+      "cpp_name": "ida::function::RegisterVariable::range_end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "c79d51795b78ac55446c"
+      ],
+      "rationale": "Preserves the declared Address value in Functions.RegisterVariable.rangeEnd, including its semantic type and signedness.",
+      "cpp_fingerprint": "52ce9e9277380142b84275bd0c50677370c08bf61a9805440683bc221449d89d",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable.rangeEnd",
+          "declaration": "var rangeEnd: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd3dc593e229f2569384",
+      "cpp_name": "ida::function::RegisterVariable::range_start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "0eda43cf9b93c51bfefe"
+      ],
+      "rationale": "Preserves the declared Address value in Functions.RegisterVariable.rangeStart, including its semantic type and signedness.",
+      "cpp_fingerprint": "c6172e2ec1ce63db1824a848d693c0daa958b8c4aff3beb8551bc43ee1d2fa93",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable.rangeStart",
+          "declaration": "var rangeStart: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "75a373040a7439b8eabb",
+      "cpp_name": "ida::function::RegisterVariable::user_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "55782218293aa85830a2"
+      ],
+      "rationale": "Preserves the user_name value as var userName: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "e1e0b89b908455d6698608849301cbc34cc347b7c7495e365a1df9ca76fd1324",
+      "swift_targets": [
+        {
+          "path": "Functions.RegisterVariable.userName",
+          "declaration": "var userName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dddd172441ead1e3682d",
+      "cpp_name": "ida::function::StackFrame",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "2846bd9038dccf7f53cb"
+      ],
+      "rationale": "The C++ snapshot value class is represented by the owned Swift struct Functions.StackFrame; database mutations remain explicit operations.",
+      "cpp_fingerprint": "dddd172441ead1e3682d216e6c2db54e5257200f9cbcffea51526c204c231087",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame",
+          "declaration": "struct StackFrame"
+        }
+      ]
+    },
+    {
+      "cpp_id": "083add7eac1ac0cac441",
+      "cpp_name": "ida::function::StackFrame::arguments_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "5dca5eddce067afe5a24"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.StackFrame.argumentsSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "5a33e015b320c1bb83ec6a2cbc47121a0889d3c15e57a20689009ff78d9840e3",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame.argumentsSize",
+          "declaration": "var argumentsSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c9fde4d7c6aa1c3992ea",
+      "cpp_name": "ida::function::StackFrame::local_variables_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "c632df4550e454740fd5"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.StackFrame.localVariablesSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "fce81b2d0803eca3bda0464f6f1380476d509ef81a7203d26106d2f8a21d531b",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame.localVariablesSize",
+          "declaration": "var localVariablesSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b93ebbc818435ec7febd",
+      "cpp_name": "ida::function::StackFrame::saved_registers_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "91969a5e63a3c53af701"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.StackFrame.savedRegistersSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "61b50a52f23026c7ca750f7e381f9fa87c3ce67142d8dea8e7bbd96b375f006e",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame.savedRegistersSize",
+          "declaration": "var savedRegistersSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6dc76ecd95d35155f055",
+      "cpp_name": "ida::function::StackFrame::total_size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "f48442ca1820ff3912d7"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.StackFrame.totalSize, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "e36526e3ae3b787024f300c54446a7d4c5f14418b9dd771da5d1850b98250e21",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame.totalSize",
+          "declaration": "var totalSize: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4a907d3e76b793ae4c06",
+      "cpp_name": "ida::function::StackFrame::variables",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::vector<FrameVariable> &() const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "32ee85a2773629fdc3e8"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Functions.StackFrame.variables, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "b1ff74ba076f6efcc2c569e901d4f93f7747661a434e2c2c62f7628763755441",
+      "swift_targets": [
+        {
+          "path": "Functions.StackFrame.variables",
+          "declaration": "var variables: [Functions.FrameVariable]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d905b11399c16a2f13cf",
+      "cpp_name": "ida::function::add_register_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, Address, std::string_view, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "df7397c6aaa74a831576"
+      ],
+      "rationale": "Functions.addRegisterVariable(functionAddress:rangeStart:rangeEnd:registerName:userName:comment:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "173861783183fd450bf1c952eeef9c8f300a611bbf22193c00cf1dc5ed8dca18",
+      "swift_targets": [
+        {
+          "path": "Functions.addRegisterVariable(functionAddress:rangeStart:rangeEnd:registerName:userName:comment:)",
+          "declaration": "static func addRegisterVariable(functionAddress: UInt64, rangeStart: UInt64, rangeEnd: UInt64, registerName: String, userName: String, comment: String = \"\") throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7222a68383131b66b12",
+      "cpp_name": "ida::function::add_tail",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "f202d93a09104d9fb8a1"
+      ],
+      "rationale": "Functions.addTail(functionAddress:tailStart:tailEnd:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "43d471b7807f9de9ca76c8512f637f2c8eef7bd9a84f858ce22ce5b3cd0220be",
+      "swift_targets": [
+        {
+          "path": "Functions.addTail(functionAddress:tailStart:tailEnd:)",
+          "declaration": "static func addTail(functionAddress: UInt64, tailStart: UInt64, tailEnd: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f184a670d2e388db617e",
+      "cpp_name": "ida::function::all",
+      "cpp_kind": "function",
+      "cpp_signature": "FunctionRange ()",
+      "mapping": "adapted",
+      "swift": [
+        "7c64268dda3c36a4dfe0"
+      ],
+      "rationale": "Returns an eager array of copied Function snapshots in database index order; Swift for-in, indices, and slices replace the C++ range.",
+      "cpp_fingerprint": "eab463b4c945dcc5bfae0297a022ac0f729c8600e4e71d1fd9b1640e1f38f506",
+      "swift_targets": [
+        {
+          "path": "Functions.all()",
+          "declaration": "static func all() throws(IDAError) -> [Functions.Function]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9797912edbfd8fea2fa8",
+      "cpp_name": "ida::function::apply_decl",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "90ac58f8d76b6894f54f"
+      ],
+      "rationale": "Functions.applyDecl(functionAddress:cDecl:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "dfa982c448e9374df829bca64715f2e8c951bcffd3bfbae1b655cb9fc4dd1975",
+      "swift_targets": [
+        {
+          "path": "Functions.applyDecl(functionAddress:cDecl:)",
+          "declaration": "static func applyDecl(functionAddress: UInt64, cDecl: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "926897909cb013799874",
+      "cpp_name": "ida::function::at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Function> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "27bd9bbe200543f7c4cd"
+      ],
+      "rationale": "Functions.at(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4272ad56f958ab45bc2fa87f284145ee6540a979c47107f83e9f0552e88f4f3d",
+      "swift_targets": [
+        {
+          "path": "Functions.at(address:)",
+          "declaration": "static func at(address: UInt64) throws(IDAError) -> Functions.Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7ac1f0a96c48be4f9cd3",
+      "cpp_name": "ida::function::by_index",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Function> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "d528530ae9e564087135"
+      ],
+      "rationale": "Functions.byIndex(index:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "526536002ed2e4229c3e0850bb7d51794419da55a443a1251b8e5e3058268151",
+      "swift_targets": [
+        {
+          "path": "Functions.byIndex(index:)",
+          "declaration": "static func byIndex(index: Int) throws(IDAError) -> Functions.Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c12b1eaa11f535055d50",
+      "cpp_name": "ida::function::callees",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "026361e6d6872954ebda"
+      ],
+      "rationale": "Functions.callees(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6b9f3967094eb4f27ae56a459039e8ea02704c32fb96eb1b574a361af4e60457",
+      "swift_targets": [
+        {
+          "path": "Functions.callees(address:)",
+          "declaration": "static func callees(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c6291b4a803d092ff0cb",
+      "cpp_name": "ida::function::callers",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "2827fe10333f373d3c2c"
+      ],
+      "rationale": "Functions.callers(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c3d4d31d8333d3b3c3b2a70d5c4f75d8f74d4f61a8a7aba051b1c1c16a97e162",
+      "swift_targets": [
+        {
+          "path": "Functions.callers(address:)",
+          "declaration": "static func callers(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4993a9b231248c70a385",
+      "cpp_name": "ida::function::chunk_count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "22fda843a9c74524eb25"
+      ],
+      "rationale": "Functions.chunkCount(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b52000dad4d0ca789a5236d3220d730395deaff7011e22aa6dc8d9cb957dec3f",
+      "swift_targets": [
+        {
+          "path": "Functions.chunkCount(address:)",
+          "declaration": "static func chunkCount(address: UInt64) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "974a4829c26414d8fa27",
+      "cpp_name": "ida::function::chunks",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Chunk>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "8667b5e98ba6302c7c4c"
+      ],
+      "rationale": "Functions.chunks(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "453d766111ad97f25ac4b74237784f5388c68e25658401bc4b14d88dcf55084d",
+      "swift_targets": [
+        {
+          "path": "Functions.chunks(address:)",
+          "declaration": "static func chunks(address: UInt64) throws(IDAError) -> [Functions.Chunk]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "432dc81a5d2add6560dd",
+      "cpp_name": "ida::function::code_addresses",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "585d56d8194e71bf9098"
+      ],
+      "rationale": "Functions.codeAddresses(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d452ddbc8749e3f411e05447f263fbf806676505a747af83e908451ca0ab5128",
+      "swift_targets": [
+        {
+          "path": "Functions.codeAddresses(address:)",
+          "declaration": "static func codeAddresses(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f6d1682edeb9c629b973",
+      "cpp_name": "ida::function::comment",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "2e05f3b38ba0a077716e"
+      ],
+      "rationale": "Functions.comment(address:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "9503cdf161526cd7ed1aa50bf5a6219d6d436e2aa00604dae250fdd08f5bab5b",
+      "swift_targets": [
+        {
+          "path": "Functions.comment(address:repeatable:)",
+          "declaration": "static func comment(address: UInt64, repeatable: Bool = false) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "199152e8786a74b44d97",
+      "cpp_name": "ida::function::count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "c42e5b07694e32ccd980"
+      ],
+      "rationale": "Functions.count() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "76d70e44897ca3671664d46635d61a12669bdba1ffda8235ed2e862feb92ca05",
+      "swift_targets": [
+        {
+          "path": "Functions.count()",
+          "declaration": "static func count() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1cdd6eda07a8404f311b",
+      "cpp_name": "ida::function::create",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Function> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "f2ddeeebb3ebb3dacded"
+      ],
+      "rationale": "Functions.create(start:end:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4250898887f7e23e9b701fdaf05b886e2ebbbef3e618e81f002592dda1e326e7",
+      "swift_targets": [
+        {
+          "path": "Functions.create(start:end:)",
+          "declaration": "static func create(start: UInt64, end: UInt64 = badAddress) throws(IDAError) -> Functions.Function"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8236aa9ebacf52428dad",
+      "cpp_name": "ida::function::declaration",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "08940074f060bffedd83"
+      ],
+      "rationale": "Functions.declaration(functionAddress:nameOverride:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "bdf80c0e493b10894078f716aa4b9526a9395f20cf9114f00996550801589e69",
+      "swift_targets": [
+        {
+          "path": "Functions.declaration(functionAddress:nameOverride:)",
+          "declaration": "static func declaration(functionAddress: UInt64, nameOverride: String = \"\") throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "089217d8bf0e457aa965",
+      "cpp_name": "ida::function::define_stack_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, std::int32_t, const ida::type::TypeInfo &)",
+      "mapping": "direct",
+      "swift": [
+        "a8eec4317f1d45288539"
+      ],
+      "rationale": "Functions.defineStackVariable(functionAddress:name:frameOffset:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4df1128564b8391b7f206cae652f21e119dc80d2372062056d54a57fc61c51b8",
+      "swift_targets": [
+        {
+          "path": "Functions.defineStackVariable(functionAddress:name:frameOffset:type:)",
+          "declaration": "static func defineStackVariable(functionAddress: UInt64, name: String, frameOffset: Int32, type: TypeInfo) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5cc84ec9860ab429568f",
+      "cpp_name": "ida::function::find_register_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<RegisterVariable> (Address, Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "d71d5a3cd3cc31d47394"
+      ],
+      "rationale": "Functions.findRegisterVariable(functionAddress:address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b2efbf6b35928732db8d7fc7dd9a6355d93dc48696aec27a6189e85f87e28b79",
+      "swift_targets": [
+        {
+          "path": "Functions.findRegisterVariable(functionAddress:address:registerName:)",
+          "declaration": "static func findRegisterVariable(functionAddress: UInt64, address: UInt64, registerName: String) throws(IDAError) -> Functions.RegisterVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d1065a419b7de02176a8",
+      "cpp_name": "ida::function::frame",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<StackFrame> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "e15fb5f9cef67ed0a6cf"
+      ],
+      "rationale": "Functions.frame(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "514b06151b53b1c5cd43844ac299dc07ce763ae1d22540b559ef87e745b79462",
+      "swift_targets": [
+        {
+          "path": "Functions.frame(address:)",
+          "declaration": "static func frame(address: UInt64) throws(IDAError) -> Functions.StackFrame"
+        }
+      ]
+    },
+    {
+      "cpp_id": "52539d9fdd05506761ed",
+      "cpp_name": "ida::function::frame_variable_by_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<FrameVariable> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "148f19cc41ae3633a73e"
+      ],
+      "rationale": "Functions.frameVariableByName(address:name:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c259905f307366218c76262c68193211b2285d1e9c10bbbecd031d608188b692",
+      "swift_targets": [
+        {
+          "path": "Functions.frameVariableByName(address:name:)",
+          "declaration": "static func frameVariableByName(address: UInt64, name: String) throws(IDAError) -> Functions.FrameVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fa627adc4791a2015ddd",
+      "cpp_name": "ida::function::frame_variable_by_offset",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<FrameVariable> (Address, std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "3edcc7c4ec47f3182c4c"
+      ],
+      "rationale": "Functions.frameVariableByOffset(address:byteOffset:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1a30a391b91a82e4e52e30a3ba1a74426f43d4be76f63bf8b3e0ec167007c15f",
+      "swift_targets": [
+        {
+          "path": "Functions.frameVariableByOffset(address:byteOffset:)",
+          "declaration": "static func frameVariableByOffset(address: UInt64, byteOffset: Int) throws(IDAError) -> Functions.FrameVariable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd69bed649661472afd6",
+      "cpp_name": "ida::function::has_register_variables",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "b14c4085a5ce93b0c999"
+      ],
+      "rationale": "Functions.hasRegisterVariables(functionAddress:address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "80e507d986c1f116b27cc3e470efff7262085af052edaf99ca8b52b200d87b8b",
+      "swift_targets": [
+        {
+          "path": "Functions.hasRegisterVariables(functionAddress:address:)",
+          "declaration": "static func hasRegisterVariables(functionAddress: UInt64, address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dc2c6328d12e8d60860d",
+      "cpp_name": "ida::function::is_outlined",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "a9a8eae941c4733d66bd"
+      ],
+      "rationale": "Functions.isOutlined(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3913ccd1b8c44c3464e9091d5bda46f7c41e1a3634beb2800d479fc50c1448d6",
+      "swift_targets": [
+        {
+          "path": "Functions.isOutlined(address:)",
+          "declaration": "static func isOutlined(address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0a3c83f2fd7bfb7f9a8",
+      "cpp_name": "ida::function::item_addresses",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Address>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "5251dfca383057fb27c7"
+      ],
+      "rationale": "Functions.itemAddresses(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4af64622971cdceb243497b7ac9c4cc1c220df2ebd5313d93bd5559fa949582c",
+      "swift_targets": [
+        {
+          "path": "Functions.itemAddresses(address:)",
+          "declaration": "static func itemAddresses(address: UInt64) throws(IDAError) -> [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "43722183fba09ad634d7",
+      "cpp_name": "ida::function::name_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "aed79cec1c001680e2fa"
+      ],
+      "rationale": "Functions.nameAt(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b2df16857ac3897342f93ad87a53f4087a98a6af1b0ee472cc5614f098fd219e",
+      "swift_targets": [
+        {
+          "path": "Functions.nameAt(address:)",
+          "declaration": "static func nameAt(address: UInt64) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8dd4ce876cf367ff71a9",
+      "cpp_name": "ida::function::reanalyze",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "f0dcf9c82d6ce7c91e5b"
+      ],
+      "rationale": "Functions.reanalyze(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ed99bb7baf6797e2263294eb8413d1b24f64e8176e6e30f5fb9915ba372b0952",
+      "swift_targets": [
+        {
+          "path": "Functions.reanalyze(address:)",
+          "declaration": "static func reanalyze(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e4585b4def778cb4c1e",
+      "cpp_name": "ida::function::register_variables",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<RegisterVariable>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "0ab2d5ade2ecca75f806"
+      ],
+      "rationale": "Functions.registerVariables(functionAddress:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "eb3226074025606af7c1458b1125a63d4ab3fd53361233729dd7dd7ac954c564",
+      "swift_targets": [
+        {
+          "path": "Functions.registerVariables(functionAddress:)",
+          "declaration": "static func registerVariables(functionAddress: UInt64) throws(IDAError) -> [Functions.RegisterVariable]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f11acf712e77e32d61e5",
+      "cpp_name": "ida::function::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "7a987d0d8b94cb664b0f"
+      ],
+      "rationale": "Functions.remove(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "61b8145a5014a9068e40c73c9960547b5ee4ba58af0a95c97a086948293e5512",
+      "swift_targets": [
+        {
+          "path": "Functions.remove(address:)",
+          "declaration": "static func remove(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "24f9a4c72402a4c8946d",
+      "cpp_name": "ida::function::remove_register_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "e6436e470d2839cd5fc8"
+      ],
+      "rationale": "Functions.removeRegisterVariable(functionAddress:rangeStart:rangeEnd:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ce665cd453d696fd030726dcf7e155f2020f1cf74243844425bd30ae0c755080",
+      "swift_targets": [
+        {
+          "path": "Functions.removeRegisterVariable(functionAddress:rangeStart:rangeEnd:registerName:)",
+          "declaration": "static func removeRegisterVariable(functionAddress: UInt64, rangeStart: UInt64, rangeEnd: UInt64, registerName: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b8e02e35fb4cad99ed28",
+      "cpp_name": "ida::function::remove_tail",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "84729bb77b78426a95b6"
+      ],
+      "rationale": "Functions.removeTail(functionAddress:tailEa:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "83eac0fe78bd0d031f196700e3c080cd89ce10f3ab797fe3791295c71589882b",
+      "swift_targets": [
+        {
+          "path": "Functions.removeTail(functionAddress:tailEa:)",
+          "declaration": "static func removeTail(functionAddress: UInt64, tailEa: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8ea5e5509d7ae52752e5",
+      "cpp_name": "ida::function::rename_register_variable",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, std::string_view, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "e70caeb6f976671befec"
+      ],
+      "rationale": "Functions.renameRegisterVariable(functionAddress:address:registerName:newUserName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fa4192afbe78d474e622d1d6234c9f666c793cb755259f27d52d84bfdc1f43de",
+      "swift_targets": [
+        {
+          "path": "Functions.renameRegisterVariable(functionAddress:address:registerName:newUserName:)",
+          "declaration": "static func renameRegisterVariable(functionAddress: UInt64, address: UInt64, registerName: String, newUserName: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "143a946e347baa2f7eaf",
+      "cpp_name": "ida::function::set_comment",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "8094b76484d6deadc639"
+      ],
+      "rationale": "Functions.setComment(address:text:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a237ecf6656903ceda02f1db897a6a799dc08afdb988cfcf00e5978c70a30ca6",
+      "swift_targets": [
+        {
+          "path": "Functions.setComment(address:text:repeatable:)",
+          "declaration": "static func setComment(address: UInt64, text: String, repeatable: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1ce5ec08bbbc213034b",
+      "cpp_name": "ida::function::set_end",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "a39f320312718d644378"
+      ],
+      "rationale": "Functions.setEnd(address:newEnd:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "49b73732dbcf664a5f2082f4f154100d3d0c4ca15ad4b8cc85fa68eb3ce5348b",
+      "swift_targets": [
+        {
+          "path": "Functions.setEnd(address:newEnd:)",
+          "declaration": "static func setEnd(address: UInt64, newEnd: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9b94fc3d36a36fd30ec0",
+      "cpp_name": "ida::function::set_outlined",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "b27a8beb134c8ce89577"
+      ],
+      "rationale": "Functions.setOutlined(address:outlined:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "45c39f78541e729846a0c2770948b80200fab56e239f32b227b86e0283ce1b1a",
+      "swift_targets": [
+        {
+          "path": "Functions.setOutlined(address:outlined:)",
+          "declaration": "static func setOutlined(address: UInt64, outlined: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d7953bae2daf5caa7fa0",
+      "cpp_name": "ida::function::set_prototype",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const ida::type::TypeInfo &)",
+      "mapping": "direct",
+      "swift": [
+        "1f19c9d356c36abde92e"
+      ],
+      "rationale": "Functions.setPrototype(functionAddress:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a83a7a73682dc9ec67113eac1c35bd9efe32076cc25af6983acbb88ea8c936c9",
+      "swift_targets": [
+        {
+          "path": "Functions.setPrototype(functionAddress:type:)",
+          "declaration": "static func setPrototype(functionAddress: UInt64, type: TypeInfo) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "879a88f54b516c2df5e6",
+      "cpp_name": "ida::function::set_start",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "d635b3bfeecd5cc6cf48"
+      ],
+      "rationale": "Functions.setStart(address:newStart:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d60dab6584a2f51c98bf8661e11af7c5d316b0c098065adc2ce268f4075980a6",
+      "swift_targets": [
+        {
+          "path": "Functions.setStart(address:newStart:)",
+          "declaration": "static func setStart(address: UInt64, newStart: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a8f8c5d15e87a95e981b",
+      "cpp_name": "ida::function::sp_delta_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressDelta> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "1a4d72bbd5d8c79bc742"
+      ],
+      "rationale": "Functions.spDeltaAt(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0ddf329c5d1bfaf081f4a20d7a83e7e3ab633bded6ff1615615efc44d0865490",
+      "swift_targets": [
+        {
+          "path": "Functions.spDeltaAt(address:)",
+          "declaration": "static func spDeltaAt(address: UInt64) throws(IDAError) -> Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "510ab63f38954da46c24",
+      "cpp_name": "ida::function::tail_chunks",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Chunk>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "065c89e3cd5b3442459f"
+      ],
+      "rationale": "Functions.tailChunks(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3d19f663cc27ec9de64315d661582f0ce9b910590228321a4ec812ee866cf804",
+      "swift_targets": [
+        {
+          "path": "Functions.tailChunks(address:)",
+          "declaration": "static func tailChunks(address: Address) throws(IDAError) -> [Functions.Chunk]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b7094e2cc1d01738bb1",
+      "cpp_name": "ida::function::update",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "35c64ce47c5d874b7808"
+      ],
+      "rationale": "Functions.update(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "2f2a02724d17fbb9d15755f6cf46cc8c22bdbf46efa0114805a8a5d702d116a2",
+      "swift_targets": [
+        {
+          "path": "Functions.update(address:)",
+          "declaration": "static func update(address: UInt64) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

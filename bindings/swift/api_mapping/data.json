@@ -1,0 +1,2882 @@
+{
+  "domain": "data",
+  "declarations": [
+    {
+      "cpp_id": "3f3e494e088119fc3fc1",
+      "cpp_name": "ida::data::CustomDataAnalyzeCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<void (const CustomDataFormatContext &)>",
+      "mapping": "adapted",
+      "swift": [
+        "4bd998e2122e38338097"
+      ],
+      "rationale": "Closure property carries the exact callback arguments and semantic return, adding typed failure transport and native callable ownership.",
+      "cpp_fingerprint": "5d77be0acc9d400e97fdbe522140472e57439ad563d5c65edb89a2d485364447",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.analyze",
+          "declaration": "var analyze: ((Data.CustomDataFormatContext) throws(IDAError) -> Void)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f352605b419c133c4db9",
+      "cpp_name": "ida::data::CustomDataCreationFilter",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<bool (Address, AddressSize)>",
+      "mapping": "adapted",
+      "swift": [
+        "bb7d523760e568065e69"
+      ],
+      "rationale": "Closure property carries the exact callback arguments and semantic return, adding typed failure transport and native callable ownership.",
+      "cpp_fingerprint": "393a28d7504c679e9c35b15eedc3f0e7176ac2790f283324032fca02262ce907",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.mayCreateAt",
+          "declaration": "var mayCreateAt: ((Address, AddressSize) throws(IDAError) -> Bool)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17dbf7e3971bee3c033e",
+      "cpp_name": "ida::data::CustomDataFormatContext",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "beb340dc95e181824b05"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "17dbf7e3971bee3c033e06a836abd1e2ffd208695470f8708f60940b6055ba03",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatContext",
+          "declaration": "struct CustomDataFormatContext"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dd19ce0b36a6234cd00f",
+      "cpp_name": "ida::data::CustomDataFormatContext::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "5bd50fc3e478a29ebf49"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "61929a556cfb5ab0ebd802f2eb0ba1c11ea661f06fa6fc3ee18da40a0953eeeb",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatContext.address",
+          "declaration": "var address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dc1c259fedfb9583e224",
+      "cpp_name": "ida::data::CustomDataFormatContext::operand_index",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "644358a1236bf1c26e81"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1cc7c827d3d4d581ca3d3f461dc80274621b9efd7b7562d28516e4cb52408c62",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatContext.operandIndex",
+          "declaration": "var operandIndex: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "426a9db5683ae276ea8a",
+      "cpp_name": "ida::data::CustomDataFormatContext::type_id",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataTypeId",
+      "mapping": "direct",
+      "swift": [
+        "33de408065c014a2c9c3"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1c0600a7c489133931c08924c4fe8777eaa5bcad824f7b0965c74b33dc5c7247",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatContext.typeID",
+          "declaration": "var typeID: Data.CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8fc11510591f944bc92a",
+      "cpp_name": "ida::data::CustomDataFormatDefinition",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "cc48e82bd7449c9c8315"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8fc11510591f944bc92a5782e0032b7f3ddfc519a507fed77633481f8df91a3d",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition",
+          "declaration": "struct CustomDataFormatDefinition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f14bc471c9e85ce2b4f9",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::analyze",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataAnalyzeCallback",
+      "mapping": "direct",
+      "swift": [
+        "4bd998e2122e38338097"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "38d7dede68d701349e56a272582bc55e7ea4b80d86fe6a3aa7619fd8c5e6c506",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.analyze",
+          "declaration": "var analyze: ((Data.CustomDataFormatContext) throws(IDAError) -> Void)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a43e8cac53468ba94ae6",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "02c05c0e1e642d228a8a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "830d0ccdd1e3e7267d93c1c511dffea6d7e9914cc525fda19ecc9a988ca10c96",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.hotkey",
+          "declaration": "var hotkey: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e1c75c926ebb214a4e30",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::menu_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "97d441cf901e1889ddad"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6a3024f7f220548a35a51e7adc32c048f558fdfd3e6b0c115dbfea3581dd9336",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.menuName",
+          "declaration": "var menuName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9a46dbbfe6c67f2ea6e2",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "69c2fae5abc791b80975"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "54c8a2a3f34a53e44d0cda34149e8b9a6d984c356e3f1b2d2bb0fbe72f51694d",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ff6b9d1ec93f87d24fd",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::render",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataRenderCallback",
+      "mapping": "direct",
+      "swift": [
+        "edee013faf7cfd2cf1cb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "370b87edc1e8f57a5241dcf251c24fd4fbf6ffc93bb0fff81cec15dd6737157c",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.render",
+          "declaration": "var render: (([UInt8], Data.CustomDataFormatContext) throws(IDAError) -> String)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd7820b7272bb087bfee",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::scan",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataScanCallback",
+      "mapping": "direct",
+      "swift": [
+        "1daa15b2e1f8e0c002d2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1035d193896a1ce2e986717e3b35ce00537c2abe7545068428129d8556329a3b",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.scan",
+          "declaration": "var scan: ((String, Data.CustomDataFormatContext) throws(IDAError) -> [UInt8])?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "467fae9ac5574cf0dcd9",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::text_width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "0cad4c0c07d536d88793"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "25c685f0df52439e6e41199095c56d72816ea1d80dbc9219815bd14cdfa1fc98",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.textWidth",
+          "declaration": "var textWidth: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ce6999fa04c1bff4817",
+      "cpp_name": "ida::data::CustomDataFormatDefinition::value_size",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "9d39c21b13163d130dba"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bbf8185af948a7c7e86e709da3c84a67a86621afaf1d7eb0e01e7d50a37a8460",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.valueSize",
+          "declaration": "var valueSize: AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4e8ae67c01d51067ae1e",
+      "cpp_name": "ida::data::CustomDataFormatId",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "6b67381962e6cf4926d2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4e8ae67c01d51067ae1eb8df75b2dfc691e7f048112425a3bacc26a0d5b5c905",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatID",
+          "declaration": "struct CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0b8d72c8168d2aba25d",
+      "cpp_name": "ida::data::CustomDataFormatId::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (CustomDataFormatId, CustomDataFormatId)",
+      "mapping": "private_bridge",
+      "swift": [
+        "6b67381962e6cf4926d2"
+      ],
+      "rationale": "Numeric native identity is private; opaque Hashable/Equatable IDs preserve comparison and registration/query use without arbitrary SDK handle construction.",
+      "cpp_fingerprint": "1027890211231a3233f896aebf097795f1878168b2c1071630e1d4948843ce24",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatID",
+          "declaration": "struct CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "579a66f7d779274e8cb7",
+      "cpp_name": "ida::data::CustomDataFormatId::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "private_bridge",
+      "swift": [
+        "6b67381962e6cf4926d2"
+      ],
+      "rationale": "Numeric native identity is private; opaque Hashable/Equatable IDs preserve comparison and registration/query use without arbitrary SDK handle construction.",
+      "cpp_fingerprint": "badb81f4654c264f8842ca3635f57f7266737d8610be02d0844b415b32e0df05",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatID",
+          "declaration": "struct CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "023c28cd9b60461a47db",
+      "cpp_name": "ida::data::CustomDataFormatInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "dd23b4333a1718938bd1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "023c28cd9b60461a47db9b889aa2b424b8ede3362515880270080df0c872f03d",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo",
+          "declaration": "struct CustomDataFormatInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d2d04d1627aa77682df3",
+      "cpp_name": "ida::data::CustomDataFormatInfo::can_analyze",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c3bcc315cd700df3d3a8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ff8320005832710d2d66af575e1332f2cc3dd5eac40faf18a0343412673c882b",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.canAnalyze",
+          "declaration": "let canAnalyze: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e332d240be0625cb5f18",
+      "cpp_name": "ida::data::CustomDataFormatInfo::can_render",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "d51e396f228849bfce8e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fa15b388620ae749bae360c9fdba2c97948f84da9a7d333cc5f7965e6a6bdb5c",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.canRender",
+          "declaration": "let canRender: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c98ad29b39e38cee58a1",
+      "cpp_name": "ida::data::CustomDataFormatInfo::can_scan",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "1f6fbc862cc6d28e593f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "06b83f1f94176c7a9c00b6f40ba18e072c37b6c126ff85aac298b674ce6027ee",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.canScan",
+          "declaration": "let canScan: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1c0cd661c4e184d4017",
+      "cpp_name": "ida::data::CustomDataFormatInfo::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "53bc64cceee174598775"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "78e45e34a10f0b86a1eb9e420d9a4c524bc13e26b35e32627a815b8d55f397db",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.hotkey",
+          "declaration": "let hotkey: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe31af25ccc1a008135b",
+      "cpp_name": "ida::data::CustomDataFormatInfo::id",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataFormatId",
+      "mapping": "direct",
+      "swift": [
+        "50b5ea5131ddd0bd1c6e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "15d3fb76f8df13f9db7e60df19f69d3faf83479bb57057b0c5be25863bb63a5e",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.id",
+          "declaration": "let id: Data.CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c104c676a59aa6b96a19",
+      "cpp_name": "ida::data::CustomDataFormatInfo::menu_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "519c166fd7d37717e725"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5856e5175311dc01367f489541c20c099f79d4ce3d83e9509fb29af027bc3677",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.menuName",
+          "declaration": "let menuName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef1fb8788bc788b926a8",
+      "cpp_name": "ida::data::CustomDataFormatInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "1759d6a2ec2681d4f73b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9d8745f66f2ef577562ca62726ec56df660160a94a63eec4bdf7605df029f19e",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "31213424033ea5d76fcc",
+      "cpp_name": "ida::data::CustomDataFormatInfo::text_width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "2be4c53f92020f8eeed1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ef6bd05a2b0cf54e5bc5c15b6ef0b6ac745d4a6eefcaa7c054ac01005cc76a7d",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.textWidth",
+          "declaration": "let textWidth: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b9a2de2687c88b4763b1",
+      "cpp_name": "ida::data::CustomDataFormatInfo::value_size",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "f8b8ec732071655d472c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "1210314ac26e6d40e18e5c5c88c80d25e14bd92360cd2f4b7ffdd91d9f5bf00f",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.valueSize",
+          "declaration": "let valueSize: AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dddbee5a05d01675aa3e",
+      "cpp_name": "ida::data::CustomDataFormatInfo::visible_in_menu",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "9b7898c135aabce76c76"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ff67549e8189c9afc6e2f0107147b3acbaabcf916a0def46dea31dc15148b702",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatInfo.visibleInMenu",
+          "declaration": "let visibleInMenu: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e3d6537c77c7e57e679",
+      "cpp_name": "ida::data::CustomDataItemInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "abdd7c35a2526ef5f7c8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8e3d6537c77c7e57e679f484939bc71473c78a5cdf233b9b7ea115cd6813fcf3",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataItemInfo",
+          "declaration": "struct CustomDataItemInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cbb7c3c3df30d3bd56b2",
+      "cpp_name": "ida::data::CustomDataItemInfo::byte_length",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "bed45596cc547d9d8678"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7cee4cfee3a522af83d47443b5c145bfb81e518293cef6dceda63927d05445ce",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataItemInfo.byteLength",
+          "declaration": "let byteLength: AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3d1e3b5345b752d36788",
+      "cpp_name": "ida::data::CustomDataItemInfo::format_id",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataFormatId",
+      "mapping": "direct",
+      "swift": [
+        "beb6b795e11fdb71929b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b95c857ad76c67d5b0c6292481d4b6d5eaecd1bb9c657cc7cdb2673f407e4cd7",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataItemInfo.formatID",
+          "declaration": "let formatID: Data.CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "446c44c4c60077633ece",
+      "cpp_name": "ida::data::CustomDataItemInfo::type_id",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataTypeId",
+      "mapping": "direct",
+      "swift": [
+        "f17999632548258a9386"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d2992ddf048147d3890489a3d246f36646a5b042f2ef0aaa9959c44c123a29c3",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataItemInfo.typeID",
+          "declaration": "let typeID: Data.CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "74e47a078d816451c2ad",
+      "cpp_name": "ida::data::CustomDataRenderCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<Result<std::string> (std::span<const std::uint8_t>, const CustomDataFormatContext &)>",
+      "mapping": "adapted",
+      "swift": [
+        "edee013faf7cfd2cf1cb"
+      ],
+      "rationale": "Closure property carries the exact callback arguments and semantic return, adding typed failure transport and native callable ownership.",
+      "cpp_fingerprint": "bff4e45f28e6b90edf8d2875af746f4bf6df31da66cc836f74ecd02f726c9067",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.render",
+          "declaration": "var render: (([UInt8], Data.CustomDataFormatContext) throws(IDAError) -> String)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "23fc6715b27ecf74825c",
+      "cpp_name": "ida::data::CustomDataScanCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<Result<std::vector<std::uint8_t>> (std::string_view, const CustomDataFormatContext &)>",
+      "mapping": "adapted",
+      "swift": [
+        "1daa15b2e1f8e0c002d2"
+      ],
+      "rationale": "Closure property carries the exact callback arguments and semantic return, adding typed failure transport and native callable ownership.",
+      "cpp_fingerprint": "97a4d47050356b0f91c91bae89fd7bad06d93d6903737f0957c929f6daec98ed",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataFormatDefinition.scan",
+          "declaration": "var scan: ((String, Data.CustomDataFormatContext) throws(IDAError) -> [UInt8])?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81367d1617172e45c5ba",
+      "cpp_name": "ida::data::CustomDataSizeCallback",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::function<AddressSize (Address, AddressSize)>",
+      "mapping": "adapted",
+      "swift": [
+        "b60d86c8595adb651d84"
+      ],
+      "rationale": "Closure property carries the exact callback arguments and semantic return, adding typed failure transport and native callable ownership.",
+      "cpp_fingerprint": "e08dff4300a2960bcde51c214d7d9a362aa3d09a219def284f189f687dd69194",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.calculateSize",
+          "declaration": "var calculateSize: ((Address, AddressSize) throws(IDAError) -> AddressSize)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "89942a1f057d32342464",
+      "cpp_name": "ida::data::CustomDataTypeDefinition",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "3374b7437fca26d642af"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "89942a1f057d32342464066f6ec2dcbdd0d3b2df44fcdcc1ddd76fa890b8e731",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition",
+          "declaration": "struct CustomDataTypeDefinition"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8a5207f14ff2e738d73c",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::allow_duplicates",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "baac8ac89827ffebdea6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "028e61e3a280fb28c050610a40bfd401b95d4e1f67e0ae2534830c7ec8ed3304",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.allowDuplicates",
+          "declaration": "var allowDuplicates: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a01952721834c9d4d4b9",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::assembler_keyword",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "48587d5174ed497d92b4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d48e76653df23063e13f5375eea14e7479265ddab447519b9112e471c4fdc128",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.assemblerKeyword",
+          "declaration": "var assemblerKeyword: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "576a4364e83b08b84fae",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::calculate_size",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataSizeCallback",
+      "mapping": "direct",
+      "swift": [
+        "b60d86c8595adb651d84"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "46ecf582049b35a7c79cffff38d3a79818fdc4975c529409c443400a9faef281",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.calculateSize",
+          "declaration": "var calculateSize: ((Address, AddressSize) throws(IDAError) -> AddressSize)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a5570abd437c854d604",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "00dd21ca43368699d312"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ac989a6d08f406bc97cb26eaa9654b57dcce82238536d61a0016cb4a74892ba8",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.hotkey",
+          "declaration": "var hotkey: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "471920c7b04824ae7095",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::may_create_at",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataCreationFilter",
+      "mapping": "direct",
+      "swift": [
+        "bb7d523760e568065e69"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c24327daa34589efaf26a7b016f05f245803d00c7626a6bb70fcb71b29544430",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.mayCreateAt",
+          "declaration": "var mayCreateAt: ((Address, AddressSize) throws(IDAError) -> Bool)?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e77ca56fd2098a363821",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::menu_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "3feda19ed1a8b291b2a4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3871a17714f5ac0ce65c9994ecb3884dcdeaeb24a36f2369992cc30949c344e0",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.menuName",
+          "declaration": "var menuName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0166e452343d7a441f3",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "91987b7d0d231f568dc2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c683894f9b15b5265f9215f27aca03deb4026712d948a182208d770fdca79286",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "32502e3c732cfa19cb7b",
+      "cpp_name": "ida::data::CustomDataTypeDefinition::value_size",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "11947a5561a56c3853d4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5e54e1cafe69773c71d8dc03f4d63733f82a70218bb5e46c10fbdffae6106def",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeDefinition.valueSize",
+          "declaration": "var valueSize: AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c53b5add8261bb4ba683",
+      "cpp_name": "ida::data::CustomDataTypeId",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "bea4837c3c8576a2a547"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c53b5add8261bb4ba683e29edf1b27b8bd49b093687fa958242c5893e5950eb2",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeID",
+          "declaration": "struct CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0d0ea876e62c16ac65f3",
+      "cpp_name": "ida::data::CustomDataTypeId::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (CustomDataTypeId, CustomDataTypeId)",
+      "mapping": "private_bridge",
+      "swift": [
+        "bea4837c3c8576a2a547"
+      ],
+      "rationale": "Numeric native identity is private; opaque Hashable/Equatable IDs preserve comparison and registration/query use without arbitrary SDK handle construction.",
+      "cpp_fingerprint": "c16b5bce98e76d6cc74205690e86f4d870c62aac0b9cb457d79b8a83f13766ab",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeID",
+          "declaration": "struct CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c347c9b57b653bdab4b",
+      "cpp_name": "ida::data::CustomDataTypeId::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "private_bridge",
+      "swift": [
+        "bea4837c3c8576a2a547"
+      ],
+      "rationale": "Numeric native identity is private; opaque Hashable/Equatable IDs preserve comparison and registration/query use without arbitrary SDK handle construction.",
+      "cpp_fingerprint": "51d633dddf3cd2a512440ab4b4ee5fa757b41bdc158ff268220bb30fd61a9ff9",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeID",
+          "declaration": "struct CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "33a097818e03c1a409f7",
+      "cpp_name": "ida::data::CustomDataTypeInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f7e086a9092f1e8b647e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "33a097818e03c1a409f7c5e16229c0ba8fb603bed4b9257e7b41378e05221abb",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo",
+          "declaration": "struct CustomDataTypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ddeea80bcbc57d6eb008",
+      "cpp_name": "ida::data::CustomDataTypeInfo::allow_duplicates",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c09cc73ce59dcd64e166"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "10780e8cfa1847fd92820e4aa48fb7f4bf3834376c6c8f03e5ef8c1ebcbd8ab2",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.allowDuplicates",
+          "declaration": "let allowDuplicates: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "18f105c622309b85d460",
+      "cpp_name": "ida::data::CustomDataTypeInfo::assembler_keyword",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "a4d38549bb3adc323307"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "27904020c3b29892bf07fc9a6225d2da11867e6aff92117910d54abb82d1c0c8",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.assemblerKeyword",
+          "declaration": "let assemblerKeyword: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4d862a86b0374619812e",
+      "cpp_name": "ida::data::CustomDataTypeInfo::has_creation_filter",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ede3b4990c6faa5d10ae"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2124f1e1d0bf6c8b2823cb8656ce11f3ddd20cddabfd2b28ba2bc5cffa06eba1",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.hasCreationFilter",
+          "declaration": "let hasCreationFilter: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d4ccc1f24afc448510cc",
+      "cpp_name": "ida::data::CustomDataTypeInfo::hotkey",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "7f02878c70b651e53150"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "176cfaebe85a35653011ada2c39ff95e6e93ddb5f4b3bd9ff552ded9e9941beb",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.hotkey",
+          "declaration": "let hotkey: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b342bbcccf602325e132",
+      "cpp_name": "ida::data::CustomDataTypeInfo::id",
+      "cpp_kind": "field",
+      "cpp_signature": "CustomDataTypeId",
+      "mapping": "direct",
+      "swift": [
+        "99b401dd9a056b907389"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "25a51d3bde8e2d3446ea604e675256f4a71f085f3e584510a13156c51022456f",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.id",
+          "declaration": "let id: Data.CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "faa50255ccc556397448",
+      "cpp_name": "ida::data::CustomDataTypeInfo::menu_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "8e1617758955f46391b5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "aea7a207ebde8718a6f4a4cffed33d622d53048b87db8844af05de596298de2b",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.menuName",
+          "declaration": "let menuName: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ac0b230a88ece2597c9d",
+      "cpp_name": "ida::data::CustomDataTypeInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "35df2acd101e5cc78838"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9424e9c0c730cc9ac0bfda9ff677f17502794beff0dfc51eb44424e0ce39a072",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bfbaa1494b31a10cd061",
+      "cpp_name": "ida::data::CustomDataTypeInfo::value_size",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "b121ad9dbdfa8b10b5d7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "51f584ea6420f179a183bfbf8dee24e3fb3dfff2d42174fb9e256ab7107e275c",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.valueSize",
+          "declaration": "let valueSize: AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ddc90fc2d04120c5b834",
+      "cpp_name": "ida::data::CustomDataTypeInfo::variable_size",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "be522e4d0735ce9606c4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "bc4d88f79dc0b80650ac77ec1eee507be0e05104620006776ef7142e1ad2f5e2",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.variableSize",
+          "declaration": "let variableSize: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "48cc9fca31bcb673dd4a",
+      "cpp_name": "ida::data::CustomDataTypeInfo::visible_in_menu",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "7ca2bb02c6b375d23063"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "90aa5f8b14f3aeb1e9f795d13a3ea48b1328a9d178f98a73ae05fec3634c38a5",
+      "swift_targets": [
+        {
+          "path": "Data.CustomDataTypeInfo.visibleInMenu",
+          "declaration": "let visibleInMenu: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f6b07639c751ab0da9e",
+      "cpp_name": "ida::data::StringListOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "df1cde8c71cf6f1e5853"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6f6b07639c751ab0da9e55df3d8e132d29f252da730673593eb33ed3d467eabd",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions",
+          "declaration": "struct StringListOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "921e58458f4e44fa10d0",
+      "cpp_name": "ida::data::StringListOptions::display_only_existing_strings",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "b1641977116047c69424"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "98f2961c8ad0e960b095e3de2ef41d54adae3d4a9fd7184fba0e38a7568df5d1",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions.displayOnlyExistingStrings",
+          "declaration": "var displayOnlyExistingStrings: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "90fb942a525544973aef",
+      "cpp_name": "ida::data::StringListOptions::ignore_instructions",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "ba7491379c5447e03a3d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "394977858963ff64fa775b6926641950c41674fefb21ad2ec3f1a71612fb7c98",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions.ignoreInstructions",
+          "declaration": "var ignoreInstructions: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0f96d5823882a0d6980",
+      "cpp_name": "ida::data::StringListOptions::minimum_length",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "fa997a6160f388e2d5d7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d475b37eb638b07b7364159d140c75f1d9370b4da72f6cf35bf9a33418d4f932",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions.minimumLength",
+          "declaration": "var minimumLength: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73bd14b2df12e0b0fc13",
+      "cpp_name": "ida::data::StringListOptions::only_7bit",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "bbed481f27245cfd8085"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e6141fa6c6a4801619054b633801056510bbcd0d37647f224a4fe792c7562d4f",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions.only7bit",
+          "declaration": "var only7bit: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ebd9c5a59de4edf06d8a",
+      "cpp_name": "ida::data::StringListOptions::string_types",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::int32_t>",
+      "mapping": "direct",
+      "swift": [
+        "c6199b56fa3bf01db949"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f9ca8bd393cff17a0e44786d96bf01a6a3bb61132ef0b2bc98a4f2c6c9275c50",
+      "swift_targets": [
+        {
+          "path": "Data.StringListOptions.stringTypes",
+          "declaration": "var stringTypes: [Int32]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f4a2af2338af7a717e2a",
+      "cpp_name": "ida::data::StringLiteral",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "01206cf800c5bd2ffa78"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f4a2af2338af7a717e2ad4cd2937644d8dc632c6c10dbd5c54c967b22a524ba5",
+      "swift_targets": [
+        {
+          "path": "Data.StringLiteral",
+          "declaration": "struct StringLiteral"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b35eefc90c696a94a871",
+      "cpp_name": "ida::data::StringLiteral::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "ebc6ded5c4ed00faf43f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "6a5bdc496d1150e8904a45d91ffcb2cb2a042d707c3b472d3c63b6940c507bb6",
+      "swift_targets": [
+        {
+          "path": "Data.StringLiteral.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "811f7ec08a2d39beb788",
+      "cpp_name": "ida::data::StringLiteral::byte_length",
+      "cpp_kind": "field",
+      "cpp_signature": "AddressSize",
+      "mapping": "direct",
+      "swift": [
+        "d29361b9e6c7e7d00ee1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b470f5adcfbb1637ceafe0317d5b14dd87a28113a646254173ccf114d170bdd9",
+      "swift_targets": [
+        {
+          "path": "Data.StringLiteral.byteLength",
+          "declaration": "var byteLength: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6e9cfef612deb6c32a4a",
+      "cpp_name": "ida::data::StringLiteral::string_type",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "0e0f3ce8036abcd40a6a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a632ee8dc3572b43cf1f6b74aee2447b9d7ea31c39fffe17eb34bf48bcb1e1c6",
+      "swift_targets": [
+        {
+          "path": "Data.StringLiteral.stringType",
+          "declaration": "var stringType: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ff17ea402f1a56353428",
+      "cpp_name": "ida::data::StringLiteral::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "1c166e57a4c72dc3c5f7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "844a10322560f7f2537ed6a1e1473c2fdb7d81d8701e2881ccc7e6814abc91e2",
+      "swift_targets": [
+        {
+          "path": "Data.StringLiteral.text",
+          "declaration": "var text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c511e0c1254211d49c06",
+      "cpp_name": "ida::data::TypedValue",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "8b7780365c16f6807547"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c511e0c1254211d49c06c8d6ad9609099aa4b73421250b6214d23bf47cfd853a",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue",
+          "declaration": "indirect enum TypedValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d9f97a80edc795f08cd",
+      "cpp_name": "ida::data::TypedValue::bytes",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::uint8_t>",
+      "mapping": "adapted",
+      "swift": [
+        "9b8a3ed58deeba2a354a",
+        "e363d6786942a41e32da"
+      ],
+      "rationale": "Raw byte arrays use .bytes; a string value retains the native source bytes as .string originalBytes, including terminator and trailing bytes.",
+      "cpp_fingerprint": "945fc1f0663a6994d2e6c95df1d2fc0366db40a3e5c60632d6fe87ef83ea0ecf",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.bytes(_:)",
+          "declaration": "case bytes([UInt8])"
+        },
+        {
+          "path": "Data.TypedValue.string(_:originalBytes:)",
+          "declaration": "case string(String, originalBytes: [UInt8] = [])"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f6c16bca41996dc09eb",
+      "cpp_name": "ida::data::TypedValue::elements",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<TypedValue>",
+      "mapping": "adapted",
+      "swift": [
+        "93ab784eae8cddb04712"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "b374fce4bce435c2c086c94add49f6a57406171dcfb47f8cbe740cecac8902e9",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.array(_:)",
+          "declaration": "case array([Data.TypedValue])"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a72b35c8a3c4339a918",
+      "cpp_name": "ida::data::TypedValue::floating_value",
+      "cpp_kind": "field",
+      "cpp_signature": "double",
+      "mapping": "adapted",
+      "swift": [
+        "705e860b172d2e063112"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "df4c82b7694aa1e1c0091338eacbae6f5a6d035b01b2cd6e12719cb2e99d5615",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.floatingPoint(_:)",
+          "declaration": "case floatingPoint(Double)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "227ffeaf62c22253b13e",
+      "cpp_name": "ida::data::TypedValue::kind",
+      "cpp_kind": "field",
+      "cpp_signature": "TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "b1bc66635adbd5e23d67"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3faedc83ef190531d719d1d709f28c860753f210c8af606ff920c1da325d4b64",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.kind",
+          "declaration": "var kind: Data.TypedValueKind { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bdf6a684811c781ea351",
+      "cpp_name": "ida::data::TypedValue::pointer_value",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "adapted",
+      "swift": [
+        "33f1a1d99b3ab5a37845"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "05dd966aa5380a6fa2e9eb841d60f5d670f011f14f76ac1aca53aa947782e0d9",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.pointer(_:)",
+          "declaration": "case pointer(Address)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "278edf28d9380e70608d",
+      "cpp_name": "ida::data::TypedValue::signed_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "adapted",
+      "swift": [
+        "4341a684713443c22024"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "2f04bc25dbf9b995501fa47e65af191224e2e768c6d4862ecf9653bab8265085",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.signedInteger(_:)",
+          "declaration": "case signedInteger(Int64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e919510f195bc531d4e6",
+      "cpp_name": "ida::data::TypedValue::string_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "adapted",
+      "swift": [
+        "e363d6786942a41e32da"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "0db1cd372ce1a244b60202bc41df7bb894280dc9299f16d172af9505a6519128",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.string(_:originalBytes:)",
+          "declaration": "case string(String, originalBytes: [UInt8] = [])"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e6f4247d23d3f8f0d89c",
+      "cpp_name": "ida::data::TypedValue::unsigned_value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "adapted",
+      "swift": [
+        "9f1d1f2a56f00591d6e9"
+      ],
+      "rationale": "A recursive associated-value enum stores only the active value; payload width, bytes, text and child ownership are retained.",
+      "cpp_fingerprint": "c8fb9aed5cbd3273de9a4b043040c047b5265396b2cb89ee806acac9b4154fa0",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValue.unsignedInteger(_:)",
+          "declaration": "case unsignedInteger(UInt64)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5b78b88bb05ed3845cdc",
+      "cpp_name": "ida::data::TypedValueKind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class TypedValueKind { UnsignedInteger, SignedInteger, FloatingPoint, Pointer, String, Bytes, Array, }",
+      "mapping": "direct",
+      "swift": [
+        "24cd9e19577751b82950"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3d2651380d0bc8db5c34ac8f663eeac65dcbf372045bc1cb55e5011e0f88766c",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind",
+          "declaration": "enum TypedValueKind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eb523004f588e85064e8",
+      "cpp_name": "ida::data::TypedValueKind::Array",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "12a6d896de3d50bf472a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9360be140736b15369261909bc0800820ee9d884da3ea48e3c936bdf4538a0cb",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.array",
+          "declaration": "case array"
+        }
+      ]
+    },
+    {
+      "cpp_id": "797f65661f17bdcbcb93",
+      "cpp_name": "ida::data::TypedValueKind::Bytes",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "c7e862c5dd0438a79921"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "28cfd630f62179e150e4db7d4a32daed518e67e1f5540f9a0e03697c66b36a90",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.bytes",
+          "declaration": "case bytes"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3c38e497b949d2fb1b55",
+      "cpp_name": "ida::data::TypedValueKind::FloatingPoint",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "10d5ba58630fd122339d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "77af69ef0100bf3cb2787e7a036d5aca8791810b3d9d5ab639d70747a7c8369d",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.floatingPoint",
+          "declaration": "case floatingPoint"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a1b0f18b27ced807a9cb",
+      "cpp_name": "ida::data::TypedValueKind::Pointer",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "84532c73e818a4711e31"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f281022f342f87d9dda79de3f546bc9da7d72f582f6f9e1a20689ae432b8c8a6",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.pointer",
+          "declaration": "case pointer"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a73710f7fd2e39a4fef",
+      "cpp_name": "ida::data::TypedValueKind::SignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "c614787564b62f1b9d05"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "109a3a94782ee3dd8aeaf9b58161ec1c2a84ff02171b31d3d3fb82e09c36a447",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.signedInteger",
+          "declaration": "case signedInteger"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aceb78c6f772ebcc89c1",
+      "cpp_name": "ida::data::TypedValueKind::String",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "b26dae676b973c1a28cc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "03a14e7c382b95994ad49e2de2a35d9fa176b590efe30f10d4789e3d7bd90e4d",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.string",
+          "declaration": "case string"
+        }
+      ]
+    },
+    {
+      "cpp_id": "869f2bca3fbb4eaad724",
+      "cpp_name": "ida::data::TypedValueKind::UnsignedInteger",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::data::TypedValueKind",
+      "mapping": "direct",
+      "swift": [
+        "585fb6e67d095a6fdfb4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a0b54c4832b9850066a657046ff35b0cd0ab6e13d813972e3d57d2b36f1ea44f",
+      "swift_targets": [
+        {
+          "path": "Data.TypedValueKind.unsignedInteger",
+          "declaration": "case unsignedInteger"
+        }
+      ]
+    },
+    {
+      "cpp_id": "03a16b18dd2ed707be9d",
+      "cpp_name": "ida::data::analyze_custom_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataFormatId, const CustomDataFormatContext &)",
+      "mapping": "direct",
+      "swift": [
+        "4296bbc3986d66814c1f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "edbab06538a69981a6efe93a5cd022a75ac5e5a2be984951697e901fa057c357",
+      "swift_targets": [
+        {
+          "path": "Data.analyzeCustomData(_:context:)",
+          "declaration": "static func analyzeCustomData(_ format: Data.CustomDataFormatID, context: Data.CustomDataFormatContext = .init()) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d712a1b2d34724d695f5",
+      "cpp_name": "ida::data::attach_custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataTypeId, CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "55a058684a6a0fb40821"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d0a81af6493d27dce6de5386be60879a659817af76601c931d8e820b3e33ed59",
+      "swift_targets": [
+        {
+          "path": "Data.attachCustomDataFormat(_:to:)",
+          "declaration": "static func attachCustomDataFormat(_ format: Data.CustomDataFormatID, to type: Data.CustomDataTypeID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70ab1f7249aee7ac162c",
+      "cpp_name": "ida::data::attach_custom_data_format_to_standard_types",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "f9f7dd4c349db5145361"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2462adc54958c231db8b73a80a8df2cfed5574a3d97e4d35be22b3eae32ce0d4",
+      "swift_targets": [
+        {
+          "path": "Data.attachCustomDataFormatToStandardTypes(_:)",
+          "declaration": "static func attachCustomDataFormatToStandardTypes(_ format: Data.CustomDataFormatID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87b5b243b0b3fb2b867d",
+      "cpp_name": "ida::data::clear_string_list",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "a133a0bc886c8b83af74"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "031e4a5ccf87ec61ad8a4d4787bdba999397c6d863a8b62b19b4fb9f1f907eeb",
+      "swift_targets": [
+        {
+          "path": "Data.clearStringList()",
+          "declaration": "static func clearStringList() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "69149d551ea797c1eb3b",
+      "cpp_name": "ida::data::configure_string_list",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const StringListOptions &)",
+      "mapping": "direct",
+      "swift": [
+        "01611f13fc2c62b28b4a"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4499b986b1e815b558c7652ac55941974cff9a1c0c5c6bd57fd21c31f3455042",
+      "swift_targets": [
+        {
+          "path": "Data.configureStringList(stringTypes:minimumLength:only7bit:ignoreInstructions:displayOnlyExistingStrings:)",
+          "declaration": "static func configureStringList(stringTypes: [Int32], minimumLength: Int64, only7bit: Bool, ignoreInstructions: Bool, displayOnlyExistingStrings: Bool) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "35f5da08c0a57984603d",
+      "cpp_name": "ida::data::custom_data_at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataItemInfo> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "e7aee9a4ab158a1d1eb4"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "be7aa4daddb2098833c6c5d945e4a901ec28d0c3dae704a131ff3be2b3dad5e1",
+      "swift_targets": [
+        {
+          "path": "Data.customData(at:)",
+          "declaration": "static func customData(at address: Address) throws(IDAError) -> Data.CustomDataItemInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3a1fa35a3fbd898b14a9",
+      "cpp_name": "ida::data::custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataFormatInfo> (CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "b7d7fd10c751d40e3013"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7a05e7768750d40be8a44fd53e450903da4078308904a8de65a0c9fcf6b5a5ca",
+      "swift_targets": [
+        {
+          "path": "Data.customDataFormat(_:)",
+          "declaration": "static func customDataFormat(_ id: Data.CustomDataFormatID) throws(IDAError) -> Data.CustomDataFormatInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "292a2e6a743dc8135428",
+      "cpp_name": "ida::data::custom_data_formats",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<CustomDataFormatInfo>> (CustomDataTypeId)",
+      "mapping": "direct",
+      "swift": [
+        "4e74294620b2acae7079"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3c3f3b6b9748b991c965bda554a254b33c0469d656f9ee2aa1ef3af909e87b14",
+      "swift_targets": [
+        {
+          "path": "Data.customDataFormats(for:)",
+          "declaration": "static func customDataFormats(for type: Data.CustomDataTypeID) throws(IDAError) -> [Data.CustomDataFormatInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "79137189364240d8f6d6",
+      "cpp_name": "ida::data::custom_data_item_size",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> (CustomDataTypeId, Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "f0361c6135b743d43fcb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "eba6b56ae64312dffa69395ebeb416a451ebcdc86ff91fb51591bb8408d80ef7",
+      "swift_targets": [
+        {
+          "path": "Data.customDataItemSize(_:at:maximumSize:)",
+          "declaration": "static func customDataItemSize(_ type: Data.CustomDataTypeID, at address: Address, maximumSize: AddressSize) throws(IDAError) -> AddressSize"
+        }
+      ]
+    },
+    {
+      "cpp_id": "83a40eb6286b35e0ea65",
+      "cpp_name": "ida::data::custom_data_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataTypeInfo> (CustomDataTypeId)",
+      "mapping": "direct",
+      "swift": [
+        "161e68dbbcb496b6abe1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f6011a07c314b695343e51032a9d24854c7867ce4b016a304c6755ff09886c60",
+      "swift_targets": [
+        {
+          "path": "Data.customDataType(_:)",
+          "declaration": "static func customDataType(_ id: Data.CustomDataTypeID) throws(IDAError) -> Data.CustomDataTypeInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be83fe4bc62f08db64b9",
+      "cpp_name": "ida::data::custom_data_types",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<CustomDataTypeInfo>> (AddressSize, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "8a37eadeb15a5c0435b0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ae21d3db48e0a7883c2a7aaf80b4069d26d6fdffbac88eca18916c4deadc1309",
+      "swift_targets": [
+        {
+          "path": "Data.customDataTypes(minimumSize:maximumSize:)",
+          "declaration": "static func customDataTypes(minimumSize: AddressSize = 0, maximumSize: AddressSize = .max) throws(IDAError) -> [Data.CustomDataTypeInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3ebbc4c64cd19a2160b1",
+      "cpp_name": "ida::data::define_byte",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "af96e1a96fa7c67c417e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3811dcf59cc2587454c22eec6b68837133386d4cc75f09a8a804b5b90b1dd9aa",
+      "swift_targets": [
+        {
+          "path": "Data.defineByte(address:count:)",
+          "declaration": "static func defineByte(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c516f199988316b15e8a",
+      "cpp_name": "ida::data::define_custom",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize, CustomDataTypeId, CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "b161bff6384ae2a39ce7"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a9e9008502f1f8c011f3ac92aedbad6b2317061727e0df3f79c43fc8be413b33",
+      "swift_targets": [
+        {
+          "path": "Data.defineCustom(at:byteLength:type:format:)",
+          "declaration": "static func defineCustom(at address: Address, byteLength: AddressSize, type: Data.CustomDataTypeID, format: Data.CustomDataFormatID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "613ee461378cd4742e1b",
+      "cpp_name": "ida::data::define_custom_inferred",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, CustomDataTypeId, CustomDataFormatId, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "6690c1dffa6542490168"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "49d80b79be5f1b13eb04c207b2c9b66c064a9adc839d240ec8cc78535071faa0",
+      "swift_targets": [
+        {
+          "path": "Data.defineCustomInferred(at:type:format:maximumSize:)",
+          "declaration": "static func defineCustomInferred(at address: Address, type: Data.CustomDataTypeID, format: Data.CustomDataFormatID, maximumSize: AddressSize) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4240e337e33d64e5f064",
+      "cpp_name": "ida::data::define_double",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "29059c9c1ccbb674df84"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7ce1a7de8c564800473b223a8663f3fed6d21dd172833270a31d613a7cb8d076",
+      "swift_targets": [
+        {
+          "path": "Data.defineDouble(address:count:)",
+          "declaration": "static func defineDouble(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "23f0f829e1c8e7a1e8cf",
+      "cpp_name": "ida::data::define_dword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "b9dd1ba96f6aaf642915"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f17498ee155ca403fc3459af7f18df51db3d5006809601684b9c4467ba28375d",
+      "swift_targets": [
+        {
+          "path": "Data.defineDword(address:count:)",
+          "declaration": "static func defineDword(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "84408488d51496db9d2a",
+      "cpp_name": "ida::data::define_float",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "df431e8ca05657213ad5"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "fed15c9677afac05d6a5a55b9f997b38515b4c50c7d3fecacec552b06e827ce3",
+      "swift_targets": [
+        {
+          "path": "Data.defineFloat(address:count:)",
+          "declaration": "static func defineFloat(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e267211d9a9c1f7d93bb",
+      "cpp_name": "ida::data::define_oword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "cdb7ab6db069b0bc837d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9309cfffc108678719835b22791d5f0c0376cbd9c41f652ca02ee80aeb634729",
+      "swift_targets": [
+        {
+          "path": "Data.defineOword(address:count:)",
+          "declaration": "static func defineOword(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "31a0d8786d4f863b1a56",
+      "cpp_name": "ida::data::define_packed_real",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "4540b6ca7459a66aa69e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2dcc08166b582ca2b8371ebf7ad267735abf3a8c7c11e5e5c155f57c4cc1376d",
+      "swift_targets": [
+        {
+          "path": "Data.definePackedReal(address:count:)",
+          "declaration": "static func definePackedReal(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4eea82ca4c0c61fbb169",
+      "cpp_name": "ida::data::define_qword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "6408bb18e9d79f48a810"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "402dcccf0e39aa347cd1df2d2cd556687dd7d540d0ff728a6f599075b05f2324",
+      "swift_targets": [
+        {
+          "path": "Data.defineQword(address:count:)",
+          "declaration": "static func defineQword(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "485b119828b63660e8b6",
+      "cpp_name": "ida::data::define_string",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize, std::int32_t)",
+      "mapping": "direct",
+      "swift": [
+        "f665b769ccadeb3ba5d8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c80eeb463cd8cc5f3779dd7a47672b5d9b3531ddb6f4e0419cc19019d888e190",
+      "swift_targets": [
+        {
+          "path": "Data.defineString(address:length:stringType:)",
+          "declaration": "static func defineString(address: UInt64, length: UInt64, stringType: Int32 = 0) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f8532aa1e128fa22cdf",
+      "cpp_name": "ida::data::define_struct",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "e42c81ceb7a4e9e87e2c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "707730d8534840c978d7f540f83b4b9aea2f10166412a7b48286b0e87910eabf",
+      "swift_targets": [
+        {
+          "path": "Data.defineStruct(address:length:structureId:)",
+          "declaration": "static func defineStruct(address: UInt64, length: UInt64, structureId: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8828178e3cc12296d2d3",
+      "cpp_name": "ida::data::define_tbyte",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "437ddb1a36fdec210c57"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9b1dc53f55238d3cdf90668311e41301e1a4144eac3e640d8850a12a2328d49c",
+      "swift_targets": [
+        {
+          "path": "Data.defineTbyte(address:count:)",
+          "declaration": "static func defineTbyte(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2a23cc827b1fb470f11d",
+      "cpp_name": "ida::data::define_word",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "5eedc4a216ae2905ec03"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "21ffee42eda8e689a686f1ecde30b67ad78627b8005d6c0a703c0429e73fc3ba",
+      "swift_targets": [
+        {
+          "path": "Data.defineWord(address:count:)",
+          "declaration": "static func defineWord(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ba0f70836ee2162c300",
+      "cpp_name": "ida::data::define_yword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "33fd94a2e115213cc815"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7b58b5c023d69d93dd9bafa1d7ddaaa329a3f8fd009e76b023a7efd1a98bf7c2",
+      "swift_targets": [
+        {
+          "path": "Data.defineYword(address:count:)",
+          "declaration": "static func defineYword(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "24ef42e676aff6f57bc2",
+      "cpp_name": "ida::data::define_zword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "982271212ac288bc08a4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "08a9ad9cfb7e512953e654ec36daf887315379836b2cfcfe3407fdeea62b902e",
+      "swift_targets": [
+        {
+          "path": "Data.defineZword(address:count:)",
+          "declaration": "static func defineZword(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b16367cd0edd3331cb74",
+      "cpp_name": "ida::data::detach_custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataTypeId, CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "a6c011f96ba2d34abf19"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7185ff4f6f008ad99b70e7084c077882a0294992c5d80df660f8928f63dd0807",
+      "swift_targets": [
+        {
+          "path": "Data.detachCustomDataFormat(_:from:)",
+          "declaration": "static func detachCustomDataFormat(_ format: Data.CustomDataFormatID, from type: Data.CustomDataTypeID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a5f83ba09352640b978f",
+      "cpp_name": "ida::data::detach_custom_data_format_from_standard_types",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "3a7caec14d52028f2dfc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "294c3ff7220b1323041072dd0d565e0f396a54437d3b0ead1adffad35755dbd3",
+      "swift_targets": [
+        {
+          "path": "Data.detachCustomDataFormatFromStandardTypes(_:)",
+          "declaration": "static func detachCustomDataFormatFromStandardTypes(_ format: Data.CustomDataFormatID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eb845762ecd5a249ea89",
+      "cpp_name": "ida::data::find_binary_pattern",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> (Address, Address, std::string_view, bool, bool, bool, int, int)",
+      "mapping": "direct",
+      "swift": [
+        "521cb4cc6375ddc4a94f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5c3d25735c1f4b52677481000b45afaf07fa67fe431aecfca9ce49a0e777f556",
+      "swift_targets": [
+        {
+          "path": "Data.findBinaryPattern(start:end:pattern:forward:skipStart:caseSensitive:radix:stringLiteralEncoding:)",
+          "declaration": "static func findBinaryPattern(start: Address, end: Address, pattern: String, forward: Bool = true, skipStart: Bool = false, caseSensitive: Bool = true, radix: Int32 = 16, stringLiteralEncoding: Int32 = 0) throws(IDAError) -> Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "facbc81f8fbdc7df33b6",
+      "cpp_name": "ida::data::find_custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataFormatId> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "c7d87190f972f66874f6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4e3ccdd1e08461caf26d089a94644bde42b48388f2eabca25e5ded89b5896b1d",
+      "swift_targets": [
+        {
+          "path": "Data.findCustomDataFormat(_:)",
+          "declaration": "static func findCustomDataFormat(_ name: String) throws(IDAError) -> Data.CustomDataFormatID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6bfd23c037f470860dd7",
+      "cpp_name": "ida::data::find_custom_data_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataTypeId> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "a7f2d281a425c9f4093c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "96ee336aaa9f462d5df869469a6e0226740fb14140ab1ff86b8b6eb2965a6e88",
+      "swift_targets": [
+        {
+          "path": "Data.findCustomDataType(_:)",
+          "declaration": "static func findCustomDataType(_ name: String) throws(IDAError) -> Data.CustomDataTypeID"
+        }
+      ]
+    },
+    {
+      "cpp_id": "39a770be4cd2bf63c390",
+      "cpp_name": "ida::data::is_custom_data_format_attached",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (CustomDataTypeId, CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "9df7a220cbbce7e6eb33"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8a4c17f03769b391529f4ca0f2fac3c2373c77651482ade1cd2018c1f2948b53",
+      "swift_targets": [
+        {
+          "path": "Data.isCustomDataFormatAttached(_:to:)",
+          "declaration": "static func isCustomDataFormatAttached(_ format: Data.CustomDataFormatID, to type: Data.CustomDataTypeID) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82c56cc0e85d94d01c09",
+      "cpp_name": "ida::data::is_custom_data_format_attached_to_standard_types",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "bf3e3d977d305544ca3f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a8bbe040e2b21872ebbfc8c518ead6fb83b26f04c34feb4957e45175e7383b00",
+      "swift_targets": [
+        {
+          "path": "Data.isCustomDataFormatAttachedToStandardTypes(_:)",
+          "declaration": "static func isCustomDataFormatAttachedToStandardTypes(_ format: Data.CustomDataFormatID) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0fe696ddf5fff1e61bf",
+      "cpp_name": "ida::data::original_byte",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint8_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "64825b5906565f7f9724"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b32e06852de94af3a640594feb7abab358f5caeecc1566d217dc0c2a436b2858",
+      "swift_targets": [
+        {
+          "path": "Data.originalByte(address:)",
+          "declaration": "static func originalByte(address: UInt64) throws(IDAError) -> UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b7facf6f70203289ad4b",
+      "cpp_name": "ida::data::original_dword",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint32_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "66dabcd24164c580643e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "2cf1c0adb83ed0aa774d268f224e543511f6e0e43de22aa60bae91e1370adcb4",
+      "swift_targets": [
+        {
+          "path": "Data.originalDword(address:)",
+          "declaration": "static func originalDword(address: UInt64) throws(IDAError) -> UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7cf421ed5a31f03903cd",
+      "cpp_name": "ida::data::original_qword",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint64_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "a09ecade7ef9ea281550"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "10e971f4f4fe6e1c1859ab023e489ebd24b38210891dbb5724736d465dbb6d2b",
+      "swift_targets": [
+        {
+          "path": "Data.originalQword(address:)",
+          "declaration": "static func originalQword(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c41ba29be3f421cd3bd5",
+      "cpp_name": "ida::data::original_word",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint16_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "925ab8153ba4eb467d93"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "c219a96b020cada696cca691088262165edf175dc1f0bbf37a1f8ebf5225b2b1",
+      "swift_targets": [
+        {
+          "path": "Data.originalWord(address:)",
+          "declaration": "static func originalWord(address: UInt64) throws(IDAError) -> UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c37d3b25e83f7a623995",
+      "cpp_name": "ida::data::packed_real_element_size",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> ()",
+      "mapping": "direct",
+      "swift": [
+        "b3731b6fe35c144f3b0e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a575b12d0755977142d75875c35902debe298ced5ac45cfb4210c09ed0ad1a29",
+      "swift_targets": [
+        {
+          "path": "Data.packedRealElementSize()",
+          "declaration": "static func packedRealElementSize() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b315be77378ed6b0dcdb",
+      "cpp_name": "ida::data::patch_byte",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "264ef553c14a9fd8a511"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "412b1af7afb9e5b813ffa557c980332c219e8389ea5935ff0e8a5c1363fecdac",
+      "swift_targets": [
+        {
+          "path": "Data.patchByte(address:value:)",
+          "declaration": "static func patchByte(address: UInt64, value: UInt8) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "425453a12b9d92872546",
+      "cpp_name": "ida::data::patch_bytes",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::span<const std::uint8_t>)",
+      "mapping": "direct",
+      "swift": [
+        "12377530bd2a19bfb1a6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9f0c59f6168a9549ed66deed5779182bc60a9930d2ea35854f45f11d9df69c02",
+      "swift_targets": [
+        {
+          "path": "Data.patchBytes(address:data:)",
+          "declaration": "static func patchBytes(address: UInt64, data: [UInt8]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b48e9d7c26db84e6b686",
+      "cpp_name": "ida::data::patch_dword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint32_t)",
+      "mapping": "direct",
+      "swift": [
+        "84cae0e29b89c93ee219"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "7aaec44abf4e07e2d68a85b083580ad2e8dfbdf01a7856ce3f5431b5263f19f5",
+      "swift_targets": [
+        {
+          "path": "Data.patchDword(address:value:)",
+          "declaration": "static func patchDword(address: UInt64, value: UInt32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e67769d56599e6cbaa05",
+      "cpp_name": "ida::data::patch_qword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "af4d50393e4cffdd3744"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a7d2805974c1436b32b47d3c25ddabebcaccdd4e74be425b3d37d79c19d48b59",
+      "swift_targets": [
+        {
+          "path": "Data.patchQword(address:value:)",
+          "declaration": "static func patchQword(address: UInt64, value: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7fbddb252c0be1936544",
+      "cpp_name": "ida::data::patch_word",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint16_t)",
+      "mapping": "direct",
+      "swift": [
+        "06cb727a5275b3c2e097"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f323e8e20a4755b89259c901b056e0370d1575012c3d495694a9d771319dcab2",
+      "swift_targets": [
+        {
+          "path": "Data.patchWord(address:value:)",
+          "declaration": "static func patchWord(address: UInt64, value: UInt16) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dccd63d1ccfbd7694e79",
+      "cpp_name": "ida::data::read_byte",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint8_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "91802de2fcd0e5c1c4e8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "57c6a24a916311ed36b4ef3c769bd1ce0b6ebbc3479e36bfca66dc0669791125",
+      "swift_targets": [
+        {
+          "path": "Data.readByte(address:)",
+          "declaration": "static func readByte(address: UInt64) throws(IDAError) -> UInt8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70078bd63587e69a61cf",
+      "cpp_name": "ida::data::read_bytes",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "c01232593f35b21e2851"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "795690229f6386d6d7f958d27e66003a58d867409b876b5fcbb93b0301279f1d",
+      "swift_targets": [
+        {
+          "path": "Data.readBytes(address:count:)",
+          "declaration": "static func readBytes(address: UInt64, count: UInt64) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "942ceaad5ca7e06c530b",
+      "cpp_name": "ida::data::read_dword",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint32_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "b7b65e7a8df03f250afb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0e63713b1687e6176fc37d3617adffd7d74fbbfbe68c09d4d84b879a3c954148",
+      "swift_targets": [
+        {
+          "path": "Data.readDword(address:)",
+          "declaration": "static func readDword(address: UInt64) throws(IDAError) -> UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "77e96966f9b83144d809",
+      "cpp_name": "ida::data::read_qword",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint64_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "065cfc888689508d507c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "63f7330ed59b9637b15edd7ad419f7a420642efbe7bf4fb79868233f41983413",
+      "swift_targets": [
+        {
+          "path": "Data.readQword(address:)",
+          "declaration": "static func readQword(address: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "160c8eb079e2800d6695",
+      "cpp_name": "ida::data::read_string",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, AddressSize, std::int32_t, int)",
+      "mapping": "direct",
+      "swift": [
+        "d76d3f5e1b78bfdc8464"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "5d1db372425416ddc5c93f57281f547aae34ab2ece6ec9d531a7f2dec7529ac1",
+      "swift_targets": [
+        {
+          "path": "Data.readString(address:maxLength:stringType:conversionFlags:)",
+          "declaration": "static func readString(address: Address, maxLength: AddressSize = 0, stringType: Int32 = 0, conversionFlags: Int32 = 0) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7f9d335aa4fe6b02e12d",
+      "cpp_name": "ida::data::read_typed",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<TypedValue> (Address, const ida::type::TypeInfo &)",
+      "mapping": "direct",
+      "swift": [
+        "134b8bfbd2521d6ac024"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "362e9b1638588b9d957c46f95828e76e7c9e93a58f9950bbd3ebf224db00a023",
+      "swift_targets": [
+        {
+          "path": "Data.readTyped(address:type:)",
+          "declaration": "static func readTyped(address: Address, type: TypeInfo) throws(IDAError) -> Data.TypedValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b6ea3bebc35bb754ca2e",
+      "cpp_name": "ida::data::read_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<T> (Address)",
+      "mapping": "adapted",
+      "swift": [
+        "adefe05afe0452ddb868",
+        "07fb3e81339315255a5f"
+      ],
+      "rationale": "BinaryValue supplies an explicit owned-byte codec in place of C++ trivially-copyable template instantiation. Built-in scalar codecs retain native host byte order; application-defined records supply their own layout without public pointers.",
+      "cpp_fingerprint": "3ef8fb2c61aadc3b9d43fbb1ac2ca7c572dc321be460dd656325ca71a2b2038e",
+      "swift_targets": [
+        {
+          "path": "Data.readValue(address:as:)",
+          "declaration": "static func readValue<Value>(address: Address, as type: Value.Type = Value.self) throws(IDAError) -> Value where Value : BinaryValue"
+        },
+        {
+          "path": "BinaryValue",
+          "declaration": "protocol BinaryValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1f1928d675b08f263b70",
+      "cpp_name": "ida::data::read_word",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::uint16_t> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "87016c6eabb2c0a13d93"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9ec9eb40e33253564cbccf8e966871ff4c1e37ccbbdccaacd01c665f8bcc1889",
+      "swift_targets": [
+        {
+          "path": "Data.readWord(address:)",
+          "declaration": "static func readWord(address: UInt64) throws(IDAError) -> UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82c8bcb85667b77f4f19",
+      "cpp_name": "ida::data::rebuild_string_list",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "6082655616183d378f33"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f81f723547ed970cb65baeee9ec539e12edac730ee1a4116a59ca28aac6d2ff1",
+      "swift_targets": [
+        {
+          "path": "Data.rebuildStringList()",
+          "declaration": "static func rebuildStringList() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05621a0f77547cdc2c8a",
+      "cpp_name": "ida::data::register_custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataFormatId> (const CustomDataFormatDefinition &)",
+      "mapping": "direct",
+      "swift": [
+        "6e44f43ad3cba6961c8b"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "75478fb8b95e75c9bb3a6bdfc22ac4796b69ab28f5205b3044cd490cbe82106e",
+      "swift_targets": [
+        {
+          "path": "Data.registerCustomDataFormat(_:)",
+          "declaration": "static func registerCustomDataFormat(_ definition: Data.CustomDataFormatDefinition) throws(IDAError) -> Data.CustomDataFormatRegistration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "149d58ff8df9e8b18a55",
+      "cpp_name": "ida::data::register_custom_data_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CustomDataTypeId> (const CustomDataTypeDefinition &)",
+      "mapping": "direct",
+      "swift": [
+        "8a56ec599778a0da6c48"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ccf40c23afc8d5cf2c6ee7d62c9a31ffa63160633ce3e5e366e2e6c489ca3df8",
+      "swift_targets": [
+        {
+          "path": "Data.registerCustomDataType(_:)",
+          "declaration": "static func registerCustomDataType(_ definition: Data.CustomDataTypeDefinition) throws(IDAError) -> Data.CustomDataTypeRegistration"
+        }
+      ]
+    },
+    {
+      "cpp_id": "94e7ff99056885a3ed33",
+      "cpp_name": "ida::data::render_custom_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (CustomDataFormatId, std::span<const std::uint8_t>, const CustomDataFormatContext &)",
+      "mapping": "direct",
+      "swift": [
+        "ca520a5c064fd22c16fc"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "33dca35145f583123fe42274a779f95398426ca96521f4ea52ab7e01208b4a7e",
+      "swift_targets": [
+        {
+          "path": "Data.renderCustomData(_:value:context:)",
+          "declaration": "static func renderCustomData(_ format: Data.CustomDataFormatID, value: [UInt8], context: Data.CustomDataFormatContext = .init()) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b028d0253229b3315f76",
+      "cpp_name": "ida::data::revert_patch",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "339351e198bbf2fa67d9"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "8fc021ce1f3b451963651ee73989e4374bf4da07b3614e964337e10ab9b5be04",
+      "swift_targets": [
+        {
+          "path": "Data.revertPatch(address:)",
+          "declaration": "static func revertPatch(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "49d3ed8d28773498f9a7",
+      "cpp_name": "ida::data::revert_patches",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "12c995ff1ccc7fa85aee"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ab6017dc0261cd7f7e6f4bbf6a7df630d3d7cb81e72cdc09459a38dcf442de96",
+      "swift_targets": [
+        {
+          "path": "Data.revertPatches(address:count:)",
+          "declaration": "static func revertPatches(address: UInt64, count: UInt64) throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "347daf66f69990ecdf34",
+      "cpp_name": "ida::data::scan_custom_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::uint8_t>> (CustomDataFormatId, std::string_view, const CustomDataFormatContext &)",
+      "mapping": "direct",
+      "swift": [
+        "cca72e2a0d5198f2d6d6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d210d9ec8b53436e70ed1940dfc191dc4ca7dc71ad007629aa0ea54cd2e143b0",
+      "swift_targets": [
+        {
+          "path": "Data.scanCustomData(_:text:context:)",
+          "declaration": "static func scanCustomData(_ format: Data.CustomDataFormatID, text: String, context: Data.CustomDataFormatContext = .init()) throws(IDAError) -> [UInt8]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "635a0f29f56031272c01",
+      "cpp_name": "ida::data::standard_custom_data_formats",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<CustomDataFormatInfo>> ()",
+      "mapping": "direct",
+      "swift": [
+        "f1c1a7994a655209edd2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "394496a6c567f3a283b21d84a53b03e75f982342e5ffe2704ead65594179f5c0",
+      "swift_targets": [
+        {
+          "path": "Data.standardCustomDataFormats()",
+          "declaration": "static func standardCustomDataFormats() throws(IDAError) -> [Data.CustomDataFormatInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "36fa933b4965afa3f991",
+      "cpp_name": "ida::data::string_list_options",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<StringListOptions> ()",
+      "mapping": "direct",
+      "swift": [
+        "15b29b3840258f24ca41"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "efa95022dfc08dd5160df19fd8f34b559a691668cdce4e9b784b1826792d6d44",
+      "swift_targets": [
+        {
+          "path": "Data.stringListOptions()",
+          "declaration": "static func stringListOptions() throws(IDAError) -> Data.StringListOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a418b56e8d521a2cd936",
+      "cpp_name": "ida::data::string_literals",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<StringLiteral>> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "00f6b141c1af8f884982"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0985ce9c3567e3d9932e304aa8f42849bcb67955e7bfe24ec148ffa6fcd6a714",
+      "swift_targets": [
+        {
+          "path": "Data.stringLiterals(rebuild:)",
+          "declaration": "static func stringLiterals(rebuild: Bool = true) throws(IDAError) -> [Data.StringLiteral]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8e7ecd32a960dc3c926",
+      "cpp_name": "ida::data::tbyte_element_size",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> ()",
+      "mapping": "direct",
+      "swift": [
+        "4243c06395f83c4d9b90"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "876c464a3508ed07037d275a7d56151197f4fecb65dfb65b642ec165e2617ed3",
+      "swift_targets": [
+        {
+          "path": "Data.tbyteElementSize()",
+          "declaration": "static func tbyteElementSize() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e7e1b1f886b872b61ae",
+      "cpp_name": "ida::data::undefine",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, AddressSize)",
+      "mapping": "direct",
+      "swift": [
+        "b0cc2ddac2f3e2deb329"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "3f1401efa07583cda2424d6dd6bd56d296b58be19b3b1e20ead1cdb70a3b929c",
+      "swift_targets": [
+        {
+          "path": "Data.undefine(address:count:)",
+          "declaration": "static func undefine(address: UInt64, count: UInt64 = 1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a669f4d295aff31124a7",
+      "cpp_name": "ida::data::unregister_custom_data_format",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataFormatId)",
+      "mapping": "direct",
+      "swift": [
+        "d347c99cfc82e9546b47"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "20970ec7526129ea823b8adcfa0ee17bef521fcb7e0e2e9e5b4ebd02f37ae286",
+      "swift_targets": [
+        {
+          "path": "Data.unregisterCustomDataFormat(_:)",
+          "declaration": "static func unregisterCustomDataFormat(_ id: Data.CustomDataFormatID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6eb13ff7e612d64863b4",
+      "cpp_name": "ida::data::unregister_custom_data_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (CustomDataTypeId)",
+      "mapping": "direct",
+      "swift": [
+        "a88fbdb5b07ac6af3101"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "431ae53f0ea8ecfec9a8b9051338917e3cec8a31018a71c995a1737247cef56b",
+      "swift_targets": [
+        {
+          "path": "Data.unregisterCustomDataType(_:)",
+          "declaration": "static func unregisterCustomDataType(_ id: Data.CustomDataTypeID) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d1d2b1e8553ce6c68713",
+      "cpp_name": "ida::data::write_byte",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint8_t)",
+      "mapping": "direct",
+      "swift": [
+        "53e7d883f8e4527c6628"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "442b91a8d17a661f4d06c553aa7fec2405ae5d8463351f826a3b403e1c109ebe",
+      "swift_targets": [
+        {
+          "path": "Data.writeByte(address:value:)",
+          "declaration": "static func writeByte(address: UInt64, value: UInt8) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2dd4a97fec098d480603",
+      "cpp_name": "ida::data::write_bytes",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::span<const std::uint8_t>)",
+      "mapping": "direct",
+      "swift": [
+        "04398d08d4685174730e"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "89408165a4d9e6fe96f4cd89e40c0c61c97f2b16f5dd63659398ec5979229882",
+      "swift_targets": [
+        {
+          "path": "Data.writeBytes(address:data:)",
+          "declaration": "static func writeBytes(address: UInt64, data: [UInt8]) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2706a55000e652c9bbf8",
+      "cpp_name": "ida::data::write_dword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint32_t)",
+      "mapping": "direct",
+      "swift": [
+        "95b745e824899ebcc96f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "d15d870133f4921e13e68c3fc39ac6deb123d48ca73770befff22bc8130d9fa8",
+      "swift_targets": [
+        {
+          "path": "Data.writeDword(address:value:)",
+          "declaration": "static func writeDword(address: UInt64, value: UInt32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "287e4102b249b5660be6",
+      "cpp_name": "ida::data::write_qword",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "f52bbc8f8bac78ddb488"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9c9f122c5a6fdc71eb31d7ad82c7823c4baf9dc1a1dbd3731b456e1274a3af76",
+      "swift_targets": [
+        {
+          "path": "Data.writeQword(address:value:)",
+          "declaration": "static func writeQword(address: UInt64, value: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "de73456a3b4267822f39",
+      "cpp_name": "ida::data::write_typed",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const ida::type::TypeInfo &, const TypedValue &)",
+      "mapping": "direct",
+      "swift": [
+        "5173e773866c790c1e82"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "54d02d60b1ef7cce6bee4d8862910be3c9bf1cd028dcba6a21e8b7eeba068091",
+      "swift_targets": [
+        {
+          "path": "Data.writeTyped(address:type:value:)",
+          "declaration": "static func writeTyped(address: Address, type: TypeInfo, value: Data.TypedValue) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e33436cec298762492c2",
+      "cpp_name": "ida::data::write_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, const T &)",
+      "mapping": "adapted",
+      "swift": [
+        "d1fe934ac23b39e03113",
+        "07fb3e81339315255a5f"
+      ],
+      "rationale": "BinaryValue supplies an explicit owned-byte codec in place of C++ trivially-copyable template instantiation. Built-in scalar codecs retain native host byte order; application-defined records supply their own layout without public pointers.",
+      "cpp_fingerprint": "754e6b7c9e5aa1f22fe0ec1210eeed264db3a454680034b5233f148d9ef5b7c6",
+      "swift_targets": [
+        {
+          "path": "Data.writeValue(address:value:)",
+          "declaration": "static func writeValue<Value>(address: Address, value: Value) throws(IDAError) where Value : BinaryValue"
+        },
+        {
+          "path": "BinaryValue",
+          "declaration": "protocol BinaryValue"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ffdc6805ed00521dbe13",
+      "cpp_name": "ida::data::write_word",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::uint16_t)",
+      "mapping": "direct",
+      "swift": [
+        "5dd2876e09cceba42bf8"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e89499e83c7c4ade25165d97340a85d88db30a5865ec2d7b56c7222357997192",
+      "swift_targets": [
+        {
+          "path": "Data.writeWord(address:value:)",
+          "declaration": "static func writeWord(address: UInt64, value: UInt16) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

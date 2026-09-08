@@ -1,0 +1,1789 @@
+{
+  "domain": "segment",
+  "declarations": [
+    {
+      "cpp_id": "d64d57f93981123ee56b",
+      "cpp_name": "ida::segment::Permissions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "6163519c99830d124185"
+      ],
+      "rationale": "Segments.Permissions is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "d64d57f93981123ee56ba84b3eff3daf08fce1ac8a2b2ff7db611540e62caaf4",
+      "swift_targets": [
+        {
+          "path": "Segments.Permissions",
+          "declaration": "struct Permissions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5628dd70853b415bbc80",
+      "cpp_name": "ida::segment::Permissions::execute",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f29c051998aa8ce284fa"
+      ],
+      "rationale": "Preserves the declared bool value in Segments.Permissions.execute, including its semantic type and signedness.",
+      "cpp_fingerprint": "07ec990b31c96a7a31793e1ba00292d706e669fee4fbe77216ca972eacb38810",
+      "swift_targets": [
+        {
+          "path": "Segments.Permissions.execute",
+          "declaration": "var execute: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2181b86668652ca04156",
+      "cpp_name": "ida::segment::Permissions::read",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f98a44f011a2576e2a7a"
+      ],
+      "rationale": "Preserves the declared bool value in Segments.Permissions.read, including its semantic type and signedness.",
+      "cpp_fingerprint": "ce0074c7ebc2b59ed0bbb8371967f3bd85eb0a246de982b663f1e756a14bbb51",
+      "swift_targets": [
+        {
+          "path": "Segments.Permissions.read",
+          "declaration": "var read: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "baefd35fc9c8107fe61b",
+      "cpp_name": "ida::segment::Permissions::write",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "712b722099447e767e7a"
+      ],
+      "rationale": "Preserves the declared bool value in Segments.Permissions.write, including its semantic type and signedness.",
+      "cpp_fingerprint": "366d4dfc62fc315882096d7980fdc8f99848a9c62b1696400535ff38c5691eb9",
+      "swift_targets": [
+        {
+          "path": "Segments.Permissions.write",
+          "declaration": "var write: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4729498f73f99bd0f3b4",
+      "cpp_name": "ida::segment::Segment",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "22412d035363c521c6c4"
+      ],
+      "rationale": "The C++ snapshot value class is represented by the owned Swift struct Segments.Segment; database mutations remain explicit operations.",
+      "cpp_fingerprint": "4729498f73f99bd0f3b439e0a5d2c3a9e13c9f1f42490e9a805d984b75d74c7f",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment",
+          "declaration": "struct Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "06788d9678d573214f1b",
+      "cpp_name": "ida::segment::Segment::bitness",
+      "cpp_kind": "method",
+      "cpp_signature": "int () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "c45f4277665eefb6ea41"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.bitness, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "46435fc723acbeb9474032e5dc13eb8ef23d160122ffbbecb1a67b837e0f7c04",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.bitness",
+          "declaration": "var bitness: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c35ecaf1d4a7ffbdad8f",
+      "cpp_name": "ida::segment::Segment::class_name",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string () const",
+      "mapping": "adapted",
+      "swift": [
+        "6cedbeee22aca7eb4afe"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.className, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "cbeec50ab5287f66d62c81262db2c26e1f1e446956e2439d6f876524a11f834c",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.className",
+          "declaration": "var className: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7e730b32c253937a269a",
+      "cpp_name": "ida::segment::Segment::end",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "57d82f0f77332f37e6b7"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.end, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "718c7be0210548acbd79a50d7427a840e1698f9d88a2e94694834467d790ba42",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.end",
+          "declaration": "var end: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6a2a258cd4df840679d4",
+      "cpp_name": "ida::segment::Segment::is_visible",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "a68722f4e5013b42668b"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.isVisible, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "293220a9ab3ed2af9c5222da96befc17261cf996a48f44042d3451ccbf457464",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.isVisible",
+          "declaration": "var isVisible: Bool { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15acce32b2555fc438a5",
+      "cpp_name": "ida::segment::Segment::name",
+      "cpp_kind": "method",
+      "cpp_signature": "std::string () const",
+      "mapping": "adapted",
+      "swift": [
+        "3962f7b05c3a9839a766"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.name, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "1a9e316feb874c345ce2aebd017626f938eb4de4dc83eac7ffe1d044c20c00ca",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "486b9d1deb3280d0f0cb",
+      "cpp_name": "ida::segment::Segment::permissions",
+      "cpp_kind": "method",
+      "cpp_signature": "Permissions () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "530beaab03cdf52f8730"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.permissions, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "7637bd962d51f3936208ec2ed68769eecce39aad216409d962f2be5c31b57b31",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.permissions",
+          "declaration": "var permissions: Segments.Permissions { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c44a043d738d55ffb98c",
+      "cpp_name": "ida::segment::Segment::refresh",
+      "cpp_kind": "method",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "44a2310614a6e85adf88"
+      ],
+      "rationale": "Segments.Segment.refresh() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b28d2dece126d3600a95fc117668f58e290977a3e4afd62d5c6fa4d1ede61a24",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.refresh()",
+          "declaration": "mutating func refresh() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3b07cb30336947bcdd3f",
+      "cpp_name": "ida::segment::Segment::size",
+      "cpp_kind": "method",
+      "cpp_signature": "AddressSize () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "b0c331192c64e8cb4df4"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.size, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "3e4fde532814145776be2cc297333ad2367fa91e34c3a7a90bb849c9a09d086c",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.size",
+          "declaration": "var size: UInt64 { get }"
+        }
+      ]
+    },
+    {
+      "cpp_id": "52019b06b71514ab1c17",
+      "cpp_name": "ida::segment::Segment::start",
+      "cpp_kind": "method",
+      "cpp_signature": "Address () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "93d278b1c252c837d809"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.start, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "859561cc0589b43ea744121eeb253b6882fec7c535bef5ff25a7e0f66f8901a7",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.start",
+          "declaration": "var start: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b606b8524f4118119529",
+      "cpp_name": "ida::segment::Segment::type",
+      "cpp_kind": "method",
+      "cpp_signature": "Type () const noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "b5c7e38a27ef9ddd15e3"
+      ],
+      "rationale": "The C++ accessor is expressed as the Swift property Segments.Segment.type, preserving its snapshot value or the same local calculation.",
+      "cpp_fingerprint": "ab8a5df0b4be24317e555fecaa623a02e6e6bc73a2556409118c3654434cd039",
+      "swift_targets": [
+        {
+          "path": "Segments.Segment.type",
+          "declaration": "var type: Segments.Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "201c8c1af944b9227d5c",
+      "cpp_name": "ida::segment::SegmentIterator",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "The segment traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "201c8c1af944b9227d5c8991d83a24d0bdc8080bcbcb12a2215fc881102d5c03",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0e682153e35e85f4956e",
+      "cpp_name": "ida::segment::SegmentIterator::SegmentIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ccaea639a7811edd1edde8965e7c541d17d184da94af380d74158e178b2bc722",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9f3181e764357a76087",
+      "cpp_name": "ida::segment::SegmentIterator::SegmentIterator",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void (std::size_t, std::size_t)",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27",
+        "4aaa173ef9cbcb7b6fec"
+      ],
+      "rationale": "The requested positional interval is expressed by Swift Array slicing; byIndex supplies direct indexed access without constructing a C++ cursor. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "9f30231f938f243826cfc7f803b6dfe8f5bbc787d80015e04c535f7bd1edb4d8",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        },
+        {
+          "path": "Segments.byIndex(index:)",
+          "declaration": "static func byIndex(index: Int) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "65abb6a51914c3dc4fa5",
+      "cpp_name": "ida::segment::SegmentIterator::difference_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::ptrdiff_t",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Swift Array uses signed Int indices and distances on the supported 64-bit host; no separate C++ iterator difference typedef is needed. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "156bb4999b7a83df045218253fc9201c4b0b3d8d783a47f679379b9fc2c4912f",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8243d7866d5447208c22",
+      "cpp_name": "ida::segment::SegmentIterator::iterator_category",
+      "cpp_kind": "alias",
+      "cpp_signature": "std::input_iterator_tag",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "The returned Swift Array conforms to Sequence and Collection; Swift protocol conformance replaces the C++ iterator-category tag. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "5bd960d75e9e69b2135beab030ca66964dc688576d4c9a6f02b43069c9bf5be6",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d1059d2075c594ab44df",
+      "cpp_name": "ida::segment::SegmentIterator::operator!=",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const SegmentIterator &, const SegmentIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "7874b3621ce58b87c0349832d6bad8f441b9dcd587e508692ff8713ea0c45364",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1ea1e9554512bc477487",
+      "cpp_name": "ida::segment::SegmentIterator::operator*",
+      "cpp_kind": "method",
+      "cpp_signature": "reference () const",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Array subscripting or for-in binding retrieves the copied element; the iterator dereference operation does not expose native storage. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "333fccaafa2ccf53394ea367ca1be8d26ef3aad40da76979818523ba1ba0b37f",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "34c93a339dbc021f7407",
+      "cpp_name": "ida::segment::SegmentIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "SegmentIterator &()",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "8c5bd3fd7cf526b5efa70f7690655269bd432bf12b808b5734bb23dd2e6f790c",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b0239223c3129e0ae29f",
+      "cpp_name": "ida::segment::SegmentIterator::operator++",
+      "cpp_kind": "method",
+      "cpp_signature": "SegmentIterator (int)",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Swift for-in iteration and Array index(after:) advance the collection; pre/post increment syntax is a C++ language adaptation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "0d006549f057901758c47611f8dd24ff4f8b81d5c0c92271fbc75a6b71099d4e",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "52b5084ae0840b51f4ff",
+      "cpp_name": "ida::segment::SegmentIterator::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const SegmentIterator &, const SegmentIterator &) noexcept",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Swift compares Array indices, including endIndex, instead of comparing SDK-backed cursor objects. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "b2f3ba4a6977287f3047166da5687b8a96092074117d1402912566890fbf133f",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "889cee0b06c2471b3aba",
+      "cpp_name": "ida::segment::SegmentIterator::pointer",
+      "cpp_kind": "alias",
+      "cpp_signature": "const Segment *",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27",
+        "22412d035363c521c6c4"
+      ],
+      "rationale": "The iteration element is an owned Segments.Segment value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "ddc72ae79032a17733fd60443634eccb99aff1c6f643da0e22e54ccdca1344d8",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        },
+        {
+          "path": "Segments.Segment",
+          "declaration": "struct Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4ef14b46b1bbfea22d3f",
+      "cpp_name": "ida::segment::SegmentIterator::reference",
+      "cpp_kind": "alias",
+      "cpp_signature": "Segment",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27",
+        "22412d035363c521c6c4"
+      ],
+      "rationale": "The iteration element is an owned Segments.Segment value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "7263c2efe8a58b1c715462f90b1079559da5500d8e3674ee8d71f434d1ac2f0b",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        },
+        {
+          "path": "Segments.Segment",
+          "declaration": "struct Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "32ad3740c359e0f63c39",
+      "cpp_name": "ida::segment::SegmentIterator::value_type",
+      "cpp_kind": "alias",
+      "cpp_signature": "Segment",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27",
+        "22412d035363c521c6c4"
+      ],
+      "rationale": "The iteration element is an owned Segments.Segment value; Swift does not expose the C++ iterator storage pointer or reference lifetime. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "6f30a31aad4ff2bb5877d63455bf0fe85ec2edc6fd6ae9cf05dc1f464bd5f23d",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        },
+        {
+          "path": "Segments.Segment",
+          "declaration": "struct Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d178269cd3db9e9dda2a",
+      "cpp_name": "ida::segment::SegmentRange",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "The segment traversal object is replaced by an eager owned Swift Array with ordinary Swift iteration and indexing. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "d178269cd3db9e9dda2af39eb292880ee213ff81263f344eab90617b72059ec5",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2e4c770265d86dc03f6",
+      "cpp_name": "ida::segment::SegmentRange::SegmentRange",
+      "cpp_kind": "constructor",
+      "cpp_signature": "void ()",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "A default end cursor or empty range is represented by the typed empty Swift Array or its endIndex; nonempty traversal uses the collection operation. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "259b93f3603848c538d612bc50c68964a97c42a084bf63981f0384d8d1d98908",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d12f2ab1e9cb953d749",
+      "cpp_name": "ida::segment::SegmentRange::begin",
+      "cpp_kind": "method",
+      "cpp_signature": "SegmentIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Use Array.startIndex or makeIterator() on the returned snapshot to begin iteration. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4a2190f00b156ce884f485eda76f7489881a8059d6ef2fed22a1a5463e9b63cb",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f0c72d60bc654257c517",
+      "cpp_name": "ida::segment::SegmentRange::end",
+      "cpp_kind": "method",
+      "cpp_signature": "SegmentIterator () const",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Use Array.endIndex or Iterator.next() returning nil to detect exhaustion of the returned snapshot. This is an eager snapshot rather than a lazy database cursor.",
+      "cpp_fingerprint": "4dfa8dc2f0478e966c57505f863f161335f7db307bd0ec22d1ee2fbb8b8950b8",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9574ce55212db6bb2c33",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "45acbd553df4fc9aeef2"
+      ],
+      "rationale": "Segments.SegmentRegisterDescriptor is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "9574ce55212db6bb2c33c76df552b117c7ade4e3ef134570508bcbcc3db166cd",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterDescriptor",
+          "declaration": "typealias SegmentRegisterDescriptor = Segments.RegisterDescriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "81f5c4704439eb66cff3",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor::bit_width",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "f263ec67be4118548998"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "814dd6d21ce53b985783e6915b1241eeb98faeacc94badf66092807b51c899a9",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterDescriptor.bitWidth",
+          "declaration": "var bitWidth: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7943c002fa6192d26bf1",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor::is_code",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "f578d2d86e84bc88e5cc"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "770ae5648c1c90fb5837e9563add0fc6e7193b9887b2492b08505f9e75a0107d",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterDescriptor.isCode",
+          "declaration": "var isCode: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c6ea90b028e95025e2d",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor::is_data",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "3b9036c2b5104f0bead2"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "6ece3f61e9e45878b75e2a54d773c8ff23cfad63bd1c03dd12b292bac85daa8c",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterDescriptor.isData",
+          "declaration": "var isData: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "937d1994099c46e339ef",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "de2d7866746098a2115c"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "f945f37b3092af03322f166e44412971f3294c8dccad7679ede51ffaa93faccd",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterDescriptor.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "909b1cd09020f08186d1",
+      "cpp_name": "ida::segment::SegmentRegisterDescriptor::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const SegmentRegisterDescriptor &) const",
+      "mapping": "adapted",
+      "swift": [
+        "770bf43a5d353e907dd0"
+      ],
+      "rationale": "Swift Equatable performs memberwise equality on the full segment-register value, including optional value state and provenance.",
+      "cpp_fingerprint": "f955ce6442999356463d849202dd9cae29dd0af39663f6a118dd8a4298a589aa",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterDescriptor",
+          "declaration": "struct RegisterDescriptor"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a1f5a58e68e8460b974",
+      "cpp_name": "ida::segment::SegmentRegisterRange",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "f6b1fd829f26ed556f7e"
+      ],
+      "rationale": "Segments.SegmentRegisterRange is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "0a1f5a58e68e8460b974bb86c1d582af8a1e762544d619ce6e31f2ba6dc9657b",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterRange",
+          "declaration": "typealias SegmentRegisterRange = Segments.RegisterRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92eb0b478fda68a8148f",
+      "cpp_name": "ida::segment::SegmentRegisterRange::end",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "33e87f2c2e9df351044e"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "92e103f48c022cc08e9b0035fca413b40ed6e5a537771dba5ae58654d6c6d069",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterRange.end",
+          "declaration": "var end: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea43e846c51bb3cf0a2d",
+      "cpp_name": "ida::segment::SegmentRegisterRange::operator==",
+      "cpp_kind": "method",
+      "cpp_signature": "bool (const SegmentRegisterRange &) const",
+      "mapping": "adapted",
+      "swift": [
+        "4e7ab7a35e76cce3bcfd"
+      ],
+      "rationale": "Swift Equatable performs memberwise equality on the full segment-register value, including optional value state and provenance.",
+      "cpp_fingerprint": "abb235d309f7e941630cb5fe110bdcb45cb1a69296e80962759efd1ef94c2968",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterRange",
+          "declaration": "struct RegisterRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "152f8fd1ed00f1ff23e2",
+      "cpp_name": "ida::segment::SegmentRegisterRange::source",
+      "cpp_kind": "field",
+      "cpp_signature": "SegmentRegisterSource",
+      "mapping": "direct",
+      "swift": [
+        "36591fbdb4e0ea1163e0"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "9e78440f4555a8356dea32c69a31476d70032c840c6e3d2e3eab4d96c3c22770",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterRange.source",
+          "declaration": "var source: Segments.SegmentRegisterSource"
+        }
+      ]
+    },
+    {
+      "cpp_id": "acf9e09451a83a87cccb",
+      "cpp_name": "ida::segment::SegmentRegisterRange::start",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "58d77464201575de02bd"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "3d59c3b237b3faf0c65e9e635691e09a95c5c811000db9dbe8a1876dec72150f",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterRange.start",
+          "declaration": "var start: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "861518d812eb93256e90",
+      "cpp_name": "ida::segment::SegmentRegisterRange::value",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::uint64_t>",
+      "mapping": "direct",
+      "swift": [
+        "17be17b1ba00a27782bb"
+      ],
+      "rationale": "The long public segment-register type name aliases this owned record; the field preserves its exact value, optional state, or source enumeration.",
+      "cpp_fingerprint": "7198a3c1e9290c7898ff1e823e9bc4093d32fac80309705e63ad0ce31105f5d5",
+      "swift_targets": [
+        {
+          "path": "Segments.RegisterRange.value",
+          "declaration": "var value: UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7d543549ae00e63a82ff",
+      "cpp_name": "ida::segment::SegmentRegisterSource",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class SegmentRegisterSource { Inherited, User, Analysis, AnalysisAtSegmentStart, }",
+      "mapping": "direct",
+      "swift": [
+        "e0d1d8a7cf95f72bc250"
+      ],
+      "rationale": "Segments.SegmentRegisterSource represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "cc3ca662c2d9af898af669d0eb59ef574a84811894510a4765b57e17bc01c40f",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterSource",
+          "declaration": "enum SegmentRegisterSource"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b67e39ea805edb43648",
+      "cpp_name": "ida::segment::SegmentRegisterSource::Analysis",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::SegmentRegisterSource",
+      "mapping": "direct",
+      "swift": [
+        "c8a30f9e1fc69da17cb8"
+      ],
+      "rationale": "Corresponding typed semantic case Segments.SegmentRegisterSource.analysis; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5b5f56b0223a2897fd95c49fde6eda08b2f9c308f84754f09672a4cf6126a0dd",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterSource.analysis",
+          "declaration": "case analysis"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70d2bd2db372c51b1a41",
+      "cpp_name": "ida::segment::SegmentRegisterSource::AnalysisAtSegmentStart",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::SegmentRegisterSource",
+      "mapping": "direct",
+      "swift": [
+        "928d46a8b1e479066dce"
+      ],
+      "rationale": "Corresponding typed semantic case Segments.SegmentRegisterSource.analysisAtSegmentStart; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4bba72eeb99205d55c2419e6181a2404ec4c4dec486c96ab24428525703372ad",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterSource.analysisAtSegmentStart",
+          "declaration": "case analysisAtSegmentStart"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44ae5c6694c36ab8c7fa",
+      "cpp_name": "ida::segment::SegmentRegisterSource::Inherited",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::SegmentRegisterSource",
+      "mapping": "direct",
+      "swift": [
+        "aeb6a6b6464aa600faf5"
+      ],
+      "rationale": "Corresponding typed semantic case Segments.SegmentRegisterSource.inherited; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "33d320c82cfb3c1de75414f1bcecaadf107d214c324ce155072cd8f3d846a395",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterSource.inherited",
+          "declaration": "case inherited"
+        }
+      ]
+    },
+    {
+      "cpp_id": "03acf537b3e1de651419",
+      "cpp_name": "ida::segment::SegmentRegisterSource::User",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::SegmentRegisterSource",
+      "mapping": "direct",
+      "swift": [
+        "3e89382f3effd5370912"
+      ],
+      "rationale": "Corresponding typed semantic case Segments.SegmentRegisterSource.user; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "58e1da38471f7ed0a53ffd7d52ed46bbf7879f63f44fdcf451dead70dfa59fd7",
+      "swift_targets": [
+        {
+          "path": "Segments.SegmentRegisterSource.user",
+          "declaration": "case user"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b626afbbfef68eb71060",
+      "cpp_name": "ida::segment::Type",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Type { Normal, External, Code, Data, Bss, AbsoluteSymbols, Common, Null, Undefined, Import, InternalMemory, Group, }",
+      "mapping": "direct",
+      "swift": [
+        "81c7fbc92a33ef6ac233"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "8c719ed168fea8b1884102c0211a88bdffb2ac0a59089f64221febf207fcda87",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind",
+          "declaration": "enum Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d9964e7fb09cfbf782a",
+      "cpp_name": "ida::segment::Type::AbsoluteSymbols",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "2b424cec53e52b79ae48"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "5fbd215739094708200a50216c5e952b6db8b7370a58242ba057250b955c57c1",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.absoluteSymbols",
+          "declaration": "case absoluteSymbols"
+        }
+      ]
+    },
+    {
+      "cpp_id": "08db647fa8d6406805d0",
+      "cpp_name": "ida::segment::Type::Bss",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "b85ae9b75307003b7c3e"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "e2dead10e0245fa63eb9c36f2b1f3108007e0f0dbca30b4d2a1478214fd6e79b",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.bss",
+          "declaration": "case bss"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bdf0065b990e4ad3c957",
+      "cpp_name": "ida::segment::Type::Code",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "2d997896c93dba3ffb24"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "5316f28702c95a967c7ca33316ddc533816957dfa90bad38be936c1f343e741e",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.code",
+          "declaration": "case code"
+        }
+      ]
+    },
+    {
+      "cpp_id": "80b353f26d63eab90874",
+      "cpp_name": "ida::segment::Type::Common",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "a25173b803a94f6276ea"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "01976814f7f9fbaa335984b7fda67413e43b572df6c9fc806636607e2f8c8f49",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.common",
+          "declaration": "case common"
+        }
+      ]
+    },
+    {
+      "cpp_id": "349e212e48e182c1ebda",
+      "cpp_name": "ida::segment::Type::Data",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "93d92c0411ef54c3cafb"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "9f3898aa6241439e6be124a367aebc4bb18b206adc460fa1eef370c54f47e1a0",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.data",
+          "declaration": "case data"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3752f99a70f753f25a02",
+      "cpp_name": "ida::segment::Type::External",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "4453f9bc21c53d9fb47e"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "442c66fd5888e314f7b4653289e1ea2ba03c30e00b64e8bef8392a3cabf1c408",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.external",
+          "declaration": "case external"
+        }
+      ]
+    },
+    {
+      "cpp_id": "86cc6f262269533a7565",
+      "cpp_name": "ida::segment::Type::Group",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "af116ff1835f22bbf15c"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "b77da0ffacd5e77031600b2966fd59e9128afd9a18482284473ab53993246cf0",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.group",
+          "declaration": "case group"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c125659dbf303552e36",
+      "cpp_name": "ida::segment::Type::Import",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "0d7f055c801995dd335b"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "157ed4f9945dc83fb6006877fb99848ce09ae7fb18dd041659a2e0995f63090b",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.import",
+          "declaration": "case `import`"
+        }
+      ]
+    },
+    {
+      "cpp_id": "320708b1c0fd6af83499",
+      "cpp_name": "ida::segment::Type::InternalMemory",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "1ea8c6916f6f2011713c"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "bc71f18ebf46e1b5087708c8565fc8ca9879d723ae84bf20c7b710d3f2d1254a",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.internalMemory",
+          "declaration": "case internalMemory"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15d71c39f83e3d2e7f15",
+      "cpp_name": "ida::segment::Type::Normal",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "89c9b3e02eb30ecc63df"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "672219afac50f6ddc240a98467b4d1ae4c68df930f89537b559787b25ffec18a",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.normal",
+          "declaration": "case normal"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1aae08c684bbd888cadb",
+      "cpp_name": "ida::segment::Type::Null",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "90b3f4285b02b1ac1264"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "51fd848d092b99c89befb3636935a4c94606d90e260041c760130d5f1ee5d6ce",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.null",
+          "declaration": "case null"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd276713167bac49c8d0",
+      "cpp_name": "ida::segment::Type::Undefined",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::segment::Type",
+      "mapping": "direct",
+      "swift": [
+        "e0c8f19c92d743563328"
+      ],
+      "rationale": "The C++ segment Type is named Kind in Swift; its corresponding normalized segment classification is retained.",
+      "cpp_fingerprint": "72bef43a30156a3ebe78bfa43062813ad78630dedf27d82996a7ba89e8db12da",
+      "swift_targets": [
+        {
+          "path": "Segments.Kind.undefined",
+          "declaration": "case undefined"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c5ba453e2b83dc5cf35f",
+      "cpp_name": "ida::segment::all",
+      "cpp_kind": "function",
+      "cpp_signature": "SegmentRange ()",
+      "mapping": "adapted",
+      "swift": [
+        "4f25812145b874edbd27"
+      ],
+      "rationale": "Returns an eager array of copied Segment snapshots in database index order; Swift for-in, indices, and slices replace the C++ range.",
+      "cpp_fingerprint": "6dc63f439fbb055c97a72c7b80e478c3599e51448f511b5dd767bc3c6a5a766e",
+      "swift_targets": [
+        {
+          "path": "Segments.all()",
+          "declaration": "static func all() throws(IDAError) -> [Segments.Segment]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f63cad7d46b4936421e2",
+      "cpp_name": "ida::segment::at",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "af0c0f0fe521a1a06942"
+      ],
+      "rationale": "Segments.at(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1d4cbedd82379062f2a034314fca94519c48c997b49d55e556580aa8295f4f85",
+      "swift_targets": [
+        {
+          "path": "Segments.at(address:)",
+          "declaration": "static func at(address: UInt64) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bf6e86c64ac13c4ac62e",
+      "cpp_name": "ida::segment::by_index",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "4aaa173ef9cbcb7b6fec"
+      ],
+      "rationale": "Segments.byIndex(index:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e9987a045f7ad35bf6f1cb870a0ac611f604d4a718313a44871dbfa03ef65e0e",
+      "swift_targets": [
+        {
+          "path": "Segments.byIndex(index:)",
+          "declaration": "static func byIndex(index: Int) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1d84405fd346ba5a0ddb",
+      "cpp_name": "ida::segment::by_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "8121fa0ec1ce16910831"
+      ],
+      "rationale": "Segments.byName(name:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "62a19e19777d34dee0acc07cd0c96af04b0352670d44af59bc4b0f5eb818e5b9",
+      "swift_targets": [
+        {
+          "path": "Segments.byName(name:)",
+          "declaration": "static func byName(name: String) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9f25e488f69a2fa4927e",
+      "cpp_name": "ida::segment::comment",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "51bd80cc4cdb6b7e5adc"
+      ],
+      "rationale": "Segments.comment(address:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fe6aedf7059164bff3da451722d00404ac6091d130697bdcf69e0e52022c5c7f",
+      "swift_targets": [
+        {
+          "path": "Segments.comment(address:repeatable:)",
+          "declaration": "static func comment(address: UInt64, repeatable: Bool = false) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b8f0aac0821d099dc9cd",
+      "cpp_name": "ida::segment::copy_segment_register_ranges",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "83cb6c9a1b7b18a41ef0"
+      ],
+      "rationale": "Segments.copySegmentRegisterRanges(destinationRegister:sourceRegister:mapSelectorsToAddresses:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "370406522f445b1a3e51fa4c1db2f5f6e7a4c16f360869445720bfe277622564",
+      "swift_targets": [
+        {
+          "path": "Segments.copySegmentRegisterRanges(destinationRegister:sourceRegister:mapSelectorsToAddresses:)",
+          "declaration": "static func copySegmentRegisterRanges(destinationRegister: String, sourceRegister: String, mapSelectorsToAddresses: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dfac86b27db1aa3bfb30",
+      "cpp_name": "ida::segment::count",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "0d33514b372f4e7e132b"
+      ],
+      "rationale": "Segments.count() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "186c251fd665efdee239c3069f0580a1450a9293c24a6a49a0367683a506dfd7",
+      "swift_targets": [
+        {
+          "path": "Segments.count()",
+          "declaration": "static func count() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "257ae3ef94b46faabbf3",
+      "cpp_name": "ida::segment::create",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (Address, Address, std::string_view, std::string_view, Type)",
+      "mapping": "direct",
+      "swift": [
+        "82b5e3526447346f8963"
+      ],
+      "rationale": "Segments.create(start:end:name:className:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a96866903135fa38750296252a5decef0c47642cb89f1da9e5a5f56dcb7cc292",
+      "swift_targets": [
+        {
+          "path": "Segments.create(start:end:name:className:type:)",
+          "declaration": "@discardableResult static func create(start: Address, end: Address, name: String, className: String = \"\", type: Segments.Kind = .normal) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "98f787d556ee1ee81ee0",
+      "cpp_name": "ida::segment::default_segment_register_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::uint64_t>> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "396f34586dfee93f72c1"
+      ],
+      "rationale": "Segments.defaultSegmentRegisterValue(address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "c5c71fe5e92728e75ac5d8d5cbeab37d20a34d1b2ca9ae9014ee4c3ca4b7203a",
+      "swift_targets": [
+        {
+          "path": "Segments.defaultSegmentRegisterValue(address:registerName:)",
+          "declaration": "static func defaultSegmentRegisterValue(address: Address, registerName: String) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c8d71972e22e9198df18",
+      "cpp_name": "ida::segment::first",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> ()",
+      "mapping": "direct",
+      "swift": [
+        "582c455b3ceb55246f34"
+      ],
+      "rationale": "Segments.first() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a1d5a190f1aedef174297a227344388aafc8994e4a5eeb501156708be4ceb67c",
+      "swift_targets": [
+        {
+          "path": "Segments.first()",
+          "declaration": "static func first() throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cfa39ec157b56de7d8f3",
+      "cpp_name": "ida::segment::last",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> ()",
+      "mapping": "direct",
+      "swift": [
+        "0a816da61037dbf6cfa4"
+      ],
+      "rationale": "Segments.last() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "06f798a8a891ec6a09f404cbdc5462c02b99df18b3d604c8c108ad035183126a",
+      "swift_targets": [
+        {
+          "path": "Segments.last()",
+          "declaration": "static func last() throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea129ca97f3900658c57",
+      "cpp_name": "ida::segment::move",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "fc738d7b3977540808bd"
+      ],
+      "rationale": "Segments.move(address:newStart:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6d28de7e3ecf21c48910630149f0f57b6659dcdf5a05bf3efd61d5b28427e81f",
+      "swift_targets": [
+        {
+          "path": "Segments.move(address:newStart:)",
+          "declaration": "static func move(address: UInt64, newStart: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d87024224df253dc6f2",
+      "cpp_name": "ida::segment::next",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "94b6b152cf23db23748b"
+      ],
+      "rationale": "Segments.next(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "680647402dd84245ef110e89afbfea561d4e0b4545303eea017f9d8fd6a8ab5e",
+      "swift_targets": [
+        {
+          "path": "Segments.next(address:)",
+          "declaration": "static func next(address: UInt64) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a836dd13c37c4ebd5db7",
+      "cpp_name": "ida::segment::prev",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Segment> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "d024fd6a61700aa5baa7"
+      ],
+      "rationale": "Segments.prev(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0d0eebb1a4374e8fa4682b69201fb55dfed6a6f5f562ecdc86dfe9a1032e883a",
+      "swift_targets": [
+        {
+          "path": "Segments.prev(address:)",
+          "declaration": "static func prev(address: UInt64) throws(IDAError) -> Segments.Segment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "87e137831109244bc973",
+      "cpp_name": "ida::segment::previous_segment_register_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<SegmentRegisterRange>> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "2be826d9030fc9244305"
+      ],
+      "rationale": "Segments.previousSegmentRegisterRange(address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "05bd05516ade9e569d3d6bf18f0d5157fcb001a0ce810e2d9bf38dfb3435bc2c",
+      "swift_targets": [
+        {
+          "path": "Segments.previousSegmentRegisterRange(address:registerName:)",
+          "declaration": "static func previousSegmentRegisterRange(address: Address, registerName: String) throws(IDAError) -> Segments.RegisterRange?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c80c373e599b088384ed",
+      "cpp_name": "ida::segment::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address)",
+      "mapping": "direct",
+      "swift": [
+        "af7657b79446ad6283e1"
+      ],
+      "rationale": "Segments.remove(address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b5de472a0a3dc34dc6f55d95cbbea27cc19527096135b04092ae9c864e8a2918",
+      "swift_targets": [
+        {
+          "path": "Segments.remove(address:)",
+          "declaration": "static func remove(address: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3f4146d34a5092fc38df",
+      "cpp_name": "ida::segment::remove_segment_register_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "08084bc4a4be408cfdcb"
+      ],
+      "rationale": "Segments.removeSegmentRegisterRange(rangeStart:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b740c49a23b373852cebb2907dbeb5280fbc20cd83fb8967b1972334b21385c8",
+      "swift_targets": [
+        {
+          "path": "Segments.removeSegmentRegisterRange(rangeStart:registerName:)",
+          "declaration": "static func removeSegmentRegisterRange(rangeStart: Address, registerName: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9909c1406a97de8ce1de",
+      "cpp_name": "ida::segment::resize",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, Address)",
+      "mapping": "direct",
+      "swift": [
+        "d03f992f52cc3a5d6c4c"
+      ],
+      "rationale": "Segments.resize(address:newStart:newEnd:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "23313f37fad7c2ace073ad69f7a92fa44008873df198f9c2f07611a703c2ee72",
+      "swift_targets": [
+        {
+          "path": "Segments.resize(address:newStart:newEnd:)",
+          "declaration": "static func resize(address: UInt64, newStart: UInt64, newEnd: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c73a4cfc4452ae48d97",
+      "cpp_name": "ida::segment::segment_register_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<SegmentRegisterRange> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "128ac538326015a05b58"
+      ],
+      "rationale": "Segments.segmentRegisterRange(address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3c2a50f2d777e8838b473ae488e25e160b6cbdeb72c72dfbbe52b162a59c8842",
+      "swift_targets": [
+        {
+          "path": "Segments.segmentRegisterRange(address:registerName:)",
+          "declaration": "static func segmentRegisterRange(address: Address, registerName: String) throws(IDAError) -> Segments.RegisterRange"
+        }
+      ]
+    },
+    {
+      "cpp_id": "72c450b87b20b3f80c8d",
+      "cpp_name": "ida::segment::segment_register_range_index",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::size_t>> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "4dfd70f5e541d32a7e6c"
+      ],
+      "rationale": "Segments.segmentRegisterRangeIndex(address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "b5a93b58768fcf09066b34191c4be757488dba1f9918e1bdfae3f56c895df205",
+      "swift_targets": [
+        {
+          "path": "Segments.segmentRegisterRangeIndex(address:registerName:)",
+          "declaration": "static func segmentRegisterRangeIndex(address: Address, registerName: String) throws(IDAError) -> Int?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5a0edac3075e614959f7",
+      "cpp_name": "ida::segment::segment_register_ranges",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<SegmentRegisterRange>> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "0336b855e8cfdab0ff48"
+      ],
+      "rationale": "Segments.segmentRegisterRanges(registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c42902cc8ce22462f7ab8976d971f2a876d2b3a1914511364c9189c8e5c3e6f3",
+      "swift_targets": [
+        {
+          "path": "Segments.segmentRegisterRanges(registerName:)",
+          "declaration": "static func segmentRegisterRanges(registerName: String) throws(IDAError) -> [Segments.RegisterRange]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6b9f259343f1919a32fe",
+      "cpp_name": "ida::segment::segment_register_value",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::uint64_t>> (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "1afdf245c4b3aba34671"
+      ],
+      "rationale": "Segments.segmentRegisterValue(address:registerName:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "bda6f0802bd5eef5644f941a1e8fd40509c308edd09d29101188eb9a065b4e78",
+      "swift_targets": [
+        {
+          "path": "Segments.segmentRegisterValue(address:registerName:)",
+          "declaration": "static func segmentRegisterValue(address: Address, registerName: String) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d557988371b9001c87d6",
+      "cpp_name": "ida::segment::segment_registers",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<SegmentRegisterDescriptor>> ()",
+      "mapping": "direct",
+      "swift": [
+        "3b364e8b6495d12e386f"
+      ],
+      "rationale": "Segments.segmentRegisters() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "b01765179ea8339643f722fbbb67100d13cfc8cfd9d9ff704e2d27b31d83a61a",
+      "swift_targets": [
+        {
+          "path": "Segments.segmentRegisters()",
+          "declaration": "static func segmentRegisters() throws(IDAError) -> [Segments.RegisterDescriptor]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b792c6b34c4bd6b430c",
+      "cpp_name": "ida::segment::set_bitness",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int)",
+      "mapping": "direct",
+      "swift": [
+        "7b7a1381bee6a4473ae1"
+      ],
+      "rationale": "Segments.setBitness(address:bits:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e8edda2c51ea1d893915931b1a2d3993147e9028ff467f3401321b6add84696f",
+      "swift_targets": [
+        {
+          "path": "Segments.setBitness(address:bits:)",
+          "declaration": "static func setBitness(address: UInt64, bits: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "62afb85cba2e502a9aa6",
+      "cpp_name": "ida::segment::set_class",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "8aaa459517b0d70e7ac6"
+      ],
+      "rationale": "Segments.setClass(address:className:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e7ca2017d00183f24b29f56854861064e76610afc61ebcb62339eac4f03a0f05",
+      "swift_targets": [
+        {
+          "path": "Segments.setClass(address:className:)",
+          "declaration": "static func setClass(address: UInt64, className: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b12a006ef111603ed17",
+      "cpp_name": "ida::segment::set_comment",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "19566c7a9065430e0110"
+      ],
+      "rationale": "Segments.setComment(address:text:repeatable:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "7ad1d559b9afac85423bc09045bfa6cbba9fbf9294f5df2072bea7ac7092e74e",
+      "swift_targets": [
+        {
+          "path": "Segments.setComment(address:text:repeatable:)",
+          "declaration": "static func setComment(address: UInt64, text: String, repeatable: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fef02ebb660484342fcc",
+      "cpp_name": "ida::segment::set_default_data_segment",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::optional<std::uint64_t>)",
+      "mapping": "direct",
+      "swift": [
+        "3f722206dc15d056ff5d"
+      ],
+      "rationale": "Segments.setDefaultDataSegment(value:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "48a306389f936f9bb7388933c6f7305b6fc7657be999e1cb7d99d70c75db6750",
+      "swift_targets": [
+        {
+          "path": "Segments.setDefaultDataSegment(value:)",
+          "declaration": "static func setDefaultDataSegment(value: UInt64?) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f43ab7d7cff6649c4ed1",
+      "cpp_name": "ida::segment::set_default_segment_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, int, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "e086db3d7d1ab102e06c"
+      ],
+      "rationale": "Preserves the explicitly documented legacy ordinal overload for source-compatible expert workflows.",
+      "cpp_fingerprint": "f039253250b1e483f28b9f3fb652c6d7ef8343b17de87ee00149cf1bb2e9a709",
+      "swift_targets": [
+        {
+          "path": "Segments.setDefaultSegmentRegister(address:registerIndex:value:)",
+          "declaration": "static func setDefaultSegmentRegister(address: UInt64, registerIndex: Int32, value: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fe17226dc19a212d6a1",
+      "cpp_name": "ida::segment::set_default_segment_register",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, std::optional<std::uint64_t>)",
+      "mapping": "direct",
+      "swift": [
+        "fa3ad3f3f5d9b46b6704"
+      ],
+      "rationale": "Preserves the semantic named-register overload and optional zero-versus-absence state.",
+      "cpp_fingerprint": "9af9f172f2c6e1a8f32ce6163ad9df4bdd8cfd9989c42766e08d09cb35a15c96",
+      "swift_targets": [
+        {
+          "path": "Segments.setDefaultSegmentRegister(address:registerName:value:)",
+          "declaration": "static func setDefaultSegmentRegister(address: Address, registerName: String, value: UInt64?) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54b6f4612ee4068112d6",
+      "cpp_name": "ida::segment::set_default_segment_register_for_all",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int, std::uint64_t)",
+      "mapping": "direct",
+      "swift": [
+        "6b6909461e8fbd28ea47"
+      ],
+      "rationale": "Preserves the explicitly documented legacy ordinal overload for source-compatible expert workflows.",
+      "cpp_fingerprint": "4d512b1a9afa57d0ca1dc5bc1bd31a53862af2285c1c7e92bacf1f94c61f4740",
+      "swift_targets": [
+        {
+          "path": "Segments.setDefaultSegmentRegisterForAll(registerIndex:value:)",
+          "declaration": "static func setDefaultSegmentRegisterForAll(registerIndex: Int32, value: UInt64) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e8cfc3a9489a20201919",
+      "cpp_name": "ida::segment::set_default_segment_register_for_all",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::optional<std::uint64_t>)",
+      "mapping": "direct",
+      "swift": [
+        "56a46ccc14bf032be9af"
+      ],
+      "rationale": "Preserves the semantic named-register overload and optional zero-versus-absence state.",
+      "cpp_fingerprint": "b13a2e3702a4e392dbb1a53cd3131803264a7a3416c56bbd23acee8695254465",
+      "swift_targets": [
+        {
+          "path": "Segments.setDefaultSegmentRegisterForAll(registerName:value:)",
+          "declaration": "static func setDefaultSegmentRegisterForAll(registerName: String, value: UInt64?) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a33508890fcedaf0144b",
+      "cpp_name": "ida::segment::set_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "bfb6cdad02bfbf5776a0"
+      ],
+      "rationale": "Segments.setName(address:name:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "60b00fed8bb64b3d4575de87e6233f9964be4240d1c0522433f2d915da0dc0b7",
+      "swift_targets": [
+        {
+          "path": "Segments.setName(address:name:)",
+          "declaration": "static func setName(address: UInt64, name: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "192cbf8ab79b5ae92f67",
+      "cpp_name": "ida::segment::set_permissions",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Permissions)",
+      "mapping": "direct",
+      "swift": [
+        "1d01cec948a6a43ebbfe"
+      ],
+      "rationale": "Accepts the semantic Permissions value with independent read, write, and execute flags.",
+      "cpp_fingerprint": "e1f98df5d56aa993cf994a102d9316e41d8a7e3f0ff05a4570d0c2ac538cefea",
+      "swift_targets": [
+        {
+          "path": "Segments.setPermissions(address:permissions:)",
+          "declaration": "static func setPermissions(address: Address, permissions: Segments.Permissions) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "33634b081b035f446662",
+      "cpp_name": "ida::segment::set_segment_register_at_next_code",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Address, std::string_view, std::optional<std::uint64_t>)",
+      "mapping": "direct",
+      "swift": [
+        "85c430e30610781150cc"
+      ],
+      "rationale": "Segments.setSegmentRegisterAtNextCode(searchStart:maximum:registerName:value:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "b9760d6c86fb17e4ee5c2f247b85cf63f1e622f40656250cbe534885b4a1ef7f",
+      "swift_targets": [
+        {
+          "path": "Segments.setSegmentRegisterAtNextCode(searchStart:maximum:registerName:value:)",
+          "declaration": "static func setSegmentRegisterAtNextCode(searchStart: Address, maximum: Address, registerName: String, value: UInt64?) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "08dc8915dc0a4385dc0f",
+      "cpp_name": "ida::segment::set_type",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, Type)",
+      "mapping": "direct",
+      "swift": [
+        "8d8000baff302cee4f86"
+      ],
+      "rationale": "Segments.setType(address:type:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "08e7efe1d8a1814b45a88067750848889b34be3073840489a8630467e7cffe0c",
+      "swift_targets": [
+        {
+          "path": "Segments.setType(address:type:)",
+          "declaration": "static func setType(address: UInt64, type: Segments.Kind) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc80e0af99ae59a2cf58",
+      "cpp_name": "ida::segment::split_segment_register_range",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, std::string_view, std::optional<std::uint64_t>, SegmentRegisterSource)",
+      "mapping": "direct",
+      "swift": [
+        "4286344c47742d09d537"
+      ],
+      "rationale": "Segments.splitSegmentRegisterRange(address:registerName:value:source:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "4105f10097bdd36c454884f560be551986dd63cd789307caa62350fabe0fc8e0",
+      "swift_targets": [
+        {
+          "path": "Segments.splitSegmentRegisterRange(address:registerName:value:source:)",
+          "declaration": "static func splitSegmentRegisterRange(address: Address, registerName: String, value: UInt64?, source: Segments.SegmentRegisterSource = .user) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

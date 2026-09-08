@@ -571,11 +571,11 @@ Current overall phase status:
 ### Phase 72 TODO Action Items (Fresh Swift Binding and PR 6 Rewrite)
 
 - [x] P72.1 Preserve the incoming PR on a reference branch, audit its entire diff against current headers and superseding decisions, and reproduce material defects.
-- [ ] P72.2 Record the complete declaration, ownership, thread, error, packaging, and compatibility contracts for a fresh implementation.
+- [x] P72.2 Record the complete declaration, ownership, thread, error, packaging, and compatibility contracts for a fresh implementation.
 - [x] P72.3 Reimplement genuinely missing C++ prerequisites within existing semantic domains; preserve existing APIs and complete all applicable binding parity.
-- [ ] P72.4 Implement stable Swift packaging, private native adapters, exact error transport, thread/session guards, and deterministic owner/callback leases.
+- [x] P72.4 Implement stable Swift packaging, private native adapters, exact error transport, thread/session guards, and deterministic owner/callback leases.
 - [ ] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
-- [ ] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.
+- [x] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.
 - [ ] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
 
 - [x] P72.7.1 Correct and regress newly reproduced core pseudocode-coordinate and bitmask-enum construction defects discovered by Swift parity tests.
@@ -583,3 +583,9 @@ Current overall phase status:
 - [x] P72.7.2 Correct and regress mapped-byte predicates, fixup traversal exhaustion, and copied nested-instruction width contracts exposed by Swift clients.
 
 - [x] P72.7.3 Correct the loader macro static-initialization order and demonstrate native descriptor loading.
+
+- [x] P72.7.4 Preserve native FormBuilder default versus explicit empty-title construction and add nonmodal markup evidence.
+
+- [ ] P72.7.5 Remove identity-bearing compiler paths from the native distribution archive and verify every packaged member bytewise.
+
+- [ ] P72.7.6 Preserve caller-authored form markup with typed bound values through an opaque Swift argument model and nonmodal validation.

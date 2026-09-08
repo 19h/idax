@@ -1,0 +1,257 @@
+{
+  "domain": "dyld_cache",
+  "declarations": [
+    {
+      "cpp_id": "7a9da02858b8476a2316",
+      "cpp_name": "ida::dyld_cache::ModuleInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "890d07aa266527ae8c05"
+      ],
+      "rationale": "DyldCache.ModuleInfo is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "7a9da02858b8476a23169142fce26f70e112e0371f0b37fad8ceaf87a626ecd1",
+      "swift_targets": [
+        {
+          "path": "DyldCache.ModuleInfo",
+          "declaration": "struct ModuleInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fdd6f0fd9403609cb089",
+      "cpp_name": "ida::dyld_cache::ModuleInfo::load_address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "49ea988e8c7506fe4cda"
+      ],
+      "rationale": "Preserves the declared Address value in DyldCache.ModuleInfo.loadAddress, including its semantic type and signedness.",
+      "cpp_fingerprint": "3182ad84e367175cca5cfbd46ca423c7c12d5d87b677d0eee1ffb7cb7e4840a9",
+      "swift_targets": [
+        {
+          "path": "DyldCache.ModuleInfo.loadAddress",
+          "declaration": "var loadAddress: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb0785d551a8b21749e5",
+      "cpp_name": "ida::dyld_cache::ModuleInfo::path",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "73c9fb874c9ecd2e2e73"
+      ],
+      "rationale": "Preserves the path value as var path: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "0c3a0a180e119cecd9bb4746d86b1111e1f7f9fcd6282f5dd0f82dc0b7417add",
+      "swift_targets": [
+        {
+          "path": "DyldCache.ModuleInfo.path",
+          "declaration": "var path: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "549fd255984f7db8df1e",
+      "cpp_name": "ida::dyld_cache::is_available",
+      "cpp_kind": "function",
+      "cpp_signature": "bool ()",
+      "mapping": "direct",
+      "swift": [
+        "5696c2ad5c74d30fbc57"
+      ],
+      "rationale": "DyldCache.isAvailable() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "43670070a39a786d2de26021680039286ce3ab87b2b52b3fb7c676105cd6b535",
+      "swift_targets": [
+        {
+          "path": "DyldCache.isAvailable()",
+          "declaration": "static func isAvailable() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "300def681aa6cbaf1d3b",
+      "cpp_name": "ida::dyld_cache::list_modules",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<ModuleInfo>> ()",
+      "mapping": "direct",
+      "swift": [
+        "94e54bc13a43c1335098"
+      ],
+      "rationale": "Online inventory queries the active cache database on its runtime owner thread. Both return owned module paths and 64-bit load addresses.",
+      "cpp_fingerprint": "662df643cb2e815e5be61246ef1a8d5f4faad26b71e3ab25f404c8574f4d4ae6",
+      "swift_targets": [
+        {
+          "path": "DyldCache.listModules()",
+          "declaration": "static func listModules() throws(IDAError) -> [DyldCache.ModuleInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0c03aecc4e701554287a",
+      "cpp_name": "ida::dyld_cache::list_modules",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<ModuleInfo>> (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "8a6df903aa85de90ba08"
+      ],
+      "rationale": "Offline file inventory accepts a cache path without initializing IDA. Both return owned module paths and 64-bit load addresses.",
+      "cpp_fingerprint": "7ce57847fedad5ed8fcc2318ba4a974dbdad4d0d4a26e21b0c9b1348362dda63",
+      "swift_targets": [
+        {
+          "path": "DyldCache.listModules(cachePath:)",
+          "declaration": "static func listModules(cachePath: String) throws(IDAError) -> [DyldCache.ModuleInfo]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "882df4bfef84428c4b2a",
+      "cpp_name": "ida::dyld_cache::load_branch_islands",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "76c98b9917ee3c1b3209"
+      ],
+      "rationale": "DyldCache.loadBranchIslands(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "af46919772f0e6813def81b08bcc7178a17a291396cc84d7f973e4cee3b304ac",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadBranchIslands(waitForAnalysis:)",
+          "declaration": "static func loadBranchIslands(waitForAnalysis: Bool = false) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9a418505e225f038b97f",
+      "cpp_name": "ida::dyld_cache::load_branch_mappings",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "256e1ff336e0a397f6f8"
+      ],
+      "rationale": "DyldCache.loadBranchMappings(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fc470d0b6c5c732500e875ec88df9066693e582f9bbabaef47ea2796b5b7c23c",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadBranchMappings(waitForAnalysis:)",
+          "declaration": "static func loadBranchMappings(waitForAnalysis: Bool = false) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d07abd48cb02447e1388",
+      "cpp_name": "ida::dyld_cache::load_cache_data",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "ed7bc5e440ee0d7c3014"
+      ],
+      "rationale": "DyldCache.loadCacheData(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "92fde23cb86493f0711461b0a0889f3d1e16db3e80b1fec9af2b553a73df6e56",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadCacheData(waitForAnalysis:)",
+          "declaration": "static func loadCacheData(waitForAnalysis: Bool = false) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e2bfa679c52380d4e017",
+      "cpp_name": "ida::dyld_cache::load_dyld_header",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (bool)",
+      "mapping": "direct",
+      "swift": [
+        "29cc951cfd5646850470"
+      ],
+      "rationale": "DyldCache.loadDyldHeader(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1938f32d0b48cd6335e68e238dd7368ab4e5a83942c1558eab97344149001566",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadDyldHeader(waitForAnalysis:)",
+          "declaration": "static func loadDyldHeader(waitForAnalysis: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "557f470c34ef5c5037ea",
+      "cpp_name": "ida::dyld_cache::load_gaps",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "5bb705fe69f33c5c78f7"
+      ],
+      "rationale": "DyldCache.loadGaps(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "da163f82f5edcee83e6a6072bc757d1d3a049f61f46320cfe79eb72e4b3c9c35",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadGaps(waitForAnalysis:)",
+          "declaration": "static func loadGaps(waitForAnalysis: Bool = false) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e4bd3a5c52eb187780c6",
+      "cpp_name": "ida::dyld_cache::load_global_offset_tables",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::size_t> (bool)",
+      "mapping": "direct",
+      "swift": [
+        "9ed8d3e46ad25a36552f"
+      ],
+      "rationale": "DyldCache.loadGlobalOffsetTables(waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "9ca32d5dc2e7a3d3cfdfb8135acc31cc9249097c6d1990c7c4dfbd9c3e3eb557",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadGlobalOffsetTables(waitForAnalysis:)",
+          "declaration": "static func loadGlobalOffsetTables(waitForAnalysis: Bool = false) throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e41f2e685bcbeee695e5",
+      "cpp_name": "ida::dyld_cache::load_module",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, bool)",
+      "mapping": "direct",
+      "swift": [
+        "2895241a40b703561cf9"
+      ],
+      "rationale": "DyldCache.loadModule(path:waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "af7857f0566763505fd0ecf02f253d6295ae147b0731620dbc3fb9bca581766b",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadModule(path:waitForAnalysis:)",
+          "declaration": "static func loadModule(path: String, waitForAnalysis: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe932f4b1af569cd3fde",
+      "cpp_name": "ida::dyld_cache::load_section",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Address, bool)",
+      "mapping": "direct",
+      "swift": [
+        "73c440c6ad3efcbbe0fa"
+      ],
+      "rationale": "DyldCache.loadSection(address:waitForAnalysis:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "baff40d22d3e2f25b1ebe5a7e3e10779e0129182d31306980644c82ab0d60bae",
+      "swift_targets": [
+        {
+          "path": "DyldCache.loadSection(address:waitForAnalysis:)",
+          "declaration": "static func loadSection(address: Address, waitForAnalysis: Bool = false) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

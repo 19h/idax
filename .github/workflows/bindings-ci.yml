@@ -2,7 +2,7 @@ name: Bindings CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, rewrite/swift-bindings]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
@@ -198,6 +198,20 @@ jobs:
           echo "Running Node.js integration tests..."
           node test/integration.test.js ../../tests/fixtures/simple_appcall_linux64
           node test/registers.integration.test.js ../../tests/fixtures/register_tracking_aarch64
+
+      - name: Run Node owned metadata and ctree runtime tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          fixture_flags=(-O1 -fno-inline -g0)
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            fixture_flags+=(-arch x86_64)
+          fi
+          c++ "${fixture_flags[@]}" \
+            "$GITHUB_WORKSPACE/tests/fixtures/decompiler_semantic_metadata_host.cpp" \
+            -o "$RUNNER_TEMP/idax-semantic-runtime-fixture"
+          node bindings/node/test/semantic_metadata.integration.test.js \
+            "$RUNNER_TEMP/idax-semantic-runtime-fixture"
 
       - name: Run Node examples (Windows)
         if: runner.os == 'Windows'
@@ -430,6 +444,21 @@ jobs:
           fi
           cargo test --test registers_runtime
 
+      - name: Run Rust owned metadata and ctree runtime tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        working-directory: bindings/rust
+        run: |
+          fixture_flags=(-O1 -fno-inline -g0)
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            fixture_flags+=(-arch x86_64)
+          fi
+          c++ "${fixture_flags[@]}" \
+            "$GITHUB_WORKSPACE/tests/fixtures/decompiler_semantic_metadata_host.cpp" \
+            -o "$RUNNER_TEMP/idax-semantic-runtime-fixture"
+          IDAX_SEMANTIC_RUNTIME_FIXTURE="$RUNNER_TEMP/idax-semantic-runtime-fixture" \
+            cargo test --test semantic_metadata_runtime
+
       - name: Run Rust integration tests (Windows)
         if: runner.os == 'Windows'
         working-directory: bindings/rust
@@ -442,6 +471,7 @@ jobs:
           cargo test --release --test integration --no-run
           cargo test --release --test diaphora_referent_runtime --no-run
           cargo test --release --test registers_runtime --no-run
+          cargo test --release --test semantic_metadata_runtime --no-run
 
   build-python:
     name: Python Bindings - ${{ matrix.os }}
@@ -585,8 +615,196 @@ jobs:
           IDAX_PYTHON_REGISTERS_RUNTIME_FIXTURE="${{ github.workspace }}/tests/fixtures/register_tracking_aarch64" \
             uv run pytest -q -m ida_runtime
 
+      - name: Run Python owned metadata and ctree runtime test (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          fixture_flags=(-O1 -fno-inline -g0)
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            fixture_flags+=(-arch x86_64)
+          fi
+          c++ "${fixture_flags[@]}" \
+            "$GITHUB_WORKSPACE/tests/fixtures/decompiler_semantic_metadata_host.cpp" \
+            -o "$RUNNER_TEMP/idax-semantic-runtime-fixture"
+          IDAX_SEMANTIC_RUNTIME_FIXTURE="$RUNNER_TEMP/idax-semantic-runtime-fixture" \
+            uv run pytest -q bindings/python/tests/test_semantic_metadata_runtime.py
+
       - name: Record Windows initialized-host boundary
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Write-Host "Windows Python native build, pure tests, typing, declaration audit, and archive inspection pass; initialized idalib execution remains disabled under the established nondiagnostic Windows headless boundary."
+
+  build-swift:
+    name: Swift ${{ matrix.swift_series }} Bindings - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            xcode: '16.2'
+            swift_series: '6.0'
+          - os: macos-26
+            xcode: '26.6'
+            swift_series: '6.3'
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '13.0'
+      IDAX_SWIFT_REQUIRE_DECOMPILER: '1'
+      IDAX_SWIFT_BUILD_DIR: ${{ github.workspace }}/build-swift-native
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+
+      - name: Checkout IDA SDK
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ${{ env.IDA_SDK_REPO }}
+          ref: ${{ env.IDA_SDK_REF }}
+          path: ida-sdk
+          submodules: recursive
+
+      - name: Select and verify the requested Swift compiler
+        env:
+          IDAX_XCODE_VERSION: ${{ matrix.xcode }}
+          IDAX_SWIFT_SERIES: ${{ matrix.swift_series }}
+        shell: bash
+        run: |
+          DEVELOPER_DIR="/Applications/Xcode_${IDAX_XCODE_VERSION}.app/Contents/Developer"
+          test -d "$DEVELOPER_DIR"
+          export DEVELOPER_DIR
+          echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
+          python3 - <<'PYCODE'
+          import os, re, subprocess
+          output = subprocess.check_output(["xcrun", "swift", "--version"], text=True)
+          print(output, end="")
+          actual = re.search(r"Swift version (\d+\.\d+)(?:\.\d+)?", output)
+          if actual is None or actual.group(1) != os.environ["IDAX_SWIFT_SERIES"]:
+              raise SystemExit("Selected compiler does not match the required Swift series")
+          PYCODE
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.11.28"
+          github-token: ${{ github.token }}
+
+      - name: Install IDA Pro
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
+        shell: bash
+        run: |
+          LICENSE_OUTPUT=$(uvx --from ida-hcli hcli --disable-updates license list)
+          LICENSE_ID=$(printf '%s\n' "$LICENSE_OUTPUT" | python3 scripts/select_hcli_license.py)
+          echo "::add-mask::$LICENSE_ID"
+          echo "Selected active named IDA product license"
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64win.exe"
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64linux.run"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            if [[ "$(uname -m)" == "arm64" ]]; then
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_armmac.app.zip"
+            else
+              ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64mac.app.zip"
+            fi
+          fi
+
+          mkdir -p ./ida-installer
+          uvx --from ida-hcli hcli --disable-updates download --output-dir ./ida-installer "$ASSET_KEY"
+
+          INSTALLER_FILE=$(python3 -c "import glob; files=sorted(glob.glob('ida-installer/*')); print(files[0] if files else '')")
+          if [[ -z "$INSTALLER_FILE" ]]; then
+            echo "error: no installer file found in ./ida-installer"
+            ls -la ./ida-installer
+            exit 1
+          fi
+          echo "Using installer file: $INSTALLER_FILE"
+          uvx --from ida-hcli hcli --disable-updates ida install --set-default --accept-eula --yes --license-id "$LICENSE_ID" "$INSTALLER_FILE"
+
+      - name: Resolve IDASDK and IDADIR paths
+        shell: bash
+        run: |
+          SDK_ROOT="${GITHUB_WORKSPACE}/ida-sdk"
+          if [[ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/src/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}/src" >> "$GITHUB_ENV"
+          elif [[ -f "${SDK_ROOT}/cmake/bootstrap.cmake" || -f "${SDK_ROOT}/cmake/idasdkConfig.cmake" ]]; then
+            echo "IDASDK=${SDK_ROOT}" >> "$GITHUB_ENV"
+          else
+            echo "error: unable to locate SDK CMake entry point in SDK checkout"
+            exit 1
+          fi
+
+          IDADIR=$(python3 -c "import json, os; p = os.path.expanduser('~/.idapro/ida-config.json') if os.name != 'nt' else os.path.expandvars('%APPDATA%/Hex-Rays/IDA Pro/ida-config.json'); print(json.loads(open(p).read())['Paths']['ida-install-dir']) if os.path.exists(p) else print('')")
+          if [[ "$RUNNER_OS" == "macOS" && -f "$IDADIR/Contents/MacOS/libida.dylib" ]]; then
+            IDADIR="$IDADIR/Contents/MacOS"
+          fi
+          echo "IDADIR=$IDADIR" >> "$GITHUB_ENV"
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "$IDADIR" >> "$GITHUB_PATH"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "DYLD_LIBRARY_PATH=$IDADIR:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
+            echo "DYLD_FALLBACK_LIBRARY_PATH=$IDADIR:$DYLD_FALLBACK_LIBRARY_PATH" >> "$GITHUB_ENV"
+          else
+            echo "LD_LIBRARY_PATH=$IDADIR:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Swift API inventories and generated adapters
+        shell: bash
+        run: |
+          python3 bindings/swift/scripts/inventory_cpp_api.py --check
+          python3 bindings/swift/scripts/generate_values.py --check
+          python3 scripts/check_ci_action_pins.py
+          python3 tests/unit/ci_action_pins_test.py
+
+      - name: Build native transport and run Swift tests and clean consumer
+        shell: bash
+        run: |
+          bash bindings/swift/scripts/build-and-test.sh
+          export PKG_CONFIG_PATH="$IDAX_SWIFT_BUILD_DIR/bindings/swift/pkgconfig"
+          python3 bindings/swift/scripts/inventory_swift_api.py --check
+          python3 bindings/swift/scripts/check_api_mapping.py --check
+          python3 bindings/swift/scripts/check-source-package.py
+
+      - name: Build real Swift plugin, loader, and processor exports
+        shell: bash
+        run: |
+          for kind in plugin loader processor; do
+            case "$kind" in
+              plugin) source_name=Plugin; module_folder=plugins ;;
+              loader) source_name=Loader; module_folder=loaders ;;
+              processor) source_name=Processor; module_folder=procs ;;
+            esac
+            python3 bindings/swift/scripts/build-module.py \
+              --kind "$kind" \
+              --name "Swift${source_name}Example" \
+              --symbol "idax_swift_example_${kind}" \
+              --source "bindings/swift/Examples/Modules/${source_name}.swift" \
+              --output "$RUNNER_TEMP/idax-swift-modules/$module_folder/Swift${source_name}Example.dylib" \
+              --support-dir "$RUNNER_TEMP/idax-swift-modules/lib" \
+              --build-dir "$IDAX_SWIFT_BUILD_DIR"
+          done
+          python3 bindings/swift/scripts/build-module.py \
+            --kind plugin \
+            --name SwiftSecondPlugin \
+            --symbol idax_swift_second_plugin \
+            --source bindings/swift/Tests/ModuleHost/SecondPlugin.swift \
+            --output "$RUNNER_TEMP/idax-swift-modules/plugins/SwiftSecondPlugin.dylib" \
+            --support-dir "$RUNNER_TEMP/idax-swift-modules/lib" \
+            --build-dir "$IDAX_SWIFT_BUILD_DIR"
+
+      - name: Verify relocated Swift addons through actual SDK dispatch
+        shell: bash
+        run: |
+          python3 bindings/swift/scripts/check-module-host.py \
+            --module-root "$RUNNER_TEMP/idax-swift-modules" \
+            --fixture "$IDAX_SWIFT_BUILD_DIR/bindings/swift/idax_swift_runtime_fixture"

@@ -16,7 +16,7 @@ LOCAL_MSVC_ACTION = "./.github/actions/setup-msvc"
 EXPECTED_EXTERNAL_ACTIONS = {
     "actions/checkout": (
         "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
-        15,
+        17,
     ),
     "actions/setup-node": (
         "820762786026740c76f36085b0efc47a31fe5020",
@@ -32,7 +32,7 @@ EXPECTED_EXTERNAL_ACTIONS = {
     ),
     "astral-sh/setup-uv": (
         "11f9893b081a58869d3b5fccaea48c9e9e46f990",
-        6,
+        7,
     ),
     "dtolnay/rust-toolchain": (
         "4cda84d5c5c54efe2404f9d843567869ab1699d4",

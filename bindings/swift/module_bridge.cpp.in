@@ -1,0 +1,8 @@
+// Compile the selected canonical bridge into this addon so its SDK descriptor
+// and factory state remain local, while all Swift types use IDAXShared.
+#include <ida/@IDAX_SWIFT_MODULE_KIND@.hpp>
+#include "detail/sdk_bridge.hpp"
+
+idaman @_idax_swift_descriptor_type@ ida_module_data @_idax_swift_descriptor_name@;
+
+#include "@PROJECT_SOURCE_DIR@/src/@IDAX_SWIFT_MODULE_KIND@.cpp"

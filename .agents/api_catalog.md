@@ -342,3 +342,8 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.45 Opaque Dyld Cache Capabilities
 - Offline inventories return copied module paths and 64-bit addresses using bounded verified cache layouts. Invalid tables and paths fail without partial output.
 - Current-cache service discovery, mapped-header loading, named/addressed module loading, section loading, and bulk requests use copied inputs, semantic options, deduplication, and observable newly loaded counts. Native service pointers and loader storage remain private.
+
+### 17.46 Current-Domain Swift Surface
+- The root SwiftPM package exposes the current semantic domains through Swift values and checked non-Sendable native owners. Public clients use typed IDAError failures, copied records, explicit resource copy/close and expiring callback views.
+- `bindings/swift/api_mapping` records every canonical declaration/field/overload against actual compiler-extracted Swift symbols, with explicit language adaptations for collections, ARC, OptionSet and private construction. The mapping does not replace runtime evidence.
+- Native plugin, loader and processor protocols dispatch through real PLUGIN/LDSC/LPH artifacts linked to one shared support image; the inventory and module examples are public-package consumers.

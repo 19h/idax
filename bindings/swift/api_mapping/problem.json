@@ -1,0 +1,419 @@
+{
+  "domain": "problem",
+  "declarations": [
+    {
+      "cpp_id": "b4c2b7cc542fedd73804",
+      "cpp_name": "ida::problem::Kind",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class Kind : std::uint8_t { MissingOffsetBase = 1, MissingName = 2, MissingForcedOperand = 3, MissingComment = 4, MissingReferences = 5, IgnoredJumpTable = 6, DisassemblyFailure = 7, AlreadyItemHead = 8, FlowBeyondLimits = 9, TooManyLines = 10, StackTraceFailure = 11, Attention = 12, AnalysisDecision = 13, RolledBackDecision = 14, FlairCollision = 15, FlairIndecision = 16, }",
+      "mapping": "direct",
+      "swift": [
+        "52bc8350610a65610a0c"
+      ],
+      "rationale": "Problems.Kind represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "e34905b61a2af6f34d97d6740ab906561587448e8267eaed8e09327a6cdfb311",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind",
+          "declaration": "enum Kind"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be7345ad9861a45ffab1",
+      "cpp_name": "ida::problem::Kind::AlreadyItemHead",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "200ba8aaec7205916dc5"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.alreadyItemHead; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "bc2ece03edd764f4bc8ec977fc3136cdc075aea10aad82699090444f5258a14e",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.alreadyItemHead",
+          "declaration": "case alreadyItemHead"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d9ce31655704bca2174c",
+      "cpp_name": "ida::problem::Kind::AnalysisDecision",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "165f313c6fe4dae5c353"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.analysisDecision; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "abbb60ff3e69a800aa264e347eeaa6396ca22dc4740e0f282f20e667bafca5db",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.analysisDecision",
+          "declaration": "case analysisDecision"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db35866b2bdf909f836d",
+      "cpp_name": "ida::problem::Kind::Attention",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "33d0874f23f6d98466bd"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.attention; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2f44ddb87b8f5320f2a95163b0f900794750a8229b67b7697b23ba639c764379",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.attention",
+          "declaration": "case attention"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d6827780db9f32e8198d",
+      "cpp_name": "ida::problem::Kind::DisassemblyFailure",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "8668e353ea01a6a2dbad"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.disassemblyFailure; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "8187c40c531ea41f9b34139ae9b7253e5483e048f5dbccfc3f79759237c498ca",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.disassemblyFailure",
+          "declaration": "case disassemblyFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "22a8f8b66c30c4ac3a2d",
+      "cpp_name": "ida::problem::Kind::FlairCollision",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "f9afc6075eeb679cbffa"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.flairCollision; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "13a45e2af3118313adcbdfd736177bde6575eb0ee2022228dffaf532e7f4ee22",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.flairCollision",
+          "declaration": "case flairCollision"
+        }
+      ]
+    },
+    {
+      "cpp_id": "102521ea470b3bf54716",
+      "cpp_name": "ida::problem::Kind::FlairIndecision",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "575b43d8bbf511baf91e"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.flairIndecision; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ead4b8697e51b0062891bd91f19bd62e617d84172e0c5d1c9e581ca6bec60711",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.flairIndecision",
+          "declaration": "case flairIndecision"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9c5aaff6ae03fe415572",
+      "cpp_name": "ida::problem::Kind::FlowBeyondLimits",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "6ae499ba206bc72bdc5a"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.flowBeyondLimits; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "de5d0ccd0f84446cf41956b1ae3ffbeec1ac6e06a5fd1400564f36f8faea815b",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.flowBeyondLimits",
+          "declaration": "case flowBeyondLimits"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be59602e6c8613a04603",
+      "cpp_name": "ida::problem::Kind::IgnoredJumpTable",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "90f23504a9880068e9bf"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.ignoredJumpTable; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "56f6c0b282ff1a5fc7b7b7d064461c48d5e455585b75dfcc5730239ead4c929c",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.ignoredJumpTable",
+          "declaration": "case ignoredJumpTable"
+        }
+      ]
+    },
+    {
+      "cpp_id": "14ab5011e9fa283ff373",
+      "cpp_name": "ida::problem::Kind::MissingComment",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "9914baeb9384f44a32b2"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.missingComment; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "abcc6223a3db54eb1a98448ddb2500a2dd357d8e05f4b40a8ff82001092e8c57",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.missingComment",
+          "declaration": "case missingComment"
+        }
+      ]
+    },
+    {
+      "cpp_id": "54d60a0b97a520508404",
+      "cpp_name": "ida::problem::Kind::MissingForcedOperand",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "25bd86443aaa93d18845"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.missingForcedOperand; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "df1dd94fc880c0d036470d2f6adf09944f03bcf4e5f0859683bb305b78da7140",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.missingForcedOperand",
+          "declaration": "case missingForcedOperand"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc22b61a67d954a12fdc",
+      "cpp_name": "ida::problem::Kind::MissingName",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "0c9c45b3f32c7d06ec93"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.missingName; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4cdb69e97b8ad790a61fa5a4d2cf29d3c41c6766f4b3002c26f8dc3338bc4abe",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.missingName",
+          "declaration": "case missingName"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c59277ab4b011ed58a4c",
+      "cpp_name": "ida::problem::Kind::MissingOffsetBase",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "278420d538a4eab6a8f0"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.missingOffsetBase; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "fb9143f2b5d84dbff110f8eb1f09b4433487d08b403b473d0858b79a51953314",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.missingOffsetBase",
+          "declaration": "case missingOffsetBase"
+        }
+      ]
+    },
+    {
+      "cpp_id": "010e7d51224faa1cfc87",
+      "cpp_name": "ida::problem::Kind::MissingReferences",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "ddfbfd878d00cc90b862"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.missingReferences; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "423345938b2ebb18c0c3cb40449deaa0cfe1f0a62db2cbf6c1dd9c05c2c232f7",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.missingReferences",
+          "declaration": "case missingReferences"
+        }
+      ]
+    },
+    {
+      "cpp_id": "45ddbdc25a48f0afc483",
+      "cpp_name": "ida::problem::Kind::RolledBackDecision",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "0c951d14325834393619"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.rolledBackDecision; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ef63ea71ab1c486538e52ac983e12a36dcbfc2a6b987b694ea264b324971bd14",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.rolledBackDecision",
+          "declaration": "case rolledBackDecision"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b9cc03290534b48ae6b9",
+      "cpp_name": "ida::problem::Kind::StackTraceFailure",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "7488fbceb687d9e861f7"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.stackTraceFailure; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f22c951f1388af77d71f6d2dfdb5bc2e030662aa9befc9d8109d77d2d6ee8449",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.stackTraceFailure",
+          "declaration": "case stackTraceFailure"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ea45211fc7b3afeb74ae",
+      "cpp_name": "ida::problem::Kind::TooManyLines",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::problem::Kind",
+      "mapping": "direct",
+      "swift": [
+        "047b6135aa84f1e42471"
+      ],
+      "rationale": "Corresponding typed semantic case Problems.Kind.tooManyLines; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "4f4e6e8c7f8333194ccb0e0de40d73fe280f2cda38059b28867a80027624118e",
+      "swift_targets": [
+        {
+          "path": "Problems.Kind.tooManyLines",
+          "declaration": "case tooManyLines"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1fb18ce3b876b8438c6e",
+      "cpp_name": "ida::problem::contains",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Kind, Address)",
+      "mapping": "direct",
+      "swift": [
+        "f4a6db3dca3ec97376ac"
+      ],
+      "rationale": "Problems.contains(kind:address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c9094f18621f2659973d86ea4dca5ab8fb821b342b94050fc7dc5544e990ee50",
+      "swift_targets": [
+        {
+          "path": "Problems.contains(kind:address:)",
+          "declaration": "static func contains(kind: Problems.Kind, address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e64eb12c8161db1b96e9",
+      "cpp_name": "ida::problem::description",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<std::string>> (Kind, Address)",
+      "mapping": "direct",
+      "swift": [
+        "dda3277578875b246710"
+      ],
+      "rationale": "Problems.description(kind:address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "11811913b84bb7494027ca7134fde75a21fbd2e79b760a1ecbc96223170aff75",
+      "swift_targets": [
+        {
+          "path": "Problems.description(kind:address:)",
+          "declaration": "static func description(kind: Problems.Kind, address: UInt64) throws(IDAError) -> String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2c37d65e2bc9d84a92e8",
+      "cpp_name": "ida::problem::name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (Kind, bool)",
+      "mapping": "direct",
+      "swift": [
+        "137d40d2de604270055b"
+      ],
+      "rationale": "Problems.name(kind:longForm:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8b2be2635d493b7c9e2d172b8ac5dd6c39d75cf8c47870477b98700b467a8b10",
+      "swift_targets": [
+        {
+          "path": "Problems.name(kind:longForm:)",
+          "declaration": "static func name(kind: Problems.Kind, longForm: Bool = true) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a0bcc8d92119ad8162f6",
+      "cpp_name": "ida::problem::next",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::optional<Address>> (Kind, Address)",
+      "mapping": "direct",
+      "swift": [
+        "646127452d92d36676b9"
+      ],
+      "rationale": "Problems.next(kind:atOrAfter:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "246cc221047b2774aa70aaf980a92f1b47526dad5c4e58dbaf04d3946c87adf5",
+      "swift_targets": [
+        {
+          "path": "Problems.next(kind:atOrAfter:)",
+          "declaration": "static func next(kind: Problems.Kind, atOrAfter: UInt64 = 0) throws(IDAError) -> UInt64?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5afaeff4cf8213b20531",
+      "cpp_name": "ida::problem::remember",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (Kind, Address, std::optional<std::string_view>)",
+      "mapping": "direct",
+      "swift": [
+        "39017facc21fadd87220"
+      ],
+      "rationale": "Problems.remember(kind:address:message:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "53243524ef82423390e95244e23cf11c1d0f489a6751fae3698ae1a3a75349be",
+      "swift_targets": [
+        {
+          "path": "Problems.remember(kind:address:message:)",
+          "declaration": "static func remember(kind: Problems.Kind, address: Address, message: String? = nil) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "043dd9a3fbb99f335543",
+      "cpp_name": "ida::problem::remove",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> (Kind, Address)",
+      "mapping": "direct",
+      "swift": [
+        "4cdca2b32aa53f5376b3"
+      ],
+      "rationale": "Problems.remove(kind:address:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "ecabde16e3d94441d6765aa66050507671ddf69c1ecedc95a3afc3f189f15035",
+      "swift_targets": [
+        {
+          "path": "Problems.remove(kind:address:)",
+          "declaration": "static func remove(kind: Problems.Kind, address: UInt64) throws(IDAError) -> Bool"
+        }
+      ]
+    }
+  ]
+}

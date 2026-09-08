@@ -103,3 +103,7 @@ Phase 72 additions:
 - Native microcode case tables → `MicrocodeSwitchCase` and optional `switch_default_target`; value numbering → optional `value_number` with graph-local equality semantics.
 - Processor branch encodings → `BranchCondition` and `branch_condition`, retaining distinct decrement/count-zero predicates.
 - Dyld cache headers and `dscu_t` service calls → copied `ida::dyld_cache` inventories and semantic loading operations.
+
+- Swift maps semantic domains to named namespaces (for example Addresses, Functions and CrossReferences), fallible results to typed IDAError throws, optional absence to Optional, and copied native ranges to Swift arrays.
+- `DecompiledFunction` becomes `Decompiler.Function`; callback views retain semantic names and checked leases. Native owner copy/move/destruction map explicitly to Swift copy()/reference assignment/ARC or close(), with no public transport-pointer escape hatch.
+- The authoritative per-declaration Swift spelling and overload targets live in `bindings/swift/api_mapping` and the actual compiled `swift_api_inventory.json`.

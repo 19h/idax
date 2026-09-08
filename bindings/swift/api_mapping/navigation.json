@@ -1,0 +1,419 @@
+{
+  "domain": "navigation",
+  "declarations": [
+    {
+      "cpp_id": "23ada9e3a1f8434838eb",
+      "cpp_name": "ida::navigation::Entry",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "e1cfa331e1a9ad4b777f"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "23ada9e3a1f8434838ebc06a74419d31fb06232624675dd7c141ebb099c98014",
+      "swift_targets": [
+        {
+          "path": "Navigation.Entry",
+          "declaration": "struct Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aea4db37699f51532907",
+      "cpp_name": "ida::navigation::Entry::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "1fb60131f1b09b7f9b30"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e8cf30342d488f1b564a8b90a38791792f8ab8c6f865c73635f3846664cb3242",
+      "swift_targets": [
+        {
+          "path": "Navigation.Entry.address",
+          "declaration": "var address: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b942ecf157d2d03d0ba2",
+      "cpp_name": "ida::navigation::Entry::channel",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "434c845bcb58e6ec5255"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "9831e26a63a3751311ae9f5d5cbb5d10f465eacae3bffc37ea804d7bb8f70a46",
+      "swift_targets": [
+        {
+          "path": "Navigation.Entry.channel",
+          "declaration": "var channel: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6f53c90f34d6ab8de0ad",
+      "cpp_name": "ida::navigation::Entry::metadata",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "e600505bb2d5fc7d3cc6"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "69c356db8162f8d61edfd2bb6e8eba8ed7922d884c6562485d2c8ae35e4dd3f1",
+      "swift_targets": [
+        {
+          "path": "Navigation.Entry.metadata",
+          "declaration": "var metadata: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2709ab022cd52a78e802",
+      "cpp_name": "ida::navigation::Entry::operator==",
+      "cpp_kind": "function",
+      "cpp_signature": "bool (const Entry &, const Entry &)",
+      "mapping": "adapted",
+      "swift": [
+        "e1cfa331e1a9ad4b777f"
+      ],
+      "rationale": "Equatable synthesis compares every copied field, implementing the native value equality.",
+      "cpp_fingerprint": "6eed06226fed49e53b4ea1bc843edb7e6fd4ab5033bf9dfff12b115be9981c20",
+      "swift_targets": [
+        {
+          "path": "Navigation.Entry",
+          "declaration": "struct Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cbe2cf6a0603ffd56a75",
+      "cpp_name": "ida::navigation::History",
+      "cpp_kind": "type",
+      "cpp_signature": "class",
+      "mapping": "direct",
+      "swift": [
+        "bf152f1deedda62bd95d"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cbe2cf6a0603ffd56a75be07a729f5ef98517c9cc6d53b5a74fd5be401cb5ffa",
+      "swift_targets": [
+        {
+          "path": "Navigation.History",
+          "declaration": "final class History"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e923ce5e387ab9e95819",
+      "cpp_name": "ida::navigation::History::all_current",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Entry>> () const",
+      "mapping": "direct",
+      "swift": [
+        "340517e1debc9117129c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "a3596624c97e4d0be29348719ef92dc6fc05b98fec1aa38e9ac7ca44c8b9537a",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.allCurrent()",
+          "declaration": "func allCurrent() throws(IDAError) -> [Navigation.Entry]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "47463a083bd37fce7be3",
+      "cpp_name": "ida::navigation::History::back",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<Entry>> (std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "f3aa6d81a398c6f963d0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "b1b8ebc6d0f2a566f3e919718dd6c8293b03f1c26575bde1034f953cf9374ba4",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.back(_:)",
+          "declaration": "@discardableResult func back(_ count: Int = 1) throws(IDAError) -> Navigation.Entry?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f59cfa7f66cbeb0d38c",
+      "cpp_name": "ida::navigation::History::clear",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (const Entry &) const",
+      "mapping": "direct",
+      "swift": [
+        "a872b7993d2dd997d0a1"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "e9e3af9ec9e136d82402ef53a610321d6531c502d314e7d99276b485cf5d3ce6",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.clear(newTip:)",
+          "declaration": "func clear(newTip: Navigation.Entry) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cd3bf910fe00caf28654",
+      "cpp_name": "ida::navigation::History::created",
+      "cpp_kind": "method",
+      "cpp_signature": "bool () const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "54746365319bc92627ee"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "53fe57c4163e737ef23963bc4083236b9965b7d52e127357ba2142d2cd30e8bd",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.created",
+          "declaration": "let created: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "55d95a461acc83536d67",
+      "cpp_name": "ida::navigation::History::current",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Entry> () const",
+      "mapping": "direct",
+      "swift": [
+        "79da26fb7cb9bd03b980"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "ed72c6f341088149b825211828dc22de263aac36796cfc8d25da5f3f31690585",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.current()",
+          "declaration": "func current() throws(IDAError) -> Navigation.Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb283c875f5d95d9de13",
+      "cpp_name": "ida::navigation::History::current_for",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<Entry>> (std::string_view) const",
+      "mapping": "adapted",
+      "swift": [
+        "175f01bc6842ded0bc3c"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "359f3bb9001c18bb08b47464b5bb8c73437b6bb128d49a9fadeb3d049dda0e33",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.current(for:)",
+          "declaration": "func current(for channel: String) throws(IDAError) -> Navigation.Entry?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8d2e89c1c4f2586fe6ad",
+      "cpp_name": "ida::navigation::History::entries",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::vector<Entry>> () const",
+      "mapping": "direct",
+      "swift": [
+        "ae03425da5765b3fb489"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "cc85def8ef93462f0cbaccb1be12ef3336f774311ee37dd3f1349285a2e85fbf",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.entries()",
+          "declaration": "func entries() throws(IDAError) -> [Navigation.Entry]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "09abf996c933dc13b9f7",
+      "cpp_name": "ida::navigation::History::forward",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::optional<Entry>> (std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "468d6a8a3152242cb384"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "0724c924a4b074388191fbf56bdb5bd27be07d9b27f181e87dda5949423de279",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.forward(_:)",
+          "declaration": "@discardableResult func forward(_ count: Int = 1) throws(IDAError) -> Navigation.Entry?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c7f33fc9a6b941c5c48a",
+      "cpp_name": "ida::navigation::History::index",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "213b67f31023cea258c4"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "f5cbb0ca12ec0d15f91ba49cad7084167f5e4d3cdfa72fd17bded113343697e4",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.index()",
+          "declaration": "func index() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d927a9b946fdc3ef081b",
+      "cpp_name": "ida::navigation::History::name",
+      "cpp_kind": "method",
+      "cpp_signature": "const std::string &() const noexcept",
+      "mapping": "direct",
+      "swift": [
+        "0300ff4d83cf2ee1b563"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "556af9da9b84e46942835a797d545b9e203ebe8b4eb7202dfe322dc4b285a9a8",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.name",
+          "declaration": "let name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "abdd8d65434ba4d6706d",
+      "cpp_name": "ida::navigation::History::open",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<History> (std::string_view, const Entry &)",
+      "mapping": "direct",
+      "swift": [
+        "a7a2957d001993c14624"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "476c9ae3f4f16e78990670760cccf13996fd7b873377fa8ccaa364a81c4d3099",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.open(_:initial:)",
+          "declaration": "static func open(_ name: String, initial: Navigation.Entry) throws(IDAError) -> Navigation.History"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0960a4ab994a7e47919e",
+      "cpp_name": "ida::navigation::History::push",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Entry> (const Entry &) const",
+      "mapping": "direct",
+      "swift": [
+        "ff99c996f3cbe891ab7c"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "961a0cd35a3d7f4466251477e16cb844e8f56f23821cdf098c7591aaa4a3df15",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.push(_:)",
+          "declaration": "@discardableResult func push(_ entry: Navigation.Entry) throws(IDAError) -> Navigation.Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "73e996d877db5f292cfb",
+      "cpp_name": "ida::navigation::History::replace",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (std::size_t, const Entry &) const",
+      "mapping": "direct",
+      "swift": [
+        "73256818c335dc3783a0"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "33cbf367fad6ba4736bc3ef7afe6cfea6c0d05ba45a8654d0ee0dc92567b2593",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.replace(at:with:)",
+          "declaration": "func replace(at index: Int, with entry: Navigation.Entry) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "975aafdeccfe5a6e9d23",
+      "cpp_name": "ida::navigation::History::seek",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<Entry> (std::size_t) const",
+      "mapping": "direct",
+      "swift": [
+        "9b9d9f2c051b208c29c2"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "4352b028894e306d7917c39dba768049f6dc27b9ce22af601da2fdb4895ac882",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.seek(to:)",
+          "declaration": "@discardableResult func seek(to index: Int) throws(IDAError) -> Navigation.Entry"
+        }
+      ]
+    },
+    {
+      "cpp_id": "40e3b72d2002ad876a19",
+      "cpp_name": "ida::navigation::History::set_current",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (const Entry &, bool) const",
+      "mapping": "direct",
+      "swift": [
+        "83483b01d8532137abcb"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "181ef628672c57f15cc512463b70fee24f213bf0dcec2921952449278c87e50b",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.setCurrent(_:recordInHistory:)",
+          "declaration": "func setCurrent(_ entry: Navigation.Entry, recordInHistory: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9509c77cc0941f5fc0f7",
+      "cpp_name": "ida::navigation::History::size",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::size_t> () const",
+      "mapping": "direct",
+      "swift": [
+        "6fe58b0156d647cd7d75"
+      ],
+      "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
+      "cpp_fingerprint": "97b3e83f06c7c66a9b77264e068025761f7fd9993ae5120996f65b16552ae083",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.size()",
+          "declaration": "func size() throws(IDAError) -> Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "78e34541eb5598154339",
+      "cpp_name": "ida::navigation::History::transfer_channel_to",
+      "cpp_kind": "method",
+      "cpp_signature": "Status (const History &, std::string_view, bool) const",
+      "mapping": "adapted",
+      "swift": [
+        "3b33f2ea22c5f2aa9544"
+      ],
+      "rationale": "Swift names this operation by its semantic argument labels; input/output and failure meanings are preserved.",
+      "cpp_fingerprint": "c03cad58f0a8be6bf261c9b306bcb4edb231fbbe2bf74336fb7bb1a757eb79af",
+      "swift_targets": [
+        {
+          "path": "Navigation.History.transferChannel(_:to:retainHistory:)",
+          "declaration": "func transferChannel(_ channel: String, to destination: Navigation.History, retainHistory: Bool = true) throws(IDAError)"
+        }
+      ]
+    }
+  ]
+}

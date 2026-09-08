@@ -1,0 +1,2795 @@
+{
+  "domain": "database",
+  "declarations": [
+    {
+      "cpp_id": "8715d13fa7eb8c5e2067",
+      "cpp_name": "ida::database::CompilerInfo",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "4a9e201bbcba7cbbcb62"
+      ],
+      "rationale": "Database.CompilerInfo is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "8715d13fa7eb8c5e2067cfb39227b047091f4bc6cbffcff1c33776ad6710356a",
+      "swift_targets": [
+        {
+          "path": "Database.CompilerInfo",
+          "declaration": "struct CompilerInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "77b0186fbeed55a18e27",
+      "cpp_name": "ida::database::CompilerInfo::abbreviation",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "2556a8858eb7aa4237ea"
+      ],
+      "rationale": "Preserves the abbreviation value as var abbreviation: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "35381676e03fe61c0bc69de24881893c0b10a9dc3efd6eea1ffaa7cb5e1d52b7",
+      "swift_targets": [
+        {
+          "path": "Database.CompilerInfo.abbreviation",
+          "declaration": "var abbreviation: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "3ae4770d7b54d1ce8216",
+      "cpp_name": "ida::database::CompilerInfo::id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint32_t",
+      "mapping": "direct",
+      "swift": [
+        "7c29241bf3e6bd14d1db"
+      ],
+      "rationale": "Preserves the declared std::uint32_t value in Database.CompilerInfo.id, including its semantic type and signedness.",
+      "cpp_fingerprint": "39b87c6a43e28549348eedadf60b8a46e175d91cca0ee0a3d222899b2449337e",
+      "swift_targets": [
+        {
+          "path": "Database.CompilerInfo.id",
+          "declaration": "var id: UInt32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "260abd12a1fcf81df391",
+      "cpp_name": "ida::database::CompilerInfo::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "32ab38eb9f7e8bf0c0f2"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "b9ca9830b28505c06abd7f1f708e73b640013636cbb96a28f0a1af5e2ab5b285",
+      "swift_targets": [
+        {
+          "path": "Database.CompilerInfo.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a2249f9be463631f7768",
+      "cpp_name": "ida::database::CompilerInfo::uncertain",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "c84c6c4c846d10bab512"
+      ],
+      "rationale": "Preserves the declared bool value in Database.CompilerInfo.uncertain, including its semantic type and signedness.",
+      "cpp_fingerprint": "7c6c61c48f5c66a9d0bc9a116b0d29cf8647b37a191b24c445e66cdeb46a3446",
+      "swift_targets": [
+        {
+          "path": "Database.CompilerInfo.uncertain",
+          "declaration": "var uncertain: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4616eefc029f9f9fb648",
+      "cpp_name": "ida::database::ImportModule",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "33146545dedae1071d90"
+      ],
+      "rationale": "Database.ImportModule is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "4616eefc029f9f9fb648bbf7be95a32f27c29cf039869ed833d73724e4bdf687",
+      "swift_targets": [
+        {
+          "path": "Database.ImportModule",
+          "declaration": "struct ImportModule"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7055624406e893ce9c4b",
+      "cpp_name": "ida::database::ImportModule::index",
+      "cpp_kind": "field",
+      "cpp_signature": "std::size_t",
+      "mapping": "direct",
+      "swift": [
+        "eeb6d8d4040acb8ad7dd"
+      ],
+      "rationale": "Preserves the declared std::size_t value in Database.ImportModule.index, including its semantic type and signedness.",
+      "cpp_fingerprint": "6e25481a026e2d2e3e9fad024bdef7fe1485b981091b6284ebd4c9a1e62bdebc",
+      "swift_targets": [
+        {
+          "path": "Database.ImportModule.index",
+          "declaration": "var index: Int"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9ee68eee743e823397e",
+      "cpp_name": "ida::database::ImportModule::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "718074a6cc0264787ba7"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "3e834bf385549e5c6cb1dc3425e4e265883c4b957868131f1f6f1fac38edda3a",
+      "swift_targets": [
+        {
+          "path": "Database.ImportModule.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92a6258a10a515ecd4f8",
+      "cpp_name": "ida::database::ImportModule::symbols",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<ImportSymbol>",
+      "mapping": "direct",
+      "swift": [
+        "7c1284e94c47923919ff"
+      ],
+      "rationale": "Preserves the symbols value as var symbols: [Database.ImportSymbol]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "29780098515c3808d098160c1e7df63a783131b7ce0e5094c6811a8ff2e78aa8",
+      "swift_targets": [
+        {
+          "path": "Database.ImportModule.symbols",
+          "declaration": "var symbols: [Database.ImportSymbol]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b45b87f5d08a21c90812",
+      "cpp_name": "ida::database::ImportSymbol",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "be3fd5f9efdbf098f87a"
+      ],
+      "rationale": "Database.ImportSymbol is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "b45b87f5d08a21c908125fe3d06992f8445590207532ac7df71cd20622df0556",
+      "swift_targets": [
+        {
+          "path": "Database.ImportSymbol",
+          "declaration": "struct ImportSymbol"
+        }
+      ]
+    },
+    {
+      "cpp_id": "82a3559c7076522719b3",
+      "cpp_name": "ida::database::ImportSymbol::address",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "97a233f5fbeea7f4ad0b"
+      ],
+      "rationale": "Preserves the declared Address value in Database.ImportSymbol.address, including its semantic type and signedness.",
+      "cpp_fingerprint": "106de225181d223b585639983f32153ec876ab5f88158d58ab0ad7c4c94113a1",
+      "swift_targets": [
+        {
+          "path": "Database.ImportSymbol.address",
+          "declaration": "var address: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cb1b39a23173080616ce",
+      "cpp_name": "ida::database::ImportSymbol::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "d3bb14ee650df764109d"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "6d4febfad1e2019b728182bcf378ff4189b39d2ba52280f27a75c0cb07316d8a",
+      "swift_targets": [
+        {
+          "path": "Database.ImportSymbol.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e32e62ee617aeb1ec096",
+      "cpp_name": "ida::database::ImportSymbol::ordinal",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint64_t",
+      "mapping": "direct",
+      "swift": [
+        "3beabb5a5980ef88cab6"
+      ],
+      "rationale": "Preserves the declared std::uint64_t value in Database.ImportSymbol.ordinal, including its semantic type and signedness.",
+      "cpp_fingerprint": "f8c98dedd08a380db891edac46065400e51c8558f661b9a86e9393a98d55a351",
+      "swift_targets": [
+        {
+          "path": "Database.ImportSymbol.ordinal",
+          "declaration": "var ordinal: UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f2404552aeb2ac28e786",
+      "cpp_name": "ida::database::LoadIntent",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class LoadIntent { AutoDetect, Binary, NonBinary, }",
+      "mapping": "direct",
+      "swift": [
+        "d95da41bac48d8f69d52"
+      ],
+      "rationale": "Database.LoadIntent represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "88cbefa6d0d116ed0769ff08d2f5cda43a1063dd380ff49dcfd5ea077ebb98eb",
+      "swift_targets": [
+        {
+          "path": "Database.LoadIntent",
+          "declaration": "enum LoadIntent"
+        }
+      ]
+    },
+    {
+      "cpp_id": "261802f1459a9109e0e6",
+      "cpp_name": "ida::database::LoadIntent::AutoDetect",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::LoadIntent",
+      "mapping": "direct",
+      "swift": [
+        "51ba980d467b6f5ea798"
+      ],
+      "rationale": "Corresponding typed semantic case Database.LoadIntent.autoDetect; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "92c4f53e804a89fa2c55f66d38e14094aa9230cf628116ebabd4de31abc68daf",
+      "swift_targets": [
+        {
+          "path": "Database.LoadIntent.autoDetect",
+          "declaration": "case autoDetect"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1a7808a0ef92df47280e",
+      "cpp_name": "ida::database::LoadIntent::Binary",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::LoadIntent",
+      "mapping": "direct",
+      "swift": [
+        "61feda8d3beb7e6ec7cc"
+      ],
+      "rationale": "Corresponding typed semantic case Database.LoadIntent.binary; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "60a9bbc911c9dce6fd3f76bcae3d945830ad26b744f6b8849fffbf5aac9ce548",
+      "swift_targets": [
+        {
+          "path": "Database.LoadIntent.binary",
+          "declaration": "case binary"
+        }
+      ]
+    },
+    {
+      "cpp_id": "17c5af2b9a7952477998",
+      "cpp_name": "ida::database::LoadIntent::NonBinary",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::LoadIntent",
+      "mapping": "direct",
+      "swift": [
+        "de16f7087173617e6e99"
+      ],
+      "rationale": "Corresponding typed semantic case Database.LoadIntent.nonBinary; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "57fb4ee37ced880fd59db5628b8fea6ba316a8abb92f467b358c716c489307e6",
+      "swift_targets": [
+        {
+          "path": "Database.LoadIntent.nonBinary",
+          "declaration": "case nonBinary"
+        }
+      ]
+    },
+    {
+      "cpp_id": "38652e815155a187cd20",
+      "cpp_name": "ida::database::OpenMode",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class OpenMode { Analyze, SkipAnalysis, }",
+      "mapping": "direct",
+      "swift": [
+        "1cf198d84160a16ec2d8"
+      ],
+      "rationale": "Database.OpenMode represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "7c4fdb60f3294b0d476b664ece8db462542d9f334523d20cc787cf22ef6252ad",
+      "swift_targets": [
+        {
+          "path": "Database.OpenMode",
+          "declaration": "enum OpenMode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "22282408b9e3e0bdaf38",
+      "cpp_name": "ida::database::OpenMode::Analyze",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::OpenMode",
+      "mapping": "direct",
+      "swift": [
+        "1dc05d8b0404de47fbb0"
+      ],
+      "rationale": "Corresponding typed semantic case Database.OpenMode.analyze; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "90d708812c86263a9615f207087603b60f6987078125f63c67be96b1cf6b22f5",
+      "swift_targets": [
+        {
+          "path": "Database.OpenMode.analyze",
+          "declaration": "case analyze"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7279cea73174f87858e1",
+      "cpp_name": "ida::database::OpenMode::SkipAnalysis",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::OpenMode",
+      "mapping": "direct",
+      "swift": [
+        "80d512db7c5c34426c38"
+      ],
+      "rationale": "Corresponding typed semantic case Database.OpenMode.skipAnalysis; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "866abbc198a16ac4b18b6d407b4f67d3ec6604d00f68946eef32a7b1f559d8d0",
+      "swift_targets": [
+        {
+          "path": "Database.OpenMode.skipAnalysis",
+          "declaration": "case skipAnalysis"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cfca95deb43d575c9897",
+      "cpp_name": "ida::database::PluginLoadPolicy",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "eeb65739ba4222f786fc"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "cfca95deb43d575c989795c3a3495fcd6ae6be942b50bb38cb49d3921fa6baa5",
+      "swift_targets": [
+        {
+          "path": "PluginLoadPolicy",
+          "declaration": "struct PluginLoadPolicy"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8f9ec45ffcbec75e3e29",
+      "cpp_name": "ida::database::PluginLoadPolicy::allowlist_patterns",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::string>",
+      "mapping": "adapted",
+      "swift": [
+        "67a646534f3c90ce87a6"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "94ffad628906c7980a9b2a0b32c03171db907941415a8f09c54d044923e8325d",
+      "swift_targets": [
+        {
+          "path": "PluginLoadPolicy.allowlistPatterns",
+          "declaration": "var allowlistPatterns: [String]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "256822a6bb802a5b8de3",
+      "cpp_name": "ida::database::PluginLoadPolicy::disable_user_plugins",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "3575371079d29747f403"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "a52e1d59f0bdbf926df68f0cfdbea50dff64b8a980dd6a31661ce1b17ef563cb",
+      "swift_targets": [
+        {
+          "path": "PluginLoadPolicy.disableUserPlugins",
+          "declaration": "var disableUserPlugins: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c467af2b1bdde428b8d",
+      "cpp_name": "ida::database::ProcessorId",
+      "cpp_kind": "enum",
+      "cpp_signature": "enum class ProcessorId : std::int32_t { IntelX86 = 0, Z80 = 1, IntelI860 = 2, Intel8051 = 3, Tms320C5x = 4, Mos6502 = 5, Pdp11 = 6, Motorola68k = 7, JavaVm = 8, Motorola6800 = 9, St7 = 10, Motorola68hc12 = 11, Mips = 12, Arm = 13, Tms320C6x = 14, PowerPc = 15, Intel80196 = 16, Z8 = 17, SuperH = 18, DotNet = 19, Avr = 20, H8 = 21, Pic = 22, Sparc = 23, Alpha = 24, Hppa = 25, H8500 = 26, TriCore = 27, Dsp56k = 28, C166 = 29, St20 = 30, Ia64 = 31, IntelI960 = 32, F2mc16 = 33, Tms320C54x = 34, Tms320C55x = 35, Trimedia = 36, M32r = 37, Nec78k0 = 38, Nec78k0s = 39, MitsubishiM740 = 40, MitsubishiM7700 = 41, St9 = 42, FujitsuFr = 43, Motorola68hc16 = 44, MitsubishiM7900 = 45, Tms320C3 = 46, Kr1878 = 47, Adsp218x = 48, OakDsp = 49, Tlcs900 = 50, RockwellC39 = 51, Cr16 = 52, Mn10200 = 53, Tms320C1x = 54, NecV850x = 55, ScriptAdapter = 56, EfiBytecode = 57, Msp430 = 58, Spu = 59, Dalvik = 60, Wdc65c816 = 61, M16c = 62, Arc = 63, Unsp = 64, Tms320C28x = 65, Dsp96000 = 66, Spc700 = 67, Adsp2106x = 68, Pic16 = 69, S390 = 70, Xtensa = 71, RiscV = 72, Rl78 = 73, Rx = 74, Wasm = 75, Nds32 = 76, Mcore = 77, }",
+      "mapping": "direct",
+      "swift": [
+        "bd77b871d4ce8a6ecca5"
+      ],
+      "rationale": "Database.ProcessorId represents the same normalized semantic enumeration and its explicitly mapped cases.",
+      "cpp_fingerprint": "281e6241a83b20bb5fbea12d15d8e0611c066aca7bcdc256c940ea347dc91167",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId",
+          "declaration": "enum ProcessorId"
+        }
+      ]
+    },
+    {
+      "cpp_id": "308a73f700b3b11afa26",
+      "cpp_name": "ida::database::ProcessorId::Adsp2106x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "313d28697802027cb2a6"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.adsp2106x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "efa7a08468642c0b17c087013a6fa5cf223092ef24855d8baafd35e8b856ff0e",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.adsp2106x",
+          "declaration": "case adsp2106x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63e495fccc0cfd3b8ac4",
+      "cpp_name": "ida::database::ProcessorId::Adsp218x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "a83d810c8fd72d1a977b"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.adsp218x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6fa791b6d75aad98bebb18c1734bebf069ff38a0d48f9f2dc2377191ce53090a",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.adsp218x",
+          "declaration": "case adsp218x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b3261bbe683e2fde25d",
+      "cpp_name": "ida::database::ProcessorId::Alpha",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "7fefbddbc357812d3242"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.alpha; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f407e136708a6ab6518db5b85531423045524a144ce77d6b1404fc312c4b5417",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.alpha",
+          "declaration": "case alpha"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5bd8775911dcd97c5272",
+      "cpp_name": "ida::database::ProcessorId::Arc",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ebdec3ae54473eb3190d"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.arc; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7bb09f931b26885f0ab701430cf3a63a8c0fdf3e2002455054a33c7bc4a38d50",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.arc",
+          "declaration": "case arc"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c49fb6747cea4c4cecf3",
+      "cpp_name": "ida::database::ProcessorId::Arm",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "9843488379bce901c198"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.arm; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5722dce305927bffbda6a65ce52c226208d5a5e54ff89eb7a7108cc000bc3370",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.arm",
+          "declaration": "case arm"
+        }
+      ]
+    },
+    {
+      "cpp_id": "04e4463fa5d73117e77c",
+      "cpp_name": "ida::database::ProcessorId::Avr",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "c5b15eebbe416b60fa4a"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.avr; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1e8adb857a0ecd9fbf9b31bb37dd3c7b91f9fe11d8066b82d9ee8426f2848e7e",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.avr",
+          "declaration": "case avr"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1b3ab4e3da6f879e05a9",
+      "cpp_name": "ida::database::ProcessorId::C166",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "f05ffd1d7d2e0fee621a"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.c166; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0311683dbea493f5cdc8b54e745882905e4794586a75e027f0ac4f7ab7c4d588",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.c166",
+          "declaration": "case c166"
+        }
+      ]
+    },
+    {
+      "cpp_id": "27769bd5a6883d07ad60",
+      "cpp_name": "ida::database::ProcessorId::Cr16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "1e48a304f47c85537236"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.cr16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1446669d3f260ad347872b6b600270e8ceb527a7b8c268a430d7a6b07122a231",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.cr16",
+          "declaration": "case cr16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5c6f07b34a467f09d2db",
+      "cpp_name": "ida::database::ProcessorId::Dalvik",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "bab63947dfe351dd525c"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.dalvik; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6cb3b862af6ce8e5b148edf0501aa70ddc54d75ba9d24aae0c66f57837f2bf7f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.dalvik",
+          "declaration": "case dalvik"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e53e46dce8aaa1b40a37",
+      "cpp_name": "ida::database::ProcessorId::DotNet",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "6a54cafb71e94433bb93"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.dotNet; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0b0d9fec984971c48b670b706723ef5211f6275849b7e38c1c7fc350faac0a85",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.dotNet",
+          "declaration": "case dotNet"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1e0aae72059e4abbf1d6",
+      "cpp_name": "ida::database::ProcessorId::Dsp56k",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "0a46e74e3d65a29ef530"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.dsp56k; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6a0d25a9f117c3788a30aa46ea9d8277fbe5a992198685fff8cd32b1d39ab485",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.dsp56k",
+          "declaration": "case dsp56k"
+        }
+      ]
+    },
+    {
+      "cpp_id": "33f9b2b2e1dd922603b5",
+      "cpp_name": "ida::database::ProcessorId::Dsp96000",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "aa36804ae605901dd653"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.dsp96000; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c5c296a6ae910e4ccde01bb8bd3653878229df10362873dd95e31442d889bbbf",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.dsp96000",
+          "declaration": "case dsp96000"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d6ce4f9db670b368fa7d",
+      "cpp_name": "ida::database::ProcessorId::EfiBytecode",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e0c501729832164438bf"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.efiBytecode; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "64af8bb285ca9f764eeccffea9759255b5d324069137122ba2c2b30b897d2746",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.efiBytecode",
+          "declaration": "case efiBytecode"
+        }
+      ]
+    },
+    {
+      "cpp_id": "802b1f4c94a686395ee4",
+      "cpp_name": "ida::database::ProcessorId::F2mc16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "b81a14eef7091935d4db"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.f2mc16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "49f58d6417935137c50b49d44e713178375bac2f7e234fc51043185c1cd9fe7f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.f2mc16",
+          "declaration": "case f2mc16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5e5009446b66f76032b8",
+      "cpp_name": "ida::database::ProcessorId::FujitsuFr",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "40952025607187bc77a0"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.fujitsuFr; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "41d7a847d41138002d73f57bea109b6331b426bac70e21bada43f241a1fe4ea2",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.fujitsuFr",
+          "declaration": "case fujitsuFr"
+        }
+      ]
+    },
+    {
+      "cpp_id": "15d67b07ab0a0e3a4987",
+      "cpp_name": "ida::database::ProcessorId::H8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "8c0e7bf84d770488cced"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.h8; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6211b95827cff0e38a2b52a215a0224b39b35c859d07428eb89ba9557d9ef5a6",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.h8",
+          "declaration": "case h8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "046f2250f33095621cf9",
+      "cpp_name": "ida::database::ProcessorId::H8500",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ab1cbeb1314db7e60643"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.h8500; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "639ced44f99fd8ec32fd3663946c9619c7edc588d7ba898bc783680b9b34e9a5",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.h8500",
+          "declaration": "case h8500"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b17dd816159c3426a4b0",
+      "cpp_name": "ida::database::ProcessorId::Hppa",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "85021090ba9cd8d80782"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.hppa; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d66978eadd070acd0901e7aa1a287e0515ee14eaa5cc753ebc666df9892fab44",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.hppa",
+          "declaration": "case hppa"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a30885390edb98f03e3",
+      "cpp_name": "ida::database::ProcessorId::Ia64",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "9527a09035f51ba85bd1"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.ia64; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "c86ab22c307c573dff18f84bb124419bd413edea4460e163e840392c0be7c512",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.ia64",
+          "declaration": "case ia64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "116e21dab29aa2470357",
+      "cpp_name": "ida::database::ProcessorId::Intel80196",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "742157d617aca79d95af"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.intel80196; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3b4804aebfb0920011d411249829c828a29177fb21028915aae8375e3d795486",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.intel80196",
+          "declaration": "case intel80196"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4f2630bbf47c606cf79b",
+      "cpp_name": "ida::database::ProcessorId::Intel8051",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "d54d3d4a0c2d6520e8c5"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.intel8051; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7bbba0cf034582753cb034347ba2045f4cb19bf8e041db847bcd1abd84555261",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.intel8051",
+          "declaration": "case intel8051"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ef6b4175d958c9706755",
+      "cpp_name": "ida::database::ProcessorId::IntelI860",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e281a19f8b03eb9034e2"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.intelI860; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7d645a9983ee3043578e81dcc4d437f690030e1b57f331c64dfeee1417a98305",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.intelI860",
+          "declaration": "case intelI860"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc358c360fcaa1b2928a",
+      "cpp_name": "ida::database::ProcessorId::IntelI960",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e9b8175e90b4d311b76b"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.intelI960; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "020d8c9995e06fb5e0551953e0843d80ef66a851f9d793d7a520faccbb9b2135",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.intelI960",
+          "declaration": "case intelI960"
+        }
+      ]
+    },
+    {
+      "cpp_id": "63204dbc5f97a0a861a2",
+      "cpp_name": "ida::database::ProcessorId::IntelX86",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "9270a7b88c6acc5bd9b6"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.intelX86; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "edbab7efbfc6cfb5cce44331b29f77fe181284dc4ea4bbf1aae4c1fee105f895",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.intelX86",
+          "declaration": "case intelX86"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4fd7fa7313d9479c2b8a",
+      "cpp_name": "ida::database::ProcessorId::JavaVm",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "1df7a51bd688dda4c1d5"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.javaVm; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a00883a61fac38b452840ec07fafcb59147af8e363bc4e04098c38aa3bbcf9a0",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.javaVm",
+          "declaration": "case javaVm"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e058914cd8cf6f0c759f",
+      "cpp_name": "ida::database::ProcessorId::Kr1878",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e13616b4cde1b01fb165"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.kr1878; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "69da6c16a6930045008b580ca964cbdd41c8f8841d5780ba2d974add88de7de2",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.kr1878",
+          "declaration": "case kr1878"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9509386476b503cc6725",
+      "cpp_name": "ida::database::ProcessorId::M16c",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "050ef19eff4e3dc3f242"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.m16c; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d6ea4cf3b717cd88b9a76724339dc13a346b16b94df57c3ab64afeed75d0d83d",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.m16c",
+          "declaration": "case m16c"
+        }
+      ]
+    },
+    {
+      "cpp_id": "89b8b1beae8d6d5b0611",
+      "cpp_name": "ida::database::ProcessorId::M32r",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "a1f288c32ed96564628d"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.m32r; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d3a2c57e9c50166fb41c214762b788ce7271eec68901e1f9bc86295a3337095a",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.m32r",
+          "declaration": "case m32r"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f51708491588b948d5dc",
+      "cpp_name": "ida::database::ProcessorId::Mcore",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "cc11c5543fff59164854"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mcore; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f776dba7586c87003ad198811a6e802f01b71c9189bb18a10795f61c57d3f69b",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mcore",
+          "declaration": "case mcore"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5cc68123c2fd5202008b",
+      "cpp_name": "ida::database::ProcessorId::Mips",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "44dd18ce89a22a20aa57"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mips; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7ea4abb5c4d6923911fdf9122455428e1bfd1d0d8d454b2c00085f4bf5d951de",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mips",
+          "declaration": "case mips"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6ed94753b5fb150605ea",
+      "cpp_name": "ida::database::ProcessorId::MitsubishiM740",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "16939f6ae0de1f84241a"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mitsubishiM740; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d1141546a50e61f4d6ba1eb8f146cfa439661f713711dced39baf71c90ab31c8",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mitsubishiM740",
+          "declaration": "case mitsubishiM740"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c3c6444f0a643e3706f4",
+      "cpp_name": "ida::database::ProcessorId::MitsubishiM7700",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "7d905a5feb083c5f38e5"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mitsubishiM7700; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "03c144dd69fab03bb5b8c696954d86bc4121ff2cd856faa43698208d031567ce",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mitsubishiM7700",
+          "declaration": "case mitsubishiM7700"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f3c3fc5d164c83a0d48d",
+      "cpp_name": "ida::database::ProcessorId::MitsubishiM7900",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "abb2339d988dd63d7cdb"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mitsubishiM7900; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "5a7fa3051195ac35980f781026c506aac737e460165184051aacafbbebc688c7",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mitsubishiM7900",
+          "declaration": "case mitsubishiM7900"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2af97ad38bf944436a86",
+      "cpp_name": "ida::database::ProcessorId::Mn10200",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "bd57bac3f5f8ee165078"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mn10200; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1726255741fcd0d1a4a46390d70fad53916d3b197a6aca7a0746762d78455f7b",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mn10200",
+          "declaration": "case mn10200"
+        }
+      ]
+    },
+    {
+      "cpp_id": "db293a076bbb09b8c643",
+      "cpp_name": "ida::database::ProcessorId::Mos6502",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "d6341393076d991b98c7"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.mos6502; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "50da3355d2b7dd05039b6bd476a09134c473875fe6c9316e970cd7ed7208233f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.mos6502",
+          "declaration": "case mos6502"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1062864fa32151a566b8",
+      "cpp_name": "ida::database::ProcessorId::Motorola6800",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ad62b4cee59fbf3b2de6"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.motorola6800; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "70e0e251d39d79f1d4b9672e9532433ddeb09c814d36f4e3d06184f756b5e175",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.motorola6800",
+          "declaration": "case motorola6800"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2f9d94349825fc089a20",
+      "cpp_name": "ida::database::ProcessorId::Motorola68hc12",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "7f31e68e6674299dd645"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.motorola68hc12; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d57f50e305e2210dfdb480380b37e7ade93b348e2bce5786c920c4513e76bff0",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.motorola68hc12",
+          "declaration": "case motorola68hc12"
+        }
+      ]
+    },
+    {
+      "cpp_id": "633ffd0e30a3caae7d7a",
+      "cpp_name": "ida::database::ProcessorId::Motorola68hc16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e4cd5493dc9707dba978"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.motorola68hc16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "8a3e0c0ae3ef9511d00818f488fd878f8eed3d86d21d4583ed685365c3dec86c",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.motorola68hc16",
+          "declaration": "case motorola68hc16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05b043196534ec340ecc",
+      "cpp_name": "ida::database::ProcessorId::Motorola68k",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "103cad4daf4ff96c1a7a"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.motorola68k; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "40dce658a0dcb1044a1325ddf06d8f7256c035c899bac8945aa23d2ad3eaa645",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.motorola68k",
+          "declaration": "case motorola68k"
+        }
+      ]
+    },
+    {
+      "cpp_id": "20ed99e870a1ed856f56",
+      "cpp_name": "ida::database::ProcessorId::Msp430",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "3f2fadfbf4468e5948cc"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.msp430; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "079c28df8328a0dd0d2c2f688de7f083521e675a4d3c71aef2036d135ea57d39",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.msp430",
+          "declaration": "case msp430"
+        }
+      ]
+    },
+    {
+      "cpp_id": "edf43aa93dd55cc139a1",
+      "cpp_name": "ida::database::ProcessorId::Nds32",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "7c102151695d811fab92"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.nds32; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b294e91a0e803dd4bd1b1848a57d9ee7522868e86ca6cadebd2a119d90f61257",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.nds32",
+          "declaration": "case nds32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8fecbd0da866f6e4efb0",
+      "cpp_name": "ida::database::ProcessorId::Nec78k0",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "39ad6ce44bdcc528c2b4"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.nec78k0; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f046bdcf67eaac8a20923071351a7827a3dd6878cd6a123466913587550d9d5a",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.nec78k0",
+          "declaration": "case nec78k0"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b17404f0323d0734ccb3",
+      "cpp_name": "ida::database::ProcessorId::Nec78k0s",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "46656ca4fcf1f4152136"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.nec78k0s; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "84338ee83c14abc38e427f5303551672e7c7e397d6ae8ed842dad40812227dd8",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.nec78k0s",
+          "declaration": "case nec78k0s"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9615d13185cb3875e7a6",
+      "cpp_name": "ida::database::ProcessorId::NecV850x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "42acf615a8fa12a21276"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.necV850x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "62245963f38103be484783461049f10b467acbf9a6338226a9297249904ae7a9",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.necV850x",
+          "declaration": "case necV850x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d966e0ceb50c485a6beb",
+      "cpp_name": "ida::database::ProcessorId::OakDsp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "9a3e3858c233b2b9c6d3"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.oakDsp; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "0b770d929d3eba5498bbf1a07622d38ad6b3d3c4c9585587e1aa2d9405df4cdd",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.oakDsp",
+          "declaration": "case oakDsp"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d0a4d0e7bfa84cb878c0",
+      "cpp_name": "ida::database::ProcessorId::Pdp11",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "de2f59f2ff79bd8730a1"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.pdp11; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2c35e3c78ab53d15fdcc1e29f7861b6c6019f783f9ef050e4b3f571d10c7d988",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.pdp11",
+          "declaration": "case pdp11"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fd28af459b6f441b613c",
+      "cpp_name": "ida::database::ProcessorId::Pic",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "b5ee8d2714eb174df02a"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.pic; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d37f7b56f50dcd3f77485ed15023e62a654b16dac551e59154335f61a7d74624",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.pic",
+          "declaration": "case pic"
+        }
+      ]
+    },
+    {
+      "cpp_id": "de43deb09f3106031e1f",
+      "cpp_name": "ida::database::ProcessorId::Pic16",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "b1d857eea7ecd1914f40"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.pic16; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a44bf6bb1fc0096043480c77298b488c848f0ffe561bc37816061e25ddacbe2b",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.pic16",
+          "declaration": "case pic16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b516f7519592ce1027f4",
+      "cpp_name": "ida::database::ProcessorId::PowerPc",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "13e76f076b361a36d2a3"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.powerPc; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "6ef076bd2eb4728f675fb70648aa4b53f552e8e8b114110dc5dc23c7fd204fb5",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.powerPc",
+          "declaration": "case powerPc"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d58727f2e80e1f1897c4",
+      "cpp_name": "ida::database::ProcessorId::RiscV",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e0a90e2ac5ac35edad31"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.riscV; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7b2501744b5696516984a2e80fb6c6ff78bc40d5178d245862d028655c4eff80",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.riscV",
+          "declaration": "case riscV"
+        }
+      ]
+    },
+    {
+      "cpp_id": "48910a8859471111e14e",
+      "cpp_name": "ida::database::ProcessorId::Rl78",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "eef25ca09b2e3c2aabe6"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.rl78; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "30645511dc07639f325973f8eeecc5aa950c8464659eae9102fbfa52f8641037",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.rl78",
+          "declaration": "case rl78"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6c6cb235207c180891df",
+      "cpp_name": "ida::database::ProcessorId::RockwellC39",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "cdee7c8ba5217af6355b"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.rockwellC39; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a536ef87bf42895d94ce6dab98c565bec18e86c36f397419de32e7f24a7e633f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.rockwellC39",
+          "declaration": "case rockwellC39"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f7dcf180b1d4ce335282",
+      "cpp_name": "ida::database::ProcessorId::Rx",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "86870d161b9e623856d9"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.rx; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "1ea6e8c7e43cec1253ba067029db46882f9aa81b32cef346f298dd9998404363",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.rx",
+          "declaration": "case rx"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7b455211045db1101dbe",
+      "cpp_name": "ida::database::ProcessorId::S390",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "1f8c21c4d80c364124e6"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.s390; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "33153aefa40ee25c289236412870bed2256bf707e42035324009312452025ede",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.s390",
+          "declaration": "case s390"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5904d878d0f190fe4cbd",
+      "cpp_name": "ida::database::ProcessorId::ScriptAdapter",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "eea5584d07c6ec788f50"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.scriptAdapter; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "308d04254297b8e95429acb10b144bce306ab25942b18d3767301329064f2c20",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.scriptAdapter",
+          "declaration": "case scriptAdapter"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2e306154b854a15132e4",
+      "cpp_name": "ida::database::ProcessorId::Sparc",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "9442babe1bd7bc6ac511"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.sparc; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a2777ff2b7c4ca89d2319f65589d68520d1576401536f78c65aff8e6db7cc5ea",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.sparc",
+          "declaration": "case sparc"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fe3badc14b582a6fc939",
+      "cpp_name": "ida::database::ProcessorId::Spc700",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "999292957b6d73e213c5"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.spc700; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "e21e43e0a62a464974b9aa464fa94abbe288d1ed00a39991432305f04706aad6",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.spc700",
+          "declaration": "case spc700"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6490432371325184daab",
+      "cpp_name": "ida::database::ProcessorId::Spu",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "afb9a5977d61b3cbed7b"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.spu; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "f105d48230e29e56cff5bae4c6c061556fce61ada485d447ca948481b1670f3b",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.spu",
+          "declaration": "case spu"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70501b23341040fc6382",
+      "cpp_name": "ida::database::ProcessorId::St20",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "6ddd02982e19e8e1d855"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.st20; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "7826928d06fc5efb3ba400565e72c7695cc3a5e1727bea655f6735220d591f7f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.st20",
+          "declaration": "case st20"
+        }
+      ]
+    },
+    {
+      "cpp_id": "defb566c1cf48e4e3348",
+      "cpp_name": "ida::database::ProcessorId::St7",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "be08518405df6eddd5f1"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.st7; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "11a92a312ce945d1141d78b88b9816742955b217013a33df6c49a5c3532962db",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.st7",
+          "declaration": "case st7"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8398ae903afcce012441",
+      "cpp_name": "ida::database::ProcessorId::St9",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "e7c8230e1c762d236584"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.st9; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3ae8a970a10299e08bb55c669c94c940f1642fb89418ce2eb11a5cc56ef97a72",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.st9",
+          "declaration": "case st9"
+        }
+      ]
+    },
+    {
+      "cpp_id": "701f512b39b590e398cc",
+      "cpp_name": "ida::database::ProcessorId::SuperH",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "8d751ef0c0e67f859cf3"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.superH; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "48ab6061139460a66eebf97aa27d92c6e38577ca126b7b3b2eb8cf140a59d7cf",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.superH",
+          "declaration": "case superH"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0ce9104a186d38a4f54e",
+      "cpp_name": "ida::database::ProcessorId::Tlcs900",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "09379f18d29d52e29279"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tlcs900; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3b581d424c758cd17b40d9cad26879d851af47908b5efc3adf7516b5d863295a",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tlcs900",
+          "declaration": "case tlcs900"
+        }
+      ]
+    },
+    {
+      "cpp_id": "150e3a1b02fe560e6870",
+      "cpp_name": "ida::database::ProcessorId::Tms320C1x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "4d854b03c12f08686ad0"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C1x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a3521e895e0ba9afdd6c278a400d122e3603c3d094a924396154a95151bfa510",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C1x",
+          "declaration": "case tms320C1x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9ad1fbf55e57f40309c7",
+      "cpp_name": "ida::database::ProcessorId::Tms320C28x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ac53d877831bae1277db"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C28x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "b13339bbe1134b52408865ce22ce804773e54b06255ae51491168e29fbb9954a",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C28x",
+          "declaration": "case tms320C28x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c70d9c5e3b85871faf19",
+      "cpp_name": "ida::database::ProcessorId::Tms320C3",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "4967a4176ff61c35e67e"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C3; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "3ca6733a36b0909246dadc90989b0b04e75532aa6914f8dd35d36dec539d5b83",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C3",
+          "declaration": "case tms320C3"
+        }
+      ]
+    },
+    {
+      "cpp_id": "44dec1fec0458b5a1ead",
+      "cpp_name": "ida::database::ProcessorId::Tms320C54x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "4379d2438ebce47b9158"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C54x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "89bcd23d2158b98c5cbe93f862029d3e16d3c925eff5c52034d321a3271dba69",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C54x",
+          "declaration": "case tms320C54x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "227238d6345799d9d2f2",
+      "cpp_name": "ida::database::ProcessorId::Tms320C55x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "8978ee5c67186a62c987"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C55x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "d95eec1706a35bcf30ad88b7325cd2cb40ae0086e973e4894aa370625fcef589",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C55x",
+          "declaration": "case tms320C55x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1f572414623641de6a5e",
+      "cpp_name": "ida::database::ProcessorId::Tms320C5x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "5da5c3ce2f27195f145c"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C5x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "36c98496a08e7f0881057e2949611afa37aba9c5169d5138217b8db4e59e49d5",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C5x",
+          "declaration": "case tms320C5x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "cc9a12d13b46f9a9cfc9",
+      "cpp_name": "ida::database::ProcessorId::Tms320C6x",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "40e2e6ebf5354063027c"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.tms320C6x; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a1eaffcd702047d01e032712bab7197e2a0babc617081db9f3bcb06c3d066df9",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.tms320C6x",
+          "declaration": "case tms320C6x"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c83bc467b89cbbd55e69",
+      "cpp_name": "ida::database::ProcessorId::TriCore",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ceb8ff5d0ac8cc83dd4d"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.triCore; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "9e72e0f1decc1bf14008990c7f209c73b0e1acaf63202c3b90534dee18134533",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.triCore",
+          "declaration": "case triCore"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5607f9682725d685ddaf",
+      "cpp_name": "ida::database::ProcessorId::Trimedia",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "83b950b826da60018a40"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.trimedia; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "98fbcfb6a1f02dd33a339ebdfc08dc4fad349b2094c3b185ca28aea0291929c1",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.trimedia",
+          "declaration": "case trimedia"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d9a05db9cde349e545c0",
+      "cpp_name": "ida::database::ProcessorId::Unsp",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "c8ff2564ff111b38c600"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.unsp; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a4e0d195f5217a8bbb20c10c3ca3c7784372744978520cb124791c5a568c5e07",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.unsp",
+          "declaration": "case unsp"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9fbcd731e10f0fbfe204",
+      "cpp_name": "ida::database::ProcessorId::Wasm",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "5b47fa0a7125c01f04ed"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.wasm; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "31b4782c4b5ef31916c84b1cf89b238f2a08b78cec61bdc97278760b284f422d",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.wasm",
+          "declaration": "case wasm"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05e083e49586d3daa7e8",
+      "cpp_name": "ida::database::ProcessorId::Wdc65c816",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "4abe29b72cae6e645486"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.wdc65c816; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "340c8a4e59136265a86acd026c9241e1d4df32574dea6adcd6acd23d5e6a692e",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.wdc65c816",
+          "declaration": "case wdc65c816"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9d62a3301fd852552681",
+      "cpp_name": "ida::database::ProcessorId::Xtensa",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "ab59abadc370d8f47342"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.xtensa; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "a7112aeeb79eaa14d609e0ff8980983fef11d962a098f55b8624f7fd27a0183d",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.xtensa",
+          "declaration": "case xtensa"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7a3df38001942a4183f5",
+      "cpp_name": "ida::database::ProcessorId::Z8",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "3b0bda4967acfe5d06c8"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.z8; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "ce7b30f461f9f3247c38b8fe68b068a272a3cf2b3f5f8fdd50713956adf9895e",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.z8",
+          "declaration": "case z8"
+        }
+      ]
+    },
+    {
+      "cpp_id": "886740a66decd4c7b8d6",
+      "cpp_name": "ida::database::ProcessorId::Z80",
+      "cpp_kind": "enum_case",
+      "cpp_signature": "ida::database::ProcessorId",
+      "mapping": "direct",
+      "swift": [
+        "7cfe306c70c45fb5efd7"
+      ],
+      "rationale": "Corresponding typed semantic case Database.ProcessorId.z80; the wrapper discriminant is preserved.",
+      "cpp_fingerprint": "2fc9c548d73c27c30031724c57cc0a17191c802e65c93ed6e3aa0fcbf27ca8c2",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorId.z80",
+          "declaration": "case z80"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b1de8c6bf37b59e37176",
+      "cpp_name": "ida::database::ProcessorProfile",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "ea87a77c792449bcaba8"
+      ],
+      "rationale": "Database.ProcessorProfile is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "b1de8c6bf37b59e371762bff2183875221f6f02ead57a2a78192826753597f8f",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile",
+          "declaration": "struct ProcessorProfile"
+        }
+      ]
+    },
+    {
+      "cpp_id": "feefc8c704012f27da6d",
+      "cpp_name": "ida::database::ProcessorProfile::abi_name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<std::string>",
+      "mapping": "direct",
+      "swift": [
+        "79112ad7dc3e3fd4f9c2"
+      ],
+      "rationale": "Database.ProcessorProfile.abiName preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "e0f633fbe85652f6f682b5771075d91a5dafab01a834ed58e34ec2e9207267c4",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.abiName",
+          "declaration": "var abiName: String?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1c94ffa4b8cd4e75827f",
+      "cpp_name": "ida::database::ProcessorProfile::address_bitness",
+      "cpp_kind": "field",
+      "cpp_signature": "int",
+      "mapping": "direct",
+      "swift": [
+        "1320a0f1245a9bc63a9c"
+      ],
+      "rationale": "Preserves the declared int value in Database.ProcessorProfile.addressBitness, including its semantic type and signedness.",
+      "cpp_fingerprint": "9bf8d1881e4ff0e8712467f215d3bab51531e108fd265f0f8c9d79e7be3aa26d",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.addressBitness",
+          "declaration": "var addressBitness: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "af9d6788fcff7a311c05",
+      "cpp_name": "ida::database::ProcessorProfile::big_endian",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "0089bcad3590471e6147"
+      ],
+      "rationale": "Preserves the declared bool value in Database.ProcessorProfile.bigEndian, including its semantic type and signedness.",
+      "cpp_fingerprint": "3356c97dd7c68dfd411b6a229b58562fbc46f7f3a4ae0c9202b4e159fa0527e3",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.bigEndian",
+          "declaration": "var bigEndian: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0414647c89d0afd0e794",
+      "cpp_name": "ida::database::ProcessorProfile::known_id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::optional<ProcessorId>",
+      "mapping": "direct",
+      "swift": [
+        "7fd336a766b292f21c52"
+      ],
+      "rationale": "Database.ProcessorProfile.knownId preserves absence as nil and present values, including zero or an empty string, without collapsing the optional state.",
+      "cpp_fingerprint": "7e1f2ab8386f56b47534d8bc7df611e6bf82769b069938a89dfd1c0b713dc6b9",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.knownId",
+          "declaration": "var knownId: Database.ProcessorId?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "05045ebb122d839f593c",
+      "cpp_name": "ida::database::ProcessorProfile::name",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "4892a8b6f1dc7fb77f40"
+      ],
+      "rationale": "Preserves the name value as var name: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "1bbb537e25c86cc07c773a6f58aa984ed255f515032d0609ccea9bef65d98a69",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.name",
+          "declaration": "var name: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0b820a53be8fb677c05f",
+      "cpp_name": "ida::database::ProcessorProfile::raw_id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int32_t",
+      "mapping": "direct",
+      "swift": [
+        "d26701f3f6ea08629473"
+      ],
+      "rationale": "Preserves the declared std::int32_t value in Database.ProcessorProfile.rawId, including its semantic type and signedness.",
+      "cpp_fingerprint": "9831e7dc5f5483c31092d176989265b24ac1a3a68cd8113bb446b57df53f3476",
+      "swift_targets": [
+        {
+          "path": "Database.ProcessorProfile.rawId",
+          "declaration": "var rawId: Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "1dbed2d35ea6fafc97b2",
+      "cpp_name": "ida::database::RuntimeOptions",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "adapted",
+      "swift": [
+        "a88ff138902571cb4e3f"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "1dbed2d35ea6fafc97b2ed3bb87f2ea78902ec52f5fcee5941d7480ca32ad4be",
+      "swift_targets": [
+        {
+          "path": "RuntimeOptions",
+          "declaration": "struct RuntimeOptions"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e47c60799759719b8371",
+      "cpp_name": "ida::database::RuntimeOptions::plugin_policy",
+      "cpp_kind": "field",
+      "cpp_signature": "PluginLoadPolicy",
+      "mapping": "adapted",
+      "swift": [
+        "3924306388e78467c9ab"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "63513fe73535c0a71c28ee367149f2b950f80afbef27e3020d9dea33ccf7c7f8",
+      "swift_targets": [
+        {
+          "path": "RuntimeOptions.pluginPolicy",
+          "declaration": "var pluginPolicy: PluginLoadPolicy"
+        }
+      ]
+    },
+    {
+      "cpp_id": "4b02b407806b98b57393",
+      "cpp_name": "ida::database::RuntimeOptions::quiet",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "adapted",
+      "swift": [
+        "a2b1e6d8f51570f82647"
+      ],
+      "rationale": "Runtime initialization configuration is shared at Swift module scope; the same policy/options fields and defaults are retained.",
+      "cpp_fingerprint": "27ef05a1e575db3dc708cebbc05bd0f893f7bfe39cadefb0a6ce67a7c39b2eb1",
+      "swift_targets": [
+        {
+          "path": "RuntimeOptions.quiet",
+          "declaration": "var quiet: Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e66125c5fe89c954555e",
+      "cpp_name": "ida::database::Snapshot",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "ace6c4669c569bb368ce"
+      ],
+      "rationale": "Database.Snapshot is the corresponding owned Swift value type; its public fields are mapped individually.",
+      "cpp_fingerprint": "e66125c5fe89c954555ea0d1044718ce327aeea62dae7a1f6acc1028c4556e05",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot",
+          "declaration": "struct Snapshot"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ba90009f313b1d38265c",
+      "cpp_name": "ida::database::Snapshot::children",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<Snapshot>",
+      "mapping": "direct",
+      "swift": [
+        "a27b31bdfcfe5f2c36aa"
+      ],
+      "rationale": "Preserves the children value as var children: [Database.Snapshot]; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "e8a71d916f91686dc5f0c0f29c5c34fda724ec60b242e67ec162b87a3de8b607",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot.children",
+          "declaration": "var children: [Database.Snapshot]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "41bac34d4a74eb39c506",
+      "cpp_name": "ida::database::Snapshot::description",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "8a7db5cb05ba774c7cc7"
+      ],
+      "rationale": "Preserves the description value as var description: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "d47ae7ecd1ac02adb26fb81842733e5271239367d62ef3669e8ef196bb3c069f",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot.description",
+          "declaration": "var description: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "b5ba47cc00ff6b05bc6c",
+      "cpp_name": "ida::database::Snapshot::filename",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "23b3172ac2e53930da01"
+      ],
+      "rationale": "Preserves the filename value as var filename: String; native arrays and strings are copied into Swift-owned storage.",
+      "cpp_fingerprint": "7ef056230b3ac746998badeabab935ef586509488b2da38c36c79d0a6e16acc3",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot.filename",
+          "declaration": "var filename: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f22f5233ff9942d0d83f",
+      "cpp_name": "ida::database::Snapshot::flags",
+      "cpp_kind": "field",
+      "cpp_signature": "std::uint16_t",
+      "mapping": "direct",
+      "swift": [
+        "82972850cdba97c66854"
+      ],
+      "rationale": "Preserves the declared std::uint16_t value in Database.Snapshot.flags, including its semantic type and signedness.",
+      "cpp_fingerprint": "d1565304e38ba16957ec1f91877a5de1e5cf4e7140d58ed3b461b8942de03a3c",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot.flags",
+          "declaration": "var flags: UInt16"
+        }
+      ]
+    },
+    {
+      "cpp_id": "754c5bc67e6da7d7281d",
+      "cpp_name": "ida::database::Snapshot::id",
+      "cpp_kind": "field",
+      "cpp_signature": "std::int64_t",
+      "mapping": "direct",
+      "swift": [
+        "680d448242c80f431145"
+      ],
+      "rationale": "Preserves the declared std::int64_t value in Database.Snapshot.id, including its semantic type and signedness.",
+      "cpp_fingerprint": "962bc34945dbc08091c3d88116b9d063fd49a3a1abb397cc94ea22551a29d561",
+      "swift_targets": [
+        {
+          "path": "Database.Snapshot.id",
+          "declaration": "var id: Int64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "632b50985fa259ec37e2",
+      "cpp_name": "ida::database::abi_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "b95d1ba5ad1bbfacdd88"
+      ],
+      "rationale": "Database.abiName() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "bbde62a7f763d2c17103a68321def2c97d77fdd66a4c7b3b403bdb2bb55552da",
+      "swift_targets": [
+        {
+          "path": "Database.abiName()",
+          "declaration": "static func abiName() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e2f987fffd04d8b4564e",
+      "cpp_name": "ida::database::address_bitness",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<int> ()",
+      "mapping": "direct",
+      "swift": [
+        "51c2848a6710eb7ec046"
+      ],
+      "rationale": "Database.addressBitness() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d0c69a43d7cade1c4767b0e148eafc4fe77275f58e22c34c602a93cc9dd172da",
+      "swift_targets": [
+        {
+          "path": "Database.addressBitness()",
+          "declaration": "static func addressBitness() throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "965f8f02fefaf3fb94f0",
+      "cpp_name": "ida::database::address_bounds",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ida::address::Range> ()",
+      "mapping": "direct",
+      "swift": [
+        "0e5c1ac57dfd916953d8"
+      ],
+      "rationale": "Database.addressBounds() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0854cd24095e5c8cd023a605210376c35469b9bb46acd70aee373686819dd606",
+      "swift_targets": [
+        {
+          "path": "Database.addressBounds()",
+          "declaration": "static func addressBounds() throws(IDAError) -> Addresses.Range"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c417c50504fa1772a3fa",
+      "cpp_name": "ida::database::address_span",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<AddressSize> ()",
+      "mapping": "direct",
+      "swift": [
+        "a37ce5f5b5e5e53d8148"
+      ],
+      "rationale": "Database.addressSpan() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "65255fc6611b474640df0341c5a13554f36e9ea457b50849fbbe53534eaf3145",
+      "swift_targets": [
+        {
+          "path": "Database.addressSpan()",
+          "declaration": "static func addressSpan() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "92c5fb17871a3fd66d91",
+      "cpp_name": "ida::database::close",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (bool)",
+      "mapping": "private_bridge",
+      "swift": [
+        "19fc51c07a213e3c17f9"
+      ],
+      "rationale": "Preserves the requested database action and analysis/save default while enforcing the private runtime session and resource lifecycle.",
+      "cpp_fingerprint": "3f089eb63e03608ae262156c39a3474a57930fcc49c86131f6a6e2a23e1bc987",
+      "swift_targets": [
+        {
+          "path": "Database.close(save:)",
+          "declaration": "static func close(save: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "bb062bb17712bd545143",
+      "cpp_name": "ida::database::compiler_info",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<CompilerInfo> ()",
+      "mapping": "direct",
+      "swift": [
+        "3bd76eb49256d9e42ad9"
+      ],
+      "rationale": "Database.compilerInfo() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "2058844c6363f4b810d849b232665d1ce80fe140053add7ebe24ef8c9f29daad",
+      "swift_targets": [
+        {
+          "path": "Database.compilerInfo()",
+          "declaration": "static func compilerInfo() throws(IDAError) -> Database.CompilerInfo"
+        }
+      ]
+    },
+    {
+      "cpp_id": "fc15a50259b314a99f32",
+      "cpp_name": "ida::database::file_to_database",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, std::int64_t, Address, AddressSize, bool, bool)",
+      "mapping": "direct",
+      "swift": [
+        "d20310f28e6a42d57c6f"
+      ],
+      "rationale": "Database.fileToDatabase(filePath:fileOffset:address:size:patchable:remote:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "3832ac93f56a2eac4b0e90279b57ff7c7a4316733f872ebd860454b8cbe5bde3",
+      "swift_targets": [
+        {
+          "path": "Database.fileToDatabase(filePath:fileOffset:address:size:patchable:remote:)",
+          "declaration": "static func fileToDatabase(filePath: String, fileOffset: Int64, address: UInt64, size: UInt64, patchable: Bool = true, remote: Bool = false) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e37db331642f2a129eff",
+      "cpp_name": "ida::database::file_type_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "ead4a597c4d1b83f7408"
+      ],
+      "rationale": "Database.fileTypeName() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c80c1e76cbe17f31804ef06be297635626dfb83ddb13572ec6ce11873cd58adc",
+      "swift_targets": [
+        {
+          "path": "Database.fileTypeName()",
+          "declaration": "static func fileTypeName() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "898338171976a57825bd",
+      "cpp_name": "ida::database::idb_path",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "65c93ce63aa595da117c"
+      ],
+      "rationale": "Database.idbPath() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "4b95d88803d12ea4f93d267ff11b2c2aae483083ba04eeba574ca0376d118374",
+      "swift_targets": [
+        {
+          "path": "Database.idbPath()",
+          "declaration": "static func idbPath() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "70477eba22fc98fdb157",
+      "cpp_name": "ida::database::image_base",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "797028de7da90b305328"
+      ],
+      "rationale": "Database.imageBase() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "a07923f735320ac16f29bcd663114d1f45469184de672a72d657bbf9564cd1b7",
+      "swift_targets": [
+        {
+          "path": "Database.imageBase()",
+          "declaration": "static func imageBase() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "ee4246bbba294531eb0c",
+      "cpp_name": "ida::database::import_modules",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<ImportModule>> ()",
+      "mapping": "direct",
+      "swift": [
+        "4227ae9d836f88581638"
+      ],
+      "rationale": "Database.importModules() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c5d8bcb4fd2e37071f28402722d5c8aa9293af3cd44de8958699c58fa6348072",
+      "swift_targets": [
+        {
+          "path": "Database.importModules()",
+          "declaration": "static func importModules() throws(IDAError) -> [Database.ImportModule]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "7c6dc55f1939150841f1",
+      "cpp_name": "ida::database::init",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (const RuntimeOptions &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "050207c05a0c8198d1a4"
+      ],
+      "rationale": "The initialization overloads are consolidated into defaulted arguments:[String] and RuntimeOptions; the private runtime bridge owns an argv copy and preserves quiet/plugin-policy settings.",
+      "cpp_fingerprint": "93b75b6d15d5f8ec1002124097080ef8f538f451728a55996219ffb618020e3c",
+      "swift_targets": [
+        {
+          "path": "Database.initialize(arguments:options:)",
+          "declaration": "static func initialize(arguments: [String] = [], options: RuntimeOptions = .init()) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e24883cc9f03f9abcff1",
+      "cpp_name": "ida::database::init",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int, char **)",
+      "mapping": "private_bridge",
+      "swift": [
+        "050207c05a0c8198d1a4"
+      ],
+      "rationale": "The initialization overloads are consolidated into defaulted arguments:[String] and RuntimeOptions; the private runtime bridge owns an argv copy and preserves quiet/plugin-policy settings.",
+      "cpp_fingerprint": "5cfd0fc79c586ba2ed303e3a5a522038ab2201b04807b0a29c0742837ccba3fc",
+      "swift_targets": [
+        {
+          "path": "Database.initialize(arguments:options:)",
+          "declaration": "static func initialize(arguments: [String] = [], options: RuntimeOptions = .init()) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f9046138582020d01149",
+      "cpp_name": "ida::database::init",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int, char **, const RuntimeOptions &)",
+      "mapping": "private_bridge",
+      "swift": [
+        "050207c05a0c8198d1a4"
+      ],
+      "rationale": "The initialization overloads are consolidated into defaulted arguments:[String] and RuntimeOptions; the private runtime bridge owns an argv copy and preserves quiet/plugin-policy settings.",
+      "cpp_fingerprint": "45b33069ec750e151b87307bd4d1df082fd9d7adef62127b0b93acc77ae8edfb",
+      "swift_targets": [
+        {
+          "path": "Database.initialize(arguments:options:)",
+          "declaration": "static func initialize(arguments: [String] = [], options: RuntimeOptions = .init()) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "997021c2bb6338192e80",
+      "cpp_name": "ida::database::input_file_path",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "3ab5a4e691df7acab446"
+      ],
+      "rationale": "Database.inputFilePath() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "1a367c8b4233077a333619ff4613383adca5a5f06715dab111a7e7c5a6472901",
+      "swift_targets": [
+        {
+          "path": "Database.inputFilePath()",
+          "declaration": "static func inputFilePath() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "dca0aadf5e78127c156b",
+      "cpp_name": "ida::database::input_md5",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "99c1d17f1358220b5ac9"
+      ],
+      "rationale": "Database.inputMd5() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "51ea1a3bc9217a00dd033815fc01c9b0c23b57316a640769618497ac598f35b8",
+      "swift_targets": [
+        {
+          "path": "Database.inputMd5()",
+          "declaration": "static func inputMd5() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "c78a64e15bc0ff7d06b0",
+      "cpp_name": "ida::database::is_big_endian",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> ()",
+      "mapping": "direct",
+      "swift": [
+        "7c1781441bd5bac36f3e"
+      ],
+      "rationale": "Database.isBigEndian() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "fc888c299247a77ef371cb68c991ef440dabb83243a45b0f5a039de8936801c6",
+      "swift_targets": [
+        {
+          "path": "Database.isBigEndian()",
+          "declaration": "static func isBigEndian() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "f24e3b1acc80283a5b8f",
+      "cpp_name": "ida::database::is_snapshot_database",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<bool> ()",
+      "mapping": "direct",
+      "swift": [
+        "80791435c7600a402d46"
+      ],
+      "rationale": "Database.isSnapshotDatabase() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d1df946585cc31b42dc729996db2e14005f55ac2c2bc1f7f817db029c822a12e",
+      "swift_targets": [
+        {
+          "path": "Database.isSnapshotDatabase()",
+          "declaration": "static func isSnapshotDatabase() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
+      "cpp_id": "5220bb2851c5456a3b4c",
+      "cpp_name": "ida::database::loader_format_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "c1f4be45d1399f65c06d"
+      ],
+      "rationale": "Database.loaderFormatName() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "c46d1317480b57e2bc52f8c1c58f9ca4a9f23b5d0e70719117ce4f559cbec290",
+      "swift_targets": [
+        {
+          "path": "Database.loaderFormatName()",
+          "declaration": "static func loaderFormatName() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8ef068e5729f96954e6f",
+      "cpp_name": "ida::database::max_address",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "6d1ca172793a35b4ac6a"
+      ],
+      "rationale": "Database.maxAddress() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "6d6a376579b833e211bf26bc7945e82bc561c16c141031e895c613b471d5a64f",
+      "swift_targets": [
+        {
+          "path": "Database.maxAddress()",
+          "declaration": "static func maxAddress() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8c733ae40f402a9f342f",
+      "cpp_name": "ida::database::memory_to_database",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::span<const std::uint8_t>, Address, std::int64_t)",
+      "mapping": "direct",
+      "swift": [
+        "e52f9e91fb0adf11aa7d"
+      ],
+      "rationale": "Database.memoryToDatabase(bytes:address:fileOffset:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "45308f2a4fe26c1f4ce19627853657034e6c250667690a7bce35103899bbac9a",
+      "swift_targets": [
+        {
+          "path": "Database.memoryToDatabase(bytes:address:fileOffset:)",
+          "declaration": "static func memoryToDatabase(bytes: [UInt8], address: UInt64, fileOffset: Int64 = -1) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "e395479254ac8ca4db8f",
+      "cpp_name": "ida::database::min_address",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<Address> ()",
+      "mapping": "direct",
+      "swift": [
+        "c551ba7dd4dbdd17c528"
+      ],
+      "rationale": "Database.minAddress() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0409deb394271dc743c912c3f9ef27122e6399bbedfc4f1d8ed7a1c807063139",
+      "swift_targets": [
+        {
+          "path": "Database.minAddress()",
+          "declaration": "static func minAddress() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8b4283d0a7a51a59891d",
+      "cpp_name": "ida::database::open",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, LoadIntent, OpenMode)",
+      "mapping": "private_bridge",
+      "swift": [
+        "7b996d7834db87d18761"
+      ],
+      "rationale": "The explicit LoadIntent and OpenMode are forwarded; Swift labels put mode before intent. The private runtime bridge maintains the database session lifecycle.",
+      "cpp_fingerprint": "2aa61c1a76baff5e8a410facdc8559c433c64ac46991cfa5de7b42e2e2a047fa",
+      "swift_targets": [
+        {
+          "path": "Database.open(path:mode:intent:)",
+          "declaration": "static func open(path: String, mode: Database.OpenMode, intent: Database.LoadIntent = .autoDetect) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "eddc5264ee2e58680b32",
+      "cpp_name": "ida::database::open",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, OpenMode)",
+      "mapping": "private_bridge",
+      "swift": [
+        "7b996d7834db87d18761"
+      ],
+      "rationale": "OpenMode is preserved and the omitted Swift intent defaults to autoDetect. The private runtime bridge maintains the database session lifecycle.",
+      "cpp_fingerprint": "34b2fd765803c38f8102e09527978f5a6add177cffd3dcf8902ae56a1a83ab55",
+      "swift_targets": [
+        {
+          "path": "Database.open(path:mode:intent:)",
+          "declaration": "static func open(path: String, mode: Database.OpenMode, intent: Database.LoadIntent = .autoDetect) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6d82e9f05f0540baaeb8",
+      "cpp_name": "ida::database::open",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, bool)",
+      "mapping": "private_bridge",
+      "swift": [
+        "303060abdc63e1e3b424"
+      ],
+      "rationale": "The bool overload maps to autoAnalysis with its true default; omitted intent is autoDetect and open runs through the runtime session guard.",
+      "cpp_fingerprint": "91a96fe4424cffa85fcb944b8f9a6180c62e78d3affa0f052c17c4ac9ba8404c",
+      "swift_targets": [
+        {
+          "path": "Database.open(path:autoAnalysis:intent:)",
+          "declaration": "static func open(path: String, autoAnalysis: Bool = true, intent: Database.LoadIntent = .autoDetect) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "be043db8e4cf222c6e95",
+      "cpp_name": "ida::database::open_binary",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, OpenMode)",
+      "mapping": "private_bridge",
+      "swift": [
+        "6c4385837f5438858c40"
+      ],
+      "rationale": "Preserves the requested database action and analysis/save default while enforcing the private runtime session and resource lifecycle.",
+      "cpp_fingerprint": "3d54537c0953b30ea3e39aa94b1fb297052ce07d8dbd9fd19b5e0e0dd0dcfb61",
+      "swift_targets": [
+        {
+          "path": "Database.openBinary(path:mode:)",
+          "declaration": "static func openBinary(path: String, mode: Database.OpenMode = .analyze) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "85b8bcd740ae2fdeaf53",
+      "cpp_name": "ida::database::open_non_binary",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view, OpenMode)",
+      "mapping": "private_bridge",
+      "swift": [
+        "a9a0d81c3d975db66a59"
+      ],
+      "rationale": "Preserves the requested database action and analysis/save default while enforcing the private runtime session and resource lifecycle.",
+      "cpp_fingerprint": "2257df92ffca6be6b82f0d9b8cfab25873c39374d7efb1e4b6b62a0ff485d2d5",
+      "swift_targets": [
+        {
+          "path": "Database.openNonBinary(path:mode:)",
+          "declaration": "static func openNonBinary(path: String, mode: Database.OpenMode = .analyze) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51c0006821df666a1f11",
+      "cpp_name": "ida::database::processor",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ProcessorId> ()",
+      "mapping": "direct",
+      "swift": [
+        "7f58d6c68a278377f5e6"
+      ],
+      "rationale": "Database.processor() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "0997aa8928179de8b23f09f24ecc8d46d1951b7c137f3a0944191eaffae39f4b",
+      "swift_targets": [
+        {
+          "path": "Database.processor()",
+          "declaration": "static func processor() throws(IDAError) -> Database.ProcessorId"
+        }
+      ]
+    },
+    {
+      "cpp_id": "a15e7cf6ea8b77e8348e",
+      "cpp_name": "ida::database::processor_id",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::int32_t> ()",
+      "mapping": "direct",
+      "swift": [
+        "4fd20e317e8e9ef8166f"
+      ],
+      "rationale": "Database.processorId() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "d7a250b3353aaa47431ddee3af5065901f59ebabbbdebf146977e432f47f68d5",
+      "swift_targets": [
+        {
+          "path": "Database.processorId()",
+          "declaration": "static func processorId() throws(IDAError) -> Int32"
+        }
+      ]
+    },
+    {
+      "cpp_id": "00664fdf0bf8fcf853ca",
+      "cpp_name": "ida::database::processor_id_from_raw",
+      "cpp_kind": "function",
+      "cpp_signature": "std::optional<ProcessorId> (std::int32_t) noexcept",
+      "mapping": "direct",
+      "swift": [
+        "8d449a0304d7f489546f"
+      ],
+      "rationale": "Database.processorIdFromRaw(_:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws. Optional results preserve absence as nil.",
+      "cpp_fingerprint": "bbcccd2f4e26e6590e001a6dc9bbc7939b3a2b1d911b5a7d14aecb1bbf4d714f",
+      "swift_targets": [
+        {
+          "path": "Database.processorIdFromRaw(_:)",
+          "declaration": "static func processorIdFromRaw(_ value: Int32) -> Database.ProcessorId?"
+        }
+      ]
+    },
+    {
+      "cpp_id": "aa0213a944f157ebcb5c",
+      "cpp_name": "ida::database::processor_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "c75454b61a2909ed1da2"
+      ],
+      "rationale": "Database.processorName() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "8e9c8543f0bdb5327c8c7416ae55981e4d57d62cece2f92eb62ea71df08cae7e",
+      "swift_targets": [
+        {
+          "path": "Database.processorName()",
+          "declaration": "static func processorName() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "d5a7e0c75aecadc28a1c",
+      "cpp_name": "ida::database::processor_profile",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<ProcessorProfile> ()",
+      "mapping": "direct",
+      "swift": [
+        "2f00669e8c6492fb89ea"
+      ],
+      "rationale": "Database.processorProfile() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "e85d57a61d662bc7f2d5fb4ab370055e5a9324ac1b741667f27cde0ccd3fb17f",
+      "swift_targets": [
+        {
+          "path": "Database.processorProfile()",
+          "declaration": "static func processorProfile() throws(IDAError) -> Database.ProcessorProfile"
+        }
+      ]
+    },
+    {
+      "cpp_id": "082d9aef179fb9840cf0",
+      "cpp_name": "ida::database::save",
+      "cpp_kind": "function",
+      "cpp_signature": "Status ()",
+      "mapping": "direct",
+      "swift": [
+        "0158ce0c324e0546c0ca"
+      ],
+      "rationale": "Database.save() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f3a24fb7d075dce5875d24cde80367ae6085056883e333ebaf87494cf5ece250",
+      "swift_targets": [
+        {
+          "path": "Database.save()",
+          "declaration": "static func save() throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9f8baecf5d2e6233819d",
+      "cpp_name": "ida::database::save_to",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "309f8e8128bb1d3a2bb8"
+      ],
+      "rationale": "Database.saveTo(outputDatabasePath:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "f1ea71356583e7d767dbb79eb732fd7ed6023781acafcee0c254bf9357aa0f89",
+      "swift_targets": [
+        {
+          "path": "Database.saveTo(outputDatabasePath:)",
+          "declaration": "static func saveTo(outputDatabasePath: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "18ba6959f4c60ed9e222",
+      "cpp_name": "ida::database::set_address_bitness",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (int)",
+      "mapping": "direct",
+      "swift": [
+        "02fe45391859726a719f"
+      ],
+      "rationale": "Database.setAddressBitness(bits:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "50eaa293b995a2dc995a101d44321b3c9e6415ba9f0cc378d8e8191c350a2857",
+      "swift_targets": [
+        {
+          "path": "Database.setAddressBitness(bits:)",
+          "declaration": "static func setAddressBitness(bits: Int32) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "51d6660a9d334eaa96bc",
+      "cpp_name": "ida::database::set_snapshot_description",
+      "cpp_kind": "function",
+      "cpp_signature": "Status (std::string_view)",
+      "mapping": "direct",
+      "swift": [
+        "6cad500b6118a9afbbcd"
+      ],
+      "rationale": "Database.setSnapshotDescription(description:) performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "cfecb32ab8fa1f3c85e93a582559ede82d0cbcb1793e374626f92e4cffb07c43",
+      "swift_targets": [
+        {
+          "path": "Database.setSnapshotDescription(description:)",
+          "declaration": "static func setSnapshotDescription(description: String) throws(IDAError)"
+        }
+      ]
+    },
+    {
+      "cpp_id": "9c1790004bdecef6ce6c",
+      "cpp_name": "ida::database::snapshots",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<Snapshot>> ()",
+      "mapping": "direct",
+      "swift": [
+        "7398fb95307263c5840d"
+      ],
+      "rationale": "Database.snapshots() performs this operation with the reviewed parameter/result types; Result and Status failures become typed IDAError throws.",
+      "cpp_fingerprint": "17a0d1043a54ba59df6f2f7572b911aaf484d8e37cdcefd9f5294b2d57d0575d",
+      "swift_targets": [
+        {
+          "path": "Database.snapshots()",
+          "declaration": "static func snapshots() throws(IDAError) -> [Database.Snapshot]"
+        }
+      ]
+    }
+  ]
+}
