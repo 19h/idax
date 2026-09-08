@@ -82,6 +82,20 @@ public:
         return view_;
     }
 
+    PythonStatementView child(
+        ida::Result<ida::decompiler::StatementView> result,
+        std::string_view operation) const {
+        if (!state_->valid) (void)get(operation);
+        return PythonStatementView(unwrap(std::move(result)), state_);
+    }
+
+    PythonExpressionView child(
+        ida::Result<ida::decompiler::ExpressionView> result,
+        std::string_view operation) const {
+        if (!state_->valid) (void)get(operation);
+        return PythonExpressionView(unwrap(std::move(result)), state_);
+    }
+
 private:
     ida::decompiler::StatementView view_;
     std::shared_ptr<CtreeCallbackState> state_;
@@ -331,7 +345,10 @@ void bind_decompiler_ctree(py::module_& decompiler) {
         .def_readwrite("has_user_name", &ida::decompiler::LocalVariable::has_user_name)
         .def_readwrite("has_nice_name", &ida::decompiler::LocalVariable::has_nice_name)
         .def_readwrite("storage", &ida::decompiler::LocalVariable::storage)
-        .def_readwrite("comment", &ida::decompiler::LocalVariable::comment);
+        .def_readwrite("comment", &ida::decompiler::LocalVariable::comment)
+        .def_readwrite("stack_offset", &ida::decompiler::LocalVariable::stack_offset)
+        .def_readwrite("location", &ida::decompiler::LocalVariable::location)
+        .def_readwrite("processor_register_name", &ida::decompiler::LocalVariable::processor_register_name);
     IDAX_PY_DECOMPILER_CTREE_VALUE(LocalVariableUserSetting)
         .def_readwrite("locator", &ida::decompiler::LocalVariableUserSetting::locator)
         .def_readwrite("name", &ida::decompiler::LocalVariableUserSetting::name)
@@ -464,7 +481,46 @@ void bind_decompiler_ctree(py::module_& decompiler) {
         })
         .def("parents", [](const PythonStatementView& self) {
             return unwrap(self.get("parents").parents());
-        });
+        })
+        .def("condition", [](const PythonStatementView& self) {
+            return self.child(self.get("condition").condition(), "condition");
+        })
+        .def("then_branch", [](const PythonStatementView& self) {
+            return self.child(self.get("then_branch").then_branch(), "then_branch");
+        })
+        .def("else_branch", [](const PythonStatementView& self) {
+            return self.child(self.get("else_branch").else_branch(), "else_branch");
+        })
+        .def("body", [](const PythonStatementView& self) {
+            return self.child(self.get("body").body(), "body");
+        })
+        .def("init_expression", [](const PythonStatementView& self) {
+            return self.child(self.get("init_expression").init_expression(), "init_expression");
+        })
+        .def("step_expression", [](const PythonStatementView& self) {
+            return self.child(self.get("step_expression").step_expression(), "step_expression");
+        })
+        .def("expression", [](const PythonStatementView& self) {
+            return self.child(self.get("expression").expression(), "expression");
+        })
+        .def("block_statement", [](const PythonStatementView& self, std::size_t index) {
+            return self.child(self.get("block_statement").block_statement(index), "block_statement");
+        }, py::arg("index"))
+        .def("switch_case_body", [](const PythonStatementView& self, std::size_t index) {
+            return self.child(self.get("switch_case_body").switch_case_body(index), "switch_case_body");
+        }, py::arg("index"))
+        .def("block_size", [](const PythonStatementView& self) {
+            return unwrap(self.get("block_size").block_size());
+        })
+        .def("switch_case_count", [](const PythonStatementView& self) {
+            return unwrap(self.get("switch_case_count").switch_case_count());
+        })
+        .def_property_readonly("has_else_branch", [](const PythonStatementView& self) {
+            return self.get("has_else_branch").has_else_branch();
+        })
+        .def("switch_case_values", [](const PythonStatementView& self, std::size_t index) {
+            return unwrap(self.get("switch_case_values").switch_case_values(index));
+        }, py::arg("index"));
     py::class_<ida::decompiler::CtreeVisitor, PythonCtreeVisitor>(
         decompiler, "CtreeVisitor")
         .def(py::init<>())

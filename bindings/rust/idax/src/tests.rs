@@ -1410,6 +1410,13 @@ mod decompiler_tests {
             type_declaration: Some("int".to_string()),
             parent: Some(parent.clone()),
             parent_depth: 1,
+            parents: vec![parent.clone()],
+            left: None,
+            right: None,
+            third: None,
+            call_callee: None,
+            call_arguments: vec![],
+            operand_count: 0,
         };
         assert!(is_expression(expression.item_type));
         assert_eq!(expression.variable_index, Some(2));
@@ -1423,6 +1430,16 @@ mod decompiler_tests {
             address: 0x401020,
             parent: Some(parent),
             parent_depth: 2,
+            parents: vec![],
+            condition: None,
+            then_branch: None,
+            else_branch: None,
+            body: None,
+            init_expression: None,
+            step_expression: None,
+            expression: None,
+            block_statements: vec![],
+            switch_cases: vec![],
         };
         assert!(is_statement(statement.item_type));
         assert_eq!(statement.parent_depth, 2);

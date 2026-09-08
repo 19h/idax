@@ -25,6 +25,27 @@
   ],
   "domains": [
     {
+      "name": "dyld_cache",
+      "header": "include/ida/dyld_cache.hpp",
+      "status": "implemented",
+      "native_source": "dyld_cache_bind.cpp",
+      "bound_functions": [
+        "is_available",
+        "list_modules",
+        "load_branch_islands",
+        "load_branch_mappings",
+        "load_cache_data",
+        "load_dyld_header",
+        "load_gaps",
+        "load_global_offset_tables",
+        "load_module",
+        "load_section"
+      ],
+      "bound_types": [
+        "ModuleInfo"
+      ]
+    },
+    {
       "name": "address",
       "header": "include/ida/address.hpp",
       "status": "validated",
@@ -115,7 +136,7 @@
         "loader_format_name", "max_address", "memory_to_database", "min_address",
         "open", "open_binary", "open_non_binary", "processor", "processor_id",
         "processor_id_from_raw", "processor_name", "processor_profile", "save",
-        "set_address_bitness", "set_snapshot_description", "snapshots"
+        "save_to", "set_address_bitness", "set_snapshot_description", "snapshots"
       ],
       "bound_types": [
         "CompilerInfo", "ImportModule", "ImportSymbol", "LoadIntent",
@@ -184,13 +205,13 @@
         "ItemType", "LocalVariable", "LocalVariableLocationKind",
         "LocalVariableLocator", "LocalVariableUserSetting", "LvarSnapshot",
         "Maturity", "MaturityEvent", "MicrocodeApplyResult",
-        "MicrocodeArgumentFlag", "MicrocodeBlock", "MicrocodeCallOptions",
+        "MicrocodeArgumentFlag", "MicrocodeBlock", "MicrocodeBlockKind", "MicrocodeCallArgumentProperties", "MicrocodeCallOptions",
         "MicrocodeCallingConvention", "MicrocodeContext", "MicrocodeFilter",
         "MicrocodeFunction", "MicrocodeFunctionArgument", "MicrocodeFunctionRole",
         "MicrocodeGenerationOptions", "MicrocodeInsertPolicy",
         "MicrocodeInstruction", "MicrocodeLocationPart", "MicrocodeMaturity",
         "MicrocodeMemoryRange", "MicrocodeOpcode", "MicrocodeOperand",
-        "MicrocodeOperandKind", "MicrocodeRegisterRange", "MicrocodeValue",
+        "MicrocodeOperandKind", "MicrocodeRegisterRange", "MicrocodeSwitchCase", "MicrocodeValue",
         "MicrocodeValueKind", "MicrocodeValueLocation",
         "MicrocodeValueLocationKind", "PopulatingPopupEvent",
         "PseudocodeComment", "PseudocodeEvent", "ReferencedTypeCollection",
@@ -307,7 +328,7 @@
       "status": "validated",
       "native_source": "instruction_bind.cpp",
       "bound_functions": [
-        "call_targets", "clear_operand_representation", "code_refs_from",
+        "branch_condition", "call_targets", "clear_operand_representation", "code_refs_from",
         "create", "data_refs_from", "decode",
         "ensure_operand_struct_member_offset", "get_forced_operand",
         "has_fall_through", "is_call", "is_conditional_jump", "is_jump",
@@ -323,7 +344,7 @@
         "toggle_operand_sign"
       ],
       "bound_types": [
-        "Instruction", "Operand", "OperandEnum", "OperandFormat",
+        "BranchCondition", "Instruction", "Operand", "OperandEnum", "OperandFormat",
         "OperandType", "RegisterCategory", "StructOffsetPath"
       ]
     },
@@ -405,8 +426,8 @@
       "bound_functions": [
         "activate_action", "attach_to_menu", "attach_to_popup",
         "attach_to_toolbar", "decompiler_view_host", "detach_from_menu",
-        "detach_from_popup", "detach_from_toolbar", "register_action",
-        "register_hotkey", "unregister_action", "widget_host",
+        "detach_from_popup", "detach_from_toolbar", "is_plugin_available", "register_action",
+        "register_hotkey", "run_plugin", "unregister_action", "widget_host",
         "with_decompiler_view_host", "with_widget_host"
       ],
       "bound_types": [

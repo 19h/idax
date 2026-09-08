@@ -42,6 +42,8 @@ NAN_MODULE_INIT(InitAll) {
     InitUi(target);
     InitDecompiler(target);
     InitPath(target);
+    InitPlugin(target);
+    InitDyldCache(target);
 }
 
 NODE_MODULE(idax_native, InitAll)

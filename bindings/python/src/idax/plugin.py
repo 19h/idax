@@ -14,6 +14,8 @@ widget_host = _native.widget_host
 with_widget_host = _native.with_widget_host
 decompiler_view_host = _native.decompiler_view_host
 with_decompiler_view_host = _native.with_decompiler_view_host
+is_plugin_available = _native.is_plugin_available
+run_plugin = _native.run_plugin
 register_action = _native.register_action
 unregister_action = _native.unregister_action
 activate_action = _native.activate_action
@@ -26,6 +28,7 @@ detach_from_toolbar = _native.detach_from_toolbar
 detach_from_popup = _native.detach_from_popup
 
 __all__ = [
+    "is_plugin_available", "run_plugin",
     "Action", "ActionContext", "ExportFlags", "HostHandle", "Info", "Plugin",
     "ScopedHotkey", "TypeRef", "activate_action", "attach_to_menu",
     "attach_to_popup", "attach_to_toolbar", "decompiler_view_host",

@@ -52,6 +52,53 @@ class MicrocodeOpcode(Enum):
     INDIRECT_JUMP = ...
     RETURN = ...
     OTHER = ...
+    NEGATE = 27
+    LOGICAL_NOT = 28
+    BITWISE_NOT = 29
+    LOW_PART = 30
+    HIGH_PART = 31
+    UNSIGNED_DIVIDE = 32
+    SIGNED_DIVIDE = 33
+    UNSIGNED_REMAINDER = 34
+    SIGNED_REMAINDER = 35
+    CARRY_FROM_ADD = 36
+    OVERFLOW_FROM_ADD = 37
+    CARRY_FROM_SHIFT_LEFT = 38
+    CARRY_FROM_SHIFT_RIGHT = 39
+    SET_NEGATIVE = 40
+    SET_OVERFLOW = 41
+    SET_PARITY = 42
+    SET_NOT_EQUAL = 43
+    SET_EQUAL = 44
+    SET_GREATER_THAN_OR_EQUAL_UNSIGNED = 45
+    SET_LESS_THAN_UNSIGNED = 46
+    SET_GREATER_THAN_UNSIGNED = 47
+    SET_LESS_THAN_OR_EQUAL_UNSIGNED = 48
+    SET_GREATER_THAN_SIGNED = 49
+    SET_GREATER_THAN_OR_EQUAL_SIGNED = 50
+    SET_LESS_THAN_SIGNED = 51
+    SET_LESS_THAN_OR_EQUAL_SIGNED = 52
+    JUMP_IF_NONZERO = 53
+    JUMP_IF_NOT_EQUAL = 54
+    JUMP_IF_EQUAL = 55
+    JUMP_IF_GREATER_THAN_OR_EQUAL_UNSIGNED = 56
+    JUMP_IF_LESS_THAN_UNSIGNED = 57
+    JUMP_IF_GREATER_THAN_UNSIGNED = 58
+    JUMP_IF_LESS_THAN_OR_EQUAL_UNSIGNED = 59
+    JUMP_IF_GREATER_THAN_SIGNED = 60
+    JUMP_IF_GREATER_THAN_OR_EQUAL_SIGNED = 61
+    JUMP_IF_LESS_THAN_SIGNED = 62
+    JUMP_IF_LESS_THAN_OR_EQUAL_SIGNED = 63
+    JUMP_TABLE = 64
+    PUSH = 65
+    POP = 66
+    UNDEFINED = 67
+    EXTERNAL = 68
+    FLOAT_TO_SIGNED_INTEGER = 69
+    FLOAT_TO_UNSIGNED_INTEGER = 70
+    UNSIGNED_INTEGER_TO_FLOAT = 71
+    FLOAT_NEGATE = 72
+    LOAD_CONSTANT = 73
 
 class MicrocodeOperandKind(Enum):
     EMPTY = ...
@@ -70,6 +117,7 @@ class MicrocodeOperandKind(Enum):
     STRING_CONSTANT = ...
     FLOATING_POINT_CONSTANT = ...
     OTHER = ...
+    SWITCH_CASES = 16
 
 class MicrocodeMaturity(Enum):
     GENERATED = ...
@@ -340,6 +388,29 @@ class ScopedSubscription:
                  exception: BaseException | None,
                  traceback: TracebackType | None) -> bool: ...
 
+class MicrocodeBlockKind(Enum):
+    UNKNOWN = 0
+    EXIT = 1
+    NON_RETURNING = 2
+    SINGLE_SUCCESSOR = 3
+    CONDITIONAL = 4
+    SWITCH = 5
+    EXTERNAL = 6
+
+class MicrocodeSwitchCase:
+    value: int
+    target_block: int
+    def __init__(self) -> None: ...
+
+class MicrocodeCallArgumentProperties:
+    hidden: bool
+    return_value_pointer: bool
+    structure_argument: bool
+    array_argument: bool
+    unused: bool
+    swift_self: bool
+    def __init__(self) -> None: ...
+
 class MicrocodeOperand:
     kind: MicrocodeOperandKind
     register_id: int
@@ -360,6 +431,15 @@ class MicrocodeOperand:
     call_arguments: list[MicrocodeOperand]
     call_target: int
     text: str
+    string_constant: str
+    floating_point_constant: float | None
+    global_name: str
+    value_number: int | None
+    call_argument_properties: list[MicrocodeCallArgumentProperties]
+    call_return_operands: list[MicrocodeOperand]
+    call_return_registers: list[MicrocodeRegisterRange]
+    switch_cases: list[MicrocodeSwitchCase]
+    switch_default_target: int | None
     def __init__(self) -> None: ...
 
 class MicrocodeInstruction:
@@ -414,6 +494,7 @@ class MicrocodeBlock:
     predecessors: list[int]
     successors: list[int]
     instructions: list[MicrocodeInstruction]
+    kind: MicrocodeBlockKind
     def __init__(self) -> None: ...
 
 class MicrocodeFunction:
@@ -422,6 +503,11 @@ class MicrocodeFunction:
     arguments: list[MicrocodeFunctionArgument]
     return_location: MicrocodeValueLocation | None
     blocks: list[MicrocodeBlock]
+    stack_frame_size: int
+    local_stack_size: int
+    saved_register_size: int
+    return_variable_index: int | None
+    local_variables: list[LocalVariable]
     def __init__(self) -> None: ...
 
 class MicrocodeValue:
@@ -633,6 +719,9 @@ class LocalVariable:
     has_nice_name: bool
     storage: VariableStorage
     comment: str
+    stack_offset: int
+    location: MicrocodeValueLocation | None
+    processor_register_name: str | None
     def __init__(self) -> None: ...
 
 class LocalVariableUserSetting:
@@ -698,6 +787,20 @@ class StatementView:
     def goto_target_label(self) -> int: ...
     def parent(self) -> CtreeItemView | None: ...
     def parents(self) -> list[CtreeItemView]: ...
+    def condition(self) -> ExpressionView: ...
+    def init_expression(self) -> ExpressionView: ...
+    def step_expression(self) -> ExpressionView: ...
+    def expression(self) -> ExpressionView: ...
+    def then_branch(self) -> StatementView: ...
+    def else_branch(self) -> StatementView: ...
+    def body(self) -> StatementView: ...
+    def block_statement(self, index: int) -> StatementView: ...
+    def switch_case_body(self, index: int) -> StatementView: ...
+    def block_size(self) -> int: ...
+    def switch_case_count(self) -> int: ...
+    @property
+    def has_else_branch(self) -> bool: ...
+    def switch_case_values(self, index: int) -> list[int]: ...
 
 class CtreeVisitor:
     def __init__(self) -> None: ...

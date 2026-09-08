@@ -164,6 +164,53 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .value("INDIRECT_JUMP", ida::decompiler::MicrocodeOpcode::IndirectJump)
         .value("RETURN", ida::decompiler::MicrocodeOpcode::Return)
         .value("OTHER", ida::decompiler::MicrocodeOpcode::Other)
+        .value("NEGATE", ida::decompiler::MicrocodeOpcode::Negate)
+        .value("LOGICAL_NOT", ida::decompiler::MicrocodeOpcode::LogicalNot)
+        .value("BITWISE_NOT", ida::decompiler::MicrocodeOpcode::BitwiseNot)
+        .value("LOW_PART", ida::decompiler::MicrocodeOpcode::LowPart)
+        .value("HIGH_PART", ida::decompiler::MicrocodeOpcode::HighPart)
+        .value("UNSIGNED_DIVIDE", ida::decompiler::MicrocodeOpcode::UnsignedDivide)
+        .value("SIGNED_DIVIDE", ida::decompiler::MicrocodeOpcode::SignedDivide)
+        .value("UNSIGNED_REMAINDER", ida::decompiler::MicrocodeOpcode::UnsignedRemainder)
+        .value("SIGNED_REMAINDER", ida::decompiler::MicrocodeOpcode::SignedRemainder)
+        .value("CARRY_FROM_ADD", ida::decompiler::MicrocodeOpcode::CarryFromAdd)
+        .value("OVERFLOW_FROM_ADD", ida::decompiler::MicrocodeOpcode::OverflowFromAdd)
+        .value("CARRY_FROM_SHIFT_LEFT", ida::decompiler::MicrocodeOpcode::CarryFromShiftLeft)
+        .value("CARRY_FROM_SHIFT_RIGHT", ida::decompiler::MicrocodeOpcode::CarryFromShiftRight)
+        .value("SET_NEGATIVE", ida::decompiler::MicrocodeOpcode::SetNegative)
+        .value("SET_OVERFLOW", ida::decompiler::MicrocodeOpcode::SetOverflow)
+        .value("SET_PARITY", ida::decompiler::MicrocodeOpcode::SetParity)
+        .value("SET_NOT_EQUAL", ida::decompiler::MicrocodeOpcode::SetNotEqual)
+        .value("SET_EQUAL", ida::decompiler::MicrocodeOpcode::SetEqual)
+        .value("SET_GREATER_THAN_OR_EQUAL_UNSIGNED", ida::decompiler::MicrocodeOpcode::SetGreaterThanOrEqualUnsigned)
+        .value("SET_LESS_THAN_UNSIGNED", ida::decompiler::MicrocodeOpcode::SetLessThanUnsigned)
+        .value("SET_GREATER_THAN_UNSIGNED", ida::decompiler::MicrocodeOpcode::SetGreaterThanUnsigned)
+        .value("SET_LESS_THAN_OR_EQUAL_UNSIGNED", ida::decompiler::MicrocodeOpcode::SetLessThanOrEqualUnsigned)
+        .value("SET_GREATER_THAN_SIGNED", ida::decompiler::MicrocodeOpcode::SetGreaterThanSigned)
+        .value("SET_GREATER_THAN_OR_EQUAL_SIGNED", ida::decompiler::MicrocodeOpcode::SetGreaterThanOrEqualSigned)
+        .value("SET_LESS_THAN_SIGNED", ida::decompiler::MicrocodeOpcode::SetLessThanSigned)
+        .value("SET_LESS_THAN_OR_EQUAL_SIGNED", ida::decompiler::MicrocodeOpcode::SetLessThanOrEqualSigned)
+        .value("JUMP_IF_NONZERO", ida::decompiler::MicrocodeOpcode::JumpIfNonzero)
+        .value("JUMP_IF_NOT_EQUAL", ida::decompiler::MicrocodeOpcode::JumpIfNotEqual)
+        .value("JUMP_IF_EQUAL", ida::decompiler::MicrocodeOpcode::JumpIfEqual)
+        .value("JUMP_IF_GREATER_THAN_OR_EQUAL_UNSIGNED", ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanOrEqualUnsigned)
+        .value("JUMP_IF_LESS_THAN_UNSIGNED", ida::decompiler::MicrocodeOpcode::JumpIfLessThanUnsigned)
+        .value("JUMP_IF_GREATER_THAN_UNSIGNED", ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanUnsigned)
+        .value("JUMP_IF_LESS_THAN_OR_EQUAL_UNSIGNED", ida::decompiler::MicrocodeOpcode::JumpIfLessThanOrEqualUnsigned)
+        .value("JUMP_IF_GREATER_THAN_SIGNED", ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanSigned)
+        .value("JUMP_IF_GREATER_THAN_OR_EQUAL_SIGNED", ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanOrEqualSigned)
+        .value("JUMP_IF_LESS_THAN_SIGNED", ida::decompiler::MicrocodeOpcode::JumpIfLessThanSigned)
+        .value("JUMP_IF_LESS_THAN_OR_EQUAL_SIGNED", ida::decompiler::MicrocodeOpcode::JumpIfLessThanOrEqualSigned)
+        .value("JUMP_TABLE", ida::decompiler::MicrocodeOpcode::JumpTable)
+        .value("PUSH", ida::decompiler::MicrocodeOpcode::Push)
+        .value("POP", ida::decompiler::MicrocodeOpcode::Pop)
+        .value("UNDEFINED", ida::decompiler::MicrocodeOpcode::Undefined)
+        .value("EXTERNAL", ida::decompiler::MicrocodeOpcode::External)
+        .value("FLOAT_TO_SIGNED_INTEGER", ida::decompiler::MicrocodeOpcode::FloatToSignedInteger)
+        .value("FLOAT_TO_UNSIGNED_INTEGER", ida::decompiler::MicrocodeOpcode::FloatToUnsignedInteger)
+        .value("UNSIGNED_INTEGER_TO_FLOAT", ida::decompiler::MicrocodeOpcode::UnsignedIntegerToFloat)
+        .value("FLOAT_NEGATE", ida::decompiler::MicrocodeOpcode::FloatNegate)
+        .value("LOAD_CONSTANT", ida::decompiler::MicrocodeOpcode::LoadConstant)
         .finalize();
     py::native_enum<ida::decompiler::MicrocodeOperandKind>(
         decompiler, "MicrocodeOperandKind", "enum.Enum")
@@ -183,6 +230,7 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .value("STRING_CONSTANT", ida::decompiler::MicrocodeOperandKind::StringConstant)
         .value("FLOATING_POINT_CONSTANT", ida::decompiler::MicrocodeOperandKind::FloatingPointConstant)
         .value("OTHER", ida::decompiler::MicrocodeOperandKind::Other)
+        .value("SWITCH_CASES", ida::decompiler::MicrocodeOperandKind::SwitchCases)
         .finalize();
     py::native_enum<ida::decompiler::MicrocodeMaturity>(
         decompiler, "MicrocodeMaturity", "enum.Enum")
@@ -291,6 +339,29 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .value("SSE_COMPARE8", ida::decompiler::MicrocodeFunctionRole::SseCompare8)
         .finalize();
 
+    py::native_enum<ida::decompiler::MicrocodeBlockKind>(
+        decompiler, "MicrocodeBlockKind", "enum.Enum")
+        .value("UNKNOWN", ida::decompiler::MicrocodeBlockKind::Unknown)
+        .value("EXIT", ida::decompiler::MicrocodeBlockKind::Exit)
+        .value("NON_RETURNING", ida::decompiler::MicrocodeBlockKind::NonReturning)
+        .value("SINGLE_SUCCESSOR", ida::decompiler::MicrocodeBlockKind::SingleSuccessor)
+        .value("CONDITIONAL", ida::decompiler::MicrocodeBlockKind::Conditional)
+        .value("SWITCH", ida::decompiler::MicrocodeBlockKind::Switch)
+        .value("EXTERNAL", ida::decompiler::MicrocodeBlockKind::External)
+        .finalize();
+    py::class_<ida::decompiler::MicrocodeSwitchCase>(decompiler, "MicrocodeSwitchCase")
+        .def(py::init<>())
+        .def_readwrite("value", &ida::decompiler::MicrocodeSwitchCase::value)
+        .def_readwrite("target_block", &ida::decompiler::MicrocodeSwitchCase::target_block);
+    py::class_<ida::decompiler::MicrocodeCallArgumentProperties>(decompiler, "MicrocodeCallArgumentProperties")
+        .def(py::init<>())
+        .def_readwrite("hidden", &ida::decompiler::MicrocodeCallArgumentProperties::hidden)
+        .def_readwrite("return_value_pointer", &ida::decompiler::MicrocodeCallArgumentProperties::return_value_pointer)
+        .def_readwrite("structure_argument", &ida::decompiler::MicrocodeCallArgumentProperties::structure_argument)
+        .def_readwrite("array_argument", &ida::decompiler::MicrocodeCallArgumentProperties::array_argument)
+        .def_readwrite("unused", &ida::decompiler::MicrocodeCallArgumentProperties::unused)
+        .def_readwrite("swift_self", &ida::decompiler::MicrocodeCallArgumentProperties::swift_self);
+
     py::class_<ida::decompiler::MicrocodeOperand,
                std::shared_ptr<ida::decompiler::MicrocodeOperand>>(
         decompiler, "MicrocodeOperand")
@@ -313,7 +384,16 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .def_readwrite("referenced_operand", &ida::decompiler::MicrocodeOperand::referenced_operand)
         .def_readwrite("call_arguments", &ida::decompiler::MicrocodeOperand::call_arguments)
         .def_readwrite("call_target", &ida::decompiler::MicrocodeOperand::call_target)
-        .def_readwrite("text", &ida::decompiler::MicrocodeOperand::text);
+        .def_readwrite("text", &ida::decompiler::MicrocodeOperand::text)
+        .def_readwrite("string_constant", &ida::decompiler::MicrocodeOperand::string_constant)
+        .def_readwrite("floating_point_constant", &ida::decompiler::MicrocodeOperand::floating_point_constant)
+        .def_readwrite("global_name", &ida::decompiler::MicrocodeOperand::global_name)
+        .def_readwrite("value_number", &ida::decompiler::MicrocodeOperand::value_number)
+        .def_readwrite("call_argument_properties", &ida::decompiler::MicrocodeOperand::call_argument_properties)
+        .def_readwrite("call_return_operands", &ida::decompiler::MicrocodeOperand::call_return_operands)
+        .def_readwrite("call_return_registers", &ida::decompiler::MicrocodeOperand::call_return_registers)
+        .def_readwrite("switch_cases", &ida::decompiler::MicrocodeOperand::switch_cases)
+        .def_readwrite("switch_default_target", &ida::decompiler::MicrocodeOperand::switch_default_target);
     py::class_<ida::decompiler::MicrocodeInstruction,
                std::shared_ptr<ida::decompiler::MicrocodeInstruction>>(
         decompiler, "MicrocodeInstruction")
@@ -361,13 +441,19 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .def_readwrite("end_address", &ida::decompiler::MicrocodeBlock::end_address)
         .def_readwrite("predecessors", &ida::decompiler::MicrocodeBlock::predecessors)
         .def_readwrite("successors", &ida::decompiler::MicrocodeBlock::successors)
-        .def_readwrite("instructions", &ida::decompiler::MicrocodeBlock::instructions);
+        .def_readwrite("instructions", &ida::decompiler::MicrocodeBlock::instructions)
+        .def_readwrite("kind", &ida::decompiler::MicrocodeBlock::kind);
     IDAX_PY_DECOMPILER_VALUE(MicrocodeFunction)
         .def_readwrite("entry_address", &ida::decompiler::MicrocodeFunction::entry_address)
         .def_readwrite("maturity", &ida::decompiler::MicrocodeFunction::maturity)
         .def_readwrite("arguments", &ida::decompiler::MicrocodeFunction::arguments)
         .def_readwrite("return_location", &ida::decompiler::MicrocodeFunction::return_location)
-        .def_readwrite("blocks", &ida::decompiler::MicrocodeFunction::blocks);
+        .def_readwrite("blocks", &ida::decompiler::MicrocodeFunction::blocks)
+        .def_readwrite("stack_frame_size", &ida::decompiler::MicrocodeFunction::stack_frame_size)
+        .def_readwrite("local_stack_size", &ida::decompiler::MicrocodeFunction::local_stack_size)
+        .def_readwrite("saved_register_size", &ida::decompiler::MicrocodeFunction::saved_register_size)
+        .def_readwrite("return_variable_index", &ida::decompiler::MicrocodeFunction::return_variable_index)
+        .def_readwrite("local_variables", &ida::decompiler::MicrocodeFunction::local_variables);
     IDAX_PY_DECOMPILER_VALUE(MicrocodeValue)
         .def_readwrite("kind", &ida::decompiler::MicrocodeValue::kind)
         .def_readwrite("register_id", &ida::decompiler::MicrocodeValue::register_id)

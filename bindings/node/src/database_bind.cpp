@@ -158,6 +158,12 @@ NAN_METHOD(OpenNonBinary) {
     IDAX_CHECK_STATUS(ida::database::open_non_binary(path, mode));
 }
 
+NAN_METHOD(SaveTo) {
+    std::string path;
+    if (!GetStringArg(info, 0, path)) return;
+    IDAX_CHECK_STATUS(ida::database::save_to(path));
+}
+
 NAN_METHOD(Save) {
     IDAX_CHECK_STATUS(ida::database::save());
 }
@@ -451,6 +457,7 @@ void InitDatabase(v8::Local<v8::Object> target) {
     SetMethod(ns, "openBinary",       OpenBinary);
     SetMethod(ns, "openNonBinary",    OpenNonBinary);
     SetMethod(ns, "save",             Save);
+    SetMethod(ns, "saveTo", SaveTo);
     SetMethod(ns, "close",            Close);
     SetMethod(ns, "fileToDatabase",   FileToDatabase);
     SetMethod(ns, "memoryToDatabase", MemoryToDatabase);

@@ -121,6 +121,13 @@ void* make_plugin_export(PluginFactory factory,
 
 } // namespace detail
 
+/// Whether the named plugin occurs in IDA's registered plugin inventory.
+/// Does not load or execute the plugin. Empty/NUL-containing names are absent.
+bool is_plugin_available(std::string_view plugin_name);
+
+/// Load and run a plugin by its registered module name.
+Status run_plugin(std::string_view plugin_name, std::size_t argument = 0);
+
 // ── Action registration ─────────────────────────────────────────────────
 
 /// Activation/update context provided to action callbacks.

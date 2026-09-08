@@ -107,6 +107,7 @@ void bind_debugger(py::module_& module);
 void bind_graph(py::module_& module);
 void bind_decompiler(py::module_& module);
 void bind_plugin(py::module_& module);
+void bind_dyld_cache(py::module_& module);
 void bind_loader(py::module_& module);
 void bind_processor(py::module_& module);
 void bind_ui(py::module_& module);

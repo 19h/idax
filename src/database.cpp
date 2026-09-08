@@ -39,7 +39,20 @@ int idaapi collect_import_symbol(ea_t address,
 // ── Save (available in plugin context via libida) ───────────────────────
 
 Status save() {
-    save_database(nullptr, 0);
+    if (!::save_database(nullptr, 0))
+        return std::unexpected(Error::sdk("Database save failed"));
+    return ida::ok();
+}
+
+Status save_to(std::string_view output_database_path) {
+    if (output_database_path.empty()
+        || output_database_path.find('\0') != std::string_view::npos) {
+        return std::unexpected(Error::validation(
+            "Output database path must be nonempty and contain no NUL"));
+    }
+    const std::string path(output_database_path);
+    if (!::save_database(path.c_str(), 0))
+        return std::unexpected(Error::sdk("Database save failed", path));
     return ida::ok();
 }
 

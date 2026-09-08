@@ -9,6 +9,7 @@ use crate::instruction;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString, c_char, c_void};
 use std::mem::MaybeUninit;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Mutex, OnceLock};
 
 pub type Token = u64;
@@ -253,6 +254,53 @@ pub enum MicrocodeOpcode {
     IndirectJump = 24,
     Return = 25,
     Other = 26,
+    Negate = 27,
+    LogicalNot = 28,
+    BitwiseNot = 29,
+    LowPart = 30,
+    HighPart = 31,
+    UnsignedDivide = 32,
+    SignedDivide = 33,
+    UnsignedRemainder = 34,
+    SignedRemainder = 35,
+    CarryFromAdd = 36,
+    OverflowFromAdd = 37,
+    CarryFromShiftLeft = 38,
+    CarryFromShiftRight = 39,
+    SetNegative = 40,
+    SetOverflow = 41,
+    SetParity = 42,
+    SetNotEqual = 43,
+    SetEqual = 44,
+    SetGreaterThanOrEqualUnsigned = 45,
+    SetLessThanUnsigned = 46,
+    SetGreaterThanUnsigned = 47,
+    SetLessThanOrEqualUnsigned = 48,
+    SetGreaterThanSigned = 49,
+    SetGreaterThanOrEqualSigned = 50,
+    SetLessThanSigned = 51,
+    SetLessThanOrEqualSigned = 52,
+    JumpIfNonzero = 53,
+    JumpIfNotEqual = 54,
+    JumpIfEqual = 55,
+    JumpIfGreaterThanOrEqualUnsigned = 56,
+    JumpIfLessThanUnsigned = 57,
+    JumpIfGreaterThanUnsigned = 58,
+    JumpIfLessThanOrEqualUnsigned = 59,
+    JumpIfGreaterThanSigned = 60,
+    JumpIfGreaterThanOrEqualSigned = 61,
+    JumpIfLessThanSigned = 62,
+    JumpIfLessThanOrEqualSigned = 63,
+    JumpTable = 64,
+    Push = 65,
+    Pop = 66,
+    Undefined = 67,
+    External = 68,
+    FloatToSignedInteger = 69,
+    FloatToUnsignedInteger = 70,
+    UnsignedIntegerToFloat = 71,
+    FloatNegate = 72,
+    LoadConstant = 73,
 }
 
 impl MicrocodeOpcode {
@@ -284,6 +332,53 @@ impl MicrocodeOpcode {
             23 => Self::Goto,
             24 => Self::IndirectJump,
             25 => Self::Return,
+            27 => Self::Negate,
+            28 => Self::LogicalNot,
+            29 => Self::BitwiseNot,
+            30 => Self::LowPart,
+            31 => Self::HighPart,
+            32 => Self::UnsignedDivide,
+            33 => Self::SignedDivide,
+            34 => Self::UnsignedRemainder,
+            35 => Self::SignedRemainder,
+            36 => Self::CarryFromAdd,
+            37 => Self::OverflowFromAdd,
+            38 => Self::CarryFromShiftLeft,
+            39 => Self::CarryFromShiftRight,
+            40 => Self::SetNegative,
+            41 => Self::SetOverflow,
+            42 => Self::SetParity,
+            43 => Self::SetNotEqual,
+            44 => Self::SetEqual,
+            45 => Self::SetGreaterThanOrEqualUnsigned,
+            46 => Self::SetLessThanUnsigned,
+            47 => Self::SetGreaterThanUnsigned,
+            48 => Self::SetLessThanOrEqualUnsigned,
+            49 => Self::SetGreaterThanSigned,
+            50 => Self::SetGreaterThanOrEqualSigned,
+            51 => Self::SetLessThanSigned,
+            52 => Self::SetLessThanOrEqualSigned,
+            53 => Self::JumpIfNonzero,
+            54 => Self::JumpIfNotEqual,
+            55 => Self::JumpIfEqual,
+            56 => Self::JumpIfGreaterThanOrEqualUnsigned,
+            57 => Self::JumpIfLessThanUnsigned,
+            58 => Self::JumpIfGreaterThanUnsigned,
+            59 => Self::JumpIfLessThanOrEqualUnsigned,
+            60 => Self::JumpIfGreaterThanSigned,
+            61 => Self::JumpIfGreaterThanOrEqualSigned,
+            62 => Self::JumpIfLessThanSigned,
+            63 => Self::JumpIfLessThanOrEqualSigned,
+            64 => Self::JumpTable,
+            65 => Self::Push,
+            66 => Self::Pop,
+            67 => Self::Undefined,
+            68 => Self::External,
+            69 => Self::FloatToSignedInteger,
+            70 => Self::FloatToUnsignedInteger,
+            71 => Self::UnsignedIntegerToFloat,
+            72 => Self::FloatNegate,
+            73 => Self::LoadConstant,
             _ => Self::Other,
         }
     }
@@ -308,6 +403,7 @@ pub enum MicrocodeOperandKind {
     StringConstant = 13,
     FloatingPointConstant = 14,
     Other = 15,
+    SwitchCases = 16,
 }
 
 impl MicrocodeOperandKind {
@@ -328,9 +424,32 @@ impl MicrocodeOperandKind {
             12 => Self::CallArguments,
             13 => Self::StringConstant,
             14 => Self::FloatingPointConstant,
+            16 => Self::SwitchCases,
             _ => Self::Other,
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeRegisterRange {
+    pub register_id: i32,
+    pub byte_width: i32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeSwitchCase {
+    pub value: i64,
+    pub target_block: i32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MicrocodeCallArgumentProperties {
+    pub hidden: bool,
+    pub return_value_pointer: bool,
+    pub structure_argument: bool,
+    pub array_argument: bool,
+    pub unused: bool,
+    pub swift_self: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -354,6 +473,15 @@ pub struct MicrocodeOperand {
     pub call_arguments: Vec<MicrocodeOperand>,
     pub call_target: Address,
     pub text: String,
+    pub string_constant: String,
+    pub floating_point_constant: Option<f64>,
+    pub global_name: String,
+    pub value_number: Option<u16>,
+    pub call_argument_properties: Vec<MicrocodeCallArgumentProperties>,
+    pub call_return_operands: Vec<MicrocodeOperand>,
+    pub call_return_registers: Vec<MicrocodeRegisterRange>,
+    pub switch_cases: Vec<MicrocodeSwitchCase>,
+    pub switch_default_target: Option<i32>,
 }
 
 #[derive(Debug, Clone)]
@@ -483,6 +611,33 @@ pub struct MicrocodeFunctionArgument {
     pub byte_width: i32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum MicrocodeBlockKind {
+    Unknown = 0,
+    Exit = 1,
+    NonReturning = 2,
+    SingleSuccessor = 3,
+    Conditional = 4,
+    Switch = 5,
+    External = 6,
+}
+
+impl MicrocodeBlockKind {
+    fn from_raw(raw: i32) -> Self {
+        match raw {
+            0 => Self::Unknown,
+            1 => Self::Exit,
+            2 => Self::NonReturning,
+            3 => Self::SingleSuccessor,
+            4 => Self::Conditional,
+            5 => Self::Switch,
+            6 => Self::External,
+            _ => Self::Unknown,
+        }
+    }
+}
+
 /// One copied microcode basic block.
 #[derive(Debug, Clone)]
 pub struct MicrocodeBlock {
@@ -492,6 +647,7 @@ pub struct MicrocodeBlock {
     pub predecessors: Vec<i32>,
     pub successors: Vec<i32>,
     pub instructions: Vec<MicrocodeInstruction>,
+    pub kind: MicrocodeBlockKind,
 }
 
 /// Complete SDK-independent snapshot of one function-level microcode graph.
@@ -502,6 +658,11 @@ pub struct MicrocodeFunction {
     pub arguments: Vec<MicrocodeFunctionArgument>,
     pub return_location: Option<MicrocodeValueLocation>,
     pub blocks: Vec<MicrocodeBlock>,
+    pub stack_frame_size: i64,
+    pub local_stack_size: i64,
+    pub saved_register_size: i64,
+    pub return_variable_index: Option<usize>,
+    pub local_variables: Vec<LocalVariable>,
 }
 
 #[derive(Debug)]
@@ -703,6 +864,25 @@ pub struct HintResult {
     pub lines: i32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum VariableStorage {
+    Unknown = 0,
+    Register = 1,
+    Stack = 2,
+}
+
+impl VariableStorage {
+    fn from_raw(raw: i32) -> Self {
+        match raw {
+            0 => Self::Unknown,
+            1 => Self::Register,
+            2 => Self::Stack,
+            _ => Self::Unknown,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct LocalVariable {
     pub index: usize,
@@ -711,7 +891,12 @@ pub struct LocalVariable {
     pub is_argument: bool,
     pub width: i32,
     pub has_user_name: bool,
+    pub has_nice_name: bool,
     pub comment: String,
+    pub storage: VariableStorage,
+    pub stack_offset: i64,
+    pub location: Option<MicrocodeValueLocation>,
+    pub processor_register_name: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -723,6 +908,20 @@ pub struct ExpressionInfo {
     pub type_declaration: Option<String>,
     pub parent: Option<CtreeItemInfo>,
     pub parent_depth: usize,
+    pub parents: Vec<CtreeItemInfo>,
+    pub left: Option<CtreeItemInfo>,
+    pub right: Option<CtreeItemInfo>,
+    pub third: Option<CtreeItemInfo>,
+    pub call_callee: Option<CtreeItemInfo>,
+    pub call_arguments: Vec<CtreeItemInfo>,
+    pub operand_count: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct SwitchCaseInfo {
+    /// Empty values identify a default case. Unsigned values preserve bit patterns.
+    pub values: Vec<u64>,
+    pub body: CtreeItemInfo,
 }
 
 #[derive(Debug, Clone)]
@@ -731,6 +930,16 @@ pub struct StatementInfo {
     pub address: Address,
     pub parent: Option<CtreeItemInfo>,
     pub parent_depth: usize,
+    pub parents: Vec<CtreeItemInfo>,
+    pub condition: Option<CtreeItemInfo>,
+    pub then_branch: Option<CtreeItemInfo>,
+    pub else_branch: Option<CtreeItemInfo>,
+    pub body: Option<CtreeItemInfo>,
+    pub init_expression: Option<CtreeItemInfo>,
+    pub step_expression: Option<CtreeItemInfo>,
+    pub expression: Option<CtreeItemInfo>,
+    pub block_statements: Vec<CtreeItemInfo>,
+    pub switch_cases: Vec<SwitchCaseInfo>,
 }
 
 #[derive(Debug, Clone)]
@@ -934,13 +1143,10 @@ impl DecompiledFunction {
                 return Ok(Vec::new());
             }
 
-            let mut out = Vec::with_capacity(count);
-            let slice = std::slice::from_raw_parts(ptr, count);
-            for raw in slice {
-                out.push(local_variable_from_raw(raw));
-            }
+            let result = checked_ffi_slice(ptr, count, "local variables")
+                .and_then(|slice| slice.iter().map(local_variable_from_raw).collect());
             idax_sys::idax_decompiled_variables_free(ptr, count);
-            Ok(out)
+            result
         }
     }
 
@@ -953,7 +1159,7 @@ impl DecompiledFunction {
             }
             let out = local_variable_from_raw(&raw);
             idax_sys::idax_local_variable_free(&mut raw);
-            Ok(out)
+            out
         }
     }
 
@@ -1126,6 +1332,7 @@ impl DecompiledFunction {
     {
         let mut boxed = Box::new(ExpressionVisitorContext {
             callback: Box::new(callback),
+            error: None,
         });
         let mut visited: i32 = 0;
         let ret = unsafe {
@@ -1136,7 +1343,9 @@ impl DecompiledFunction {
                 &mut visited,
             )
         };
-        if ret != 0 {
+        if let Some(error) = boxed.error.take() {
+            Err(error)
+        } else if ret != 0 {
             Err(error::consume_last_error("for_each_expression failed"))
         } else {
             Ok(visited)
@@ -1151,6 +1360,7 @@ impl DecompiledFunction {
         let mut boxed = Box::new(ItemVisitorContext {
             on_expr: Box::new(on_expr),
             on_stmt: Box::new(on_stmt),
+            error: None,
         });
         let mut visited: i32 = 0;
         let ret = unsafe {
@@ -1162,7 +1372,9 @@ impl DecompiledFunction {
                 &mut visited,
             )
         };
-        if ret != 0 {
+        if let Some(error) = boxed.error.take() {
+            Err(error)
+        } else if ret != 0 {
             Err(error::consume_last_error("for_each_item failed"))
         } else {
             Ok(visited)
@@ -1360,10 +1572,12 @@ unsafe extern "C" fn populating_popup_trampoline(
 
 struct ExpressionVisitorContext {
     callback: Box<dyn FnMut(ExpressionInfo) -> VisitAction>,
+    error: Option<Error>,
 }
 
 struct ItemVisitorContext {
     on_expr: Box<dyn FnMut(ExpressionInfo) -> VisitAction>,
+    error: Option<Error>,
     on_stmt: Box<dyn FnMut(StatementInfo) -> VisitAction>,
 }
 
@@ -1376,7 +1590,22 @@ unsafe extern "C" fn expression_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ExpressionVisitorContext) };
     let raw = unsafe { &*expression };
-    (ctx.callback)(expression_info_from_raw(raw)) as i32
+    if ctx.error.is_some() {
+        return VisitAction::Stop as i32;
+    }
+    match catch_unwind(AssertUnwindSafe(|| {
+        expression_info_from_raw(raw).map(|info| (ctx.callback)(info))
+    })) {
+        Ok(Ok(action)) => action as i32,
+        Ok(Err(error)) => {
+            ctx.error = Some(error);
+            VisitAction::Stop as i32
+        }
+        Err(_) => {
+            ctx.error = Some(Error::internal("ctree visitor panicked"));
+            VisitAction::Stop as i32
+        }
+    }
 }
 
 unsafe extern "C" fn item_expr_visitor_trampoline(
@@ -1388,7 +1617,22 @@ unsafe extern "C" fn item_expr_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ItemVisitorContext) };
     let raw = unsafe { &*expression };
-    (ctx.on_expr)(expression_info_from_raw(raw)) as i32
+    if ctx.error.is_some() {
+        return VisitAction::Stop as i32;
+    }
+    match catch_unwind(AssertUnwindSafe(|| {
+        expression_info_from_raw(raw).map(|info| (ctx.on_expr)(info))
+    })) {
+        Ok(Ok(action)) => action as i32,
+        Ok(Err(error)) => {
+            ctx.error = Some(error);
+            VisitAction::Stop as i32
+        }
+        Err(_) => {
+            ctx.error = Some(Error::internal("ctree visitor panicked"));
+            VisitAction::Stop as i32
+        }
+    }
 }
 
 unsafe extern "C" fn item_stmt_visitor_trampoline(
@@ -1400,7 +1644,22 @@ unsafe extern "C" fn item_stmt_visitor_trampoline(
     }
     let ctx = unsafe { &mut *(context as *mut ItemVisitorContext) };
     let raw = unsafe { &*statement };
-    (ctx.on_stmt)(statement_info_from_raw(raw)) as i32
+    if ctx.error.is_some() {
+        return VisitAction::Stop as i32;
+    }
+    match catch_unwind(AssertUnwindSafe(|| {
+        statement_info_from_raw(raw).map(|info| (ctx.on_stmt)(info))
+    })) {
+        Ok(Ok(action)) => action as i32,
+        Ok(Err(error)) => {
+            ctx.error = Some(error);
+            VisitAction::Stop as i32
+        }
+        Err(_) => {
+            ctx.error = Some(Error::internal("ctree visitor panicked"));
+            VisitAction::Stop as i32
+        }
+    }
 }
 
 struct MicrocodeFilterContext {
@@ -2064,6 +2323,55 @@ unsafe fn microcode_operand_from_ffi(
         call_arguments.push(unsafe { microcode_operand_from_ffi(argument)? });
     }
 
+    let mut call_return_operands = Vec::new();
+    for operand in unsafe {
+        checked_ffi_slice(
+            raw.call_return_operands,
+            raw.call_return_operand_count,
+            "call return operands",
+        )?
+    } {
+        call_return_operands.push(unsafe { microcode_operand_from_ffi(operand)? });
+    }
+    let call_argument_properties = unsafe {
+        checked_ffi_slice(
+            raw.call_argument_properties,
+            raw.call_argument_property_count,
+            "call argument properties",
+        )?
+    }
+    .iter()
+    .map(|item| MicrocodeCallArgumentProperties {
+        hidden: item.hidden != 0,
+        return_value_pointer: item.return_value_pointer != 0,
+        structure_argument: item.structure_argument != 0,
+        array_argument: item.array_argument != 0,
+        unused: item.unused != 0,
+        swift_self: item.swift_self != 0,
+    })
+    .collect();
+    let call_return_registers = unsafe {
+        checked_ffi_slice(
+            raw.call_return_registers,
+            raw.call_return_register_count,
+            "call return registers",
+        )?
+    }
+    .iter()
+    .map(|item| MicrocodeRegisterRange {
+        register_id: item.register_id,
+        byte_width: item.byte_width,
+    })
+    .collect();
+    let switch_cases =
+        unsafe { checked_ffi_slice(raw.switch_cases, raw.switch_case_count, "switch cases")? }
+            .iter()
+            .map(|item| MicrocodeSwitchCase {
+                value: item.value,
+                target_block: item.target_block,
+            })
+            .collect();
+
     Ok(MicrocodeOperand {
         kind: MicrocodeOperandKind::from_raw(raw.kind),
         register_id: raw.register_id,
@@ -2084,6 +2392,17 @@ unsafe fn microcode_operand_from_ffi(
         call_arguments,
         call_target: raw.call_target,
         text: cstr_opt(raw.text),
+        string_constant: cstr_opt(raw.string_constant),
+        floating_point_constant: (raw.has_floating_point_constant != 0)
+            .then_some(raw.floating_point_constant),
+        global_name: cstr_opt(raw.global_name),
+        value_number: (raw.has_value_number != 0).then_some(raw.value_number),
+        call_argument_properties,
+        call_return_operands,
+        call_return_registers,
+        switch_cases,
+        switch_default_target: (raw.has_switch_default_target != 0)
+            .then_some(raw.switch_default_target),
     })
 }
 
@@ -2214,6 +2533,7 @@ unsafe fn microcode_function_from_ffi(
         }
         blocks.push(MicrocodeBlock {
             index: block.index,
+            kind: MicrocodeBlockKind::from_raw(block.kind),
             start_address: block.start_address,
             end_address: block.end_address,
             predecessors,
@@ -2222,12 +2542,29 @@ unsafe fn microcode_function_from_ffi(
         });
     }
 
+    let local_variables = unsafe {
+        checked_ffi_slice(
+            raw.local_variables,
+            raw.local_variable_count,
+            "microcode local variables",
+        )?
+    }
+    .iter()
+    .map(local_variable_from_raw)
+    .collect::<Result<Vec<_>>>()?;
+
     Ok(MicrocodeFunction {
         entry_address: raw.entry_address,
         maturity: MicrocodeMaturity::from_raw(raw.maturity)?,
         arguments,
         return_location,
         blocks,
+        stack_frame_size: raw.stack_frame_size,
+        local_stack_size: raw.local_stack_size,
+        saved_register_size: raw.saved_register_size,
+        return_variable_index: (raw.has_return_variable_index != 0)
+            .then_some(raw.return_variable_index),
+        local_variables,
     })
 }
 
@@ -2281,8 +2618,36 @@ fn ctree_parent_from_statement(
     }
 }
 
-fn expression_info_from_raw(raw: &idax_sys::IdaxDecompilerExpressionInfo) -> ExpressionInfo {
-    ExpressionInfo {
+fn ctree_item_info_from_raw(raw: &idax_sys::IdaxDecompilerCtreeItemInfo) -> CtreeItemInfo {
+    CtreeItemInfo {
+        item_type: ItemType::from_raw(raw.type_),
+        address: raw.address,
+        is_expression: raw.is_expression != 0,
+    }
+}
+
+unsafe fn optional_ctree_item_info(
+    raw: *const idax_sys::IdaxDecompilerCtreeItemInfo,
+) -> Option<CtreeItemInfo> {
+    unsafe { raw.as_ref() }.map(ctree_item_info_from_raw)
+}
+
+unsafe fn ctree_item_infos(
+    raw: *const idax_sys::IdaxDecompilerCtreeItemInfo,
+    count: usize,
+) -> Result<Vec<CtreeItemInfo>> {
+    Ok(
+        unsafe { checked_ffi_slice(raw, count, "ctree item summaries")? }
+            .iter()
+            .map(ctree_item_info_from_raw)
+            .collect(),
+    )
+}
+
+fn expression_info_from_raw(
+    raw: &idax_sys::IdaxDecompilerExpressionInfo,
+) -> Result<ExpressionInfo> {
+    Ok(ExpressionInfo {
         item_type: ItemType::from_raw(raw.type_),
         address: raw.address,
         variable_index: (raw.variable_index >= 0).then_some(raw.variable_index),
@@ -2290,28 +2655,73 @@ fn expression_info_from_raw(raw: &idax_sys::IdaxDecompilerExpressionInfo) -> Exp
         type_declaration: cstr_option(raw.type_declaration),
         parent: ctree_parent_from_expression(raw),
         parent_depth: raw.parent_depth,
-    }
+        parents: unsafe { ctree_item_infos(raw.parents, raw.parent_count)? },
+        left: unsafe { optional_ctree_item_info(raw.left) },
+        right: unsafe { optional_ctree_item_info(raw.right) },
+        third: unsafe { optional_ctree_item_info(raw.third) },
+        call_callee: unsafe { optional_ctree_item_info(raw.call_callee) },
+        call_arguments: unsafe { ctree_item_infos(raw.call_arguments, raw.call_argument_count)? },
+        operand_count: usize::try_from(raw.operand_count)
+            .map_err(|_| Error::internal("negative ctree operand count"))?,
+    })
 }
 
-fn statement_info_from_raw(raw: &idax_sys::IdaxDecompilerStatementInfo) -> StatementInfo {
-    StatementInfo {
+fn statement_info_from_raw(raw: &idax_sys::IdaxDecompilerStatementInfo) -> Result<StatementInfo> {
+    let mut switch_cases = Vec::new();
+    for case in unsafe {
+        checked_ffi_slice(
+            raw.switch_cases,
+            raw.switch_case_count,
+            "ctree switch cases",
+        )?
+    } {
+        switch_cases.push(SwitchCaseInfo {
+            values: unsafe {
+                checked_ffi_slice(case.values, case.value_count, "ctree switch values")?
+            }
+            .to_vec(),
+            body: ctree_item_info_from_raw(&case.body),
+        });
+    }
+    Ok(StatementInfo {
         item_type: ItemType::from_raw(raw.type_),
         address: raw.address,
         parent: ctree_parent_from_statement(raw),
         parent_depth: raw.parent_depth,
-    }
+        parents: unsafe { ctree_item_infos(raw.parents, raw.parent_count)? },
+        condition: unsafe { optional_ctree_item_info(raw.condition) },
+        then_branch: unsafe { optional_ctree_item_info(raw.then_branch) },
+        else_branch: unsafe { optional_ctree_item_info(raw.else_branch) },
+        body: unsafe { optional_ctree_item_info(raw.body) },
+        init_expression: unsafe { optional_ctree_item_info(raw.init_expression) },
+        step_expression: unsafe { optional_ctree_item_info(raw.step_expression) },
+        expression: unsafe { optional_ctree_item_info(raw.expression) },
+        block_statements: unsafe {
+            ctree_item_infos(raw.block_statements, raw.block_statement_count)?
+        },
+        switch_cases,
+    })
 }
 
-fn local_variable_from_raw(raw: &idax_sys::IdaxLocalVariable) -> LocalVariable {
-    LocalVariable {
+fn local_variable_from_raw(raw: &idax_sys::IdaxLocalVariable) -> Result<LocalVariable> {
+    Ok(LocalVariable {
         index: raw.index,
         name: cstr_opt(raw.name),
         type_name: cstr_opt(raw.type_name),
         is_argument: raw.is_argument != 0,
         width: raw.width,
         has_user_name: raw.has_user_name != 0,
+        has_nice_name: raw.has_nice_name != 0,
         comment: cstr_opt(raw.comment),
-    }
+        storage: VariableStorage::from_raw(raw.storage),
+        stack_offset: raw.stack_offset,
+        location: if raw.location.is_null() {
+            None
+        } else {
+            Some(unsafe { microcode_location_from_ffi(&*raw.location)? })
+        },
+        processor_register_name: cstr_option(raw.processor_register_name),
+    })
 }
 
 unsafe fn consume_string_array(ptr: *mut *mut c_char, count: usize) -> Vec<String> {

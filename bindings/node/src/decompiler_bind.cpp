@@ -3,6 +3,7 @@
 ///        access, variable manipulation, address mapping, and event subscriptions.
 
 #include "helpers.hpp"
+#include "instruction_helpers.hpp"
 #include <ida/decompiler.hpp>
 #include <ida/instruction.hpp>
 #include <ida/type.hpp>
@@ -146,8 +147,11 @@ static ida::Result<ida::decompiler::CommentPosition> CommentPositionFromJS(
 
 // ── LocalVariable -> JS object ──────────────────────────────────────────
 
+static v8::Local<v8::Object> MicrocodeLocationToJS(
+    const ida::decompiler::MicrocodeValueLocation& location);
+
 static v8::Local<v8::Object> VariableToJS(const ida::decompiler::LocalVariable& var) {
-    return ObjectBuilder()
+    auto builder = ObjectBuilder()
         .setInt("index",        static_cast<int>(var.index))
         .setStr("name",         var.name)
         .setStr("typeName",     var.type_name)
@@ -157,7 +161,12 @@ static v8::Local<v8::Object> VariableToJS(const ida::decompiler::LocalVariable& 
         .setBool("hasNiceName", var.has_nice_name)
         .setStr("storage",      StorageToString(var.storage))
         .setStr("comment",      var.comment)
-        .build();
+        .set("stackOffset", v8::BigInt::New(v8::Isolate::GetCurrent(), var.stack_offset));
+    if (var.location) builder.set("location", MicrocodeLocationToJS(*var.location));
+    else builder.setNull("location");
+    if (var.processor_register_name) builder.setStr("processorRegisterName", *var.processor_register_name);
+    else builder.setNull("processorRegisterName");
+    return builder.build();
 }
 
 static v8::Local<v8::Object> CtreeItemToJS(const ida::decompiler::CtreeItemView& item) {
@@ -176,6 +185,21 @@ static void SetParentInfo(ObjectBuilder& builder,
     else
         builder.setNull("parent");
     builder.setSize("parentDepth", parent_depth);
+}
+
+template <typename View>
+static void SetCtreeChild(ObjectBuilder& builder, const char* name,
+                          ida::Result<View> child, bool expression) {
+    if (child) builder.set(name, CtreeItemToJS({child->type(), child->address(), expression}));
+    else builder.setNull(name);
+}
+
+static void SetCtreeParents(ObjectBuilder& builder,
+                            const ida::Result<std::vector<ida::decompiler::CtreeItemView>>& parents) {
+    auto values = Nan::New<v8::Array>(parents ? static_cast<int>(parents->size()) : 0);
+    if (parents) for (std::size_t index = 0; index < parents->size(); ++index)
+        Nan::Set(values, static_cast<uint32_t>(index), CtreeItemToJS((*parents)[index]));
+    builder.set("parents", values);
 }
 
 static v8::Local<v8::Object> ExpressionInfoToJS(ida::decompiler::ExpressionView expr) {
@@ -203,6 +227,20 @@ static v8::Local<v8::Object> ExpressionInfoToJS(ida::decompiler::ExpressionView 
     SetParentInfo(builder,
                   parent ? *parent : std::optional<ida::decompiler::CtreeItemView>{},
                   parents ? parents->size() : 0);
+    SetCtreeParents(builder, parents);
+    SetCtreeChild(builder, "left", expr.left(), true);
+    SetCtreeChild(builder, "right", expr.right(), true);
+    SetCtreeChild(builder, "third", expr.third(), true);
+    SetCtreeChild(builder, "callCallee", expr.call_callee(), true);
+    builder.setInt("operandCount", expr.operand_count());
+    auto count = expr.call_argument_count();
+    auto arguments = Nan::New<v8::Array>(count ? static_cast<int>(*count) : 0);
+    if (count) for (std::size_t index = 0; index < *count; ++index) {
+        auto child = expr.call_argument(index);
+        if (child) Nan::Set(arguments, static_cast<uint32_t>(index),
+                           CtreeItemToJS({child->type(), child->address(), true}));
+    }
+    builder.set("callArguments", arguments);
     return builder.build();
 }
 
@@ -215,6 +253,37 @@ static v8::Local<v8::Object> StatementInfoToJS(ida::decompiler::StatementView st
     SetParentInfo(builder,
                   parent ? *parent : std::optional<ida::decompiler::CtreeItemView>{},
                   parents ? parents->size() : 0);
+    SetCtreeParents(builder, parents);
+    SetCtreeChild(builder, "condition", stmt.condition(), true);
+    SetCtreeChild(builder, "thenBranch", stmt.then_branch(), false);
+    SetCtreeChild(builder, "elseBranch", stmt.else_branch(), false);
+    SetCtreeChild(builder, "body", stmt.body(), false);
+    SetCtreeChild(builder, "initExpression", stmt.init_expression(), true);
+    SetCtreeChild(builder, "stepExpression", stmt.step_expression(), true);
+    SetCtreeChild(builder, "expression", stmt.expression(), true);
+    auto block_size = stmt.block_size();
+    auto statements = Nan::New<v8::Array>(block_size ? static_cast<int>(*block_size) : 0);
+    if (block_size) for (std::size_t index = 0; index < *block_size; ++index) {
+        auto child = stmt.block_statement(index);
+        if (child) Nan::Set(statements, static_cast<uint32_t>(index),
+                           CtreeItemToJS({child->type(), child->address(), false}));
+    }
+    builder.set("blockStatements", statements);
+    auto case_count = stmt.switch_case_count();
+    auto cases = Nan::New<v8::Array>(case_count ? static_cast<int>(*case_count) : 0);
+    if (case_count) for (std::size_t index = 0; index < *case_count; ++index) {
+        auto values = stmt.switch_case_values(index);
+        auto body = stmt.switch_case_body(index);
+        if (!values || !body) continue;
+        auto case_values = Nan::New<v8::Array>(static_cast<int>(values->size()));
+        for (std::size_t value = 0; value < values->size(); ++value)
+            Nan::Set(case_values, static_cast<uint32_t>(value),
+                     v8::BigInt::NewFromUnsigned(v8::Isolate::GetCurrent(), (*values)[value]));
+        Nan::Set(cases, static_cast<uint32_t>(index), ObjectBuilder()
+            .set("values", case_values)
+            .set("body", CtreeItemToJS({body->type(), body->address(), false})).build());
+    }
+    builder.set("switchCases", cases);
     return builder.build();
 }
 
@@ -326,6 +395,7 @@ static v8::Local<v8::Object> InstructionToJS(const ida::instruction::Instruction
         .setAddressSize("size", instruction.size())
         .setInt("opcode", static_cast<int>(instruction.opcode()))
         .setStr("mnemonic", instruction.mnemonic())
+        .setStr("branchCondition", BranchConditionToString(instruction.branch_condition()))
         .setInt("operandCount", static_cast<int>(instruction.operand_count()))
         .set("operands", operands)
         .build();
@@ -362,6 +432,53 @@ static const char* MicrocodeOpcodeToString(ida::decompiler::MicrocodeOpcode opco
         case ida::decompiler::MicrocodeOpcode::IndirectJump:         return "indirectJump";
         case ida::decompiler::MicrocodeOpcode::Return:               return "return";
         case ida::decompiler::MicrocodeOpcode::Other:                return "other";
+        case ida::decompiler::MicrocodeOpcode::Negate: return "negate";
+        case ida::decompiler::MicrocodeOpcode::LogicalNot: return "logicalNot";
+        case ida::decompiler::MicrocodeOpcode::BitwiseNot: return "bitwiseNot";
+        case ida::decompiler::MicrocodeOpcode::LowPart: return "lowPart";
+        case ida::decompiler::MicrocodeOpcode::HighPart: return "highPart";
+        case ida::decompiler::MicrocodeOpcode::UnsignedDivide: return "unsignedDivide";
+        case ida::decompiler::MicrocodeOpcode::SignedDivide: return "signedDivide";
+        case ida::decompiler::MicrocodeOpcode::UnsignedRemainder: return "unsignedRemainder";
+        case ida::decompiler::MicrocodeOpcode::SignedRemainder: return "signedRemainder";
+        case ida::decompiler::MicrocodeOpcode::CarryFromAdd: return "carryFromAdd";
+        case ida::decompiler::MicrocodeOpcode::OverflowFromAdd: return "overflowFromAdd";
+        case ida::decompiler::MicrocodeOpcode::CarryFromShiftLeft: return "carryFromShiftLeft";
+        case ida::decompiler::MicrocodeOpcode::CarryFromShiftRight: return "carryFromShiftRight";
+        case ida::decompiler::MicrocodeOpcode::SetNegative: return "setNegative";
+        case ida::decompiler::MicrocodeOpcode::SetOverflow: return "setOverflow";
+        case ida::decompiler::MicrocodeOpcode::SetParity: return "setParity";
+        case ida::decompiler::MicrocodeOpcode::SetNotEqual: return "setNotEqual";
+        case ida::decompiler::MicrocodeOpcode::SetEqual: return "setEqual";
+        case ida::decompiler::MicrocodeOpcode::SetGreaterThanOrEqualUnsigned: return "setGreaterThanOrEqualUnsigned";
+        case ida::decompiler::MicrocodeOpcode::SetLessThanUnsigned: return "setLessThanUnsigned";
+        case ida::decompiler::MicrocodeOpcode::SetGreaterThanUnsigned: return "setGreaterThanUnsigned";
+        case ida::decompiler::MicrocodeOpcode::SetLessThanOrEqualUnsigned: return "setLessThanOrEqualUnsigned";
+        case ida::decompiler::MicrocodeOpcode::SetGreaterThanSigned: return "setGreaterThanSigned";
+        case ida::decompiler::MicrocodeOpcode::SetGreaterThanOrEqualSigned: return "setGreaterThanOrEqualSigned";
+        case ida::decompiler::MicrocodeOpcode::SetLessThanSigned: return "setLessThanSigned";
+        case ida::decompiler::MicrocodeOpcode::SetLessThanOrEqualSigned: return "setLessThanOrEqualSigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfNonzero: return "jumpIfNonzero";
+        case ida::decompiler::MicrocodeOpcode::JumpIfNotEqual: return "jumpIfNotEqual";
+        case ida::decompiler::MicrocodeOpcode::JumpIfEqual: return "jumpIfEqual";
+        case ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanOrEqualUnsigned: return "jumpIfGreaterThanOrEqualUnsigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfLessThanUnsigned: return "jumpIfLessThanUnsigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanUnsigned: return "jumpIfGreaterThanUnsigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfLessThanOrEqualUnsigned: return "jumpIfLessThanOrEqualUnsigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanSigned: return "jumpIfGreaterThanSigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfGreaterThanOrEqualSigned: return "jumpIfGreaterThanOrEqualSigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfLessThanSigned: return "jumpIfLessThanSigned";
+        case ida::decompiler::MicrocodeOpcode::JumpIfLessThanOrEqualSigned: return "jumpIfLessThanOrEqualSigned";
+        case ida::decompiler::MicrocodeOpcode::JumpTable: return "jumpTable";
+        case ida::decompiler::MicrocodeOpcode::Push: return "push";
+        case ida::decompiler::MicrocodeOpcode::Pop: return "pop";
+        case ida::decompiler::MicrocodeOpcode::Undefined: return "undefined";
+        case ida::decompiler::MicrocodeOpcode::External: return "external";
+        case ida::decompiler::MicrocodeOpcode::FloatToSignedInteger: return "floatToSignedInteger";
+        case ida::decompiler::MicrocodeOpcode::FloatToUnsignedInteger: return "floatToUnsignedInteger";
+        case ida::decompiler::MicrocodeOpcode::UnsignedIntegerToFloat: return "unsignedIntegerToFloat";
+        case ida::decompiler::MicrocodeOpcode::FloatNegate: return "floatNegate";
+        case ida::decompiler::MicrocodeOpcode::LoadConstant: return "loadConstant";
     }
     return "unknown";
 }
@@ -385,6 +502,7 @@ static const char* MicrocodeOperandKindToString(ida::decompiler::MicrocodeOperan
         case ida::decompiler::MicrocodeOperandKind::FloatingPointConstant:
             return "floatingPointConstant";
         case ida::decompiler::MicrocodeOperandKind::Other:              return "other";
+        case ida::decompiler::MicrocodeOperandKind::SwitchCases: return "switchCases";
     }
     return "unknown";
 }
@@ -409,7 +527,15 @@ static v8::Local<v8::Object> MicrocodeOperandToJS(const ida::decompiler::Microco
         .setInt("byteWidth", operand.byte_width)
         .setBool("markUserDefinedType", operand.mark_user_defined_type)
         .setAddr("callTarget", operand.call_target)
-        .setStr("text", operand.text);
+        .setStr("text", operand.text)
+        .setStr("stringConstant", operand.string_constant)
+        .setStr("globalName", operand.global_name);
+    if (operand.floating_point_constant) object.setDouble("floatingPointConstant", *operand.floating_point_constant);
+    else object.setNull("floatingPointConstant");
+    if (operand.value_number) object.setUint("valueNumber", *operand.value_number);
+    else object.setNull("valueNumber");
+    if (operand.switch_default_target) object.setInt("switchDefaultTarget", *operand.switch_default_target);
+    else object.setNull("switchDefaultTarget");
 
     if (operand.nested_instruction != nullptr)
         object.set("nestedInstruction", MicrocodeInstructionToJS(*operand.nested_instruction));
@@ -430,6 +556,30 @@ static v8::Local<v8::Object> MicrocodeOperandToJS(const ida::decompiler::Microco
     }
     object.set("callArguments", call_arguments);
 
+    auto call_return_operands = Nan::New<v8::Array>(static_cast<int>(operand.call_return_operands.size()));
+    for (std::size_t index = 0; index < operand.call_return_operands.size(); ++index) {
+        const auto& item = operand.call_return_operands[index];
+        Nan::Set(call_return_operands, static_cast<uint32_t>(index), MicrocodeOperandToJS(item));
+    }
+    object.set("callReturnOperands", call_return_operands);
+    auto call_argument_properties = Nan::New<v8::Array>(static_cast<int>(operand.call_argument_properties.size()));
+    for (std::size_t index = 0; index < operand.call_argument_properties.size(); ++index) {
+        const auto& item = operand.call_argument_properties[index];
+        Nan::Set(call_argument_properties, static_cast<uint32_t>(index), ObjectBuilder().setBool("hidden", item.hidden).setBool("returnValuePointer", item.return_value_pointer).setBool("structureArgument", item.structure_argument).setBool("arrayArgument", item.array_argument).setBool("unused", item.unused).setBool("swiftSelf", item.swift_self).build());
+    }
+    object.set("callArgumentProperties", call_argument_properties);
+    auto call_return_registers = Nan::New<v8::Array>(static_cast<int>(operand.call_return_registers.size()));
+    for (std::size_t index = 0; index < operand.call_return_registers.size(); ++index) {
+        const auto& item = operand.call_return_registers[index];
+        Nan::Set(call_return_registers, static_cast<uint32_t>(index), ObjectBuilder().setInt("registerId", item.register_id).setInt("byteWidth", item.byte_width).build());
+    }
+    object.set("callReturnRegisters", call_return_registers);
+    auto switch_cases = Nan::New<v8::Array>(static_cast<int>(operand.switch_cases.size()));
+    for (std::size_t index = 0; index < operand.switch_cases.size(); ++index) {
+        const auto& item = operand.switch_cases[index];
+        Nan::Set(switch_cases, static_cast<uint32_t>(index), ObjectBuilder().set("value", v8::BigInt::New(isolate, item.value)).setInt("targetBlock", item.target_block).build());
+    }
+    object.set("switchCases", switch_cases);
     return object.build();
 }
 
@@ -533,6 +683,19 @@ static bool ParseMicrocodeMaturity(
     return true;
 }
 
+static const char* MicrocodeBlockKindToString(ida::decompiler::MicrocodeBlockKind kind) {
+    switch (kind) {
+        case ida::decompiler::MicrocodeBlockKind::Unknown: return "unknown";
+        case ida::decompiler::MicrocodeBlockKind::Exit: return "exit";
+        case ida::decompiler::MicrocodeBlockKind::NonReturning: return "nonReturning";
+        case ida::decompiler::MicrocodeBlockKind::SingleSuccessor: return "singleSuccessor";
+        case ida::decompiler::MicrocodeBlockKind::Conditional: return "conditional";
+        case ida::decompiler::MicrocodeBlockKind::Switch: return "switch";
+        case ida::decompiler::MicrocodeBlockKind::External: return "external";
+    }
+    return "unknown";
+}
+
 static v8::Local<v8::Object> MicrocodeFunctionToJS(
     const ida::decompiler::MicrocodeFunction& function) {
     auto arguments = Nan::New<v8::Array>(static_cast<int>(function.arguments.size()));
@@ -566,6 +729,7 @@ static v8::Local<v8::Object> MicrocodeFunctionToJS(
                  static_cast<uint32_t>(index),
                  ObjectBuilder()
                      .setInt("index", block.index)
+                     .setStr("kind", MicrocodeBlockKindToString(block.kind))
                      .setAddr("startAddress", block.start_address)
                      .setAddr("endAddress", block.end_address)
                      .set("predecessors", predecessors)
@@ -574,11 +738,20 @@ static v8::Local<v8::Object> MicrocodeFunctionToJS(
                      .build());
     }
 
+    auto local_variables = Nan::New<v8::Array>(static_cast<int>(function.local_variables.size()));
+    for (std::size_t index = 0; index < function.local_variables.size(); ++index)
+        Nan::Set(local_variables, static_cast<uint32_t>(index), VariableToJS(function.local_variables[index]));
     auto result = ObjectBuilder()
         .setAddr("entryAddress", function.entry_address)
         .setStr("maturity", MicrocodeMaturityToString(function.maturity))
         .set("arguments", arguments)
-        .set("blocks", blocks);
+        .set("blocks", blocks)
+        .set("stackFrameSize", v8::BigInt::New(v8::Isolate::GetCurrent(), function.stack_frame_size))
+        .set("localStackSize", v8::BigInt::New(v8::Isolate::GetCurrent(), function.local_stack_size))
+        .set("savedRegisterSize", v8::BigInt::New(v8::Isolate::GetCurrent(), function.saved_register_size))
+        .set("localVariables", local_variables);
+    if (function.return_variable_index) result.setSize("returnVariableIndex", *function.return_variable_index);
+    else result.setNull("returnVariableIndex");
     if (function.return_location.has_value())
         result.set("returnLocation", MicrocodeLocationToJS(*function.return_location));
     else

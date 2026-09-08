@@ -1,6 +1,9 @@
 """Hex-Rays sessions, ctree, microcode, and pseudocode."""
 
 from ._native.decompiler import (
+    MicrocodeBlockKind,
+    MicrocodeSwitchCase,
+    MicrocodeCallArgumentProperties,
     AddressMapping,
     CommentPosition,
     CommentPositionKind,
@@ -92,6 +95,7 @@ from ._native.decompiler import (
 )
 
 __all__ = [
+    "MicrocodeBlockKind", "MicrocodeSwitchCase", "MicrocodeCallArgumentProperties",
     "AddressMapping", "CommentPosition", "CommentPositionKind", "CtreeItemView",
     "CtreeVisitor", "CursorPositionEvent", "DecompileFailure",
     "DecompiledFunction", "DecompilerView", "ExpressionView", "HintRequestEvent",

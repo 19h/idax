@@ -1,5 +1,35 @@
 from enum import Enum
 
+class BranchCondition(Enum):
+    NONE = 0
+    ALWAYS = 1
+    EQUAL = 2
+    NOT_EQUAL = 3
+    LESS_THAN_SIGNED = 4
+    LESS_THAN_OR_EQUAL_SIGNED = 5
+    GREATER_THAN_SIGNED = 6
+    GREATER_THAN_OR_EQUAL_SIGNED = 7
+    LESS_THAN_UNSIGNED = 8
+    LESS_THAN_OR_EQUAL_UNSIGNED = 9
+    GREATER_THAN_UNSIGNED = 10
+    GREATER_THAN_OR_EQUAL_UNSIGNED = 11
+    ZERO = 12
+    NOT_ZERO = 13
+    NEGATIVE = 14
+    NOT_NEGATIVE = 15
+    OVERFLOW = 16
+    NO_OVERFLOW = 17
+    PARITY = 18
+    NO_PARITY = 19
+    COUNT_ZERO = 20
+    BIT_ZERO = 21
+    BIT_NOT_ZERO = 22
+    COUNT_NOT_ZERO = 23
+    COUNT_NOT_ZERO_AND_EQUAL = 24
+    COUNT_NOT_ZERO_AND_NOT_EQUAL = 25
+    UNKNOWN = 26
+    NEVER = 27
+
 class OperandType(Enum):
     NONE = ...
     REGISTER = ...
@@ -101,6 +131,8 @@ class Instruction:
     def operand(self, index: int) -> Operand: ...
     @property
     def operands(self) -> list[Operand]: ...
+    @property
+    def branch_condition(self) -> BranchCondition: ...
 
 def decode(address: int) -> Instruction: ...
 def create(address: int) -> Instruction: ...
@@ -152,3 +184,5 @@ def is_jump(address: int) -> bool: ...
 def is_conditional_jump(address: int) -> bool: ...
 def next(address: int) -> Instruction: ...
 def prev(address: int) -> Instruction: ...
+
+def branch_condition(address: int) -> BranchCondition: ...

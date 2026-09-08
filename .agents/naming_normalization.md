@@ -98,3 +98,8 @@ Normalization policy:
 - Replace ambiguous suffixes with explicit nouns (`*_qty` -> `count`, `*_ea` -> `address`).
 
 ---
+
+Phase 72 additions:
+- Native microcode case tables → `MicrocodeSwitchCase` and optional `switch_default_target`; value numbering → optional `value_number` with graph-local equality semantics.
+- Processor branch encodings → `BranchCondition` and `branch_condition`, retaining distinct decrement/count-zero predicates.
+- Dyld cache headers and `dscu_t` service calls → copied `ida::dyld_cache` inventories and semantic loading operations.
