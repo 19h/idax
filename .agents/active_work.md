@@ -67,4 +67,12 @@
 ### CI Recovery and Swift PR 6 Review
 
 - CI6.1 Active: refresh the independently audited plugin header fingerprint, run Python gates, push, and verify replacement GitHub checks.
-- CI6.2 Queued: review PR 6 head `25b002ade3ed02df9566f432e945d78ec4c32f1b` after CI recovery; record reproducible findings and review limits.
+
+### Phase 72 Fresh Swift Binding and PR 6 Rewrite
+
+- P72.2 Active: finish declaration/ownership/thread/error/package acceptance mapping from the current 38-domain umbrella and superseding decisions.
+- P72.3 Active: author semantic C++ prerequisites with preserved existing graph and name-based identities; then complete Node/Rust/Python parity.
+- P72.4 Active: author Swift foundation, native owner/callback support, and deterministic build/package scripts.
+- P72.5 Active: author all domain APIs and the independently audited dyld-cache capability family.
+- P72.6 Queued: build real plugin/loader/processor exports and demonstrate host callbacks.
+- P72.7 Queued: complete manifests, public clients, regression/runtime/package/privacy/CI evidence; use explicit staging, red, then push for each coherent change.
