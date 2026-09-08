@@ -596,3 +596,5 @@ Current overall phase status:
 - [x] P72.7.8 Preserve documented negative form cancellation and shared markup validation across native and Swift form paths.
 
 - [x] P72.7.9 Compile standard-library headers before SDK stdio-poison macros on the minimum supported toolchain.
+
+- [x] P72.8 Open a new review PR for the completed Swift rewrite, including validation provenance and explicit evidence limits.
