@@ -1,8 +1,7 @@
 /// \file type.cpp
 /// \brief Implementation of ida::type — type system pimpl wrapping tinfo_t.
 
-#include "detail/type_impl.hpp"
-
+// Load standard headers before the SDK's forbidden-I/O macro definitions.
 #include <algorithm>
 #include <functional>
 #include <limits>
@@ -10,6 +9,8 @@
 #include <queue>
 #include <set>
 #include <sstream>
+
+#include "detail/type_impl.hpp"
 
 namespace ida::type {
 

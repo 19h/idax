@@ -2997,3 +2997,11 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 
 
 - **35.313 validation update:** Apple Clang and upstream Clang 20 now emit byte-identical inventories with 3,604 declarations. Source-backed reconstruction additionally restores 16 existing free-function [[nodiscard]]/[[noreturn]] attributes omitted by earlier extraction; reviewed only those full-declaration fingerprints, preserving IDs, signatures, defaults and counts. C++ and Swift inventory mismatches now emit bounded declaration identities/changed fields. Actual minimum-toolchain CI remains the final supported-toolchain evidence.
+
+### 35.314. Standard Headers Before SDK Poison Macros [F661]
+- Primary evidence: actual Swift 6.0 job 101944417585 compiler diagnostics and pinned fpro.h macros. Assumption SW.A2 that transitive libc++ includes are equivalent across supported Xcode releases is false. [High] minimum-toolchain native build failure. Reordering standard includes precedes macro definition rather than removing protection; the next actual minimum job must establish the complete build result.
+
+- **35.314 validation update:** Both affected translation units compile after moving standard headers first. Independent preprocessing of each complete unit confirms fwrite, fflush and stdout remain mapped to the SDK forbidden-name macros afterward. The local compiler is Apple Clang 21; minimum Xcode 16.2 execution remains live CI evidence under P72.7.
+
+### 35.315. Form Cancellation and Unbound Markup [F662]
+- Primary evidence: pinned kernwin.hpp ask_form return documentation and both canonical ui.hpp/ui.cpp call paths. Assumption that every negative result is failure is false for -1 with BUTTON NO. [Medium] cancellation incorrectly throws or commits prepared data. Probe native returns -1/0/1 with typed prepared storage and require original bindings unless positive; reject embedded NUL before native unbound dispatch. Zero combines No/cancel/allocation/syntax outcomes in the SDK and that ambiguity is explicit rather than inferred away.

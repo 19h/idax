@@ -591,3 +591,7 @@ Current overall phase status:
 - [ ] P72.7.6 Preserve caller-authored form markup with typed bound values through an opaque Swift argument model and nonmodal validation.
 
 - [x] P72.7.7 Normalize source-equivalent Clang AST output across supported Swift toolchains without omitting declared API entries.
+
+- [ ] P72.7.8 Preserve documented negative form cancellation and shared markup validation across native and Swift form paths.
+
+- [x] P72.7.9 Compile standard-library headers before SDK stdio-poison macros on the minimum supported toolchain.
