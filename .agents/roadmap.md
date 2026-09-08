@@ -574,7 +574,7 @@ Current overall phase status:
 - [x] P72.2 Record the complete declaration, ownership, thread, error, packaging, and compatibility contracts for a fresh implementation.
 - [x] P72.3 Reimplement genuinely missing C++ prerequisites within existing semantic domains; preserve existing APIs and complete all applicable binding parity.
 - [x] P72.4 Implement stable Swift packaging, private native adapters, exact error transport, thread/session guards, and deterministic owner/callback leases.
-- [ ] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
+- [x] P72.5 Author the complete current-domain Swift surface and required dyld-cache capabilities from the audited semantic model, with public construction and no SDK identity exposure.
 - [x] P72.6 Build actual Swift plugin/loader/processor artifacts with native exports, examples, and host dispatch evidence.
 - [ ] P72.7 Complete declaration/field/overload audits, focused regression/lifetime probes, exact-9.4 runtime validation, distributions, cross-platform existing-binding CI, privacy, staged review, red commits/pushes, and closure.
 
@@ -588,10 +588,10 @@ Current overall phase status:
 
 - [x] P72.7.5 Remove identity-bearing compiler paths from the native distribution archive and verify every packaged member bytewise.
 
-- [ ] P72.7.6 Preserve caller-authored form markup with typed bound values through an opaque Swift argument model and nonmodal validation.
+- [x] P72.7.6 Preserve caller-authored form markup with typed bound values through an opaque Swift argument model and nonmodal validation.
 
 - [x] P72.7.7 Normalize source-equivalent Clang AST output across supported Swift toolchains without omitting declared API entries.
 
-- [ ] P72.7.8 Preserve documented negative form cancellation and shared markup validation across native and Swift form paths.
+- [x] P72.7.8 Preserve documented negative form cancellation and shared markup validation across native and Swift form paths.
 
 - [x] P72.7.9 Compile standard-library headers before SDK stdio-poison macros on the minimum supported toolchain.

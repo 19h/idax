@@ -1484,3 +1484,7 @@
 ### D19.92 Opaque Typed Arguments for Custom Form Markup
 - Preserve caller-authored supported form layouts through an opaque heterogeneous argument value containing checked typed FormBinding owners. Private native slots hold the required SDK scalar, string and path storage; no public native pointers or varargs are exposed.
 - Validate compatible supported controls and argument ordering/count before native vararg dispatch, and convert every accepted output before updating Swift bindings. Keep generated FormBuilder construction and unbound markup as clients of the same storage/validation boundary. Interactive acceptance evidence remains separately host-gated.
+
+### D19.93 Documented Form Cancellation and Shared Validation
+- Preserve the SDK's documented -1 cancellation as successful false when BUTTON NO is present. Zero also remains false, retaining the SDK's ambiguity between No/cancellation/allocation/syntax outcomes; only positive results commit prepared bindings. Unexpected results below -1 remain SDK failures.
+- Unbound and typed native form paths share empty/NUL markup validation. Swift custom and generated forms share checked storage and convert all returned values before mutating any caller binding.

@@ -22,6 +22,8 @@ typedef struct IdaxSwiftFormField {
  * still contributes the native two-newline header. */
 int idax_swift_form_markup(const char*, const IdaxSwiftFormField*, size_t, char**, IdaxSwiftError*);
 int idax_swift_form_ask(const char*, IdaxSwiftFormField*, size_t, int*, IdaxSwiftError*);
+int idax_swift_form_validate_bound(const char*, const IdaxSwiftFormField*, size_t, IdaxSwiftError*);
+int idax_swift_form_ask_bound(const char*, IdaxSwiftFormField*, size_t, int*, IdaxSwiftError*);
 void idax_swift_form_free_outputs(IdaxSwiftFormField*, size_t);
 int idax_swift_form_ask_markup(const char*, int*, IdaxSwiftError*);
 #ifdef __cplusplus

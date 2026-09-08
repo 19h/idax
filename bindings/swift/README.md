@@ -64,6 +64,20 @@ Copied records, strings, arrays, and microcode graphs own their data. Native res
 
 Decompiler expression, statement, popup, and lifting contexts are callback borrows. Their methods validate the lease and reject use after callback return. Copy semantic values during the callback when they must survive it. An explicit `Decompiler.Session` remains open until dependent functions, snapshots, and registrations are released; early explicit close reports a conflict.
 
+
+## Typed custom forms
+
+`UI.FormBuilder` creates controls with typed value cells. Caller-authored layouts use the same cells through `UI.FormArgument`:
+
+```swift
+let count = UI.FormBinding<Int64>(7)
+let accepted = try UI.askForm(
+    markup: "Options\n\n<Count:D:10:10::>\n",
+    bindings: [.integer(count)])
+```
+
+Arguments follow the native markup order; each checkbox/radio group contributes one argument at its closing marker. The six factories cover integer, address, text, path/character-buffer, bitset and radio storage. At most 64 arguments are supported. Type/count mismatches and unsupported native pointer/callback placeholders fail before display. Nested dynamic substitutions inside input labels are not supported. A false result leaves every binding unchanged; the SDK combines No/cancel and some display failures into that result.
+
 ## Native add-ons
 
 [Plugin](Examples/Modules/Plugin.swift), [loader](Examples/Modules/Loader.swift), and [processor](Examples/Modules/Processor.swift) examples implement protocol requirements and export named Swift bootstrap functions. The helper builds the real SDK descriptor, checks exported symbols, and links every add-on to one shared `IDAXShared` library.

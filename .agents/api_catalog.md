@@ -347,3 +347,5 @@ This section captures the intended public API semantics at a concrete level so i
 - The root SwiftPM package exposes the current semantic domains through Swift values and checked non-Sendable native owners. Public clients use typed IDAError failures, copied records, explicit resource copy/close and expiring callback views.
 - `bindings/swift/api_mapping` records every canonical declaration/field/overload against actual compiler-extracted Swift symbols, with explicit language adaptations for collections, ARC, OptionSet and private construction. The mapping does not replace runtime evidence.
 - Native plugin, loader and processor protocols dispatch through real PLUGIN/LDSC/LPH artifacts linked to one shared support image; the inventory and module examples are public-package consumers.
+
+- Swift custom form layouts use opaque UI.FormArgument values over typed FormBinding cells. Native supported scalar/text/path/choice controls preserve argument order and commit only on acceptance; generated forms and caller-authored layouts share the private storage boundary.

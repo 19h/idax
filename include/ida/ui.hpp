@@ -407,7 +407,8 @@ Result<bool> ask_form(std::string_view markup, Bindings&&... bindings) {
 
     qstring qmarkup(markup.data(), markup.size());
     int rc = ::ask_form(qmarkup.c_str(), bindings.sdk_arg()...);
-    if (rc < 0)
+    // With BUTTON NO present, the SDK returns -1 for cancellation.
+    if (rc < -1)
         return std::unexpected(Error::sdk("ask_form failed"));
     if (rc > 0)
         detail::commit_form_bindings(bindings...);

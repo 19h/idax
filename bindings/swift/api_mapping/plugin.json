@@ -481,7 +481,7 @@
         "be1660d0149ee889e8a6",
         "1b69bcddd4ce057484f8"
       ],
-      "rationale": "Raw-host callback access is replaced by checked typed widget and decompiler-view borrows, with no SDK pointer in the public surface.",
+      "rationale": "Checked typed widget and decompiler-view accessors replace raw-host callbacks. They preserve the exposed wrapper operations; arbitrary toolkit embedding or calls through native pointers are intentionally excluded by the opaque public API contract.",
       "cpp_fingerprint": "880d05e3df4ba62880fbdbadaf7d9ebcd3d541a1c9cb00c726393db7b8af4bc0",
       "swift_targets": [
         {
@@ -1499,7 +1499,7 @@
       "swift": [
         "be1660d0149ee889e8a6"
       ],
-      "rationale": "The SDK widget pointer remains private. A callback lease validates lifetime before creating an independently retained typed Widget alias; typed widget operations preserve the canonical host capability.",
+      "rationale": "The native widget pointer remains private. A checked callback lease resolves an independently retained UI.Widget for the exposed typed widget operations. Arbitrary toolkit embedding or calls through a Qt/native host pointer are intentionally excluded by the opaque public API contract.",
       "cpp_fingerprint": "851371aa8120a8065f16e09d600b9bec2c18b4e4e748c3a3501158df779a983e",
       "swift_targets": [
         {
@@ -1535,7 +1535,7 @@
       "swift": [
         "be1660d0149ee889e8a6"
       ],
-      "rationale": "The SDK widget pointer remains private. A callback lease validates lifetime before creating an independently retained typed Widget alias; typed widget operations preserve the canonical host capability.",
+      "rationale": "The native widget pointer remains private. A checked callback lease resolves an independently retained UI.Widget for the exposed typed widget operations. Arbitrary toolkit embedding or calls through a Qt/native host pointer are intentionally excluded by the opaque public API contract.",
       "cpp_fingerprint": "fdf0487382fc6bc3d4fdbefff001181d00321aff2e357e1d413a296cc0be3325",
       "swift_targets": [
         {
