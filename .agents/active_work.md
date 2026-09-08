@@ -63,3 +63,8 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+### CI Recovery and Swift PR 6 Review
+
+- CI6.1 Active: refresh the independently audited plugin header fingerprint, run Python gates, push, and verify replacement GitHub checks.
+- CI6.2 Queued: review PR 6 head `25b002ade3ed02df9566f432e945d78ec4c32f1b` after CI recovery; record reproducible findings and review limits.

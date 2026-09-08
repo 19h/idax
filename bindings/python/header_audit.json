@@ -30,7 +30,7 @@
     {"domain": "offset", "path": "include/ida/offset.hpp", "sha256": "912928c285ff06823abcd57d54a5e4dc6d9f53183cb945f64b2b705509fe3dcb"},
     {"domain": "path", "path": "include/ida/path.hpp", "sha256": "619d6c9a5b18ded419d63f6562ce0744a25470bea2e28d1d764939d441316f03"},
     {"domain": "parser", "path": "include/ida/parser.hpp", "sha256": "8b491a03749cbbe2b29d24cfac834adb9c51a2439a27d939b95141184c7d4545"},
-    {"domain": "plugin", "path": "include/ida/plugin.hpp", "sha256": "8b3ecd96155f6289670680c862c74565036840e2d0015ba92f162a0bf7b02e79"},
+    {"domain": "plugin", "path": "include/ida/plugin.hpp", "sha256": "447da9111f38c154389181cac3558ec2fd15c97ebde064007c821613b4f074f3"},
     {"domain": "processor", "path": "include/ida/processor.hpp", "sha256": "ae6d1fb2f591fa4a7d9dd8292e4efc13bf0991445d77d7a04433665a60b6bc19"},
     {"domain": "problem", "path": "include/ida/problem.hpp", "sha256": "14cd3c4095b39b2e629ee07d04bff3fd06c4e88bcaa53607b6a4553554ace7d1"},
     {"domain": "registry", "path": "include/ida/registry.hpp", "sha256": "1553f64bdaf1a6b788837030e604f41b185c7ad242e1005cbf9c6706b5e90d48"},

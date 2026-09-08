@@ -562,3 +562,8 @@ Current overall phase status:
 - [x] P71.4 Add malformed-input plus isolated exact-IDA 9.4 scalar/object/evaluate/compile/call/snippet/script evidence, synchronize docs/protocol records, run complete validation and self-red-team, exact-stage review, push, live-audit all release jobs/logs, and remove Phase 71 from active work.
 
 ---
+
+### CI Recovery and Swift PR 6 Review (2026-09-08)
+
+- [ ] CI6.1 Re-audit the plugin declarations, repair the Python header fingerprint, validate locally, and require passing default-branch GitHub checks.
+- [ ] CI6.2 Review Swift PR 6 at its recorded head, reproduce material findings, and record the review with assumptions and bounded impacts.
