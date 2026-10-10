@@ -1,0 +1,10 @@
+SDK=950 kernel=9.5 member-width=8
+FUNCTION: read_wide
+MEMBER: m=2147483664 flags=1
+FUNCTION: read_bits
+MEMBER: m=3 flags=1024
+FUNCTION: read_big_bits
+MEMBER: m=4294967299 flags=1024
+FUNCTION: read_union
+MEMBER: m=1 flags=1
+PRODUCERS: signed-wide-bytes=1 bitfield=2 wide-bits=1

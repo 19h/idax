@@ -3186,3 +3186,9 @@ CMake dependency propagation does not apply to Rust cc/direct archive consumers.
 ### 35.343. Complete Native SDK 950 Baseline and Producer Boundary [F690]
 
 Actual source 64eab2ef native SDK 950/IDA 9.5 execution passes 46/46 in 106.94 s on macOS ARM64; docs/reviews/sdk95-validation.md retains sanitized exact rosters/results and input/runtime hashes. SDK95.A3 requires equal nonempty configured/executed identities and zero failed/skipped CTests; the retained checker passes. Conditional host branches, other platforms and wide/bitfield consumers need separate evidence. A real decompiler already emits bitfield m=3 and union index 1, proving unit distinctions for later consumer correction. [High impact] full small-offset baseline is not wide-field behavioral coverage.
+
+### 35.344. Real SDK 950 Wide/Bitfield/Union Producer Values [F691]
+
+Actual native decompilation emits m=2147483664 in bytes, m=3 and m=4294967299 under EXFL_BITFIELD in bits, and m=1 as a union index. Applied native types/runtime parsing produce the wide expressions; the C++ probe never assigns their m fields. Raw big-bitfield DWARF import yields a different result with unknown cause. Runtime UDT validation caps total bytes below 0xFFFFFFFF; do not fabricate a larger live UDT witness. WIDE95.A1 requires real decompiled exact offset/unit values, not relabeled headers or manually filled expressions. WIDE95.A2 requires width/unit preservation through every consumer; signed-int storage, 32-bit loads before bit conversion, and floored-only bitfield maps falsify it. [High impact] small-offset full suites cannot reveal these losses.
+
+- KB 35.344 reproduction supplement: the source-built Mach-O fixture/private SDK producer confirms all four exact native values and units. docs/reviews/sdk95-member-producer-validation.md records reproduction, output and complete-byte-clean artifact hashes. Default 46-case CTest inventory is unchanged; wrapper/binding correction remains open.

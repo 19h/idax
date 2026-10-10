@@ -1507,3 +1507,8 @@
 ### D19.98 Strict Identifier Sanitization Postcondition
 - Preserve native processor rewriting and per-database name storage policy. Enforce the same strict SDK is_uname predicate as is_valid_identifier using public SDK UTF-8/codepoint helpers, replacing disallowed codepoints with SUBSTCHAR and prefixing dummy identifiers. Do not infer lexer validity from native storage-validation success.
 - Embedded NUL is invalid for the complete input: validation returns false, sanitization returns Validation. Successful results must be valid and idempotent; runtime checks on both actual releases retain the unchanged original assertion.
+
+### D19.99 Width and Unit Preservation for Decompiler Member Access
+- Preserve native unsigned 64-bit member values after the accepted known ABI layout. In dual-ABI builds read the runtime-sized union slot with memcpy, rather than first loading through the SDK 940 uint32 field. Treat EXFL_BITFIELD as bit units only for the known 950 layout.
+- Expose unsigned 64-bit byte offsets, exact bit offsets, explicit union member indices and bitfield status through opaque expression methods and owned binding payloads. Keep byte, bit and union-index maps distinct; reject unit conversion overflow and ambiguous union-as-byte queries. Resolve member names with bit intervals or exact union index.
+- Widen referenced-type byte/bit/index collections and all renderer/binding transports. Node uses BigInt; Swift/Rust/C use UInt64/u64/uint64_t; Python retains exact integers. Validate actual producer values, 940 regression and every consumer; native baseline alone cannot close P73.9.
