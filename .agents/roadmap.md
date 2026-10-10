@@ -621,7 +621,7 @@ Current overall phase status:
 - [x] P73.5 Obtain actual debugger/process-backed Appcall evidence. Actual SDK 9.4 GUI plus ARM Linux remote backend passes all four signed-return assertions in a suspended process; see `docs/reviews/appcall-host-validation.md`.
 - [x] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair. Exact `1e430823` passes 46/46 on both platforms with source-derived configured/executed identity checks; sanitized inventories/JUnit and artifact identities are retained in `docs/reviews/native-sdk94-full-validation.md`.
 - [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
-- [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3.
+- [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3. Fresh all-ref/eight-fork audit and concrete unsent cleanup drafts are recorded in `docs/reviews/github-retention-audit.md`; external purge remains open.
 - [ ] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations.
 
 Each semantic group requires explicit path staging, `red -m --staged --run <paths>`, and `git push`; completion requires source/runtime/external evidence appropriate to that group's full scope. See Progress Ledger 16.245.

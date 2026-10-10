@@ -3067,3 +3067,7 @@
 - 16.245.31. Official vendor SDK packaging completes from the source-defined 9.5.0 version; output verifies SDK 950 and the declared uint64/bitfield/magic ABI. Vendor sources/headers are retained only in an ignored local tree. This resolves the acquisition subgate of P73.9; actual runtime producer, width corrections and binding consumers remain open.
 
 - 16.245.32. Completed P73.6 at exact `1e430823`: Linux/Windows full jobs pass 46/46 with identical configured/executed inventories (15.47 s / 21.14 s). Downloaded both artifacts, recorded input ZIP identities, sanitized retained inventory/JUnit members (including line-ending/trailing-output-whitespace normalization) and independently reran exact identity/result validation. Full host report records source/SDK/runtime/job identities, fixed failures and conditional-branch limits. Removed completed native-platform work from active register in the same closure update; later Lumina changes require separate CI regression.
+
+- 16.245.33.
+
+Completed a fresh complete advertised source-ref and eight-fork audit for P73.8. Three branches/five PR heads and three readable forks scan clean; two old PR heads/four readable forks retain flagged history; one advertised fork remains unavailable. The former object endpoint still returns 200. Prepared concrete unsent Support/fork-owner drafts and exact sanitized inventory. F685/KB 35.338 records assumptions/count definitions; external message authority and actual purge/owner remediation remain pending.

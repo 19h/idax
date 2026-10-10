@@ -1179,3 +1179,7 @@ These are to be referenced as [FXX] in the live knowledge base.
 - F684 acquisition supplement: the official SDK packager completes successfully from the versioned 9.5.0 source. Its output declares IDA_SDK_VERSION 950 and retains the uint64 member/bitfield/magic-6 ABI declarations. Generated vendor SDK contents remain in an ignored local directory and are not published.
 
 - F680/F681 closure supplement: exact `1e430823` run `38091718206` passes complete Linux job `114329323594` (46/46; 15.47 s) and Windows job `114329323882` (46/46; 21.14 s). Both configured/executed exact inventory checks pass. Sanitized downloaded inventory/JUnit pairs independently pass the same checker; original artifact hashes and precise scope are retained in `docs/reviews/native-sdk94-full-validation.md`.
+
+685. **Fresh all-ref/fork audit confirms external GitHub retention:**
+
+All three advertised source branches and five of seven PR heads scan clean; PRs 3/4 retain 25 findings each. The former object still resolves. Of eight advertised forks, four readable histories have 25/28/24/32 path-category findings, three scan clean, and one is unavailable with unknown history. Counts differ in definition from earlier blob counts. Concrete Support and four fork-owner drafts are retained without sending; source push authority cannot purge protected refs or independently owned history. See docs/reviews/github-retention-audit.md.

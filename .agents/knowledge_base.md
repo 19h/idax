@@ -3158,3 +3158,7 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 - KB 35.337 acquisition supplement: source-defined 9.5 SDK packaging succeeds; generated pro.h is SDK 950. This satisfies the independent local-header acquisition subgate without reusing or relabeling the SDK 940 public branch. Native producer and wrapper/binding compatibility validation remain required.
 
 - KB 35.327/35.331/35.333/35.334 closure supplement: actual full SDK/runtime 9.4 execution passes 46/46 on both Linux and Windows at exact `1e430823`; startup, zero-byte registry/list and switch-producer corrections reach all assertions. Retained source-derived inventories/JUnit and artifact identities independently verify exact case parity. P73.6 closes at that source revision; later API changes retain their own regression obligation.
+
+### 35.338. Complete Advertised GitHub Retention Audit [F685]
+
+At source master 57495b1e, all three branch histories and five newer PR heads have zero scoped privacy findings; retained PR heads 3/4 and four readable forks remain flagged. One of eight advertised forks is unavailable and remains unknown. docs/reviews/github-retention-audit.md records exact tips, scan units, reconstructed first affected ancestor and concrete unsent cleanup drafts. RET73.A1-A2 require category completeness and advertised-ref visibility; independent missing-category/ref evidence falsifies their dependent clean-history claims. [High impact] Support/fork-owner changes are external to ordinary branch publication; P54.3/P73.8 remains open.
