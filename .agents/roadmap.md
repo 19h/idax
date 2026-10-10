@@ -619,7 +619,7 @@ Current overall phase status:
 - [ ] P73.3 Implement and validate Lumina disconnect using the supported runtime interface.
 - [ ] P73.4 Obtain positive modal-form and clipboard host evidence, then complete the P22 validation refresh.
 - [ ] P73.5 Obtain actual debugger/process-backed Appcall evidence.
-- [ ] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair.
+- [ ] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair. Full CI profiles and inventory/JUnit/log retention are implemented; actual platform results remain pending.
 - [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3.
 - [ ] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations.

@@ -22,6 +22,7 @@ jobs:
   validation:
     name: ${{ matrix.profile }} - ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +38,13 @@ jobs:
             name: linux-x86_64
             profile: unit
             build_dir: build-matrix-linux-gha-unit
+            cc: gcc
+            cxx: g++
+
+          - os: ubuntu-latest
+            name: linux-x86_64
+            profile: full
+            build_dir: build-matrix-linux-gha-full
             cc: gcc
             cxx: g++
 
@@ -60,6 +68,12 @@ jobs:
             name: windows-x64
             profile: unit
             build_dir: build-matrix-windows-gha-unit
+            msvc_arch: x64
+
+          - os: windows-latest
+            name: windows-x64
+            profile: full
+            build_dir: build-matrix-windows-gha-full
             msvc_arch: x64
 
     steps:
@@ -182,4 +196,8 @@ jobs:
             ${{ matrix.build_dir }}/CMakeCache.txt
             ${{ matrix.build_dir }}/CMakeFiles/CMakeOutput.log
             ${{ matrix.build_dir }}/CMakeFiles/CMakeError.log
+            ${{ matrix.build_dir }}/ctest-inventory.json
+            ${{ matrix.build_dir }}/ctest-results.xml
+            ${{ matrix.build_dir }}/Testing/Temporary/LastTest.log
+            ${{ matrix.build_dir }}/Testing/Temporary/LastTestsFailed.log
           if-no-files-found: ignore

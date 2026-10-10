@@ -67,7 +67,8 @@
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.2 Docker credentials/CI targets.
-- **7.3. Queued:** P73.3 Lumina disconnect; P73.4 modal/clipboard evidence; P73.5 debugger-backed Appcall; P73.6 complete Linux/Windows native execution; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
+- **7.2. Active:** P73.2 Docker image/runtime CI evidence; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
+- **7.3. Queued:** P73.3 Lumina disconnect; P73.4 modal/clipboard evidence; P73.5 debugger-backed Appcall; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.5. P73.2 evidence constraint:** Local Docker cannot reach Ubuntu/GitHub on HTTP/HTTPS or host networking. Impact: licensed image execution is unverified locally. Mitigation/next action: publish the implemented image-secret and target gates and inspect the dedicated Actions job's actual image scan/runtime result; keep P73.2 open until those pass.
+- **7.6. P73.6 next action:** Publish both full profiles; inspect exact-head platform results and complete CTest inventory/JUnit/log artifacts. Configuration alone does not close P73.6. Modal/clipboard and debugger process execution remain separate P73.4/P73.5 gates even if their native availability checks pass.

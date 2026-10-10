@@ -54,6 +54,7 @@ python3 "$ROOT/tests/unit/procmod_validation_scripts_test.py"
 python3 "$ROOT/tests/unit/repository_privacy_test.py"
 python3 "$ROOT/tests/unit/ci_log_privacy_test.py"
 python3 "$ROOT/tests/unit/ci_action_pins_test.py"
+python3 "$ROOT/tests/unit/native_test_inventory_test.py"
 python3 "$ROOT/scripts/check_ci_action_pins.py"
 python3 "$ROOT/scripts/check_repository_privacy.py"
 python3 "$ROOT/scripts/check_repository_privacy.py" --history-ref=HEAD
@@ -79,7 +80,13 @@ if [[ "$RUN_TESTS" == "1" ]]; then
   if [[ -n "$TEST_REGEX" ]]; then
     ctest --test-dir "$BUILD_DIR" --output-on-failure -C "$BUILD_TYPE" -R "$TEST_REGEX"
   else
-    ctest --test-dir "$BUILD_DIR" --output-on-failure -C "$BUILD_TYPE"
+    ctest --test-dir "$BUILD_DIR" -C "$BUILD_TYPE" --show-only=json-v1 \
+      > "$BUILD_DIR/ctest-inventory.json"
+    python3 "$ROOT/scripts/check_native_test_inventory.py" "$BUILD_DIR/ctest-inventory.json"
+    ctest --test-dir "$BUILD_DIR" --output-on-failure -C "$BUILD_TYPE" \
+      --no-tests=error --output-junit "$(cd "$BUILD_DIR" && pwd)/ctest-results.xml"
+    python3 "$ROOT/scripts/check_native_test_inventory.py" "$BUILD_DIR/ctest-inventory.json" \
+      --results "$BUILD_DIR/ctest-results.xml"
   fi
 fi
 
