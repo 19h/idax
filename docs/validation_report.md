@@ -51,6 +51,13 @@ primary evidence; counts are dimensionless and elapsed time uses seconds.
 QG1-QG7 pass for this recorded scope. Phase 22 and P73.4 are complete; the
 other Phase 73 rows retain their independent evidence requirements.
 
+## 2026-10-10 licensed Rust Docker evidence
+
+[Exact hosted Docker validation](reviews/rust-docker-validation.md) closes P73.2:
+all saved-image secret/SDK-boundary checks, 172 Rust library tests and three
+initialized runtime targets pass. General integration compilation is kept
+distinct from optional execution.
+
 ## Historical Phase 29 test suite summary
 
 - Unit: `idax_unit_test` -> pass (22/22)

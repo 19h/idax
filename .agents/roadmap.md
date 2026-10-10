@@ -615,7 +615,7 @@ Current overall phase status:
 ### Phase 73: Documented Gap Remediation (2026-10-10)
 
 - [x] P73.1 Reconcile API/domain/binding indexes, inventories, compatibility summaries, and superseded port-gap claims against current source and scoped evidence. F672/KB 35.325 and Progress Ledger 16.245.1; runtime gates remain separately open.
-- [ ] P73.2 Remove Docker credential persistence, align Rust runtime targets with CI, and validate the resulting runner.
+- [x] P73.2 Remove Docker credential persistence, align Rust runtime targets with CI, and validate the resulting runner. Exact `0ed3cac9` licensed job passes image-secret/SDK-boundary gates, 172 Rust library tests and all three initialized runtime targets; see `docs/reviews/rust-docker-validation.md`.
 - [ ] P73.3 Implement and validate Lumina disconnect using the supported runtime interface.
 - [x] P73.4 Obtain positive modal-form and clipboard host evidence, then complete the P22 validation refresh. Actual IDA 9.4 GUI log and final focused native/example/Node/Rust evidence are recorded in `docs/validation_report.md`; compiled Qt remains a scoped evidence limit.
 - [ ] P73.5 Obtain actual debugger/process-backed Appcall evidence.
