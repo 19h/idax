@@ -187,6 +187,21 @@ jobs:
           chmod +x scripts/run_validation_matrix.sh
           scripts/run_validation_matrix.sh "${{ matrix.profile }}" "${{ matrix.build_dir }}" "${{ env.BUILD_TYPE }}"
 
+      - name: Verify connected Lumina lifecycle
+        if: runner.os == 'Linux' && matrix.profile == 'full'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B "${{ matrix.build_dir }}" -DIDAX_BUILD_LUMINA_NETWORK_PROBE=ON
+          cmake --build "${{ matrix.build_dir }}" --target idax_lumina_connected_probe --config "$BUILD_TYPE"
+          PROBE_EXE=$(cat "${{ matrix.build_dir }}/lumina-probe-path-$BUILD_TYPE.txt")
+          timeout 180s cmake \
+            "-DIDAX_TEST_EXECUTABLE=$PROBE_EXE" \
+            "-DIDAX_TEST_FIXTURE=$GITHUB_WORKSPACE/tests/fixtures/simple_appcall_linux64" \
+            -DIDAX_TEST_NAME=lumina_connected_probe \
+            -P tests/integration/run_with_temp_fixture.cmake \
+            2>&1 | tee "${{ matrix.build_dir }}/lumina-connected.log"
+
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -198,6 +213,7 @@ jobs:
             ${{ matrix.build_dir }}/CMakeFiles/CMakeError.log
             ${{ matrix.build_dir }}/ctest-inventory.json
             ${{ matrix.build_dir }}/ctest-results.xml
+            ${{ matrix.build_dir }}/lumina-connected.log
             ${{ matrix.build_dir }}/Testing/Temporary/LastTest.log
             ${{ matrix.build_dir }}/Testing/Temporary/LastTestsFailed.log
           if-no-files-found: ignore

@@ -3071,3 +3071,5 @@
 - 16.245.33.
 
 Completed a fresh complete advertised source-ref and eight-fork audit for P73.8. Three branches/five PR heads and three readable forks scan clean; two old PR heads/four readable forks retain flagged history; one advertised fork remains unavailable. The former object endpoint still returns 200. Prepared concrete unsent Support/fork-owner drafts and exact sanitized inventory. F685/KB 35.338 records assumptions/count definitions; external message authority and actual purge/owner remediation remain pending.
+
+- 16.245.34. Actual local Lumina connection attempt fails before cached-client creation (initial absence checks pass; completed pull/cache checks fail). Added an opt-in native positive network probe and separate hosted Linux invocation with retained log/180 s limit. Local SDK 940 compilation passes; default 46-case roster remains unchanged. F686/KB 35.339 records the unknown connection cause and falsification conditions. P73.3 remains open until actual connected assertions pass.

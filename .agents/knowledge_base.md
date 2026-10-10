@@ -3162,3 +3162,7 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 ### 35.338. Complete Advertised GitHub Retention Audit [F685]
 
 At source master 57495b1e, all three branch histories and five newer PR heads have zero scoped privacy findings; retained PR heads 3/4 and four readable forks remain flagged. One of eight advertised forks is unavailable and remains unknown. docs/reviews/github-retention-audit.md records exact tips, scan units, reconstructed first affected ancestor and concrete unsent cleanup drafts. RET73.A1-A2 require category completeness and advertised-ref visibility; independent missing-category/ref evidence falsifies their dependent clean-history claims. [High impact] Support/fork-owner changes are external to ordinary branch publication; P54.3/P73.8 remains open.
+
+### 35.339. Lumina Positive Probe Rejects Unavailable Transport [F686]
+
+The actual local connection attempt fails before a cached client exists. A positive lifecycle witness must require a completed pull and observed cache, then verify teardown and reconnect; absence-only success is insufficient. The opt-in network executable and hosted Linux gate retain this distinction without altering the default native suite. LUM73.A1-A2 require successful real transport and serialization; unavailable cache or concurrent owner use falsifies dependent lifecycle proof. [High impact] report connection cause as unknown rather than converting failure to skip.
