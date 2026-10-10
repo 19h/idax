@@ -1,8 +1,15 @@
 # Validation Report
 
-Date: 2026-02-15 (base report; current local full-sweep evidence updated 2026-07-14 after Phase 29)
+Date: 2026-02-15 (historical base report; Phase 29 sweep recorded 2026-07-14).
+Documentation reconciliation: 2026-10-10.
 
-## Test suite summary
+## Latest recorded validation
+
+[Phase 72 validation](reviews/swift-rewrite-validation.md) identifies implementation revision `2efc56f2b82d47aa9c0cadb710b7a7f3b8587699`, pinned SDK/runtime 9.4, a complete 46/46 local native run, 32/32 Swift XCTest cases and 20/20 final implementation CI jobs. Each result retains its stated revision, profile, platform and host limits. The canonical source currently checks 41 IDAX header surfaces; that is a wrapper inventory, not exhaustive SDK declaration coverage.
+
+For a new checkout, enumerate its actual configured tests with `ctest --test-dir <build-dir> -N` and retain a fresh run before asserting a current pass. Modal forms/clipboard, real debugger-backed Appcall and full Linux/Windows native execution remain separately tracked under Phase 73.
+
+## Historical Phase 29 test suite summary
 
 - Unit: `idax_unit_test` -> pass (22/22)
 - API surface parity: `idax_api_surface_check` -> pass (compile-time, 28 namespaces verified)
@@ -33,7 +40,7 @@ Date: 2026-02-15 (base report; current local full-sweep evidence updated 2026-07
 - Consistency audit: 0 SDK type leaks in public headers
 - Packaging check: `idax-0.1.0-Darwin.tar.gz` (lib + headers + cmake config)
 
-**Current total: 25/25 CTest targets pass**
+**Historical Phase 29 total: 25/25 CTest targets passed.**
 
 ## Scenario coverage highlights
 

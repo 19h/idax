@@ -82,7 +82,7 @@ work that is not covered by today's public wrappers.
 | P22.R4 | Serializable lvar locator metadata | Add an enumerable/applicable local-variable user-settings model with stable locator fields, name/type/comment payloads, and declaration parsing for per-lvar type apply | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, `tests/unit/api_surface_parity_test.cpp`, ida-cdump `transfer/metadata_export.cpp`, `transfer/metadata_apply.cpp` | C++ surface complete; bindings only if a binding caller needs serializable lvar settings | Complete; `transfer/metadata_export.cpp` and `transfer/metadata_apply.cpp` no longer need `lvar_uservec_t`, `restore_user_lvar_settings`, `lvar_saved_info_t`, `modify_user_lvar_info`, or direct `parse_decl` |
 | P22.R5 | Graph recovery switch metadata | Expose switch/jump-table descriptors needed by graph recovery without `switch_info_t` or `get_switch_info` | `include/ida/graph.hpp`, `src/graph.cpp`, `tests/unit/api_surface_parity_test.cpp` | C++ surface complete; bindings only if graph recovery becomes a binding use case | Complete; ida-cdump `graph_builder.cpp` now uses `ida::graph::switch_table` |
 | P22.R6 | Registered action popup attachment | Attach an already-registered action to a currently-building popup while preserving normal action context payloads such as Local Types `type_ref` | `include/ida/ui.hpp`, `src/ui.cpp`, `tests/unit/api_surface_parity_test.cpp` | Bind only if a binding plugin/action surface needs popup attachment | Complete; ida-cdump `codedump_plugin.cpp` now uses `ida::ui::on_popup_ready` and `attach_registered_action` instead of a raw `HT_UI` listener / `attach_action_to_popup` path |
-| P22.F1 | Future Hex-Rays positioned user comments | Add `DecompiledFunction::user_comments()` and batch setter only if ida-cdump starts exporting `cfunc->user_cmts` | Not scheduled | Not scheduled | Out of scope for current parity because the updated gap notes identify it as future/non-blocking |
+| P22.F1 | Positioned Hex-Rays user comments | `DecompiledFunction::comments`, semantic `CommentPosition`, get/set, save and explicit orphan lifecycle are implemented under Phase 50 | `include/ida/decompiler.hpp`, `src/decompiler.cpp` | C++/Node/Rust/Python/Swift expose the implemented comment workflow through their documented adaptations | Implemented; a separately named batch convenience API is future work only if a concrete caller needs it |
 | P22.F2 | Mutable ctree / broader microcode mutation | Design explicit mutable APIs only for a concrete caller that needs them | Not scheduled | Not scheduled | Out of scope for current ida-cdump parity |
 | P22.F3 | Printf-style UI diagnostic overloads | Add formatting overloads for `ida::ui::info` / `warning` only if a future port needs idax-owned formatting | Not scheduled | Existing string-view API is sufficient for current ida-cdump, which already preformats messages | Comfort gap only; no direct SDK dependency remains when callers format before invoking idax |
 
@@ -116,17 +116,13 @@ task.
 | P22.V1.2 | Closure documentation | Update `docs/validation_report.md`, `.agents/active_work.md`, and `.agents/progress_ledger.md` with final evidence; keep `docs/codedump_migration_checklist.md` aligned. | P22.H1/P22.H2 are marked closed only with verified logs; remaining ida-cdump raw SDK use is classified as downstream migration cleanup or future/non-blocking scope. |
 
 P22.8 migration validation is complete for the original updated gap-note rows,
-but the follow-up ida-cdump port audit added P22.R1-P22.R4 as concrete idax
-implementation tasks. P22.R1 has since been implemented with operand read/write
-metadata, P22.R4 with serializable lvar settings, and P22.R5 by
-`ida::graph::switch_table`.
+and the follow-up residual API tasks P22.R1-P22.R6 are implemented. These include operand access metadata, type dependency rendering, referenced-type collection, serializable lvar settings, switch metadata and registered-action popup attachment. Downstream call-site assertions retain the pinned migration-record boundary documented in `docs/codedump_migration_checklist.md`; fresh downstream execution is distinct from IDAX implementation coverage.
 
 ## Existing-API Migration Candidates
 
 The updated gap notes also mention lower-level direct SDK calls that remain in
 ida-cdump after the high-value parity surfaces are available. Some call sites
-can already migrate with existing wrappers; call sites needing the extra
-metadata named in P22.R2-P22.R3 are not equivalent yet.
+can migrate with existing wrappers, including the type dependency rendering and referenced-type collection added under P22.R2/P22.R3. The table is a migration map rather than an open IDAX implementation queue.
 
 | SDK shape in ida-cdump | idax replacement | Notes |
 | --- | --- | --- |
@@ -627,8 +623,8 @@ Concrete implementation tasks:
 - P22.8.5 [x] Record known blockers separately from parity tasks. No local
   Node/Rust binding blocker remains for the implemented P22 surfaces. The
   follow-up ida-cdump port audit added C++ residual API tasks P22.R1-P22.R4;
-  P22.R1 and P22.R4 are now implemented, leaving P22.R2-P22.R3;
-  modal typed-form evidence and Qt clipboard evidence also remain host-gated.
+  P22.R1-P22.R4 and the later P22.R5/P22.R6 are implemented;
+  modal typed-form evidence and clipboard evidence remain host-gated.
   The Qt clipboard build additionally requires an IDA-compatible
   `QT_NAMESPACE=QT` Qt package; a plain system Qt package is rejected at
   configure time.
@@ -641,6 +637,6 @@ Acceptance:
 
 ## Suggested order
 
-1. P22.R2/P22.R3 type dependency and ctree/type collection snapshots.
-2. P22.H1/P22.H2 host evidence for modal forms and Qt clipboard.
-3. P22.V1 final validation and documentation refresh.
+1. P22.H1/P22.H2 host evidence for modal forms and clipboard.
+2. P22.V1 final validation and documentation refresh.
+3. Reverify downstream migration claims against the pinned caller tree when available.

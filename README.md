@@ -73,13 +73,14 @@ idax was born from a simple observation: **the IDA SDK's power is extraordinary,
 
 ## What it covers
 
-idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 41 public headers cover 38 concept domains plus the umbrella, shared core, and error headers:
+idax spans the SDK surface across core analysis, module-authoring, and interactive workflows. 42 public headers cover 39 concept domains plus the umbrella, shared core, and error headers:
 
 | Domain | Namespace | What it wraps |
 |--------|-----------|---------------|
 | **Addresses** | `ida::address` | Predicates, item traversal, range iteration, predicate search |
 | **Byte access** | `ida::data` | Read/write/patch bytes, typed values, checked fixed-width arrays through 512 bits, processor-aware tbyte/packed-real definitions, owned custom type/format registration and creation, configurable copied string-list inventory, binary pattern search |
 | **Database** | `ida::database` | Open/save/close, metadata, snapshots, file/memory transfer |
+| **Dyld caches** | `ida::dyld_cache` | Copied image inventories and incremental module, section, header and cache-region loading |
 | **Paths** | `ida::path` | Portable basename/dirname/directory helpers for plugin workflows |
 | **Segments** | `ida::segment` | CRUD, properties, permissions, iteration |
 | **Functions** | `ida::function` | CRUD, chunks, frames, register variables, callers/callees, prototype export/apply |
@@ -114,6 +115,7 @@ idax spans the SDK surface across core analysis, module-authoring, and interacti
 | **UI** | `ida::ui` | Messages, dialogs/forms including typed `ask_form` and fixed-shape binding entrypoints, optional Qt clipboard helpers (`IDAX_ENABLE_QT_CLIPBOARD` with IDA-compatible `QT_NAMESPACE=QT` Qt), wait-box progress UI, stable widget/current-widget and custom-viewer APIs, choosers, timers, UI/VIEW event subscriptions |
 | **Graphs** | `ida::graph` | Graph objects, node/edge CRUD, flow charts, basic blocks, switch-table metadata |
 | **Storage** | `ida::storage` | Netnode abstraction, alt/sup/hash/blob operations |
+| **Diagnostics** | `ida::diagnostics` | Logging levels, invariant checks and copied performance counters |
 
 Plus cross-cutting primitives: `ida::Error`, `ida::Result<T>`, `ida::Status`, shared option structs, diagnostics, and logging.
 
@@ -486,7 +488,7 @@ examples/
 
 **Key architectural decisions:**
 
-- **Opaque boundary.** The `detail/sdk_bridge.hpp` header is the single point where SDK headers are included. Public headers never `#include` any SDK file. Internal `friend struct XxxAccess` patterns allow implementation files to populate opaque value objects.
+- **Opaque boundary.** SDK records and pointers stay behind private adapters. `detail/sdk_bridge.hpp` is the common implementation include point. Public `ui.hpp` deliberately includes SDK declarations for the typed `ask_form` forwarding template; this preserves the true C vararg binding contract. Internal `friend struct XxxAccess` patterns populate opaque value objects. See [header dependencies](docs/namespace_topology.md#header-dependency-map).
 
 - **SDK-agnostic linkage.** `libidax.a` compiles against SDK headers but does not force a link target. Consumers bring their own `idasdk::plugin`, `idasdk::idalib`, or whatever target matches their use case.
 
@@ -523,7 +525,7 @@ Set `IDADIR` to your IDA install path, or let CMake auto-discover it:
 ctest --test-dir build --output-on-failure
 ```
 
-The test suite includes 33 targets: 8 unit/compile-surface tests and 25 integration tests covering every namespace with a real ELF64 fixture binary.
+The suite combines unit/compile-surface checks with initialized IDA integration tests. Available targets depend on the configured runtime and optional features; inspect the actual build with `ctest --test-dir build -N`. The latest recorded complete local native run passed 46/46 targets on the revision identified in [Phase 72 validation](docs/reviews/swift-rewrite-validation.md). That historical result does not establish a fresh pass for a different checkout or host.
 
 For repeatable OS/compiler/profile runs, use `scripts/run_validation_matrix.sh` and
 track evidence in `docs/compatibility_matrix.md`.

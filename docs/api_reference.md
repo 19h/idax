@@ -10,6 +10,7 @@ Public headers:
 | `include/ida/diagnostics.hpp` | Logging levels, counters, diagnostic message helpers |
 | `include/ida/address.hpp` | Address predicates, item traversal, range iteration, predicate search |
 | `include/ida/data.hpp` | Read/write/patch/define bytes, typed values, owned custom type/format lifecycle and creation, configurable copied string-list inventory, binary pattern search |
+| `include/ida/dyld_cache.hpp` | Apple dyld shared-cache availability, owned online/offline image inventories, incremental module/section loading, mapped-header verification and atomic cache-region loading |
 | `include/ida/database.hpp` | Open/save/close, runtime/plugin policy init options, metadata (input path, IDB path, file type/compiler/imports, raw/verified processor identity, normalized processor profile), snapshots, file/memory transfer |
 | `include/ida/path.hpp` | Portable path helpers (`basename`, `dirname`, `is_directory`) for plugin-side file/path UI workflows |
 | `include/ida/segment.hpp` | Segment CRUD/properties plus semantic segment-register discovery, optional values/defaults, copied provenance ranges, and verified mutation |
@@ -28,6 +29,7 @@ Public headers:
 | `include/ida/lumina.hpp` | Lumina connection helpers and metadata pull/push wrappers |
 | `include/ida/undo.hpp` | Opaque named restore points, copied optional action labels, and undo/redo execution |
 | `include/ida/type.hpp` | Type construction, copied pointer details and metadata-preserving shifted-parent copies, explicit forward-declaration classification and ordinal-preserving complete-UDT replacement, structs/unions/members, opaque exact-member persistent informational-reference ensure/readback, metadata-preserving function-argument and return replacement, apply/retrieve, bulk declaration import/rendering, dependency-ordered declaration snapshots, used-member trimming, DOT type graph rendering, type libraries (`ensure_named_type`, import/apply named helpers) |
+| `include/ida/script.hpp` | Opaque IDC value ownership, exact access/coercion, object attributes/slices, structured evaluation/compilation/calls, globals/references and script/include resolution; host-retained callback registries remain separately scoped |
 | `include/ida/parser.hpp` | Third-party source-parser selection by name/language, copied identity and options, arguments, source/file ingestion, and semantic parse reports/options |
 | `include/ida/directory.hpp` | Opaque access to all eight standard database trees with copied entries, directory/item mutation, ordering, search, folding, and deterministic partial bulk reports |
 | `include/ida/registry.hpp` | Copyable scoped persistent-store identities; typed string, binary, signed 32-bit integer, and boolean values; copied child/value inventories; ordered string lists; value/key/tree deletion |
@@ -70,7 +72,7 @@ See also:
 - `docs/tutorial/multi_binary_signature_generation.md` — multi-sample signature generation pipeline
 - `docs/tutorial/distributed_analysis_consistency.md` — distributed consistency and merge design
 - `docs/tutorial/safety_performance_tradeoffs.md` — idax-wrapper vs raw-SDK trade-offs and recovery
-- `docs/surface_selection_guide.md` — choose between C++ wrapper, safe Rust, and raw FFI
+- `docs/surface_selection_guide.md` — select C++, Rust, Node.js, Python or Swift; distinguish Rust safe APIs from raw FFI
 - `docs/namespace_topology.md` — Complete namespace/type inventory map
 - `docs/compatibility_matrix.md` — OS/compiler validation matrix and commands
 - `docs/storage_migration_caveats.md` — Netnode migration safety notes

@@ -39,7 +39,7 @@ The repo's own pragmatic stance is: start with `idax`, drop to raw SDK surgicall
 |---|---|---|---|
 | Address naming | `ea_t ea` | `ida::Address address` | `idax` deliberately avoids `ea` in public APIs |
 | Success/failure | `BADADDR`, `false`, `0`, `nullptr`, `-1`, `loader_failure()` | `Result<T>` / `Status` | one normalized model |
-| Pointer exposure | `segment_t *`, `func_t *`, `insn_t`, `cfuncptr_t`, `vdui_t *` | opaque values, snapshot classes, `void *` only in scoped advanced interop callbacks | no public SDK headers in `idax` public headers |
+| Pointer exposure | `segment_t *`, `func_t *`, `insn_t`, `cfuncptr_t`, `vdui_t *` | opaque values, snapshot classes, `void *` only in scoped advanced interop callbacks | SDK includes stay private except the documented public `ui.hpp` typed-form forwarding dependency |
 | Iteration | `get_*_qty()` + index helpers or `get_next_*()` loops | `all()` ranges, `by_index()`, range types | more STL-like usage |
 | Feature flags | raw ints and ORed constants | enums + typed option/request structs | especially visible in loader/plugin/processor APIs |
 | Teardown | explicit unregister/unhook/remove | RAII guards where practical | `ScopedSubscription`, `ScopedMicrocodeFilter` |

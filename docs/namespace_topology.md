@@ -11,6 +11,7 @@ ida::                                     (root: type aliases, error model, opti
  |-- ida::data           Read/write/patch/define/custom data, strings   [1 enum, 11 structs, ~60 free fns, 2 templates]
  |-- ida::database       Open/save/close, metadata, snapshots            [1 enum, 6 structs, ~25 free fns]
  |-- ida::path           Portable path splitting and directory checks    [~3 free fns]
+ |-- ida::dyld_cache     Shared-cache inventories and incremental loading [1 struct, 11 free fns]
  |
  |-- ida::segment        CRUD, properties, semantic register ranges     [2 enums, 3 structs, 3 classes, ~25 free fns]
 |-- ida::function       CRUD, chunks, frames, register variables        [3 structs, 4 classes, ~29 free fns]
@@ -83,6 +84,7 @@ Defined across `error.hpp`, `address.hpp`, and `core.hpp`:
 | `ida::data` | Byte-level, registered custom-data, and string-inventory access | `TypedValue`, `StringListOptions`, `StringLiteral`, `CustomDataTypeId`, `CustomDataFormatId`, owned definitions, copied metadata/item snapshots |
 | `ida::database` | Database lifecycle and normalized target metadata | `ProcessorId`, `ProcessorProfile`, `Snapshot`, `RuntimeOptions`, `PluginLoadPolicy`, `CompilerInfo`, `ImportModule`, `ImportSymbol` |
 | `ida::path` | Portable path helpers | (free functions only) |
+| `ida::dyld_cache` | Owned online/offline shared-cache inventories and incremental image/region loading | `ModuleInfo` |
 | `ida::segment` | Segment management and processor context ranges | `Segment`, `Permissions`, `Type`, `SegmentRegisterSource`, `SegmentRegisterDescriptor`, `SegmentRegisterRange` |
 | `ida::function` | Function analysis, printable prototype readback, and conservative prototype application | `Function`, `StackFrame`, `Chunk` |
 | `ida::instruction` | Instruction decoding, processor-reported access modes and encoded-value byte positions, opaque named enum representations, and copied root/member-name struct-offset paths | `Instruction`, `Operand`, `OperandType`, `OperandFormat`, `RegisterCategory`, `OperandEnum`, `StructOffsetPath` |

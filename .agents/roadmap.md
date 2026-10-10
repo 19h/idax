@@ -609,3 +609,19 @@ Current overall phase status:
 - [x] R-UNSTAGED-20261010 Review all eight modified/untracked source, Docker, and presentation files for relevance and defects. See Progress Ledger 16.242 and F664-F666. Remediation is outside the requested review scope.
 
 - [x] D-SDK94-20261010 Align the Rust Docker runner's SDK checkout and Linux IDA runtime with the current CI 9.4 baseline; verify its SDK ref and installer asset. See F667/KB 35.320 and Progress Ledger 16.243.
+
+- [x] A-DOCGAPS-20261010 Audit documented open gaps against current source and closure records; distinguish remaining implementation/host work, intentional boundaries, and documentation reconciliation defects. See F668-F670/KB 35.321-35.323 and Progress Ledger 16.244.
+
+### Phase 73: Documented Gap Remediation (2026-10-10)
+
+- [x] P73.1 Reconcile API/domain/binding indexes, inventories, compatibility summaries, and superseded port-gap claims against current source and scoped evidence. F672/KB 35.325 and Progress Ledger 16.245.1; runtime gates remain separately open.
+- [ ] P73.2 Remove Docker credential persistence, align Rust runtime targets with CI, and validate the resulting runner.
+- [ ] P73.3 Implement and validate Lumina disconnect using the supported runtime interface.
+- [ ] P73.4 Obtain positive modal-form and clipboard host evidence, then complete the P22 validation refresh.
+- [ ] P73.5 Obtain actual debugger/process-backed Appcall evidence.
+- [ ] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair.
+- [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
+- [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3.
+- [ ] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations.
+
+Each semantic group requires explicit path staging, `red -m --staged --run <paths>`, and `git push`; completion requires source/runtime/external evidence appropriate to that group's full scope. See Progress Ledger 16.245.

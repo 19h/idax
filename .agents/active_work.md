@@ -63,3 +63,10 @@
   - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
   - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
   - 6.1.5. **Status:** In progress / host-gated.
+
+### 7. Documented Gap Remediation (Phase 73)
+
+- **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
+- **7.2. Active:** P73.2 Docker credentials/CI targets.
+- **7.3. Queued:** P73.3 Lumina disconnect; P73.4 modal/clipboard evidence; P73.5 debugger-backed Appcall; P73.6 complete Linux/Windows native execution; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
+- **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.

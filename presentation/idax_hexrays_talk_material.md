@@ -93,7 +93,7 @@ The public headers do not expose SDK structs or pointers.
 - No `func_t*`
 - No `insn_t`
 - No public `.raw()` escape hatch
-- SDK headers are isolated behind `src/detail/sdk_bridge.hpp`
+- SDK headers normally remain behind private adapters. Public `ui.hpp` deliberately includes SDK declarations for typed `ask_form` forwarding; SDK records/pointers remain outside the public value model.
 
 This matters because `idax` is trying to change the ownership/lifetime model users see.
 
@@ -166,9 +166,9 @@ Sources:
 
 The repo documents:
 
-- 29 public headers across 25 public domains in `README.md`
+- 42 public headers: 39 concept domains plus umbrella/core/error in `README.md`
 - near-complete coverage across analysis, metadata, plugin/loader/procmod, debugger, UI, graph, decompiler, and storage in `docs/sdk_domain_coverage_matrix.md`
-- current compile-time parity test source asserting 27 namespace surfaces checked
+- current compile-time parity test source asserting 41 IDAX header surfaces checked
 
 Sources:
 
@@ -619,7 +619,7 @@ Source:
 
 ### Remaining example-port deltas
 
-- DriverBuddy: no single-call `add_hotkey(...)`-style helper
+- DriverBuddy: `register_hotkey` and move-only `ScopedHotkey` implement shortcut ownership separately from menu-visible action ownership; interactive activation evidence retains its host boundary
 - idapcode: no native `ida::pcode` namespace; Sleigh integration is external by design
 - abyss: small maturity-callback advisory delta for some local-variable filters
 
@@ -642,17 +642,17 @@ Source:
 
 Use these as evidence bullets.
 
-- `docs/validation_report.md` reports `16/16` CTest targets passing
+- `docs/reviews/swift-rewrite-validation.md` records 46/46 local native CTests on its explicitly identified implementation revision
 - The same report includes `232/232` smoke coverage and dedicated debugger/UI/graph/event, loader/processor, decompiler/storage, stress, and benchmark suites
-- `tests/unit/api_surface_parity_test.cpp` currently asserts `27` namespace surfaces compile-checked
+- `tests/unit/api_surface_parity_test.cpp` currently asserts `41` IDAX header surfaces compile-checked
 - `docs/sdk_domain_coverage_matrix.md` marks nearly all public domains `covered`, with only a few intentional `partial` abstractions
 - Real-world ports exist for `abyss`, `DriverBuddy`, `idapcode`, `lifter`, `qtform`, DrawIDA, SEP firmware loading, and JBC loader/procmod
 
 Useful nuance:
 
-- `validation_report.md` is a dated snapshot and says `26 namespaces verified`
-- current source in `tests/unit/api_surface_parity_test.cpp` says `27`
-- use the current-source number if asked, and describe the report as slightly older than HEAD
+- historical validation sections retain their original counts and revisions
+- current source checks 41 IDAX surfaces; the umbrella brings in 41 declaration headers, excluding the umbrella itself
+- binding declaration completeness does not establish exhaustive SDK 9.4 capability coverage
 
 ## Suggested Slide Flow
 

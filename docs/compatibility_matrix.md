@@ -1,6 +1,7 @@
 # Compatibility Validation Matrix
 
-Date: 2026-02-15 (updated after debugger-backend fallback sweep)
+Historical baseline: 2026-02-15 (debugger-backend fallback sweep).
+Documentation reconciliation: 2026-10-10.
 
 This matrix tracks what has been validated across operating systems, compilers,
 and validation profiles.
@@ -36,7 +37,18 @@ Environment requirements:
 - Appcall runtime-path validation is tracked separately in
   `docs/appcall_runtime_validation.md`.
 
-## Current matrix status
+## SDK/runtime 9.4 evidence baseline
+
+Current workflows pin SDK revision `6929db6868a524496eb66e76e4ec6c9d720a0594` and install IDA 9.4 on Linux, macOS and Windows. [Phase 72 validation](reviews/swift-rewrite-validation.md) records the complete local native run and the final 20-job binding/validation/integration matrix at its identified implementation revision. Those jobs retain their distinct scopes; they do not establish complete native Linux/Windows CTest execution.
+
+| Platform | Required profile | SDK/runtime | Status | Remaining evidence |
+|---|---|---|---|---|
+| Linux x86-64 | Full native CTest suite | Pinned SDK / IDA 9.4 | Pending (P73.6) | Execute all configured native tests and retain exact revision, inventory and results |
+| Windows x64 | Full native CTest suite | Pinned SDK / IDA 9.4 | Pending (P73.6) | Execute all configured native tests and retain exact revision, inventory and results |
+
+Licensed runtime installation is already part of current CI. Full native-suite execution, rather than runtime acquisition alone, is the remaining evidence gate. Older 9.3 results below are historical and cannot satisfy these 9.4 rows.
+
+## Historical baseline matrix
 
 | OS | Arch | Compiler | Build Type | Profile | Runtime | Status | Evidence |
 |---|---|---|---|---|---|---|---|
@@ -58,8 +70,8 @@ Environment requirements:
 | Linux | x86_64 | Clang 18.1.3 | RelWithDebInfo | compile-only | none | fail | baseline container run fails because `std::expected` is unavailable with this compiler/libstdc++ pairing (`build-matrix-linux-clang18-amd64-baseline/`) |
 | Linux | x86_64 | Clang 19.1.1 | RelWithDebInfo | compile-only | none | pass | baseline container run passes with `IDAX_BUILD_EXAMPLE_ADDONS=OFF` and `IDAX_BUILD_EXAMPLE_TOOLS=OFF` (`build-matrix-linux-clang19-amd64-baseline/`) |
 | Linux | x86_64 | Clang 19.1.1 | RelWithDebInfo | compile-only (+tools/addons) | none | fail | current SDK checkout lacks `x64_linux_clang_64` runtime libs needed for addon/tool linkage (`build-matrix-linux-clang19-amd64-docker/`, `build-matrix-linux-clang19-amd64-noaddons/`) |
-| Linux | x86_64 | GCC 13+ | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
-| Windows | x64 | MSVC v143 | RelWithDebInfo | full | IDA 9.3 | pending | requires runtime install |
+| Linux | x86_64 | GCC 13+ | RelWithDebInfo | full | IDA 9.3 | historically pending | superseded by the explicit 9.4 evidence row above |
+| Windows | x64 | MSVC v143 | RelWithDebInfo | full | IDA 9.3 | historically pending | superseded by the explicit 9.4 evidence row above |
 
 ## Recommended commands per row
 
@@ -80,7 +92,7 @@ scripts/run_validation_matrix.sh unit build-matrix-unit RelWithDebInfo
 scripts/run_open_points.sh build-open-points RelWithDebInfo
 ```
 
-## Notes
+## Historical baseline notes
 
 - Hosted log bundle audit (`job-logs1.txt`..`job-logs5.txt`) confirms all
   provided jobs succeeded via `Complete job name`,

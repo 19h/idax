@@ -25,6 +25,10 @@ Validation pass:
 - [x] Examples referenced in docs exist in `examples/`.
 - [x] Migration snippets compile conceptually against current public API names.
 - [x] Port audit index includes all maintained real-world ports.
+- [x] Public header/domain and language-surface inventory equality is checked by
+  `python3 scripts/check_documentation_inventory.py` and the validation workflow.
+  This gate verifies IDAX documentation coverage; SDK-to-IDAX capability parity
+  and runtime success retain their separate evidence requirements.
 
 Scenario acceptance map (Phase 18):
 
