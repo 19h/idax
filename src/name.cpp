@@ -200,7 +200,7 @@ bool is_auto_generated(Address ea) {
 }
 
 Result<bool> is_valid_identifier(std::string_view text) {
-    if (text.empty())
+    if (text.empty() || text.find('\0') != std::string_view::npos)
         return false;
     std::string value(text);
     return ::is_uname(value.c_str());
@@ -209,11 +209,37 @@ Result<bool> is_valid_identifier(std::string_view text) {
 Result<std::string> sanitize_identifier(std::string_view text) {
     if (text.empty())
         return std::unexpected(Error::validation("Identifier cannot be empty"));
+    if (text.find('\0') != std::string_view::npos)
+        return std::unexpected(Error::validation("Identifier cannot contain NUL bytes"));
 
     qstring value = ida::detail::to_qstring(text);
     if (!validate_name(&value, VNT_IDENT, SN_NOCHECK)) {
         return std::unexpected(Error::validation("Identifier cannot be sanitized",
                                                  std::string(text)));
+    }
+    // Native storage rules can permit graphical characters (e.g. spaces)
+    // that the SDK's identifier lexer rejects. Preserve the processor's
+    // rewriting, then enforce the same user-identifier predicate we expose.
+    if (!::is_uname(value.c_str())) {
+        qstring identifier;
+        const char* cursor = value.c_str();
+        const char* end = cursor + value.length();
+        while (cursor < end) {
+            const char* start = cursor;
+            const wchar32_t codepoint = ::get_utf8_char(&cursor);
+            if (codepoint == BADCP || cursor <= start || cursor > end)
+                return std::unexpected(Error::validation("Identifier contains invalid UTF-8"));
+            if (::is_ident_cp(codepoint))
+                identifier.append(start, static_cast<std::size_t>(cursor - start));
+            else
+                identifier.append(SUBSTCHAR);
+        }
+        // A dummy-name prefix is lexically valid but forbidden for user names.
+        if (!::is_uname(identifier.c_str()))
+            identifier.insert(SUBSTCHAR);
+        if (!::is_uname(identifier.c_str()))
+            return std::unexpected(Error::validation("Identifier cannot be sanitized"));
+        value.swap(identifier);
     }
     return ida::detail::to_string(value);
 }

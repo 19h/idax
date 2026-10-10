@@ -178,6 +178,21 @@ void test_name_behaviors() {
             CHECK(*sanitized_valid);
     }
 
+    for (const auto text : {"7 invalid identifier", "sub_1234", "idax-invalid", "idax invalid identifier"}) {
+        auto identifier = ida::name::sanitize_identifier(text);
+        CHECK_OK(identifier);
+        if (identifier) {
+            CHECK_VAL(ida::name::is_valid_identifier(*identifier), *_r);
+            auto repeated = ida::name::sanitize_identifier(*identifier);
+            CHECK_OK(repeated);
+            if (repeated) CHECK(*repeated == *identifier);
+        }
+    }
+    const std::string nul_identifier("name\0tail", 9);
+    CHECK_VAL(ida::name::is_valid_identifier(nul_identifier), !*_r);
+    auto nul_sanitized = ida::name::sanitize_identifier(nul_identifier);
+    CHECK(!nul_sanitized && nul_sanitized.error().category == ida::ErrorCategory::Validation);
+
     for (auto form : {ida::name::DemangleForm::Short,
                       ida::name::DemangleForm::Long,
                       ida::name::DemangleForm::Full}) {

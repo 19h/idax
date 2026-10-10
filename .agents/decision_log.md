@@ -1503,3 +1503,7 @@
 ### D19.97 Explicit SDK 950 Validation and Copied String Payload
 - Keep default/fetched/CI SDK 940. Allow actual SDK 950 only with explicit IDAX_VALIDATE_SDK95, rejecting unknown versions; report this as compatibility validation until real runtime producers/consumers pass.
 - Always obtain string_info_ex_t through the exported extended getter. Resolve the known SDK field name privately and use SDK 950 synthetic-type classification for all provider encodings; public StringLiteral values remain owned and SDK independent.
+
+### D19.98 Strict Identifier Sanitization Postcondition
+- Preserve native processor rewriting and per-database name storage policy. Enforce the same strict SDK is_uname predicate as is_valid_identifier using public SDK UTF-8/codepoint helpers, replacing disallowed codepoints with SUBSTCHAR and prefixing dummy identifiers. Do not infer lexer validity from native storage-validation success.
+- Embedded NUL is invalid for the complete input: validation returns false, sanitization returns Validation. Successful results must be valid and idempotent; runtime checks on both actual releases retain the unchanged original assertion.

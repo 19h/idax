@@ -15,7 +15,9 @@ headers or private source files are published.
 All native targets compile. The first full 46-case run reaches every target
 and yields 45 passes/one failure in 105.54 s: sanitize_identifier returns a
 storage-valid name that fails the unchanged is_valid_identifier assertion.
-The full suite has not passed. This failure remains an active correction.
+The strict identifier correction then passes its expanded target on both
+actual releases (3.39 s / 3.21 s), preserving the original assertion.
+The full suite has not yet been refreshed after this correction.
 
 SDK 950 renames the extended string-list payload to synthetic_string and
 encodes providers in synthetic string types. IDAX now uses the extended getter
