@@ -55,6 +55,44 @@ On a debugger-capable host, output includes:
 - `Call: int ref4(int* p) with p = NULL`
 - `Return: signed=-1` (fixture-specific expected return)
 
+## In-process GUI probe
+
+The opt-in host module tests four real wrapper calls against an already
+suspended process: `ref4(NULL) == -1`, `ref1(41) == 42`,
+`ref1(-42) == -41` and `ref3(38) == 41`. It requires a loaded
+Appcall-capable backend and rejects absent/running processes.
+
+```bash
+IDASDK='<ida-sdk-root>/src' IDADIR='<ida-runtime>' \
+  cmake -S . -B '<build-root>' -DIDAX_BUILD_TESTS=ON \
+    -DIDAX_BUILD_HOST_EVIDENCE_MODULE=ON
+cmake --build '<build-root>' --target idax_appcall_host_gates
+```
+
+Load the host-native fixture in the GUI, configure its supported debugger,
+break at `main`, and invoke from the GUI Python console on its UI thread:
+
+```python
+import ctypes
+module = ctypes.CDLL('<build-root>/tests/host/libidax_appcall_host_gates.dylib')
+probe = module.idax_run_appcall_host_gates
+probe.argtypes = [ctypes.c_char_p]
+probe.restype = ctypes.c_int
+print(probe(b'<build-root>/appcall-host-evidence.txt'))
+```
+
+Replace the macOS module suffix/path for Linux/Windows. Retain the complete
+log and a zero probe exit code; successful loading/compilation is not Appcall
+execution evidence. The module's four signed-return assertions must all pass.
+
+Current probe status (2026-10-11): native module compilation passes. Local
+macOS backend setup requires elevated permissions; its cancellation produced
+a native IDA SIGSEGV alert before the wrapper probe ran (cause unknown).
+The vendor ARM Linux 9.4 debug server, host-native fixture and loopback SSH
+transport have been prepared on the existing local VM; actual process-backed
+wrapper assertions remain pending under P73.5. No elevated-host or remote
+success is inferred from readiness.
+
 ## If It Fails
 
 - Capture full stderr/stdout and the reported `ida::Error` context.

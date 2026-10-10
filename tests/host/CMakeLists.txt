@@ -18,3 +18,16 @@ if(APPLE)
 else()
     target_link_libraries(idax_codedump_ui_host_gates PRIVATE idasdk::plugin)
 endif()
+
+add_library(idax_appcall_host_gates SHARED appcall_host_gates.cpp)
+target_link_libraries(idax_appcall_host_gates PRIVATE idax::idax)
+idax_remap_build_paths(idax_appcall_host_gates)
+if(APPLE)
+    target_link_libraries(idax_appcall_host_gates PRIVATE "$ENV{IDADIR}/libida.dylib")
+    set_target_properties(idax_appcall_host_gates PROPERTIES
+        BUILD_RPATH "$ENV{IDADIR}"
+        INSTALL_NAME_DIR "@rpath"
+        BUILD_WITH_INSTALL_NAME_DIR TRUE)
+else()
+    target_link_libraries(idax_appcall_host_gates PRIVATE idasdk::plugin)
+endif()

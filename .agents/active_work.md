@@ -58,8 +58,8 @@
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.2 Docker image/runtime CI evidence; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
-- **7.3. Queued:** P73.3 Lumina disconnect; P73.5 debugger-backed Appcall; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
+- **7.2. Active:** P73.2 Docker image/runtime CI evidence; P73.5 actual GUI debugger-backed Appcall probe; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
+- **7.3. Queued:** P73.3 Lumina disconnect; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.5. P73.2 evidence constraint:** Local Docker cannot reach Ubuntu/GitHub on HTTP/HTTPS or host networking. Impact: licensed image execution is unverified locally. Mitigation/next action: publish the corrected current-package SDK resolver after actual Actions job `114319261403` exposed its legacy-bootstrap-only failure, then inspect the dedicated job's actual image scan/runtime result; keep P73.2 open until those pass.
 - **7.6. P73.6 next action:** The initial exact-head full profiles failed before assertions (Linux SDK stub selection; Windows DLL-not-found). Publish the corrected child runtime loader paths, then inspect full platform results and complete CTest inventory/JUnit/log artifacts. Configuration alone does not close P73.6. Debugger process execution remains a separate P73.5 gate even if native availability checks pass.
