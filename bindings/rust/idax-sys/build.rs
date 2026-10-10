@@ -518,6 +518,10 @@ fn main() {
         println!("cargo:rustc-link-lib=stdc++");
     } else if cfg!(target_os = "windows") {
         link_ida_windows(&sdk_lib_root);
+        // The native checked-empty registry fallback uses the Win32 registry
+        // imports. This direct archive consumer does not inherit CMake's link
+        // interface, so emit its system dependency here as well.
+        println!("cargo:rustc-link-lib=dylib=advapi32");
     }
 
     // ── Run bindgen ─────────────────────────────────────────────────────

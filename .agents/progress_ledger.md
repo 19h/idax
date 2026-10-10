@@ -3081,3 +3081,7 @@ Completed a fresh complete advertised source-ref and eight-fork audit for P73.8.
 - 16.245.37. Diagnosed the actual SDK 950 full-suite failure as permissive storage validation versus strict identifier lexing (native probe preserves spaces, is_uname returns false). Implemented the SDK-helper lexer postcondition and dummy/NUL handling with behavioral/idempotence coverage; actual 940/950 execution is pending. F688/KB 35.341 and D19.98 retain the native policy boundary and falsification probes.
 
 - 16.245.38. Strict-identifier correction passes the unchanged original assertion and expanded leading-digit/dummy/idempotence/NUL cases on actual SDK 940/IDA 9.4 (3.39 s) and SDK 950/IDA 9.5 (3.21 s). Native storage configuration stays untouched. Publish this validated semantic correction; full 950 suite and wide/bitfield consumers remain open.
+
+- 16.245.39. Exact fec4c802 Validation/Integrations runs pass, including full native 940 suites after Lumina virtual close; Bindings fails only the Windows Rust job on three Win32 registry imports. F689/KB 35.342 identifies missing advapi32 in its independent direct-archive link path. Added the Windows-only Rust dependency; local host checks and actual Windows publication/rerun remain pending.
+
+- 16.245.40. Windows-only Rust system-dependency change preserves actual local SDK 940 host linkage and all 172 Rust library tests. Source privacy/documentation/whitespace checks pass. Windows MSVC resolution remains pending until the exact published job; the local host pass is not Windows proof.
