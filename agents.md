@@ -1,6 +1,6 @@
 # agents.md - IDA SDK Intuitive Wrapper Program
 
-Last updated: 2026-09-08
+Last updated: 2026-10-10
 Status: 39 native domains and four language bindings implemented; Phase 72 validation complete; host-evidence limits documented
 Primary goal: Build a fully opaque, highly intuitive, self-explanatory wrapper over the IDA SDK for first-time users while preserving full power for expert workflows.
 
@@ -127,8 +127,9 @@ Program-level:
 
 Phase completion estimates:
 - Phase 0-21 and 23-36: complete
-- Phase 22: ~99% complete; remaining evidence requires interactive modal-form and clipboard hosts
+- Phase 22: complete for the accepted native typed-form and external clipboard backend; actual IDA 9.4 GUI evidence and the final parity refresh pass. Compiled Qt-backend execution remains an explicit evidence limit.
 - Phase 72: complete; fresh Swift rewrite, native module dispatch, declaration mappings, CI and privacy evidence recorded
+- Phase 73: documentation and modal/clipboard closure complete; remaining gap remediation is active
 - See `.agents/roadmap.md` for detailed phase status
 
 Blocker status:

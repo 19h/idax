@@ -55,20 +55,13 @@
 
 ---
 
-### 6. ida-cdump Parity Closure (Phase 22)
-
-- **6.1. Host Evidence Queue**
-  - 6.1.1. **Action:** Collect interactive host evidence for the remaining P22 UI/runtime gates documented in `docs/codedump_parity_tasks.md`.
-  - 6.1.2. **Modal typed-form evidence:** Run `IDAX_RUN_MODAL_FORMS=1` in an interactive IDA UI host, accept the codedump-shaped dialog, and verify the captured log with `scripts/check_codedump_parity_evidence_log.sh <log> modal`.
-  - 6.1.3. **Clipboard evidence:** Run `IDAX_RUN_QT_CLIPBOARD=1` in an IDA UI host with either an IDA-compatible Qt clipboard backend or a working external clipboard command, then verify with `scripts/check_codedump_parity_evidence_log.sh <log> qt-clipboard`.
-  - 6.1.4. **Blocker:** Requires an interactive IDA UI host; Qt clipboard mode also requires either a namespaced `QT_NAMESPACE=QT` Qt package or usable host clipboard command access.
-  - 6.1.5. **Status:** In progress / host-gated.
-
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
 - **7.2. Active:** P73.2 Docker image/runtime CI evidence; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
-- **7.3. Queued:** P73.3 Lumina disconnect; P73.4 modal/clipboard evidence; P73.5 debugger-backed Appcall; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
+- **7.3. Queued:** P73.3 Lumina disconnect; P73.5 debugger-backed Appcall; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.5. P73.2 evidence constraint:** Local Docker cannot reach Ubuntu/GitHub on HTTP/HTTPS or host networking. Impact: licensed image execution is unverified locally. Mitigation/next action: publish the implemented image-secret and target gates and inspect the dedicated Actions job's actual image scan/runtime result; keep P73.2 open until those pass.
-- **7.6. P73.6 next action:** Publish both full profiles; inspect exact-head platform results and complete CTest inventory/JUnit/log artifacts. Configuration alone does not close P73.6. Modal/clipboard and debugger process execution remain separate P73.4/P73.5 gates even if their native availability checks pass.
+- **7.6. P73.6 next action:** Publish both full profiles; inspect exact-head platform results and complete CTest inventory/JUnit/log artifacts. Configuration alone does not close P73.6. Debugger process execution remains a separate P73.5 gate even if native availability checks pass.
+- **7.7. P73.3 constraint:** No supported Lumina close/cache-owner operation is exported in inspected SDK/runtime interfaces. Impact: actual portable disconnect remains unavailable. Next action: obtain the requested supported upstream hook/source; transport-only cancellation cannot establish equivalent owner/cache semantics.
+- **7.8. P73.9 acquisition constraint:** Local HCLI session expired. Impact: actual 9.5 headers are unavailable through that credential. The user-suggested SDK pull fast-forwarded to upstream `2a9143f`, whose headers remain SDK 940. Next action: inspect vendor/public versioned 9.5 sources or an authenticated acquisition; continue source-level ABI analysis and independent work.

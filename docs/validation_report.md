@@ -7,7 +7,49 @@ Documentation reconciliation: 2026-10-10.
 
 [Phase 72 validation](reviews/swift-rewrite-validation.md) identifies implementation revision `2efc56f2b82d47aa9c0cadb710b7a7f3b8587699`, pinned SDK/runtime 9.4, a complete 46/46 local native run, 32/32 Swift XCTest cases and 20/20 final implementation CI jobs. Each result retains its stated revision, profile, platform and host limits. The canonical source currently checks 41 IDAX header surfaces; that is a wrapper inventory, not exhaustive SDK declaration coverage.
 
-For a new checkout, enumerate its actual configured tests with `ctest --test-dir <build-dir> -N` and retain a fresh run before asserting a current pass. Modal forms/clipboard, real debugger-backed Appcall and full Linux/Windows native execution remain separately tracked under Phase 73.
+For a new checkout, enumerate its actual configured tests with `ctest --test-dir <build-dir> -N` and retain a fresh run before asserting a current pass. Positive modal-form and external clipboard evidence is recorded below. Real debugger-backed Appcall and full Linux/Windows native execution remain separately tracked under Phase 73.
+
+## 2026-10-10 Phase 73 local and GUI evidence
+
+- Complete local native suite at `93b117d2`: SDK 940/runtime 9.4, 46/46
+  configured and executed CTests, 181.13 s; source inventory and JUnit identities
+  agree. This macOS result does not establish Linux/Windows execution.
+- P22.H1/P22.H2: actual IDA `9.4.260714.951e98a4` arm64 GUI invokes
+  `idax_run_codedump_ui_host_gates` on its UI thread. Accepted form values are
+  depth 7, path `idax-host-evidence.json`, flags 3. Clipboard backend is
+  `external:pbcopy`; write/read/restore passes. The retained
+  [native log](reviews/codedump-ui-host-evidence.txt) reports 10 passes,
+  zero failures and one independent Hex-Rays-session skip. Both `modal` and
+  `qt-clipboard` evidence-verifier modes pass. Compiled Qt execution is unknown.
+- GUI module SHA-256:
+  `91e4bc126167cd4b958243ae85f9c2cbf5c8e579d283ca99ba7a2f6feb7f4884`.
+  Retained log SHA-256:
+  `7bb49d94b5abae8f40f0bc934efac9170c92557528532f2a4f15b85fb371053f`.
+  The tested module's strings contain no identity-bearing host paths.
+- P22.V1 final refresh, after GUI evidence:
+  `IDAX_RUN_NODE_INTEGRATION=1` with SDK/runtime 9.4 and the current native
+  archive, followed by
+  `scripts/run_codedump_parity_local_validation.sh <build-root> RelWithDebInfo`.
+  All six focused native CTests and the compact example build pass. Default
+  headless evidence is 3 passed/0 failed/3 expected skips and its verifier
+  passes. Node native build, 277 unit checks and 96 fixture integration checks
+  pass. Rust's typed-form validation test passes; library and selected
+  declaration-import integration compilation pass with `--no-run`.
+  Those Rust compilation results do not claim general runtime execution.
+- Initial refresh identified stale ignored Node CMake paths to an earlier
+  archive/runtime. Clearing the three cached library variables and configuring
+  the actual SDK/runtime 9.4/archive resolved the failure before the complete
+  successful refresh. The GUI adapter and test edits were the local candidate
+  atop `93b117d2`; the following published semantic commit identifies them.
+
+Assumption UI73.A1 requires actual GUI-thread dispatch; displayed and accepted
+controls falsify a headless-only interpretation. UI73.A2 requires successful
+text backup/readback/restoration, including empty text; a failed assertion
+falsifies closure. [Medium impact] separate platform/backend evidence limits;
+[Low opportunity] repeatable native GUI adapter. Native module/code/log are
+primary evidence; counts are dimensionless and elapsed time uses seconds.
+QG1-QG7 pass for this recorded scope. Phase 22 and P73.4 are complete; the
+other Phase 73 rows retain their independent evidence requirements.
 
 ## Historical Phase 29 test suite summary
 

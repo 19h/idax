@@ -1,0 +1,13 @@
+Interactive IDA host; clipboard backend=external:pbcopy
+
+=== clipboard backend contract ===
+
+=== host-gated clipboard roundtrip ===
+
+=== host-gated codedump-shaped typed form ===
+Captured form: depth=7, output=idax-host-evidence.json, flags=3
+
+=== host-gated Hex-Rays scoped session ===
+[SKIP] <repo-root>/tests/integration/codedump_parity_host_gates_test.cpp:138: separate idalib Hex-Rays session gate; interactive probe does not reopen a database
+
+codedump_parity_host_gates_test: 10 passed, 0 failed, 1 skipped

@@ -1,6 +1,6 @@
 # ida-cdump host evidence runbook
 
-This runbook captures the remaining host-only proof for the ida-cdump parity
+This runbook records and reproduces the host-only proof for the ida-cdump parity
 queue. The implementation and binding work is tracked in
 `docs/codedump_parity_tasks.md`; this file is only for evidence that cannot be
 collected on a non-interactive local test host.
@@ -70,59 +70,61 @@ Any log containing a nonzero-failure
 `codedump_parity_host_gates_test` summary is rejected even if a later
 successful summary is appended.
 
-## Modal typed-form evidence
+## Interactive modal and clipboard evidence
 
-Run this inside an interactive IDA UI host:
+Positive P22.H1/P22.H2 evidence was collected in the IDA 9.4 GUI on
+2026-10-10. The retained [native assertion log](reviews/codedump-ui-host-evidence.txt)
+records 10 passed checks, zero failures and one independent Hex-Rays-session
+skip. The accepted form returned depth `7`, output
+`idax-host-evidence.json` and flags `3`. Clipboard write/read/restore used
+`external:pbcopy`; compiled Qt-backend execution is unknown.
 
-```bash
-IDAX_RUN_MODAL_FORMS=1 \
-IDAX_EVIDENCE_LOG=logs/codedump-modal-forms.log \
-  scripts/run_codedump_parity_host_gates.sh
-```
-
-When the form opens, accept it with the default values. Cancelling the dialog is
-treated as incomplete evidence and the host-gate test will fail.
-
-Evidence is complete when the log contains the
-`host-gated codedump-shaped typed form` section without a skip and the final
-summary reports at least 4 checks, zero failures, and no modal-section skip.
-
-Verify the log mechanically:
+A standalone idalib executable does not acquire the running GUI's dispatcher.
+Build the opt-in shared module and invoke it from the GUI Python console on
+its UI thread. The module reuses the native assertions without reopening a
+database:
 
 ```bash
-scripts/check_codedump_parity_evidence_log.sh \
-  logs/codedump-modal-forms.log modal
+IDASDK='<ida-sdk-root>/src' IDADIR='<ida-runtime>' \
+  cmake -S . -B '<build-root>' -DIDAX_BUILD_TESTS=ON \
+    -DIDAX_BUILD_HOST_EVIDENCE_MODULE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build '<build-root>' --target idax_codedump_ui_host_gates
 ```
 
-## Clipboard Evidence
+Replace semantic paths with the local build/runtime paths. On macOS the module
+is `tests/host/libidax_codedump_ui_host_gates.dylib`; Linux uses `.so`, and
+Windows uses `idax_codedump_ui_host_gates.dll` in the configuration directory.
+In the running IDA GUI Python console:
 
-Prerequisites:
-
-- IDA UI host with clipboard access.
-- Either a Qt-enabled idax build, or an external clipboard command available on
-  the host (`wl-copy`, `xclip`, `xsel`, `pbcopy`, or `clip.exe`).
-- For Qt-backed runs, set `IDAX_ENABLE_QT_CLIPBOARD=ON` and `IDAX_QT6_DIR` to
-  an IDA-compatible Qt6 package built with `QT_NAMESPACE=QT`; plain system Qt
-  is intentionally rejected.
-
-Run:
-
-```bash
-IDAX_RUN_QT_CLIPBOARD=1 \
-IDAX_EVIDENCE_LOG=logs/codedump-qt-clipboard.log \
-  scripts/run_codedump_parity_host_gates.sh
+```python
+import ctypes
+module = ctypes.CDLL('<build-root>/tests/host/libidax_codedump_ui_host_gates.dylib')
+probe = module.idax_run_codedump_ui_host_gates
+probe.argtypes = [ctypes.c_char_p]
+probe.restype = ctypes.c_int
+print(probe(b'<build-root>/ui-host-evidence.txt'))
 ```
 
-Evidence is complete when the log contains the
-`host-gated clipboard roundtrip` section without a skip and the final summary
-reports at least 2 checks, zero failures, and no clipboard-section skip.
+Accept the displayed form. Cancellation fails the evidence gate. The clipboard
+probe saves the previous text, writes and reads a token, and restores the saved
+text, including an empty clipboard. Failure to read the backup prevents
+mutation. Nontext pasteboard formats are outside this text-clipboard contract.
 
-Verify the log mechanically:
+Verify the retained log in both modes:
 
 ```bash
 scripts/check_codedump_parity_evidence_log.sh \
-  logs/codedump-qt-clipboard.log qt-clipboard
+  docs/reviews/codedump-ui-host-evidence.txt modal
+scripts/check_codedump_parity_evidence_log.sh \
+  docs/reviews/codedump-ui-host-evidence.txt qt-clipboard
 ```
+
+The `qt-clipboard` verifier name accepts the supported external backend too.
+A compiled Qt run requires `IDAX_ENABLE_QT_CLIPBOARD=ON` and an
+IDA-compatible Qt6 package with `QT_NAMESPACE=QT`. An external clipboard run
+requires an available host command (`wl-copy`, `xclip`, `xsel`, `pbcopy`, or
+`clip.exe`) and does not require Qt compilation. The common runner supports
+this distinction; modal proof uses the GUI module above.
 
 ## Recording closure
 

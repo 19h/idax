@@ -21,7 +21,9 @@ scripts/run_validation_matrix.sh [full|unit|compile-only] [build-dir] [build-typ
 GitHub Actions helper:
 
 - `.github/workflows/validation-matrix.yml` runs `compile-only` + `unit`
-  profiles across Linux, macOS arm64, and Windows.
+  profiles across Linux, macOS arm64, and Windows; full native profiles are
+  additionally configured for Linux and Windows, with exact source/CTest/JUnit
+  inventory gates and retained per-test logs.
 - Hosted matrix sets `IDAX_BUILD_EXAMPLES=ON` and
   `IDAX_BUILD_EXAMPLE_ADDONS=ON` plus `IDAX_BUILD_EXAMPLE_TOOLS=ON` so
   plugin/loader/procmod addons and idalib tool-port examples are compiled on
@@ -43,6 +45,7 @@ Current workflows pin SDK revision `6929db6868a524496eb66e76e4ec6c9d720a0594` an
 
 | Platform | Required profile | SDK/runtime | Status | Remaining evidence |
 |---|---|---|---|---|
+| macOS arm64 | Full native CTest suite | SDK 940 / IDA 9.4 | Pass (`93b117d2`, local) | 46/46, 181.13 s; exact configured/executed identity |
 | Linux x86-64 | Full native CTest suite | Pinned SDK / IDA 9.4 | Pending (P73.6) | Execute all configured native tests and retain exact revision, inventory and results |
 | Windows x64 | Full native CTest suite | Pinned SDK / IDA 9.4 | Pending (P73.6) | Execute all configured native tests and retain exact revision, inventory and results |
 

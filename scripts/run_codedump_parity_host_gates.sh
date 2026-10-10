@@ -126,12 +126,7 @@ if [[ -n "${IDAX_EVIDENCE_LOG:-}" ]]; then
   echo "[idax] evidence log: ${IDAX_EVIDENCE_LOG}"
 fi
 
-if truthy "${IDAX_RUN_QT_CLIPBOARD:-}"; then
-  if [[ "${QT_CLIPBOARD}" != "ON" && "${QT_CLIPBOARD}" != "1" && "${QT_CLIPBOARD}" != "TRUE" ]]; then
-    echo "error: IDAX_RUN_QT_CLIPBOARD=1 requires IDAX_ENABLE_QT_CLIPBOARD=ON"
-    echo "also set IDAX_QT6_DIR to an IDA-compatible Qt6 package built with QT_NAMESPACE=QT"
-    exit 1
-  fi
+if truthy "${IDAX_RUN_QT_CLIPBOARD:-}" && truthy "${QT_CLIPBOARD}"; then
   if [[ -z "${IDAX_QT6_DIR:-}" ]]; then
     echo "error: IDAX_RUN_QT_CLIPBOARD=1 requires IDAX_QT6_DIR"
     echo "set IDAX_QT6_DIR to an IDA-compatible Qt6 package built with QT_NAMESPACE=QT"

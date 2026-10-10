@@ -32,11 +32,11 @@ runtime `va_list`.
 
 | Gap note section | Current direct SDK use in ida-cdump | idax replacement | Status | Binding status | Residual task |
 | --- | --- | --- | --- | --- | --- |
-| Typed `ask_form()` | Dialogs pass raw `sval_t*`, `ushort*`, `char[QMAXPATH]` to `ask_form` | `ida::ui::ask_form(markup, bindings...)`, `form_*` factories, `FormBuilder` | C++ implemented | Fixed-shape Node/Rust entrypoints implemented for audited dialog shapes | Run host-gated modal scenario on an interactive IDA host |
+| Typed `ask_form()` | Dialogs pass raw `sval_t*`, `ushort*`, `char[QMAXPATH]` to `ask_form` | `ida::ui::ask_form(markup, bindings...)`, `form_*` factories, `FormBuilder` | C++ implemented | Fixed-shape Node/Rust entrypoints implemented for audited dialog shapes | Complete; retained IDA 9.4 GUI assertion log passes the modal verifier |
 | Wait box | Local `WaitBoxGuard`, `show_wait_box`, `replace_wait_box`, `hide_wait_box`, `user_cancelled` | `ida::ui::WaitBox`, `Progress`, `ProgressFn` | Implemented | Node/Rust wait-box wrappers implemented; runtime remains host-UI gated | No idax task remains |
 | Hex-Rays popup event | `install_hexrays_callback(... hxe_populating_popup ...)` | `ida::decompiler::on_populating_popup` | Implemented | Node/Rust callback wrappers implemented | No idax task remains |
 | Local Types `type_ref` | Raw `action_handler_t` reads `ctx->type_ref` | `ida::plugin::ActionContext::type_ref` | Implemented | Rust safe/FFI coverage implemented; Node has no plugin/action namespace, so no Node action-context binding applies | No idax task remains |
-| Clipboard | Shells out through `common/clipboard.cpp` | `ida::ui::copy_to_clipboard`, `read_clipboard`, `clipboard_backend` | Implemented with optional Qt backend plus external host-command fallback; Qt headers are isolated in a bridge TU | Node/Rust wrappers implemented | Run host-gated write/read/restore on a host with Qt or an external clipboard command |
+| Clipboard | Shells out through `common/clipboard.cpp` | `ida::ui::copy_to_clipboard`, `read_clipboard`, `clipboard_backend` | Implemented with optional Qt backend plus external host-command fallback; Qt headers are isolated in a bridge TU | Node/Rust wrappers implemented | Complete; actual IDA 9.4 GUI `external:pbcopy` write/read/restore passes |
 | Bulk lvar settings/prototype export/apply | `get_tinfo` for recursive type dependencies only; lvar locator export/apply and prototype export/apply have been migrated | `LvarSnapshot`, `LocalVariableUserSetting`, `saved_user_lvar_settings`, `apply_user_lvar_setting`, `function::declaration`, `function::apply_decl`, `set_prototype` | Implemented for current ida-cdump lvar/prototype flows | Node/Rust wrappers implemented for opaque snapshots; serializable lvar settings are C++ only until a binding caller needs them | No idax lvar/prototype task remains |
 | Read-only ctree analysis | No direct SDK use in the recorded P22.R3 migration snapshot; historical type collection used `ctree_visitor_t`, `cexpr_t`, and `cfunc_t` | `ExpressionView`, `StatementView`, parent snapshots, helper/type/member/size accessors, `LocalVariable::index`, `variable(index)`, and `collect_referenced_types(Address)` | Implemented for the audited P22.R3 flow | Stable expression/item callback payloads are mirrored in Node/Rust; the dedicated referenced-type collection remains C++ because no binding caller requires it | No IDAX implementation task remains; independently re-verify downstream call sites when the pinned ida-cdump tree is available (A52.1) |
 | `get_path(PATH_TYPE_IDB)` | Fallback in `default_dump_dir()` | `ida::database::idb_path()` | Implemented | Node/Rust database wrappers implemented | No idax task remains |
@@ -58,11 +58,11 @@ task.
 
 | Gap note section | Current proof | Binding proof | Host/runtime proof still needed |
 | --- | --- | --- | --- |
-| Typed `ask_form()` | C++ API surface and adapter coverage in `tests/unit/api_surface_parity_test.cpp` and `tests/unit/core_unit_test.cpp`; host gate path in `tests/integration/codedump_parity_host_gates_test.cpp`; parity example in `examples/plugin/codedump_parity_probe_plugin.cpp` | Node fixed-form validation in `bindings/node/test/unit.test.js`; Rust `ui_tests::test_codedump_typed_forms_reject_empty_markup_without_modal_ui` plus signature/result-shape coverage | `IDAX_RUN_MODAL_FORMS=1` in an interactive IDA UI host |
+| Typed `ask_form()` | C++ API surface and adapter coverage in `tests/unit/api_surface_parity_test.cpp` and `tests/unit/core_unit_test.cpp`; host gate path in `tests/integration/codedump_parity_host_gates_test.cpp`; parity example in `examples/plugin/codedump_parity_probe_plugin.cpp` | Node fixed-form validation in `bindings/node/test/unit.test.js`; Rust `ui_tests::test_codedump_typed_forms_reject_empty_markup_without_modal_ui` plus signature/result-shape coverage | Complete; actual GUI module evidence in `docs/reviews/codedump-ui-host-evidence.txt` |
 | Wait box | API surface coverage and `codedump_parity_probe_plugin.cpp` usage | Node `ui.WaitBox` constructor/prototype coverage; Rust `ui_tests` wrapper coverage | Optional UI-host runtime only; no idax implementation task remains |
 | Hex-Rays popup event | C++ decompiler event surface coverage and `examples/plugin/abyss_port_plugin.cpp` popup attachment | Node `onPopulatingPopup` argument validation; Rust `decompiler_tests::test_populating_popup_event_defaults` checks event payload and callback signature | None |
 | Local Types `type_ref` | C++ action-context snapshot coverage for `ActionContext::type_ref` | Rust safe `TypeRef` construction plus `plugin::tests::action_context_type_ref_is_exposed_in_ffi_shape`; Node plugin/action binding is not part of the current binding surface | None |
-| Clipboard | Backend contract in `codedump_parity_host_gates`; Qt namespace configure guard in `CMakeLists.txt`; bridge implementation in `src/detail/qt_clipboard_bridge.*` | Node backend validation; Rust `ui_tests::test_clipboard_validation_is_local` covers wrapper validation and unsupported-backend mapping remains available | `IDAX_RUN_QT_CLIPBOARD=1` in an IDA host with Qt or an external clipboard command |
+| Clipboard | Backend contract in `codedump_parity_host_gates`; Qt namespace configure guard in `CMakeLists.txt`; bridge implementation in `src/detail/qt_clipboard_bridge.*` | Node backend validation; Rust `ui_tests::test_clipboard_validation_is_local` covers wrapper validation and unsupported-backend mapping remains available | Complete; actual GUI external-backend evidence; compiled Qt execution unknown |
 | Bulk lvar/prototype metadata | C++ API surface coverage for serializable `LocalVariableUserSetting`; ida-cdump metadata export/apply build proves lvar locator migration; decompiler storage hardening and type round-trip integration cover opaque snapshots and prototype apply | Node fixture integration checks decompiled-function metadata/snapshot method surfaces; Rust `function_tests::test_prototype_apply_function_signatures` and `decompiler_tests::test_lvar_snapshot_and_comment_function_signatures` cover safe signatures | None for current ida-cdump C++ parity |
 | Read-only ctree analysis | Public `collect_referenced_types(Address)` API plus compile-surface coverage, with decompiler hardening coverage for helper/type/parent/local-variable-index helpers | Node fixture integration inspects expression/item callback payload fields and stable local-variable lookup; Rust `decompiler_tests::test_ctree_callback_payload_shapes` covers callback payload structs and signatures | None for IDAX; downstream call-site re-verification remains conditional on access to the pinned ida-cdump tree (A52.1) |
 | `get_path(PATH_TYPE_IDB)` | Database wrapper coverage in smoke/integration paths | Node/Rust database wrappers | None |
@@ -73,9 +73,9 @@ task.
 | Lower-level transfer/analysis helpers | Function/comment/name/instruction/type/graph/decompiler-lvar/type-rendering/popup integration and smoke coverage across existing suites | Existing Node/Rust namespace coverage where those APIs are bound; C++ ida-cdump uses the wrappers directly for current parity flows | None for current ida-cdump parity |
 | Already-corrected items | API surface and smoke coverage for existing replacements | Existing bindings where those namespaces are exposed | None |
 | UI diagnostic formatting comfort | Existing `ida::ui::info` / `warning` string-view APIs; callers can use `std::format` or equivalent before calling idax | Existing binding callers pass final strings | None |
-| Future/non-blocking | Explicitly marked outside this parity pass in the updated gap notes and the task tracker | Not scheduled | Only revisit if ida-cdump starts depending on Hex-Rays positioned comments, mutable ctree, or broader microcode mutation |
+| Future/non-blocking | Explicitly marked outside this parity pass in the updated gap notes and the task tracker | Not scheduled | Positioned comments are implemented; revisit mutable ctree or broader microcode mutation for a concrete caller |
 
-## Remaining idax Tasks
+## Completed idax Tasks
 
 These tasks are the concrete queue after reconciling the updated gap notes and
 the follow-up ida-cdump port audit with the current idax Phase 22
@@ -89,35 +89,15 @@ implementation.
 | P22.R4 serializable lvar locator metadata | Add enumerable/applicable local-variable user settings with stable locator fields, name/type/comment payloads, and per-lvar declaration parsing | `include/ida/decompiler.hpp`, `src/decompiler.cpp`, API surface test | Complete; metadata export/apply no longer needs `lvar_uservec_t`, `lvar_saved_info_t`, `restore_user_lvar_settings`, `modify_user_lvar_info`, or direct `parse_decl` |
 | P22.R5 graph recovery switch metadata | Add switch/jump-table descriptors needed by graph recovery | `include/ida/graph.hpp`, `src/graph.cpp`, API surface test | Complete; `graph_builder.cpp` uses `ida::graph::switch_table` |
 | P22.R6 popup attachment for registered actions | Attach already-registered actions to a currently-building popup while preserving normal action context payloads such as Local Types `type_ref` | `include/ida/ui.hpp`, `src/ui.cpp`, API surface test | Complete; `codedump_plugin.cpp` uses `ida::ui::on_popup_ready` and `attach_registered_action` instead of a raw `HT_UI` listener |
-| P22.H1 modal typed-form evidence | Run `codedump_parity_host_gates` with `IDAX_RUN_MODAL_FORMS=1` on an interactive IDA UI host | `tests/integration/codedump_parity_host_gates_test.cpp`, `docs/validation_report.md` | Local default run proves deterministic skip behavior; modal form proof remains interactive UI gated |
-| P22.H2 clipboard evidence | Run `codedump_parity_host_gates` with `IDAX_RUN_QT_CLIPBOARD=1` on an IDA host with Qt or an external clipboard command | `CMakeLists.txt`, `src/detail/qt_clipboard_bridge.*`, `tests/integration/codedump_parity_host_gates_test.cpp`, `docs/validation_report.md` | Local host-command fallback is implemented; full write/read/restore proof remains host gated |
-| P22.V1 final validation refresh | Run focused C++/example/Node/Rust validation and record blockers separately from implementation tasks | CMake, compact parity probe example, Node, Rust test targets; `docs/validation_report.md`; `.agents/*` | Latest local refresh passes across focused C++, compact parity probe example build, Node native unit/integration, Rust no-run, and non-modal Rust typed-form validation; rerun after host-only evidence is collected |
+| P22.H1 modal typed-form evidence | Run `codedump_parity_host_gates` with `IDAX_RUN_MODAL_FORMS=1` on an interactive IDA UI host | `tests/integration/codedump_parity_host_gates_test.cpp`, `docs/validation_report.md` | Complete; actual IDA 9.4 GUI accepts edited integer/path/bitset bindings; retained log passes |
+| P22.H2 clipboard evidence | Run `codedump_parity_host_gates` with `IDAX_RUN_QT_CLIPBOARD=1` on an IDA host with Qt or an external clipboard command | `CMakeLists.txt`, `src/detail/qt_clipboard_bridge.*`, `tests/integration/codedump_parity_host_gates_test.cpp`, `docs/validation_report.md` | Complete; actual GUI `external:pbcopy` write/read/restore passes; compiled Qt execution unknown |
+| P22.V1 final validation refresh | Run focused C++/example/Node/Rust validation and record blockers separately from implementation tasks | CMake, compact parity probe example, Node, Rust test targets; `docs/validation_report.md`; `.agents/*` | Latest local refresh passes across focused C++, compact parity probe example build, Node native unit/integration, Rust no-run, and non-modal Rust typed-form validation; repeated successfully after the positive GUI evidence on 2026-10-10 |
 
-Concrete closure subtasks:
-
-- P22.H1.1: run the modal host gate with
-  `IDAX_RUN_MODAL_FORMS=1 IDAX_EVIDENCE_LOG=logs/codedump-modal-forms.log`
-  inside an interactive IDA UI session.
-- P22.H1.2: accept the opened codedump-shaped typed form. A cancellation is a
-  failed evidence run, not a skip.
-- P22.H1.3: verify the log with
-  `scripts/check_codedump_parity_evidence_log.sh logs/codedump-modal-forms.log modal`
-  and record the result in `docs/validation_report.md`.
-- P22.H2.1: supply an IDA-compatible namespaced Qt package through
-  `IDAX_QT6_DIR`; plain system Qt packages are intentionally rejected.
-- P22.H2.2: run the Qt clipboard host gate with
-  `IDAX_ENABLE_QT_CLIPBOARD=ON`, `IDAX_RUN_QT_CLIPBOARD=1`, and
-  `IDAX_EVIDENCE_LOG=logs/codedump-qt-clipboard.log`.
-- P22.H2.3: verify the log with
-  `scripts/check_codedump_parity_evidence_log.sh logs/codedump-qt-clipboard.log qt-clipboard`
-  and record the backend plus write/read/restore result in
-  `docs/validation_report.md`.
-- P22.V1.1: rerun `scripts/run_codedump_parity_local_validation.sh
-  build-test-fetch RelWithDebInfo` after host evidence is collected; include
-  Node fixture integration when `IDADIR` is available.
-- P22.V1.2: close Phase 22 only after the validation report, active work file,
-  and progress ledger distinguish verified idax parity from downstream
-  ida-cdump migration cleanup.
+The positive GUI run and final local refresh close P22.H1/P22.H2/P22.V1.
+The retained log, exact observed backend, hashes, six focused native CTests,
+277 Node unit checks, 96 Node integration checks and Rust validation scope are
+recorded in [the validation report](validation_report.md). Reproduce the GUI
+module invocation with [the host runbook](codedump_host_evidence.md).
 
 ## Existing-API Migration Cleanup
 
@@ -133,7 +113,7 @@ tasks cover the call sites that need data not yet represented by idax.
 | `get_cmt` / `set_cmt` | `ida::comment::get` / `set` | metadata address comments |
 | `get_func_cmt` / `set_func_cmt` | `ida::function::comment` / `set_comment` | metadata function comments |
 | `set_name` | `ida::name::set` / `force_set` | metadata name apply |
-| `get_tinfo` / `apply_tinfo` | `ida::type::retrieve`, `TypeInfo::apply`, `function::declaration`, `function::set_prototype`, `function::apply_decl` | simple metadata type export/apply; recursive dependency walking needs P22.R2 |
+| `get_tinfo` / `apply_tinfo` | `ida::type::retrieve`, `TypeInfo::apply`, `function::declaration`, `function::set_prototype`, `function::apply_decl` | simple metadata type export/apply; recursive dependency walking is implemented under P22.R2 |
 | `parse_decls` | `ida::type::parse_declarations` | bulk local type imports |
 
 ## Host Evidence Commands
@@ -174,6 +154,6 @@ scripts/run_codedump_parity_host_gates.sh
   idax now covers that path with `ida::type::parse_declarations(...)`;
   `TypeInfo::from_declaration` and `function::apply_decl` remain
   single-declaration helpers and are not the metadata-import replacement.
-- Hex-Rays positioned user comments, mutable ctree, and broader microcode
-  mutation are deliberately out of this parity queue because the current
+- Hex-Rays positioned user comments are implemented. Mutable ctree and broader
+  microcode mutation are outside this parity queue because the current
   `ida-cdump` code does not require them.

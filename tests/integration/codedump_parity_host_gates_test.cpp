@@ -36,28 +36,30 @@ void test_default_clipboard_contract() {
     }
 }
 
-void test_qt_clipboard_roundtrip() {
+void test_qt_clipboard_roundtrip(bool force_enabled = false) {
     SECTION("host-gated clipboard roundtrip");
 
-    if (!env_enabled("IDAX_RUN_QT_CLIPBOARD")) {
+    if (!force_enabled && !env_enabled("IDAX_RUN_QT_CLIPBOARD")) {
         SKIP("set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access");
         return;
     }
 
     auto previous = ida::ui::read_clipboard();
+    if (!previous && previous.error().category != ida::ErrorCategory::NotFound) {
+        CHECK_OK(previous);
+        return;
+    }
     const std::string token = "idax-codedump-parity-clipboard-token";
     CHECK_OK(ida::ui::copy_to_clipboard(token));
     CHECK_VAL(ida::ui::read_clipboard(), _v == token);
 
-    if (previous) {
-        CHECK_OK(ida::ui::copy_to_clipboard(*previous));
-    }
+    CHECK_OK(ida::ui::copy_to_clipboard(previous ? *previous : std::string{}));
 }
 
-void test_modal_typed_form() {
+void test_modal_typed_form(bool force_enabled = false) {
     SECTION("host-gated codedump-shaped typed form");
 
-    if (!env_enabled("IDAX_RUN_MODAL_FORMS")) {
+    if (!force_enabled && !env_enabled("IDAX_RUN_MODAL_FORMS")) {
         SKIP("set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host");
         return;
     }
@@ -76,8 +78,11 @@ void test_modal_typed_form() {
     CHECK(accepted && *accepted);
     CHECK(depth >= 0);
     CHECK(!output_path.empty());
+    std::cout << "Captured form: depth=" << depth << ", output=" << output_path
+              << ", flags=" << flags << '\n';
 }
 
+#ifndef IDAX_CODEDUMP_UI_HOST
 void test_hexrays_scoped_session(int argc, char** argv) {
     SECTION("host-gated Hex-Rays scoped session");
 
@@ -115,14 +120,29 @@ void test_hexrays_scoped_session(int argc, char** argv) {
 
     (void)ida::database::close(false);
 }
+#endif
 
 } // namespace
 
-int main(int argc, char** argv) {
+int run_codedump_parity_host_gates(int argc, char** argv, bool interactive_host) {
+    idax_test::g_pass = idax_test::g_fail = idax_test::g_skip = 0;
     test_default_clipboard_contract();
-    test_qt_clipboard_roundtrip();
-    test_modal_typed_form();
+    test_qt_clipboard_roundtrip(interactive_host);
+    test_modal_typed_form(interactive_host);
+#ifndef IDAX_CODEDUMP_UI_HOST
     test_hexrays_scoped_session(argc, argv);
+#else
+    (void)argc;
+    (void)argv;
+    SECTION("host-gated Hex-Rays scoped session");
+    SKIP("separate idalib Hex-Rays session gate; interactive probe does not reopen a database");
+#endif
 
     return idax_test::report("codedump_parity_host_gates_test");
 }
+
+#ifndef IDAX_CODEDUMP_UI_HOST
+int main(int argc, char** argv) {
+    return run_codedump_parity_host_gates(argc, argv, false);
+}
+#endif
