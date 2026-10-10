@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="46"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="106"
+	timestamp="2026-10-11T01:15:52"
+	>
+	<testcase name="idax_unit_test" classname="idax_unit_test" time="0.00198042" status="run">
+		<properties/>
+		<system-out>[idax][info][unit] diagnostics smoke line
+[idax][error][invariant] expected fail
+idax unit tests: 48 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="api_surface_parity" classname="api_surface_parity" time="0.00530533" status="run">
+		<properties/>
+		<system-out>API surface parity: PASS (compiled successfully)
+</system-out>
+	</testcase>
+	<testcase name="error_torture" classname="error_torture" time="0.00200183" status="run">
+		<properties/>
+		<system-out>
+=== Error factory constructors ===
+
+=== Error with empty strings ===
+
+=== Error with long strings ===
+
+=== Error with special characters ===
+
+=== Error copy/move semantics ===
+
+=== Error default construction ===
+
+=== ErrorCategory enum values ===
+
+=== Result&lt;T&gt; success paths ===
+
+=== Result&lt;T&gt; error paths ===
+
+=== Status success/error ===
+
+=== Result monadic operations ===
+
+=== Error code field ===
+
+=== Error creation stress ===
+
+=== Result with move-only types ===
+
+error_torture_test: 100 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="address_range_torture" classname="address_range_torture" time="0.00162858" status="run">
+		<properties/>
+		<system-out>
+=== Range basic semantics ===
+
+=== Range empty cases ===
+
+=== Range with BadAddress ===
+
+=== Range boundary values ===
+
+=== Address type aliases ===
+
+=== BadAddress sentinel ===
+
+=== Range contains edge stress ===
+
+=== Range member-wise comparison ===
+
+=== Iterator default construction ===
+
+=== Predicate enum values ===
+
+=== Range size with maximum values ===
+
+=== Range containing address 0 ===
+
+address_range_torture_test: 356 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="diagnostics_torture" classname="diagnostics_torture" time="0.00488817" status="run">
+		<properties/>
+		<system-out>
+=== Log level roundtrip ===
+
+=== Log level ordering ===
+
+=== Performance counters reset and increment ===
+[idax][info][test] message 1
+[idax][debug][test] message 2
+[idax][trace][test] message 3
+[idax][error][invariant] expected to fail
+
+=== Invariant assertions ===
+[idax][error][invariant] this is broken
+
+=== Error enrichment ===
+
+=== Log with various domains ===
+[idax][error][database] error message
+[idax][warning][segment] warning message
+[idax][info][function] info message
+[idax][debug][instruction] debug message
+[idax][trace][xref] trace message
+
+=== Log with empty strings ===
+[idax][info][]
+[idax][debug][domain]
+[idax][trace][] message
+
+=== Log stress test ===
+[idax][trace][stress] message 0
+[idax][trace][stress] message 1
+[idax][trace][stress] message 2
+[idax][trace][stress] message 3
+[idax][trace][stress] message 4
+[idax][trace][stress] message 5
+[idax][trace][stress] message 6
+[idax][trace][stress] message 7
+[idax][trace][stress] message 8
+[idax][trace][stress] message 9
+[idax][trace][stress] mess...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="core_options_torture" classname="core_options_torture" time="0.00173546" status="run">
+		<properties/>
+		<system-out>
+=== OperationOptions defaults ===
+
+=== OperationOptions mutation ===
+
+=== OperationOptions copy ===
+
+=== RangeOptions defaults ===
+
+=== RangeOptions mutation ===
+
+=== RangeOptions copy ===
+
+=== WaitOptions defaults ===
+
+=== WaitOptions mutation ===
+
+=== WaitOptions copy ===
+
+=== Options aggregate initialization ===
+
+=== Options stress ===
+
+core_options_torture_test: 52 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="diaphora_exact_core" classname="diaphora_exact_core" time="0.00170404" status="run">
+		<properties/>
+		<system-out>Diaphora exact C++ core: PASS
+</system-out>
+	</testcase>
+	<testcase name="processor_bridge_validation" classname="processor_bridge_validation" time="0.00167283" status="run">
+		<properties/>
+		<system-out>Processor bridge validation: PASS
+</system-out>
+	</testcase>
+	<testcase name="smoke" classname="smoke" time="3.25492" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_smoke_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/smoke-1176b92f7b21/simple_appcall_linux64'
+--- database ---
+  input: &lt;build-root&gt;/tests/integration/idax-test-fixtures/smoke-1176b92f7b21/simple_appcall_linux64
+  idb: &lt;build-root&gt;/tests/integration/idax-test-fixtures/smoke-1176b92f7b21/simple_appcall_linux64.i64
+  file_type: ELF64 for x86-64 (Shared object)
+  loader_format: ELF64 for x86-64 (Shared object)
+  md5: b12d750f14ecd8854f29d97b1e612e79
+  image_base: 0x0
+  processor: metapc (id=0, 64-bit, LE)
+  compiler: GNU C++ (gcc)
+  import_modules: 1  import_symbols: 7
+  range: [0x0, 0x201078)
+  snapshots: 0
+  is_snapshot: no
+--- lumina ---
+  has_connection: no
+--- segments ---
+  count: 23
+  [0] LOAD  0x0-0x530  bits=64  rwx=101
+  [1] .init  0x530-0x547  bits=64  rwx=101
+  [2] LOAD  0x547-0x550  bits=64  rwx=101
+  [3] .plt  0x550-0x570  bits=64  rwx=101
+  [4...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="name_comment_xref_search" classname="name_comment_xref_search" time="3.36487" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_name_comment_xref_search_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/name_comment_xref_search-e6fd2c3d4c50/simple_appcall_linux64'
+--- name behavior ---
+--- comment behavior ---
+--- xref behavior ---
+--- search behavior ---
+--- analysis behavior ---
+
+=== Results: 194 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="data_mutation_safety" classname="data_mutation_safety" time="2.83281" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_data_mutation_safety_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/data_mutation_safety-5c05c081e915/simple_appcall_linux64'
+--- patch/original semantics ---
+--- write roundtrip ---
+--- typed value facade ---
+--- define/undefine unknown ---
+  (define_double unsupported at selected address; skipping)
+--- mapped unknown bytes with zero metadata flags ---
+--- data-definition element counts ---
+--- custom data type/format lifecycle ---
+--- mutation safety error paths ---
+
+=== Results: 258 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="segment_function_edge_cases" classname="segment_function_edge_cases" time="2.84018" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_segment_function_edge_cases_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/segment_function_edge_cases-661d0540baea/simple_appcall_linux64'
+--- segment edge cases ---
+--- function edge cases ---
+
+=== Results: 76 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="instruction_decode_behavior" classname="instruction_decode_behavior" time="2.8223" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_instruction_decode_behavior_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/instruction_decode_behavior-92a90ec3e84e/simple_appcall_linux64'
+--- instruction decode basics ---
+--- operand encoded-value byte offsets ---
+--- instruction decode error paths ---
+--- instruction navigation ---
+
+=== Results: 46 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="type_roundtrip" classname="type_roundtrip" time="2.83457" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_type_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/type_roundtrip-80aee151153e/simple_appcall_linux64'
+--- primitive factory introspection ---
+--- pointer / array construction ---
+--- shifted-pointer metadata ---
+--- type decomposition helpers ---
+  (no typedef found in first 6 local types; typedef-chain path skipped)
+--- from_declaration roundtrip ---
+--- parse_declarations bulk import ---
+--- forward declaration replacement ---
+--- persistent UDT member references ---
+--- function type workflows ---
+--- enum workflows ---
+--- rich type layout metadata ---
+--- UDT semantics ---
+--- struct creation and member lifecycle ---
+--- union creation ---
+--- save_as / by_name roundtrip ---
+--- apply type to address + retrieve ---
+--- apply_named_type ---
+--- local type library enumeration ---
+  local type count: 20
+  first local type: Elf64_Sym
+--- to_string printing ---
+  int32 to_string: "__int32"
+  int32*...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="fixup_relocation" classname="fixup_relocation" time="2.87235" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_fixup_relocation_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/fixup_relocation-d7d5e47eb23e/simple_appcall_linux64'
+--- fixup set/get roundtrip ---
+--- fixup type variants ---
+--- fixup contains check ---
+--- fixup traversal ---
+--- fixup range iteration ---
+  total fixups iterated: 12
+--- fixup in_range helper ---
+--- fixup traversal exhaustion ---
+--- fixup error paths ---
+--- custom fixup registration lifecycle ---
+  registered custom fixup type id: 32771
+
+=== Results: 117 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="operand_and_text" classname="operand_and_text" time="2.87174" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_operand_and_text_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/operand_and_text-63d6f0ff0c80/simple_appcall_linux64'
+Using function at 0x530
+--- operand type classification ---
+  instruction at 0x530: sub (operands: 2)
+  operand type distribution (20 insns): reg=6 imm=2 mem=1
+--- immediate value access ---
+  found immediate at 0x530: value=0x8
+--- register operand properties ---
+  found register operand at 0x530: reg_id=4
+--- operand representation controls ---
+  testing representation controls at 0x530 operand 1
+  baseline: sub     rsp, 8
+  hex: sub     rsp, 8
+  decimal: sub     rsp, 8
+  binary: sub     rsp, 1000b
+--- forced operand text ---
+  forced operand: "FORCED_OP"
+--- instruction xref conveniences ---
+  code refs from 0x530: 1
+  call at 0x540 targets: 1
+--- data_refs_from ---
+  data refs from 0x534: 1 targets
+--- disassembly text snapshots ---
+  verified 7 text snapshots
+--- instruction create ---
+
+==...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="decompiler_storage_hardening" classname="decompiler_storage_hardening" time="2.85687" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_decompiler_storage_hardening_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/decompiler_storage_hardening-f944f22bba4b/simple_appcall_linux64'
+--- decompiler availability ---
+  decompiler available: yes
+Decompiler tests using function at 0x530
+--- ctree traversal correctness ---
+  items visited: 4 (exprs=2 stmts=2 numbers=0 calls=1 vars=0 objs=1)
+--- expression view accessors ---
+  tested number_value: no, call_argument_count: yes, call parts: no, variable_index: no
+--- ctree read-only migration helpers ---
+  typed_expr=yes variable_lookup=yes parent=yes helper=yes call_arg_parent=yes
+--- for_each_item ---
+  for_each_item: 2 exprs, 2 stmts
+--- post-order traversal ---
+  pre_exprs=2 post_exprs=2 pre_stmts=2 post_stmts=2
+--- address mapping ---
+  address map entries: 2
+  line 2 -&gt; 0xffffffffffffffff
+--- microcode output ---
+  microcode lines: 12
+--- owned microcode graph ---
+--- decompiler maturity + dirty helper...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="debugger_ui_graph_event" classname="debugger_ui_graph_event" time="2.80227" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_debugger_ui_graph_event_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/debugger_ui_graph_event-e15c86e995fb/simple_appcall_linux64'
+=== Debugger/UI/Graph/Event Advanced Validation (P7.5) ===
+fixture: &lt;build-root&gt;/tests/integration/idax-test-fixtures/debugger_ui_graph_event-e15c86e995fb/simple_appcall_linux64
+
+[section] ui: form return codes and transactional bindings
+[section] graph: programmatic object operations
+[section] graph: group operations
+[section] graph: move semantics
+[section] graph: layout behavior matrix
+[section] graph: viewer lifecycle/query helpers
+  SKIP: show_graph unavailable in this runtime
+[section] graph: flowchart generation
+[section] event: typed subscription lifecycle
+[section] event: ScopedSubscription RAII
+[section] event: generic routing + filtering
+[section] debugger: event subscription lifecycle
+[section] debugger: ScopedSubscription RAII
+[section] debu...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="loader_processor_scenario" classname="loader_processor_scenario" time="2.80981" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_loader_processor_scenario_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/loader_processor_scenario-810911ab6614/simple_appcall_linux64'
+=== Loader/Processor/Plugin Scenario Test (P6/P7.5) ===
+fixture: &lt;build-root&gt;/tests/integration/idax-test-fixtures/loader_processor_scenario-810911ab6614/simple_appcall_linux64
+
+[section] loader: helper function validation
+[section] loader: base class instantiation and methods
+[section] loader: value type construction
+[section] processor: base class instantiation
+[section] processor: switch detection types
+[section] processor: output context abstraction
+[section] processor: typed analyze details
+[section] plugin: Action type construction
+[section] plugin: detach helper ergonomics
+[section] plugin: owned actions and scoped hotkeys
+  SKIP: headless host does not dispatch process_ui_action
+  SKIP: headless host does not dispatch self-unregistering actio...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="event_stress" classname="event_stress" time="2.84042" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_event_stress_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/event_stress-c1b647fb1d64/simple_appcall_linux64'
+=== Event System Stress / Edge-Case Tests ===
+fixture: &lt;build-root&gt;/tests/integration/idax-test-fixtures/event_stress-c1b647fb1d64/simple_appcall_linux64
+
+test address: 0x769
+
+[section] event: multiple concurrent subscribers
+[section] event: multi-event fan-out with real firing
+[section] event: filtered routing specificity
+[section] event: generic + typed coexistence
+[section] event: typed IDB change-tracking payloads
+  SKIP: change tracking: IDA 9.3 idalib did not emit destroyed_items
+[section] event: callback-side subscription mutation
+[section] event: rapid subscribe/unsubscribe (50 cycles)
+[section] event: ScopedSubscription batch (10 objects)
+[section] event: double unsubscribe safety
+[section] debugger: multi-subscribe (3 concurrent)
+
+=== Results: 103 passed, 0 failed, ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="decompiler_edge_cases" classname="decompiler_edge_cases" time="2.90967" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_decompiler_edge_cases_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/decompiler_edge_cases-a269e9efc613/simple_appcall_linux64'
+=== Decompiler Edge Cases Test ===
+fixture: &lt;build-root&gt;/tests/integration/idax-test-fixtures/decompiler_edge_cases-a269e9efc613/simple_appcall_linux64
+
+--- multi-function decompilation ---
+  total functions in database: 21
+  decompile results: 15 success, 6 failure (out of 21)
+  success rate: 71.4%
+  most lines:  20 (fn @ 0x580)
+  least lines: 4 (fn @ 0x550)
+  line count variety confirmed (20 vs 4)
+--- variable classification ---
+  var: argc                 type=int             arg=yes width=4
+  var: argv                 type=const char **   arg=yes width=8
+  var: envp                 type=const char **   arg=yes width=8
+  var: v3                   type=int             arg=no  width=4
+  var:                      type=int             arg=no  width=4
+  var: v...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="performance_benchmark" classname="performance_benchmark" time="2.85012" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_performance_benchmark_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/performance_benchmark-305719a0a71f/simple_appcall_linux64'
+=== idax Performance Benchmark ===
+fixture: &lt;build-root&gt;/tests/integration/idax-test-fixtures/performance_benchmark-305719a0a71f/simple_appcall_linux64
+
+[bench] auto_analysis_wait: 0.014ms
+
+[bench] instruction decode throughput
+  [bench] instruction_decode: 7 ops in 0.042ms (167164 ops/sec)
+
+[bench] function iteration throughput
+  [bench] function_iteration: 21 functions in 0.011ms (1832781 funcs/sec)
+
+[bench] binary pattern search
+  [bench] binary_pattern_search: 1 ops in 0.004ms
+  found ELF magic at 0x0
+
+[bench] address item scan
+  [bench] address_item_scan: 148 items in 0.004ms (33828571 items/sec)
+  segment: [0x0, 0x530) name=LOAD
+
+[bench] xref enumeration
+  [bench] xref_enumeration: 1 refs in 0.001ms
+    ref[0]: from=0x59d to=0x769
+
+[bench] name resolut...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="codedump_parity_host_gates" classname="codedump_parity_host_gates" time="0.0170316" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_codedump_parity_host_gates_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/codedump_parity_host_gates-a09455c36b3d/simple_appcall_linux64'
+
+=== clipboard backend contract ===
+
+=== host-gated clipboard roundtrip ===
+[SKIP] &lt;repo-root&gt;/tests/integration/codedump_parity_host_gates_test.cpp:43: set IDAX_RUN_QT_CLIPBOARD=1 under an IDA host with clipboard access
+
+=== host-gated codedump-shaped typed form ===
+[SKIP] &lt;repo-root&gt;/tests/integration/codedump_parity_host_gates_test.cpp:63: set IDAX_RUN_MODAL_FORMS=1 under an interactive IDA UI host
+
+=== host-gated Hex-Rays scoped session ===
+[SKIP] &lt;repo-root&gt;/tests/integration/codedump_parity_host_gates_test.cpp:90: set IDAX_RUN_HEXRAYS_SESSION=1 under a licensed Hex-Rays host
+
+codedump_parity_host_gates_test: 3 passed, 0 failed, 3 skipped
+</system-out>
+	</testcase>
+	<testcase name="diaphora_referent_metadata" classname="diaphora_referent_metadata" time="2.81979" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_diaphora_referent_metadata_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/diaphora_referent_metadata-a5335ae3d68e/simple_appcall_linux64'
+[diaphora-referent] init
+[diaphora-referent] opened
+[diaphora-referent] extracted
+Diaphora referent metadata runtime evidence: PASS
+</system-out>
+	</testcase>
+	<testcase name="undo_roundtrip" classname="undo_roundtrip" time="2.81335" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_undo_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/undo_roundtrip-f4cc992b37b8/simple_appcall_linux64'
+=== undo round trip: 24 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="problem_roundtrip" classname="problem_roundtrip" time="2.81848" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_problem_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/problem_roundtrip-5e12200c8fe2/simple_appcall_linux64'
+=== problem round trip: 93 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="exception_roundtrip" classname="exception_roundtrip" time="2.80435" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_exception_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/exception_roundtrip-8724d6ddef44/simple_appcall_linux64'
+=== exception round trip: 46 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="parser_roundtrip" classname="parser_roundtrip" time="2.83421" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_parser_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/parser_roundtrip-34bfb6c02e44/simple_appcall_linux64'
+=== parser round trip: 44 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="directory_roundtrip" classname="directory_roundtrip" time="2.80918" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_directory_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/directory_roundtrip-e68afa435749/simple_appcall_linux64'
+=== directory round trip: 139 passed, 0 failed ===
+</system-out>
+	</testcase>
+	<testcase name="registry_roundtrip" classname="registry_roundtrip" time="2.8115" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_registry_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/registry_roundtrip-9c88dcff7a10/simple_appcall_linux64'
+Registry round-trip checks: 63 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="register_tracking_roundtrip" classname="register_tracking_roundtrip" time="2.87498" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_register_tracking_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/register_tracking_roundtrip-492e50c3a054/register_tracking_aarch64'
+Register tracking round-trip checks: 39 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="bookmark_roundtrip" classname="bookmark_roundtrip" time="3.11285" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_bookmark_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/bookmark_roundtrip-bd4c5ee289c7/simple_appcall_linux64'
+Bookmark round-trip checks: 31 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="navigation_roundtrip" classname="navigation_roundtrip" time="3.09109" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_navigation_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/navigation_roundtrip-5a287f7448ef/simple_appcall_linux64'
+Navigation round-trip checks: 87 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="segment_register_roundtrip" classname="segment_register_roundtrip" time="3.09512" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_segment_register_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/segment_register_roundtrip-965dc9ffc574/simple_appcall_linux64'
+Segment-register round-trip checks: 88 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="offset_reference_roundtrip" classname="offset_reference_roundtrip" time="4.81143" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_offset_reference_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/offset_reference_roundtrip-a3017f9cefb0/simple_appcall_linux64'
+Offset/reference round-trip checks: 119 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="script_roundtrip" classname="script_roundtrip" time="2.99503" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_script_roundtrip_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/script_roundtrip-db7934e96ddc/simple_appcall_linux64'
+script roundtrip: 118 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="analysis_entry_lines_torture" classname="analysis_entry_lines_torture" time="2.83111" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_analysis_entry_lines_torture_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/analysis_entry_lines_torture-0048c605a0c6/simple_appcall_linux64'
+
+=== analysis: enable/disable roundtrip ===
+
+=== analysis: idle check ===
+
+=== analysis: wait idempotent ===
+
+=== analysis: scheduling operations ===
+
+=== analysis: cancel and revert ===
+
+=== analysis: schedule function reanalysis ===
+
+=== analysis: schedule reanalysis ===
+
+=== entry: count ===
+
+=== entry: iterate all by index ===
+
+=== entry: by_index out of range ===
+
+=== entry: by_ordinal ===
+
+=== entry: forwarder operations ===
+
+=== entry: add/rename lifecycle ===
+
+=== lines: colstr tag creation ===
+
+=== lines: colstr with all color variants ===
+
+=== lines: tag_remove on plain text ===
+
+=== lines: tag_strlen ===
+
+=== lines: tag_advance ===
+
+=== lines: make/decode addr tag roundtrip ===
+
+=== lines: nested color tags ===
+
+=== lines: tag control byte constants ===
+
+=== d...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="string_source_metadata" classname="string_source_metadata" time="2.57756" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_string_source_metadata_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/string_source_metadata-0dae84614f6e/simple_appcall_linux64'
+
+=== data: configured string-list snapshot ===
+
+=== data: actual SDK 950 synthetic provider text ===
+
+=== lines: source-file range lifecycle ===
+
+string_source_metadata_test: 44 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="cross_domain_torture" classname="cross_domain_torture" time="2.88195" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_cross_domain_torture_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/cross_domain_torture-6f37d529ff76/simple_appcall_linux64'
+
+=== BadAddress handling across all domains ===
+
+=== Zero address handling ===
+
+=== Name set/get/remove roundtrip stress ===
+
+=== Comment set/get/remove roundtrip stress ===
+
+=== Segment iteration consistency ===
+
+=== Function iteration consistency ===
+
+=== Data read consistency ===
+
+=== Cross-reference consistency ===
+
+=== Instruction decode stress ===
+  decoded=99 failed=0
+
+=== Decompiler stress ===
+  decompiled=10 failed=0
+
+=== Type system stress ===
+
+=== Search edge cases ===
+
+=== Storage stress ===
+
+=== Event subscribe/unsubscribe stress ===
+
+=== Graph flowchart stress ===
+
+=== Empty range operations ===
+
+cross_domain_torture_test: 2215 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="type_data_comment_torture" classname="type_data_comment_torture" time="2.99054" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_type_data_comment_torture_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/type_data_comment_torture-1d8e11872155/simple_appcall_linux64'
+
+=== type: load_type_library / unload_type_library ===
+
+=== type: import_type from TIL ===
+
+=== type: ensure_named_type ===
+
+=== type: retrieve_operand ===
+
+=== type: apply_named_type error paths ===
+
+=== data: read_word / read_dword / read_qword ===
+
+=== data: write_byte / write_word / write_dword / write_qword roundtrip ===
+
+=== data: patch_word / patch_dword / patch_qword / patch_bytes ===
+
+=== data: define_word / define_dword / define_qword / define_string ===
+
+=== data: read_string edge cases ===
+
+=== data: find_binary_pattern option variants ===
+
+=== comment: add_anterior / add_posterior accumulation ===
+
+=== comment: render with different flag combinations ===
+
+=== comment: append chaining ===
+
+=== comment: out-of-range line_index ===
+
+=== comment: special characters ==...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="operand_function_torture" classname="operand_function_torture" time="2.88129" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_operand_function_torture_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/operand_function_torture-1a514529f657/simple_appcall_linux64'
+
+=== instruction: set_operand_hex ===
+
+=== instruction: set_operand_decimal ===
+
+=== instruction: set_operand_octal ===
+
+=== instruction: set_operand_binary ===
+
+=== instruction: set_operand_character ===
+
+=== instruction: set_operand_float ===
+
+=== instruction: toggle_operand_sign ===
+
+=== instruction: toggle_operand_negate ===
+
+=== instruction: set_operand_offset ===
+
+=== instruction: forced operand text roundtrip ===
+
+=== instruction: operand error paths ===
+
+=== instruction: named operand enum workflow ===
+
+=== instruction: struct offset workflow ===
+
+=== instruction: set_operand_stack_variable ===
+
+=== function: sp_delta_at at multiple addresses ===
+
+=== function: frame field validation ===
+
+=== function: register variable add / find / rename / enumerate / remove ===
+
+=== f...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="decompiler_semantic_metadata" classname="decompiler_semantic_metadata" time="3.67521" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_decompiler_semantic_metadata_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/decompiler_semantic_metadata-71b9063b5136/idax_decompiler_semantic_fixture'
+metadata: 5 functions, 126 children, 2 stack variables, 2 floating constants, 14 switch operands
+Semantic metadata: 12228 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="instruction_branch_x86" classname="instruction_branch_x86" time="2.85611" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_instruction_branch_x86_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/instruction_branch_x86-0439051d71f0/simple_appcall_linux64'
+Branch predicates: 123 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="instruction_branch_arm64" classname="instruction_branch_arm64" time="2.83586" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_instruction_branch_arm64_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/instruction_branch_arm64-546a2867a177/register_tracking_aarch64'
+Branch predicates: 103 passed, 0 failed
+</system-out>
+	</testcase>
+	<testcase name="dyld_cache" classname="dyld_cache" time="2.88791" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_dyld_cache_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/dyld_cache-d4afb4c353b6/simple_appcall_linux64'
+dyld cache: 55 checks, 0 failures
+</system-out>
+	</testcase>
+	<testcase name="loader_initialization_order" classname="loader_initialization_order" time="0.0127319" status="run">
+		<properties/>
+		<system-out>'&lt;build-root&gt;/tests/integration/idax_loader_initialization_order_test' '&lt;build-root&gt;/tests/integration/idax-test-fixtures/loader_initialization_order-ebda45a6a0e1/simple_appcall_linux64'
+PASS: loader initialization precedes option dispatch
+</system-out>
+	</testcase>
+</testsuite>

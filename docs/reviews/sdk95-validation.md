@@ -17,7 +17,18 @@ and yields 45 passes/one failure in 105.54 s: sanitize_identifier returns a
 storage-valid name that fails the unchanged is_valid_identifier assertion.
 The strict identifier correction then passes its expanded target on both
 actual releases (3.39 s / 3.21 s), preserving the original assertion.
-The full suite has not yet been refreshed after this correction.
+The full suite then passes 46/46 at source `64eab2ef3264e7f3d98f69d73327b6c853758809`
+on macOS ARM64 in 106.94 s, with exact configured/executed inventory agreement.
+[Sanitized inventory](sdk95-native-evidence/ctest-inventory.json) and
+[JUnit results](sdk95-native-evidence/ctest-results.xml) retain every case.
+Paths are tokenized and output line endings/trailing whitespace normalized;
+identities, statuses and timings are unchanged. Input JUnit SHA-256 is
+`d9360f0e0df0e2bbe684e7653c4cf34b6d6aa299b7a0506b78005d36a2d7b813`.
+Actual libida/libidalib SHA-256 identities are
+`032a76e442a3905009e7a3b3345a63d1d2ae4b15c42e8e447bce9c5903f0025e`
+and `4deb963f3431efbec4f840ee8172c1ef998e17089b602047b81d0e46feff7700`.
+This baseline does not cover every conditional branch or establish Windows/Linux
+950 execution, dual-ABI consumers, or wide/bitfield correctness.
 
 SDK 950 renames the extended string-list payload to synthetic_string and
 encodes providers in synthetic string types. IDAX now uses the extended getter

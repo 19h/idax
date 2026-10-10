@@ -3182,3 +3182,7 @@ SDK 9.5 validate_name storage success can retain spaces and cannot imply is_unam
 ### 35.342. Direct Static-Archive Consumers Must Propagate OS Dependencies [F689]
 
 CMake dependency propagation does not apply to Rust cc/direct archive consumers. The checked Windows registry fallback requires advapi32 in both paths; exact fec4c802 Rust Windows links fail on its three imported registry functions while native full jobs pass. Rust now emits the same Windows-only dependency. LINK73.A1 requires the actual MSVC example link to resolve all three imports; local macOS compilation cannot falsify this platform failure. [High impact] native CMake success can conceal language-build dependency omissions.
+
+### 35.343. Complete Native SDK 950 Baseline and Producer Boundary [F690]
+
+Actual source 64eab2ef native SDK 950/IDA 9.5 execution passes 46/46 in 106.94 s on macOS ARM64; docs/reviews/sdk95-validation.md retains sanitized exact rosters/results and input/runtime hashes. SDK95.A3 requires equal nonempty configured/executed identities and zero failed/skipped CTests; the retained checker passes. Conditional host branches, other platforms and wide/bitfield consumers need separate evidence. A real decompiler already emits bitfield m=3 and union index 1, proving unit distinctions for later consumer correction. [High impact] full small-offset baseline is not wide-field behavioral coverage.
