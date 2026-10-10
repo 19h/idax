@@ -156,7 +156,9 @@ if(APPLE)
         OSX_ARCHITECTURES x86_64)
 endif()
 if(MSVC)
-    target_compile_options(idax_decompiler_semantic_fixture PRIVATE /O1 /Ob0)
+    # /O1 favors small branch chains and can remove the dense jump table that
+    # the semantic test needs. Keep calls uninlined and favor speed here.
+    target_compile_options(idax_decompiler_semantic_fixture PRIVATE /O2 /Ob0)
 else()
     target_compile_options(idax_decompiler_semantic_fixture PRIVATE -O1 -fno-inline -g0)
 endif()
