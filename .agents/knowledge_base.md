@@ -3166,3 +3166,9 @@ At source master 57495b1e, all three branch histories and five newer PR heads ha
 ### 35.339. Lumina Positive Probe Rejects Unavailable Transport [F686]
 
 The actual local connection attempt fails before a cached client exists. A positive lifecycle witness must require a completed pull and observed cache, then verify teardown and reconnect; absence-only success is insufficient. The opt-in network executable and hosted Linux gate retain this distinction without altering the default native suite. LUM73.A1-A2 require successful real transport and serialization; unavailable cache or concurrent owner use falsifies dependent lifecycle proof. [High impact] report connection cause as unknown rather than converting failure to skip.
+
+### 35.340. SDK 950 Build Entry and Extended String Payload [F687]
+
+Explicit IDAX_VALIDATE_SDK95 permits only actual version 950 in addition to default 940; unknown versions remain rejected and CI/fetch pins remain 940. SDK 950 renames the copied-string field and adds provider-encoded synthetic types. The extended getter is required on both 940/950 to copy that payload; the base getter only fills its base metadata. SDK95.A1 requires real resolved headers/runtime rather than a relabeled 940 tree; reject wrong versions and verify exported runtime symbols. SDK95.A2 requires an actual provider payload witness; compile/ordinary-string success cannot establish copied synthetic text. [High impact] field-name compatibility can reveal a preexisting base-getter semantic defect.
+
+- KB 35.340 execution supplement: the actual custom-provider payload witness passes 44/0 (3.14 s); SDK 940 regular-string behavior passes independently. The first 46-case SDK 950 run reaches every case but fails one strict identifier postcondition, retained as an active compatibility correction. See docs/reviews/sdk95-validation.md.

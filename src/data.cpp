@@ -987,9 +987,9 @@ Result<std::vector<StringLiteral>> string_literals(bool rebuild) {
     literals.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
         string_info_ex_t info;
-        if (!::get_strlist_item(&info, index)) {
+        if (!::get_strlist_item_ex(&info, index)) {
             return std::unexpected(Error::sdk(
-                "get_strlist_item failed", std::to_string(index)));
+                "get_strlist_item_ex failed", std::to_string(index)));
         }
         if (info.ea == BADADDR || info.length < 0) {
             return std::unexpected(Error::sdk(
@@ -997,13 +997,20 @@ Result<std::vector<StringLiteral>> string_literals(bool rebuild) {
                 std::to_string(index)));
         }
         Result<std::string> text;
-        if (info.type == STRTYPE_DECOMP) {
-            if (info.decompiler_string.empty()) {
+#if IDA_SDK_VERSION == 950
+        const bool is_copied_string = is_synth_strtype(info.type);
+        const qstring& copied_text = info.synthetic_string;
+#else
+        const bool is_copied_string = info.type == STRTYPE_DECOMP;
+        const qstring& copied_text = info.decompiler_string;
+#endif
+        if (is_copied_string) {
+            if (copied_text.empty()) {
                 return std::unexpected(Error::sdk(
-                    "Decompiler string-list item contains no copied text",
+                    "Synthetic string-list item contains no copied text",
                     std::to_string(index)));
             }
-            text = ida::detail::to_string(info.decompiler_string);
+            text = ida::detail::to_string(copied_text);
         } else {
             text = read_string(static_cast<Address>(info.ea),
                                static_cast<AddressSize>(info.length),

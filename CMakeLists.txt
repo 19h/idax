@@ -127,6 +127,7 @@ endif()
 
 # The public ABI and processor bridge target the pinned IDA SDK 9.4 release.
 # Caller-owned IDASDK overrides must not silently select an older/newer layout.
+option(IDAX_VALIDATE_SDK95 "Allow SDK 950 for explicit IDA 9.5 compatibility validation" OFF)
 set(IDAX_REQUIRED_IDA_SDK_VERSION 940)
 file(STRINGS "${IDAX_SDK_ROOT}/include/pro.h" IDAX_IDA_SDK_VERSION_LINE
     REGEX "^#[ \t]*define[ \t]+IDA_SDK_VERSION[ \t]+[0-9]+"
@@ -136,11 +137,14 @@ if(NOT IDAX_IDA_SDK_VERSION_LINE MATCHES
     message(FATAL_ERROR "Could not read IDA_SDK_VERSION from the resolved SDK.")
 endif()
 set(IDAX_IDA_SDK_VERSION "${CMAKE_MATCH_1}")
-if(NOT IDAX_IDA_SDK_VERSION STREQUAL
-        "${IDAX_REQUIRED_IDA_SDK_VERSION}")
+if(IDAX_VALIDATE_SDK95 AND IDAX_IDA_SDK_VERSION STREQUAL "950")
+    message(STATUS "Explicit IDA SDK 9.5 validation enabled; default SDK/CI target remains 9.4")
+elseif(NOT IDAX_IDA_SDK_VERSION STREQUAL
+           "${IDAX_REQUIRED_IDA_SDK_VERSION}")
     message(FATAL_ERROR
         "idax requires IDA SDK 9.4 (IDA_SDK_VERSION=940); "
-        "resolved IDA_SDK_VERSION=${IDAX_IDA_SDK_VERSION}.")
+        "resolved IDA_SDK_VERSION=${IDAX_IDA_SDK_VERSION}. "
+        "Actual SDK 950 validation requires -DIDAX_VALIDATE_SDK95=ON.")
 endif()
 
 # ── C++23 standard for idax itself ───────────────────────────────────────

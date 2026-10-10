@@ -1499,3 +1499,7 @@
 
 ### D19.96 Darwin Linker Object-Path Mapping
 - Complement compiler source/header prefix maps with Darwin linker `-oso_prefix` for the actual build root. Preserve relative object/archive debug references without exposing host-directory identities or stripping all native debug symbols. Verify complete resulting member bytes; compiler flag inspection alone cannot establish binary privacy.
+
+### D19.97 Explicit SDK 950 Validation and Copied String Payload
+- Keep default/fetched/CI SDK 940. Allow actual SDK 950 only with explicit IDAX_VALIDATE_SDK95, rejecting unknown versions; report this as compatibility validation until real runtime producers/consumers pass.
+- Always obtain string_info_ex_t through the exported extended getter. Resolve the known SDK field name privately and use SDK 950 synthetic-type classification for all provider encodings; public StringLiteral values remain owned and SDK independent.

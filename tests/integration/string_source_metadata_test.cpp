@@ -9,6 +9,10 @@
 #include <filesystem>
 #include <string>
 
+#if IDA_SDK_VERSION == 950
+#include "../../src/detail/sdk_bridge.hpp"
+#endif
+
 namespace {
 
 struct StringOptionsRestore {
@@ -109,6 +113,33 @@ void test_string_list_contract() {
     CHECK_OK(ida::data::clear_string_list());
 }
 
+#if IDA_SDK_VERSION == 950
+void test_synthetic_string_payload() {
+    SECTION("data: actual SDK 950 synthetic provider text");
+    const auto address = ida::name::resolve("main");
+    CHECK_OK(address);
+    if (!address) return;
+    const qstring expected("idax actual synthetic provider payload");
+    qstrvec_t texts;
+    texts.push_back(expected);
+    CHECK(::synth_string_set(SYNTHSTR_PROVIDER_CUSTOM, *address, texts, SYNTHSTR_NOCMT));
+    CHECK_OK(ida::data::rebuild_string_list());
+    const auto strings = ida::data::string_literals(false);
+    CHECK_OK(strings);
+    if (strings) {
+        const auto found = std::find_if(strings->begin(), strings->end(), [&](const auto& item) {
+            return item.address == *address && item.text == expected.c_str()
+                && is_synth_strtype(item.string_type)
+                && (item.string_type >> 8 & 0xFF) == SYNTHSTR_PROVIDER_CUSTOM;
+        });
+        CHECK(found != strings->end());
+    }
+    texts.clear();
+    CHECK(::synth_string_set(SYNTHSTR_PROVIDER_CUSTOM, *address, texts));
+    CHECK_OK(ida::data::rebuild_string_list());
+}
+#endif
+
 void test_source_file_contract() {
     SECTION("lines: source-file range lifecycle");
 
@@ -198,6 +229,9 @@ int main(int argc, char** argv) {
     }
 
     test_string_list_contract();
+#if IDA_SDK_VERSION == 950
+    test_synthetic_string_payload();
+#endif
     test_source_file_contract();
 
     auto closed = ida::database::close(false);
