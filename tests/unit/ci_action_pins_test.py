@@ -18,7 +18,7 @@ class CiActionPinTests(unittest.TestCase):
     def test_repository_inventory_is_exact(self) -> None:
         failures, counts = pins.scan_repository()
         self.assertEqual(failures, [])
-        self.assertEqual(sum(counts.values()), 38)
+        self.assertEqual(sum(counts.values()), 39)
 
     def test_mutable_reference_is_rejected(self) -> None:
         failures, _ = pins.scan_text(

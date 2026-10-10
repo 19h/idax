@@ -16,7 +16,7 @@ LOCAL_MSVC_ACTION = "./.github/actions/setup-msvc"
 EXPECTED_EXTERNAL_ACTIONS = {
     "actions/checkout": (
         "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
-        17,
+        18,
     ),
     "actions/setup-node": (
         "820762786026740c76f36085b0efc47a31fe5020",

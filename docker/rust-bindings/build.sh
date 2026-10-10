@@ -5,7 +5,9 @@
 #
 # Required environment variables:
 #   HCLI_API_KEY  - ida-hcli API key for downloading IDA Pro
-#   GH_TOKEN      - GitHub PAT with read access to HexRaysSA/ida-sdk
+#
+# Optional secret:
+#   GH_TOKEN      - GitHub PAT for a private SDK repository override
 #
 # Optional:
 #   IDA_SDK_REPO  - Override SDK repo (default: HexRaysSA/ida-sdk)
@@ -27,7 +29,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 : "${HCLI_API_KEY:?HCLI_API_KEY must be set}"
-: "${GH_TOKEN:?GH_TOKEN must be set}"
 : "${IDA_SDK_REPO:=HexRaysSA/ida-sdk}"
 : "${IDA_SDK_REF:=6929db6868a524496eb66e76e4ec6c9d720a0594}"
 : "${DOCKER_TAG:=idax-rust-bindings}"
@@ -37,10 +38,14 @@ echo "  SDK repo:  ${IDA_SDK_REPO}"
 echo "  SDK ref:   ${IDA_SDK_REF}"
 echo "  Context:   ${REPO_ROOT}"
 
+secret_args=(--secret "id=HCLI_API_KEY,env=HCLI_API_KEY")
+if [[ -n "${GH_TOKEN:-}" ]]; then
+    secret_args+=(--secret "id=GH_TOKEN,env=GH_TOKEN")
+fi
+
 docker build \
     --platform linux/amd64 \
-    --build-arg "HCLI_API_KEY=${HCLI_API_KEY}" \
-    --build-arg "GH_TOKEN=${GH_TOKEN}" \
+    "${secret_args[@]}" \
     --build-arg "IDA_SDK_REPO=${IDA_SDK_REPO}" \
     --build-arg "IDA_SDK_REF=${IDA_SDK_REF}" \
     -t "${DOCKER_TAG}" \

@@ -19,6 +19,7 @@ Desktop.ini
 
 # Git
 .git/
+**/.git
 
 # IDE
 .vscode/

@@ -16,6 +16,59 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  docker-rust:
+    name: Rust Docker - ubuntu-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Check image-secret scanner and runner syntax
+        run: |
+          python3 tests/unit/docker_image_secrets_test.py
+          bash -n docker/rust-bindings/build.sh docker/rust-bindings/fetch-sdk.sh docker/rust-bindings/run.sh
+
+      - name: Create a unique nonpersistent Git credential probe
+        run: |
+          python3 - <<'PY'
+          import os
+          import secrets
+          probe = "idax-image-probe-" + secrets.token_hex(24)
+          print("::add-mask::" + probe)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              output.write("GH_TOKEN=" + probe + "\n")
+          PY
+
+      - name: Build licensed SDK 9.4 image with ephemeral secrets
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
+          DOCKER_TAG: idax-rust-bindings:ci
+        run: bash docker/rust-bindings/build.sh
+
+      - name: Scan every saved image layer for build credentials
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_KEY }}
+        run: |
+          set -euo pipefail
+          docker save idax-rust-bindings:ci | \
+            python3 scripts/check_docker_image_secrets.py \
+              --secret-env HCLI_API_KEY --secret-env GH_TOKEN
+
+      - name: Verify exact SDK inventory and run initialized Rust targets
+        run: |
+          docker run --rm --entrypoint bash idax-rust-bindings:ci -c '
+            set -euo pipefail
+            test "$(cat /workspace/ida-sdk/.idax-sdk-revision)" = "6929db6868a524496eb66e76e4ec6c9d720a0594"
+            test -z "$(find /workspace/ida-sdk -name .git -print -quit)"
+            test ! -e /run/secrets/HCLI_API_KEY
+            test ! -e /run/secrets/GH_TOKEN
+          '
+          docker run --rm idax-rust-bindings:ci
+
   build-node:
     name: Node.js Bindings - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
