@@ -33,9 +33,9 @@
 
 - **3.1. Beyond Pull/Push Baseline**
   - 3.1.1. **Action:** Keep hardening `ida::lumina` behavior beyond now-passing pull/push smoke baseline.
-  - 3.1.2. **Focus:** Close/disconnect semantics once portable runtime symbols are confirmed.
-  - 3.1.3. **Blocker:** Runtime dylibs do not export `close_server_connection2`/`close_server_connections`.
-  - 3.1.4. **Status:** Blocked on runtime symbol availability.
+  - 3.1.2. **Focus:** Validate source-equivalent virtual cache-owner teardown through the exported no-connect getter.
+  - 3.1.3. **Blocker:** The close symbols remain unexported; source-equivalent public virtual destruction is implemented, with positive connected-client proof pending.
+  - 3.1.4. **Status:** Active / connected-client runtime validation.
 
 ---
 
@@ -62,5 +62,5 @@
 - **7.3. Queued:** P73.3 Lumina disconnect; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.6. P73.6 next action:** After loader correction, exact `c001a37f` passes Linux 46/46 and reaches Windows 44/46. The registry fallback/list-clear and MSVC switch-producer corrections are implemented. Inspect their exact-head complete Windows rerun and retain all 46 configured/executed identities plus artifacts. Configuration alone does not close P73.6. Debugger process execution remains a separate P73.5 gate even if native availability checks pass.
-- **7.7. P73.3 constraint:** No supported Lumina close/cache-owner operation is exported in inspected SDK/runtime interfaces. Impact: actual portable disconnect remains unavailable. Next action: obtain the requested supported upstream hook/source; transport-only cancellation cannot establish equivalent owner/cache semantics.
+- **7.7. P73.3 constraint:** The inspected runtime close path uses virtual destruction to clear cached ownership. The exported getter/public virtual destructor equivalent is implemented. Next action: compile all affected targets and retain an actual cached-client disconnect/reconnect/cache-isolation probe; source equivalence alone is not runtime proof.
 - **7.8. P73.9 acquisition constraint:** Local HCLI session expired. Impact: actual 9.5 headers are unavailable through that credential. The user-suggested SDK pull fast-forwarded to upstream `2a9143f`, whose headers remain SDK 940. Next action: inspect vendor/public versioned 9.5 sources or an authenticated acquisition; continue source-level ABI analysis and independent work.

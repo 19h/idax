@@ -117,14 +117,35 @@ Result<bool> has_connection(Feature feature) {
 }
 
 Status close_connection(Feature feature) {
-    (void)feature;
-    return std::unexpected(Error::unsupported(
-        "Closing Lumina connections is unavailable in this runtime"));
+    switch (feature) {
+    case Feature::PrimaryMetadata:
+    case Feature::SecondaryMetadata:
+    case Feature::Decompiler:
+    case Feature::Telemetry:
+        break;
+    default:
+        return std::unexpected(Error::validation("Invalid Lumina feature"));
+    }
+    static_assert(std::has_virtual_destructor_v<lumina_client_t>);
+    const int flags = GCSF_NO_CONNECT | static_cast<int>(to_sdk_feature(feature));
+    // The native close operation uses this same virtual deletion. The runtime
+    // destructor releases its transport and clears every cache slot owning the
+    // client. The getter must never connect merely to close an absent channel.
+    delete get_server_connection2(flags);
+    if (get_server_connection2(flags) != nullptr) {
+        return std::unexpected(Error::sdk("Lumina connection remained cached"));
+    }
+    return ida::ok();
 }
 
 Status close_all_connections() {
-    return std::unexpected(Error::unsupported(
-        "Closing Lumina connections is unavailable in this runtime"));
+    for (const Feature feature : {Feature::PrimaryMetadata,
+                                  Feature::SecondaryMetadata,
+                                  Feature::Decompiler, Feature::Telemetry}) {
+        if (auto status = close_connection(feature); !status)
+            return status;
+    }
+    return ida::ok();
 }
 
 Result<BatchResult> pull(std::span<const Address> addresses,

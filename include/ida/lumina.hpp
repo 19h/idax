@@ -52,12 +52,14 @@ Result<bool> has_connection(Feature feature = Feature::PrimaryMetadata);
 
 /// Close a Lumina connection for one feature channel.
 ///
-/// Note: this runtime currently reports this operation as unsupported.
+/// An absent connection is a successful no-op; this operation never connects.
+/// Serialize close against operations using the same channel.
 Status close_connection(Feature feature = Feature::PrimaryMetadata);
 
 /// Close all Lumina connections.
 ///
-/// Note: this runtime currently reports this operation as unsupported.
+/// Close all four feature channels without opening absent connections.
+/// Serialize close against operations using any channel.
 Status close_all_connections();
 
 /// Pull metadata for the provided function addresses.

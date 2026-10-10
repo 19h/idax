@@ -231,14 +231,24 @@ static void test_lumina() {
     }
 
     auto close_one = ida::lumina::close_connection();
-    CHECK(!close_one.has_value());
-    if (!close_one)
-        CHECK(close_one.error().category == ida::ErrorCategory::Unsupported);
+    CHECK_OK(close_one);
+    has_connection = ida::lumina::has_connection();
+    CHECK(has_connection && !*has_connection);
+    CHECK_OK(ida::lumina::close_connection());
+    auto invalid_close = ida::lumina::close_connection(
+        static_cast<ida::lumina::Feature>(-1));
+    CHECK(!invalid_close && invalid_close.error().category
+          == ida::ErrorCategory::Validation);
 
     auto close_all = ida::lumina::close_all_connections();
-    CHECK(!close_all.has_value());
-    if (!close_all)
-        CHECK(close_all.error().category == ida::ErrorCategory::Unsupported);
+    CHECK_OK(close_all);
+    for (const auto feature : {ida::lumina::Feature::PrimaryMetadata,
+                              ida::lumina::Feature::SecondaryMetadata,
+                              ida::lumina::Feature::Decompiler,
+                              ida::lumina::Feature::Telemetry}) {
+        auto present = ida::lumina::has_connection(feature);
+        CHECK(present && !*present);
+    }
 
     std::vector<ida::Address> empty;
     auto pull_empty = ida::lumina::pull(std::span<const ida::Address>(empty));

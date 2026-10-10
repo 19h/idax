@@ -18270,7 +18270,7 @@
     {
       "domain": "lumina",
       "header": "include/ida/lumina.hpp",
-      "sha256": "63631351710e3b13d247be206452b9cd161dad5783dd4c761a72d06de4a9be2e",
+      "sha256": "df7344f3c43b341e1f5d9fa87ed174cdd187975c02c4c0e73a3cdd3328369e21",
       "declarations": [
         {
           "name": "ida::lumina::BatchResult",
