@@ -4,6 +4,7 @@
 #   HCLI_API_KEY   - ida-hcli API key for downloading IDA Pro installer
 #   GH_TOKEN       - GitHub PAT with access to HexRaysSA/ida-sdk (private repo)
 #   IDA_SDK_REPO   - SDK repo (default: HexRaysSA/ida-sdk)
+#   IDA_SDK_REF    - SDK revision (default: CI's IDA 9.4 release patch)
 #
 # Usage:
 #   docker build --platform linux/amd64 \
@@ -25,8 +26,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
 
 ARG GH_TOKEN
 ARG IDA_SDK_REPO=HexRaysSA/ida-sdk
+ARG IDA_SDK_REF=6929db6868a524496eb66e76e4ec6c9d720a0594
 
-RUN git clone --recursive "https://${GH_TOKEN}@github.com/${IDA_SDK_REPO}.git" /ida-sdk
+RUN git clone --no-checkout "https://${GH_TOKEN}@github.com/${IDA_SDK_REPO}.git" /ida-sdk && \
+    git -C /ida-sdk checkout --detach "${IDA_SDK_REF}" && \
+    git -C /ida-sdk submodule update --init --recursive
 
 # ==============================================================================
 # Stage 2: Full build & test environment
@@ -88,7 +92,7 @@ RUN export HCLI_API_KEY="${HCLI_API_KEY}" && \
     LICENSE_ID=$(uvx --from ida-hcli hcli --disable-updates license list | grep -oE "[0-9A-F]{2}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{2}" | head -n 1) && \
     echo "Using license ID: $LICENSE_ID" && \
     # Download the Linux x64 installer
-    ASSET_KEY="release/9.3/ida-pro/ida-pro_93_x64linux.run" && \
+    ASSET_KEY="release/9.4/ida-pro/ida-pro_94_x64linux.run" && \
     mkdir -p /tmp/ida-installer && \
     uvx --from ida-hcli hcli --disable-updates download --output-dir /tmp/ida-installer "$ASSET_KEY" && \
     # Find the downloaded installer

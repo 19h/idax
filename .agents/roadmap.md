@@ -607,3 +607,5 @@ Current overall phase status:
 ### Unstaged Change Review (2026-10-10)
 
 - [x] R-UNSTAGED-20261010 Review all eight modified/untracked source, Docker, and presentation files for relevance and defects. See Progress Ledger 16.242 and F664-F666. Remediation is outside the requested review scope.
+
+- [x] D-SDK94-20261010 Align the Rust Docker runner's SDK checkout and Linux IDA runtime with the current CI 9.4 baseline; verify its SDK ref and installer asset. See F667/KB 35.320 and Progress Ledger 16.243.

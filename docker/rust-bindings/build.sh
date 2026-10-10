@@ -9,6 +9,7 @@
 #
 # Optional:
 #   IDA_SDK_REPO  - Override SDK repo (default: HexRaysSA/ida-sdk)
+#   IDA_SDK_REF   - Override SDK revision (default: CI's IDA 9.4 release patch)
 #   DOCKER_TAG    - Image tag (default: idax-rust-bindings)
 #   RUN_AFTER     - Set to "1" to automatically run after build
 #
@@ -28,10 +29,12 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 : "${HCLI_API_KEY:?HCLI_API_KEY must be set}"
 : "${GH_TOKEN:?GH_TOKEN must be set}"
 : "${IDA_SDK_REPO:=HexRaysSA/ida-sdk}"
+: "${IDA_SDK_REF:=6929db6868a524496eb66e76e4ec6c9d720a0594}"
 : "${DOCKER_TAG:=idax-rust-bindings}"
 
 echo "Building ${DOCKER_TAG} (platform: linux/amd64)..."
 echo "  SDK repo:  ${IDA_SDK_REPO}"
+echo "  SDK ref:   ${IDA_SDK_REF}"
 echo "  Context:   ${REPO_ROOT}"
 
 docker build \
@@ -39,6 +42,7 @@ docker build \
     --build-arg "HCLI_API_KEY=${HCLI_API_KEY}" \
     --build-arg "GH_TOKEN=${GH_TOKEN}" \
     --build-arg "IDA_SDK_REPO=${IDA_SDK_REPO}" \
+    --build-arg "IDA_SDK_REF=${IDA_SDK_REF}" \
     -t "${DOCKER_TAG}" \
     -f "${SCRIPT_DIR}/Dockerfile" \
     "${REPO_ROOT}"
