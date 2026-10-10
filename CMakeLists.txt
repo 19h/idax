@@ -194,6 +194,15 @@ function(idax_remap_build_paths target)
         return()
     endif()
 
+    # Darwin's linker writes its own N_OSO object/archive paths, independently
+    # of compiler file-prefix maps. Keep those references relative to the
+    # build root without discarding the native debug symbols.
+    if(APPLE)
+        file(REAL_PATH "${IDAX_PATH_MAP_BINARY_ROOT}" _idax_oso_root)
+        target_link_options(${target} PRIVATE
+            "-Wl,-oso_prefix,${_idax_oso_root}/")
+    endif()
+
     foreach(_idax_root_variable IN ITEMS
             IDAX_PATH_MAP_SOURCE_ROOT IDAX_PATH_MAP_BINARY_ROOT IDAX_SDK_ROOT)
         if(_idax_root_variable STREQUAL "IDAX_PATH_MAP_SOURCE_ROOT")

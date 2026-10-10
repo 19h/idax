@@ -21,6 +21,10 @@ process. This closes P73.5 for the tested argument/return kinds.
 constructs public wrapper function types and arguments and requires exact
 signed-integer result kind and value. Each call has a 5000 ms timeout.
 
+The executed module remains local. Its unstripped linker debug records include
+local object paths; only the SHA and sanitized native log are published. A
+subsequent Darwin linker-prefix correction addresses rebuilt artifacts.
+
 The host-native ELF fixture runs on the existing ARM Linux VM. Its vendor
 server binds VM loopback; an existing-key SSH tunnel reaches host loopback.
 No elevated macOS debugger permission is used. The GUI test instance has an

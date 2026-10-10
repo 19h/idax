@@ -1496,3 +1496,6 @@
 ### D19.95 Source-Equivalent Lumina Owner Teardown
 - Use the exported no-connect getter and the SDK-declared virtual destructor to perform the same cache-owner destruction as native close. Validate the feature before dispatch and verify cache absence afterward; do not connect absent channels, cancel only the transport, guess layouts, or reference unexported close symbols.
 - Single-channel and all-four-channel closes are idempotent for absent clients. Callers serialize close against operations on affected channels, matching the inspected native lifecycle boundary. Connected-client destruction must be validated on a real runtime before the evidence gap closes.
+
+### D19.96 Darwin Linker Object-Path Mapping
+- Complement compiler source/header prefix maps with Darwin linker `-oso_prefix` for the actual build root. Preserve relative object/archive debug references without exposing host-directory identities or stripping all native debug symbols. Verify complete resulting member bytes; compiler flag inspection alone cannot establish binary privacy.
