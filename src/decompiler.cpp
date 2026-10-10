@@ -2,8 +2,9 @@
 /// \brief Implementation of ida::decompiler — wrapping Hex-Rays decompiler API.
 ///
 /// The Hex-Rays API uses runtime function-pointer dispatch (hexdsp_t), so
-/// there are no link-time dependencies. We include hexrays.hpp and call
-/// init_hexrays_plugin() at runtime to check availability.
+/// there are no link-time dependencies. Availability goes through
+/// ida::detail::probe_hexrays(), which offers the 9.4 and 9.5 handshakes when
+/// codedump builds this library and init_hexrays_plugin() otherwise.
 
 #include "detail/sdk_bridge.hpp"
 #include "detail/type_impl.hpp"
@@ -14,6 +15,7 @@
 // hexrays.hpp is part of the IDA SDK and provides all decompiler APIs
 // through a single runtime dispatch pointer (no link dependencies).
 #include <hexrays.hpp>
+#include "detail/hexrays_probe.hpp"
 
 // intel.hpp provides EVEX/opmask constants for the MicrocodeContext
 // opmask introspection APIs. This is an implementation-only dependency.
@@ -2669,7 +2671,7 @@ Status ScopedSession::close() {
 
 Result<ScopedSession> initialize() {
     std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
-    if (!init_hexrays_plugin()) {
+    if (!ida::detail::probe_hexrays()) {
         return std::unexpected(Error::unsupported(
             "Decompiler not available (Hex-Rays plugin not loaded)"));
     }
@@ -2681,7 +2683,7 @@ Result<bool> available() {
     std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
     if (hexrays_ready_locked())
         return true;
-    if (init_hexrays_plugin()) {
+    if (ida::detail::probe_hexrays()) {
         s_hexrays_initialized = true;
         return true;
     }
@@ -3951,7 +3953,7 @@ static Status ensure_hexrays() {
     std::lock_guard<std::mutex> lock(g_hexrays_lifecycle_mutex);
     if (hexrays_ready_locked())
         return ida::ok();
-    if (init_hexrays_plugin()) {
+    if (ida::detail::probe_hexrays()) {
         s_hexrays_initialized = true;
         return ida::ok();
     }
@@ -4149,7 +4151,7 @@ Result<std::uint32_t> ExpressionView::member_offset() const {
     auto* e = static_cast<cexpr_t*>(raw_);
     if (e->op != cot_memref && e->op != cot_memptr)
         return std::unexpected(Error::validation("Expression is not a member access"));
-    return e->m;
+    return static_cast<std::uint32_t>(ida::detail::decompiler_member_byte_offset(*e));
 }
 
 Result<std::string> ExpressionView::member_name() const {
@@ -4170,7 +4172,7 @@ Result<std::string> ExpressionView::member_name() const {
     if (!base_type.get_udt_details(&udt))
         return std::unexpected(Error::sdk("get_udt_details failed"));
 
-    const int offset = static_cast<int>(e->m);
+    const int offset = static_cast<int>(ida::detail::decompiler_member_byte_offset(*e));
     for (std::size_t i = 0; i < udt.size(); ++i) {
         const udm_t& member = udt[i];
         const int member_offset = static_cast<int>(member.offset / 8);
@@ -4837,8 +4839,9 @@ public:
                 tinfo_t parent_type = parent->type;
                 if (expression->op == cot_memptr && parent_type.is_ptr())
                     parent_type = parent_type.get_pointed_object();
-                collector_.record_member_access(parent_type,
-                                                static_cast<int>(expression->m));
+                collector_.record_member_access(
+                    parent_type,
+                    static_cast<int>(ida::detail::decompiler_member_byte_offset(*expression)));
             }
         }
 

@@ -602,3 +602,8 @@ Current overall phase status:
 - [x] P72.9 Investigate the reported PR CI failure and verify the current push/PR checks without weakening build-log upload gates.
 
 - [x] P72.10 Add the requested Mx-Iris co-author trailer and re-sign the inclusive Swift rewrite commit range on master, verifying content preservation and signatures before a lease-protected push.
+
+
+### Unstaged Change Review (2026-10-10)
+
+- [x] R-UNSTAGED-20261010 Review all eight modified/untracked source, Docker, and presentation files for relevance and defects. See Progress Ledger 16.242 and F664-F666. Remediation is outside the requested review scope.

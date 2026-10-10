@@ -1,0 +1,36 @@
+# Rust build artifacts
+bindings/rust/target/
+target/
+
+# Node build artifacts
+bindings/node/build/
+bindings/node/node_modules/
+node_modules/
+
+# C++ build artifacts
+build/
+build*/
+_wks/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Compiled objects
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.lib
+*.exe

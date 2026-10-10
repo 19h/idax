@@ -8,6 +8,7 @@
 
 #include <kernwin.hpp>
 #include <hexrays.hpp>
+#include "detail/hexrays_probe.hpp"
 
 #include <atomic>
 #include <map>
@@ -211,7 +212,7 @@ struct ActionAdapter : public action_handler_t {
 
         if (ctx->widget != nullptr
             && ctx->widget_type == BWN_PSEUDOCODE
-            && init_hexrays_plugin()) {
+            && ida::detail::probe_hexrays()) {
             if (auto* vu = get_widget_vdui(ctx->widget); vu != nullptr)
                 out.decompiler_view_handle = static_cast<void*>(vu);
         }
