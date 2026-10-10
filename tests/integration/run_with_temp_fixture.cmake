@@ -26,6 +26,18 @@ file(COPY_FILE "${IDAX_TEST_FIXTURE}" "${_temp_fixture}" ONLY_IF_DIFFERENT)
 # release-specific input: copying an older sidecar can make IDA terminate after
 # its conversion pass before the integration executable reaches its assertions.
 
+# SDK import libraries/stubs are link-time inputs. Execute against the actual
+# runtime selected by CTest's IDADIR, ahead of any SDK stub search paths.
+# Set the child environment here so direct CTest and multi-config Windows runs
+# receive the same loader paths without shell-specific path conversion.
+if(DEFINED ENV{IDADIR} AND NOT "$ENV{IDADIR}" STREQUAL "")
+    if(WIN32)
+        set(ENV{PATH} "$ENV{IDADIR};$ENV{PATH}")
+    elseif(UNIX AND NOT APPLE)
+        set(ENV{LD_LIBRARY_PATH} "$ENV{IDADIR}:$ENV{LD_LIBRARY_PATH}")
+    endif()
+endif()
+
 execute_process(
     COMMAND "${IDAX_TEST_EXECUTABLE}" "${_temp_fixture}"
     RESULT_VARIABLE _result
