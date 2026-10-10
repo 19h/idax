@@ -58,6 +58,13 @@ all saved-image secret/SDK-boundary checks, 172 Rust library tests and three
 initialized runtime targets pass. General integration compilation is kept
 distinct from optional execution.
 
+## 2026-10-11 actual debugger-backed Appcall evidence
+
+[Retained host validation](reviews/appcall-host-validation.md) closes P73.5:
+actual SDK 9.4 GUI, vendor ARM Linux debugger, matching native ELF and
+suspended-process wrapper calls pass all four exact signed returns. Additional
+argument kinds and platform suites retain independent evidence requirements.
+
 ## Historical Phase 29 test suite summary
 
 - Unit: `idax_unit_test` -> pass (22/22)

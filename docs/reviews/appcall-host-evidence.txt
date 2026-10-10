@@ -1,0 +1,6 @@
+Backend: armlinux; state=Suspended
+PASS: ref4(0) = -1
+PASS: ref1(41) = 42
+PASS: ref1(-42) = -41
+PASS: ref3(38) = 41
+appcall_host_gates: 4 passed, 0 failed, 0 skipped

@@ -85,13 +85,14 @@ Replace the macOS module suffix/path for Linux/Windows. Retain the complete
 log and a zero probe exit code; successful loading/compilation is not Appcall
 execution evidence. The module's four signed-return assertions must all pass.
 
-Current probe status (2026-10-11): native module compilation passes. Local
-macOS backend setup requires elevated permissions; its cancellation produced
-a native IDA SIGSEGV alert before the wrapper probe ran (cause unknown).
-The vendor ARM Linux 9.4 debug server, host-native fixture and loopback SSH
-transport have been prepared on the existing local VM; actual process-backed
-wrapper assertions remain pending under P73.5. No elevated-host or remote
-success is inferred from readiness.
+Current probe status (2026-10-11): all four calls pass against an actual
+suspended ARM Linux process from the IDA 9.4 GUI. The vendor ARM Linux 9.4.31
+server uses VM loopback through an existing SSH tunnel. The probe returns 0
+with four passes, zero failures and zero skips. See the [retained exact host
+report](reviews/appcall-host-validation.md) for module/fixture/log identities,
+SDK-header revision and evidence limits. Local macOS elevated-permission
+constraints and native GUI setup/cleanup faults (cause unknown) remain
+separate host observations. P73.5 is complete for the tested argument kinds.
 
 ## If It Fails
 

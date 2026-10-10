@@ -117,11 +117,10 @@ scripts/run_open_points.sh build-open-points RelWithDebInfo
   (`IDAX_BUILD_EXAMPLE_ADDONS=OFF`, `IDAX_BUILD_EXAMPLE_TOOLS=OFF`).
 - In the current SDK checkout, Linux Clang addon/tool rows fail when ON because
   `x64_linux_clang_64` runtime libs are missing (`libida.so` / `libidalib.so`).
-- On the current macOS host/runtime, appcall smoke is still blocked by
-  debugger backend/session readiness even after backend auto-selection:
-  `start_process` returns `0`, `request_start` succeeds but debugger state
-  remains `NoProcess`, and spawn+attach fallback reports
-  `attach_process` return `-1` with `request_attach` still leaving `NoProcess`.
+- Actual SDK 9.4 GUI plus the ARM Linux remote debugger executes four native
+  Appcalls in a suspended process with exact signed returns; see [host
+  validation](reviews/appcall-host-validation.md). Historical headless
+  no-process and local macOS elevated-permission limits remain host-specific.
 - On the current macOS host/runtime, Lumina pull/push smoke succeeds against the
   configured service (`build-open-points-surge6/logs/lumina-smoke.log`).
 - Full multi-OS completion requires Linux and Windows hosts with licensed IDA

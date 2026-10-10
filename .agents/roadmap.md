@@ -618,7 +618,7 @@ Current overall phase status:
 - [x] P73.2 Remove Docker credential persistence, align Rust runtime targets with CI, and validate the resulting runner. Exact `0ed3cac9` licensed job passes image-secret/SDK-boundary gates, 172 Rust library tests and all three initialized runtime targets; see `docs/reviews/rust-docker-validation.md`.
 - [ ] P73.3 Implement and validate Lumina disconnect using the supported runtime interface. Exported-getter/public-virtual-destructor equivalent compiles and passes local smoke; positive connected-client proof remains pending.
 - [x] P73.4 Obtain positive modal-form and clipboard host evidence, then complete the P22 validation refresh. Actual IDA 9.4 GUI log and final focused native/example/Node/Rust evidence are recorded in `docs/validation_report.md`; compiled Qt remains a scoped evidence limit.
-- [ ] P73.5 Obtain actual debugger/process-backed Appcall evidence.
+- [x] P73.5 Obtain actual debugger/process-backed Appcall evidence. Actual SDK 9.4 GUI plus ARM Linux remote backend passes all four signed-return assertions in a suspended process; see `docs/reviews/appcall-host-validation.md`.
 - [ ] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair. Full profiles and inventory/JUnit/log retention are implemented. Linux passes 46/46 at `c001a37f`; Windows reaches all tests but passes 44/46, with registry-empty and switch-fixture corrections implemented; complete rerun remains required.
 - [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3.

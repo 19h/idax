@@ -39,28 +39,12 @@
 
 ---
 
-### 4. Appcall Runtime Evidence
-
-- **4.1. Debugger-Capable Host Execution**
-  - 4.1.1. **Action:** Execute `docs/appcall_runtime_validation.md` on a debugger-capable host.
-  - **4.1.2. Current Block State**
-    - 4.1.2.1. Backend loads successfully.
-    - 4.1.2.2. `start_process` returns `0` + still `NoProcess`.
-    - 4.1.2.3. `request_start` -> no-process.
-    - 4.1.2.4. `attach_process` returns `-1` + still `NoProcess`.
-    - 4.1.2.5. `request_attach` -> no-process.
-  - 4.1.3. **Goal:** Convert block into pass evidence.
-  - 4.1.4. **Follow-Up:** Expand Appcall argument/return kind coverage only where concrete ports require additional fidelity.
-  - 4.1.5. **Status:** Blocked on debugger-capable host.
-
----
-
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.5 actual GUI debugger-backed Appcall probe; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
-- **7.3. Queued:** P73.3 Lumina disconnect; P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
+- **7.2. Active:** P73.3 connected-client Lumina teardown validation; P73.6 full native Linux/Windows CI execution and exact roster/results retention.
+- **7.3. Queued:** P73.7 broad Diaphora parity; P73.8 external GitHub retention; P73.9 actual 9.5 ABI/wide offsets.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
-- **7.6. P73.6 next action:** After loader correction, exact `c001a37f` passes Linux 46/46 and reaches Windows 44/46. The registry fallback/list-clear and MSVC switch-producer corrections are implemented. Inspect their exact-head complete Windows rerun and retain all 46 configured/executed identities plus artifacts. Configuration alone does not close P73.6. Debugger process execution remains a separate P73.5 gate even if native availability checks pass.
+- **7.6. P73.6 next action:** After loader correction, exact `c001a37f` passes Linux 46/46 and reaches Windows 44/46. The registry fallback/list-clear and MSVC switch-producer corrections are implemented. Inspect their exact-head complete Windows rerun and retain all 46 configured/executed identities plus artifacts. Configuration alone does not close P73.6. P73.5 has independent positive process-backed closure evidence.
 - **7.7. P73.3 constraint:** The inspected runtime close path uses virtual destruction to clear cached ownership. The exported getter/public virtual destructor equivalent is implemented. Next action: compile all affected targets and retain an actual cached-client disconnect/reconnect/cache-isolation probe; source equivalence alone is not runtime proof.
 - **7.8. P73.9 acquisition constraint:** Local HCLI session expired. Impact: actual 9.5 headers are unavailable through that credential. The user-suggested SDK pull fast-forwarded to upstream `2a9143f`, whose headers remain SDK 940. Next action: inspect vendor/public versioned 9.5 sources or an authenticated acquisition; continue source-level ABI analysis and independent work.
