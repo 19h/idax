@@ -3108,3 +3108,7 @@ Copied enumeration must return every nonempty persisted `(address, semantic loca
 
 - KB 35.328 closure supplement: post-GUI final parity refresh succeeds (6 native CTests; example; Node 277 unit/96 integration; Rust 1 typed-form test and 2 compilation checks). GUI-runner documentation uses an actual in-process module, and external-backend clipboard execution does not require Qt compilation.
 - KB 35.329 acquisition supplement: user-authorized SDK pull reaches upstream `2a9143f`, still SDK 940. Actual SDK 9.5 remains unavailable in that public branch; untracked local entries are untouched.
+
+### 35.330. Docker SDK CMake Entrypoint Selection [F677]
+
+- Primary evidence: exact-head Actions job `114319261403` and pinned SDK source. Acquisition succeeds but path resolution rejects `src/cmake/idasdkConfig.cmake`; the corrected resolver accepts package and legacy bootstrap layouts. Assumption DOCKER73.A2: selected SDK root contains its supported CMake entrypoint; falsify a missing entrypoint or wrong retained SDK identity. [Medium impact] Docker image never reaches licensed execution. Current pinned package-layout probe passes; complete image/runtime evidence remains pending. Constant-size path checks use O(1) time/storage; no physical-unit calculation changes. QG1-QG7 pass for the diagnosed path correction.

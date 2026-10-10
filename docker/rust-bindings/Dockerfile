@@ -76,14 +76,14 @@ RUN mkdir -p /etc/environment.d && \
     SDK_ROOT="/workspace/ida-sdk" && \
     if [ -f "${SDK_ROOT}/ida-cmake/bootstrap.cmake" ]; then \
         echo "IDASDK=${SDK_ROOT}" > /etc/environment.d/ida.conf; \
-    elif [ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ]; then \
+    elif [ -f "${SDK_ROOT}/src/cmake/bootstrap.cmake" ] || [ -f "${SDK_ROOT}/src/cmake/idasdkConfig.cmake" ]; then \
         echo "IDASDK=${SDK_ROOT}/src" > /etc/environment.d/ida.conf; \
     elif [ -f "${SDK_ROOT}/src/ida-cmake/bootstrap.cmake" ]; then \
         echo "IDASDK=${SDK_ROOT}/src" > /etc/environment.d/ida.conf; \
-    elif [ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ]; then \
+    elif [ -f "${SDK_ROOT}/cmake/bootstrap.cmake" ] || [ -f "${SDK_ROOT}/cmake/idasdkConfig.cmake" ]; then \
         echo "IDASDK=${SDK_ROOT}" > /etc/environment.d/ida.conf; \
     else \
-        echo "error: unable to locate SDK bootstrap.cmake" && exit 1; \
+        echo "error: unable to locate SDK CMake package or bootstrap" && exit 1; \
     fi
 
 # -- Install IDA Pro via ida-hcli; the key is available only in this RUN --
