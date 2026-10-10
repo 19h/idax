@@ -34,7 +34,7 @@
     {"domain": "plugin", "path": "include/ida/plugin.hpp", "sha256": "a5d143401bb217bbd8282cead1875f09b396d62c78070ba1ea36586c5daccee2"},
     {"domain": "processor", "path": "include/ida/processor.hpp", "sha256": "ae6d1fb2f591fa4a7d9dd8292e4efc13bf0991445d77d7a04433665a60b6bc19"},
     {"domain": "problem", "path": "include/ida/problem.hpp", "sha256": "14cd3c4095b39b2e629ee07d04bff3fd06c4e88bcaa53607b6a4553554ace7d1"},
-    {"domain": "registry", "path": "include/ida/registry.hpp", "sha256": "1553f64bdaf1a6b788837030e604f41b185c7ad242e1005cbf9c6706b5e90d48"},
+    {"domain": "registry", "path": "include/ida/registry.hpp", "sha256": "4c0b58f409fc01bb79b1d60af88be09ed8676c54b4dfd60998f17a67c99721d1"},
     {"domain": "registers", "path": "include/ida/registers.hpp", "sha256": "871aac3c1bfd63edf72f0b480229ef0cfad759054def6db23d6349d668834b54"},
     {"domain": "search", "path": "include/ida/search.hpp", "sha256": "6345a30552c3fcc0ca8d502b8487b85831bb350cd0026f1e9ab4b997a35af1f5"},
     {"domain": "segment", "path": "include/ida/segment.hpp", "sha256": "15a8d1d888404fd80c455fcfd301264df83a68dfc4cdc446729095d8650687ca"},

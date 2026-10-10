@@ -23218,7 +23218,7 @@
     {
       "domain": "registry",
       "header": "include/ida/registry.hpp",
-      "sha256": "1553f64bdaf1a6b788837030e604f41b185c7ad242e1005cbf9c6706b5e90d48",
+      "sha256": "4c0b58f409fc01bb79b1d60af88be09ed8676c54b4dfd60998f17a67c99721d1",
       "declarations": [
         {
           "name": "ida::registry::Store",

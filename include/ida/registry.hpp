@@ -40,6 +40,8 @@ struct StringListUpdate {
 ///
 /// The handle owns only the key text. It exposes no native registry object and
 /// does not mutate IDA's process-global registry root.
+/// Windows requires the default IDA registry root; changing that root through
+/// the native SDK is outside this scoped interface's contract.
 class Store {
 public:
     /// Open a scoped key. The key need not exist yet.

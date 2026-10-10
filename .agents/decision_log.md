@@ -1488,3 +1488,7 @@
 ### D19.93 Documented Form Cancellation and Shared Validation
 - Preserve the SDK's documented -1 cancellation as successful false when BUTTON NO is present. Zero also remains false, retaining the SDK's ambiguity between No/cancellation/allocation/syntax outcomes; only positive results commit prepared bindings. Unexpected results below -1 remain SDK failures.
 - Unbound and typed native form paths share empty/NUL markup validation. Swift custom and generated forms share checked storage and convert all returned values before mutating any caller binding.
+
+### D19.94 Checked Windows Registry Empty-Value Fallback
+- Keep missing values distinct from present empty values. After a typed SDK read failure, privately query the OS type and byte length under the documented default IDA root; accept only an actual zero-byte value of the expected kind. Preserve native query/access errors. Do not expose Win32 handles or process-global root mutation. Document that native root switching is outside the scoped Windows contract.
+- Clear a dedicated list subtree through exported root-relative deletion before writing and verifying replacements. Retain the documented cross-process serialization requirement; no transaction or restoration token is introduced.

@@ -10,9 +10,50 @@
 #include <algorithm>
 #include <type_traits>
 
+#if defined(_WIN32)
+#  if !defined(NOMINMAX)
+#    define NOMINMAX
+#  endif
+#  include <windows.h>
+#endif
+
 namespace ida::registry {
 
 namespace {
+
+#if defined(_WIN32)
+// The 9.4 Windows SDK reports a failed read for stored zero-byte values.
+// Query the documented default IDA root to distinguish that case from a
+// missing value, wrong kind, or an OS failure. Store does not support switching
+// the process-global native registry root.
+Result<bool> is_empty_windows_value(const std::string& key,
+                                    const std::string& name,
+                                    ValueKind expected) {
+    const std::string path = std::string(ROOT_KEY_NAME) + "\\" + key;
+    HKEY handle = nullptr;
+    const LSTATUS opened = ::RegOpenKeyExA(HKEY_CURRENT_USER, path.c_str(), 0,
+                                          KEY_QUERY_VALUE, &handle);
+    if (opened != ERROR_SUCCESS) {
+        return std::unexpected(Error::sdk(
+            "Failed to open registry key for empty-value verification",
+            std::to_string(opened)));
+    }
+    DWORD type = 0;
+    DWORD bytes = 0;
+    const LSTATUS queried = ::RegQueryValueExA(handle, name.c_str(), nullptr,
+                                              &type, nullptr, &bytes);
+    ::RegCloseKey(handle);
+    if (queried != ERROR_SUCCESS) {
+        return std::unexpected(Error::sdk(
+            "Failed to query registry value length", std::to_string(queried)));
+    }
+    if (type != static_cast<DWORD>(expected)) {
+        return std::unexpected(Error::conflict(
+            "Registry value kind changed during read", name));
+    }
+    return bytes == 0;
+}
+#endif
 
 static_assert(static_cast<std::uint8_t>(ValueKind::String) == reg_sz);
 static_assert(static_cast<std::uint8_t>(ValueKind::Binary) == reg_binary);
@@ -198,6 +239,13 @@ Result<std::optional<std::string>> Store::read_string(
     qstring native;
     const std::string owned(name);
     if (!::reg_read_string(&native, owned.c_str(), key_.c_str())) {
+#if defined(_WIN32)
+        auto empty = is_empty_windows_value(key_, owned, ValueKind::String);
+        if (!empty)
+            return std::unexpected(empty.error());
+        if (*empty)
+            return std::optional<std::string>{std::string{}};
+#endif
         return std::unexpected(Error::sdk(
             "Failed to read registry string", owned));
     }
@@ -237,6 +285,14 @@ Result<std::optional<std::vector<std::uint8_t>>> Store::read_binary(
     bytevec_t native;
     const std::string owned(name);
     if (!::reg_read_binary(owned.c_str(), &native, key_.c_str())) {
+#if defined(_WIN32)
+        auto empty = is_empty_windows_value(key_, owned, ValueKind::Binary);
+        if (!empty)
+            return std::unexpected(empty.error());
+        if (*empty)
+            return std::optional<std::vector<std::uint8_t>>{
+                std::vector<std::uint8_t>{}};
+#endif
         return std::unexpected(Error::sdk(
             "Failed to read registry binary value", owned));
     }
@@ -345,6 +401,14 @@ Status Store::write_string_list(std::span<const std::string> values) const {
         }
     }
     const qstrvec_t native = native_strings(values);
+    // The SDK's list writer can retain stale values on Windows when its
+    // internal clear uses the previous key handle. Delete through the public
+    // root-relative operation before replacing the ordered list.
+    if (::reg_subkey_exists(key_.c_str())
+        && !::reg_delete_tree(key_.c_str())) {
+        return std::unexpected(Error::sdk(
+            "Failed to clear registry string-list key", key_));
+    }
     ::reg_write_strlist(native, key_.c_str());
     auto readback = read_string_list();
     if (!readback || *readback != std::vector<std::string>(values.begin(),

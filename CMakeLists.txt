@@ -227,6 +227,9 @@ target_include_directories(idax
 # idax compiles against SDK headers but does NOT force a link target.
 # Consumers bring their own idasdk::plugin / idasdk::idalib / etc.
 target_link_libraries(idax PUBLIC idasdk_headers)
+if(WIN32)
+    target_link_libraries(idax PRIVATE advapi32)
+endif()
 
 # Qt clipboard support is opt-in because enabling it makes the static idax
 # archive carry Qt symbols into downstream plugin/addon links. IDA requires

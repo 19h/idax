@@ -98,6 +98,12 @@ int main(int argc, char* argv[]) {
                          "write string"));
     CHECK(require_status(store.write_string("empty_text", ""),
                          "write empty string"));
+    auto empty_text = store.read_string("empty_text");
+    CHECK(empty_text && empty_text->has_value() && (**empty_text).empty());
+    auto empty_kind = store.value_kind("empty_text");
+    CHECK(empty_kind && empty_kind->has_value()
+          && **empty_kind == ValueKind::String);
+    CHECK(!store.read_binary("empty_text"));
     auto text = store.read_string("text");
     CHECK(text && text->has_value() && **text == "idax registry \xCF\x80");
     auto kind = store.value_kind("text");
@@ -107,6 +113,12 @@ int main(int argc, char* argv[]) {
     CHECK(require_status(store.write_binary("binary", bytes), "write binary"));
     CHECK(require_status(store.write_binary("empty_binary", {}),
                          "write empty binary"));
+    auto empty_binary = store.read_binary("empty_binary");
+    CHECK(empty_binary && empty_binary->has_value() && (**empty_binary).empty());
+    empty_kind = store.value_kind("empty_binary");
+    CHECK(empty_kind && empty_kind->has_value()
+          && **empty_kind == ValueKind::Binary);
+    CHECK(!store.read_string("empty_binary"));
     auto binary = store.read_binary("binary");
     CHECK(binary && binary->has_value() && **binary ==
           std::vector<std::uint8_t>(bytes.begin(), bytes.end()));
@@ -168,6 +180,13 @@ int main(int argc, char* argv[]) {
         CHECK(require_status(list->write_string_list({}), "write empty list"));
         read = list->read_string_list();
         CHECK(read && read->empty());
+        auto empty_names = list->value_names();
+        CHECK(empty_names && empty_names->empty());
+        CHECK(require_status(list->write_string_list(values), "rewrite list"));
+        const std::vector<std::string> shorter{"delta"};
+        CHECK(require_status(list->write_string_list(shorter), "shorten list"));
+        read = list->read_string_list();
+        CHECK(read && *read == shorter);
     }
 
     auto nonrecursive = store.erase_key();

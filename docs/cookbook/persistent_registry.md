@@ -3,7 +3,9 @@
 `ida::registry::Store` represents one nonempty persistent registry key by
 owned text. It retains no native registry pointer and does not change IDA's
 process-global registry root. The same store contract is available in C++,
-Node.js, Rust, and Python.
+Node.js, Rust, and Python. On Windows, use the default IDA registry root;
+switching that process-global root through the native SDK is outside this
+scoped interface's contract.
 
 ## Typed values
 
@@ -29,7 +31,10 @@ if (auto status = store.write_boolean("enabled", true); !status)
 Strings, binary values, signed 32-bit integers, and booleans have distinct
 typed operations. A missing value returns an empty `std::optional`; an
 existing value of another kind returns `ErrorCategory::Conflict`. Every write
-is checked by typed readback before success is returned.
+is checked by typed readback before success is returned. Present empty strings
+and binary values remain present, typed values. The Windows zero-byte fallback
+queries the OS value type and length; it preserves missing-value, wrong-kind
+and OS-error results.
 
 ## Child scopes, inventories, and deletion
 
@@ -71,6 +76,9 @@ update.ignore_case = false;
 if (auto status = store.update_string_list(update); !status)
     return status;
 ```
+
+List replacement clears the scoped subtree before writing the replacement,
+including an empty list. Use a dedicated child store for a list.
 
 An update removes requested matches, removes existing semantic matches for an
 addition before inserting it at the front, and truncates to `max_records` in
