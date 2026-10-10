@@ -65,6 +65,13 @@ actual SDK 9.4 GUI, vendor ARM Linux debugger, matching native ELF and
 suspended-process wrapper calls pass all four exact signed returns. Additional
 argument kinds and platform suites retain independent evidence requirements.
 
+## 2026-10-10 complete native Linux/Windows evidence
+
+[Retained exact platform validation](reviews/native-sdk94-full-validation.md)
+closes P73.6 at `1e430823`: Linux and Windows each pass all 46 configured and
+executed tests. Sanitized inventories/JUnit and original artifact identities
+are retained; later implementation changes require their own checks.
+
 ## Historical Phase 29 test suite summary
 
 - Unit: `idax_unit_test` -> pass (22/22)

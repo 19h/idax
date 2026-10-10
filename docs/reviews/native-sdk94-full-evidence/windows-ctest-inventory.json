@@ -1,0 +1,1728 @@
+{
+  "backtraceGraph": {
+    "commands": [
+      "add_test",
+      "idax_add_integration_test"
+    ],
+    "files": [
+      "<repo-root>/tests/unit/CMakeLists.txt",
+      "<repo-root>/tests/integration/CMakeLists.txt"
+    ],
+    "nodes": [
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 7,
+        "parent": 0
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 46,
+        "parent": 2
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 55,
+        "parent": 4
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 60,
+        "parent": 6
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 65,
+        "parent": 8
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 70,
+        "parent": 10
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 75,
+        "parent": 12
+      },
+      {
+        "file": 0
+      },
+      {
+        "command": 0,
+        "file": 0,
+        "line": 83,
+        "parent": 14
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 111,
+        "parent": 16
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 17
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 112,
+        "parent": 19
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 20
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 113,
+        "parent": 22
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 23
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 114,
+        "parent": 25
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 26
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 115,
+        "parent": 28
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 29
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 116,
+        "parent": 31
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 32
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 117,
+        "parent": 34
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 35
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 118,
+        "parent": 37
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 38
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 119,
+        "parent": 40
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 41
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 120,
+        "parent": 43
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 44
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 121,
+        "parent": 46
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 47
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 122,
+        "parent": 49
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 50
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 123,
+        "parent": 52
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 53
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 124,
+        "parent": 55
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 56
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 125,
+        "parent": 58
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 59
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 126,
+        "parent": 61
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 62
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 127,
+        "parent": 64
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 65
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 128,
+        "parent": 67
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 68
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 129,
+        "parent": 70
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 71
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 130,
+        "parent": 73
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 74
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 131,
+        "parent": 76
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 77
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 132,
+        "parent": 79
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 80
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 133,
+        "parent": 82
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 83
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 136,
+        "parent": 85
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 86
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 137,
+        "parent": 88
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 89
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 138,
+        "parent": 91
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 92
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 139,
+        "parent": 94
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 95
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 140,
+        "parent": 97
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 98
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 143,
+        "parent": 100
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 101
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 144,
+        "parent": 103
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 104
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 145,
+        "parent": 106
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 107
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 146,
+        "parent": 109
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 110
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 147,
+        "parent": 112
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 113
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 165,
+        "parent": 115
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 116
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 170,
+        "parent": 118
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 119
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 171,
+        "parent": 121
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 122
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 175,
+        "parent": 124
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 125
+      },
+      {
+        "file": 1
+      },
+      {
+        "command": 1,
+        "file": 1,
+        "line": 179,
+        "parent": 127
+      },
+      {
+        "command": 0,
+        "file": 1,
+        "line": 95,
+        "parent": 128
+      }
+    ]
+  },
+  "kind": "ctestInfo",
+  "tests": [
+    {
+      "backtrace": 1,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_unit_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "idax_unit_test",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 3,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-E",
+        "echo",
+        "API surface parity: PASS (compiled successfully)"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "api_surface_parity",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 5,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_error_torture_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "error_torture",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 7,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_address_range_torture_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "address_range_torture",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 9,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_diagnostics_torture_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "diagnostics_torture",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 11,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_core_options_torture_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "core_options_torture",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 13,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_diaphora_exact_core_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "diaphora_exact_core",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 15,
+      "command": [
+        "<build-root>/tests/unit/RelWithDebInfo/idax_processor_bridge_validation_test.exe"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "processor_bridge_validation",
+      "properties": [
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/unit"
+        }
+      ]
+    },
+    {
+      "backtrace": 18,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_smoke_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=smoke",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "smoke",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 21,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_name_comment_xref_search_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=name_comment_xref_search",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "name_comment_xref_search",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 24,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_data_mutation_safety_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=data_mutation_safety",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "data_mutation_safety",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 27,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_segment_function_edge_cases_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=segment_function_edge_cases",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "segment_function_edge_cases",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 30,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_instruction_decode_behavior_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=instruction_decode_behavior",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "instruction_decode_behavior",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 33,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_type_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=type_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "type_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 36,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_fixup_relocation_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=fixup_relocation",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "fixup_relocation",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 39,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_operand_and_text_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=operand_and_text",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "operand_and_text",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 42,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_decompiler_storage_hardening_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=decompiler_storage_hardening",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "decompiler_storage_hardening",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 45,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_debugger_ui_graph_event_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=debugger_ui_graph_event",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "debugger_ui_graph_event",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 48,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_loader_processor_scenario_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=loader_processor_scenario",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "loader_processor_scenario",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 51,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_event_stress_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=event_stress",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "event_stress",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 54,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_decompiler_edge_cases_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=decompiler_edge_cases",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "decompiler_edge_cases",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 57,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_performance_benchmark_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=performance_benchmark",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "performance_benchmark",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 60,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_codedump_parity_host_gates_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=codedump_parity_host_gates",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "codedump_parity_host_gates",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 63,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_diaphora_referent_metadata_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=diaphora_referent_metadata",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "diaphora_referent_metadata",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 66,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_undo_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=undo_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "undo_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 69,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_problem_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=problem_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "problem_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 72,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_exception_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=exception_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "exception_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 75,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_parser_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=parser_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "parser_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 78,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_directory_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=directory_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "directory_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 81,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_registry_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=registry_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "registry_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 84,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_register_tracking_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/register_tracking_aarch64",
+        "-DIDAX_TEST_NAME=register_tracking_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "register_tracking_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 87,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_bookmark_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=bookmark_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "bookmark_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 90,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_navigation_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=navigation_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "navigation_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 93,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_segment_register_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=segment_register_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "segment_register_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 96,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_offset_reference_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=offset_reference_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "offset_reference_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 99,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_script_roundtrip_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=script_roundtrip",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "script_roundtrip",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 102,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_analysis_entry_lines_torture_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=analysis_entry_lines_torture",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "analysis_entry_lines_torture",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 105,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_string_source_metadata_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=string_source_metadata",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "string_source_metadata",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 108,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_cross_domain_torture_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=cross_domain_torture",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "cross_domain_torture",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 111,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_type_data_comment_torture_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=type_data_comment_torture",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "type_data_comment_torture",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 114,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_operand_function_torture_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=operand_function_torture",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "operand_function_torture",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 117,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_decompiler_semantic_metadata_test.exe",
+        "-DIDAX_TEST_FIXTURE=<build-root>/tests/integration/RelWithDebInfo/idax_decompiler_semantic_fixture.exe",
+        "-DIDAX_TEST_NAME=decompiler_semantic_metadata",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "decompiler_semantic_metadata",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 120,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_instruction_branch_x86_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=instruction_branch_x86",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "instruction_branch_x86",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 123,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_instruction_branch_arm64_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/register_tracking_aarch64",
+        "-DIDAX_TEST_NAME=instruction_branch_arm64",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "instruction_branch_arm64",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 126,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_dyld_cache_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=dyld_cache",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "dyld_cache",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    },
+    {
+      "backtrace": 129,
+      "command": [
+        "C:/Program Files/CMake/bin/cmake.exe",
+        "-DIDAX_TEST_EXECUTABLE=<build-root>/idabin/RelWithDebInfo/idax_loader_initialization_order_test.exe",
+        "-DIDAX_TEST_FIXTURE=<repo-root>/tests/integration/../fixtures/simple_appcall_linux64",
+        "-DIDAX_TEST_NAME=loader_initialization_order",
+        "-P",
+        "<repo-root>/tests/integration/run_with_temp_fixture.cmake"
+      ],
+      "config": "RelWithDebInfo",
+      "name": "loader_initialization_order",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "IDADIR=C:\\Program Files\\IDA Professional 9.4"
+          ]
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "<build-root>/tests/integration"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 1,
+    "minor": 0
+  }
+}

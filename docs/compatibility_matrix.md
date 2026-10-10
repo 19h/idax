@@ -123,8 +123,10 @@ scripts/run_open_points.sh build-open-points RelWithDebInfo
   no-process and local macOS elevated-permission limits remain host-specific.
 - On the current macOS host/runtime, Lumina pull/push smoke succeeds against the
   configured service (`build-open-points-surge6/logs/lumina-smoke.log`).
-- Full multi-OS completion requires Linux and Windows hosts with licensed IDA
-  runtime installations available to the test harness.
+- Complete native Linux/Windows execution at exact `1e430823` passes 46/46
+  on each licensed SDK/runtime 9.4 platform; see [retained platform
+  evidence](reviews/native-sdk94-full-validation.md). Later implementation
+  changes and conditional host branches retain independent evidence gates.
 
 ## Host execution checklist
 
