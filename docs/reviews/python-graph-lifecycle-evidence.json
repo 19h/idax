@@ -1,0 +1,415 @@
+{
+  "scope": "Actual Python graph ownership until terminal viewer closure; cross-platform GUI and interpreter-finalization behavior are unverified",
+  "sdk_version": 940,
+  "runtime": {
+    "build": "9.4.260714.951e98a4",
+    "gui_python": "3.13.7",
+    "gui_qt": "6.8.2",
+    "host": "macOS 27.2 ARM64"
+  },
+  "source_sha256": {
+    "bindings/python/src/native/graph_bind.cpp": "a04ba92df306246ddd13543e8e651ff19831138757c70f958fd2231ff195e5f2",
+    "src/graph.cpp": "1cfdf33273591aee335b5db0d7aa3ee3604f729d1616c545f626d58e45c12446",
+    "include/ida/graph.hpp": "f4eeae1e0363d66cd6aed9ac7315b2a9e0ce35116381345c7191f87239c27c11",
+    "tests/integration/graph_python_gui_host.py": "9d10a7c36f6c963458be93c14c1533be0b14c8d5395df474413e0ba8304244a7",
+    "tests/integration/graph_gui_host.py": "2029d9b44ed2d4c919a3af18a0e7919069812c04dec1c695a49f6a1ab73e0e73"
+  },
+  "native_extension_sha256": "f155a7536512dff193b51c1addf162d5915a44b876b56daae021dd954e6aee5f",
+  "compiled_and_loaded_extension_equal": true,
+  "headless_failure_cases": {
+    "count": 4,
+    "cases": [
+      "headless show with callback",
+      "same-title headless retry without callback",
+      "embedded NUL title",
+      "empty title"
+    ],
+    "all_weak_references_collected": true
+  },
+  "gui": {
+    "visible_cycles": 6,
+    "terminal_cycles": 6,
+    "modes": {
+      "requested": 3,
+      "manual_native_close_glyph": 1,
+      "no_user_callback": 1,
+      "raising_terminal_callback": 1
+    },
+    "user_terminal_callbacks": 5,
+    "live_duplicate_rejections": 1,
+    "pending_duplicate_rejections": 1,
+    "post_terminal_title_reuse": 1,
+    "same_original_process": true,
+    "records": [
+      {
+        "mode": "requested",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "requested",
+        "stage": "duplicate_rejected",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "original_graph_alive": true,
+        "rejected_graph_collected": true
+      },
+      {
+        "mode": "requested",
+        "stage": "close_requested",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true
+      },
+      {
+        "mode": "requested",
+        "stage": "closed",
+        "terminal_callbacks": 1,
+        "refreshes": 2,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": []
+      },
+      {
+        "mode": "manual",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "manual",
+        "stage": "closed",
+        "terminal_callbacks": 1,
+        "refreshes": 2,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": []
+      },
+      {
+        "mode": "none",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 0,
+        "graph_alive": true,
+        "callback_alive": false,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "none",
+        "stage": "close_requested",
+        "terminal_callbacks": 0,
+        "refreshes": 0,
+        "graph_alive": true,
+        "callback_alive": false
+      },
+      {
+        "mode": "none",
+        "stage": "closed",
+        "terminal_callbacks": 0,
+        "refreshes": 0,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": []
+      },
+      {
+        "mode": "raising",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "raising",
+        "stage": "close_requested",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true
+      },
+      {
+        "mode": "raising",
+        "stage": "closed",
+        "terminal_callbacks": 1,
+        "refreshes": 2,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": [
+          [
+            "RuntimeError",
+            "Expected graph terminal callback witness"
+          ]
+        ]
+      },
+      {
+        "mode": "requested",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "requested",
+        "stage": "close_requested",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true
+      },
+      {
+        "mode": "requested",
+        "stage": "duplicate_rejected",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "original_graph_alive": true,
+        "rejected_graph_collected": true
+      },
+      {
+        "mode": "requested",
+        "stage": "pending_duplicate_rejected",
+        "terminal_callbacks": 0,
+        "refreshes": 2
+      },
+      {
+        "mode": "requested",
+        "stage": "closed",
+        "terminal_callbacks": 1,
+        "refreshes": 2,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": []
+      },
+      {
+        "mode": "requested",
+        "stage": "title_reused",
+        "terminal_callbacks": 0,
+        "refreshes": 1,
+        "old_roots_collected": true
+      },
+      {
+        "mode": "requested",
+        "stage": "visible",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "mode": "requested",
+        "stage": "close_requested",
+        "terminal_callbacks": 0,
+        "refreshes": 2,
+        "graph_alive": true,
+        "callback_alive": true
+      },
+      {
+        "mode": "requested",
+        "stage": "closed",
+        "terminal_callbacks": 1,
+        "refreshes": 2,
+        "graph_alive": false,
+        "callback_alive": false,
+        "unraisable": []
+      }
+    ]
+  },
+  "refresh_removal_lifecycle": {
+    "same_original_process_as_root_probes": true,
+    "records": [
+      {
+        "stage": "initial",
+        "refreshes": 2,
+        "text_nodes": [
+          0,
+          1,
+          2
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2
+        ],
+        "destroyed": false,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "layout": 1
+      },
+      {
+        "stage": "refreshed",
+        "refreshes": 3,
+        "text_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "destroyed": false,
+        "nodes": [
+          0,
+          2,
+          3
+        ],
+        "edges": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "layout": 1
+      },
+      {
+        "stage": "closed",
+        "refreshes": 3,
+        "text_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "destroyed": true
+      }
+    ],
+    "terminal_widget_absent": true
+  },
+  "binding_checks": {
+    "pytest_passed": 19,
+    "pytest_duration_seconds": 0.14,
+    "python_bound_functions_types": 989,
+    "cpp_declarations": 3619,
+    "graph_cpp_declarations": 95,
+    "swift_public_symbols": 3554,
+    "all_cpp_declaration_entries_unchanged": true,
+    "changed_header_fingerprints": [
+      "graph"
+    ]
+  },
+  "unknown": [
+    "interpreter finalization with live viewers",
+    "cross-platform GUI execution of these root probes"
+  ]
+}

@@ -63,8 +63,9 @@ Bounded implications: [high] graph-model equality misses native refresh/layout
 and lifetime failures; actual viewer checks detected and corrected both.
 [high] the repeated import-related Cocoa failure remains a separate host gate.
 [medium] standalone HTML/Rust transport does not establish embedded rendering.
-[medium] unique graph titles retain distinct callback roots; manual window-close
-root reclamation and cross-language GUI execution require separate evidence.
+[medium] unique graph titles retain distinct callback roots; Python terminal
+reclamation has [actual lifecycle evidence](python-graph-lifecycle-validation.md).
+Cross-language GUI execution remains unverified.
 
 Complexity: let B be total input SQLite bytes, V graph nodes, E graph edges and T
 copied text bytes. Private SQLite backups require O(B) disk space/time before

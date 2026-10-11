@@ -3346,3 +3346,17 @@ Actual native multi-viewer closure can dispatch on_destroyed after the close cal
 - 35.376/35.377 source validation: SDK 940 C++23 syntax passes for Change Tracker's persistent owners and terminal closure. Unique per-generation titles avoid reuse while an old close is pending. This is source/compile evidence; full tracker GUI and plugin-unload timing require separate runtime proof.
 
 - 35.374 failure-path ownership: register the terminal listener before native viewer creation. If registration fails, no native viewer can retain userdata; if creation fails, event_listener destruction unhooks the unused state. Do not request deferred close and then free callback userdata on a failed post-creation hook.
+
+### 35.378. Private Python graph root lifecycle [F725]
+
+An optional Python user callback cannot serve as the only lifetime observer: graph-only viewers still require terminal ownership. Use a private opaque native callback adapter owning Python graph/user-callback references, forward existing callbacks, and remove only its matching title registration at on_destroyed under the GIL. Retain a shared local owner until the user callback returns and Python roots are destroyed. Install before show, rollback failed creation, reject overlapping/pending titles, and keep roots across close requests. Actual initialized headless failure cases collect weak references with/without callbacks and invalid titles; live requested/manual/raising-callback closure remains under validation. Interpreter teardown is a separate lifecycle.
+
+- 35.378 actual weak-reference gates pass for requested, native tab-glyph manual, absent-callback and raising-callback closure. Graph and user callback remain alive after caller references disappear and at terminal notification, then collect; raising user notification is unraisable and does not retain roots. Independent native topology and original-process survival pass in every mode. Live duplicate titles reject without replacing ownership; pending collision and subsequent exact title reuse remain additional probes.
+
+### 35.379. Comment changes require binding fingerprint revalidation [F726]
+
+Python header_audit and Swift cpp_api_inventory hash complete canonical header bytes, including comments. A documentation-only graph.hpp change can therefore fail binding gates despite unchanged declaration shapes. Compare pre/current declaration tokens, regenerate the authoritative Clang inventory, require unchanged declaration entries/counts and mapping completeness, then update only affected fingerprints. The first strengthened run has 18 passing tests and one stale-graph-fingerprint failure; refreshed verification is pending.
+
+- 35.378 closure: six actual GUI cycles and four real initialized headless failures pass. Pending-close collision rejects, post-terminal exact title reuse succeeds, and a fresh native refresh/removal/close probe passes through the current adapter. Five applicable user callbacks each fire once; callback-free graph disposal also passes. Every weak reference collects after terminal notification in the same process. No interpreter-teardown or cross-platform GUI proof follows.
+
+- 35.379 revalidation passes: all 3619 Clang entries, including 95 graph declarations, are unchanged; only the graph header fingerprint changes. Python 19 tests/989 functions-types and Swift 3619-to-3554 mapping checks pass after the targeted refresh.

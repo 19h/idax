@@ -638,7 +638,7 @@ Current overall phase status:
         - [x] P73.7.3.3.2.2 Actual assembly/microcode/call-context actions on positive best/partial/unreliable/multimatch rows create 24 surviving native viewers; independent SDK topology matches every model (F722).
         - [ ] P73.7.3.3.2.3 Complete actual embedded HTML/patch/preview display through a fully opaque boundary.
         - [ ] P73.7.3.3.2.4 Match upstream relative paired docking and zoom-fit behavior.
-        - [ ] P73.7.3.3.2.5 Audit/fix Python automatic graph-root reclamation at terminal closure, including caller-reference release and manual window close (F724).
+        - [x] P73.7.3.3.2.5 Python graph roots follow terminal closure: six actual dropped-caller-reference GUI cycles cover requested/manual/no-callback/raising-callback close, live/pending title rejection and post-terminal reuse; four headless failures collect all roots (F724/F725).
     - [ ] P73.7.3.4 Complete upstream match editing, save/re-diff, bulk/automatic-name imports, highlighting, external-diff and unmatched preview actions.
     - [ ] P73.7.3.5 Preserve upstream current/multiple selection, chooser styling/columns and export/matching option controls; verify actual operations.
   - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.

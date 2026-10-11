@@ -1,6 +1,7 @@
 #include "common.hpp"
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 
 namespace idax::python {
@@ -86,9 +87,66 @@ public:
     }
 };
 
-std::unordered_map<std::string, py::tuple>& graph_roots() {
-    static std::unordered_map<std::string, py::tuple> roots;
+// The SDK retains this opaque callback pointer until terminal viewer closure.
+// Python caller references may disappear as soon as show_graph returns.
+class RootedGraphCallback final : public ida::graph::GraphCallback {
+public:
+    RootedGraphCallback(std::string title, py::object graph, py::object callback)
+        : title_(std::move(title)), graph_(std::move(graph)),
+          callback_object_(std::move(callback)) {
+        if (!callback_object_.is_none())
+            callback_ = callback_object_.cast<ida::graph::GraphCallback*>();
+    }
+
+    bool on_refresh(ida::graph::Graph& graph) override {
+        return callback_ ? callback_->on_refresh(graph) : false;
+    }
+    std::string on_node_text(ida::graph::NodeId node) override {
+        return callback_ ? callback_->on_node_text(node) : std::string{};
+    }
+    std::uint32_t on_node_color(ida::graph::NodeId node) override {
+        return callback_ ? callback_->on_node_color(node) : 0xFFFFFFFF;
+    }
+    bool on_clicked(ida::graph::NodeId node) override {
+        return callback_ && callback_->on_clicked(node);
+    }
+    bool on_double_clicked(ida::graph::NodeId node) override {
+        return callback_ && callback_->on_double_clicked(node);
+    }
+    std::string on_hint(ida::graph::NodeId node) override {
+        return callback_ ? callback_->on_hint(node) : std::string{};
+    }
+    bool on_creating_group(const std::vector<ida::graph::NodeId>& nodes) override {
+        return callback_ && callback_->on_creating_group(nodes);
+    }
+    void on_destroyed() override;
+
+private:
+    std::string title_;
+    py::object graph_;
+    py::object callback_object_;
+    ida::graph::GraphCallback* callback_{nullptr};
+};
+
+std::unordered_map<std::string, std::shared_ptr<RootedGraphCallback>>& graph_roots() {
+    static std::unordered_map<std::string, std::shared_ptr<RootedGraphCallback>> roots;
     return roots;
+}
+
+void RootedGraphCallback::on_destroyed() {
+    if (!Py_IsInitialized())
+        return;
+    py::gil_scoped_acquire acquire;
+    auto& roots = graph_roots();
+    auto found = roots.find(title_);
+    std::shared_ptr<RootedGraphCallback> keep_alive;
+    if (found != roots.end() && found->second.get() == this) {
+        keep_alive = std::move(found->second);
+        roots.erase(found);
+    }
+    if (callback_)
+        callback_->on_destroyed();
+    // keep_alive destroys Python roots before the GIL guard is released.
 }
 
 } // namespace
@@ -220,14 +278,23 @@ void bind_graph(py::module_& module) {
     graph.def("show_graph", [](std::string title, py::object graph_object,
                                  py::object callback_object) {
         auto& native_graph = graph_object.cast<ida::graph::Graph&>();
-        ida::graph::GraphCallback* callback = nullptr;
-        if (!callback_object.is_none())
-            callback = callback_object.cast<ida::graph::GraphCallback*>();
-        runtime_status("graph.show_graph", [&] {
-            return ida::graph::show_graph(title, native_graph, callback);
-        });
-        graph_roots().insert_or_assign(
-            title, py::make_tuple(std::move(graph_object), std::move(callback_object)));
+        if (title.find('\0') != std::string::npos)
+            throw_error(ida::Error::validation("Graph title contains embedded NUL"));
+        ensure_runtime_thread("graph.show_graph");
+        auto& roots = graph_roots();
+        if (roots.contains(title) || unwrap(ida::graph::has_graph_viewer(title)))
+            throw_error(ida::Error::validation("Graph viewer title already in use", title));
+        auto owner = std::make_shared<RootedGraphCallback>(
+            title, std::move(graph_object), std::move(callback_object));
+        roots.emplace(title, owner);
+        try {
+            unwrap(ida::graph::show_graph(title, native_graph, owner.get()));
+        } catch (...) {
+            auto found = roots.find(title);
+            if (found != roots.end() && found->second == owner)
+                roots.erase(found);
+            throw;
+        }
     }, py::arg("title"), py::arg("graph"), py::arg("callback") = py::none());
 #define IDAX_PY_GRAPH_TITLE_STATUS(fn)                                   \
     graph.def(#fn, [](std::string title) {                               \
@@ -240,7 +307,6 @@ void bind_graph(py::module_& module) {
         runtime_status("graph.close_graph_viewer", [&] {
             return ida::graph::close_graph_viewer(title);
         });
-        graph_roots().erase(title);
     }, py::arg("title"));
 #define IDAX_PY_GRAPH_TITLE_RESULT(fn)                                   \
     graph.def(#fn, [](std::string title) {                               \

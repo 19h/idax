@@ -1,4 +1,10 @@
-"""Custom graphs, viewers, flow charts, and switch tables."""
+"""Custom graphs, viewers, flow charts, and switch tables.
+
+Displayed graphs and optional user callbacks remain rooted until terminal
+viewer closure, including manual window closure. A successful close request
+can return before that notification. Live or pending viewer titles cannot be
+replaced; reuse a title after its viewer has closed.
+"""
 
 from ._native.graph import (
     BasicBlock,

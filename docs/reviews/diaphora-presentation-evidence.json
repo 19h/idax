@@ -349,7 +349,6 @@
   "remaining_gates": [
     "embedded HTML chooser display",
     "relative paired docking and zoom-fit",
-    "automatic Python graph-root reclamation on terminal closure",
     "unmatched GUI previews",
     "full audited chooser actions and current multiple selection",
     "remaining exporter and matcher option controls",
@@ -360,5 +359,6 @@
     "tests/integration/diaphora_presentation_parity_test.py",
     "tests/integration/graph_gui_host.py",
     "tests/integration/diaphora_gui_host.py"
-  ]
+  ],
+  "python_graph_root_reclamation_evidence": "python-graph-lifecycle-evidence.json"
 }

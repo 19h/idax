@@ -543,8 +543,19 @@ viewer closure, and a failed show breaks that retention. Unique generation
 titles avoid reusing an old viewer while its close remains pending. Apple
 C++23 syntax checking against SDK 940 passes. Full tracker GUI execution and
 plugin-unload timing remain unknown. Python automatic graph-root reclamation
-is separately queued because its current binding erases roots on requested
-close and retains roots after manual window closure.
+was queued because the preceding binding erased roots on requested close and
+retained roots after manual window closure.
+
+Subsequent Python ownership validation closes that queued root-reclamation
+gate: a private opaque native callback retains the graph and optional user
+callback until terminal viewer notification, including manual closure and
+raising user notification. Six actual GUI cycles and four real headless
+failures pass, with live/pending title collisions rejected and post-terminal
+title reuse supported. A fresh three-stage refresh/removal/close probe also
+passes through the current adapter and final listener ordering in the same
+original process. See the [lifecycle record](python-graph-lifecycle-validation.md)
+and [exact evidence](python-graph-lifecycle-evidence.json). This does not close
+embedded HTML, paired placement, remaining chooser actions or stable GUI import.
 
 | ID | Assumption | Stress test/falsification probe | Dependent result/status |
 |---|---|---|---|

@@ -22,6 +22,10 @@ the fail-closed declaration and symbol inventories; see
 - External idalib calls stay on the thread that called `database.init()`.
 - Native callbacks acquire the GIL and root Python callables for exactly their
   successful registration lifetime.
+- Graph viewers retain their graph and optional user callback until terminal
+  closure, including manual window close. Close requests can return before that
+  notification; overlapping or pending viewer titles are rejected. See the
+  [actual lifecycle validation](../../docs/reviews/python-graph-lifecycle-validation.md).
 - Wheels are CPython-version-specific. IDA runtime libraries, SDK files,
   decompiler plugins, and licenses are user-supplied and never distributed.
 
