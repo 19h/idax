@@ -325,3 +325,30 @@ At exact metadata implementation 8b48f9025f0a6520c978e12fef179a89c0d9e629,
 Validation Matrix 38105268552, Bindings CI 38105268520 and Integrations CI
 38105268496 all complete successfully. These runs predate this launcher/error
 boundary group and do not establish its GUI stability or exact-revision CI.
+
+Independent native GUI control narrows the failure boundary. On macOS 27.2,
+an owned copy of the vendor executable has the same SHA-256:
+`a9d2f008a5ee1959b337bdb40e28396813166a193d0eace275c84c4e15228908`.
+The IDAX test plugin is disabled, Python sys.modules reports no IDAX modules,
+and LLDB loaded images contain neither the IDAX plugin nor native extension.
+Opening a fresh owned primary IDB and using built-in Jump leads to observation
+timeouts. The captured native stack includes the same libqcocoa +0x7ca80
+element-dealloc/array-autorelease sequence below IDA's signal handler; the alert
+then encounters a secondary AppKit menu objc_msgSend fault. Thus this failure
+sequence does not require IDAX. The owned process was killed and the test
+plugin restored; the user's separate running IDA process remains untouched.
+
+Qt's primary
+[cache-ownership correction, commit 0ee6ee5362d914ce97f70db31436056e1cea33e1](https://github.com/qt/qtbase/commit/0ee6ee5362d914ce97f70db31436056e1cea33e1)
+addresses QTBUG-134784 by balancing cache retain/release and removing stale
+row/column cells. This is a plausible diagnostic lead for the matching native
+class, not evidence that applying it resolves this host failure. No installed
+Qt/runtime library is changed. OS version, automation and vendor-plugin
+contributions remain unknown. A supported stable GUI host or independently
+validated native ownership correction is still required for DP.G3/DP.A5.
+
+The shared launcher/error-boundary implementation is published as signed
+`1c60b1cef6bbac2a80f9187cbc9d68d288c5ed3f`. Its exact CI runs are Validation
+38108394289, Bindings 38108394262 and Integrations 38108394243; their final
+status is separate from this native GUI control and from the prior green
+metadata revision.
