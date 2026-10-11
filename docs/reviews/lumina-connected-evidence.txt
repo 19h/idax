@@ -1,0 +1,28 @@
+PASS: database init
+PASS: database open
+PASS: analysis complete
+PASS: main resolved
+PASS: initial close all
+PASS: initial channel absent
+PASS: initial channel absent
+PASS: initial channel absent
+PASS: initial channel absent
+PASS: actual metadata pull completed
+PASS: primary cached client present
+PASS: telemetry remains absent
+PASS: absent telemetry close
+PASS: primary survives unrelated absent close
+PASS: invalid feature rejected
+PASS: primary survives invalid close
+PASS: connected primary close
+PASS: primary cache cleared
+PASS: repeated absent close
+PASS: repeated close never connects
+PASS: actual metadata pull completed
+PASS: primary cached client present
+PASS: connected close all
+PASS: final channel absent
+PASS: final channel absent
+PASS: final channel absent
+PASS: final channel absent
+lumina_connected_probe: 27 passed, 0 failed, 0 skipped

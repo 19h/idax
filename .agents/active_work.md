@@ -29,23 +29,12 @@
 
 ---
 
-### 3. Lumina Hardening
-
-- **3.1. Beyond Pull/Push Baseline**
-  - 3.1.1. **Action:** Keep hardening `ida::lumina` behavior beyond now-passing pull/push smoke baseline.
-  - 3.1.2. **Focus:** Validate source-equivalent virtual cache-owner teardown through the exported no-connect getter.
-  - 3.1.3. **Blocker:** The close symbols remain unexported; source-equivalent public virtual destruction is implemented, with positive connected-client proof pending.
-  - 3.1.4. **Status:** Active / connected-client runtime validation.
-
----
-
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.3 connected-client Lumina teardown evidence closure.
-- **7.3. Queued:** P73.7 broad Diaphora parity; P73.8 external GitHub retention.
+- **7.2. Active:** P73.7 broad Diaphora interchange/matching/metadata/chooser parity.
+- **7.3. Blocked:** P73.8 external GitHub retention, pending authority and independent owner/Support actions.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
-- **7.7. P73.3 constraint:** The inspected runtime close path uses virtual destruction to clear cached ownership. The exported getter/public virtual destructor equivalent is implemented. Local compilation/absence smoke pass; actual local metadata connection fails before cache creation. Publish and inspect the separate hosted positive probe, then retain exact connected-client teardown/reconnection evidence; source equivalence alone is not runtime proof.
 - **7.9. P73.8 external constraint [high]:** Fresh audit and concrete Support/fork-owner drafts are ready in `docs/reviews/github-retention-audit.md`. Two protected PR heads and four readable forks retain flagged history; one advertised fork is unavailable. Sending these external requests requires explicit user instruction. After requests/owner cleanup, repeat exact-object, all-ref and every-fork scans; do not infer purge from a clean master.
 
 - **7.10. Windows Rust link validation:** The registry fallback system dependency is now emitted by the independent Rust archive consumer. Publish and inspect the exact-head Windows Rust example/library build; native CMake passes do not close this gate.
