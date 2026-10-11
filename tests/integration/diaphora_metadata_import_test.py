@@ -1,14 +1,17 @@
 """Persist imported native Diaphora metadata through an actual IDB reopen."""
 import builtins
+from contextlib import redirect_stderr, redirect_stdout
+import io
 from pathlib import Path
 import shutil
 import sqlite3
 import tempfile
+from unittest.mock import patch
 
 import idax
 from idax import address, comment, database, decompiler, function, instruction, name, type as types
 from examples.diaphora.host import _idc, export_current_database
-from examples.diaphora.metadata import _is_offset, import_matches
+from examples.diaphora.metadata import _is_offset, _set_name, import_matches
 
 
 def main(upstream, fixture):
@@ -67,6 +70,11 @@ def main(upstream, fixture):
         with database.opened(work / "primary.i64", save_on_exit=False):
             assert name.get(witness["address"]) != "idax_imported_entry"
             import ida_bytes
+            import ida_name
+            original_name = name.get(witness["address"])
+            assert ida_name.set_name(witness["address"], None, 0) is False
+            assert _set_name(witness["address"], None, 0) is False
+            assert name.get(witness["address"]) == original_name
             for fn in function.all():
                 for ea in address.items(fn.start, fn.end):
                     flags = _idc("get_full_flags", ea)
@@ -79,6 +87,18 @@ def main(upstream, fixture):
                 return original(name, *args, **kwargs)
             builtins.__import__ = opaque_import
             try:
+                captured = io.StringIO()
+                with patch.object(instruction, "set_forced_operand",
+                                  side_effect=RuntimeError("forced import failure witness")), \
+                     redirect_stdout(captured), redirect_stderr(captured):
+                    try:
+                        import_matches(upstream, outputs["primary"], outputs["secondary"],
+                                       [(witness["address"], witness["address"])])
+                    except RuntimeError as failure:
+                        assert isinstance(failure.__cause__, RuntimeError)
+                        assert str(failure.__cause__) == "forced import failure witness"
+                    else:
+                        raise AssertionError("Swallowed instruction import failure returned success")
                 count = import_matches(upstream, outputs["primary"], outputs["secondary"],
                                        [(witness["address"], witness["address"])])
             finally:

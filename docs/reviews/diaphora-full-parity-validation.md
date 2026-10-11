@@ -1,6 +1,8 @@
 # Broad Diaphora 3.4.0 parity
 
-Status: implementation and behavioral validation in progress; P73.7 remains open.
+Status: export, persisted import, changed-binary/model matching and shared
+launchers validated within the recorded corpus. P73.7 remains open for stable
+GUI import and positive remaining-category operations.
 
 The complete application workflow uses the independent upstream checkout at
 `84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`. `examples/diaphora/upstream.json`
@@ -234,3 +236,92 @@ candidates. All input SQLite hashes remain unchanged. This corpus does not
 produce unreliable/multimatch/unmatched rows or a positive candidate for every
 heuristic; the complete audited engine/state machine remains available. GUI and
 shared-launcher runtime proof remain active.
+
+Shared application entry-point evidence (SDK 940/IDA 9.4, macOS ARM64, original
+nonzero-base source-built x86-64 corpus):
+
+| Operation | Actual result | Boundary |
+|---|---|---|
+| C++ plugin | Compiled and linked against the SDK/runtime, exports PLUGIN; its native hotkey/configuration picker opens all six category choosers | Manual SDK link and live plugin load pass; a separate add-ons CMake target build is not claimed |
+| GUI navigation | Best row zero jumps to 0x100000560; partial row zero jumps to 0x100000540 | Actual primary-side navigation; secondary-only positive rows absent |
+| Difference viewers | Partial selection opens native assembly, pseudocode and microcode viewers with the changed-code comparison | Copied native SQLite export fields; plain unified differences do not establish every upstream GUI rendering feature |
+| Rust launcher | Compiled executable exports 23 functions/two CUs, matches changed native exports into 22 best/one partial and imports 23 pairs | Explicit include-library-thunks is required for this 23-function export; the default excludes the thunk |
+| Rust persistence | Corrected full import has no traceback/caught instruction error; reopened IDB retains all 23 repeatable function comments, and the original input bytes remain unchanged | Function-comment witness is distinct from the richer retained metadata regression |
+| Metadata regression | Native/opaque null-name false/no-mutation, forced instruction exception with original cause, and normal names/types/flags/comments/operands/definitions/pseudocode survive save/reopen | `tests/integration/diaphora_metadata_import_test.py` exercises actual imported bodies and public mutation calls |
+| Embedded Python | GUI reports CPython 3.13.7; separately built cpython-313 extension loads and executes chooser callbacks | Headless launcher uses CPython 3.12; its extension cannot establish embedded GUI ABI compatibility |
+| GUI import | Records the expected repeatable comment, then raises signum=11 on the tested host | Stable completion is not proven; P73.7.3.2.3/DP.A5 remain open |
+
+Reproduce the Rust entry point using the command in
+`examples/diaphora/README.md`; the same compiled executable accepts `diff` and
+`import` arguments. Use fresh output paths because existing exports/results/IDBs
+are rejected. The C++ entry point is
+`examples/plugin/diaphora_full_plugin.cpp`, configured by
+`examples/CMakeLists.txt`. GUI behavior lives in `examples/diaphora/gui.py`;
+`tests/integration/diaphora_gui_host.py` records actual category counts, selected
+addresses, imported comments and difference actions in an owned GUI session.
+It can instrument the existing compiled-plugin session with `existing=True`.
+No production SDK Python imports or replacement SDK modules are added.
+
+Full-log review exposed a null instruction name passed to script.Value: upstream
+catches that exception and previously reported 23 imported pairs despite the
+instruction error. On an independent owned database, native
+ida_name.set_name(ea, None, 0) returns False and preserves the name. The adapter
+now preserves that result without transporting a null through the string/integer
+script boundary. It separately monitors unchanged instruction-item bodies and
+raises their original cause after the enclosing upstream catch. A real forced
+operand failure verifies this behavior. The current IDB can contain partial
+metadata after failure; the API does not promise rollback or auto-save.
+
+Two owned-process LLDB traces place the native GUI fault in this frame sequence:
+
+```text
+objc_release
+CoreFoundation array-object release
+NSMutableArray dealloc
+libqcocoa +0x7ca80: QMacAccessibilityElement_QT dealloc
+CoreFoundation array dealloc
+Objective-C autorelease-pool drain
+CoreFoundation/AppKit event loop
+```
+
+Installed Objective-C method metadata identifies the class and relative frame;
+installed link dependencies identify Qt 6.8.2. The corresponding
+[primary Qt 6.8.2 source](https://github.com/qt/qtbase/blob/v6.8.2/src/plugins/platforms/cocoa/qcocoaaccessibilityelement.mm)
+releases cached row/column arrays in dealloc. This supports the frame's role;
+it does not identify who introduced invalid ownership. Available local debug
+symbols have a different UUID and are excluded from source-line attribution.
+No wrapper callback appears in the captured fault stack, which alone cannot
+exclude earlier application involvement. Root cause is unknown.
+
+Removing explicit chooser refresh, avoiding a context menu, removing explicit
+analysis waits, and a fresh-IDB screenshot-only workflow all failed to prevent
+the fault. The analysis-wait experiment was reverted. Screenshot automation may
+query accessibility internally, so the last probe does not exclude accessibility
+involvement. Automatic application relaunch is excluded from process-survival
+evidence. A final fresh-IDB compiled-plugin import still faults after the
+null-name correction, despite recording the expected comment. No Qt/runtime
+patch or process-global profile change is made.
+
+Additional assumption register:
+
+| ID | Assumption | Stress test/falsification probe | Dependent result/status |
+|---|---|---|---|
+| DP.G1 | The GUI opens the primary input and address layout corresponding to its selected exports | Compare input identity/address base before a positive operation; a different IDB is outside this session's evidence | GUI address/mutation claims require the prepared owned primary IDB |
+| DP.G2 | The loaded extension matches the embedded Python ABI | Read the actual interpreter/version/suffix and load a rebuilt matching extension | CPython 3.13.7/cpython-313 GUI probe passes |
+| DP.G3 | A successful mutation is followed by a surviving responsive original process | Verify original PID plus further GUI operation and saved/reopened state | Fails on this host; no stable-import claim |
+| DP.G4 | A successful import count reflects error-free instruction processing | Inject a real instruction mutation failure; require the original cause and no success result | Retained native regression passes; corrected Rust log has no instruction errors |
+
+Bounded implications: [high] GUI mutation can precede native process failure,
+so it cannot establish stable GUI completion or saved persistence. [medium]
+positive unreliable/multimatch/unmatched rows and additional GUI rendering
+features remain unproven by empty tabs or unified viewers. [medium] independent
+native ownership diagnosis or a stable GUI host is required before DP.A5
+closure. These evidence limits remain explicit in the roadmap and active-work
+register. No physical-unit calculation changes; exporting/copying N result rows
+costs O(N) time/storage, and copied difference storage is O(L) for L output
+characters. difflib's comparison can require quadratic time in sequence length.
+
+At exact metadata implementation 8b48f9025f0a6520c978e12fef179a89c0d9e629,
+Validation Matrix 38105268552, Bindings CI 38105268520 and Integrations CI
+38105268496 all complete successfully. These runs predate this launcher/error
+boundary group and do not establish its GUI stability or exact-revision CI.

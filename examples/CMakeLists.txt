@@ -44,6 +44,7 @@ set(IDAX_EXAMPLE_SOURCES
     plugin/auto_enum_port_plugin.cpp
     plugin/auto_enum_port_LICENSE.txt
     plugin/diaphora_exact_port_plugin.cpp
+    plugin/diaphora_full_plugin.cpp
     plugin/diaphora_port_LICENSE.txt
     plugin/symless_structure_port_plugin.cpp
     plugin/symless_port_LICENSE.txt
@@ -172,6 +173,11 @@ if(IDAX_BUILD_EXAMPLE_ADDONS)
 
     ida_add_plugin(idax_diaphora_exact_port_plugin
         SOURCES plugin/diaphora_exact_port_plugin.cpp
+        LIBRARIES idax::idax
+    )
+
+    ida_add_plugin(idax_diaphora_full_plugin
+        SOURCES plugin/diaphora_full_plugin.cpp
         LIBRARIES idax::idax
     )
 

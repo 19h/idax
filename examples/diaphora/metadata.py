@@ -73,12 +73,17 @@ def _is_offset(flags, index):
                for item in indices if 0 <= item < 8)
 
 
+def _set_name(ea, text, flags):
+    # Native IDAPython accepts a null name and returns false without mutation.
+    return False if text is None else bool(_idc("set_name", ea, text, flags))
+
+
 def import_engine(root, primary, secondary):
     value, namespace = host_engine(root, primary)
     engine = load_backend(root)
     namespace.update(diaphora=engine, difflib=difflib, SN_NOWARN=0x100,
         SN_NOCHECK=1, SN_CHECK=0, OPND_ALL=15,
-        set_name=lambda ea, text, flags: bool(_idc("set_name", ea, text, flags)),
+        set_name=_set_name,
         SetType=lambda ea, declaration: types.TypeInfo.from_declaration(declaration).apply(ea),
         set_func_cmt=lambda fn, text, repeatable: function.set_comment(fn.start_ea, text, bool(repeatable)),
         set_func_attr=lambda ea, attribute, number: _idc("set_func_attr", ea, attribute, number),
@@ -96,6 +101,15 @@ def import_engine(root, primary, secondary):
                                    namespace, class_name="CIDABinDiff")
     for key, method in methods.items():
         setattr(type(value), key, method)
+    import_item = methods["do_import_instruction_level_item"]
+    def monitored_item(self, *arguments):
+        try:
+            return import_item(self, *arguments)
+        except Exception as failure:
+            self._import_failure = failure
+            raise
+    type(value).do_import_instruction_level_item = monitored_item
+    value._import_failure = None
     value.attach_database(str(secondary))
     return value
 
@@ -123,6 +137,8 @@ def import_matches(root, primary, secondary, pairs, *, definitions=True, force=F
             total = 0
             for first, second in pairs:
                 value.do_import_one(str(int(first)), str(int(second)), force=force)
+                if value._import_failure is not None:
+                    raise RuntimeError("Diaphora instruction import failed; current IDB may contain partial metadata") from value._import_failure
                 total += 1
             analysis.wait()
             return total

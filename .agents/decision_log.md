@@ -1545,3 +1545,9 @@ Expose prepare_argument_locations separately from maturity and analyze_calls. Pr
 ### D19.107. Complete Export Failure and Resume Boundary
 
 Preserve native export bodies/checkpoint schema. Monitor completion, propagate swallowed failures and retain crash markers; reject existing new-export destinations and require explicit resume with both checkpoint/marker. Reconstruct transient CU cache from persisted rows only when resuming. Bind the pure backend standalone flag without running its optional SDK import probe. Actual independent table, checkpoint resume and guarded-import tests are required before closure.
+
+### D19.108. Shared Diaphora GUI and Import Failure Boundary
+
+Keep the complete matching/import engine in the audited shared Python application. The compiled C++ plugin selects an explicit JSON result configuration through opaque UI/script operations; the Rust executable launches a selected interpreter/application root and propagates its exit status. Native result choosers and copied SQLite difference viewers use public opaque IDAX APIs, with explicit Enter selection and registered import/difference actions. Embedded extension ABI and actual GUI stability require independent evidence.
+
+Preserve native false/no-mutation behavior for null rename inputs. Monitor unchanged instruction-item bodies to retain failures swallowed by upstream, and raise after the enclosing call instead of returning an imported-pair count. This operation can leave partial mutations in the currently open IDB; callers save explicitly, and CLI new-output creation must not complete after failure. Do not claim transaction rollback or change matching algorithms.

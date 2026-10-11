@@ -3272,3 +3272,25 @@ Generated microcode printing before versus after build_graph can change emitted 
 - **35.365. Delay clearing pseudocode comments until serialization (F712):** Native serialization reads self.pseudo_comments, but upstream export clears it first. The opaque host keeps a pending owned map for the immediate save_function call and clears it afterward. Ordinary feature hashes/schemas/algorithm bodies remain unchanged; populated comment fields are an explicit upstream defect correction requiring saved/reopened proof.
 
 - **35.365 validation supplement:** Positive export preciser 69 and saved/reopened comment match exactly. Rendering after set_comment and before orphan cleanup establishes used-comment state; cleanup on unrendered state deletes the newly attached comment. All other metadata classes and complete packed/enum types also persist, with production SDK-import guard and native offset-flag comparison.
+
+### 35.366. Native chooser edit refresh boundary [F713]
+
+The opaque ChooserAdapter.edit returns ALL_CHANGED after invoking on_edit. Application callbacks need not explicitly refresh. One actual GUI import recorded the expected mutation before a signum=11 alert; redundant refresh removal and repeat validation are pending. Do not treat successful mutation alone as stable GUI proof.
+
+- 35.366 diagnostic correction: removing explicit refresh did not prevent the observed fault. Native stack is objc_release/CoreFoundation/libqcocoa menu teardown with QMenu::exec, not inside the wrapper callback. Cause remains unknown; eliminate nested context-menu automation and repeat the stable operation gate.
+
+- 35.366 limits: native import hotkey reproduces the fault without a context menu; analysis-wait removal also fails. Both proposed callback causes are unproven. Retain original import analysis semantics and distinguish successful mutation from stable GUI completion.
+
+- 35.366 primary binary evidence: Objective-C metadata in the installed Cocoa platform plugin identifies QMacAccessibilityElement_QT at the repeated 0x7ca80 destructor frame. Repeat without Qt child-table AX snapshots to distinguish native metadata workflow from accessibility cache lifetime. No Qt/runtime patch is made.
+
+- 35.366 screenshot-only probe also fails on a fresh owned IDB. Subsequent automation can relaunch IDA, so verify survival of the exact original PID. Screenshot internals may still query accessibility; no causal exclusion follows. Installed dependencies report Qt 6.8.2; the available local debug symbols have a different UUID. Stable GUI import remains blocked with unknown origin.
+
+### 35.367. Embedded Python extension ABI [F714]
+
+Actual 9.4 GUI embeds CPython 3.13.7, independently of the CPython 3.12 headless launcher. Build/load a matching cpython-313 native extension for GUI evidence; all six category views, jumps and difference viewers exercise that extension. Do not infer embedded load compatibility from an unrelated interpreter's successful build.
+
+### 35.368. Import failure boundary and null names [F715]
+
+Native SDK 940/runtime 9.4 set_name accepts None and returns false without changing the existing name. The opaque script string/integer boundary cannot transport None: reject that rename locally with the native false result. Upstream catches instruction-item exceptions, so separately capture their original cause and fail the whole wrapper operation after the upstream call. Earlier persisted function-comment proof remains valid, but an imported-pair count alone is insufficient to establish complete metadata success. Validate corrected behavior and a forced failure before closure.
+
+- 35.368 validation passes the native null-name comparison, forced failure propagation and normal persisted metadata. Corrected compiled Rust import has no instruction error/traceback and preserves all 23 comments. Actual GUI import still faults after this correction; successful headless import cannot close the GUI gate.

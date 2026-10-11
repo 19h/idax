@@ -627,7 +627,10 @@ Current overall phase status:
     - [x] P73.7.2.2 Complete the live exporter, compilation units and independent upstream record comparison. Four option modes equal all native tables; positive CUs and corrected real checkpoint resume at original nonzero base, guarded SDK-free imports and actual CLI export pass.
   - [ ] P73.7.3 Implement definition/library/function/instruction import and result chooser workflows, including maintained C++ and Rust entry points.
     - [x] P73.7.3.1 Persisted nonzero-base library/definition/function/instruction/pseudocode import through opaque IDAX passes saved/reopened metadata and guarded-import/native-offset checks.
-    - [ ] P73.7.3.2 Native result chooser and compiled C++/Rust shared application entry points: actual host interaction and workflow proof pending.
+    - [ ] P73.7.3.2 Native result chooser and compiled C++/Rust shared application entry points: stable GUI import remains blocked by F713.
+      - [x] P73.7.3.2.1 Compiled C++ plugin opens all six native categories; actual navigation and assembly/pseudocode/microcode difference viewers pass.
+      - [x] P73.7.3.2.2 Compiled Rust completes export/diff/import with 23 saved/reopened comments and no instruction errors; native null-name equivalence and forced exception propagation pass.
+      - [ ] P73.7.3.2.3 Complete stable GUI import and operation with positive unmatched/multimatch categories on a suitable host.
   - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3. Fresh all-ref/eight-fork audit and concrete unsent cleanup drafts are recorded in `docs/reviews/github-retention-audit.md`; external purge remains open.
 - [x] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations. Actual 950/runtime and 940-header dual-ABI producers, native consumers and all affected bindings pass exact byte/bit/index/width checks. Parsed renderer layouts and native 940/950 regressions pass; scoped proof and platform/future limits are retained in docs/reviews/sdk95-member-consumer-validation.md.
