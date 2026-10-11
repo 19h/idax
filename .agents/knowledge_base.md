@@ -3254,3 +3254,11 @@ Generated microcode printing before versus after build_graph can change emitted 
 - 35.359. F706: full decompilation before generation changes inferred types even when the application explicitly exports microcode without pseudocode. Expose preparation independently of maturity/call analysis, default true for existing Symless metadata semantics; pure-generation callers opt out. Four-mode native all-table comparison is the falsification gate; execution is pending.
 
 - **35.359 validation supplement:** All four native/opaque exporter combinations compare equal after explicit preparation control. Retain true defaults; false omits copied inferred argument and return ABI locations, proven by initialized native/Rust/Node/Swift consumers. Current inventories are 3619 native declarations, 3554 compiled Swift symbols and 989 Python functions/types with complete mappings.
+
+- **35.360. Complete export requires completion evidence (F707):** Keep unchanged feature/checkpoint algorithms but monitor do_export completion and failure. A swallowed upstream exception must become an application error, with a retained partial-export marker and explicit resume. Verify successful all-table export and failed-then-resumed checkpoints before closure.
+
+- **35.361. SDK detection is an application boundary (F708):** Audited diaphora.py uses idaapi only for an unused availability probe. Bind standalone mode in the byte-verified module AST before execution; guarded production runs must reject SDK imports while unchanged native reference bodies remain independently exercisable.
+
+- **35.362. Restore checkpoint-derived CU cache before resume completion (F709):** Native persisted function rows contain id, RVA and both prime products. Upstream resumes rows but resets the cache used for CU linking. Restore the cache only on resume, preserving row order and audited CU algorithms; require exact fresh/resumed table comparisons.
+
+- **35.360-35.362 validation supplement:** Retained lifecycle witness proves explicit failure, three persisted checkpoint functions, no-overwrite, successful resume/marker removal and exact fresh/resumed tables. Guard rejects SDK module imports. Complete lifecycle parity passes all four option modes with positive CUs; actual CLI exports 23 functions/two CUs. Audited source/model identities are checked before execution.

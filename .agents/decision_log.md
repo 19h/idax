@@ -1541,3 +1541,7 @@ Keep selected processor_name and current processor_module_name distinct, with ow
 ### D19.106. Explicit Microcode Argument Preparation
 
 Expose prepare_argument_locations separately from maturity and analyze_calls. Preserve the existing true default and all prepared/Symless argument metadata; false directly generates native microcode without forcing full current-function decompilation. Call analysis may independently decompile direct callees as already documented. Keep the original private C generator signature/default via forwarding and add an extended entry point for the new control. Validate all application option combinations and prepared regressions rather than assuming snapshot equivalence from one mode.
+
+### D19.107. Complete Export Failure and Resume Boundary
+
+Preserve native export bodies/checkpoint schema. Monitor completion, propagate swallowed failures and retain crash markers; reject existing new-export destinations and require explicit resume with both checkpoint/marker. Reconstruct transient CU cache from persisted rows only when resuming. Bind the pure backend standalone flag without running its optional SDK import probe. Actual independent table, checkpoint resume and guarded-import tests are required before closure.

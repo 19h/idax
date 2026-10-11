@@ -11,7 +11,7 @@ import tempfile
 import types
 import unittest
 
-from examples.diaphora.backend import diff_databases, load_backend, read_results
+from examples.diaphora.backend import diff_databases, engine_class, load_backend, read_results
 
 
 class BackendInterchange(unittest.TestCase):
@@ -117,6 +117,23 @@ class BackendInterchange(unittest.TestCase):
             source.write_bytes(source.read_bytes() + b"\n# changed source\n")
             with self.assertRaisesRegex(ValueError, "diaphora.py"):
                 load_backend(copied)
+
+
+    def test_project_hook_loader(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            script = Path(temporary) / "hooks.py"
+            script.write_text('''class Hooks:
+    def __init__(self, owner):
+        self.owner = owner
+HOOKS = {"DiaphoraHooks": Hooks}
+''')
+            value = engine_class(self.engine)(":memory:")
+            try:
+                value.project_script = str(script)
+                self.assertTrue(value.load_hooks())
+                self.assertIs(value.hooks.owner, value)
+            finally:
+                value.db_close()
 
 
 if __name__ == "__main__":

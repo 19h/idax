@@ -184,3 +184,22 @@ combinations. All retain 23 functions, two compilation units and 14 CU relations
 microcode modes contain 73 blocks/708 instruction rows, assembly-only modes
 26 blocks/174 instruction rows. Only export_time is excluded. Export lifecycle,
 metadata import, GUI and trained-model gates remain open.
+
+Complete export lifecycle gate now passes. Retained tests are
+`tests/integration/diaphora_export_parity_test.py` and
+`tests/integration/diaphora_export_lifecycle_test.py`; call their main functions
+with the audited upstream tree and an owned compiled full-host fixture. The
+reference uses SDK Python only in the test; production uses opaque IDAX APIs.
+All four option modes match all 14 native SQLite tables, including positive
+compilation units. Only export_time is excluded.
+
+A project hook forces failure after three committed functions. The application
+raises despite upstream swallowing the exception, retains the checkpoint/marker,
+rejects an accidental overwrite and resumes explicitly. Reconstructed transient
+CU state makes every resumed table equal a fresh export. A runtime import guard
+rejects idaapi/idc/idautils/ida_* throughout production export. The pure engine
+loader binds standalone mode in place of the isolated optional SDK probe; all
+matching bodies remain unchanged. Three controlled backend tests pass, including
+a successful project hook loader. Actual command-line export produces 23
+functions and two CUs. P73.7.2 is closed; import, GUI and cross-binary/model
+evidence remain open.

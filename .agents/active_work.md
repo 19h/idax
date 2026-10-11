@@ -32,7 +32,7 @@
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.7.2.2-P73.7.4 broad Diaphora live feature/relation extraction, metadata/chooser entry points and end-to-end evidence. The complete upstream engine entry point passes controlled SQLite interoperability; no broad closure follows yet.
+- **7.2. Active:** P73.7.3-P73.7.4 broad Diaphora metadata/chooser entry points and end-to-end changed-binary/model evidence. Complete export/relations, four option modes, checkpoint resume and guarded SDK-free execution pass; broad closure still requires import/UI/matching gates.
 - **7.3. Blocked:** P73.8 external GitHub retention, pending authority and independent owner/Support actions.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.9. P73.8 external constraint [high]:** Fresh audit and concrete Support/fork-owner drafts are ready in `docs/reviews/github-retention-audit.md`. Two protected PR heads and four readable forks retain flagged history; one advertised fork is unavailable. Sending these external requests requires explicit user instruction. After requests/owner cleanup, repeat exact-object, all-ref and every-fork scans; do not infer purge from a clean master.

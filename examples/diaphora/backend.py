@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import importlib
+import importlib.util
 import json
 from pathlib import Path
 import sqlite3
@@ -45,8 +46,26 @@ def load_backend(root: str | Path) -> ModuleType:
     # Preserve that package structure; do not install fake idaapi/idc modules.
     sys.path.insert(0, str(root))
     try:
-        module = importlib.import_module("diaphora")
+        path = root / "diaphora.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename="diaphora.py")
+        probes = [index for index, node in enumerate(tree.body)
+                  if isinstance(node, ast.Try) and any(
+                      isinstance(statement, ast.Import) and any(
+                          alias.name == "idaapi" for alias in statement.names)
+                      for statement in node.body)]
+        if len(probes) != 1:
+            raise RuntimeError("Unexpected upstream optional SDK probe")
+        # The backend only probes SDK availability; no matching body uses it.
+        # Bind the documented standalone mode without importing an SDK module.
+        tree.body[probes[0]] = ast.Assign(targets=[ast.Name(id="IS_IDA", ctx=ast.Store())],
+                                         value=ast.Constant(False))
+        module = ModuleType("diaphora")
+        module.__file__ = str(path)
+        module.__package__ = ""
+        sys.modules["diaphora"] = module
+        exec(compile(ast.fix_missing_locations(tree), "diaphora.py", "exec"), module.__dict__)
     except BaseException:
+        sys.modules.pop("diaphora", None)
         sys.path.remove(str(root))
         raise
     if module.VERSION_VALUE != "3.4" or len(module.HEURISTICS) != 50:
@@ -93,8 +112,11 @@ def upstream_definitions(
     if found != names:
         raise ValueError(f"Missing audited definitions in {relative}: {sorted(names - found)}")
     module = ast.Module(body=selected, type_ignores=[])
-    exec(compile(ast.fix_missing_locations(module), relative, "exec"), namespace)
-    return {name: namespace[name] for name in names}
+    definitions = namespace if class_name is None else {}
+    # Class methods bind in the class scope. Keep a method named guess_type
+    # from replacing its native/global guess_type dependency.
+    exec(compile(ast.fix_missing_locations(module), relative, "exec"), namespace, definitions)
+    return {name: definitions[name] for name in names}
 
 
 def read_results(path: str | Path) -> dict[str, list[dict[str, Any]]]:
