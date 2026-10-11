@@ -360,6 +360,15 @@ int main(int argc, char** argv) {
                     retained.push_back(std::move(*graph));
                 }
             }
+            MicrocodeGenerationOptions unprepared_options;
+            unprepared_options.prepare_argument_locations = false;
+            auto unprepared = generate_microcode(function.start(), unprepared_options);
+            CHECK(unprepared.has_value());
+            if (unprepared) {
+                CHECK(unprepared->arguments.empty());
+                CHECK(!unprepared->return_location.has_value());
+                inspect_graph(*unprepared);
+            }
         }
         CHECK(functions >= 4);
         CHECK(checked_children > 0);

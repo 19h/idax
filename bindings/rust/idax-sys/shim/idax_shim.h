@@ -2710,6 +2710,11 @@ int idax_decompiler_generate_microcode(uint64_t function_address,
                                        int maturity,
                                        int analyze_calls,
                                        IdaxMicrocodeFunction** out);
+int idax_decompiler_generate_microcode_ex(uint64_t function_address,
+                                       int maturity,
+                                       int analyze_calls,
+                                       int prepare_argument_locations,
+                                       IdaxMicrocodeFunction** out);
 void idax_decompiler_microcode_function_free(IdaxMicrocodeFunction* function);
 
 int idax_decompiler_microcode_context_address(const void* mctx, uint64_t* out);

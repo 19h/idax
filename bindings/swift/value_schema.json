@@ -363,6 +363,7 @@
     "idax_decompiler_for_each_expression",
     "idax_decompiler_for_each_item",
     "idax_decompiler_generate_microcode",
+    "idax_decompiler_generate_microcode_ex",
     "idax_decompiler_initialize",
     "idax_decompiler_item_at_position",
     "idax_decompiler_microcode_context_address",

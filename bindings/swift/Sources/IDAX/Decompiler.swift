@@ -10,8 +10,12 @@ extension Decompiler {
     public struct GenerationOptions: Equatable, Sendable {
         public var maturity: MicrocodeMaturity
         public var analyzeCalls: Bool
-        public init(maturity: MicrocodeMaturity = .preoptimized, analyzeCalls: Bool = false) {
+        /// Infer argument ABI locations first. False leaves arguments and returnLocation empty.
+        public var prepareArgumentLocations: Bool
+        public init(maturity: MicrocodeMaturity = .preoptimized, analyzeCalls: Bool = false,
+                    prepareArgumentLocations: Bool = true) {
             self.maturity = maturity; self.analyzeCalls = analyzeCalls
+            self.prepareArgumentLocations = prepareArgumentLocations
         }
     }
     public struct DecompileFailure: Equatable, Sendable {
@@ -125,7 +129,7 @@ extension Decompiler {
         try withDecompilerActivity("Decompiler.generateMicrocode") { () throws(IDAError) -> MicrocodeFunction in
             var output: UnsafeMutablePointer<IdaxMicrocodeFunction>?
             defer { idax_decompiler_microcode_function_free(output) }
-            try checkStatus(idax_decompiler_generate_microcode(functionAddress, options.maturity.rawValue, options.analyzeCalls ? 1 : 0, &output), "Decompiler.generateMicrocode")
+            try checkStatus(idax_decompiler_generate_microcode_ex(functionAddress, options.maturity.rawValue, options.analyzeCalls ? 1 : 0, options.prepareArgumentLocations ? 1 : 0, &output), "Decompiler.generateMicrocode")
             return try MicrocodeFunction(copying: requirePointee(output, "Decompiler.generateMicrocode"), "Decompiler.generateMicrocode")
         }
     }

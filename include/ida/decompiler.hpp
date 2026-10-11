@@ -424,6 +424,10 @@ struct MicrocodeGenerationOptions {
     /// Resolve call argument lists and calling conventions before copying.
     /// May decompile direct callees and invoke Hex-Rays call analysis.
     bool analyze_calls{false};
+    /// Fully decompile the current function to infer argument ABI locations
+    /// before generation. May update inferred types; false skips this step
+    /// and leaves arguments/return_location empty in the copied graph.
+    bool prepare_argument_locations{true};
 };
 
 /// Placement policy for emitted microcode instructions.

@@ -3478,6 +3478,8 @@ export namespace decompiler {
     interface MicrocodeGenerationOptions {
         maturity?: MicrocodeMaturity;
         analyzeCalls?: boolean;
+        /** Full current-function preparation; defaults to true. False skips inference and leaves arguments/returnLocation empty. */
+        prepareArgumentLocations?: boolean;
     }
 
     type MicrocodeValueLocationKind =

@@ -411,7 +411,8 @@ void bind_decompiler_microcode(py::module_& decompiler) {
     py::class_<ida::decompiler::type_name>(decompiler, #type_name).def(py::init<>())
     IDAX_PY_DECOMPILER_VALUE(MicrocodeGenerationOptions)
         .def_readwrite("maturity", &ida::decompiler::MicrocodeGenerationOptions::maturity)
-        .def_readwrite("analyze_calls", &ida::decompiler::MicrocodeGenerationOptions::analyze_calls);
+        .def_readwrite("analyze_calls", &ida::decompiler::MicrocodeGenerationOptions::analyze_calls)
+        .def_readwrite("prepare_argument_locations", &ida::decompiler::MicrocodeGenerationOptions::prepare_argument_locations);
     IDAX_PY_DECOMPILER_VALUE(MicrocodeLocationPart)
         .def_readwrite("kind", &ida::decompiler::MicrocodeLocationPart::kind)
         .def_readwrite("register_id", &ida::decompiler::MicrocodeLocationPart::register_id)

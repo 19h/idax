@@ -93,6 +93,9 @@ try {
             const model = idax.decompiler.generateMicrocode(fn.start, {maturity}); graph(model); retained.push(model);
         }
         const decompiled = idax.decompiler.decompile(fn.start);
+        const unprepared = idax.decompiler.generateMicrocode(fn.start, {prepareArgumentLocations: false});
+        assert.deepEqual(unprepared.arguments, []);
+        assert.equal(unprepared.returnLocation, null);
         decompiled.forEachItem(expr => {
             items.push(expr);
             for (const child of [expr.left, expr.right, expr.third, expr.callCallee, ...expr.callArguments]) if (child) children++;

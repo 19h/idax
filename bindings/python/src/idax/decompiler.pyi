@@ -456,6 +456,7 @@ class MicrocodeInstruction:
 class MicrocodeGenerationOptions:
     maturity: MicrocodeMaturity
     analyze_calls: bool
+    prepare_argument_locations: bool
     def __init__(self) -> None: ...
 
 class MicrocodeLocationPart:

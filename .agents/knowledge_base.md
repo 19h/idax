@@ -3250,3 +3250,7 @@ Generated microcode printing before versus after build_graph can change emitted 
 - 35.357. F704: Native phrase operand values use the shared register/phrase field, not addr; zero-address lookup previously attached a spurious header name. Preserve SDK get_operand_value dispatch through opaque copied operands. Exact full-corpus instruction rows pass after correction.
 
 - 35.358. F705: audited full Diaphora CU cache keys are RVA but LFA ranges are absolute. Base-zero native fixture preparation supplies positive module/link evidence while preserving unchanged source bodies; two units/14 links equal upstream. Nonzero-base CU relations remain an upstream limitation.
+
+- 35.359. F706: full decompilation before generation changes inferred types even when the application explicitly exports microcode without pseudocode. Expose preparation independently of maturity/call analysis, default true for existing Symless metadata semantics; pure-generation callers opt out. Four-mode native all-table comparison is the falsification gate; execution is pending.
+
+- **35.359 validation supplement:** All four native/opaque exporter combinations compare equal after explicit preparation control. Retain true defaults; false omits copied inferred argument and return ABI locations, proven by initialized native/Rust/Node/Swift consumers. Current inventories are 3619 native declarations, 3554 compiled Swift symbols and 989 Python functions/types with complete mappings.

@@ -8402,6 +8402,15 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_decompiler_generate_microcode_ex(
+        function_address: u64,
+        maturity: ::std::os::raw::c_int,
+        analyze_calls: ::std::os::raw::c_int,
+        prepare_argument_locations: ::std::os::raw::c_int,
+        out: *mut *mut IdaxMicrocodeFunction,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_decompiler_microcode_function_free(function: *mut IdaxMicrocodeFunction);
 }
 unsafe extern "C" {

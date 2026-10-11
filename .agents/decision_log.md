@@ -1537,3 +1537,7 @@ Expose local_type_declaration with a one-based ordinal and owned multiline defin
 ### D19.105. Preserve Native Program Identity Fields
 
 Keep selected processor_name and current processor_module_name distinct, with owned native values rather than a manually maintained alias table. Full Diaphora export stores the native module stem with its existing width suffix and the existing 16-byte MD5 BLOB; bounded companion formats retain their own schemas. Compare all native SQLite tables using independent fresh database copies because analysis/type inference can mutate sequential shared inputs.
+
+### D19.106. Explicit Microcode Argument Preparation
+
+Expose prepare_argument_locations separately from maturity and analyze_calls. Preserve the existing true default and all prepared/Symless argument metadata; false directly generates native microcode without forcing full current-function decompilation. Call analysis may independently decompile direct callees as already documented. Keep the original private C generator signature/default via forwarding and add an extended entry point for the new control. Validate all application option combinations and prepared regressions rather than assuming snapshot equivalence from one mode.

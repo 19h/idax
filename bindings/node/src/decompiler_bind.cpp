@@ -1811,6 +1811,15 @@ NAN_METHOD(GenerateMicrocode) {
                 }
                 options.analyze_calls = Nan::To<bool>(analyze_value).FromJust();
             }
+            v8::Local<v8::Value> prepare_value;
+            if (Nan::Get(object, Nan::New("prepareArgumentLocations").ToLocalChecked()).ToLocal(&prepare_value)
+                && !prepare_value->IsUndefined()) {
+                if (!prepare_value->IsBoolean()) {
+                    Nan::ThrowTypeError("prepareArgumentLocations must be boolean");
+                    return;
+                }
+                options.prepare_argument_locations = Nan::To<bool>(prepare_value).FromJust();
+            }
         } else {
             Nan::ThrowTypeError("Expected microcode maturity string or options object");
             return;

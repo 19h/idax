@@ -1561,6 +1561,7 @@ fn analyzed_graph(address: Address) -> Result<MicrocodeFunction> {
         MicrocodeGenerationOptions {
             maturity: MicrocodeMaturity::Preoptimized,
             analyze_calls: true,
+            prepare_argument_locations: true,
         },
     )
 }
@@ -2516,6 +2517,7 @@ fn reconstruct(
             MicrocodeGenerationOptions {
                 maturity: MicrocodeMaturity::Preoptimized,
                 analyze_calls: true,
+                prepare_argument_locations: true,
             },
         )
     })
@@ -2612,6 +2614,7 @@ fn reconstruct_microcode_root(
             MicrocodeGenerationOptions {
                 maturity: MicrocodeMaturity::Preoptimized,
                 analyze_calls: true,
+                prepare_argument_locations: true,
             },
         )
     })
@@ -4731,6 +4734,7 @@ fn run() -> Result<()> {
         MicrocodeGenerationOptions {
             maturity: MicrocodeMaturity::Preoptimized,
             analyze_calls: true,
+            prepare_argument_locations: true,
         },
     )?;
     let candidates = enumerate_microcode_roots(&graph);

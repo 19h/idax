@@ -14690,6 +14690,24 @@
           "declaration": "var text: String"
         }
       ]
+    },
+    {
+      "cpp_id": "99c1fb4a694232354d68",
+      "cpp_name": "ida::decompiler::MicrocodeGenerationOptions::prepare_argument_locations",
+      "cpp_kind": "field",
+      "cpp_signature": "bool",
+      "mapping": "direct",
+      "swift": [
+        "a5176da37b7f90c30c84"
+      ],
+      "rationale": "Preserves explicit full-decompilation preparation and the true default; false skips inference and returns no inferred argument or return ABI locations.",
+      "cpp_fingerprint": "6e41504c0de33a8af93a03b371ddae8983196188511b911c1f17ff5c3b731191",
+      "swift_targets": [
+        {
+          "path": "Decompiler.GenerationOptions.prepareArgumentLocations",
+          "declaration": "var prepareArgumentLocations: Bool"
+        }
+      ]
     }
   ]
 }

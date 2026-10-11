@@ -11188,6 +11188,15 @@ int idax_decompiler_generate_microcode(uint64_t function_address,
                                        int maturity,
                                        int analyze_calls,
                                        IdaxMicrocodeFunction** out) {
+    return idax_decompiler_generate_microcode_ex(function_address, maturity,
+                                                analyze_calls, 1, out);
+}
+
+int idax_decompiler_generate_microcode_ex(uint64_t function_address,
+                                       int maturity,
+                                       int analyze_calls,
+                                       int prepare_argument_locations,
+                                       IdaxMicrocodeFunction** out) {
     clear_error();
     if (out == nullptr)
         return fail(ida::Error::validation("microcode function output is null"));
@@ -11196,6 +11205,7 @@ int idax_decompiler_generate_microcode(uint64_t function_address,
     ida::decompiler::MicrocodeGenerationOptions options;
     options.maturity = static_cast<ida::decompiler::MicrocodeMaturity>(maturity);
     options.analyze_calls = analyze_calls != 0;
+    options.prepare_argument_locations = prepare_argument_locations != 0;
     auto result = ida::decompiler::generate_microcode(function_address, options);
     if (!result)
         return fail(result.error());

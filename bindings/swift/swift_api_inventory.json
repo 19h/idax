@@ -22199,10 +22199,10 @@
       "path": [
         "Decompiler",
         "GenerationOptions",
-        "init(maturity:analyzeCalls:)"
+        "init(maturity:analyzeCalls:prepareArgumentLocations:)"
       ],
       "kind": "swift.init",
-      "declaration": "init(maturity: Decompiler.MicrocodeMaturity = .preoptimized, analyzeCalls: Bool = false)",
+      "declaration": "init(maturity: Decompiler.MicrocodeMaturity = .preoptimized, analyzeCalls: Bool = false, prepareArgumentLocations: Bool = true)",
       "source": "bindings/swift/Sources/IDAX/Decompiler.swift",
       "functionSignature": {
         "parameters": [
@@ -22250,10 +22250,28 @@
                 "preciseIdentifier": "s:Sb"
               }
             ]
+          },
+          {
+            "name": "prepareArgumentLocations",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "prepareArgumentLocations"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Bool",
+                "preciseIdentifier": "s:Sb"
+              }
+            ]
           }
         ]
       },
-      "id": "63dcc2aeb845377697f8"
+      "id": "cb4991b884ff00b33d6d"
     },
     {
       "path": [
@@ -22265,6 +22283,17 @@
       "declaration": "var maturity: Decompiler.MicrocodeMaturity",
       "source": "bindings/swift/Sources/IDAX/Decompiler.swift",
       "id": "d23d80b7f33a6bfde383"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "GenerationOptions",
+        "prepareArgumentLocations"
+      ],
+      "kind": "swift.property",
+      "declaration": "var prepareArgumentLocations: Bool",
+      "source": "bindings/swift/Sources/IDAX/Decompiler.swift",
+      "id": "a5176da37b7f90c30c84"
     },
     {
       "path": [

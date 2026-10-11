@@ -537,6 +537,9 @@ impl MicrocodeMaturity {
 pub struct MicrocodeGenerationOptions {
     pub maturity: MicrocodeMaturity,
     pub analyze_calls: bool,
+    /// Infer current-function argument locations before generation; may update types.
+    /// False leaves arguments and return_location empty.
+    pub prepare_argument_locations: bool,
 }
 
 impl Default for MicrocodeGenerationOptions {
@@ -544,6 +547,7 @@ impl Default for MicrocodeGenerationOptions {
         Self {
             maturity: MicrocodeMaturity::Preoptimized,
             analyze_calls: false,
+            prepare_argument_locations: true,
         }
     }
 }
@@ -1828,10 +1832,11 @@ pub fn generate_microcode(
 ) -> Result<MicrocodeFunction> {
     unsafe {
         let mut raw: *mut idax_sys::IdaxMicrocodeFunction = std::ptr::null_mut();
-        let ret = idax_sys::idax_decompiler_generate_microcode(
+        let ret = idax_sys::idax_decompiler_generate_microcode_ex(
             function_address,
             options.maturity as i32,
             i32::from(options.analyze_calls),
+            i32::from(options.prepare_argument_locations),
             &mut raw,
         );
         if ret != 0 {

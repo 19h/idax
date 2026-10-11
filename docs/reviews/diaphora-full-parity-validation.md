@@ -164,3 +164,23 @@ interchange; it does not prove correct nonzero-base CU linking. Register phrase
 operand values also require their native phrase field, not their zero address
 union. The full adapter and retained complete-export test remain in progress;
 this predicate group establishes neither import nor GUI/model closure.
+
+Microcode-only export originally differed in inferred instruction type because
+IDAX always fully decompiled the current function before generating microcode.
+MicrocodeGenerationOptions.prepare_argument_locations now controls that step,
+with the existing true default. False leaves copied argument and return ABI
+locations empty. The old C entry point forwards to the extended operation with
+preparation enabled; existing C record layouts are unchanged.
+
+The native semantic CTest passes 1/1 in 1.45 s. Rust passes 172 library cases
+and examples; Node passes 277 unit cases; Swift passes 32 XCTest cases, its
+initialized runtime and clean transitive consumer. Initialized native and all
+maintained transport checks verify false-mode empty ABI metadata. Inventories
+are now 3619 native declarations, 3554 compiled Swift symbols and 989 Python
+functions/types, with every declaration mapped.
+
+Independent all-table comparison passes all four decompiler/microcode option
+combinations. All retain 23 functions, two compilation units and 14 CU relations;
+microcode modes contain 73 blocks/708 instruction rows, assembly-only modes
+26 blocks/174 instruction rows. Only export_time is excluded. Export lifecycle,
+metadata import, GUI and trained-model gates remain open.

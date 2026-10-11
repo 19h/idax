@@ -51,7 +51,7 @@
     {
       "domain": "decompiler",
       "path": "include/ida/decompiler.hpp",
-      "sha256": "fdb68f8f464b8893ac498ccfd65b2760434d3fbabf1a9e944b8869f39501eecc"
+      "sha256": "88ccb756d1806d1f19f5b849f54bb8d1c79b367b45a413fdfc230d3e604ccba7"
     },
     {
       "domain": "diagnostics",

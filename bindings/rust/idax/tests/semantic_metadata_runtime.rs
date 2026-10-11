@@ -99,10 +99,15 @@ fn main() {
         }
         assert_eq!(decoded.branch_condition(), instruction::branch_condition(function.start()));
         for maturity in [MicrocodeMaturity::Generated, MicrocodeMaturity::Preoptimized, MicrocodeMaturity::LocallyOptimized, MicrocodeMaturity::CallsAnalyzed, MicrocodeMaturity::GloballyOptimized1, MicrocodeMaturity::GloballyOptimized2, MicrocodeMaturity::GloballyOptimized3, MicrocodeMaturity::LocalVariables] {
-            let model = generate_microcode(function.start(), MicrocodeGenerationOptions { maturity, analyze_calls: false }).unwrap();
+            let model = generate_microcode(function.start(), MicrocodeGenerationOptions { maturity, analyze_calls: false, prepare_argument_locations: true }).unwrap();
             graph(&model, &mut counts); retained.push(model);
         }
         let decompiled = decompile(function.start()).unwrap();
+        let unprepared = generate_microcode(function.start(), MicrocodeGenerationOptions {
+            prepare_argument_locations: false, ..Default::default()
+        }).unwrap();
+        assert!(unprepared.arguments.is_empty());
+        assert!(unprepared.return_location.is_none());
         let exprs = Rc::clone(&expressions); let stmts = Rc::clone(&statements);
         decompiled.for_each_item(move |item| { exprs.borrow_mut().push(item); VisitAction::Continue }, move |item| { stmts.borrow_mut().push(item); VisitAction::Continue }).unwrap();
         let hook = std::panic::take_hook();

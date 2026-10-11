@@ -5512,16 +5512,19 @@ generate_microcode(Address function_address,
 
     // Match the source-audited Symless workflow: force one full decompilation
     // first so inferred function arguments and their ABI locations are ready.
-    hexrays_failure_t decompile_failure;
-    cfuncptr_t decompiled = ::decompile_func(function,
-                                             &decompile_failure,
-                                             DECOMP_NO_WAIT);
-    if (decompiled == nullptr) {
-        const std::string description =
-            ida::detail::to_string(decompile_failure.desc());
-        return std::unexpected(Error::sdk(
-            "Decompilation before microcode generation failed: " + description,
-            std::to_string(function->start_ea)));
+    cfuncptr_t decompiled(nullptr);
+    if (options.prepare_argument_locations) {
+        hexrays_failure_t decompile_failure;
+        decompiled = ::decompile_func(function,
+                                     &decompile_failure,
+                                     DECOMP_NO_WAIT);
+        if (decompiled == nullptr) {
+            const std::string description =
+                ida::detail::to_string(decompile_failure.desc());
+            return std::unexpected(Error::sdk(
+                "Decompilation before microcode generation failed: " + description,
+                std::to_string(function->start_ea)));
+        }
     }
 
     hexrays_failure_t generation_failure;
@@ -5609,7 +5612,7 @@ generate_microcode(Address function_address,
 
     tinfo_t function_type;
     func_type_data_t function_details;
-    if (decompiled->get_func_type(&function_type)
+    if (decompiled != nullptr && decompiled->get_func_type(&function_type)
         && function_type.get_func_details(&function_details)) {
         result.arguments.reserve(function_details.size());
         for (const auto& source_argument : function_details) {

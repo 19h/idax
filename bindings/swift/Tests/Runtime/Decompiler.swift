@@ -438,6 +438,10 @@ func runDecompilerChecks() throws {
         try expectConflict { try session.close() }
         try snapshot.close()
         try copy.close()
+        let unprepared = try Decompiler.generateMicrocode(source.start,
+            options: .init(prepareArgumentLocations: false))
+        try expect(unprepared.arguments.isEmpty && unprepared.returnLocation == nil,
+            "Unprepared graph exposed inferred ABI locations")
         for maturity in Decompiler.MicrocodeMaturity.allCases {
             let graph = try Decompiler.generateMicrocode(source.start, options: .init(maturity: maturity))
             try expect(
