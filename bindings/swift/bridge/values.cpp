@@ -34,11 +34,17 @@ ida::type::TypeRenderOptions render_options(const IdaxSwiftTypeRenderOptions* va
     for (std::size_t i = 0; i < value->used_offset_count; ++i) {
         const auto& input = value->used_offsets[i];
         require_array(input.byte_offsets, input.offset_count);
+        require_array(input.bit_offsets, input.bit_offset_count);
+        require_array(input.member_indices, input.member_index_count);
         if (input.type_name == nullptr) throw ida::Error::validation("Type name is null");
         ida::type::UsedMemberOffsets offsets;
         offsets.type_name = input.type_name;
         if (input.offset_count != 0)
             offsets.byte_offsets.assign(input.byte_offsets, input.byte_offsets + input.offset_count);
+        if (input.bit_offset_count != 0)
+            offsets.bit_offsets.assign(input.bit_offsets, input.bit_offsets + input.bit_offset_count);
+        if (input.member_index_count != 0)
+            offsets.member_indices.assign(input.member_indices, input.member_indices + input.member_index_count);
         result.used_offsets.push_back(std::move(offsets));
     }
     return result;

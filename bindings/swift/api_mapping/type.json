@@ -3118,20 +3118,56 @@
       ]
     },
     {
-      "cpp_id": "bbfc825c3b0190c0fecc",
+      "mapping": "direct",
+      "rationale": "Preserves unsigned 64-bit native locations and their explicit byte, bit or union-index units.",
+      "cpp_id": "27795d6d753edcd4bb1c",
+      "cpp_name": "ida::type::UsedMemberOffsets::bit_offsets",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::uint64_t>",
+      "cpp_fingerprint": "7c174a098ef35040c3a39c799ab2494dc671b08263707f90f51954a8e389ed0e",
+      "swift": [
+        "acd328b036b2f28d81a6"
+      ],
+      "swift_targets": [
+        {
+          "path": "Types.UsedMemberOffsets.bitOffsets",
+          "declaration": "var bitOffsets: [UInt64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "6780c31aeb573311f6c8",
       "cpp_name": "ida::type::UsedMemberOffsets::byte_offsets",
       "cpp_kind": "field",
-      "cpp_signature": "std::vector<int>",
+      "cpp_signature": "std::vector<std::uint64_t>",
       "mapping": "direct",
       "swift": [
-        "17c4417174668ca354ad"
+        "95d2c914331d3ce4354b"
       ],
       "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
-      "cpp_fingerprint": "849d69ba84f926d9c85ec0a5b778891cbee5699ea3be87e576b31dd493095727",
+      "cpp_fingerprint": "aed0107b0a8f8a5867119f72973c98508085aec80ab5a477bdc0ec94f6e43c88",
       "swift_targets": [
         {
           "path": "Types.UsedMemberOffsets.byteOffsets",
-          "declaration": "var byteOffsets: [Int32]"
+          "declaration": "var byteOffsets: [UInt64]"
+        }
+      ]
+    },
+    {
+      "mapping": "direct",
+      "rationale": "Preserves unsigned 64-bit native locations and their explicit byte, bit or union-index units.",
+      "cpp_id": "923a3e486d9faa1a2a94",
+      "cpp_name": "ida::type::UsedMemberOffsets::member_indices",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::uint64_t>",
+      "cpp_fingerprint": "83247b282cced07e943a66ef0e6e8aed1a939bf84cc0f45dfb4a45dd43d9accd",
+      "swift": [
+        "821f697e05b1b0e3f653"
+      ],
+      "swift_targets": [
+        {
+          "path": "Types.UsedMemberOffsets.memberIndices",
+          "declaration": "var memberIndices: [UInt64]"
         }
       ]
     },

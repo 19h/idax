@@ -23,8 +23,12 @@ int idax_swift_search_binary(const char* pattern, uint64_t start, const IdaxSwif
 
 typedef struct IdaxSwiftTypeUsedOffsets {
     const char* type_name;
-    const int32_t* byte_offsets;
+    const uint64_t* byte_offsets;
     size_t offset_count;
+    const uint64_t* bit_offsets;
+    size_t bit_offset_count;
+    const uint64_t* member_indices;
+    size_t member_index_count;
 } IdaxSwiftTypeUsedOffsets;
 typedef struct IdaxSwiftTypeRenderOptions {
     int size_comments;

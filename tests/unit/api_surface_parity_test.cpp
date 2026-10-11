@@ -2265,7 +2265,7 @@ void check_decompiler_surface() {
     using ExprCallArgFn = ida::Result<ida::decompiler::ExpressionView>(ida::decompiler::ExpressionView::*)(std::size_t) const;
     using ExprHelperNameFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
     using ExprTypeDeclarationFn = ida::Result<std::string>(ida::decompiler::ExpressionView::*)() const;
-    using ExprTypeByteWidthFn = ida::Result<int>(ida::decompiler::ExpressionView::*)() const;
+    using ExprTypeByteWidthFn = ida::Result<std::uint64_t>(ida::decompiler::ExpressionView::*)() const;
     using ExprBoolNoexceptFn = bool(ida::decompiler::ExpressionView::*)() const noexcept;
     using ExprParentFn = ida::Result<std::optional<ida::decompiler::CtreeItemView>>(
         ida::decompiler::ExpressionView::*)() const;
@@ -2685,6 +2685,11 @@ void check_decompiler_surface() {
     (void)static_cast<ExprTypeDeclarationFn>(&ida::decompiler::ExpressionView::type_declaration);
     (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::type_byte_width);
     (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::pointed_type_byte_width);
+    (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::member_offset);
+    (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::member_bit_offset);
+    (void)static_cast<ExprTypeByteWidthFn>(&ida::decompiler::ExpressionView::member_index);
+    (void)static_cast<ida::Result<bool>(ida::decompiler::ExpressionView::*)() const>(
+        &ida::decompiler::ExpressionView::member_is_bitfield);
     (void)static_cast<ExprHelperNameFn>(&ida::decompiler::ExpressionView::member_name);
     (void)static_cast<ExprBoolNoexceptFn>(&ida::decompiler::ExpressionView::is_assignment_lhs);
     (void)static_cast<ExprCallCalleeFn>(&ida::decompiler::ExpressionView::third);

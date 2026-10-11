@@ -62,7 +62,9 @@ extension Decompiler {
         return try .init(ordinals: copyNativeValues(output.ordinals, count: output.ordinal_count, op) { $0 },
             usedOffsets: copyNativeValues(output.used_offsets, count: output.used_offset_count, op) { (v) throws(IDAError) -> Types.UsedMemberOffsets in
                 .init(typeName: try borrowCString(v.type_name.map { UnsafePointer($0) }, op),
-                      byteOffsets: try copyNativeValues(v.offsets, count: v.count, op) { $0 })
+                      byteOffsets: try copyNativeValues(v.offsets, count: v.count, op) { $0 },
+                      bitOffsets: try copyNativeValues(v.bit_offsets, count: v.bit_offset_count, op) { $0 },
+                      memberIndices: try copyNativeValues(v.member_indices, count: v.member_index_count, op) { $0 })
             })
     }
 }

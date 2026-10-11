@@ -69,7 +69,9 @@ void bind_type(py::module_& module) {
     py::class_<ida::type::UsedMemberOffsets>(type_module, "UsedMemberOffsets")
         .def(py::init<>())
         .def_readwrite("type_name", &ida::type::UsedMemberOffsets::type_name)
-        .def_readwrite("byte_offsets", &ida::type::UsedMemberOffsets::byte_offsets);
+        .def_readwrite("byte_offsets", &ida::type::UsedMemberOffsets::byte_offsets)
+        .def_readwrite("bit_offsets", &ida::type::UsedMemberOffsets::bit_offsets)
+        .def_readwrite("member_indices", &ida::type::UsedMemberOffsets::member_indices);
     py::class_<ida::type::TypeRenderOptions>(type_module, "TypeRenderOptions")
         .def(py::init<>())
         .def_readwrite("size_comments", &ida::type::TypeRenderOptions::size_comments)

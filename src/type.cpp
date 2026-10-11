@@ -1043,10 +1043,12 @@ Status TypeInfo::add_member(std::string_view name, const TypeInfo& member_type,
         return std::unexpected(Error::internal("TypeInfo has null impl"));
     if (!impl_->ti.is_struct() && !impl_->ti.is_union())
         return std::unexpected(Error::validation("Type is not a struct or union"));
+    if (byte_offset > std::numeric_limits<std::uint64_t>::max() / 8)
+        return std::unexpected(Error::validation("Member byte-to-bit offset overflow"));
 
     std::string name_str(name);
     const tinfo_t& mtype = TypeInfoAccess::get(member_type)->ti;
-    ::uint64 boff = static_cast<::uint64>(byte_offset * 8);
+    ::uint64 boff = static_cast<::uint64>(byte_offset) * 8;
 
     tinfo_code_t rc = impl_->ti.add_udm(name_str.c_str(), mtype, boff);
     if (rc != TERR_OK)
@@ -1289,14 +1291,25 @@ parse_declarations(std::string_view declarations,
 
 namespace {
 
-std::map<std::string, std::set<int>>
+using UsedBitOffsets = std::map<std::string, std::set<std::uint64_t>>;
+
+Result<UsedBitOffsets>
 used_offsets_map(const TypeRenderOptions& options) {
-    std::map<std::string, std::set<int>> result;
+    UsedBitOffsets result;
+    if (!options.trim_unreferenced)
+        return result;
     for (const auto& entry : options.used_offsets) {
         if (entry.type_name.empty())
             continue;
         auto& offsets = result[entry.type_name];
-        offsets.insert(entry.byte_offsets.begin(), entry.byte_offsets.end());
+        for (auto byte : entry.byte_offsets) {
+            if (byte > std::numeric_limits<std::uint64_t>::max() / 8)
+                return std::unexpected(Error::validation("Used member byte-to-bit offset overflow"));
+            offsets.insert(byte * 8);
+        }
+        offsets.insert(entry.bit_offsets.begin(), entry.bit_offsets.end());
+        // Union indices are preserved in the public collection. Union rendering
+        // retains every field; indices must never enter structure offset sets.
     }
     return result;
 }
@@ -1357,8 +1370,8 @@ public:
 
 class TypeDeclarationFormatter {
 public:
-    explicit TypeDeclarationFormatter(const TypeRenderOptions& options)
-        : options_(options), used_offsets_(used_offsets_map(options)) {}
+    TypeDeclarationFormatter(const TypeRenderOptions& options, UsedBitOffsets offsets)
+        : options_(options), used_offsets_(std::move(offsets)) {}
 
     std::string render_named(const std::vector<std::string>& names, int max_depth) {
         std::vector<OrderedType> order;
@@ -1435,7 +1448,7 @@ private:
         if (ti.is_udt()) {
             udt_type_data_t udt;
             if (ti.get_udt_details(&udt)) {
-                const std::set<int>* accessed = nullptr;
+                const std::set<std::uint64_t>* accessed = nullptr;
                 if (options_.trim_unreferenced && !udt.is_union) {
                     auto it = used_offsets_.find(name);
                     if (it != used_offsets_.end() && !it->second.empty())
@@ -1447,12 +1460,11 @@ private:
                 } else {
                     for (std::size_t i = 0; i < udt.size(); ++i) {
                         if (accessed != nullptr) {
-                            const int offset = static_cast<int>(udt[i].offset / 8);
-                            int size = static_cast<int>(udt[i].size / 8);
-                            if (size == 0)
-                                size = 1;
+                            const std::uint64_t offset = udt[i].offset;
+                            const std::uint64_t size = udt[i].size;
                             auto lower = accessed->lower_bound(offset);
-                            if (lower == accessed->end() || *lower >= offset + size)
+                            if (lower == accessed->end()
+                                || (*lower != offset && *lower - offset >= size))
                                 continue;
                         }
                         walk(udt[i].type, depth + 1, max_depth, out, emitted, on_stack);
@@ -1497,7 +1509,7 @@ private:
         if (!ti.get_udt_details(&udt))
             return emit_typedef_or_other(ti, name);
 
-        const std::set<int>* accessed = nullptr;
+        const std::set<std::uint64_t>* accessed = nullptr;
         const bool trim_active = options_.trim_unreferenced && !udt.is_union;
         if (trim_active) {
             auto it = used_offsets_.find(name);
@@ -1507,32 +1519,35 @@ private:
         if (trim_active && accessed == nullptr)
             return {};
 
-        std::set<int> keep_indices;
+        std::set<std::size_t> keep_indices;
         if (accessed != nullptr) {
             for (std::size_t i = 0; i < udt.size(); ++i) {
                 const udm_t& member = udt[i];
-                const int offset = static_cast<int>(member.offset / 8);
-                int size = static_cast<int>(member.size / 8);
-                if (size == 0)
-                    size = 1;
+                const std::uint64_t offset = member.offset;
+                const std::uint64_t size = member.size;
                 auto lower = accessed->lower_bound(offset);
-                if (lower != accessed->end() && *lower < offset + size)
-                    keep_indices.insert(static_cast<int>(i));
+                if (lower != accessed->end()
+                    && (*lower == offset || *lower - offset < size))
+                    keep_indices.insert(i);
             }
             if (keep_indices.empty()) {
                 std::ostringstream blob;
                 blob << (udt.is_union ? "union" : "struct") << ' ' << name
                      << " // sizeof=" << hex_size(udt.total_size)
                      << " (opaque: no fields accessed)\n"
-                     << "{\n"
-                     << "    __int8 _pad_0[0x" << std::hex << udt.total_size
-                     << std::dec << "];  // no fields accessed\n"
-                     << "};\n";
+                     << "{\n";
+                for (std::uint64_t from = 0; from < udt.total_size;) {
+                    const auto count = std::min<std::uint64_t>(udt.total_size - from, MAX_ARRAY_NELEMS);
+                    blob << "    __int8 _pad_" << std::hex << from << "[0x" << count
+                         << std::dec << "];  // no fields accessed\n";
+                    from += count;
+                }
+                blob << "};\n";
                 return blob.str();
             }
         } else {
             for (std::size_t i = 0; i < udt.size(); ++i)
-                keep_indices.insert(static_cast<int>(i));
+                keep_indices.insert(i);
         }
 
         std::ostringstream output;
@@ -1551,7 +1566,7 @@ private:
             std::uint64_t byte_size{0};
             bool is_bitfield{false};
             int bit_offset{0};
-            int bit_size{0};
+            std::uint64_t bit_size{0};
             bool emit_comment{false};
             bool is_padding{false};
         };
@@ -1567,25 +1582,32 @@ private:
         auto add_padding = [&](std::uint64_t from, std::uint64_t to) {
             if (to <= from)
                 return;
-            const std::uint64_t bytes = to - from;
-            char buffer[80];
-            if (bytes == 1) {
-                qsnprintf(buffer, sizeof(buffer),
-                          "    __int8 _pad_%llX;",
-                          static_cast<unsigned long long>(from));
-            } else {
-                qsnprintf(buffer, sizeof(buffer),
-                          "    __int8 _pad_%llX[0x%llX];",
-                          static_cast<unsigned long long>(from),
-                          static_cast<unsigned long long>(bytes));
+            // Array element counts above MAX_ARRAY_NELEMS are not materializable by
+            // the native declaration parser. Split wide byte padding without
+            // changing its total extent or the next member's alignment.
+            while (from < to) {
+                const std::uint64_t bytes = std::min(to - from,
+                    static_cast<std::uint64_t>(MAX_ARRAY_NELEMS));
+                char buffer[80];
+                if (bytes == 1) {
+                    qsnprintf(buffer, sizeof(buffer),
+                              "    __int8 _pad_%llX;",
+                              static_cast<unsigned long long>(from));
+                } else {
+                    qsnprintf(buffer, sizeof(buffer),
+                              "    __int8 _pad_%llX[0x%llX];",
+                              static_cast<unsigned long long>(from),
+                              static_cast<unsigned long long>(bytes));
+                }
+                Line line;
+                line.declaration = buffer;
+                line.byte_offset = from;
+                line.byte_size = bytes;
+                line.is_padding = true;
+                line.emit_comment = options_.size_comments || accessed != nullptr;
+                add_line(std::move(line));
+                from += bytes;
             }
-            Line line;
-            line.declaration = buffer;
-            line.byte_offset = from;
-            line.byte_size = bytes;
-            line.is_padding = true;
-            line.emit_comment = options_.size_comments || accessed != nullptr;
-            add_line(std::move(line));
         };
 
         auto add_member = [&](const udm_t& member) {
@@ -1595,7 +1617,7 @@ private:
             if (line.is_bitfield) {
                 line.byte_offset = member.offset / 8;
                 line.bit_offset = static_cast<int>(member.offset % 8);
-                line.bit_size = static_cast<int>(member.size);
+                line.bit_size = member.size;
             } else {
                 line.byte_offset = member.offset / 8;
                 line.byte_size = member.size / 8;
@@ -1606,16 +1628,31 @@ private:
 
         if (accessed != nullptr) {
             std::uint64_t cursor = 0;
-            for (int index : keep_indices) {
+            std::uint64_t cursor_bits = 0;
+            for (std::size_t index : keep_indices) {
                 const udm_t& member = udt[static_cast<std::size_t>(index)];
                 const std::uint64_t offset = member.offset / 8;
-                if (offset > cursor)
+                if (offset > cursor) {
                     add_padding(cursor, offset);
+                    cursor_bits = offset * 8;
+                }
+                if (member.is_bitfield() && member.offset > cursor_bits) {
+                    // Byte padding cannot represent a leading sub-byte gap.
+                    // Preserve it with an anonymous field of the same enclosing
+                    // native bitfield type, so re-parsing retains the bit offset.
+                    bitfield_type_data_t info;
+                    if (member.type.get_bitfield_details(&info)) {
+                        info.width = static_cast<uchar>(member.offset - cursor_bits);
+                        udm_t padding;
+                        padding.offset = cursor_bits;
+                        padding.size = info.width;
+                        if (padding.type.create_bitfield(info))
+                            add_member(padding);
+                    }
+                }
                 add_member(member);
-                std::uint64_t end = offset + (member.is_bitfield() ? 0 : (member.size / 8));
-                if (member.is_bitfield())
-                    end = (member.offset + member.size + 7) / 8;
-                cursor = std::max(cursor, end);
+                cursor_bits = std::max(cursor_bits, member.offset + member.size);
+                cursor = (cursor_bits + 7) / 8;
             }
             if (cursor < udt.total_size)
                 add_padding(cursor, udt.total_size);
@@ -1661,7 +1698,7 @@ private:
     }
 
     TypeRenderOptions options_;
-    std::map<std::string, std::set<int>> used_offsets_;
+    UsedBitOffsets used_offsets_;
 };
 
 class TypeGraphRenderer {
@@ -1954,7 +1991,9 @@ private:
 Result<std::string> render_named_declarations(const std::vector<std::string>& names,
                                               int max_depth,
                                               const TypeRenderOptions& options) {
-    TypeDeclarationFormatter formatter(options);
+    auto offsets = used_offsets_map(options);
+    if (!offsets) return std::unexpected(offsets.error());
+    TypeDeclarationFormatter formatter(options, std::move(*offsets));
     return formatter.render_named(names, max_depth);
 }
 
@@ -1979,7 +2018,9 @@ Result<std::string> render_ordinal_declarations(const std::vector<std::uint32_t>
         }
     }
 
-    TypeDeclarationFormatter formatter(options);
+    auto offsets = used_offsets_map(options);
+    if (!offsets) return std::unexpected(offsets.error());
+    TypeDeclarationFormatter formatter(options, std::move(*offsets));
     return formatter.render_ordinals(ordinals);
 }
 

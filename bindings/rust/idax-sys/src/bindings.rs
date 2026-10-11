@@ -7246,11 +7246,25 @@ pub struct IdaxDecompilerExpressionInfo {
     pub call_arguments: *const IdaxDecompilerCtreeItemInfo,
     pub call_argument_count: usize,
     pub operand_count: ::std::os::raw::c_int,
+    pub has_type_byte_width: ::std::os::raw::c_int,
+    pub type_byte_width: u64,
+    pub has_pointed_type_byte_width: ::std::os::raw::c_int,
+    pub pointed_type_byte_width: u64,
+    pub has_member_offset: ::std::os::raw::c_int,
+    pub member_offset: u64,
+    pub has_member_bit_offset: ::std::os::raw::c_int,
+    pub member_bit_offset: u64,
+    pub has_member_index: ::std::os::raw::c_int,
+    pub member_index: u64,
+    pub has_member_is_bitfield: ::std::os::raw::c_int,
+    pub member_is_bitfield: ::std::os::raw::c_int,
+    #[doc = "< Borrowed for this callback; null when unavailable."]
+    pub member_name: *const ::std::os::raw::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of IdaxDecompilerExpressionInfo"]
-        [::std::mem::size_of::<IdaxDecompilerExpressionInfo>() - 144usize];
+        [::std::mem::size_of::<IdaxDecompilerExpressionInfo>() - 232usize];
     ["Alignment of IdaxDecompilerExpressionInfo"]
         [::std::mem::align_of::<IdaxDecompilerExpressionInfo>() - 8usize];
     ["Offset of field: IdaxDecompilerExpressionInfo::type_"]
@@ -7291,6 +7305,34 @@ const _: () = {
         [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, call_argument_count) - 128usize];
     ["Offset of field: IdaxDecompilerExpressionInfo::operand_count"]
         [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, operand_count) - 136usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_type_byte_width"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, has_type_byte_width) - 140usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::type_byte_width"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, type_byte_width) - 144usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_pointed_type_byte_width"][::std::mem::offset_of!(
+        IdaxDecompilerExpressionInfo,
+        has_pointed_type_byte_width
+    ) - 152usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::pointed_type_byte_width"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, pointed_type_byte_width) - 160usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_member_offset"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, has_member_offset) - 168usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::member_offset"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, member_offset) - 176usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_member_bit_offset"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, has_member_bit_offset) - 184usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::member_bit_offset"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, member_bit_offset) - 192usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_member_index"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, has_member_index) - 200usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::member_index"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, member_index) - 208usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::has_member_is_bitfield"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, has_member_is_bitfield) - 216usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::member_is_bitfield"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, member_is_bitfield) - 220usize];
+    ["Offset of field: IdaxDecompilerExpressionInfo::member_name"]
+        [::std::mem::offset_of!(IdaxDecompilerExpressionInfo, member_name) - 224usize];
 };
 impl Default for IdaxDecompilerExpressionInfo {
     fn default() -> Self {

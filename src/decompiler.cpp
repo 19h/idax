@@ -26,6 +26,7 @@
 #include <bit>
 #include <cstdarg>
 #include <memory>
+#include <limits>
 #include <mutex>
 #include <unordered_map>
 
@@ -4083,7 +4084,7 @@ Result<std::string> ExpressionView::type_declaration() const {
     return ida::detail::to_string(type_str);
 }
 
-Result<int> ExpressionView::type_byte_width() const {
+Result<std::uint64_t> ExpressionView::type_byte_width() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
     if (e->type.empty())
@@ -4091,10 +4092,10 @@ Result<int> ExpressionView::type_byte_width() const {
     const size_t size = e->type.get_size();
     if (size == BADSIZE)
         return 0;
-    return static_cast<int>(size);
+    return static_cast<std::uint64_t>(size);
 }
 
-Result<int> ExpressionView::pointed_type_byte_width() const {
+Result<std::uint64_t> ExpressionView::pointed_type_byte_width() const {
     if (!raw_) return std::unexpected(Error::internal("null expression"));
     auto* e = static_cast<cexpr_t*>(raw_);
     if (e->type.empty() || !e->type.is_ptr())
@@ -4105,7 +4106,7 @@ Result<int> ExpressionView::pointed_type_byte_width() const {
     const size_t size = pointed.get_size();
     if (size == BADSIZE)
         return 0;
-    return static_cast<int>(size);
+    return static_cast<std::uint64_t>(size);
 }
 
 Result<std::string> ExpressionView::string_value() const {
@@ -4146,12 +4147,67 @@ Result<ExpressionView> ExpressionView::call_argument(std::size_t index) const {
                           e);
 }
 
-Result<std::uint32_t> ExpressionView::member_offset() const {
-    if (!raw_) return std::unexpected(Error::internal("null expression"));
-    auto* e = static_cast<cexpr_t*>(raw_);
-    if (e->op != cot_memref && e->op != cot_memptr)
+namespace {
+
+bool member_base_is_union(const cexpr_t& expression) {
+    if (expression.x == nullptr)
+        return false;
+    tinfo_t base = expression.x->type;
+    if (expression.op == cot_memptr && base.is_ptr())
+        base = base.get_pointed_object();
+    return base.is_union();
+}
+
+Result<ida::detail::DecompilerMemberLocation> member_location(void* raw) {
+    if (!raw)
+        return std::unexpected(Error::internal("null expression"));
+    const auto& expression = *static_cast<cexpr_t*>(raw);
+    if (expression.op != cot_memref && expression.op != cot_memptr)
         return std::unexpected(Error::validation("Expression is not a member access"));
-    return static_cast<std::uint32_t>(ida::detail::decompiler_member_byte_offset(*e));
+    auto location = ida::detail::decompiler_member_location(expression);
+    if (!location)
+        return std::unexpected(Error::unsupported("Decompiler member ABI is not initialized"));
+    return *location;
+}
+
+Result<std::uint64_t> member_bits(const ida::detail::DecompilerMemberLocation& location) {
+    if (location.bitfield)
+        return location.value;
+    if (location.value > std::numeric_limits<std::uint64_t>::max() / 8)
+        return std::unexpected(Error::validation("Member byte-to-bit offset overflow"));
+    return location.value * 8;
+}
+
+} // namespace
+
+Result<std::uint64_t> ExpressionView::member_offset() const {
+    auto location = member_location(raw_);
+    if (!location) return std::unexpected(location.error());
+    if (member_base_is_union(*static_cast<cexpr_t*>(raw_)))
+        return std::unexpected(Error::validation("Union member location is an index"));
+    return location->bitfield ? location->value / 8 : location->value;
+}
+
+Result<std::uint64_t> ExpressionView::member_bit_offset() const {
+    auto location = member_location(raw_);
+    if (!location) return std::unexpected(location.error());
+    if (member_base_is_union(*static_cast<cexpr_t*>(raw_)))
+        return std::unexpected(Error::validation("Union member location is an index"));
+    return member_bits(*location);
+}
+
+Result<std::uint64_t> ExpressionView::member_index() const {
+    auto location = member_location(raw_);
+    if (!location) return std::unexpected(location.error());
+    if (!member_base_is_union(*static_cast<cexpr_t*>(raw_)))
+        return std::unexpected(Error::validation("Expression is not a union member access"));
+    return location->value;
+}
+
+Result<bool> ExpressionView::member_is_bitfield() const {
+    auto location = member_location(raw_);
+    if (!location) return std::unexpected(location.error());
+    return location->bitfield;
 }
 
 Result<std::string> ExpressionView::member_name() const {
@@ -4165,29 +4221,32 @@ Result<std::string> ExpressionView::member_name() const {
         return std::unexpected(Error::not_found("Member base type is unavailable"));
     if (e->op == cot_memptr && base_type.is_ptr())
         base_type = base_type.get_pointed_object();
-    if (!base_type.is_struct())
-        return std::unexpected(Error::not_found("Member base type is not a struct"));
+    if (!base_type.is_udt())
+        return std::unexpected(Error::not_found("Member base type is not a UDT"));
 
     udt_type_data_t udt;
     if (!base_type.get_udt_details(&udt))
         return std::unexpected(Error::sdk("get_udt_details failed"));
 
-    const int offset = static_cast<int>(ida::detail::decompiler_member_byte_offset(*e));
+    auto location = member_location(raw_);
+    if (!location) return std::unexpected(location.error());
+    if (udt.is_union) {
+        if (location->value >= udt.size())
+            return std::unexpected(Error::not_found("Union member index is out of range"));
+        return ida::detail::to_string(udt[static_cast<std::size_t>(location->value)].name);
+    }
+    auto offset = member_bits(*location);
+    if (!offset) return std::unexpected(offset.error());
     for (std::size_t i = 0; i < udt.size(); ++i) {
         const udm_t& member = udt[i];
-        const int member_offset = static_cast<int>(member.offset / 8);
-        int member_size = static_cast<int>(member.size / 8);
-        if (member_size == 0)
-            member_size = 1;
-
-        if (member_offset == offset
-            || (member_offset < offset && offset < member_offset + member_size)) {
+        if (*offset == member.offset
+            || (*offset > member.offset && *offset - member.offset < member.size)) {
             return ida::detail::to_string(member.name);
         }
     }
 
     return std::unexpected(Error::not_found("Member name not found",
-                                            std::to_string(offset)));
+                                            std::to_string(*offset)));
 }
 
 bool ExpressionView::is_assignment_lhs() const noexcept {
@@ -4767,7 +4826,11 @@ namespace {
 struct ReferencedTypeCollector {
     std::set<std::uint32_t> ordinals;
     std::set<std::string> seen_names;
-    std::map<std::string, std::set<int>> used_offsets;
+    struct Locations {
+        std::set<std::uint64_t> bytes, bits, indices;
+    };
+    std::map<std::string, Locations> used_offsets;
+    std::optional<Error> error;
 
     void collect(const tinfo_t& ti, int depth = 0) {
         if (!ti.present() || depth > 32)
@@ -4805,13 +4868,24 @@ struct ReferencedTypeCollector {
         }
     }
 
-    void record_member_access(const tinfo_t& parent_type, int offset_bytes) {
+    void record_member_access(const tinfo_t& parent_type, const cexpr_t& expression) {
         if (!parent_type.present())
             return;
         qstring name;
         if (!parent_type.get_type_name(&name) || name.empty())
             return;
-        used_offsets[ida::detail::to_string(name)].insert(offset_bytes);
+        auto location = ida::detail::decompiler_member_location(expression);
+        if (!location) {
+            error = Error::unsupported("Decompiler member ABI is not initialized");
+            return;
+        }
+        auto& offsets = used_offsets[ida::detail::to_string(name)];
+        if (parent_type.is_union())
+            offsets.indices.insert(location->value);
+        else if (location->bitfield)
+            offsets.bits.insert(location->value);
+        else
+            offsets.bytes.insert(location->value);
     }
 };
 
@@ -4839,9 +4913,7 @@ public:
                 tinfo_t parent_type = parent->type;
                 if (expression->op == cot_memptr && parent_type.is_ptr())
                     parent_type = parent_type.get_pointed_object();
-                collector_.record_member_access(
-                    parent_type,
-                    static_cast<int>(ida::detail::decompiler_member_byte_offset(*expression)));
+                collector_.record_member_access(parent_type, *expression);
             }
         }
 
@@ -4855,6 +4927,8 @@ private:
 } // anonymous namespace
 
 Result<ReferencedTypeCollection> collect_referenced_types(Address function_address) {
+    auto ready = ensure_hexrays();
+    if (!ready) return std::unexpected(ready.error());
     func_t* function = ::get_func(static_cast<ea_t>(function_address));
     if (function == nullptr)
         return std::unexpected(Error::not_found("Function not found",
@@ -4881,6 +4955,7 @@ Result<ReferencedTypeCollection> collect_referenced_types(Address function_addre
 
     ReferencedTypeWalker walker(collector);
     walker.apply_to(&cfunc->body, nullptr);
+    if (collector.error) return std::unexpected(*collector.error);
 
     ReferencedTypeCollection result;
     result.ordinals.assign(collector.ordinals.begin(), collector.ordinals.end());
@@ -4888,7 +4963,9 @@ Result<ReferencedTypeCollection> collect_referenced_types(Address function_addre
     for (const auto& [name, offsets] : collector.used_offsets) {
         ida::type::UsedMemberOffsets entry;
         entry.type_name = name;
-        entry.byte_offsets.assign(offsets.begin(), offsets.end());
+        entry.byte_offsets.assign(offsets.bytes.begin(), offsets.bytes.end());
+        entry.bit_offsets.assign(offsets.bits.begin(), offsets.bits.end());
+        entry.member_indices.assign(offsets.indices.begin(), offsets.indices.end());
         result.used_offsets.push_back(std::move(entry));
     }
 

@@ -20246,6 +20246,66 @@
       "path": [
         "Decompiler",
         "Expression",
+        "memberBitOffset()"
+      ],
+      "kind": "swift.method",
+      "declaration": "func memberBitOffset() throws(IDAError) -> UInt64",
+      "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
+      "functionSignature": {
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UInt64",
+            "preciseIdentifier": "s:s6UInt64V"
+          }
+        ]
+      },
+      "id": "573358f31862dd3cea26"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "Expression",
+        "memberIndex()"
+      ],
+      "kind": "swift.method",
+      "declaration": "func memberIndex() throws(IDAError) -> UInt64",
+      "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
+      "functionSignature": {
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "UInt64",
+            "preciseIdentifier": "s:s6UInt64V"
+          }
+        ]
+      },
+      "id": "06c58c8f08773bdf96ed"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "Expression",
+        "memberIsBitfield()"
+      ],
+      "kind": "swift.method",
+      "declaration": "func memberIsBitfield() throws(IDAError) -> Bool",
+      "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
+      "functionSignature": {
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "Bool",
+            "preciseIdentifier": "s:Sb"
+          }
+        ]
+      },
+      "id": "716ca0160144711388fb"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "Expression",
         "memberName()"
       ],
       "kind": "swift.method",
@@ -20269,18 +20329,18 @@
         "memberOffset()"
       ],
       "kind": "swift.method",
-      "declaration": "func memberOffset() throws(IDAError) -> UInt32",
+      "declaration": "func memberOffset() throws(IDAError) -> UInt64",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
       "functionSignature": {
         "returns": [
           {
             "kind": "typeIdentifier",
-            "spelling": "UInt32",
-            "preciseIdentifier": "s:s6UInt32V"
+            "spelling": "UInt64",
+            "preciseIdentifier": "s:s6UInt64V"
           }
         ]
       },
-      "id": "2d9c85f461b6499bd3f8"
+      "id": "8d3c456e01c068d8206f"
     },
     {
       "path": [
@@ -20419,18 +20479,18 @@
         "pointedTypeByteWidth()"
       ],
       "kind": "swift.method",
-      "declaration": "func pointedTypeByteWidth() throws(IDAError) -> Int32",
+      "declaration": "func pointedTypeByteWidth() throws(IDAError) -> UInt64",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
       "functionSignature": {
         "returns": [
           {
             "kind": "typeIdentifier",
-            "spelling": "Int32",
-            "preciseIdentifier": "s:s5Int32V"
+            "spelling": "UInt64",
+            "preciseIdentifier": "s:s6UInt64V"
           }
         ]
       },
-      "id": "92fbaa9938d31a560f04"
+      "id": "8f91adf9fb6ebaaca648"
     },
     {
       "path": [
@@ -20595,18 +20655,18 @@
         "typeByteWidth()"
       ],
       "kind": "swift.method",
-      "declaration": "func typeByteWidth() throws(IDAError) -> Int32",
+      "declaration": "func typeByteWidth() throws(IDAError) -> UInt64",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Tree.swift",
       "functionSignature": {
         "returns": [
           {
             "kind": "typeIdentifier",
-            "spelling": "Int32",
-            "preciseIdentifier": "s:s5Int32V"
+            "spelling": "UInt64",
+            "preciseIdentifier": "s:s6UInt64V"
           }
         ]
       },
-      "id": "686185bba72ed5c90cc4"
+      "id": "a68d537ae29615f0eed8"
     },
     {
       "path": [
@@ -88817,21 +88877,32 @@
       "path": [
         "Types",
         "UsedMemberOffsets",
-        "byteOffsets"
+        "bitOffsets"
       ],
       "kind": "swift.property",
-      "declaration": "var byteOffsets: [Int32]",
+      "declaration": "var bitOffsets: [UInt64]",
       "source": "bindings/swift/Sources/IDAX/Types.swift",
-      "id": "17c4417174668ca354ad"
+      "id": "acd328b036b2f28d81a6"
     },
     {
       "path": [
         "Types",
         "UsedMemberOffsets",
-        "init(typeName:byteOffsets:)"
+        "byteOffsets"
+      ],
+      "kind": "swift.property",
+      "declaration": "var byteOffsets: [UInt64]",
+      "source": "bindings/swift/Sources/IDAX/Types.swift",
+      "id": "95d2c914331d3ce4354b"
+    },
+    {
+      "path": [
+        "Types",
+        "UsedMemberOffsets",
+        "init(typeName:byteOffsets:bitOffsets:memberIndices:)"
       ],
       "kind": "swift.init",
-      "declaration": "init(typeName: String, byteOffsets: [Int32])",
+      "declaration": "init(typeName: String, byteOffsets: [UInt64] = [], bitOffsets: [UInt64] = [], memberIndices: [UInt64] = [])",
       "source": "bindings/swift/Sources/IDAX/Types.swift",
       "functionSignature": {
         "parameters": [
@@ -88866,8 +88937,52 @@
               },
               {
                 "kind": "typeIdentifier",
-                "spelling": "Int32",
-                "preciseIdentifier": "s:s5Int32V"
+                "spelling": "UInt64",
+                "preciseIdentifier": "s:s6UInt64V"
+              },
+              {
+                "kind": "text",
+                "spelling": "]"
+              }
+            ]
+          },
+          {
+            "name": "bitOffsets",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "bitOffsets"
+              },
+              {
+                "kind": "text",
+                "spelling": ": ["
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UInt64",
+                "preciseIdentifier": "s:s6UInt64V"
+              },
+              {
+                "kind": "text",
+                "spelling": "]"
+              }
+            ]
+          },
+          {
+            "name": "memberIndices",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "memberIndices"
+              },
+              {
+                "kind": "text",
+                "spelling": ": ["
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "UInt64",
+                "preciseIdentifier": "s:s6UInt64V"
               },
               {
                 "kind": "text",
@@ -88877,7 +88992,18 @@
           }
         ]
       },
-      "id": "5b008bcf5eb680979f20"
+      "id": "679340fa4fa6f87938d3"
+    },
+    {
+      "path": [
+        "Types",
+        "UsedMemberOffsets",
+        "memberIndices"
+      ],
+      "kind": "swift.property",
+      "declaration": "var memberIndices: [UInt64]",
+      "source": "bindings/swift/Sources/IDAX/Types.swift",
+      "id": "821f697e05b1b0e3f653"
     },
     {
       "path": [

@@ -42,12 +42,10 @@
 ### 7. Documented Gap Remediation (Phase 73)
 
 - **7.1. Scope:** All nine rows of the user's attached gap table; roadmap P73.1-P73.9 and Progress Ledger 16.245 are the closure register.
-- **7.2. Active:** P73.3 connected-client Lumina teardown validation; P73.9 actual 9.5 ABI/wide-offset consumer correction.
+- **7.2. Active:** P73.3 connected-client Lumina teardown evidence closure.
 - **7.3. Queued:** P73.7 broad Diaphora parity; P73.8 external GitHub retention.
 - **7.4. Publication:** Stage only explicit owned paths; use the user-requested `red` command and push every validated semantic group. SSH remote access passes; the currently invalid GitHub CLI credential is an API-access constraint, with connected GitHub tools and supported local credential recovery as the next probes.
 - **7.7. P73.3 constraint:** The inspected runtime close path uses virtual destruction to clear cached ownership. The exported getter/public virtual destructor equivalent is implemented. Local compilation/absence smoke pass; actual local metadata connection fails before cache creation. Publish and inspect the separate hosted positive probe, then retain exact connected-client teardown/reconnection evidence; source equivalence alone is not runtime proof.
-- **7.8. P73.9 next action:** Official source-defined SDK 950 headers and build-system packaging are available in the ignored local validation tree. Explicit SDK 950 validation mode and complete native compilation pass after the copied-string compatibility correction. Actual synthetic-provider text passes 44/0. The initial full 950 run is 45/46; its strict identifier failure is corrected and the target passes on both releases. Full 950 native baseline now passes 46/46. Complete actual byte/bit/union producer witnesses now pass with a portable source-built fixture. Correct every affected native/binding consumer and validate against these exact values. The raw SWIG int setter cannot serve as a wide producer.
-
 - **7.9. P73.8 external constraint [high]:** Fresh audit and concrete Support/fork-owner drafts are ready in `docs/reviews/github-retention-audit.md`. Two protected PR heads and four readable forks retain flagged history; one advertised fork is unavailable. Sending these external requests requires explicit user instruction. After requests/owner cleanup, repeat exact-object, all-ref and every-fork scans; do not infer purge from a clean master.
 
 - **7.10. Windows Rust link validation:** The registry fallback system dependency is now emitted by the independent Rust archive consumer. Publish and inspect the exact-head Windows Rust example/library build; native CMake passes do not close this gate.

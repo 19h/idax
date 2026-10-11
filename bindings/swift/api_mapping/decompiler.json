@@ -2231,6 +2231,60 @@
       ]
     },
     {
+      "mapping": "direct",
+      "rationale": "Preserves unsigned 64-bit native locations and their explicit byte, bit or union-index units.",
+      "cpp_id": "94592cadffb8bdc0bc16",
+      "cpp_name": "ida::decompiler::ExpressionView::member_bit_offset",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::uint64_t> () const",
+      "cpp_fingerprint": "8a68db0b929c8f370801d2228f1b757fe077cc51956f67ab607cb1a0f45d878d",
+      "swift": [
+        "573358f31862dd3cea26"
+      ],
+      "swift_targets": [
+        {
+          "path": "Decompiler.Expression.memberBitOffset()",
+          "declaration": "func memberBitOffset() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "mapping": "direct",
+      "rationale": "Preserves unsigned 64-bit native locations and their explicit byte, bit or union-index units.",
+      "cpp_id": "29981ecfddd29220afbe",
+      "cpp_name": "ida::decompiler::ExpressionView::member_index",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<std::uint64_t> () const",
+      "cpp_fingerprint": "0369ec5d1944a53787e098a96413dc346f21b1f967d5112e5855ef66ec824d0b",
+      "swift": [
+        "06c58c8f08773bdf96ed"
+      ],
+      "swift_targets": [
+        {
+          "path": "Decompiler.Expression.memberIndex()",
+          "declaration": "func memberIndex() throws(IDAError) -> UInt64"
+        }
+      ]
+    },
+    {
+      "mapping": "direct",
+      "rationale": "Preserves unsigned 64-bit native locations and their explicit byte, bit or union-index units.",
+      "cpp_id": "ded9cdd28eb192d0cfca",
+      "cpp_name": "ida::decompiler::ExpressionView::member_is_bitfield",
+      "cpp_kind": "method",
+      "cpp_signature": "Result<bool> () const",
+      "cpp_fingerprint": "9f729ccd4cf3c6429238c8e3b15fdd643783c6d6d004605ee8e9a76978d65ad3",
+      "swift": [
+        "716ca0160144711388fb"
+      ],
+      "swift_targets": [
+        {
+          "path": "Decompiler.Expression.memberIsBitfield()",
+          "declaration": "func memberIsBitfield() throws(IDAError) -> Bool"
+        }
+      ]
+    },
+    {
       "cpp_id": "db1e75bd7b2850ba6163",
       "cpp_name": "ida::decompiler::ExpressionView::member_name",
       "cpp_kind": "method",
@@ -2249,20 +2303,20 @@
       ]
     },
     {
-      "cpp_id": "6faf0c8a00b02243dcd5",
+      "cpp_id": "69ae199dce70199cc7b2",
       "cpp_name": "ida::decompiler::ExpressionView::member_offset",
       "cpp_kind": "method",
-      "cpp_signature": "Result<std::uint32_t> () const",
+      "cpp_signature": "Result<std::uint64_t> () const",
       "mapping": "direct",
       "swift": [
-        "2d9c85f461b6499bd3f8"
+        "8d3c456e01c068d8206f"
       ],
       "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
-      "cpp_fingerprint": "72eac8d61fc9567066fcec7fa92c1ecb7d68b509551121f5bbf9602049210a5f",
+      "cpp_fingerprint": "5245e2e3f115abc5eb8083d528effa13570225fa0374b2925f5944844460be82",
       "swift_targets": [
         {
           "path": "Decompiler.Expression.memberOffset()",
-          "declaration": "func memberOffset() throws(IDAError) -> UInt32"
+          "declaration": "func memberOffset() throws(IDAError) -> UInt64"
         }
       ]
     },
@@ -2357,20 +2411,20 @@
       ]
     },
     {
-      "cpp_id": "76e64c20dffd8004eea4",
+      "cpp_id": "cb01da14043ddda41785",
       "cpp_name": "ida::decompiler::ExpressionView::pointed_type_byte_width",
       "cpp_kind": "method",
-      "cpp_signature": "Result<int> () const",
+      "cpp_signature": "Result<std::uint64_t> () const",
       "mapping": "direct",
       "swift": [
-        "92fbaa9938d31a560f04"
+        "8f91adf9fb6ebaaca648"
       ],
       "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
-      "cpp_fingerprint": "7621daffcc1f73576b264a846f6047a6539e48b8a10baffd95e2f660e8bb57c5",
+      "cpp_fingerprint": "05a1e9576375f0c1919b3ca5f271aa2e50d74d6956232d6fd62f461601ae6126",
       "swift_targets": [
         {
           "path": "Decompiler.Expression.pointedTypeByteWidth()",
-          "declaration": "func pointedTypeByteWidth() throws(IDAError) -> Int32"
+          "declaration": "func pointedTypeByteWidth() throws(IDAError) -> UInt64"
         }
       ]
     },
@@ -2465,20 +2519,20 @@
       ]
     },
     {
-      "cpp_id": "39352e377703e26a70a8",
+      "cpp_id": "c17332861f772ff9216e",
       "cpp_name": "ida::decompiler::ExpressionView::type_byte_width",
       "cpp_kind": "method",
-      "cpp_signature": "Result<int> () const",
+      "cpp_signature": "Result<std::uint64_t> () const",
       "mapping": "direct",
       "swift": [
-        "686185bba72ed5c90cc4"
+        "a68d537ae29615f0eed8"
       ],
       "rationale": "Preserves the declared value, field, case or operation; names follow Swift conventions and fallible native calls throw IDAError.",
-      "cpp_fingerprint": "ca71466d68761eb32fed1b13e861dd18da5f06dc3256561327d017b1b194e66b",
+      "cpp_fingerprint": "c72439fd3ac9e210ff011c524e05e989e9b8eb1586bcece69fade75c3e965606",
       "swift_targets": [
         {
           "path": "Decompiler.Expression.typeByteWidth()",
-          "declaration": "func typeByteWidth() throws(IDAError) -> Int32"
+          "declaration": "func typeByteWidth() throws(IDAError) -> UInt64"
         }
       ]
     },

@@ -222,6 +222,20 @@ static v8::Local<v8::Object> ExpressionInfoToJS(ida::decompiler::ExpressionView 
     else
         builder.setNull("typeDeclaration");
 
+    const auto setWide = [&](const char* name, const ida::Result<std::uint64_t>& value) {
+        if (value) builder.setAddr(name, *value);
+        else builder.setNull(name);
+    };
+    setWide("typeByteWidth", expr.type_byte_width());
+    setWide("pointedTypeByteWidth", expr.pointed_type_byte_width());
+    setWide("memberOffset", expr.member_offset());
+    setWide("memberBitOffset", expr.member_bit_offset());
+    setWide("memberIndex", expr.member_index());
+    if (auto flag = expr.member_is_bitfield()) builder.setBool("memberIsBitfield", *flag);
+    else builder.setNull("memberIsBitfield");
+    if (auto name = expr.member_name()) builder.setStr("memberName", *name);
+    else builder.setNull("memberName");
+
     auto parent = expr.parent();
     auto parents = expr.parents();
     SetParentInfo(builder,

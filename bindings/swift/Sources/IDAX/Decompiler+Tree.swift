@@ -68,10 +68,13 @@ extension Decompiler {
         public func numberValue() throws(IDAError) -> UInt64 { try node.scalar(0) }
         public func objectAddress() throws(IDAError) -> Address { try node.scalar(1) }
         public func variableIndex() throws(IDAError) -> Int32 { Int32(truncatingIfNeeded: try node.scalar(2)) }
-        public func typeByteWidth() throws(IDAError) -> Int32 { Int32(truncatingIfNeeded: try node.scalar(3)) }
-        public func pointedTypeByteWidth() throws(IDAError) -> Int32 { Int32(truncatingIfNeeded: try node.scalar(4)) }
+        public func typeByteWidth() throws(IDAError) -> UInt64 { try node.scalar(3) }
+        public func pointedTypeByteWidth() throws(IDAError) -> UInt64 { try node.scalar(4) }
         public func callArgumentCount() throws(IDAError) -> Int { try checkedCtreeCount(node.scalar(5)) }
-        public func memberOffset() throws(IDAError) -> UInt32 { UInt32(truncatingIfNeeded: try node.scalar(6)) }
+        public func memberOffset() throws(IDAError) -> UInt64 { try node.scalar(6) }
+        public func memberBitOffset() throws(IDAError) -> UInt64 { try node.scalar(13) }
+        public func memberIndex() throws(IDAError) -> UInt64 { try node.scalar(14) }
+        public func memberIsBitfield() throws(IDAError) -> Bool { try node.scalar(15) != 0 }
         public func isAssignmentLHS() throws(IDAError) -> Bool { try node.scalar(7) != 0 }
         public func operandCount() throws(IDAError) -> Int32 { Int32(truncatingIfNeeded: try node.scalar(8)) }
         public func helperName() throws(IDAError) -> String { try node.string(0) }

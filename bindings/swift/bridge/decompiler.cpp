@@ -172,7 +172,7 @@ extern "C" int idax_swift_decompiler_apply_settings(uint64_t address, const Idax
 }
 extern "C" void idax_swift_decompiler_referenced_types_free(IdaxSwiftReferencedTypes* values) {
     if (!values) return; std::free(values->ordinals);
-    if (values->used_offsets) for (size_t i = 0; i < values->used_offset_count; ++i) { std::free(values->used_offsets[i].type_name); std::free(values->used_offsets[i].offsets); }
+    if (values->used_offsets) for (size_t i = 0; i < values->used_offset_count; ++i) { std::free(values->used_offsets[i].type_name); std::free(values->used_offsets[i].offsets); std::free(values->used_offsets[i].bit_offsets); std::free(values->used_offsets[i].member_indices); }
     std::free(values->used_offsets); *values = {};
 }
 extern "C" int idax_swift_decompiler_referenced_types(uint64_t address, IdaxSwiftReferencedTypes* output, IdaxSwiftError* error) {
@@ -182,7 +182,11 @@ extern "C" int idax_swift_decompiler_referenced_types(uint64_t address, IdaxSwif
         try { result.ordinals = allocate<uint32_t>(value.ordinals.size()); result.ordinal_count = value.ordinals.size();
             std::copy(value.ordinals.begin(), value.ordinals.end(), result.ordinals);
             result.used_offsets = allocate<IdaxSwiftUsedOffsets>(value.used_offsets.size()); result.used_offset_count = value.used_offsets.size();
-            for (size_t i = 0; i < value.used_offsets.size(); ++i) { auto& v = result.used_offsets[i]; const auto& source = value.used_offsets[i]; v.type_name = copy(source.type_name); v.offsets = allocate<int32_t>(source.byte_offsets.size()); v.count = source.byte_offsets.size(); std::copy(source.byte_offsets.begin(), source.byte_offsets.end(), v.offsets); }
+            for (size_t i = 0; i < value.used_offsets.size(); ++i) { auto& v = result.used_offsets[i]; const auto& source = value.used_offsets[i]; v.type_name = copy(source.type_name); v.offsets = allocate<uint64_t>(source.byte_offsets.size()); v.count = source.byte_offsets.size(); std::copy(source.byte_offsets.begin(), source.byte_offsets.end(), v.offsets);
+                v.bit_offsets = allocate<uint64_t>(source.bit_offsets.size()); v.bit_offset_count = source.bit_offsets.size();
+                std::copy(source.bit_offsets.begin(), source.bit_offsets.end(), v.bit_offsets);
+                v.member_indices = allocate<uint64_t>(source.member_indices.size()); v.member_index_count = source.member_indices.size();
+                std::copy(source.member_indices.begin(), source.member_indices.end(), v.member_indices); }
         } catch (...) { idax_swift_decompiler_referenced_types_free(&result); throw; }
         *output = result; return 0;
     });
@@ -269,6 +273,9 @@ extern "C" int idax_swift_tree_scalar(void* node, int property, size_t index, ui
             case 10: *output = statement(n).has_else_branch() ? 1 : 0; break;
             case 11: *output = take(statement(n).block_size()); break;
             case 12: *output = take(statement(n).switch_case_count()); break;
+            case 13: *output = take(expression(n).member_bit_offset()); break;
+            case 14: *output = take(expression(n).member_index()); break;
+            case 15: *output = take(expression(n).member_is_bitfield()) ? 1 : 0; break;
             default: throw ida::Error::validation("Unknown ctree scalar property");
         } return 0;
     });

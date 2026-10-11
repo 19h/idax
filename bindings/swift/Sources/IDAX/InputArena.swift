@@ -27,7 +27,9 @@ extension Types.RenderOptions {
         var values: [IdaxSwiftTypeUsedOffsets] = []
         for offsets in usedOffsets {
             values.append(IdaxSwiftTypeUsedOffsets(type_name: try arena.string(offsets.typeName, operation),
-                                                  byte_offsets: arena.array(offsets.byteOffsets), offset_count: offsets.byteOffsets.count))
+                                                  byte_offsets: arena.array(offsets.byteOffsets), offset_count: offsets.byteOffsets.count,
+                                                  bit_offsets: arena.array(offsets.bitOffsets), bit_offset_count: offsets.bitOffsets.count,
+                                                  member_indices: arena.array(offsets.memberIndices), member_index_count: offsets.memberIndices.count))
         }
         return IdaxSwiftTypeRenderOptions(size_comments: sizeComments ? 1 : 0, trim_unreferenced: trimUnreferenced ? 1 : 0,
                                           used_offsets: arena.array(values), used_offset_count: values.count)

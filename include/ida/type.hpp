@@ -81,7 +81,9 @@ struct ParseDeclarationsReport {
 
 struct UsedMemberOffsets {
     std::string type_name;
-    std::vector<int> byte_offsets;
+    std::vector<std::uint64_t> byte_offsets; ///< Structure byte offsets.
+    std::vector<std::uint64_t> bit_offsets;  ///< Exact structure bit offsets.
+    std::vector<std::uint64_t> member_indices; ///< Union member indices, never byte offsets.
 };
 
 struct TypeRenderOptions {

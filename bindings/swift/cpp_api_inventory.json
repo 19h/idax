@@ -5363,7 +5363,7 @@
     {
       "domain": "decompiler",
       "header": "include/ida/decompiler.hpp",
-      "sha256": "210017e8e3629a4c3537c3702e4af22f7affca9cdee488b7f5ce099fd3d4c5f3",
+      "sha256": "08154ae0d924831be673c02cecba1a23fe00fcedbe91f743f0297044fb71c3e5",
       "declarations": [
         {
           "name": "ida::decompiler::AddressMapping",
@@ -6424,6 +6424,24 @@
           "declaration": "[[nodiscard]] Result<ExpressionView> left() const"
         },
         {
+          "name": "ida::decompiler::ExpressionView::member_bit_offset",
+          "kind": "method",
+          "signature": "Result<std::uint64_t> () const",
+          "declaration": "[[nodiscard]] Result<std::uint64_t> member_bit_offset() const"
+        },
+        {
+          "name": "ida::decompiler::ExpressionView::member_index",
+          "kind": "method",
+          "signature": "Result<std::uint64_t> () const",
+          "declaration": "[[nodiscard]] Result<std::uint64_t> member_index() const"
+        },
+        {
+          "name": "ida::decompiler::ExpressionView::member_is_bitfield",
+          "kind": "method",
+          "signature": "Result<bool> () const",
+          "declaration": "[[nodiscard]] Result<bool> member_is_bitfield() const"
+        },
+        {
           "name": "ida::decompiler::ExpressionView::member_name",
           "kind": "method",
           "signature": "Result<std::string> () const",
@@ -6432,8 +6450,8 @@
         {
           "name": "ida::decompiler::ExpressionView::member_offset",
           "kind": "method",
-          "signature": "Result<std::uint32_t> () const",
-          "declaration": "[[nodiscard]] Result<std::uint32_t> member_offset() const"
+          "signature": "Result<std::uint64_t> () const",
+          "declaration": "[[nodiscard]] Result<std::uint64_t> member_offset() const"
         },
         {
           "name": "ida::decompiler::ExpressionView::number_value",
@@ -6468,8 +6486,8 @@
         {
           "name": "ida::decompiler::ExpressionView::pointed_type_byte_width",
           "kind": "method",
-          "signature": "Result<int> () const",
-          "declaration": "[[nodiscard]] Result<int> pointed_type_byte_width() const"
+          "signature": "Result<std::uint64_t> () const",
+          "declaration": "[[nodiscard]] Result<std::uint64_t> pointed_type_byte_width() const"
         },
         {
           "name": "ida::decompiler::ExpressionView::right",
@@ -6504,8 +6522,8 @@
         {
           "name": "ida::decompiler::ExpressionView::type_byte_width",
           "kind": "method",
-          "signature": "Result<int> () const",
-          "declaration": "[[nodiscard]] Result<int> type_byte_width() const"
+          "signature": "Result<std::uint64_t> () const",
+          "declaration": "[[nodiscard]] Result<std::uint64_t> type_byte_width() const"
         },
         {
           "name": "ida::decompiler::ExpressionView::type_declaration",
@@ -25923,7 +25941,7 @@
     {
       "domain": "type",
       "header": "include/ida/type.hpp",
-      "sha256": "fedb6f4232f53a397dc72e8367bdbd5986db87fbecbfe3045c1780a4e4ea7642",
+      "sha256": "cfb8a37b64c66e3848044ea1e7fac594d980443f05f899d94ca7f8b0f8730488",
       "declarations": [
         {
           "name": "ida::type::CallingConvention",
@@ -27166,10 +27184,22 @@
           "signature": "struct"
         },
         {
+          "name": "ida::type::UsedMemberOffsets::bit_offsets",
+          "kind": "field",
+          "signature": "std::vector<std::uint64_t>",
+          "declaration": "std::vector<std::uint64_t> bit_offsets"
+        },
+        {
           "name": "ida::type::UsedMemberOffsets::byte_offsets",
           "kind": "field",
-          "signature": "std::vector<int>",
-          "declaration": "std::vector<int> byte_offsets"
+          "signature": "std::vector<std::uint64_t>",
+          "declaration": "std::vector<std::uint64_t> byte_offsets"
+        },
+        {
+          "name": "ida::type::UsedMemberOffsets::member_indices",
+          "kind": "field",
+          "signature": "std::vector<std::uint64_t>",
+          "declaration": "std::vector<std::uint64_t> member_indices"
         },
         {
           "name": "ida::type::UsedMemberOffsets::type_name",

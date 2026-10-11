@@ -25,10 +25,14 @@ public enum Types {
   }
   public struct UsedMemberOffsets: Equatable, Sendable {
     public var typeName: String
-    public var byteOffsets: [Int32]
-    public init(typeName: String, byteOffsets: [Int32]) {
+    public var byteOffsets: [UInt64]
+    public var bitOffsets: [UInt64]
+    public var memberIndices: [UInt64]
+    public init(typeName: String, byteOffsets: [UInt64] = [], bitOffsets: [UInt64] = [], memberIndices: [UInt64] = []) {
       self.typeName = typeName
       self.byteOffsets = byteOffsets
+      self.bitOffsets = bitOffsets
+      self.memberIndices = memberIndices
     }
   }
   public struct RenderOptions: Equatable, Sendable {

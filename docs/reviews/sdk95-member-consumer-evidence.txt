@@ -1,0 +1,73 @@
+Native SDK 950 / runtime 9.5
+SDK=950 kernel=9.5 member-width=8
+FUNCTION: read_wide
+MEMBER: m=2147483664 flags=1
+PUBLIC: name=wide bytes=2147483664 bits=17179869312 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXHuge950
+FUNCTION: read_bits
+MEMBER: m=3 flags=1024
+PUBLIC: name=target bytes=0 bits=3 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXSmallBits950
+FUNCTION: read_big_bits
+MEMBER: m=4294967299 flags=1024
+PUBLIC: name=target bytes=536870912 bits=4294967299 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXBigBits950
+FUNCTION: read_union
+MEMBER: m=1 flags=1
+PUBLIC: name=real bytes=Validation bits=Validation index=1
+COLLECTION/RENDER: exact unit retained for IDAXChoice950
+OVERFLOW: renderer and type insertion reject byte-to-bit overflow
+LAYOUT: leading/intermediate bit gaps and wide opaque padding re-parse exactly
+PRODUCERS: signed-wide-bytes=1 bitfield=2 wide-bits=1
+
+SDK 940 dual ABI / runtime 9.5
+SDK=940 kernel=9.5 member-width=4
+FUNCTION: read_wide
+MEMBER: m=2147483664 flags=1
+PUBLIC: name=wide bytes=2147483664 bits=17179869312 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXHuge950
+FUNCTION: read_bits
+MEMBER: m=3 flags=1024
+PUBLIC: name=target bytes=0 bits=3 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXSmallBits950
+FUNCTION: read_big_bits
+MEMBER: m=4294967299 flags=1024
+PUBLIC: name=target bytes=536870912 bits=4294967299 index=Validation
+COLLECTION/RENDER: exact unit retained for IDAXBigBits950
+FUNCTION: read_union
+MEMBER: m=1 flags=1
+PUBLIC: name=real bytes=Validation bits=Validation index=1
+COLLECTION/RENDER: exact unit retained for IDAXChoice950
+OVERFLOW: renderer and type insertion reject byte-to-bit overflow
+LAYOUT: leading/intermediate bit gaps and wide opaque padding re-parse exactly
+PRODUCERS: signed-wide-bytes=1 bitfield=2 wide-bits=1
+
+C transport
+C: read_wide matches=1 failures=0
+C: read_bits matches=1 failures=0
+C: read_big_bits matches=1 failures=0
+C: read_union matches=1 failures=0
+
+Rust owned snapshots
+PASS: Rust read_wide exact u64/name/unit owned snapshot
+PASS: Rust read_bits exact u64/name/unit owned snapshot
+PASS: Rust read_big_bits exact u64/name/unit owned snapshot
+PASS: Rust read_union exact u64/name/unit owned snapshot
+
+Node BigInt snapshots
+PASS: Node read_wide exact BigInt/name/unit snapshot
+PASS: Node read_bits exact BigInt/name/unit snapshot
+PASS: Node read_big_bits exact BigInt/name/unit snapshot
+PASS: Node read_union exact BigInt/name/unit snapshot
+
+Python exact integers and declaration round trip
+PASS: Python read_wide exact getter/name/unit/collection/render
+PASS: Python read_bits exact getter/name/unit/collection/render
+PASS: Python read_big_bits exact getter/name/unit/collection/render
+PASS: Python read_union exact getter/name/unit/collection/render
+
+Swift UInt64 and declaration round trip
+PASS: Swift read_wide exact UInt64/name/unit/collection/render
+PASS: Swift read_bits exact UInt64/name/unit/collection/render
+PASS: Swift read_big_bits exact UInt64/name/unit/collection/render
+PASS: Swift read_union exact UInt64/name/unit/collection/render

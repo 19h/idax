@@ -349,3 +349,8 @@ This section captures the intended public API semantics at a concrete level so i
 - Native plugin, loader and processor protocols dispatch through real PLUGIN/LDSC/LPH artifacts linked to one shared support image; the inventory and module examples are public-package consumers.
 
 - Swift custom form layouts use opaque UI.FormArgument values over typed FormBinding cells. Native supported scalar/text/path/choice controls preserve argument order and commit only on acceptance; generated forms and caller-authored layouts share the private storage boundary.
+
+### 17.47 Unsigned Decompiler Member Locations and Type Sizes
+- ExpressionView exposes uint64 byte offsets, exact bit offsets and union member indices through separate fallible methods, plus native bitfield status and resolved member names. Byte/bit queries reject unions; checked conversion rejects overflow. Type and pointed-object sizes are uint64, with zero preserving the existing unknown-size contract.
+- Referenced-type collections retain distinct uint64 byte/bit/index arrays. Structure trimming uses exact bit intervals and native bounded-array/anonymous-bitfield padding; union rendering retains all fields. C++/Python/Swift expose the existing collector/renderer operations; C/Rust/Node snapshots copy or borrow the corresponding member metadata without SDK pointers.
+- Actual source-built 950 and 940-header dual-ABI producers and all affected bindings pass exact location/name/width checks; native/Python/Swift parsed declarations retain the selected layout. See docs/reviews/sdk95-member-consumer-validation.md for proof and rebuild/platform limits.

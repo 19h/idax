@@ -1238,10 +1238,10 @@ public:
     [[nodiscard]] Result<std::string> type_declaration() const;
 
     /// Return the expression type size in bytes.
-    [[nodiscard]] Result<int> type_byte_width() const;
+    [[nodiscard]] Result<std::uint64_t> type_byte_width() const;
 
     /// For pointer-typed expressions, return the pointed-object size in bytes.
-    [[nodiscard]] Result<int> pointed_type_byte_width() const;
+    [[nodiscard]] Result<std::uint64_t> pointed_type_byte_width() const;
 
     /// For ExprString: return the string constant. Error otherwise.
     [[nodiscard]] Result<std::string> string_value() const;
@@ -1255,8 +1255,18 @@ public:
     /// For ExprCall: return the argument expression at index. Error otherwise.
     [[nodiscard]] Result<ExpressionView> call_argument(std::size_t index) const;
 
-    /// For ExprMemberRef/ExprMemberPtr: return the member offset. Error otherwise.
-    [[nodiscard]] Result<std::uint32_t> member_offset() const;
+    /// Member byte offset; bitfields return floor(bit offset / 8).
+    /// Union member accesses return Validation: their native value is an index.
+    [[nodiscard]] Result<std::uint64_t> member_offset() const;
+
+    /// Exact member bit offset. Returns Validation for unions or byte-to-bit overflow.
+    [[nodiscard]] Result<std::uint64_t> member_bit_offset() const;
+
+    /// Union member index. Returns Validation for structure member accesses.
+    [[nodiscard]] Result<std::uint64_t> member_index() const;
+
+    /// Whether this member access carries the native bitfield flag.
+    [[nodiscard]] Result<bool> member_is_bitfield() const;
 
     /// For ExprMemberRef/ExprMemberPtr: return the resolved member name, if any.
     [[nodiscard]] Result<std::string> member_name() const;

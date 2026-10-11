@@ -370,6 +370,11 @@ fn main() {
     let mut config = cmake::Config::new(&idax_root);
     config.define("IDAX_BUILD_EXAMPLES", "OFF");
     config.define("IDAX_BUILD_TESTS", "OFF");
+    // The SDK 950 path remains explicitly opted in, as for native CMake.
+    if let Ok(value) = env::var("IDAX_VALIDATE_SDK95") {
+        assert!(value == "ON" || value == "OFF", "IDAX_VALIDATE_SDK95 must be ON or OFF");
+        config.define("IDAX_VALIDATE_SDK95", value);
+    }
     // Ensure LTO is disabled when building the static idax library for Rust consumption
     config.define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "OFF");
     if cfg!(target_os = "windows") {
@@ -547,5 +552,6 @@ fn main() {
     println!("cargo:rerun-if-changed=shim/idax_shim.h");
     println!("cargo:rerun-if-changed=shim/idax_shim.cpp");
     println!("cargo:rerun-if-env-changed=IDASDK");
+    println!("cargo:rerun-if-env-changed=IDAX_VALIDATE_SDK95");
     println!("cargo:rerun-if-env-changed=DOCS_RS");
 }

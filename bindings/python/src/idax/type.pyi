@@ -58,6 +58,8 @@ class ParseDeclarationsReport:
 class UsedMemberOffsets:
     type_name: str
     byte_offsets: list[int]
+    bit_offsets: list[int]
+    member_indices: list[int]
     def __init__(self) -> None: ...
 
 class TypeRenderOptions:

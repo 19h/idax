@@ -10366,6 +10366,7 @@ int idax_decompiler_item_type_name(int item_type, char** out) {
 
 // Owns the ordinary C summary values until the visitor callback returns.
 struct CtreeInfoStorage {
+    std::string member_name;
     std::vector<IdaxDecompilerCtreeItemInfo> parents;
     std::vector<IdaxDecompilerCtreeItemInfo> children;
     std::vector<std::vector<std::uint64_t>> case_values;
@@ -10426,6 +10427,23 @@ static void fill_expression_info(IdaxDecompilerExpressionInfo* raw,
             *type_declaration = *type;
             raw->type_declaration = type_declaration->c_str();
         }
+    }
+
+    const auto set_wide = [](const ida::Result<std::uint64_t>& value, int& present, uint64_t& output) {
+        if (value) { present = 1; output = *value; }
+    };
+    set_wide(expr.type_byte_width(), raw->has_type_byte_width, raw->type_byte_width);
+    set_wide(expr.pointed_type_byte_width(), raw->has_pointed_type_byte_width, raw->pointed_type_byte_width);
+    set_wide(expr.member_offset(), raw->has_member_offset, raw->member_offset);
+    set_wide(expr.member_bit_offset(), raw->has_member_bit_offset, raw->member_bit_offset);
+    set_wide(expr.member_index(), raw->has_member_index, raw->member_index);
+    if (auto flag = expr.member_is_bitfield()) {
+        raw->has_member_is_bitfield = 1;
+        raw->member_is_bitfield = *flag ? 1 : 0;
+    }
+    if (auto name = expr.member_name()) {
+        storage.member_name = *name;
+        raw->member_name = storage.member_name.c_str();
     }
 
     auto parents = expr.parents();

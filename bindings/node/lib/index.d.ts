@@ -3150,6 +3150,15 @@ export namespace decompiler {
         variableIndex: number | null;
         helperName: string | null;
         typeDeclaration: string | null;
+        typeByteWidth: bigint | null;
+        pointedTypeByteWidth: bigint | null;
+        /** Byte offset; bitfields use floor(memberBitOffset / 8). Null for unions. */
+        memberOffset: bigint | null;
+        memberBitOffset: bigint | null;
+        /** Union member index; null for structure accesses. */
+        memberIndex: bigint | null;
+        memberIsBitfield: boolean | null;
+        memberName: string | null;
         parent: CtreeItemInfo | null;
         parentDepth: number;
         parents: CtreeItemInfo[];

@@ -2340,6 +2340,19 @@ typedef struct IdaxDecompilerExpressionInfo {
     const IdaxDecompilerCtreeItemInfo* call_arguments;
     size_t call_argument_count;
     int operand_count;
+    int has_type_byte_width;
+    uint64_t type_byte_width;
+    int has_pointed_type_byte_width;
+    uint64_t pointed_type_byte_width;
+    int has_member_offset;
+    uint64_t member_offset;
+    int has_member_bit_offset;
+    uint64_t member_bit_offset;
+    int has_member_index;
+    uint64_t member_index;
+    int has_member_is_bitfield;
+    int member_is_bitfield;
+    const char* member_name; /**< Borrowed for this callback; null when unavailable. */
 } IdaxDecompilerExpressionInfo;
 
 typedef struct IdaxDecompilerStatementInfo {

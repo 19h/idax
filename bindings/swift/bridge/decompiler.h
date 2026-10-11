@@ -20,7 +20,11 @@ typedef struct IdaxSwiftLocalVariableSetting {
     char* type_declaration;
     char* comment;
 } IdaxSwiftLocalVariableSetting;
-typedef struct IdaxSwiftUsedOffsets { char* type_name; int32_t* offsets; size_t count; } IdaxSwiftUsedOffsets;
+typedef struct IdaxSwiftUsedOffsets {
+    char* type_name; uint64_t* offsets; size_t count;
+    uint64_t* bit_offsets; size_t bit_offset_count;
+    uint64_t* member_indices; size_t member_index_count;
+} IdaxSwiftUsedOffsets;
 typedef struct IdaxSwiftReferencedTypes {
     uint32_t* ordinals; size_t ordinal_count;
     IdaxSwiftUsedOffsets* used_offsets; size_t used_offset_count;

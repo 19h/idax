@@ -12,7 +12,7 @@
     {"domain": "data", "path": "include/ida/data.hpp", "sha256": "af865ba352625e47b4b22d158990b848da3b47195eed67e20759f3bd8f56a097"},
     {"domain": "database", "path": "include/ida/database.hpp", "sha256": "9048beda2b2e699c11272369e83ed67f8ecd3d44ef67019c54fc631e7c200498"},
     {"domain": "debugger", "path": "include/ida/debugger.hpp", "sha256": "23f528e7b08dd21e04b8ceaae9344c68766f39d59a7ef9148aa1a61ebf95f2cc"},
-    {"domain": "decompiler", "path": "include/ida/decompiler.hpp", "sha256": "210017e8e3629a4c3537c3702e4af22f7affca9cdee488b7f5ce099fd3d4c5f3"},
+    {"domain": "decompiler", "path": "include/ida/decompiler.hpp", "sha256": "08154ae0d924831be673c02cecba1a23fe00fcedbe91f743f0297044fb71c3e5"},
     {"domain": "diagnostics", "path": "include/ida/diagnostics.hpp", "sha256": "0b647d35a7ead6301b9bafcd52248103ddc14421812a62a40e7a79d5e0696c78"},
     {"domain": "directory", "path": "include/ida/directory.hpp", "sha256": "34ef458d40feca08fbbbbb59cae9bf5888a697ab893a36b8f42f11591f367687"},
     {"domain": "entry", "path": "include/ida/entry.hpp", "sha256": "67492268b69e4f4464d6426a92cfa6abc96e2119724b0ef25a9890fe9415f1a7"},
@@ -40,7 +40,7 @@
     {"domain": "segment", "path": "include/ida/segment.hpp", "sha256": "15a8d1d888404fd80c455fcfd301264df83a68dfc4cdc446729095d8650687ca"},
     {"domain": "script", "path": "include/ida/script.hpp", "sha256": "6d2e8b7c972c3963bd352ddb4f9e1ca5d68cd3a9a826e2f8a00699bd4f9f6754"},
     {"domain": "storage", "path": "include/ida/storage.hpp", "sha256": "68900c09cd24d780438988d89354571c9d9014b89df286fab8d402ee89214ae6"},
-    {"domain": "type", "path": "include/ida/type.hpp", "sha256": "fedb6f4232f53a397dc72e8367bdbd5986db87fbecbfe3045c1780a4e4ea7642"},
+    {"domain": "type", "path": "include/ida/type.hpp", "sha256": "cfb8a37b64c66e3848044ea1e7fac594d980443f05f899d94ca7f8b0f8730488"},
     {"domain": "ui", "path": "include/ida/ui.hpp", "sha256": "faebe647fe39af4cc3d2302f09e8020a8ddfcdf47ef1dcf3c6a7943cf95ff3fa"},
     {"domain": "undo", "path": "include/ida/undo.hpp", "sha256": "7b70bee7a084da58483a2264ab78c52b72ae0a6c7623a0dfccaf28bef047629c"},
     {"domain": "xref", "path": "include/ida/xref.hpp", "sha256": "808e4a46b88d7da3e5e8bd52d419bd9b2bde377f144b5d36478bb0722c898588"}
