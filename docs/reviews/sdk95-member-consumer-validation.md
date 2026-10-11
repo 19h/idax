@@ -170,4 +170,4 @@ the earlier local 9.5 width/layout proof does not assert Linux compile success.
 After the explicit integer-type correction, actual SDK 940/runtime 9.4 local
 `type_roundtrip`, `decompiler_storage_hardening` and `decompiler_edge_cases`
 pass 3/3 in 8.65 s. These focused macOS checks establish local regression
-behavior; hosted Linux native/Docker/binding validation is pending.
+behavior; hosted Linux native/Docker/binding validation now passes at c0f4fb6f. Linux/Windows full native suites pass 46/46 (15.60 s/36.34 s), with configured/executed inventory checks; Linux Rust/Docker dedicated runtime targets pass. Exact source/run/job boundaries are retained in docs/reviews/native-sdk94-full-validation.md.

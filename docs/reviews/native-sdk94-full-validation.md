@@ -59,3 +59,21 @@ compile or availability evidence cannot substitute for execution. Inventory
 comparison is O(test count) time/storage. Counts are dimensionless; elapsed
 time uses seconds. Native artifacts, logs and source registrations are primary
 evidence. QG1-QG7 pass within the exact platform/revision scope.
+
+Current-source LP64 revalidation: signed source
+`c0f4fb6f51e7783a25d238ec1710f7e33a1cc0c5` passes all eight jobs in
+[Validation run 38098778652](https://github.com/19h/idax/actions/runs/38098778652).
+Linux full job `114350150738` reports 46/46 in 15.60 s; Windows full job
+`114350150861` reports 46/46 in 36.34 s. Both independently pass the configured
+and executed 46-case inventory checks. Run metadata confirms the source identity;
+job metadata confirms membership in that run. This closes the later Linux
+unsigned-typedef compile regression without substituting earlier runtime proof.
+
+[Bindings run 38098778631](https://github.com/19h/idax/actions/runs/38098778631)
+Linux Rust job `114350150473` and Docker job `114350150566` both pass 172 library
+tests and actual initialized referent/register/semantic metadata targets. The
+Docker image audit passes 32 members and 4444575912 decoded bytes. Python and
+Node Linux jobs also pass. Windows Python was still running at the observation;
+these claims do not assert complete Bindings workflow closure or validation of
+the newer feature-input commit. P73.6's native portability gate is closed at the
+explicit source above.
