@@ -434,7 +434,7 @@ TypeInfo factory/runtime operations require an initialized IDA runtime/database;
 * `retrieveOperand(address: Address, operandIndex: number): TypeInfo`
 * `removeType(address: Address): void`
 * `loadTypeLibrary(tilName: string): boolean`, `unloadTypeLibrary(tilName: string): void`
-* `localTypeCount(): number`, `localTypeName(ordinal: number): string` (1-based ordinal)
+* `localTypeCount(): number`, `localTypeName(ordinal: number): string`, `localTypeDeclaration(ordinal: number): string` (1-based ordinal; declaration includes alignment pragmas and a semicolon)
 * `importType(sourceTilName: string, typeName: string): number`
 * `ensureNamedType(typeName: string, sourceTil?: string): TypeInfo`
 * `applyNamedType(address: Address, typeName: string): void`

@@ -1208,12 +1208,39 @@ void test_apply_named_type() {
 void test_local_type_library() {
     std::cout << "--- local type library enumeration ---\n";
 
+    auto parsed = ida::type::parse_declarations(
+        "#pragma pack(push, 1)\n"
+        "struct idax_local_packed { char tag; int value; };\n"
+        "#pragma pack(pop)\n");
+    CHECK(parsed && parsed->ok());
+
     auto count = ida::type::local_type_count();
     CHECK_OK(count);
     if (!count) return;
 
     std::cout << "  local type count: " << *count << "\n";
     CHECK(*count > 0);  // The fixture should have at least some types
+    bool found_packed = false;
+    for (std::size_t ordinal = 1; ordinal <= *count; ++ordinal) {
+        auto type_name = ida::type::local_type_name(ordinal);
+        if (!type_name || *type_name != "idax_local_packed") continue;
+        found_packed = true;
+        auto declaration = ida::type::local_type_declaration(ordinal);
+        CHECK_OK(declaration);
+        if (declaration) {
+            CHECK(declaration->find("#pragma pack") != std::string::npos);
+            CHECK(declaration->find("idax_local_packed") != std::string::npos);
+            CHECK(declaration->find("value") != std::string::npos);
+        }
+        auto packed = ida::type::TypeInfo::by_name("idax_local_packed");
+        CHECK(packed && packed->size() == 5);
+    }
+    CHECK(found_packed);
+    for (std::size_t ordinal : {std::size_t{0}, *count + 100,
+                                std::numeric_limits<std::size_t>::max()}) {
+        auto missing = ida::type::local_type_declaration(ordinal);
+        CHECK(!missing && missing.error().category == ida::ErrorCategory::NotFound);
+    }
 
     // First type name should be non-empty
     if (*count > 0) {

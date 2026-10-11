@@ -281,6 +281,7 @@ typedef struct IdaxDatabaseProcessorProfile {
 int idax_database_processor_profile(IdaxDatabaseProcessorProfile* out);
 void idax_database_processor_profile_free(IdaxDatabaseProcessorProfile* profile);
 int idax_database_processor_name(char** out);
+int idax_database_processor_module_name(char** out);
 int idax_database_address_bitness(int* out);
 int idax_database_set_address_bitness(int bits);
 int idax_database_is_big_endian(int* out);
@@ -1709,6 +1710,7 @@ int idax_type_load_library(const char* til_name, int* out);
 int idax_type_unload_library(const char* til_name);
 int idax_type_local_type_count(size_t* out);
 int idax_type_local_type_name(size_t ordinal, char** out);
+int idax_type_local_type_declaration(size_t ordinal, char** out);
 int idax_type_import(const char* source_til_name, const char* type_name, size_t* out);
 int idax_type_apply_named(uint64_t ea, const char* type_name);
 int idax_type_parse_declarations(const char* declarations,

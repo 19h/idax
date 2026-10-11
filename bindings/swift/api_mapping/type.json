@@ -3298,6 +3298,24 @@
       ]
     },
     {
+      "cpp_id": "d30ad43f8cfbdc18f728",
+      "cpp_name": "ida::type::local_type_declaration",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> (std::size_t)",
+      "mapping": "direct",
+      "swift": [
+        "630bdf3767a34b12002b"
+      ],
+      "rationale": "Preserves one-based local ordinal and complete owned native declaration; native failure throws IDAError.",
+      "cpp_fingerprint": "b46f2bd286cee56ca9b195d0db833987a60a739618d7fe0ca38aa7bd26e4a8a0",
+      "swift_targets": [
+        {
+          "path": "Types.localTypeDeclaration(ordinal:)",
+          "declaration": "static func localTypeDeclaration(ordinal: Int) throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
       "cpp_id": "6a6ad8b79ea23e8e809f",
       "cpp_name": "ida::type::local_type_name",
       "cpp_kind": "function",

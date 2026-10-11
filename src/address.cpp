@@ -313,6 +313,13 @@ Result<std::string> processor_name() {
     return ida::detail::to_string(name);
 }
 
+Result<std::string> processor_module_name() {
+    char module_name[QMAXFILE]{};
+    if (::get_idp_name(module_name, sizeof(module_name)) == nullptr || module_name[0] == '\0')
+        return std::unexpected(Error::not_found("No processor module loaded"));
+    return std::string(module_name);
+}
+
 Result<int> address_bitness() {
     if (inf_is_64bit())
         return 64;

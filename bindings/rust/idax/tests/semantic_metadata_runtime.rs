@@ -1,5 +1,5 @@
 //! Initialized owned C-ABI metadata, ctree summaries, and cache parser evidence.
-use idax::{analysis, database, decompiler::*, dyld_cache, function, instruction, plugin};
+use idax::{analysis, database, decompiler::*, dyld_cache, function, instruction, plugin, types};
 use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 #[derive(Default)]
@@ -58,6 +58,18 @@ fn main() {
     assert!(dyld_cache::list_modules_from_file(cache.to_str().unwrap()).is_err());
     assert!(dyld_cache::list_modules_from_file("bad\0path").is_err());
     database::init().unwrap(); database::open(fixture.to_str().unwrap(), true).unwrap(); analysis::wait().unwrap();
+    let processor_module = database::processor_module_name().unwrap();
+    assert!(!processor_module.is_empty());
+    let declaration_report = types::parse_declarations(
+        "#pragma pack(push, 1)\nstruct RustRuntimePacked { char tag; int value; };\n#pragma pack(pop)\n",
+        types::ParseDeclarationsOptions::default()).unwrap();
+    assert_eq!(declaration_report.error_count, 0);
+    let packed_ordinal = (1..=types::local_type_count().unwrap())
+        .find(|ordinal| types::local_type_name(*ordinal).ok().as_deref() == Some("RustRuntimePacked"))
+        .expect("parsed packed type must have a local ordinal");
+    let packed_declaration = types::local_type_declaration(packed_ordinal).unwrap();
+    assert!(packed_declaration.contains("#pragma pack") && packed_declaration.contains("RustRuntimePacked"));
+    assert!(types::local_type_declaration(0).is_err());
     let mnemonics = instruction::mnemonics().unwrap();
     assert!(!mnemonics.is_empty());
     assert!(!dyld_cache::is_available().unwrap());
@@ -116,6 +128,8 @@ fn main() {
     let saved = directory.join("saved.i64"); database::save_to(saved.to_str().unwrap()).unwrap(); assert!(saved.is_file());
     let copied_text: Vec<_> = retained.iter().map(|model| (model.text.clone(), model.blocks.iter().map(|block| block.text.clone()).collect::<Vec<_>>())).collect();
     database::close(false).unwrap(); database::open(saved.to_str().unwrap(), false).unwrap(); database::close(false).unwrap();
+    assert!(packed_declaration.contains("#pragma pack"));
+    assert!(!processor_module.is_empty());
     for (model, (text, blocks)) in retained.iter().zip(copied_text) {
         assert_eq!(model.text, text);
         assert_eq!(model.blocks.iter().map(|block| block.text.clone()).collect::<Vec<_>>(), blocks);

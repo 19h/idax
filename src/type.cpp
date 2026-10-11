@@ -1203,6 +1203,28 @@ Result<std::string> local_type_name(std::size_t ordinal) {
     return std::string(name);
 }
 
+Result<std::string> local_type_declaration(std::size_t ordinal) {
+    if (ordinal == 0 || ordinal > std::numeric_limits<uint32>::max())
+        return std::unexpected(Error::not_found("No type at ordinal",
+                                                 std::to_string(ordinal)));
+    const type_t* serialized = nullptr;
+    const p_list* fields = nullptr;
+    if (!::get_numbered_type(nullptr, static_cast<uint32>(ordinal), &serialized, &fields))
+        return std::unexpected(Error::not_found("No type at ordinal",
+                                                 std::to_string(ordinal)));
+    tinfo_t type;
+    if (!type.deserialize(nullptr, &serialized, &fields, nullptr))
+        return std::unexpected(Error::sdk("Failed to deserialize local type declaration",
+                                           std::to_string(ordinal)));
+    const char* name = get_numbered_type_name(nullptr, static_cast<uint32>(ordinal));
+    qstring declaration;
+    if (!type.print(&declaration, name,
+                    PRTYPE_MULTI | PRTYPE_TYPE | PRTYPE_PRAGMA | PRTYPE_SEMI, 2, 40))
+        return std::unexpected(Error::sdk("Failed to print local type declaration",
+                                           std::to_string(ordinal)));
+    return ida::detail::to_string(declaration);
+}
+
 Result<std::size_t> import_type(std::string_view source_til_name,
                                  std::string_view type_name) {
     std::string src_name(source_til_name);

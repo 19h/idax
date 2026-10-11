@@ -295,8 +295,12 @@ Result<std::int32_t> processor_id();
 /// `processor_profile()` when the raw identity must remain representable.
 Result<ProcessorId> processor();
 
-/// Active processor module short name (e.g. "metapc", "ARM", "mips").
+/// Selected processor variant name (e.g. "metapc", "ARM", "mips").
 Result<std::string> processor_name();
+
+/// Current processor module file stem (for example "pc"); distinct from the
+/// selected processor variant returned by processor_name (for example "metapc").
+Result<std::string> processor_module_name();
 
 /// Program address bitness for the current database (16/32/64).
 Result<int> address_bitness();

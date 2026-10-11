@@ -1153,6 +1153,17 @@ pub fn local_type_name(ordinal: usize) -> Result<String> {
     }
 }
 
+/// Multiline local type definition with alignment pragmas and semicolon.
+pub fn local_type_declaration(ordinal: usize) -> Result<String> {
+    let mut out: *mut c_char = std::ptr::null_mut();
+    let ret = unsafe { idax_sys::idax_type_local_type_declaration(ordinal, &mut out) };
+    if ret != 0 || out.is_null() {
+        Err(error::consume_last_error("local_type_declaration failed"))
+    } else {
+        unsafe { error::cstr_to_string_free(out, "local_type_declaration failed") }
+    }
+}
+
 /// Import a named type from a source TIL into local types.
 pub fn import_type(source_til_name: &str, type_name: &str) -> Result<usize> {
     let source = CString::new(source_til_name)

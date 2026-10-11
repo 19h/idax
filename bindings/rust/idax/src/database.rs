@@ -584,6 +584,18 @@ pub fn processor_name() -> Result<String> {
     }
 }
 
+/// Current processor module file stem, independently of its selected variant.
+pub fn processor_module_name() -> Result<String> {
+    unsafe {
+        let mut ptr: *mut std::ffi::c_char = std::ptr::null_mut();
+        let ret = idax_sys::idax_database_processor_module_name(&mut ptr);
+        if ret != 0 {
+            return Err(error::consume_last_error("processor_module_name failed"));
+        }
+        error::cstr_to_string_free(ptr, "processor_module_name null")
+    }
+}
+
 /// Program address bitness for the current database (16/32/64).
 pub fn address_bitness() -> Result<i32> {
     let mut bits: i32 = 0;

@@ -358,6 +358,11 @@ NAN_METHOD(ProcessorName) {
     info.GetReturnValue().Set(FromString(name));
 }
 
+NAN_METHOD(ProcessorModuleName) {
+    IDAX_UNWRAP(auto name, ida::database::processor_module_name());
+    info.GetReturnValue().Set(FromString(name));
+}
+
 NAN_METHOD(AddressBitness) {
     IDAX_UNWRAP(auto bits, ida::database::address_bitness());
     info.GetReturnValue().Set(Nan::New(bits));
@@ -480,6 +485,7 @@ void InitDatabase(v8::Local<v8::Object> target) {
     SetMethod(ns, "processor",        Processor);
     SetMethod(ns, "processorProfile", ProcessorProfile);
     SetMethod(ns, "processorName",    ProcessorName);
+    SetMethod(ns, "processorModuleName", ProcessorModuleName);
     SetMethod(ns, "addressBitness",   AddressBitness);
     SetMethod(ns, "setAddressBitness", SetAddressBitness);
     SetMethod(ns, "isBigEndian",      IsBigEndian);

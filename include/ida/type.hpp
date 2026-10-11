@@ -370,6 +370,10 @@ Result<std::size_t> local_type_count();
 /// Get the name of a local type by its ordinal number (1-based).
 Result<std::string> local_type_name(std::size_t ordinal);
 
+/// Multiline definition of one local type, including alignment pragmas and
+/// a trailing semicolon. Ordinals are one-based; missing slots return NotFound.
+Result<std::string> local_type_declaration(std::size_t ordinal);
+
 /// Copy a named type from a loaded type library to the local type library.
 /// @param source_til_name  Name of the source til (e.g. "mssdk_win7").
 ///                         If empty, searches all loaded tils.

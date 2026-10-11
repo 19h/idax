@@ -15655,6 +15655,25 @@
     {
       "path": [
         "Database",
+        "processorModuleName()"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func processorModuleName() throws(IDAError) -> String",
+      "source": "bindings/swift/Sources/IDAX/Database+Values.swift",
+      "functionSignature": {
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "String",
+            "preciseIdentifier": "s:SS"
+          }
+        ]
+      },
+      "id": "224f327f5832ffa46dfd"
+    },
+    {
+      "path": [
+        "Database",
         "processorName()"
       ],
       "kind": "swift.type.method",
@@ -89538,6 +89557,45 @@
         ]
       },
       "id": "702ca8e95eec2cfd2031"
+    },
+    {
+      "path": [
+        "Types",
+        "localTypeDeclaration(ordinal:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func localTypeDeclaration(ordinal: Int) throws(IDAError) -> String",
+      "source": "bindings/swift/Sources/IDAX/Types.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "ordinal",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "ordinal"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Int",
+                "preciseIdentifier": "s:Si"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "typeIdentifier",
+            "spelling": "String",
+            "preciseIdentifier": "s:SS"
+          }
+        ]
+      },
+      "id": "630bdf3767a34b12002b"
     },
     {
       "path": [

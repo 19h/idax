@@ -1599,6 +1599,10 @@ int idax_database_processor_name(char** out) {
     RETURN_RESULT_STRING(ida::database::processor_name());
 }
 
+int idax_database_processor_module_name(char** out) {
+    RETURN_RESULT_STRING(ida::database::processor_module_name());
+}
+
 int idax_database_address_bitness(int* out) {
     RETURN_RESULT_VALUE(ida::database::address_bitness());
 }
@@ -7707,6 +7711,10 @@ int idax_type_local_type_count(size_t* out) {
 
 int idax_type_local_type_name(size_t ordinal, char** out) {
     RETURN_RESULT_STRING(ida::type::local_type_name(ordinal));
+}
+
+int idax_type_local_type_declaration(size_t ordinal, char** out) {
+    RETURN_RESULT_STRING(ida::type::local_type_declaration(ordinal));
 }
 
 int idax_type_import(const char* source_til_name, const char* type_name, size_t* out) {

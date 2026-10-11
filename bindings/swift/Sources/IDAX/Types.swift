@@ -109,6 +109,12 @@ public enum Types {
     try requireNonnegative(ordinal, "Types.localTypeName")
     return try withStringOutput("Types.localTypeName") { idax_type_local_type_name(ordinal, $0) }
   }
+
+  /// Complete multiline definition with alignment pragmas and a semicolon.
+  public static func localTypeDeclaration(ordinal: Int) throws(IDAError) -> String {
+    try requireNonnegative(ordinal, "Types.localTypeDeclaration")
+    return try withStringOutput("Types.localTypeDeclaration") { idax_type_local_type_declaration(ordinal, $0) }
+  }
   public static func importType(named name: String, fromLibrary library: String = "")
     throws(IDAError) -> Int
   {

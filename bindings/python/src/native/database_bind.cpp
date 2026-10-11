@@ -328,6 +328,7 @@ void bind_database(py::module_& module) {
     IDAX_PY_DATABASE_RESULT(processor_id);
     IDAX_PY_DATABASE_RESULT(processor);
     IDAX_PY_DATABASE_RESULT(processor_name);
+    IDAX_PY_DATABASE_RESULT(processor_module_name);
     IDAX_PY_DATABASE_RESULT(address_bitness);
     IDAX_PY_DATABASE_RESULT(is_big_endian);
     IDAX_PY_DATABASE_RESULT(abi_name);

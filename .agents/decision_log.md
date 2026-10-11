@@ -1529,3 +1529,11 @@ Expose instruction.mnemonics, graph.switch_cases and copied MicrocodeFunction/Bl
 ### D19.103. Preserve Microcode Print Sequencing
 
 Capture MicrocodeFunction.text at the requested maturity before build_graph; capture block text after graph construction with copied semantic blocks and relations. Native graph construction changes instructions/numbering, so a single post-graph print point cannot preserve both upstream inputs. Retain owned strings, exact native color tags and unchanged requested maturity. Direct native comparisons and higher-level deterministic records are the falsification gates.
+
+### D19.104. Owned Complete Local Type Declaration
+
+Expose local_type_declaration with a one-based ordinal and owned multiline definition, native alignment pragmas and trailing semicolon. Keep native printing flags/serialized types private; absent/zero/out-of-range slots return NotFound before narrowing. Carry the same string through maintained language transports. This operation preserves complete native definition output independently of dependency-graph rendering; exact native comparison, packed-type reconstruction and post-close ownership are required before closure.
+
+### D19.105. Preserve Native Program Identity Fields
+
+Keep selected processor_name and current processor_module_name distinct, with owned native values rather than a manually maintained alias table. Full Diaphora export stores the native module stem with its existing width suffix and the existing 16-byte MD5 BLOB; bounded companion formats retain their own schemas. Compare all native SQLite tables using independent fresh database copies because analysis/type inference can mutate sequential shared inputs.

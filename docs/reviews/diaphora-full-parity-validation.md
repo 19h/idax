@@ -113,3 +113,35 @@ assumption is required: installed third-party decompiler plugins changed
 comments during the first comparison, and concurrent opens of one fixture
 caused a native database lock. Separate owned fixtures and an isolated profile
 remove those observed confounds without changing the user's existing profile.
+
+Complete native export inputs now include an owned single-ordinal declaration
+and processor module stem. SDK 940/runtime 9.4 compares all 25 local definitions
+exactly with native IDAPython (packed structure, typedef, union and enum), with
+a 5-byte packed layout, missing ordinal rejection and post-close copies.
+Serialized native type data preserves aliases; native print indentation is two
+characters and comment indentation is 40. The implementation follows the
+[primary IDAPython printer source](https://github.com/idapython/src/blob/e3a7369f6730aa8538267f7309a66f91811b856a/pywraps/py_typeinf.hpp),
+then independently verifies the installed 9.4 implementation. Resolved named
+TypeInfo printing previously changed typedef resolution and indentation.
+
+processor_module_name compares exactly with native get_idp_name; on the tested
+x86 database it is pc, while processor_name is metapc. Native full Diaphora
+program metadata uses pc64 and stores MD5 as 16 bytes; the opaque adapter derives
+those bytes from the public hexadecimal digest. No selected-variant spelling
+or bounded companion schema changes. Declaration and module-name copies use
+O(L) time/storage for L output characters, with bounded native module buffers.
+
+Two affected native CTests pass in 1.81 s. Rebuilt Node passes all 277 unit cases
+and its initialized packed-declaration/metadata checks; Rust passes 172 library
+cases and actual packed-declaration/semantic metadata checks; Swift passes 32
+XCTest cases, initialized declaration/lifetime checks and its clean transitive
+package consumer. Final module-name addition also passes exact native Python comparison,
+initialized Rust/Node/Swift copied-value checks and the rebuilt Swift package
+consumer. Current inventories contain 3618 native declarations, 3553 compiled
+Swift symbols and 989 Python functions/types; every addition is explicitly mapped.
+
+An independent fresh-database exporter probe now matches all native SQLite
+tables: seven functions, 70 blocks, 696 instructions, 120 block edges, eight
+callgraph edges, seven constants and 22 program-data rows. Only export_time is
+excluded. Compilation-unit tables are empty in this corpus; positive CU
+relations, import, chooser and option/model paths remain open.

@@ -358,3 +358,7 @@ This section captures the intended public API semantics at a concrete level so i
 ### 17.48 Owned Native Feature Inventories and Listings
 - instruction.mnemonics copies the installed processor instruction names in native order, preserving duplicates and omitting empty names. graph.switch_cases copies each signed case-value group and destination without synthesizing the default case.
 - MicrocodeFunction.text and MicrocodeBlock.text retain native formatted listings and color tags in owned strings. An empty block listing is valid native output. Maintained language domains carry these values without SDK pointer exposure; changed C/native layouts require consumer rebuilds.
+
+- `ida::type::local_type_declaration(ordinal)`: owned complete multiline local definition with alignment pragmas and a semicolon; one-based missing slots return NotFound. C/Python/Rust/Swift/Node transports retain the string value.
+
+- `ida::database::processor_module_name()`: owned current processor module file stem, independent of selected variant `processor_name()`.

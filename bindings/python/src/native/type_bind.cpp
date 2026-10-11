@@ -411,6 +411,11 @@ void bind_type(py::module_& module) {
             return ida::type::local_type_name(ordinal);
         });
     }, py::arg("ordinal"));
+    type_module.def("local_type_declaration", [](std::size_t ordinal) {
+        return runtime_result("type.local_type_declaration", [=] {
+            return ida::type::local_type_declaration(ordinal);
+        });
+    }, py::arg("ordinal"));
     type_module.def("import_type", [](std::string source_library,
                                        std::string type_name) {
         return runtime_result("type.import_type", [&] {

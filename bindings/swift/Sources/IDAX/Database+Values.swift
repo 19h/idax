@@ -348,6 +348,14 @@ public enum Database {
         return try borrowCString(out.map { UnsafePointer($0) }, "Database.processorName")
     }
 
+    public static func processorModuleName() throws(IDAError) -> String {
+        try requireRuntimeThread("Database.processorModuleName")
+        var out: UnsafeMutablePointer<CChar>?
+        defer { idax_free_string(out) }
+        try checkStatus(idax_database_processor_module_name(&out), "Database.processorModuleName")
+        return try borrowCString(out.map { UnsafePointer($0) }, "Database.processorModuleName")
+    }
+
     public static func addressBitness() throws(IDAError) -> Int32 {
         try requireRuntimeThread("Database.addressBitness")
         var out: Int32 = 0

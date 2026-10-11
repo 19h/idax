@@ -790,6 +790,11 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_database_processor_module_name(
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_database_address_bitness(out: *mut ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
@@ -5442,6 +5447,12 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_type_local_type_name(
+        ordinal: usize,
+        out: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_type_local_type_declaration(
         ordinal: usize,
         out: *mut *mut ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;

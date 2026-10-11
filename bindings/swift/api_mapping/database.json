@@ -2666,6 +2666,24 @@
       ]
     },
     {
+      "cpp_id": "7a635438c5daf8ccb2d3",
+      "cpp_name": "ida::database::processor_module_name",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::string> ()",
+      "mapping": "direct",
+      "swift": [
+        "224f327f5832ffa46dfd"
+      ],
+      "rationale": "Preserves the current processor module file stem independently of the selected variant; native failure throws IDAError.",
+      "cpp_fingerprint": "e191e7a6fcc7cfda7118086ae87e6b1f5c6ac29c75e9f790aa4855d0d7b56eeb",
+      "swift_targets": [
+        {
+          "path": "Database.processorModuleName()",
+          "declaration": "static func processorModuleName() throws(IDAError) -> String"
+        }
+      ]
+    },
+    {
       "cpp_id": "aa0213a944f157ebcb5c",
       "cpp_name": "ida::database::processor_name",
       "cpp_kind": "function",

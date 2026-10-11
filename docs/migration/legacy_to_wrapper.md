@@ -252,6 +252,9 @@ ida::type::import_type("ntapi", "HANDLE");
 
 auto count = ida::type::local_type_count();
 auto name  = ida::type::local_type_name(1);
+auto definition = ida::type::local_type_declaration(1); // Full definition, alignment pragmas
+auto module = ida::database::processor_module_name(); // Module file stem, e.g. pc
+auto variant = ida::database::processor_name();       // Selected variant, e.g. metapc
 ```
 
 ### Roundtrip: parse declaration -> inspect -> save

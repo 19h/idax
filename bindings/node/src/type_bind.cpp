@@ -1073,6 +1073,24 @@ NAN_METHOD(LocalTypeName) {
     info.GetReturnValue().Set(FromString(name));
 }
 
+NAN_METHOD(LocalTypeDeclaration) {
+    // localTypeDeclaration(ordinal) — ordinal is 1-based
+    if (info.Length() < 1 || !info[0]->IsNumber()) {
+        Nan::ThrowTypeError("Expected numeric ordinal argument");
+        return;
+    }
+    double numeric = Nan::To<double>(info[0]).FromJust();
+    if (!std::isfinite(numeric) || numeric < 0 || numeric > 9007199254740991.0
+        || std::floor(numeric) != numeric) {
+        Nan::ThrowRangeError("ordinal must be a nonnegative safe integer");
+        return;
+    }
+    auto ordinal = static_cast<std::size_t>(numeric);
+
+    IDAX_UNWRAP(auto name, ida::type::local_type_declaration(ordinal));
+    info.GetReturnValue().Set(FromString(name));
+}
+
 NAN_METHOD(ImportType) {
     // importType(sourceTilName, typeName)
     std::string sourceTil;
@@ -1166,6 +1184,7 @@ void InitType(v8::Local<v8::Object> target) {
     SetMethod(ns, "unloadTypeLibrary", UnloadTypeLibrary);
     SetMethod(ns, "localTypeCount",    LocalTypeCount);
     SetMethod(ns, "localTypeName",     LocalTypeName);
+    SetMethod(ns, "localTypeDeclaration", LocalTypeDeclaration);
     SetMethod(ns, "importType",        ImportType);
     SetMethod(ns, "ensureNamedType",   EnsureNamedType);
     SetMethod(ns, "applyNamedType",    ApplyNamedType);

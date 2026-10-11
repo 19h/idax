@@ -364,6 +364,8 @@ export namespace database {
 
     /** Short processor name string (e.g. "metapc", "ARM"). */
     function processorName(): string;
+    /** Current module file stem, independently of the selected processor variant. */
+    function processorModuleName(): string;
 
     /** Address bitness: 16, 32, or 64. */
     function addressBitness(): number;
@@ -2134,6 +2136,8 @@ export namespace type {
 
     /** Name of the local type at the given 1-based ordinal. */
     function localTypeName(ordinal: number): string;
+    /** Complete multiline definition including alignment pragmas and a semicolon. */
+    function localTypeDeclaration(ordinal: number): string;
 
     /** Import a type from a loaded TIL into the local library. Returns ordinal. */
     function importType(sourceTilName: string, typeName: string): number;

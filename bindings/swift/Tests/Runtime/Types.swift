@@ -1,6 +1,8 @@
 import IDAX
 
 func runTypeChecks() throws {
+  let moduleName = try Database.processorModuleName()
+  try expect(!moduleName.isEmpty, "Processor module identity is missing")
   let unknown = try TypeInfo()
   try expect(try unknown.kind() == .unknown, "Default type construction changed its kind")
   try unknown.close()
@@ -17,6 +19,15 @@ func runTypeChecks() throws {
   try structure.addMember(named: "tail", type: TypeInfo.int32(), byteOffset: 8)
   try structure.setUDTSemantics(isCPPObject: true, isVFTable: false)
   try structure.save(as: "SwiftRuntimeParent")
+  let parentOrdinal = try (1...Types.localTypeCount()).first {
+    try Types.localTypeName(ordinal: $0) == "SwiftRuntimeParent"
+  }
+  try expect(parentOrdinal != nil, "Saved local type has no ordinal")
+  let parentDeclaration = try Types.localTypeDeclaration(ordinal: parentOrdinal!)
+  try expect(
+    parentDeclaration.contains("SwiftRuntimeParent")
+      && parentDeclaration.contains("value") && parentDeclaration.contains("tail"),
+    "Local declaration lost its name or definition")
   let details = try structure.udtDetails()
   try expect(
     details.isCPPObject && !details.isVFTable && !details.isUnion, "UDT semantic flags changed")
@@ -35,6 +46,8 @@ func runTypeChecks() throws {
     try shiftedDetails.shiftedParent?.isStruct() == true, "Shifted parent optional type was lost")
   try shifted.close()
   try structure.close()
+  try expect(!moduleName.isEmpty, "Copied processor module identity expired")
+  try expect(parentDeclaration.contains("tail"), "Copied local declaration expired with its type")
   try expect(
     try tail.type.size() == 4 && shiftedDetails.pointeeType.size() == 4,
     "Copied member or pointer types expired with their source")

@@ -109,3 +109,5 @@ Phase 72 additions:
 - The authoritative per-declaration Swift spelling and overload targets live in `bindings/swift/api_mapping` and the actual compiled `swift_api_inventory.json`.
 
 - Active processor instruc names -> instruction.mnemonics; native calc_switch_cases -> graph.switch_cases with owned SwitchCase values/target. Native mba/mblock print -> MicrocodeFunction.text/MicrocodeBlock.text; color normalization remains an explicit consumer operation.
+
+- Native serialized ordinal declaration printing -> type.local_type_declaration, with multiline definition, alignment pragmas and semicolon. get_idp_name -> database.processor_module_name; inf_get_procname remains database.processor_name for the selected variant.

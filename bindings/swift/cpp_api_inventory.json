@@ -3080,7 +3080,7 @@
     {
       "domain": "database",
       "header": "include/ida/database.hpp",
-      "sha256": "9048beda2b2e699c11272369e83ed67f8ecd3d44ef67019c54fc631e7c200498",
+      "sha256": "c21790110cc91ad85c991ddcd631703745e3567ce1ded72156f6364692ecb144",
       "declarations": [
         {
           "name": "ida::database::CompilerInfo",
@@ -4108,6 +4108,12 @@
               "type": "std::int32_t"
             }
           ]
+        },
+        {
+          "name": "ida::database::processor_module_name",
+          "kind": "function",
+          "signature": "Result<std::string> ()",
+          "declaration": "Result<std::string> processor_module_name()"
         },
         {
           "name": "ida::database::processor_name",
@@ -25988,7 +25994,7 @@
     {
       "domain": "type",
       "header": "include/ida/type.hpp",
-      "sha256": "cfb8a37b64c66e3848044ea1e7fac594d980443f05f899d94ca7f8b0f8730488",
+      "sha256": "b88a2d1dd853b3cb22a3d95733c08a5492ca1e4227cc2980deab53b5d9083028",
       "declarations": [
         {
           "name": "ida::type::CallingConvention",
@@ -27332,6 +27338,18 @@
           "kind": "function",
           "signature": "Result<std::size_t> ()",
           "declaration": "Result<std::size_t> local_type_count()"
+        },
+        {
+          "name": "ida::type::local_type_declaration",
+          "kind": "function",
+          "signature": "Result<std::string> (std::size_t)",
+          "declaration": "Result<std::string> local_type_declaration(std::size_t ordinal)",
+          "parameters": [
+            {
+              "name": "ordinal",
+              "type": "std::size_t"
+            }
+          ]
         },
         {
           "name": "ida::type::local_type_name",

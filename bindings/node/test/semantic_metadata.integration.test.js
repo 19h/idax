@@ -24,6 +24,7 @@ assert.throws(() => idax.dyldCache.listModules(cache));
 assert.throws(() => idax.dyldCache.listModules('bad\0path'));
 let floats = 0, stacks = 0, children = 0, calls = 0, switches = 0;
 const retained = [], items = [];
+let packedDeclaration;
 function operand(op, blockIds) {
     if (op.floatingPointConstant === 65536) floats++;
     if (op.kind === 'callArguments') {
@@ -63,6 +64,21 @@ function graph(model) {
 }
 try {
     idax.database.init(); idax.database.open(fixture, true); idax.analysis.wait();
+    assert(idax.database.processorModuleName().length > 0);
+    const report = idax.type.parseDeclarations(
+        '#pragma pack(push, 1)\nstruct NodeRuntimePacked { char tag; int value; };\n#pragma pack(pop)\n');
+    assert.equal(report.errorCount, 0);
+    const packedOrdinal = Array.from({length: idax.type.localTypeCount()}, (_, index) => index + 1)
+        .find(ordinal => idax.type.localTypeName(ordinal) === 'NodeRuntimePacked');
+    assert(packedOrdinal);
+    packedDeclaration = idax.type.localTypeDeclaration(packedOrdinal);
+    assert(packedDeclaration.includes('#pragma pack') && packedDeclaration.includes('NodeRuntimePacked'));
+    for (const invalid of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+        assert.throws(() => idax.type.localTypeDeclaration(invalid), RangeError);
+    }
+    for (const missing of [0, 0x100000000]) {
+        assert.throws(() => idax.type.localTypeDeclaration(missing), {category: 'NotFound'});
+    }
     assert.equal(idax.dyldCache.isAvailable(), false);
     assert.throws(() => idax.dyldCache.listModules());
     assert.throws(() => idax.plugin.runPlugin('bad\0plugin'), {category: 'Validation'});
@@ -101,4 +117,5 @@ try {
     try { idax.database.close(false); } catch (_) {}
     fs.rmSync(directory, {recursive: true, force: true});
 }
+assert(packedDeclaration.includes('#pragma pack'));
 console.log(`metadata passed: ${floats} float constants, ${stacks} stack variables, ${children} children, ${calls} calls, ${switches} switch descriptors`);

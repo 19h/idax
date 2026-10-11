@@ -20,6 +20,7 @@
     "idax_database_processor_id",
     "idax_database_processor_profile",
     "idax_database_processor_name",
+    "idax_database_processor_module_name",
     "idax_database_address_bitness",
     "idax_database_set_address_bitness",
     "idax_database_is_big_endian",
