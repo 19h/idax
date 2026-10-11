@@ -1651,7 +1651,8 @@ private:
                     }
                 }
                 add_member(member);
-                cursor_bits = std::max(cursor_bits, member.offset + member.size);
+                cursor_bits = std::max<std::uint64_t>(
+                    cursor_bits, member.offset + member.size);
                 cursor = (cursor_bits + 7) / 8;
             }
             if (cursor < udt.total_size)

@@ -3212,3 +3212,7 @@ Generic IDC values preserve integer width, but native wildcard-argument handlers
 ### 35.348. Diaphora Hook Loader and Filename Boundaries [F695]
 
 The exact audited imp_load_source method uses undefined names and fails automatic patch-diff hook loading. Delegate to the pinned module-level loader without altering heuristics/ratios/hooks. Back up both native SQLite exports through read-only connections to canonical temporary filenames before upstream attach; retain original paths in native result config. DP.A3 compares complete categories/ratios/rows against independent upstream with the same isolated correction; controlled six-function parity does not prove all candidate paths or live extraction. [Medium impact] silently accepting hook-load failure would omit observable upstream analysis.
+
+### 35.349. LP64 SDK Integer Template Deduction [F696]
+
+Equal storage width does not imply identical C++ types. A std::max call mixing std::uint64_t and SDK uint64 expressions compiles on the observed macOS/Windows typedefs but fails under Linux GCC where they are unsigned long and unsigned long long. Specify the intended unsigned template type at the member-renderer cursor boundary. [High impact] local native width/layout proof does not establish Linux compile portability; exact-head hosted reruns remain required after correction.

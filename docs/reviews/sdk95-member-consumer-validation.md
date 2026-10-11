@@ -156,3 +156,18 @@ identified width/unit consumer covered; integer arithmetic is exact with
 explicit units/overflow checks; failed layout probes corrected; provenance is
 the actual headers, versioned validator, runtime and source-built producers;
 the additional layout and rebuild impacts are bounded above.
+
+Hosted follow-up at `2bfe86c0e3058ce12a8fbfc7f3db2510649f84df`: full Windows
+native job `114346346482` succeeds, and Windows Rust job `114346346820`
+passes its example/library build and 172 unit tests. Linux native job
+`114346346493` and Docker job `114346346613` fail compilation at the new
+bitfield cursor `std::max`: the SDK and standard unsigned 64-bit typedefs
+are distinct C++ types under LP64. An explicit `std::uint64_t` template
+argument corrects deduction without changing the cursor value or units.
+Local affected checks and exact-head hosted reruns are recorded separately;
+the earlier local 9.5 width/layout proof does not assert Linux compile success.
+
+After the explicit integer-type correction, actual SDK 940/runtime 9.4 local
+`type_roundtrip`, `decompiler_storage_hardening` and `decompiler_edge_cases`
+pass 3/3 in 8.65 s. These focused macOS checks establish local regression
+behavior; hosted Linux native/Docker/binding validation is pending.
