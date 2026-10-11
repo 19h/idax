@@ -3312,3 +3312,37 @@ Pinned 3.4.0 find_unmatched puts main functions in unmatched_second and attached
 In the actual x86-64 category corpus, IDA annotates a volatile-pointer call with its concrete target. Unchanged upstream assembly-diff matching therefore pairs those functions as partial before later unreliable heuristics. Compiler volatility alone does not establish unresolved analysis. Exercise a later category using real externally visible uncalled functions and independently compare native exports/results; do not override matcher order or fabricate SQLite rows.
 
 - 35.371 validation: removing the caller preserves actual compiled weak functions and yields an unreliable row at ratio 0.8876293 through Nodes, edges and complexity. All-heuristic matching now has positive rows in all six categories, including two one-to-many ambiguous candidates. Every raw native/opaque result table equals; original-input membership and unchanged input hashes pass. These are native matching witnesses, not stable GUI-operation evidence.
+
+### 35.372. Full Diaphora presentation/action scope [F719]
+
+Audited CIDAChooser/CIDABinDiff include HTML/patch generators, colored native/microcode graphs, call context, unmatched previews and match/result/import/highlighting/external-diff actions. Multiple current selection, row style/block-count columns and exporter/matcher option controls also matter. Native all-category matching and unified custom viewers do not establish these application contracts. Reuse pure audited generation/query/comparison methods where possible, then independently validate data/HTML and actual GUI operations; keep the full remaining action list open.
+
+### 35.373. Native presentation output comparison [F720]
+
+Unchanged audited HTML methods operate on copied native SQLite exports without SDK imports. Pure backend get_graph/compare_graphs and audited caller/callee queries preserve block text/edges/colors and duplicate call nodes. Real SDK GraphViewer objects can construct their native node/text models before window display, enabling independent model comparison without a fake SDK adapter. Actual-export comparison passes 24 HTML/patch, 16 block-graph, eight call-context, four unmatched-preview and two current-primary cases. This proves generated data/HTML, not GUI rendering. Require a visible live rename witness and separate native graph materialization/display gates.
+
+- 35.373 strengthened gates pass: both live HTML styles contain the current primary rename and equal native output. All 24 graph models materialize through opaque native graph objects with exact topology and callback text/colors. Standalone HTML/preview/microcode JSON and compiled Rust HTML/call-context commands pass without a GUI. Actual native window display, embedded HTML and callback survival remain separate.
+
+### 35.374. Native graph refresh is a distinct GUI contract [F721]
+
+SDK 940 grcode_user_refresh supplies the interactive graph to populate at creation and explicit refresh. Official ugraph and IDAPython clear/resize/add edges on that object and report success. Prebuilt wrapper adjacency without this dispatch creates viewers but can render only a dot. Forward optional on_refresh, transfer current adjacency even without a callback, preserve each node's text storage and release state on destruction even when callback is null. Validate visible text/edges and refresh/lifetime in a real GUI separately from headless graph models. Initial positive-category GUI counts and partial navigation pass; corrected rendering remains pending.
+
+- 35.374 lifetime correction: grcode_destroyed invalidates an interactive graph during replacement; it must not delete viewer callback state or release caller roots. The first refresh correction exposes a native use-after-free in the old destruction branch. HT_VIEW/view_close is the terminal lifetime event, matching official IDAPython disposal. Public on_destroyed documentation now names viewer closure. The headless native test does not exercise this fault.
+
+- 35.374 GUI validation passes under the corrected boundary: real three-node text/color/edge rendering, independent native adjacency, removal plus new-node refresh, replacement without terminal callback, terminal close with widget disappearance and same-process survival. The final affected CTest passes. Use tests/integration/graph_gui_host.py on an owned GUI; direct SDK imports are independent observations, not production host operations. No embedded HTML or all-action parity claim follows.
+
+### 35.375. Actual Diaphora graph-pair scope [F722]
+
+All four positive matched categories support native assembly/microcode/call-context actions through opaque graph objects on the tested GUI host. Independent SDK viewer inspection verifies all 24 displayed models, including empty endpoint nodes and positive nine-node/twelve-edge weak-function graphs. Keep the original process identity across later actions; a relaunched app is not survival evidence. Twelve action invocations create 24 models; the micrograph instrumentation wraps an inner graph method and logs twice. This closes native graph creation/topology/display within this corpus, while embedded HTML, relative paired docking/fit, unmatched previews and stable import remain separate gates.
+
+### 35.376. Displayed graph owner retention [F723]
+
+Native show_graph retains pointers to the opaque Graph and caller-owned callback until viewer closure. A local Graph or tracking-session reset cannot own a still-visible viewer. The Change Tracker example had both lifetime defects; separate persistent graph/callback ownership must survive the session, with viewer close before replacement/termination. Diaphora's retained pairs and Magic Strings' member owners satisfy this contract. Do not infer live UI validation from example compilation.
+
+### 35.377. Requested close versus terminal ownership [F724]
+
+Actual native multi-viewer closure can dispatch on_destroyed after the close call returns. Keep caller graph/callback objects until that notification. All 24 Diaphora callbacks close after GUI processing in the same process; the immediate assertion was invalid and is replaced by a two-stage probe. Change Tracker's callback-held owner survives requested close, then releases at terminal notification; show failure breaks retention. Python automatic root reclamation remains a separate open audit because current close erasure precedes the terminal event and manual window closure retains map entries.
+
+- 35.376/35.377 source validation: SDK 940 C++23 syntax passes for Change Tracker's persistent owners and terminal closure. Unique per-generation titles avoid reuse while an old close is pending. This is source/compile evidence; full tracker GUI and plugin-unload timing require separate runtime proof.
+
+- 35.374 failure-path ownership: register the terminal listener before native viewer creation. If registration fails, no native viewer can retain userdata; if creation fails, event_listener destruction unhooks the unused state. Do not request deferred close and then free callback userdata on a failed post-creation hook.

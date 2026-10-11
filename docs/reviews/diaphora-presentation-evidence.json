@@ -1,0 +1,364 @@
+{
+  "scope": "Independent presentation generation and actual native graph display on the recorded corpus; broad application parity remains open",
+  "upstream_revision": "84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99",
+  "sdk_version": 940,
+  "runtime": {
+    "series": "9.4",
+    "build": "9.4.260714.951e98a4",
+    "gui_python": "3.13.7",
+    "gui_qt": "6.8.2",
+    "host": "macOS 27.2 ARM64",
+    "generation_python": "3.12",
+    "pygments": "2.20.0"
+  },
+  "input_architecture": "x86_64",
+  "input_sqlite_sha256": {
+    "native-0": "06cb02cf2fbce3d82cae0357801b87969cdfb1c0b05aedfcf609fc4a887154e2",
+    "native-1": "fcd062ddbb5e2abad4c27bba7fc4cc74be16d38add95dfd734233f26a4adfea1",
+    "idax-0": "429d0a9c227420b4b0c6b8e345bbc39faffc9a54c2044882639111599d65e565",
+    "idax-1": "5bf6dfe9e311845aeef71eed1147a8627be5940cc3afe27c870e8c3e1041256b"
+  },
+  "independent_generation": {
+    "case_counts": {
+      "html": 24,
+      "graphs": 16,
+      "callgraphs": 8,
+      "previews": 4,
+      "live": 2
+    },
+    "total": 54,
+    "live_primary_rename": "idax_live_primary_pseudocode_witness",
+    "exact_html_titles_and_content": true,
+    "native_graph_text_colors_and_relations": true,
+    "opaque_materialized_graph_models": 24,
+    "production_sdk_import_guard": true,
+    "input_hashes_unchanged": true,
+    "reference": "Actual native export databases and audited source with real SDK GraphViewer instances; model comparisons execute without displaying reference windows"
+  },
+  "artifact_transport": {
+    "files": [
+      {
+        "name": "presentation-standalone-side.html",
+        "sha256": "1bce76d6887b112ca3bc7b14e85464fbe23d70b2d6cf4c9402035829be48c2b0",
+        "bytes": 5157,
+        "comparison": "exact UTF-8 bytes",
+        "overwrite_rejected": true
+      },
+      {
+        "name": "presentation-standalone-preview.html",
+        "sha256": "58708e0ec8afa13968b538337460b1cb9cac5737fc5164550608c40e6b1d0fbf",
+        "bytes": 6678,
+        "comparison": "exact UTF-8 bytes",
+        "overwrite_rejected": true
+      },
+      {
+        "name": "presentation-rust-assembly-patch.html",
+        "sha256": "858cf667320e3587c97680336d2e0f73d8650356898a183af79964fd8acbdfc5",
+        "bytes": 1329,
+        "comparison": "exact UTF-8 bytes",
+        "overwrite_rejected": true
+      },
+      {
+        "name": "presentation-standalone-graph.json",
+        "sha256": "607e6ea09b8d654baf2ed101b4de017447ec49fd8f4431582b347b4ab1e32964",
+        "bytes": 1222,
+        "comparison": "copied JSON models"
+      },
+      {
+        "name": "presentation-rust-callgraph.json",
+        "sha256": "586ef6d3fd70d2925172356484aea243808b920396332fad827684385b2e3c08",
+        "bytes": 2173,
+        "comparison": "copied JSON models"
+      }
+    ],
+    "html_overwrite_rejections": 3,
+    "compiled_rust_outputs": [
+      "presentation-rust-assembly-patch.html",
+      "presentation-rust-callgraph.json"
+    ],
+    "generation_reference": "Production adapter regeneration checks transport; independent native generation is verified separately"
+  },
+  "native_graph_lifecycle": {
+    "observations": [
+      {
+        "stage": "initial",
+        "refreshes": 2,
+        "text_nodes": [
+          0,
+          1,
+          2
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2
+        ],
+        "destroyed": false,
+        "nodes": [
+          0,
+          1,
+          2
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "layout": 1
+      },
+      {
+        "stage": "refreshed",
+        "refreshes": 3,
+        "text_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "destroyed": false,
+        "nodes": [
+          0,
+          2,
+          3
+        ],
+        "edges": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "layout": 1
+      },
+      {
+        "stage": "closed",
+        "refreshes": 3,
+        "text_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "color_nodes": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "destroyed": true
+      }
+    ],
+    "closed_widget_absent": true,
+    "same_original_process": true,
+    "terminal_callback_deferred_after_close_request": true
+  },
+  "diaphora_gui": {
+    "category_counts": {
+      "best": 23,
+      "partial": 1,
+      "unreliable": 1,
+      "multimatch": 2,
+      "primary": 1,
+      "secondary": 2
+    },
+    "positive_category_actions": {
+      "best": {
+        "jump": 1,
+        "assembly_graph": 1,
+        "microcode_graph": 1,
+        "calls_graph": 1
+      },
+      "partial": {
+        "jump": 1,
+        "assembly_graph": 1,
+        "microcode_graph": 1,
+        "calls_graph": 1
+      },
+      "unreliable": {
+        "jump": 1,
+        "assembly_graph": 1,
+        "microcode_graph": 1,
+        "calls_graph": 1
+      },
+      "multimatch": {
+        "jump": 1,
+        "assembly_graph": 1,
+        "microcode_graph": 1,
+        "calls_graph": 1
+      }
+    },
+    "graph_action_invocations": 12,
+    "created_viewers": 24,
+    "native_snapshot_sizes": [
+      6,
+      24
+    ],
+    "independently_observed_viewers": [
+      {
+        "title": "Diaphora Graph for _idax_diaphora_a0 (primary) [1]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Graph for _idax_diaphora_a0 (secondary) [2]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_diaphora_a0 (primary) [3]",
+        "nodes": 2,
+        "edges": 1
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_diaphora_a0 (secondary) [4]",
+        "nodes": 4,
+        "edges": 4
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_diaphora_a0 (primary) [5]",
+        "nodes": 8,
+        "edges": 7
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_diaphora_a0 (secondary) [6]",
+        "nodes": 8,
+        "edges": 7
+      },
+      {
+        "title": "Diaphora Graph for _idax_diaphora_a1 (primary) [7]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Graph for _idax_diaphora_a1 (secondary) [8]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_diaphora_a1 (primary) [9]",
+        "nodes": 2,
+        "edges": 1
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_diaphora_a1 (secondary) [10]",
+        "nodes": 2,
+        "edges": 1
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_diaphora_a1 (primary) [11]",
+        "nodes": 2,
+        "edges": 1
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_diaphora_a1 (secondary) [12]",
+        "nodes": 2,
+        "edges": 1
+      },
+      {
+        "title": "Diaphora Graph for _idax_weak_primary (primary) [13]",
+        "nodes": 9,
+        "edges": 12
+      },
+      {
+        "title": "Diaphora Graph for _idax_weak_secondary (secondary) [14]",
+        "nodes": 9,
+        "edges": 12
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_weak_primary (primary) [15]",
+        "nodes": 9,
+        "edges": 12
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_weak_secondary (secondary) [16]",
+        "nodes": 9,
+        "edges": 12
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_weak_primary (primary) [17]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_weak_secondary (secondary) [18]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Graph for _idax_ambiguous_source (primary) [19]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Graph for _idax_ambiguous_candidate_one (secondary) [20]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_ambiguous_source (primary) [21]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Microcode graph for _idax_ambiguous_candidate_one (secondary) [22]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_ambiguous_source (primary) [23]",
+        "nodes": 1,
+        "edges": 0
+      },
+      {
+        "title": "Diaphora Call graph context for _idax_ambiguous_candidate_one (secondary) [24]",
+        "nodes": 1,
+        "edges": 0
+      }
+    ],
+    "terminal_close_callbacks": 24,
+    "same_original_process_through_close": true,
+    "instrumentation_note": "Micrograph wraps show_graph and emits an extra graph event; count actual invocations rather than raw lines"
+  },
+  "native_regression": {
+    "ctest": "debugger_ui_graph_event",
+    "passed": 1,
+    "total": 1,
+    "duration_seconds": 1.69,
+    "scope": "Final listener-registration ordering: rebuilt native/Python extension and affected headless CTest. Actual GUI observations precede this final failure-path ordering-only correction; no hook-failure injection is claimed."
+  },
+  "change_tracker": {
+    "cxx23_sdk940_syntax_check": true,
+    "owner_retained_through_terminal_callback": "implemented; full tracker GUI not exercised",
+    "unique_generation_titles": true,
+    "plugin_unload_timing": "unknown"
+  },
+  "remaining_gates": [
+    "embedded HTML chooser display",
+    "relative paired docking and zoom-fit",
+    "automatic Python graph-root reclamation on terminal closure",
+    "unmatched GUI previews",
+    "full audited chooser actions and current multiple selection",
+    "remaining exporter and matcher option controls",
+    "stable GUI metadata import on a supported host",
+    "cross-platform and cross-language GUI execution"
+  ],
+  "source_tests": [
+    "tests/integration/diaphora_presentation_parity_test.py",
+    "tests/integration/graph_gui_host.py",
+    "tests/integration/diaphora_gui_host.py"
+  ]
+}

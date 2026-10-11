@@ -26,8 +26,11 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
@@ -155,6 +158,12 @@ public:
 
 class ChangeGraphCallback : public ida::graph::GraphCallback {
 public:
+    std::function<void()> on_close;
+
+    void on_destroyed() override {
+        auto keep_alive = std::move(on_close);
+        if (keep_alive) keep_alive();
+    }
     // Maps node ID to its label text.
     std::vector<std::string> node_labels;
 
@@ -177,8 +186,8 @@ public:
     }
 };
 
-void build_change_graph(ChangeGraphCallback& cb) {
-    ida::graph::Graph graph;
+ida::Status build_change_graph(std::string_view title, ida::graph::Graph& graph,
+                              ChangeGraphCallback& cb) {
 
     // Central node: the analysis session.
     auto root = graph.add_node();
@@ -236,7 +245,7 @@ void build_change_graph(ChangeGraphCallback& cb) {
     graph.redo_layout();
 
     // Show the graph. The callback provides text/color for each node.
-    ida::graph::show_graph("Change Impact", graph, &cb);
+    return ida::graph::show_graph(title, graph, &cb);
 }
 
 // ── Plugin state: RAII subscriptions, timer, chooser, graph ────────────
@@ -247,11 +256,27 @@ struct TrackerState {
     std::vector<ida::debugger::ScopedSubscription> dbg_subs;
     std::uint64_t timer_token{0};
     std::unique_ptr<ChangeLogChooser> chooser;
-    std::unique_ptr<ChangeGraphCallback> graph_cb;
     bool active{false};
 };
 
 TrackerState g_state;
+
+// A displayed graph outlives the tracking session and retains both owners.
+struct ChangeGraphState {
+    std::string title;
+    ida::graph::Graph graph;
+    ChangeGraphCallback callback;
+};
+std::shared_ptr<ChangeGraphState> g_change_graph;
+std::uint64_t g_change_graph_serial{0};
+
+void close_change_graph() {
+    if (!g_change_graph) return;
+    auto exists = ida::graph::has_graph_viewer(g_change_graph->title);
+    if (exists && *exists)
+        ida::graph::close_graph_viewer(g_change_graph->title);
+    g_change_graph.reset();
+}
 
 // ── Start tracking ─────────────────────────────────────────────────────
 
@@ -497,8 +522,18 @@ void stop_tracking() {
         g_log.size()));
 
     // Build and display the change impact graph.
-    g_state.graph_cb = std::make_unique<ChangeGraphCallback>();
-    build_change_graph(*g_state.graph_cb);
+    close_change_graph();
+    g_change_graph = std::make_shared<ChangeGraphState>();
+    // An old close request may still be pending while this viewer is created.
+    g_change_graph->title = "Change Impact [" + std::to_string(++g_change_graph_serial) + "]";
+    // Retain through a requested close until the terminal callback arrives.
+    g_change_graph->callback.on_close = [owner = g_change_graph] {};
+    auto shown = build_change_graph(g_change_graph->title, g_change_graph->graph,
+                                    g_change_graph->callback);
+    if (!shown) {
+        g_change_graph->callback.on_close = {};
+        g_change_graph.reset();
+    }
 
     // Persist a summary into a netnode so it survives across sessions.
     auto node = ida::storage::Node::open("idax_change_tracker", true);
@@ -545,6 +580,7 @@ struct ChangeTrackerPlugin : ida::plugin::Plugin {
 
     void term() override {
         stop_tracking();
+        close_change_graph();
     }
 
     ida::Status run(std::size_t) override {

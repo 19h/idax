@@ -2,8 +2,10 @@
 
 Status: export, persisted import, changed-binary/model matching and shared
 launchers and native matching in all six categories validated within the recorded
-corpora. P73.7 remains open for stable GUI import, positive GUI category operations
-and remaining rendering features.
+corpora. Audited presentation generation and actual graph actions on four positive
+matched categories also pass. P73.7 remains open for stable GUI import, unmatched
+GUI operations, embedded HTML, paired placement/fit and the full remaining
+action/selection/option inventory.
 
 The complete application workflow uses the independent upstream checkout at
 `84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`. `examples/diaphora/upstream.json`
@@ -424,3 +426,145 @@ At exact launcher implementation `1c60b1cef6bbac2a80f9187cbc9d68d288c5ed3f`,
 Validation 38108394289, Bindings 38108394262 and Integrations 38108394243 all
 complete successfully. This is earlier-revision CI; the new category corpus is
 actual local licensed-runtime evidence and is not an automatic CI GUI test.
+
+## Audited presentation and native graph lifecycle
+
+The presentation adapter reuses unchanged audited `CHtmlDiff` and
+`CIDABinDiff` generation/query methods from Diaphora 3.4.0 revision
+`84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`. Production operations use opaque
+IDAX values or privately backed-up SQLite inputs; they import no SDK modules.
+The independent reference uses separate native exports, real SDK GraphViewer
+objects and the audited native methods. Reference node construction and text
+callbacks run without displaying reference windows. The
+[complete action inventory](diaphora-action-inventory.md) retains all 20 native
+menu commands and the additional selection/style/option contracts. Remaining
+commands stay open even where a generator is implemented.
+
+| Compared representation | Cases | Independent observation |
+|---|---:|---|
+| Assembly/microcode/pseudocode, side-by-side and patch HTML | 24 | Exact titles and HTML on one positive row in each matched category |
+| Native/microcode block graphs, both inputs | 16 | Native node keys, text, colors and semantic edges |
+| Caller/target/callee graphs, both inputs | 8 | Native order, duplicate nodes, text, colors and edges |
+| Unmatched assembly/pseudocode previews | 4 | Exact native HTML on semantic primary and secondary inputs |
+| Current-primary pseudocode, both HTML styles | 2 | Exact native HTML containing an observable live rename |
+| Total | 54 | Every comparison passes; input SQLite hashes remain unchanged |
+
+The live primary declaration is renamed to
+`idax_live_primary_pseudocode_witness`; both HTML styles contain that name.
+All 24 compared graph models also materialize through actual opaque
+`Graph`/`GraphCallback` objects with exact node/edge counts and callback
+text/colors. This second materialization assertion is not added to the
+54 independent comparison count. Three standalone HTML/preview artifacts and
+two standalone/compiled-Rust graph artifacts compare with regenerated outputs;
+all three existing HTML destinations reject overwrite without changing their
+SHA-256 values. Transport regeneration is a transport check, while the 54-case
+test supplies the independent generation reference.
+
+Reproduction after building the selected interpreter's Python extension and
+preparing the independent positive-category exports:
+
+```sh
+python -m tests.integration.diaphora_presentation_parity_test <upstream-source> <primary-binary> <category-evidence-directory>
+python -m examples.diaphora --upstream <upstream-source> render <primary.sqlite> <secondary.sqlite> 0x100000540 0x100000540 <new.html> --field pseudocode
+python -m examples.diaphora --upstream <upstream-source> graph <primary.sqlite> <secondary.sqlite> 0x100000540 0x100000540 <new.json> --kind microcode
+```
+
+Pygments 2.20.0 supplies syntax highlighting on the recorded host. Standalone
+pseudocode defaults to persisted exports; the presentation API accepts a
+current-primary decompiler callback. The compiled Rust example invokes the
+same SDK-free presentation commands; this does not establish a separate Rust
+presentation algorithm or Rust GUI execution.
+
+Actual native graph display uncovered two defects that headless model equality
+missed. First, the wrapper created its own interactive graph and omitted
+`grcode_user_refresh`, so viewers could display a dot. SDK 940's
+`graph.hpp` refresh contract and official `ugraph` sample populate the graph
+supplied by the callback and report success. The wrapper now transfers current
+nodes/edges/layout on each native refresh, forwards the opaque refresh callback,
+preserves removed-node identities and retains separate text storage per node.
+Second, the old `grcode_destroyed` branch freed callback state during native
+graph replacement. An actual LLDB trace showed the resulting wrapper refresh
+use-after-free. SDK 940 explicitly distinguishes graph replacement from viewer
+destruction; official IDAPython disposes its owner on `HT_VIEW/view_close`.
+Terminal disposal now follows that viewer notification. This defect is separate
+from the previously recorded Cocoa accessibility-element failure.
+
+The actual native lifecycle probe in
+`tests/integration/graph_gui_host.py` verifies this event sequence:
+
+```text
+show -> labeled/color nodes 0,1,2; edges 0->1->2
+     -> refresh removes 1, adds 3; edges 0->2->3
+     -> graph replacement keeps callback alive
+     -> close request returns
+     -> GUI processing delivers terminal close; callback fires; widget absent
+```
+
+Independent SDK viewer inspection verifies both exact adjacency states.
+Screenshots show the labels, colors and edges. The original process survives
+all three stages and later Diaphora operations. The final affected
+`debugger_ui_graph_event` CTest passes 1/1 in 1.26 s after the lifetime fix and
+1/1 in 1.69 s after the final listener-registration ordering correction against
+SDK 940/runtime 9.4. The final failure-path ordering is rebuilt and checked
+headlessly; the actual GUI observations precede that ordering-only correction.
+No failed-hook injection is claimed. Headless checks are recorded separately
+from the actual GUI assertions.
+
+The same owned GUI process uses the compiled C++ launcher and the matching
+CPython 3.13 extension. All six chooser counts match the positive category
+corpus. Native Enter plus assembly, microcode and call-context graph hotkeys
+execute on one positive best, partial, unreliable and multimatch row. Twelve
+graph actions create 24 viewers. Independent SDK graph snapshots compare all
+24 node/edge sets against the copied audited models, including the empty
+microcode endpoint. Selected positive witnesses:
+
+| Matched category/representation | Primary nodes/edges | Secondary nodes/edges |
+|---|---:|---:|
+| Partial microcode | 2/1 | 4/4 |
+| Partial call context | 8/7 | 8/7 |
+| Unreliable assembly | 9/12 | 9/12 |
+| Unreliable microcode | 9/12 | 9/12 |
+
+All 24 terminal callbacks fire after GUI processing, with caller-owned graph
+and callback pairs retained and the same original process surviving. An
+immediate-close assertion initially failed because a successful close request
+can return before that notification; the retained probe now checks closure
+in a subsequent console action. Instrumentation logs an extra inner `graph`
+event for each micrograph action; those lines do not represent extra actions.
+The initial native snapshot has six viewers and the final snapshot has 24.
+Sanitized identities, input hashes, exact counts, artifacts and lifecycle
+observations are retained in
+[presentation evidence](diaphora-presentation-evidence.json).
+
+Source review also corrected the Change Tracker example's local-Graph and
+immediately reset callback owners. A separate graph/callback owner survives
+the tracking session; a callback-held closure retains it through terminal
+viewer closure, and a failed show breaks that retention. Unique generation
+titles avoid reusing an old viewer while its close remains pending. Apple
+C++23 syntax checking against SDK 940 passes. Full tracker GUI execution and
+plugin-unload timing remain unknown. Python automatic graph-root reclamation
+is separately queued because its current binding erases roots on requested
+close and retains roots after manual window closure.
+
+| ID | Assumption | Stress test/falsification probe | Dependent result/status |
+|---|---|---|---|
+| DP.P1 | Audited methods preserve presentation semantics | Independently execute native methods on native exports and compare exact HTML/models | 54 cases pass on the recorded corpus |
+| DP.P2 | Headless graph equality establishes only model correctness | Display actual windows, inspect native topology and refresh with removal | Actual native display and refresh pass; headless proof alone was falsified |
+| DP.P3 | Graph replacement and viewer closure have different lifetimes | Observe refresh without terminal callback, then close and verify widget disappearance | Three-stage native probe passes |
+| DP.P4 | Close-call return can precede terminal ownership release | Request all closes, retain owners, then verify terminal callbacks after GUI processing | All 24 callbacks pass; immediate disposal is not justified |
+| DP.P5 | Continued GUI observation concerns the original process | Record the same process identity at every lifecycle/action/close observation | Passes; automatic relaunch is excluded from survival evidence |
+| DP.P6 | Observed category actions cover only their exercised contracts | Retain the complete native action register and every untested host gate | Broad parity remains open |
+
+Bounded implications: [high] native graph refresh and terminal callback
+ownership corrections affect callers beyond Diaphora, despite unchanged public
+declaration shapes. [high] automatic Python root disposal and stable GUI
+metadata import require separate fixes/proof. [medium] standalone HTML equality
+does not prove embedded HTML display, and individual fit calls do not prove
+relative paired docking/zoom-fit fidelity. [medium] current multiple selection,
+remaining actions and individual exporter/matcher controls remain open.
+[low] corpus/compiler/runtime changes can alter graph topology; mandatory
+positive categories and independent native snapshots detect witness loss.
+No physical dimensional calculations occur. Counts are exact integers,
+SDK colors use native `0xBBGGRR`, and the CTest duration is recorded in seconds.
+This group supplies local native and GUI evidence, not cross-platform GUI or
+automatic CI presentation evidence.

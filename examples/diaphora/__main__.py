@@ -36,7 +36,55 @@ def main(argv: list[str] | None = None) -> None:
     metadata.add_argument("--category", action="append", choices=("best", "partial", "unreliable", "multimatch"))
     metadata.add_argument("--no-definitions", action="store_true")
     metadata.add_argument("--force-names", action="store_true")
+    render = commands.add_parser("render", help="Generate audited HTML differences without an IDA runtime")
+    render.add_argument("primary")
+    render.add_argument("secondary")
+    render.add_argument("first", type=lambda text: int(text, 0))
+    render.add_argument("second", type=lambda text: int(text, 0))
+    render.add_argument("output", help="New UTF-8 HTML file")
+    render.add_argument("--field", choices=("assembly", "pseudocode", "microcode"), default="assembly")
+    render.add_argument("--style", choices=("side-by-side", "patch"), default="side-by-side")
+    preview = commands.add_parser("preview", help="Generate an audited single-function HTML preview")
+    preview.add_argument("primary")
+    preview.add_argument("secondary")
+    preview.add_argument("address", type=lambda text: int(text, 0))
+    preview.add_argument("output", help="New UTF-8 HTML file")
+    preview.add_argument("--secondary-side", action="store_true")
+    preview.add_argument("--field", choices=("assembly", "pseudocode"), default="assembly")
+    graph = commands.add_parser("graph", help="Copy native colored graph presentation into JSON")
+    graph.add_argument("primary")
+    graph.add_argument("secondary")
+    graph.add_argument("first", type=lambda text: int(text, 0))
+    graph.add_argument("second", type=lambda text: int(text, 0))
+    graph.add_argument("output", help="New graph-model JSON file")
+    graph.add_argument("--kind", choices=("native", "microcode", "calls"), default="native")
     args = parser.parse_args(argv)
+    if args.command in ("render", "preview"):
+        from .presentation import render_diff, render_source, save_html
+        if args.command == "render":
+            result = render_diff(args.upstream, args.primary, args.secondary, args.first,
+                args.second, field=args.field, html=args.style == "side-by-side")
+        else:
+            result = render_source(args.upstream, args.primary, args.secondary, args.address,
+                primary_side=not args.secondary_side, field=args.field)
+        save_html(result, args.output)
+        print(json.dumps({"title": result.title, "characters": len(result.content)}, sort_keys=True))
+        return
+    if args.command == "graph":
+        from dataclasses import asdict
+        from pathlib import Path
+        from .presentation import callgraph_pair, graph_pair
+        result = callgraph_pair(args.upstream, args.primary, args.secondary, args.first, args.second) \
+            if args.kind == "calls" else graph_pair(args.upstream, args.primary, args.secondary,
+                args.first, args.second, microcode=args.kind == "microcode")
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("x", encoding="utf-8") as stream:
+            json.dump([asdict(model) for model in result], stream, indent=2)
+            stream.write("\n")
+        print(json.dumps({"graphs": len(result), "nodes": [len(model.nodes) for model in result],
+            "edges": [len(model.edges) for model in result]}, sort_keys=True))
+        return
     if args.command == "import":
         from pathlib import Path
         from idax import database

@@ -631,6 +631,16 @@ Current overall phase status:
       - [x] P73.7.3.2.1 Compiled C++ plugin opens all six native categories; actual navigation and assembly/pseudocode/microcode difference viewers pass.
       - [x] P73.7.3.2.2 Compiled Rust completes export/diff/import with 23 saved/reopened comments and no instruction errors; native null-name equivalence and forced exception propagation pass.
       - [ ] P73.7.3.2.3 Complete stable GUI import and operation with positive unmatched/multimatch categories on a suitable host.
+    - [ ] P73.7.3.3 Reuse and verify audited HTML/patch, native/microcode block-graph and caller/callee presentation routines; complete their actual native GUI rendering gate.
+      - [x] P73.7.3.3.1 Independent actual-export comparison passes 24 HTML/patch, 16 block graphs, eight call contexts, four unmatched previews and two visibly renamed live-primary cases. All 24 graph models materialize through opaque IDAX with exact topology/text/colors; standalone and compiled Rust commands pass.
+      - [ ] P73.7.3.3.2 Complete actual native block/call graph display and embedded HTML rendering, retaining exact host/callback evidence.
+        - [x] P73.7.3.3.2.1 Correct native graph refresh/layout and replacement/close lifetime dispatch; actual three-node GUI render, node removal/new edges, terminal callback and same-process survival pass (F721).
+        - [x] P73.7.3.3.2.2 Actual assembly/microcode/call-context actions on positive best/partial/unreliable/multimatch rows create 24 surviving native viewers; independent SDK topology matches every model (F722).
+        - [ ] P73.7.3.3.2.3 Complete actual embedded HTML/patch/preview display through a fully opaque boundary.
+        - [ ] P73.7.3.3.2.4 Match upstream relative paired docking and zoom-fit behavior.
+        - [ ] P73.7.3.3.2.5 Audit/fix Python automatic graph-root reclamation at terminal closure, including caller-reference release and manual window close (F724).
+    - [ ] P73.7.3.4 Complete upstream match editing, save/re-diff, bulk/automatic-name imports, highlighting, external-diff and unmatched preview actions.
+    - [ ] P73.7.3.5 Preserve upstream current/multiple selection, chooser styling/columns and export/matching option controls; verify actual operations.
   - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.
     - [x] P73.7.4.1 Source-built native/opaque matching produces two genuine ambiguous pairs and positive unmatched rows on both inputs. All export/raw result tables equal independent upstream; corrected reader passes original-input address/name membership checks.
     - [x] P73.7.4.2 Real externally visible weak functions produce one unreliable match at ratio 0.8876293; all six categories are positive with all heuristics. Native matching algorithms are unchanged and independent raw result tables equal.

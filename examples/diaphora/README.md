@@ -27,9 +27,30 @@ their actual input sides; the persisted SQLite file remains native-compatible.
 
 The [validation record](../../docs/reviews/diaphora-full-parity-validation.md)
 states native table comparisons, corpus/options, checkpoint and model evidence,
-and remaining GUI/category limits. Positive compilation-unit links compare equal
+and remaining GUI/action limits. The [action inventory](../../docs/reviews/diaphora-action-inventory.md)
+maps every audited chooser command to its implementation and validation gate.
+Positive compilation-unit links compare equal
 at both zero and the original nonzero image base. Resume restores absolute
 function addresses from persisted rows before compilation-unit generation.
+
+Generate native HTML differences, unmatched previews and copied colored graph
+models without an IDA runtime:
+
+```sh
+python -m examples.diaphora --upstream <upstream-source> render primary.sqlite secondary.sqlite 0x100000540 0x100000540 difference.html --field pseudocode --style side-by-side
+python -m examples.diaphora --upstream <upstream-source> render primary.sqlite secondary.sqlite 0x100000540 0x100000540 patch.html --field assembly --style patch
+python -m examples.diaphora --upstream <upstream-source> preview primary.sqlite secondary.sqlite 0x100000770 preview.html --secondary-side --field pseudocode
+python -m examples.diaphora --upstream <upstream-source> graph primary.sqlite secondary.sqlite 0x100000540 0x100000540 graph.json --kind microcode
+```
+
+HTML generation requires Pygments. `render` accepts assembly, pseudocode or
+microcode; `preview` accepts assembly or pseudocode; `graph` accepts native,
+microcode or calls. Prefix hexadecimal addresses with `0x`. All destinations
+must be new files. Standalone pseudocode uses the persisted exports; the Python
+presentation API also accepts a decompiler callback for current-primary text.
+The compiled Rust launcher supports these same commands through its selected
+Python interpreter. Generated HTML is a standalone artifact; embedded HTML
+display remains an open GUI gate.
 
 Import selected match categories into a new IDB:
 
@@ -71,6 +92,8 @@ represent best, partial, unreliable, multimatch, primary-only and secondary-only
 results. Enter selects a row and jumps to its primary address; secondary-only
 rows have no primary jump. For an Enter-selected matched row,
 **Ctrl-Alt-Shift-D** opens copied assembly, pseudocode and microcode differences.
+**Ctrl-Alt-Shift-G** opens colored assembly graphs, **Ctrl-Alt-Shift-M** opens
+microcode graphs, and **Ctrl-Alt-Shift-C** opens caller/callee context graphs.
 Native Edit or **Ctrl-Alt-Shift-I** imports its metadata; save the IDB explicitly
 to persist changes. The selected row remains the last Enter-selected row.
 
@@ -78,8 +101,10 @@ Actual SDK 940/IDA 9.4 GUI launch, navigation and difference viewers pass.
 GUI import records the expected mutation, then repeatedly raises signum=11 on
 the tested macOS host; stable GUI import remains unverified. Use the separately
 validated command-line import workflow for saved/reopened metadata evidence.
-Empty unreliable/multimatch/unmatched tabs do not establish positive operations
-in those categories. A separate source-built corpus now produces positive native
-matching rows in all six categories and verifies unmatched input membership;
-positive GUI operations still require a stable host. The validation record
-retains these boundaries.
+A source-built corpus produces positive native matching rows in all six
+categories and verifies unmatched input membership. Actual GUI graph actions on
+best, partial, unreliable and multimatch rows create 24 viewers whose native
+topologies equal the audited models. Native refresh/removal/close lifetime also
+passes. Full unmatched GUI preview/selection, current multiple selection, paired
+relative docking/fit, embedded HTML and the remaining chooser actions/options
+remain open. The validation record retains these boundaries.

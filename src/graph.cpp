@@ -6,6 +6,7 @@
 #include <graph.hpp>  // SDK graph header (interactive_graph_t, etc.)
 #include <gdl.hpp>    // SDK graph drawing library (qflow_chart_t, etc.)
 #include <nalt.hpp>   // SDK switch_info_t
+#include <map>
 
 namespace ida::graph {
 
@@ -341,27 +342,59 @@ Status show_graph(std::string_view title, Graph& graph,
     if (!graph.impl())
         return std::unexpected(Error::validation("Graph not initialized"));
 
-    // Build an interactive_graph_t from our adjacency list.
-    interactive_graph_t* ig = create_interactive_graph(0);
-    if (ig == nullptr)
+    if (!is_idaq())
         return std::unexpected(Error::unsupported(
             "Graph viewer not available (requires IDA UI mode)"));
 
-    auto* impl = graph.impl();
-    ig->resize(impl->total_count());
-    for (auto& e : impl->edge_list)
-        ig->add_edge(e.first, e.second, nullptr);
-
     // Create a persistent state for callbacks.
-    struct ViewerState {
+    struct ViewerState : event_listener_t {
         GraphCallback* cb{nullptr};
         Graph*         graph{nullptr};
+        TWidget*       viewer{nullptr};
+        std::map<NodeId, qstring> text;
+        ssize_t idaapi on_event(ssize_t code, va_list va) override {
+            if (code == view_close && va_arg(va, TWidget*) == viewer) {
+                if (cb) cb->on_destroyed();
+                delete this;
+            }
+            return 0;
+        }
     };
-    auto* state = new ViewerState{callback, &graph};
+    auto* state = new ViewerState;
+    state->cb = callback;
+    state->graph = &graph;
+    // Establish terminal ownership before creation can retain callback userdata.
+    if (!hook_event_listener(HT_VIEW, state, nullptr)) {
+        delete state;
+        return std::unexpected(Error::sdk("Graph viewer close hook failed"));
+    }
 
     auto callback_fn = [](void* ud, int code, va_list va) -> ssize_t {
         auto* st = static_cast<ViewerState*>(ud);
-        if (!st || !st->cb) return 0;
+        if (!st) return 0;
+
+        if (code == grcode_user_refresh) {
+            auto* native = va_arg(va, interactive_graph_t*);
+            if (!native || !st->graph || !st->graph->impl()) return 0;
+            if (st->cb) st->cb->on_refresh(*st->graph);
+            const auto* data = st->graph->impl();
+            native->clear();
+            native->resize(data->total_count());
+            for (NodeId node = 0; node < data->total_count(); ++node)
+                if (!data->valid(node)) native->del_node(node);
+            for (const auto& edge : data->edge_list)
+                native->add_edge(edge.first, edge.second, nullptr);
+            native->current_layout = static_cast<layout_type_t>(data->layout);
+            st->text.clear();
+            return 1;
+        }
+        if (code == grcode_destroyed) {
+            // The SDK replaces displayed graphs during layout/group operations.
+            // Only view_close ends the callback state's lifetime.
+            st->text.clear();
+            return 0;
+        }
+        if (!st->cb) return 0;
 
         switch (code) {
         case grcode_user_text: {
@@ -370,9 +403,9 @@ Status show_graph(std::string_view title, Graph& graph,
             auto** text = va_arg(va, const char**);
             auto* bg = va_arg(va, bgcolor_t*);
 
-            static thread_local qstring text_buf;
             std::string t = st->cb->on_node_text(node);
             if (!t.empty()) {
+                auto& text_buf = st->text[node];
                 text_buf = ida::detail::to_qstring(t);
                 *text = text_buf.c_str();
             }
@@ -410,11 +443,6 @@ Status show_graph(std::string_view title, Graph& graph,
             }
             return 0;
         }
-        case grcode_destroyed: {
-            st->cb->on_destroyed();
-            delete st;
-            return 0;
-        }
         }
         return 0;
     };
@@ -432,11 +460,10 @@ Status show_graph(std::string_view title, Graph& graph,
 
     if (gv == nullptr) {
         delete state;
-        delete_interactive_graph(ig);
         return std::unexpected(Error::sdk("create_graph_viewer failed"));
     }
 
-    set_viewer_graph(gv, ig);
+    state->viewer = reinterpret_cast<TWidget*>(gv);
     display_widget(reinterpret_cast<TWidget*>(gv),
                    WOPN_DP_TAB | WOPN_RESTORE);
     viewer_fit_window(gv);

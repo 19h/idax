@@ -209,13 +209,14 @@ public:
         (void)nodes; return true;
     }
 
-    /// Called when the graph is about to be destroyed.
+    /// Called when the graph viewer closes. SDK layout/group graph replacement
+    /// does not end the callback's lifetime.
     virtual void on_destroyed() {}
 };
 
 /// Create and display a graph viewer window.
 /// @param title  Window title.
-/// @param graph  The graph object (viewer takes ownership of its display).
+/// @param graph  Graph object; caller retains it until the viewer closes.
 /// @param callback  Event callback (optional, caller retains ownership).
 /// @return Error on failure.
 Status show_graph(std::string_view title, Graph& graph,
@@ -233,7 +234,8 @@ Result<bool> is_graph_viewer_visible(std::string_view title);
 /// Activate/focus a graph viewer by title.
 Status activate_graph_viewer(std::string_view title);
 
-/// Close a graph viewer by title.
+/// Request closure of a graph viewer by title. Retain caller-owned objects until
+/// on_destroyed; the GUI can dispatch the terminal notification later.
 Status close_graph_viewer(std::string_view title);
 
 // ── Flow chart convenience ──────────────────────────────────────────────

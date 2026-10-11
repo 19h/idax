@@ -11,11 +11,14 @@ from idax import plugin, ui
 
 from .backend import read_results, verify_upstream
 from .metadata import import_matches
+from .presentation import callgraph_pair, graph_pair
 
 _SESSIONS = []
 _VIEWS = []
 _SELECTION = None
 _ACTIONS_REGISTERED = False
+_GRAPH_VIEWS = []
+_GRAPH_SERIAL = 0
 
 
 def _selected_match():
@@ -29,6 +32,9 @@ def _ensure_actions():
     actions = (
         ("idax:diaphora:import", "Import selected Diaphora match", "Ctrl-Alt-Shift-I", "on_edit"),
         ("idax:diaphora:diff", "Show selected Diaphora differences", "Ctrl-Alt-Shift-D", "show_diff"),
+        ("idax:diaphora:graph", "Diff selected Diaphora assembly graph", "Ctrl-Alt-Shift-G", "show_graph"),
+        ("idax:diaphora:micrograph", "Diff selected Diaphora microcode graph", "Ctrl-Alt-Shift-M", "show_micrograph"),
+        ("idax:diaphora:calls", "Show selected Diaphora callers and callees", "Ctrl-Alt-Shift-C", "show_calls"),
     )
     registered = []
     try:
@@ -48,6 +54,22 @@ def _ensure_actions():
             plugin.unregister_action(identifier)
         raise
     _ACTIONS_REGISTERED = True
+
+
+def _show_graph_models(models):
+    from idax import graph
+    from .graph_view import build_graph
+    global _GRAPH_SERIAL
+    _GRAPH_VIEWS[:] = [value for value in _GRAPH_VIEWS if not value[1].closed]
+    for index, model in enumerate(models):
+        _GRAPH_SERIAL += 1
+        value, callback = build_graph(model)
+        title = "Diaphora " + model.title
+        if "(primary)" not in title and "(secondary)" not in title:
+            title += " (primary)" if index == 0 else " (secondary)"
+        title += " [" + str(_GRAPH_SERIAL) + "]"
+        graph.show_graph(title, value, callback)
+        _GRAPH_VIEWS.append((value, callback))
 
 
 def _differences(primary, secondary, record):
@@ -136,6 +158,26 @@ def show_results(upstream, results, *, event_sink=None):
                         _VIEWS.append(viewer)
                     if event_sink:
                         event_sink("diff", self.category, index)
+
+            def show_graph(self, index, *, microcode=False):
+                if self.matched:
+                    record = self.records[index]
+                    models = graph_pair(upstream, primary, secondary,
+                        int(record["address"], 16), int(record["address2"], 16), microcode=microcode)
+                    _show_graph_models(models)
+                    if event_sink:
+                        event_sink("micrograph" if microcode else "graph", self.category, index)
+
+            def show_micrograph(self, index):
+                self.show_graph(index, microcode=True)
+
+            def show_calls(self, index):
+                if self.matched:
+                    record = self.records[index]
+                    _show_graph_models(callgraph_pair(upstream, primary, secondary,
+                        int(record["address"], 16), int(record["address2"], 16)))
+                    if event_sink:
+                        event_sink("calls", self.category, index)
 
             def on_close(self):
                 self.closed = True
