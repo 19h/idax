@@ -1041,7 +1041,8 @@ struct MicrocodeFunction {
     std::int64_t saved_register_size{0};
     std::optional<std::size_t> return_variable_index{};
     std::vector<LocalVariable> local_variables{};
-    /// Owned native formatted function listing, retaining SDK color tags.
+    /// Owned native formatted function listing at the requested generation
+    /// stage, before graph construction/call analysis; SDK color tags remain.
     std::string text{};
 };
 

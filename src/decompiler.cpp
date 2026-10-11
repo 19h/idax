@@ -5539,6 +5539,12 @@ generate_microcode(Address function_address,
             std::to_string(function->start_ea)));
     }
 
+    // Preserve the listing at the requested generation stage. build_graph
+    // and call analysis may normalize instructions and block numbering.
+    qstring function_listing;
+    qstring_printer_t function_printer(nullptr, function_listing, true);
+    native->print(function_printer);
+
     if (native->maturity < MMAT_LOCOPT) {
         const merror_t graph_status = native->build_graph();
         if (graph_status != MERR_OK) {
@@ -5585,9 +5591,6 @@ generate_microcode(Address function_address,
     }
 
     MicrocodeFunction result;
-    qstring function_listing;
-    qstring_printer_t function_printer(nullptr, function_listing, true);
-    native->print(function_printer);
     result.text = ida::detail::to_string(function_listing);
     result.entry_address = native->entry_ea == BADADDR
         ? BadAddress

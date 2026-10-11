@@ -34,10 +34,10 @@ def main(fixture):
             owned = decompiler.generate_microcode(fn.start,options)
             native = ida_hexrays.gen_microcode(ida_hexrays.mba_ranges_t(ida_funcs.get_func(fn.start)),ida_hexrays.hexrays_failure_t(),ida_hexrays.mlist_t(),ida_hexrays.DECOMP_WARNINGS,ida_hexrays.MMAT_GENERATED)
             assert native is not None
-            native.build_graph()
             printer = ida_hexrays.qstring_printer_t(None,True)
             native._print(printer)
             assert owned.text == printer.s, (owned.text[:150],printer.s[:150])
+            native.build_graph()
             for block in owned.blocks:
                 printer = ida_hexrays.qstring_printer_t(None,True)
                 native.get_mblock(block.index)._print(printer)

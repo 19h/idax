@@ -1525,3 +1525,7 @@
 ### D19.102. Opaque Native Feature Primitives
 
 Expose instruction.mnemonics, graph.switch_cases and copied MicrocodeFunction/Block.text rather than leaking SDK processor/switch/printer objects. Preserve order, duplicates, signed case values and formatting tags so existing downstream normalization can reproduce upstream features. Carry listings through existing C/Python/Rust/Swift/Node microcode transports and cases through graph bindings; Node has no existing graph domain. Retain explicit ownership/free behavior on partial allocation failure. These inputs are necessary for D19.101 and do not establish export parity before actual comparison.
+
+### D19.103. Preserve Microcode Print Sequencing
+
+Capture MicrocodeFunction.text at the requested maturity before build_graph; capture block text after graph construction with copied semantic blocks and relations. Native graph construction changes instructions/numbering, so a single post-graph print point cannot preserve both upstream inputs. Retain owned strings, exact native color tags and unchanged requested maturity. Direct native comparisons and higher-level deterministic records are the falsification gates.

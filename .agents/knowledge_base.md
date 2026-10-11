@@ -3228,3 +3228,13 @@ The library test command does not compile cfg(test) example code. All-target val
 - KB 35.350/35.351 validation supplement: actual native equality, Python post-close copies, final initialized Swift case/listing checks, rebuilt Node tests and all-target Rust pass. Empty block text is preserved exactly rather than treated as missing data. Native switch labels depend on compiler normalization; the signed witness uses the x86 fixture and is not inferred from source case syntax on another architecture.
 
 - KB 35.349 closure supplement: actual signed c0f4fb6f Linux/Windows full native suites and Linux Rust/Docker executions pass. Source/run/job identities are verified through run metadata and membership; job summaries omit source hashes. This closes the LP64 regression only at that revision. Newer API changes and other in-progress binding jobs retain separate evidence boundaries.
+
+### 35.352. Upstream Class Definition Scope [F699]
+
+Executing selected methods as global definitions changes dependency resolution when a method shares a name with a native global function. Compile methods into separate locals while retaining the explicit original global namespace; attach the returned bodies to the adapter class. DP.A2 requires an independent native invocation to catch this semantic difference. [High impact] unchanged AST bodies alone do not prove unchanged execution semantics.
+
+### 35.353. Native Feature Timing and Input Stability [F700]
+
+Generated microcode printing before versus after build_graph can change emitted operations, block numbers and mnemonic prime products. Preserve upstream capture order, while keeping its subsequently built block relations. Distinguish SDK absence conventions at each boundary: missing instruction comments remain None, missing function comments are empty, and failed native string lookup is None. DP.A2 assumes stable database inputs; falsify by querying comments/state before and after either exporter. [High impact] third-party analysis plugins can mutate the database during decompilation and conceal or create apparent adapter differences. Isolated license acceptance state and owned database copies must be validated rather than assumed.
+
+- 35.353.1. F700 capture correction passes five live upstream records (53 deterministic fields/relations each), exact native formatted input copies and post-close lifetime. Function printing precedes graph construction; block printing follows it. Separate owned database copies and isolated existing-license profile are required by the observed lock/plugin-mutation confounds. No broader workflow closure follows.

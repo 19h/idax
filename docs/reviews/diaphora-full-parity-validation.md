@@ -64,7 +64,7 @@ source-built x86-64 semantic fixture):
 |---|---|---|
 | Active mnemonics | 1948 strings equal to native GetInstructionList in exact order | Includes duplicate native names; ARM64 separately yields 1675 |
 | Switch cases | 16 groups, values -3 through 12 and destinations equal to native calc_switch_cases | Native case labels depend on compiler/analysis normalization; no synthesized default |
-| Formatted microcode | Function and all 27 block strings equal to native printing at Generated maturity after graph construction | Empty native block strings are valid; upstream pre-graph feature equality remains DP.A2 work |
+| Formatted microcode | Function text before graph construction and all 27 block strings after construction equal direct native printing at Generated maturity | Empty native block strings are valid; complete application coverage remains DP.A2 work |
 | Python lifetime | Exact copied text survives database close; missing-switch query raises NotFoundError | Independent native modules are test-only |
 | Native regressions | instruction_decode_behavior and decompiler_semantic_metadata: 2/2 in 6.56 s | Actual 940 runtime; no full-suite claim for these additions |
 | C/Swift | Rebuilt transport and all initialized runtime checks pass, including active mnemonics, signed switch values and listings across 40 graphs | 32 XCTest cases and clean transitive consumer also pass |
@@ -96,3 +96,20 @@ the modeled instructions and graph edges; all 20 Symless cases now execute.
 Hosted Rust and Docker paths now run example unit tests in addition to their
 separately configured licensed runtime targets. Optional runtime-host evidence
 still follows each existing target's fixture/license conditions.
+
+Microcode capture timing correction: graph construction normalizes native
+instructions and block numbering. Capture function text immediately after
+generation, then build the graph and capture each block. The retained direct
+native input test passes all 27 block copies and function text, including
+post-close ownership; the affected native CTest passes 1/1 in 1.40 s.
+
+An independent live exporter probe on an isolated existing-license profile
+compares five source-built semantic functions. All 53 deterministic properties
+and nested relations equal the pinned native exporter; only the measured
+export_time field is excluded. This probe confirms the diagnosed timing defect
+within that corpus. Definitions, libraries, compilation units, import, chooser
+operations and option combinations remain separate open gates. A stable-input
+assumption is required: installed third-party decompiler plugins changed
+comments during the first comparison, and concurrent opens of one fixture
+caused a native database lock. Separate owned fixtures and an isolated profile
+remove those observed confounds without changing the user's existing profile.
