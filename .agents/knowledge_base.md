@@ -3244,3 +3244,9 @@ Generated microcode printing before versus after build_graph can change emitted 
 - 35.355. F702: get_idp_name module file stem is distinct from inf_get_procname variant; observed x86 values are pc and metapc. Preserve native Diaphora program.processor via opaque processor_module_name and MD5 as native 16-byte SQLite BLOB, derived from the public hexadecimal digest. Fresh independent database copies equal instruction rows that differed after sequential inference. Full program-data/CU equality remains pending.
 
 - 35.354.1./35.355.1. Native declaration and module-name primitives pass direct installed 940 reference equality and initialized copied consumers. Complete fresh-corpus schema equality includes program identity/digest/types. Missing/zero/over-width ordinals retain native NotFound; malformed JavaScript ordinals are validated before conversion. Positive CU, import and UI gates remain separate.
+
+- 35.356. F703: instruction.is_call must classify the decoded instruction, independently of resolved call xrefs. The source-built volatile dispatch corpus exposes a missing FEATURE_CALL factor 23. Replace xref-based inference with native is_call_insn; require direct SDK comparison and a positive unresolved indirect-call witness. Full exporter equality remains pending.
+
+- 35.357. F704: Native phrase operand values use the shared register/phrase field, not addr; zero-address lookup previously attached a spurious header name. Preserve SDK get_operand_value dispatch through opaque copied operands. Exact full-corpus instruction rows pass after correction.
+
+- 35.358. F705: audited full Diaphora CU cache keys are RVA but LFA ranges are absolute. Base-zero native fixture preparation supplies positive module/link evidence while preserving unchanged source bodies; two units/14 links equal upstream. Nonzero-base CU relations remain an upstream limitation.

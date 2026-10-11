@@ -145,3 +145,22 @@ tables: seven functions, 70 blocks, 696 instructions, 120 block edges, eight
 callgraph edges, seven constants and 22 program-data rows. Only export_time is
 excluded. Compilation-unit tables are empty in this corpus; positive CU
 relations, import, chooser and option/model paths remain open.
+
+Unresolved-call regression: the original loaded wrapper fails a direct native
+is_call_insn comparison because instruction.is_call inferred calls from resolved
+xrefs. The correction uses the decoded native predicate: all 174 instructions
+equal, including 22 calls and one unresolved indirect call. Existing native
+instruction_decode_behavior passes 1/1 in 0.95 s. Reproduce by importing
+main(fixture) from tests/integration/instruction_call_classification_test.py,
+using an owned build of tests/fixtures/diaphora_full_host.cpp.
+
+The full source-built corpus now compares equal in every native SQLite table:
+23 functions, 73 blocks, 708 instruction rows, 33 block edges, 42 callgraph
+edges, two compilation units with 14 links and 22 program-data rows. Only elapsed
+export_time is excluded. The fixture is independently prepared at image base
+zero because audited upstream caches RVAs while comparing absolute LFA module
+ranges. This is an upstream address-domain limitation, preserved for native
+interchange; it does not prove correct nonzero-base CU linking. Register phrase
+operand values also require their native phrase field, not their zero address
+union. The full adapter and retained complete-export test remain in progress;
+this predicate group establishes neither import nor GUI/model closure.
