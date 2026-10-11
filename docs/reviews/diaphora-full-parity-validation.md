@@ -157,10 +157,9 @@ using an owned build of tests/fixtures/diaphora_full_host.cpp.
 The full source-built corpus now compares equal in every native SQLite table:
 23 functions, 73 blocks, 708 instruction rows, 33 block edges, 42 callgraph
 edges, two compilation units with 14 links and 22 program-data rows. Only elapsed
-export_time is excluded. The fixture is independently prepared at image base
-zero because audited upstream caches RVAs while comparing absolute LFA module
-ranges. This is an upstream address-domain limitation, preserved for native
-interchange; it does not prove correct nonzero-base CU linking. Register phrase
+export_time is excluded. The initial fixture is independently prepared at image base
+zero. Fresh original nonzero-base exports also have positive identical CU links;
+the earlier RVA cache diagnosis was incorrect and is withdrawn. Register phrase
 operand values also require their native phrase field, not their zero address
 union. The full adapter and retained complete-export test remain in progress;
 this predicate group establishes neither import nor GUI/model closure.
@@ -203,3 +202,13 @@ matching bodies remain unchanged. Three controlled backend tests pass, including
 a successful project hook loader. Actual command-line export produces 23
 functions and two CUs. P73.7.2 is closed; import, GUI and cross-binary/model
 evidence remain open.
+
+Address-base self-review corrected the earlier F705 diagnosis. Upstream caches
+absolute function addresses, and all four fresh export modes at original nonzero
+base match every native table with two CUs/14 links. The distinct resume defect
+is real: upstream returns an absolute checkpoint then compares it to a function
+RVA, skipping all remaining functions at nonzero base. The opaque boundary
+converts that checkpoint to RVA and reconstructs CU cache keys from absolute
+functions.address. A real three-function checkpoint now resumes to all 23
+functions and equals every fresh table. The retained tests default to original
+nonzero base; base-zero preparation is an additional option.

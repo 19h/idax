@@ -460,12 +460,17 @@ def host_engine(root, output):
         self._export_completed = True
 
     HostDiff.do_export = monitored_export
+    def checkpoint_rva(self):
+        absolute = methods["get_last_crash_func"](self)
+        return None if absolute is None else absolute - self.get_base_address()
+
+    HostDiff.get_last_crash_func = checkpoint_rva
     def save_complete_compilation_units(self):
         if getattr(self, "_resuming_export", False):
             # The checkpoint rows outlive upstream's transient function cache.
             self._funcs_cache = {
-                int(row["rva"]): [row["id"], row["primes_value"], row["pseudocode_primes"]]
-                for row in self.db.execute("SELECT id,rva,primes_value,pseudocode_primes FROM functions ORDER BY id")}
+                int(row["address"]): [row["id"], row["primes_value"], row["pseudocode_primes"]]
+                for row in self.db.execute("SELECT id,address,primes_value,pseudocode_primes FROM functions ORDER BY id")}
         methods["save_compilation_units"](self)
 
     HostDiff.save_compilation_units = save_complete_compilation_units

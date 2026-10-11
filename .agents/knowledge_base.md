@@ -3249,7 +3249,7 @@ Generated microcode printing before versus after build_graph can change emitted 
 
 - 35.357. F704: Native phrase operand values use the shared register/phrase field, not addr; zero-address lookup previously attached a spurious header name. Preserve SDK get_operand_value dispatch through opaque copied operands. Exact full-corpus instruction rows pass after correction.
 
-- 35.358. F705: audited full Diaphora CU cache keys are RVA but LFA ranges are absolute. Base-zero native fixture preparation supplies positive module/link evidence while preserving unchanged source bodies; two units/14 links equal upstream. Nonzero-base CU relations remain an upstream limitation.
+- 35.358. F705 superseded by F710: full exporter caches absolute function addresses and positive nonzero-base CUs compare equal; the earlier RVA diagnosis was incorrect. See 35.363-35.364 for verified fresh-export and resume address semantics.
 
 - 35.359. F706: full decompilation before generation changes inferred types even when the application explicitly exports microcode without pseudocode. Expose preparation independently of maturity/call analysis, default true for existing Symless metadata semantics; pure-generation callers opt out. Four-mode native all-table comparison is the falsification gate; execution is pending.
 
@@ -3259,6 +3259,12 @@ Generated microcode printing before versus after build_graph can change emitted 
 
 - **35.361. SDK detection is an application boundary (F708):** Audited diaphora.py uses idaapi only for an unused availability probe. Bind standalone mode in the byte-verified module AST before execution; guarded production runs must reject SDK imports while unchanged native reference bodies remain independently exercisable.
 
-- **35.362. Restore checkpoint-derived CU cache before resume completion (F709):** Native persisted function rows contain id, RVA and both prime products. Upstream resumes rows but resets the cache used for CU linking. Restore the cache only on resume, preserving row order and audited CU algorithms; require exact fresh/resumed table comparisons.
+- **35.362. Restore checkpoint-derived CU cache before resume completion (F709):** Native persisted function rows contain id, absolute address and both prime products. Upstream resumes rows but resets the cache used for CU linking. Restore the cache only on resume, preserving row order and audited CU algorithms; require exact fresh/resumed table comparisons.
 
 - **35.360-35.362 validation supplement:** Retained lifecycle witness proves explicit failure, three persisted checkpoint functions, no-overwrite, successful resume/marker removal and exact fresh/resumed tables. Guard rejects SDK module imports. Complete lifecycle parity passes all four option modes with positive CUs; actual CLI exports 23 functions/two CUs. Audited source/model identities are checked before execution.
+
+- **35.363. Fresh CU export supports original nonzero base (F710):** All native/opaque tables compare equal with two units/14 links. Cache keys derive from functions.address; preserve absolute keys on checkpoint reconstruction. Earlier base-zero-only limitation is withdrawn.
+
+- **35.364. Resume checkpoint comparison uses RVA (F711):** Upstream returns an absolute checkpoint but compares it to func-imagebase. Convert checkpoint return value to RVA at the opaque boundary; retain absolute CU keys. Require positive persisted rows and exact all-table fresh/resumed equality at nonzero base.
+
+- **35.363-35.364 validation supplement:** Four fresh option modes and real checkpoint resume pass at original nonzero base. Exact resumed/fresh tables retain 23 functions and positive two-CU/14-link relations. Treat functions.address as absolute, functions.rva and checkpoint comparison as relative; do not infer a fresh-export CU limitation from the superseded diagnosis.

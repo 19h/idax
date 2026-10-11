@@ -10,7 +10,7 @@ from examples.diaphora.host import export_current_database
 from tests.integration.diaphora_export_parity_test import compare_tables
 
 
-def main(upstream, fixture):
+def main(upstream, fixture, *, base_zero=False):
     database.init()
     with tempfile.TemporaryDirectory(prefix="idax-export-lifecycle-") as temporary:
         work = Path(temporary)
@@ -31,8 +31,9 @@ HOOKS = {"DiaphoraHooks": Hooks}
             shutil.copyfile(fixture, binary)
             output = work / (label + ".sqlite")
             with database.opened(binary, save_on_exit=False):
-                import ida_segment, idaapi
-                assert ida_segment.rebase_program(-idaapi.get_imagebase(), ida_segment.MSF_FIXONCE) == 0
+                if base_zero:
+                    import ida_segment, idaapi
+                    assert ida_segment.rebase_program(-idaapi.get_imagebase(), ida_segment.MSF_FIXONCE) == 0
                 original = builtins.__import__
                 def opaque_import(name, *args, **kwargs):
                     if name in {"idc", "idaapi", "idautils"} or name.startswith("ida_"):

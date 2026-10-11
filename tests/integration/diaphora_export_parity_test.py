@@ -98,7 +98,7 @@ def compare_tables(first, second, *, positive_units):
         return counts
 
 
-def main(upstream, fixture, *, base_zero=True, modes=((True, True),)):
+def main(upstream, fixture, *, base_zero=False, modes=((True, True),)):
     root = Path(upstream).resolve()
     load_backend(root)
     database.init()
@@ -113,7 +113,7 @@ def main(upstream, fixture, *, base_zero=True, modes=((True, True),)):
                 with database.opened(binary, save_on_exit=False):
                     if base_zero:
                         import ida_segment, idaapi
-                        # Preserve audited upstream RVA/absolute CU behavior.
+                        # Exercise an additional address-base variant.
                         assert ida_segment.rebase_program(-idaapi.get_imagebase(), ida_segment.MSF_FIXONCE) == 0
                     if label == "native":
                         value = native_engine(root, output)
@@ -129,6 +129,6 @@ def main(upstream, fixture, *, base_zero=True, modes=((True, True),)):
                         export_current_database(root, output, use_decompiler=use_decompiler,
                                                 microcode=microcode, include_library_thunks=True)
                 outputs.append(output)
-            counts = compare_tables(*outputs, positive_units=base_zero)
+            counts = compare_tables(*outputs, positive_units=True)
             print("ALL_TABLES_EQUAL", {"decompiler": use_decompiler,
                 "microcode": microcode, "base_zero": base_zero, "counts": counts})

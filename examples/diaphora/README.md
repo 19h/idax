@@ -24,6 +24,6 @@ retains their original paths. An existing results file is rejected.
 
 The [validation record](../../docs/reviews/diaphora-full-parity-validation.md)
 states native table comparisons, corpus/options, checkpoint evidence and remaining
-import, chooser and model limits. The upstream CU algorithm compares absolute
-module ranges with cached RVAs; the positive interoperability fixture uses image
-base zero. Nonzero-base CU linking remains an upstream limitation.
+import, chooser and model limits. Positive compilation-unit links compare equal
+at both zero and the original nonzero image base. Resume restores absolute
+function addresses from persisted rows before compilation-unit generation.
