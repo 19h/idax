@@ -963,6 +963,8 @@ export namespace instruction {
 
     /** Get the disassembly text line for the instruction at the address. */
     function text(address: Address): string;
+    /** Copied active processor mnemonics, preserving order and duplicates. */
+    function mnemonics(): string[];
 
     // ── Operand format setters ──────────────────────────────────────────
 
@@ -3515,6 +3517,8 @@ export namespace decompiler {
         successors: number[];
         instructions: MicrocodeInstruction[];
         kind: MicrocodeBlockKind;
+        /** Native formatted listing with color tags retained. */
+        text: string;
     }
 
     interface MicrocodeFunction {
@@ -3528,6 +3532,8 @@ export namespace decompiler {
         savedRegisterSize: bigint;
         returnVariableIndex: number | null;
         localVariables: LocalVariable[];
+        /** Native formatted listing with color tags retained. */
+        text: string;
     }
 
     interface MicrocodeContext {

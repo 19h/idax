@@ -1638,6 +1638,78 @@
           "declaration": "static func switchTable(at address: Address) throws(IDAError) -> Graph.SwitchTable"
         }
       ]
+    },
+    {
+      "cpp_id": "a72e92192fabd30a1935",
+      "cpp_name": "ida::graph::SwitchCase",
+      "cpp_kind": "type",
+      "cpp_signature": "struct",
+      "mapping": "direct",
+      "swift": [
+        "b7dc644183f154707a62"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "a72e92192fabd30a1935ec83fa11118953d97d6929ddca4fcf926dc2b232da58",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchCase",
+          "declaration": "struct SwitchCase"
+        }
+      ]
+    },
+    {
+      "cpp_id": "8e1ca6876bb4b3616fbb",
+      "cpp_name": "ida::graph::SwitchCase::target",
+      "cpp_kind": "field",
+      "cpp_signature": "Address",
+      "mapping": "direct",
+      "swift": [
+        "d7531b75d3c85f911730"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "cd3c8a560efbeaf0cbc375be5ea8cb86ba269681493051f01c1e458b37c26f59",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchCase.target",
+          "declaration": "var target: Address"
+        }
+      ]
+    },
+    {
+      "cpp_id": "0a25b7d0aca964a61f31",
+      "cpp_name": "ida::graph::SwitchCase::values",
+      "cpp_kind": "field",
+      "cpp_signature": "std::vector<std::int64_t>",
+      "mapping": "direct",
+      "swift": [
+        "56cf80275160f4290125"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "c83a2de3ab534afbccefd931514187112afb386e3d596573a36e746d740c4325",
+      "swift_targets": [
+        {
+          "path": "Graph.SwitchCase.values",
+          "declaration": "var values: [Int64]"
+        }
+      ]
+    },
+    {
+      "cpp_id": "2f6bc2dbaf0b8d9abc55",
+      "cpp_name": "ida::graph::switch_cases",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<SwitchCase>> (Address)",
+      "mapping": "direct",
+      "swift": [
+        "fbd3c7e185daea3d754a"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "f6750a8d7d0ca161d7b5abc47876721f9bb34907018e81302fa2052fb29525f1",
+      "swift_targets": [
+        {
+          "path": "Graph.switchCases(at:)",
+          "declaration": "static func switchCases(at jumpAddress: Address) throws(IDAError) -> [Graph.SwitchCase]"
+        }
+      ]
     }
   ]
 }

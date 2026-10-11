@@ -623,6 +623,8 @@ Current overall phase status:
 - [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
   - [x] P73.7.1 Reuse the byte-verified complete 3.4.0 SQLite/heuristic/ratio/multimatch backend and establish independent interchange checks. Two controlled checks pass with exact upstream result rows; live feature/model/multimatch evidence remains under the later gates.
   - [ ] P73.7.2 Adapt all exported features and compilation-unit/callgraph relations through opaque IDAX operations; compare actual host records against upstream.
+    - [x] P73.7.2.1 Add copied active mnemonics, signed switch cases and formatted microcode listings; native and maintained binding checks pass.
+    - [ ] P73.7.2.2 Complete the live exporter, compilation units and independent upstream record comparison.
   - [ ] P73.7.3 Implement definition/library/function/instruction import and result chooser workflows, including maintained C++ and Rust entry points.
   - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3. Fresh all-ref/eight-fork audit and concrete unsent cleanup drafts are recorded in `docs/reviews/github-retention-audit.md`; external purge remains open.

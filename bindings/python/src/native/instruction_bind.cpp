@@ -243,6 +243,11 @@ void bind_instruction(py::module_& module) {
     instruction.def(#fn, [](ida::Address address) {                      \
         return runtime_call("instruction." #fn, [=] { return ida::instruction::fn(address); }); \
     }, py::arg("address"))
+    instruction.def("mnemonics", [] {
+        return runtime_result("instruction.mnemonics", [] {
+            return ida::instruction::mnemonics();
+        });
+    });
     IDAX_PY_INSTRUCTION_PREDICATE(has_fall_through);
     IDAX_PY_INSTRUCTION_PREDICATE(is_call);
     IDAX_PY_INSTRUCTION_PREDICATE(is_return);

@@ -4713,6 +4713,17 @@ int idax_instruction_text(uint64_t ea, char** out) {
     RETURN_RESULT_STRING(ida::instruction::text(ea));
 }
 
+int idax_instruction_mnemonics(char*** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("null mnemonic output"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::instruction::mnemonics();
+    if (!result) return fail(result.error());
+    return fill_string_array(*result, out, count);
+}
+
 int idax_instruction_set_operand_hex(uint64_t ea, int n) {
     RETURN_STATUS(ida::instruction::set_operand_hex(ea, n));
 }
@@ -10931,6 +10942,8 @@ ida::Status fill_microcode_location(
 void free_microcode_function_contents(IdaxMicrocodeFunction* function) {
     if (function == nullptr)
         return;
+    std::free(function->text);
+    function->text = nullptr;
 
     if (function->arguments != nullptr) {
         for (std::size_t index = 0; index < function->argument_count; ++index) {
@@ -10951,6 +10964,8 @@ void free_microcode_function_contents(IdaxMicrocodeFunction* function) {
              block_index < function->block_count;
              ++block_index) {
             auto& block = function->blocks[block_index];
+            std::free(block.text);
+            block.text = nullptr;
             std::free(block.predecessors);
             block.predecessors = nullptr;
             block.predecessor_count = 0;
@@ -10987,6 +11002,11 @@ ida::Status fill_microcode_function(
     std::memset(out, 0, sizeof(*out));
     out->entry_address = function.entry_address;
     out->maturity = static_cast<int>(function.maturity);
+    out->text = dup_string(function.text);
+    if (out->text == nullptr) {
+        free_microcode_function_contents(out);
+        return std::unexpected(ida::Error::internal("malloc failed"));
+    }
     out->stack_frame_size = function.stack_frame_size;
     out->local_stack_size = function.local_stack_size;
     out->saved_register_size = function.saved_register_size;
@@ -11059,6 +11079,11 @@ ida::Status fill_microcode_function(
             auto& destination = out->blocks[block_index];
             destination.index = source.index;
             destination.kind = static_cast<int>(source.kind);
+            destination.text = dup_string(source.text);
+            if (destination.text == nullptr) {
+                free_microcode_function_contents(out);
+                return std::unexpected(ida::Error::internal("malloc failed"));
+            }
             destination.start_address = source.start_address;
             destination.end_address = source.end_address;
 
@@ -11835,6 +11860,45 @@ void idax_basic_block_free(IdaxBasicBlock* block) {
         block->successors = nullptr;
         block->predecessors = nullptr;
     }
+}
+
+void idax_graph_switch_cases_free(IdaxSwitchCase* cases, size_t count) {
+    if (cases == nullptr) return;
+    for (size_t index = 0; index < count; ++index)
+        std::free(cases[index].values);
+    std::free(cases);
+}
+
+int idax_graph_switch_cases(uint64_t jump_address, IdaxSwitchCase** out, size_t* count) {
+    clear_error();
+    if (out == nullptr || count == nullptr)
+        return fail(ida::Error::validation("null switch case output"));
+    *out = nullptr;
+    *count = 0;
+    auto result = ida::graph::switch_cases(jump_address);
+    if (!result) return fail(result.error());
+    if (result->empty()) return 0;
+    auto* copied = static_cast<IdaxSwitchCase*>(
+        std::calloc(result->size(), sizeof(IdaxSwitchCase)));
+    if (copied == nullptr) return fail(ida::Error::internal("malloc failed"));
+    for (size_t index = 0; index < result->size(); ++index) {
+        const auto& source = (*result)[index];
+        copied[index].target = source.target;
+        copied[index].value_count = source.values.size();
+        if (!source.values.empty()) {
+            copied[index].values = static_cast<int64_t*>(
+                std::malloc(source.values.size() * sizeof(int64_t)));
+            if (copied[index].values == nullptr) {
+                idax_graph_switch_cases_free(copied, result->size());
+                return fail(ida::Error::internal("malloc failed"));
+            }
+            std::memcpy(copied[index].values, source.values.data(),
+                        source.values.size() * sizeof(int64_t));
+        }
+    }
+    *out = copied;
+    *count = result->size();
+    return 0;
 }
 
 int idax_graph_flowchart(uint64_t function_address,

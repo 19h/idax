@@ -10,6 +10,8 @@ func runValueDomainChecks() throws {
     _ = try Undo.undoActionLabel()
     try expect(Undo.redoActionLabel() == nil, "Fresh database unexpectedly has a redo label")
     let functions = try Functions.all()
+    let mnemonics = try Instructions.mnemonics()
+    try expect(!mnemonics.isEmpty, "Active processor mnemonic inventory is empty")
     try expect(functions.count == Functions.count(), "Function traversal omitted records")
     if var function = functions.first {
         try function.refresh()

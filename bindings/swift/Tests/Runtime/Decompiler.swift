@@ -162,6 +162,7 @@ private struct DecompilerGraphCounts {
     }
     mutating func graph(_ graph: Decompiler.MicrocodeFunction) throws {
         try expect(!graph.blocks.isEmpty, "Generated graph has no blocks")
+        try expect(!graph.text.isEmpty, "Generated graph lost its native formatted listing")
         try expect(
             graph.stackFrameSize >= 0 && graph.localStackSize >= 0 && graph.savedRegisterSize >= 0,
             "Graph frame sizes have invalid signs")
@@ -309,10 +310,22 @@ func runDecompilerChecks() throws {
     }
     try expect(!selected.isEmpty, "No function is available for the decompiler runtime test")
     var counts = DecompilerGraphCounts()
+    var nativeSwitchTables = 0
     var retainedGraphs: [Decompiler.MicrocodeFunction] = []
     var children = 0
     var settingsTested = false
     for source in selected {
+        if source.name.contains("idax_metadata_switch") {
+            for address in try Addresses.matching(.code, start: source.start, end: source.end) {
+                guard let cases = try? Graph.switchCases(at: address) else { continue }
+                let values = cases.flatMap(\.values)
+                try expect(Set(values) == Set(Int64(-3)...Int64(12)),
+                    "Copied native switch values lost signed cases")
+                try expect(cases.allSatisfy { $0.target != badAddress },
+                    "Copied switch case lost its target")
+                nativeSwitchTables += 1
+            }
+        }
         let function = try Decompiler.decompile(source.start)
         try expect(try function.entryAddress() == source.start, "Decompiled function entry changed")
         try expect(
@@ -442,6 +455,7 @@ func runDecompilerChecks() throws {
             counts.floating > 0 && counts.stack > 0 && counts.calls > 0,
             "Semantic graph lacks populated floating/stack/call metadata")
         if try Database.processorName() == "metapc" {
+            try expect(nativeSwitchTables > 0, "Copied native switch cases were not exercised")
             try expect(counts.switches > 0, "x86 semantic graph lacks switch descriptors")
         }
     }

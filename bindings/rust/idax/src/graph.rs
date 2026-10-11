@@ -600,6 +600,53 @@ pub enum BlockType {
     Error = 7,
 }
 
+/// Signed case values sharing a switch destination.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SwitchCase {
+    pub values: Vec<i64>,
+    pub target: Address,
+}
+
+/// Calculate copied signed switch case values and destinations.
+pub fn switch_cases(jump_address: Address) -> Result<Vec<SwitchCase>> {
+    unsafe {
+        let mut pointer = std::ptr::null_mut();
+        let mut count = 0;
+        let rc = idax_sys::idax_graph_switch_cases(jump_address, &mut pointer, &mut count);
+        error::int_to_status(rc, "graph::switch_cases failed")?;
+        let result = (|| {
+            if count == 0 {
+                return Ok(Vec::new());
+            }
+            if pointer.is_null()
+                || count > isize::MAX as usize / std::mem::size_of::<idax_sys::IdaxSwitchCase>()
+            {
+                return Err(Error::internal("invalid switch case array"));
+            }
+            std::slice::from_raw_parts(pointer, count)
+                .iter()
+                .map(|raw| {
+                    let values = if raw.value_count == 0 {
+                        Vec::new()
+                    } else if raw.values.is_null()
+                        || raw.value_count > isize::MAX as usize / std::mem::size_of::<i64>()
+                    {
+                        return Err(Error::internal("invalid switch value array"));
+                    } else {
+                        std::slice::from_raw_parts(raw.values, raw.value_count).to_vec()
+                    };
+                    Ok(SwitchCase {
+                        values,
+                        target: raw.target,
+                    })
+                })
+                .collect()
+        })();
+        idax_sys::idax_graph_switch_cases_free(pointer, count);
+        result
+    }
+}
+
 /// A basic block in a flow chart.
 #[derive(Debug, Clone)]
 pub struct BasicBlock {

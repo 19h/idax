@@ -4,7 +4,7 @@
 
 use crate::address::{Address, AddressDelta, AddressSize};
 use crate::error::{self, Error, Result, Status};
-use std::ffi::CString;
+use std::ffi::{CString, c_char};
 use std::mem::MaybeUninit;
 
 // ---------------------------------------------------------------------------
@@ -383,6 +383,30 @@ pub fn create(address: Address) -> Result<Instruction> {
         let raw = raw.assume_init();
         let result = instruction_from_ffi(&raw);
         idax_sys::idax_instruction_free(&raw as *const _ as *mut _);
+        result
+    }
+}
+
+/// Copied active processor mnemonics, preserving order and duplicates.
+pub fn mnemonics() -> Result<Vec<String>> {
+    unsafe {
+        let mut pointer = std::ptr::null_mut();
+        let mut count = 0;
+        let rc = idax_sys::idax_instruction_mnemonics(&mut pointer, &mut count);
+        error::int_to_status(rc, "instruction::mnemonics failed")?;
+        let result = if count == 0 {
+            Ok(Vec::new())
+        } else if pointer.is_null()
+            || count > isize::MAX as usize / std::mem::size_of::<*mut c_char>()
+        {
+            Err(Error::internal("invalid mnemonic array"))
+        } else {
+            std::slice::from_raw_parts(pointer, count)
+                .iter()
+                .map(|value| error::cstr_to_string(*value, "instruction mnemonic"))
+                .collect()
+        };
+        idax_sys::idax_instruction_string_array_free(pointer, count);
         result
     }
 }

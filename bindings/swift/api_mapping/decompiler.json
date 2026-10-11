@@ -14654,6 +14654,42 @@
           "declaration": "func view() throws(IDAError) -> Decompiler.View"
         }
       ]
+    },
+    {
+      "cpp_id": "d59c1d16fdbb3fe6a318",
+      "cpp_name": "ida::decompiler::MicrocodeBlock::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "ce959600b578a580628b"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "66c1fddf19c6f1a63fcc76ba7a605c49f7e151d0d90d73012f9f7af25a7e5d34",
+      "swift_targets": [
+        {
+          "path": "Decompiler.MicrocodeBlock.text",
+          "declaration": "var text: String"
+        }
+      ]
+    },
+    {
+      "cpp_id": "867d7d1b168f8ba5cbc6",
+      "cpp_name": "ida::decompiler::MicrocodeFunction::text",
+      "cpp_kind": "field",
+      "cpp_signature": "std::string",
+      "mapping": "direct",
+      "swift": [
+        "fab4601da81d20cf9b38"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "b19e23c6bb29bf13372e305fc12867e6a1dab5fcfd2fc6120edfd281728e9898",
+      "swift_targets": [
+        {
+          "path": "Decompiler.MicrocodeFunction.text",
+          "declaration": "var text: String"
+        }
+      ]
     }
   ]
 }

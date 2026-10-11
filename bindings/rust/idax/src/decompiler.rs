@@ -652,6 +652,8 @@ pub struct MicrocodeBlock {
     pub successors: Vec<i32>,
     pub instructions: Vec<MicrocodeInstruction>,
     pub kind: MicrocodeBlockKind,
+    /// Native formatted listing with SDK color tags retained.
+    pub text: String,
 }
 
 /// Complete SDK-independent snapshot of one function-level microcode graph.
@@ -667,6 +669,8 @@ pub struct MicrocodeFunction {
     pub saved_register_size: i64,
     pub return_variable_index: Option<usize>,
     pub local_variables: Vec<LocalVariable>,
+    /// Native formatted listing with SDK color tags retained.
+    pub text: String,
 }
 
 #[derive(Debug)]
@@ -2545,6 +2549,7 @@ unsafe fn microcode_function_from_ffi(
         blocks.push(MicrocodeBlock {
             index: block.index,
             kind: MicrocodeBlockKind::from_raw(block.kind),
+            text: error::cstr_to_string(block.text, "microcode block text")?,
             start_address: block.start_address,
             end_address: block.end_address,
             predecessors,
@@ -2567,6 +2572,7 @@ unsafe fn microcode_function_from_ffi(
     Ok(MicrocodeFunction {
         entry_address: raw.entry_address,
         maturity: MicrocodeMaturity::from_raw(raw.maturity)?,
+        text: error::cstr_to_string(raw.text, "microcode function text")?,
         arguments,
         return_location,
         blocks,

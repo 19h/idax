@@ -10,6 +10,7 @@ from ._native.graph import (
     Layout,
     NodeInfo,
     SwitchTable,
+    SwitchCase,
     activate_graph_viewer,
     close_graph_viewer,
     flowchart,
@@ -19,12 +20,13 @@ from ._native.graph import (
     refresh_graph,
     show_graph,
     switch_table,
+    switch_cases,
 )
 
 __all__ = [
     "BasicBlock", "BlockType", "Edge", "EdgeInfo", "Graph", "GraphCallback",
-    "Layout", "NodeInfo", "SwitchTable", "activate_graph_viewer",
+    "Layout", "NodeInfo", "SwitchTable", "SwitchCase", "activate_graph_viewer",
     "close_graph_viewer", "flowchart", "flowchart_for_ranges",
     "has_graph_viewer", "is_graph_viewer_visible", "refresh_graph",
-    "show_graph", "switch_table",
+    "show_graph", "switch_table", "switch_cases",
 ]

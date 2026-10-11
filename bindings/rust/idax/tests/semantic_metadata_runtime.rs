@@ -22,6 +22,7 @@ fn micro_instruction(value: &MicrocodeInstruction, blocks: &HashSet<i32>, counts
     operand(&value.left, blocks, counts); operand(&value.right, blocks, counts); operand(&value.destination, blocks, counts);
 }
 fn graph(value: &MicrocodeFunction, counts: &mut Counts) {
+    assert!(!value.text.is_empty(), "native formatted function text is required");
     assert!(value.stack_frame_size >= 0 && value.local_stack_size >= 0 && value.saved_register_size >= 0);
     if let Some(index) = value.return_variable_index { assert!(index < value.local_variables.len()); }
     let blocks = value.blocks.iter().map(|block| block.index).collect();
@@ -57,6 +58,8 @@ fn main() {
     assert!(dyld_cache::list_modules_from_file(cache.to_str().unwrap()).is_err());
     assert!(dyld_cache::list_modules_from_file("bad\0path").is_err());
     database::init().unwrap(); database::open(fixture.to_str().unwrap(), true).unwrap(); analysis::wait().unwrap();
+    let mnemonics = instruction::mnemonics().unwrap();
+    assert!(!mnemonics.is_empty());
     assert!(!dyld_cache::is_available().unwrap());
     assert!(dyld_cache::list_modules().is_err());
     assert!(plugin::run_plugin("bad\0plugin", 0).is_err());
@@ -66,11 +69,22 @@ fn main() {
     let expressions = Rc::new(RefCell::new(Vec::new()));
     let statements = Rc::new(RefCell::new(Vec::new()));
     let mut functions = 0;
+    let mut native_switches = 0;
     for index in 0..function::count().unwrap() {
         let function = function::by_index(index).unwrap();
         if !function.name().contains("idax_metadata_") { continue; }
         functions += 1;
         let decoded = instruction::decode(function.start()).unwrap();
+        assert!(mnemonics.contains(&decoded.mnemonic().to_owned()));
+        if function.name().contains("idax_metadata_switch") {
+            for ea in idax::address::code_items(function.start(), function.end()) {
+                let Ok(cases) = idax::graph::switch_cases(ea) else { continue; };
+                let values: HashSet<i64> = cases.iter().flat_map(|case| case.values.iter().copied()).collect();
+                assert_eq!(values, (-3..=12).collect());
+                assert!(cases.iter().all(|case| case.target != idax::address::BAD_ADDRESS));
+                native_switches += 1;
+            }
+        }
         assert_eq!(decoded.branch_condition(), instruction::branch_condition(function.start()));
         for maturity in [MicrocodeMaturity::Generated, MicrocodeMaturity::Preoptimized, MicrocodeMaturity::LocallyOptimized, MicrocodeMaturity::CallsAnalyzed, MicrocodeMaturity::GloballyOptimized1, MicrocodeMaturity::GloballyOptimized2, MicrocodeMaturity::GloballyOptimized3, MicrocodeMaturity::LocalVariables] {
             let model = generate_microcode(function.start(), MicrocodeGenerationOptions { maturity, analyze_calls: false }).unwrap();
@@ -86,6 +100,7 @@ fn main() {
         assert!(contained.is_err());
     }
     assert!(functions >= 5 && counts.floats > 0 && counts.stacks > 0 && counts.calls > 0 && counts.switches > 0);
+    assert!(native_switches > 0, "native switch cases were not exercised");
     assert!(expressions.borrow().iter().any(|item| !item.parents.is_empty()));
     let mut children = 0;
     for item in expressions.borrow().iter() {
@@ -99,7 +114,12 @@ fn main() {
     assert!(children > 0);
     for model in &retained { graph(model, &mut counts); }
     let saved = directory.join("saved.i64"); database::save_to(saved.to_str().unwrap()).unwrap(); assert!(saved.is_file());
+    let copied_text: Vec<_> = retained.iter().map(|model| (model.text.clone(), model.blocks.iter().map(|block| block.text.clone()).collect::<Vec<_>>())).collect();
     database::close(false).unwrap(); database::open(saved.to_str().unwrap(), false).unwrap(); database::close(false).unwrap();
+    for (model, (text, blocks)) in retained.iter().zip(copied_text) {
+        assert_eq!(model.text, text);
+        assert_eq!(model.blocks.iter().map(|block| block.text.clone()).collect::<Vec<_>>(), blocks);
+    }
     std::fs::remove_dir_all(directory).unwrap();
     println!("semantic metadata passed: {} float constants, {} stack variables, {} calls, {} switch descriptors, {children} children", counts.floats, counts.stacks, counts.calls, counts.switches);
 }

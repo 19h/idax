@@ -5585,6 +5585,10 @@ generate_microcode(Address function_address,
     }
 
     MicrocodeFunction result;
+    qstring function_listing;
+    qstring_printer_t function_printer(nullptr, function_listing, true);
+    native->print(function_printer);
+    result.text = ida::detail::to_string(function_listing);
     result.entry_address = native->entry_ea == BADADDR
         ? BadAddress
         : static_cast<Address>(native->entry_ea);
@@ -5639,6 +5643,10 @@ generate_microcode(Address function_address,
                 "Microcode block is unavailable", std::to_string(block_index)));
 
         MicrocodeBlock block;
+        qstring block_listing;
+        qstring_printer_t block_printer(nullptr, block_listing, true);
+        native_block->print(block_printer);
+        block.text = ida::detail::to_string(block_listing);
         block.index = native_block->serial;
         switch (native_block->type) {
             case BLT_NONE: block.kind = MicrocodeBlockKind::Unknown; break;

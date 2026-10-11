@@ -5363,7 +5363,7 @@
     {
       "domain": "decompiler",
       "header": "include/ida/decompiler.hpp",
-      "sha256": "08154ae0d924831be673c02cecba1a23fe00fcedbe91f743f0297044fb71c3e5",
+      "sha256": "2d0b05d7cd0eb6cf56bb4a629fd6921e80223ca8204c0dfda751ddc8f2248793",
       "declarations": [
         {
           "name": "ida::decompiler::AddressMapping",
@@ -7555,6 +7555,12 @@
           "declaration": "std::vector<int> successors{}"
         },
         {
+          "name": "ida::decompiler::MicrocodeBlock::text",
+          "kind": "field",
+          "signature": "std::string",
+          "declaration": "std::string text{}"
+        },
+        {
           "name": "ida::decompiler::MicrocodeBlockKind",
           "kind": "enum",
           "signature": "enum class MicrocodeBlockKind { Unknown, Exit, NonReturning, SingleSuccessor, Conditional, Switch, External, }",
@@ -8808,6 +8814,12 @@
           "kind": "field",
           "signature": "std::int64_t",
           "declaration": "std::int64_t stack_frame_size{0}"
+        },
+        {
+          "name": "ida::decompiler::MicrocodeFunction::text",
+          "kind": "field",
+          "signature": "std::string",
+          "declaration": "std::string text{}"
         },
         {
           "name": "ida::decompiler::MicrocodeFunctionArgument",
@@ -15184,7 +15196,7 @@
     {
       "domain": "graph",
       "header": "include/ida/graph.hpp",
-      "sha256": "99039f3a872ba0c74447bbda89e23b5d858b2a1dde91e2766e579bdfedd0c906",
+      "sha256": "ee2553ae7eb7395eb767b6f4e341ab856c7dfa1407f054315ab76bdcb5235b92",
       "declarations": [
         {
           "name": "ida::graph::BasicBlock",
@@ -15847,6 +15859,23 @@
           "declaration": "std::string text"
         },
         {
+          "name": "ida::graph::SwitchCase",
+          "kind": "type",
+          "signature": "struct"
+        },
+        {
+          "name": "ida::graph::SwitchCase::target",
+          "kind": "field",
+          "signature": "Address",
+          "declaration": "Address target{BadAddress}"
+        },
+        {
+          "name": "ida::graph::SwitchCase::values",
+          "kind": "field",
+          "signature": "std::vector<std::int64_t>",
+          "declaration": "std::vector<std::int64_t> values"
+        },
+        {
           "name": "ida::graph::SwitchTable",
           "kind": "type",
           "signature": "struct"
@@ -15975,6 +16004,18 @@
           ]
         },
         {
+          "name": "ida::graph::switch_cases",
+          "kind": "function",
+          "signature": "Result<std::vector<SwitchCase>> (Address)",
+          "declaration": "Result<std::vector<SwitchCase>> switch_cases(Address jump_address)",
+          "parameters": [
+            {
+              "name": "jump_address",
+              "type": "Address"
+            }
+          ]
+        },
+        {
           "name": "ida::graph::switch_table",
           "kind": "function",
           "signature": "Result<SwitchTable> (Address)",
@@ -15991,7 +16032,7 @@
     {
       "domain": "instruction",
       "header": "include/ida/instruction.hpp",
-      "sha256": "4b862d14332bc729e8aae3468898e971c9e8127d157429a052d78b9c52054b78",
+      "sha256": "f6f380fa2c38c8cfc5d12ccbd5a2c8ee16be9af3422441b40537e030ae2d027e",
       "declarations": [
         {
           "name": "ida::instruction::BranchCondition",
@@ -16793,6 +16834,12 @@
               "type": "Address"
             }
           ]
+        },
+        {
+          "name": "ida::instruction::mnemonics",
+          "kind": "function",
+          "signature": "Result<std::vector<std::string>> ()",
+          "declaration": "Result<std::vector<std::string>> mnemonics()"
         },
         {
           "name": "ida::instruction::next",

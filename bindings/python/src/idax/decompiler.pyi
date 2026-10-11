@@ -495,6 +495,7 @@ class MicrocodeBlock:
     successors: list[int]
     instructions: list[MicrocodeInstruction]
     kind: MicrocodeBlockKind
+    text: str
     def __init__(self) -> None: ...
 
 class MicrocodeFunction:
@@ -508,6 +509,7 @@ class MicrocodeFunction:
     saved_register_size: int
     return_variable_index: int | None
     local_variables: list[LocalVariable]
+    text: str
     def __init__(self) -> None: ...
 
 class MicrocodeValue:

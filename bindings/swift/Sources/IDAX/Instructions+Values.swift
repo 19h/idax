@@ -178,6 +178,15 @@ public enum Instructions {
         return try borrowCString(out.map { UnsafePointer($0) }, "Instructions.text")
     }
 
+    public static func mnemonics() throws(IDAError) -> [String] {
+        try requireRuntimeThread("Instructions.mnemonics")
+        var out: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
+        var count: Int = 0
+        defer { idax_instruction_string_array_free(out, count) }
+        try checkStatus(idax_instruction_mnemonics(&out, &count), "Instructions.mnemonics")
+        return try copyNativeValues(out, count: count, "Instructions.mnemonics") { (value) throws(IDAError) -> String in try borrowCString(value.map { UnsafePointer($0) }, "Instructions.mnemonics") }
+    }
+
     public static func setOperandHex(address: UInt64, operandIndex: Int32) throws(IDAError) {
         try requireRuntimeThread("Instructions.setOperandHex")
         try checkStatus(idax_instruction_set_operand_hex(address, operandIndex), "Instructions.setOperandHex")

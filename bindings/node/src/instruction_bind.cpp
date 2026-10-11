@@ -116,6 +116,11 @@ v8::Local<v8::Object> InstructionToObject(const ida::instruction::Instruction& i
 
 // ── NAN method implementations ──────────────────────────────────────────
 
+NAN_METHOD(Mnemonics) {
+    IDAX_UNWRAP(auto names, ida::instruction::mnemonics());
+    info.GetReturnValue().Set(StringVectorToArray(names));
+}
+
 // decode(address) -> instruction object
 NAN_METHOD(Decode) {
     ida::Address addr;
@@ -522,6 +527,7 @@ void InitInstruction(v8::Local<v8::Object> target) {
     SetMethod(ns, "decode",  Decode);
     SetMethod(ns, "create",  Create);
     SetMethod(ns, "text",    Text);
+    SetMethod(ns, "mnemonics", Mnemonics);
 
     // Operand format setters
     SetMethod(ns, "setOperandHex",       SetOperandHex);

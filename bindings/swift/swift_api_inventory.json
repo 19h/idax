@@ -24694,10 +24694,10 @@
       "path": [
         "Decompiler",
         "MicrocodeBlock",
-        "init(index:startAddress:endAddress:predecessors:successors:instructions:kind:)"
+        "init(index:startAddress:endAddress:predecessors:successors:instructions:kind:text:)"
       ],
       "kind": "swift.init",
-      "declaration": "init(index: Int32 = 0, startAddress: UInt64 = badAddress, endAddress: UInt64 = badAddress, predecessors: [Int32] = [], successors: [Int32] = [], instructions: [Decompiler.MicrocodeInstruction] = [], kind: Decompiler.MicrocodeBlockKind = .unknown)",
+      "declaration": "init(index: Int32 = 0, startAddress: UInt64 = badAddress, endAddress: UInt64 = badAddress, predecessors: [Int32] = [], successors: [Int32] = [], instructions: [Decompiler.MicrocodeInstruction] = [], kind: Decompiler.MicrocodeBlockKind = .unknown, text: String = \"\")",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
       "functionSignature": {
         "parameters": [
@@ -24856,10 +24856,28 @@
                 "preciseIdentifier": "s:4IDAX10DecompilerO18MicrocodeBlockKindO"
               }
             ]
+          },
+          {
+            "name": "text",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "text"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "String",
+                "preciseIdentifier": "s:SS"
+              }
+            ]
           }
         ]
       },
-      "id": "33470ad1d09f0309fad5"
+      "id": "abb98fc72f4859ad4e31"
     },
     {
       "path": [
@@ -24915,6 +24933,17 @@
       "declaration": "var successors: [Int32]",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
       "id": "f1edac1d39d3939c70b8"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "MicrocodeBlock",
+        "text"
+      ],
+      "kind": "swift.property",
+      "declaration": "var text: String",
+      "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
+      "id": "ce959600b578a580628b"
     },
     {
       "path": [
@@ -28225,10 +28254,10 @@
       "path": [
         "Decompiler",
         "MicrocodeFunction",
-        "init(entryAddress:maturity:arguments:returnLocation:blocks:stackFrameSize:localStackSize:savedRegisterSize:returnVariableIndex:localVariables:)"
+        "init(entryAddress:maturity:arguments:returnLocation:blocks:stackFrameSize:localStackSize:savedRegisterSize:returnVariableIndex:localVariables:text:)"
       ],
       "kind": "swift.init",
-      "declaration": "init(entryAddress: UInt64 = badAddress, maturity: Decompiler.MicrocodeMaturity = .generated, arguments: [Decompiler.MicrocodeFunctionArgument] = [], returnLocation: Decompiler.MicrocodeValueLocation? = nil, blocks: [Decompiler.MicrocodeBlock] = [], stackFrameSize: Int64 = 0, localStackSize: Int64 = 0, savedRegisterSize: Int64 = 0, returnVariableIndex: Int? = nil, localVariables: [Decompiler.LocalVariable] = [])",
+      "declaration": "init(entryAddress: UInt64 = badAddress, maturity: Decompiler.MicrocodeMaturity = .generated, arguments: [Decompiler.MicrocodeFunctionArgument] = [], returnLocation: Decompiler.MicrocodeValueLocation? = nil, blocks: [Decompiler.MicrocodeBlock] = [], stackFrameSize: Int64 = 0, localStackSize: Int64 = 0, savedRegisterSize: Int64 = 0, returnVariableIndex: Int? = nil, localVariables: [Decompiler.LocalVariable] = [], text: String = \"\")",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
       "functionSignature": {
         "parameters": [
@@ -28476,10 +28505,28 @@
                 "spelling": "]"
               }
             ]
+          },
+          {
+            "name": "text",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "text"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "String",
+                "preciseIdentifier": "s:SS"
+              }
+            ]
           }
         ]
       },
-      "id": "201399e614c79fb00441"
+      "id": "a188b117b07025756747"
     },
     {
       "path": [
@@ -28557,6 +28604,17 @@
       "declaration": "var stackFrameSize: Int64",
       "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
       "id": "e3e819caca07fa394c18"
+    },
+    {
+      "path": [
+        "Decompiler",
+        "MicrocodeFunction",
+        "text"
+      ],
+      "kind": "swift.property",
+      "declaration": "var text: String",
+      "source": "bindings/swift/Sources/IDAX/Decompiler+Values.swift",
+      "id": "fab4601da81d20cf9b38"
     },
     {
       "path": [
@@ -47949,6 +48007,93 @@
     {
       "path": [
         "Graph",
+        "SwitchCase"
+      ],
+      "kind": "swift.struct",
+      "declaration": "struct SwitchCase",
+      "source": "bindings/swift/Sources/IDAX/Graph.swift",
+      "id": "b7dc644183f154707a62"
+    },
+    {
+      "path": [
+        "Graph",
+        "SwitchCase",
+        "init(values:target:)"
+      ],
+      "kind": "swift.init",
+      "declaration": "init(values: [Int64] = [], target: Address = badAddress)",
+      "source": "bindings/swift/Sources/IDAX/Graph.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "values",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "values"
+              },
+              {
+                "kind": "text",
+                "spelling": ": ["
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Int64",
+                "preciseIdentifier": "s:s5Int64V"
+              },
+              {
+                "kind": "text",
+                "spelling": "]"
+              }
+            ]
+          },
+          {
+            "name": "target",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "target"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Address",
+                "preciseIdentifier": "s:4IDAX7Addressa"
+              }
+            ]
+          }
+        ]
+      },
+      "id": "3b07a12cc09f5351d2d2"
+    },
+    {
+      "path": [
+        "Graph",
+        "SwitchCase",
+        "target"
+      ],
+      "kind": "swift.property",
+      "declaration": "var target: Address",
+      "source": "bindings/swift/Sources/IDAX/Graph.swift",
+      "id": "d7531b75d3c85f911730"
+    },
+    {
+      "path": [
+        "Graph",
+        "SwitchCase",
+        "values"
+      ],
+      "kind": "swift.property",
+      "declaration": "var values: [Int64]",
+      "source": "bindings/swift/Sources/IDAX/Graph.swift",
+      "id": "56cf80275160f4290125"
+    },
+    {
+      "path": [
+        "Graph",
         "SwitchTable"
       ],
       "kind": "swift.struct",
@@ -49489,6 +49634,63 @@
         ]
       },
       "id": "be984c81fb8cdaaebcf2"
+    },
+    {
+      "path": [
+        "Graph",
+        "switchCases(at:)"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func switchCases(at jumpAddress: Address) throws(IDAError) -> [Graph.SwitchCase]",
+      "source": "bindings/swift/Sources/IDAX/Graph.swift",
+      "functionSignature": {
+        "parameters": [
+          {
+            "name": "at",
+            "internalName": "jumpAddress",
+            "declarationFragments": [
+              {
+                "kind": "identifier",
+                "spelling": "jumpAddress"
+              },
+              {
+                "kind": "text",
+                "spelling": ": "
+              },
+              {
+                "kind": "typeIdentifier",
+                "spelling": "Address",
+                "preciseIdentifier": "s:4IDAX7Addressa"
+              }
+            ]
+          }
+        ],
+        "returns": [
+          {
+            "kind": "text",
+            "spelling": "["
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "Graph",
+            "preciseIdentifier": "s:4IDAX5GraphC"
+          },
+          {
+            "kind": "text",
+            "spelling": "."
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "SwitchCase",
+            "preciseIdentifier": "s:4IDAX5GraphC10SwitchCaseV"
+          },
+          {
+            "kind": "text",
+            "spelling": "]"
+          }
+        ]
+      },
+      "id": "fbd3c7e185daea3d754a"
     },
     {
       "path": [
@@ -52564,6 +52766,33 @@
         ]
       },
       "id": "655232bbf794edacd12a"
+    },
+    {
+      "path": [
+        "Instructions",
+        "mnemonics()"
+      ],
+      "kind": "swift.type.method",
+      "declaration": "static func mnemonics() throws(IDAError) -> [String]",
+      "source": "bindings/swift/Sources/IDAX/Instructions+Values.swift",
+      "functionSignature": {
+        "returns": [
+          {
+            "kind": "text",
+            "spelling": "["
+          },
+          {
+            "kind": "typeIdentifier",
+            "spelling": "String",
+            "preciseIdentifier": "s:SS"
+          },
+          {
+            "kind": "text",
+            "spelling": "]"
+          }
+        ]
+      },
+      "id": "6f5d06464c55b9bfde98"
     },
     {
       "path": [

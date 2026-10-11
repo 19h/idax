@@ -25,6 +25,7 @@ cargo --version
 cargo build --verbose
 cargo build --examples --verbose
 cargo test --lib --verbose
+cargo test --examples --verbose
 cargo run --example idalib_dump_port -- "$runtime_fixtures/test_bin" --list
 cargo run --example ida2py_port -- "$runtime_fixtures/test_bin"
 # Linux CI executes the dedicated process-main fixtures. Generic integration

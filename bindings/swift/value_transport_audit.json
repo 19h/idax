@@ -137,6 +137,7 @@
     "idax_instruction_decode",
     "idax_instruction_create",
     "idax_instruction_text",
+    "idax_instruction_mnemonics",
     "idax_instruction_set_operand_hex",
     "idax_instruction_set_operand_decimal",
     "idax_instruction_set_operand_octal",

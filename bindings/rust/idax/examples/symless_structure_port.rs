@@ -4815,6 +4815,15 @@ mod tests {
             call_arguments: Vec::new(),
             call_target: BAD_ADDRESS,
             text: String::new(),
+            string_constant: String::new(),
+            floating_point_constant: None,
+            global_name: String::new(),
+            value_number: None,
+            call_argument_properties: Vec::new(),
+            call_return_operands: Vec::new(),
+            call_return_registers: Vec::new(),
+            switch_cases: Vec::new(),
+            switch_default_target: None,
         }
     }
 
@@ -4853,6 +4862,12 @@ mod tests {
         secondary_store.destination.register_id = 2;
 
         MicrocodeFunction {
+            text: String::new(),
+            stack_frame_size: 0,
+            local_stack_size: 0,
+            saved_register_size: 0,
+            return_variable_index: None,
+            local_variables: Vec::new(),
             entry_address: 0x1000,
             maturity: MicrocodeMaturity::Preoptimized,
             arguments: if with_argument_zero {
@@ -4875,6 +4890,8 @@ mod tests {
             },
             return_location: None,
             blocks: vec![MicrocodeBlock {
+                kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                text: String::new(),
                 index: 0,
                 start_address: 0x1000,
                 end_address: 0x1010,
@@ -4887,11 +4904,19 @@ mod tests {
 
     fn graph_with_instructions(instructions: Vec<MicrocodeInstruction>) -> MicrocodeFunction {
         MicrocodeFunction {
+            text: String::new(),
+            stack_frame_size: 0,
+            local_stack_size: 0,
+            saved_register_size: 0,
+            return_variable_index: None,
+            local_variables: Vec::new(),
             entry_address: 0x1000,
             maturity: MicrocodeMaturity::Preoptimized,
             arguments: Vec::new(),
             return_location: None,
             blocks: vec![MicrocodeBlock {
+                kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                text: String::new(),
                 index: 0,
                 start_address: 0x1000,
                 end_address: 0x1100,
@@ -5318,12 +5343,20 @@ mod tests {
     #[test]
     fn topological_order_prefers_visited_predecessors_in_cycles() {
         let graph = MicrocodeFunction {
+            text: String::new(),
+            stack_frame_size: 0,
+            local_stack_size: 0,
+            saved_register_size: 0,
+            return_variable_index: None,
+            local_variables: Vec::new(),
             entry_address: 0x1000,
             maturity: MicrocodeMaturity::Preoptimized,
             arguments: Vec::new(),
             return_location: None,
             blocks: vec![
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 0,
                     start_address: 0x1000,
                     end_address: 0x1001,
@@ -5332,6 +5365,8 @@ mod tests {
                     instructions: vec![instruction(MicrocodeOpcode::Move)],
                 },
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 1,
                     start_address: 0x1001,
                     end_address: 0x1002,
@@ -5340,6 +5375,8 @@ mod tests {
                     instructions: vec![instruction(MicrocodeOpcode::Move)],
                 },
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 2,
                     start_address: 0x1002,
                     end_address: 0x1003,
@@ -5380,11 +5417,19 @@ mod tests {
         instructions: Vec<MicrocodeInstruction>,
     ) -> MicrocodeFunction {
         MicrocodeFunction {
+            text: String::new(),
+            stack_frame_size: 0,
+            local_stack_size: 0,
+            saved_register_size: 0,
+            return_variable_index: None,
+            local_variables: Vec::new(),
             entry_address: address,
             maturity: MicrocodeMaturity::Preoptimized,
             arguments,
             return_location,
             blocks: vec![MicrocodeBlock {
+                kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                text: String::new(),
                 index: 0,
                 start_address: address,
                 end_address: address + 1,
@@ -5437,12 +5482,20 @@ mod tests {
         right: MicrocodeInstruction,
     ) -> MicrocodeFunction {
         MicrocodeFunction {
+            text: String::new(),
+            stack_frame_size: 0,
+            local_stack_size: 0,
+            saved_register_size: 0,
+            return_variable_index: None,
+            local_variables: Vec::new(),
             entry_address: address,
             maturity: MicrocodeMaturity::Preoptimized,
             arguments: vec![function_argument("argument", 1)],
             return_location: Some(register_location(10)),
             blocks: vec![
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 0,
                     start_address: address,
                     end_address: address + 1,
@@ -5451,6 +5504,8 @@ mod tests {
                     instructions: vec![instruction(MicrocodeOpcode::NoOperation)],
                 },
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 1,
                     start_address: address + 1,
                     end_address: address + 2,
@@ -5459,6 +5514,8 @@ mod tests {
                     instructions: vec![left],
                 },
                 MicrocodeBlock {
+                    kind: idax::decompiler::MicrocodeBlockKind::Unknown,
+                    text: String::new(),
                     index: 2,
                     start_address: address + 2,
                     end_address: address + 3,

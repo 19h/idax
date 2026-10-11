@@ -442,7 +442,8 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .def_readwrite("predecessors", &ida::decompiler::MicrocodeBlock::predecessors)
         .def_readwrite("successors", &ida::decompiler::MicrocodeBlock::successors)
         .def_readwrite("instructions", &ida::decompiler::MicrocodeBlock::instructions)
-        .def_readwrite("kind", &ida::decompiler::MicrocodeBlock::kind);
+        .def_readwrite("kind", &ida::decompiler::MicrocodeBlock::kind)
+        .def_readwrite("text", &ida::decompiler::MicrocodeBlock::text);
     IDAX_PY_DECOMPILER_VALUE(MicrocodeFunction)
         .def_readwrite("entry_address", &ida::decompiler::MicrocodeFunction::entry_address)
         .def_readwrite("maturity", &ida::decompiler::MicrocodeFunction::maturity)
@@ -453,7 +454,8 @@ void bind_decompiler_microcode(py::module_& decompiler) {
         .def_readwrite("local_stack_size", &ida::decompiler::MicrocodeFunction::local_stack_size)
         .def_readwrite("saved_register_size", &ida::decompiler::MicrocodeFunction::saved_register_size)
         .def_readwrite("return_variable_index", &ida::decompiler::MicrocodeFunction::return_variable_index)
-        .def_readwrite("local_variables", &ida::decompiler::MicrocodeFunction::local_variables);
+        .def_readwrite("local_variables", &ida::decompiler::MicrocodeFunction::local_variables)
+        .def_readwrite("text", &ida::decompiler::MicrocodeFunction::text);
     IDAX_PY_DECOMPILER_VALUE(MicrocodeValue)
         .def_readwrite("kind", &ida::decompiler::MicrocodeValue::kind)
         .def_readwrite("register_id", &ida::decompiler::MicrocodeValue::register_id)

@@ -56,3 +56,43 @@ sharing the engine avoids divergence between the native and Rust entry points;
 it does not establish independently implemented matching algorithms in either
 language. Existing exact companion formats retain their separately validated
 contracts.
+
+Native feature input evidence (SDK 940/runtime 9.4, macOS ARM64 host with the
+source-built x86-64 semantic fixture):
+
+| Input/consumer | Observed result | Boundary |
+|---|---|---|
+| Active mnemonics | 1948 strings equal to native GetInstructionList in exact order | Includes duplicate native names; ARM64 separately yields 1675 |
+| Switch cases | 16 groups, values -3 through 12 and destinations equal to native calc_switch_cases | Native case labels depend on compiler/analysis normalization; no synthesized default |
+| Formatted microcode | Function and all 27 block strings equal to native printing at Generated maturity after graph construction | Empty native block strings are valid; upstream pre-graph feature equality remains DP.A2 work |
+| Python lifetime | Exact copied text survives database close; missing-switch query raises NotFoundError | Independent native modules are test-only |
+| Native regressions | instruction_decode_behavior and decompiler_semantic_metadata: 2/2 in 6.56 s | Actual 940 runtime; no full-suite claim for these additions |
+| C/Swift | Rebuilt transport and all initialized runtime checks pass, including active mnemonics, signed switch values and listings across 40 graphs | 32 XCTest cases and clean transitive consumer also pass |
+| Rust | Configured all-target run passes 328 reported tests; dedicated semantic metadata execution passes | 172 library, 41 example, 113 generic integration, register and referent cases; 40 graphs retain listings and signed switch copies. Initial missing-fixture run is not closure evidence |
+| Node | Rebuilt addon passes 277 unit tests | Tests explicitly load the new addon; no graph namespace exists in the maintained Node surface |
+| Inventories | 3616 native declarations, 3551 compiler-extracted Swift symbols, 987 Python functions/types | Every changed/new Swift declaration mapped; inventories are not runtime proof |
+
+The independent native comparison is retained in
+`tests/integration/diaphora_feature_inputs_test.py`. Build an owned x86-64 copy of
+`tests/fixtures/decompiler_semantic_metadata_host.cpp` with `-O1 -fno-inline`;
+invoke its imported `main(fixture)` with the rebuilt Python package and matching
+IDA 9.4 runtime. Importing avoids IDAPython initialization taking ownership of
+`__main__`. It compares direct native results, then checks copied values after
+closing the database. No analyzed binary or private SDK source is published.
+
+DP.P1 assumes copied formatting preserves native tags and instruction numbering;
+falsify by direct same-maturity native printing. DP.P2 assumes signed case groups
+and destination order are preserved; falsify by native calculation and the
+negative-value witness. DP.P3 assumes copied language values own their storage;
+falsify by resource destruction and retained-value checks. These probes pass
+within the table's observed scope. The higher-level DP.A2 export parity gate
+remains open. Listing copies cost O(T) time and storage for T output characters;
+mnemonic and case copies cost O(N + V) for N names and V values. Native/C record
+layout additions require coordinated consumer rebuilds.
+
+The all-target Rust check uncovered stale test-only Symless constructors that
+library/example builds had omitted. Their explicit neutral metadata preserves
+the modeled instructions and graph edges; all 20 Symless cases now execute.
+Hosted Rust and Docker paths now run example unit tests in addition to their
+separately configured licensed runtime targets. Optional runtime-host evidence
+still follows each existing target's fixture/license conditions.

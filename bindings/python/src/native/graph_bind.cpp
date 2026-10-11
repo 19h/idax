@@ -142,6 +142,9 @@ void bind_graph(py::module_& module) {
         .def_readwrite("table_address", &ida::graph::SwitchTable::table_address)
         .def_readwrite("entry_count", &ida::graph::SwitchTable::entry_count)
         .def_readwrite("entry_size", &ida::graph::SwitchTable::entry_size);
+    IDAX_PY_GRAPH_VALUE(SwitchCase)
+        .def_readwrite("values", &ida::graph::SwitchCase::values)
+        .def_readwrite("target", &ida::graph::SwitchCase::target);
 #undef IDAX_PY_GRAPH_VALUE
 
     py::class_<ida::graph::Graph>(graph, "Graph")
@@ -249,6 +252,11 @@ void bind_graph(py::module_& module) {
     graph.def("switch_table", [](ida::Address address) {
         return runtime_result("graph.switch_table", [=] {
             return ida::graph::switch_table(address);
+        });
+    }, py::arg("jump_address"));
+    graph.def("switch_cases", [](ida::Address address) {
+        return runtime_result("graph.switch_cases", [=] {
+            return ida::graph::switch_cases(address);
         });
     }, py::arg("jump_address"));
     graph.def("flowchart", [](ida::Address address) {

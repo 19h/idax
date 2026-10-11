@@ -107,3 +107,5 @@ Phase 72 additions:
 - Swift maps semantic domains to named namespaces (for example Addresses, Functions and CrossReferences), fallible results to typed IDAError throws, optional absence to Optional, and copied native ranges to Swift arrays.
 - `DecompiledFunction` becomes `Decompiler.Function`; callback views retain semantic names and checked leases. Native owner copy/move/destruction map explicitly to Swift copy()/reference assignment/ARC or close(), with no public transport-pointer escape hatch.
 - The authoritative per-declaration Swift spelling and overload targets live in `bindings/swift/api_mapping` and the actual compiled `swift_api_inventory.json`.
+
+- Active processor instruc names -> instruction.mnemonics; native calc_switch_cases -> graph.switch_cases with owned SwitchCase values/target. Native mba/mblock print -> MicrocodeFunction.text/MicrocodeBlock.text; color normalization remains an explicit consumer operation.

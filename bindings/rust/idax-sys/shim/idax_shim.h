@@ -976,6 +976,7 @@ int idax_instruction_branch_condition(uint64_t ea, int* out);
 int idax_instruction_decode(uint64_t ea, IdaxInstruction* out);
 int idax_instruction_create(uint64_t ea, IdaxInstruction* out);
 int idax_instruction_text(uint64_t ea, char** out);
+int idax_instruction_mnemonics(char*** out, size_t* count);
 
 /* Operand representation controls */
 int idax_instruction_set_operand_hex(uint64_t ea, int n);
@@ -2681,6 +2682,7 @@ typedef struct IdaxMicrocodeBlock {
     IdaxMicrocodeInstruction* instructions;
     size_t instruction_count;
     int kind; /**< Semantic MicrocodeBlockKind discriminant. */
+    char* text; /**< Owned formatted listing; SDK color tags are retained. */
 } IdaxMicrocodeBlock;
 
 typedef struct IdaxMicrocodeFunction {
@@ -2699,6 +2701,7 @@ typedef struct IdaxMicrocodeFunction {
     size_t return_variable_index;
     IdaxLocalVariable* local_variables;
     size_t local_variable_count;
+    char* text; /**< Owned formatted listing; SDK color tags are retained. */
 } IdaxMicrocodeFunction;
 
 int idax_decompiler_generate_microcode(uint64_t function_address,
@@ -2881,6 +2884,15 @@ int idax_graph_flowchart(uint64_t function_address,
 int idax_graph_flowchart_for_ranges(const IdaxAddressRange* ranges, size_t range_count,
                                     IdaxBasicBlock** out, size_t* count);
 void idax_graph_flowchart_free(IdaxBasicBlock* blocks, size_t count);
+
+typedef struct IdaxSwitchCase {
+    int64_t* values;
+    size_t value_count;
+    uint64_t target;
+} IdaxSwitchCase;
+
+int idax_graph_switch_cases(uint64_t jump_address, IdaxSwitchCase** out, size_t* count);
+void idax_graph_switch_cases_free(IdaxSwitchCase* cases, size_t count);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * UI (ida::ui)

@@ -246,6 +246,27 @@ public final class Graph {
         try bridgeCall("graph.switchTable") { idax_swift_graph_switch(address, &table, &count, &size, $0) }
         return SwitchTable(address: table, entryCount: count, entrySize: size)
     }
+    public struct SwitchCase: Sendable {
+        public var values: [Int64]
+        public var target: Address
+        public init(values: [Int64] = [], target: Address = badAddress) {
+            self.values = values
+            self.target = target
+        }
+    }
+    public static func switchCases(at jumpAddress: Address) throws(IDAError) -> [SwitchCase] {
+        try requireRuntimeThread("graph.switchCases")
+        var pointer: UnsafeMutablePointer<IdaxSwitchCase>?
+        var count = 0
+        try checkStatus(idax_graph_switch_cases(jumpAddress, &pointer, &count), "graph.switchCases")
+        defer { idax_graph_switch_cases_free(pointer, count) }
+        var result: [SwitchCase] = []
+        for value in try checkedBuffer(pointer, count: count, "graph.switchCases") {
+            result.append(SwitchCase(values: Array(try checkedBuffer(
+                value.values, count: value.value_count, "graph.switchCase.values")), target: value.target))
+        }
+        return result
+    }
     public static func flowchart(at functionAddress: Address) throws(IDAError) -> [BasicBlock] {
         try requireRuntimeThread("graph.flowchart")
         var pointer: UnsafeMutablePointer<IdaxBasicBlock>?

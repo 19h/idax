@@ -532,6 +532,31 @@ Result<SwitchTable> switch_table(Address jump_address) {
     return table;
 }
 
+Result<std::vector<SwitchCase>> switch_cases(Address jump_address) {
+    switch_info_t info;
+    if (get_switch_info(&info, static_cast<ea_t>(jump_address)) <= 0)
+        return std::unexpected(Error::not_found("No switch table at address",
+                                                std::to_string(jump_address)));
+    casevec_t values;
+    eavec_t targets;
+    if (!::calc_switch_cases(&values, &targets, static_cast<ea_t>(jump_address), info))
+        return std::unexpected(Error::sdk("Switch case calculation failed",
+                                          std::to_string(jump_address)));
+    if (values.size() != targets.size())
+        return std::unexpected(Error::internal("Switch case/target count mismatch"));
+    std::vector<SwitchCase> result;
+    result.reserve(targets.size());
+    for (std::size_t index = 0; index < targets.size(); ++index) {
+        SwitchCase item;
+        item.target = static_cast<Address>(targets[index]);
+        item.values.reserve(values[index].size());
+        for (sval_t value : values[index])
+            item.values.push_back(static_cast<std::int64_t>(value));
+        result.push_back(std::move(item));
+    }
+    return result;
+}
+
 Result<std::vector<BasicBlock>> flowchart(Address function_address) {
     func_t* pfn = get_func(static_cast<ea_t>(function_address));
     if (pfn == nullptr)

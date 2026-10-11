@@ -3216,3 +3216,13 @@ The exact audited imp_load_source method uses undefined names and fails automati
 ### 35.349. LP64 SDK Integer Template Deduction [F696]
 
 Equal storage width does not imply identical C++ types. A std::max call mixing std::uint64_t and SDK uint64 expressions compiles on the observed macOS/Windows typedefs but fails under Linux GCC where they are unsigned long and unsigned long long. Specify the intended unsigned template type at the member-renderer cursor boundary. [High impact] local native width/layout proof does not establish Linux compile portability; exact-head hosted reruns remain required after correction.
+
+### 35.350. Owned Diaphora Feature Inputs [F697]
+
+DP.A2 depends on the complete active instruction table, signed native switch cases and formatted native microcode, rather than mnemonic sets derived from the input binary. Assumption DP.P1 is that copied listings retain native instruction numbering/color information; falsify by comparing against direct native printing on the same database and maturity. DP.P2 requires preserved case group/value/target ordering, including negative cases; falsify against calc_switch_cases. DP.P3 requires each language copy to survive source destruction; validate transport/free paths and runtime snapshots. [Medium impact] native/C record additions require coordinated consumer rebuilds. [Low impact] formatted listing copies add O(T) time/space for T emitted characters; table/case copies add O(N+V) for N mnemonics and V values.
+
+### 35.351. Rust Example Test Compilation Boundary [F698]
+
+The library test command does not compile cfg(test) example code. All-target validation falsifies complete constructor coverage even when ordinary example/library builds and 172 library tests pass. Initialize every owned semantic field explicitly in constructed test graphs, preserving the modeled instructions and edges. [Medium impact] add all-target testing to the maintained Rust CI path; distinguish pure example tests from real licensed runtime evidence.
+
+- KB 35.350/35.351 validation supplement: actual native equality, Python post-close copies, final initialized Swift case/listing checks, rebuilt Node tests and all-target Rust pass. Empty block text is preserved exactly rather than treated as missing data. Native switch labels depend on compiler normalization; the signed witness uses the x86 fixture and is not inferred from source case syntax on another architecture.

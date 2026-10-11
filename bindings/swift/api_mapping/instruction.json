@@ -2502,6 +2502,24 @@
           "declaration": "static func toggleOperandSign(address: UInt64, operandIndex: Int32) throws(IDAError)"
         }
       ]
+    },
+    {
+      "cpp_id": "62ea6ae5a35a6c712271",
+      "cpp_name": "ida::instruction::mnemonics",
+      "cpp_kind": "function",
+      "cpp_signature": "Result<std::vector<std::string>> ()",
+      "mapping": "direct",
+      "swift": [
+        "6f5d06464c55b9bfde98"
+      ],
+      "rationale": "Copied native feature value with preserved order, signed switch values or tagged formatted text; Swift uses owned arrays/strings and typed failure propagation.",
+      "cpp_fingerprint": "275128d2a07f5eddbca319a3d1ffc0d479b28f60e9d933aa41fcfaa391032164",
+      "swift_targets": [
+        {
+          "path": "Instructions.mnemonics()",
+          "declaration": "static func mnemonics() throws(IDAError) -> [String]"
+        }
+      ]
     }
   ]
 }

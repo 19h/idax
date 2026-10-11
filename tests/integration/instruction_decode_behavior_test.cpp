@@ -53,6 +53,16 @@ void test_decode_basics() {
     CHECK(insn->size() > 0);
     CHECK(!insn->mnemonic().empty());
 
+    auto mnemonics = ida::instruction::mnemonics();
+    CHECK_OK(mnemonics);
+    if (mnemonics) {
+        CHECK(!mnemonics->empty());
+        bool contains_decoded = false;
+        for (const auto& mnemonic : *mnemonics)
+            contains_decoded |= mnemonic == insn->mnemonic();
+        CHECK(contains_decoded);
+    }
+
     auto disasm = ida::instruction::text(start);
     CHECK_OK(disasm);
     if (disasm)

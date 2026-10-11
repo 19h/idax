@@ -769,8 +769,9 @@ public enum Decompiler {
         public var successors: [Int32]
         public var instructions: [Decompiler.MicrocodeInstruction]
         public var kind: Decompiler.MicrocodeBlockKind
+        public var text: String
 
-        public init(index: Int32 = 0, startAddress: UInt64 = badAddress, endAddress: UInt64 = badAddress, predecessors: [Int32] = [], successors: [Int32] = [], instructions: [Decompiler.MicrocodeInstruction] = [], kind: Decompiler.MicrocodeBlockKind = .unknown) {
+        public init(index: Int32 = 0, startAddress: UInt64 = badAddress, endAddress: UInt64 = badAddress, predecessors: [Int32] = [], successors: [Int32] = [], instructions: [Decompiler.MicrocodeInstruction] = [], kind: Decompiler.MicrocodeBlockKind = .unknown, text: String = "") {
             self.index = index
             self.startAddress = startAddress
             self.endAddress = endAddress
@@ -778,6 +779,7 @@ public enum Decompiler {
             self.successors = successors
             self.instructions = instructions
             self.kind = kind
+            self.text = text
         }
 
         internal init(copying native: IdaxMicrocodeBlock, _ operation: String) throws(IDAError) {
@@ -788,6 +790,7 @@ public enum Decompiler {
             self.successors = try copyNativeValues(native.successors, count: Int(native.successor_count), operation) { (value) throws(IDAError) -> Int32 in value }
             self.instructions = try copyNativeValues(native.instructions, count: Int(native.instruction_count), operation) { (value) throws(IDAError) -> Decompiler.MicrocodeInstruction in try Decompiler.MicrocodeInstruction(copying: value, operation) }
             self.kind = try checkedNativeEnum(Decompiler.MicrocodeBlockKind.self, native.kind, operation)
+            self.text = try borrowCString(native.text.map { UnsafePointer($0) }, operation)
         }
     }
 
@@ -802,8 +805,9 @@ public enum Decompiler {
         public var savedRegisterSize: Int64
         public var returnVariableIndex: Int?
         public var localVariables: [Decompiler.LocalVariable]
+        public var text: String
 
-        public init(entryAddress: UInt64 = badAddress, maturity: Decompiler.MicrocodeMaturity = .generated, arguments: [Decompiler.MicrocodeFunctionArgument] = [], returnLocation: Decompiler.MicrocodeValueLocation? = nil, blocks: [Decompiler.MicrocodeBlock] = [], stackFrameSize: Int64 = 0, localStackSize: Int64 = 0, savedRegisterSize: Int64 = 0, returnVariableIndex: Int? = nil, localVariables: [Decompiler.LocalVariable] = []) {
+        public init(entryAddress: UInt64 = badAddress, maturity: Decompiler.MicrocodeMaturity = .generated, arguments: [Decompiler.MicrocodeFunctionArgument] = [], returnLocation: Decompiler.MicrocodeValueLocation? = nil, blocks: [Decompiler.MicrocodeBlock] = [], stackFrameSize: Int64 = 0, localStackSize: Int64 = 0, savedRegisterSize: Int64 = 0, returnVariableIndex: Int? = nil, localVariables: [Decompiler.LocalVariable] = [], text: String = "") {
             self.entryAddress = entryAddress
             self.maturity = maturity
             self.arguments = arguments
@@ -814,6 +818,7 @@ public enum Decompiler {
             self.savedRegisterSize = savedRegisterSize
             self.returnVariableIndex = returnVariableIndex
             self.localVariables = localVariables
+            self.text = text
         }
 
         internal init(copying native: IdaxMicrocodeFunction, _ operation: String) throws(IDAError) {
@@ -827,6 +832,7 @@ public enum Decompiler {
             self.savedRegisterSize = native.saved_register_size
             self.returnVariableIndex = native.has_return_variable_index != 0 ? (native.return_variable_index) : nil
             self.localVariables = try copyNativeValues(native.local_variables, count: Int(native.local_variable_count), operation) { (value) throws(IDAError) -> Decompiler.LocalVariable in try Decompiler.LocalVariable(copying: value, operation) }
+            self.text = try borrowCString(native.text.map { UnsafePointer($0) }, operation)
         }
     }
 

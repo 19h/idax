@@ -214,6 +214,11 @@ Result<Instruction> create(Address address);
 /// Get the rendered disassembly text at an address.
 Result<std::string> text(Address address);
 
+/// Copy every nonempty mnemonic in the active processor's instruction table.
+/// Retains native table order and duplicates; it is independent of instructions
+/// encountered in the database.
+Result<std::vector<std::string>> mnemonics();
+
 // ── Operand representation controls ─────────────────────────────────────
 
 /// Set operand display format to hexadecimal.

@@ -146,6 +146,7 @@ void inspect_instruction(const MicrocodeInstruction& instruction,
 
 void inspect_graph(const MicrocodeFunction& graph) {
     CHECK(!graph.blocks.empty());
+    CHECK(!graph.text.empty());
     CHECK(graph.stack_frame_size >= 0);
     CHECK(graph.local_stack_size >= 0);
     CHECK(graph.saved_register_size >= 0);

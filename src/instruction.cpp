@@ -12,6 +12,24 @@
 
 namespace ida::instruction {
 
+Result<std::vector<std::string>> mnemonics() {
+    const processor_t& processor = PH;
+    if (processor.instruc == nullptr || processor.instruc_start < 0
+        || processor.instruc_end < processor.instruc_start) {
+        return std::unexpected(Error::not_found(
+            "Active processor instruction table is unavailable"));
+    }
+    std::vector<std::string> result;
+    result.reserve(static_cast<std::size_t>(
+        processor.instruc_end - processor.instruc_start));
+    for (int index = processor.instruc_start; index < processor.instruc_end; ++index) {
+        const char* mnemonic = processor.instruc[index].name;
+        if (mnemonic != nullptr && *mnemonic != '\0')
+            result.emplace_back(mnemonic);
+    }
+    return result;
+}
+
 // ── Internal helpers ────────────────────────────────────────────────────
 
 namespace {

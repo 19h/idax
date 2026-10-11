@@ -3,46 +3,210 @@
   "authoritative_umbrella": "include/ida/idax.hpp",
   "umbrella_sha256": "0d394af9b8d26f6c84bfadb9b05428ebc89efe2921b520cd5bacad131650d8aa",
   "headers": [
-    {"domain": "dyld_cache", "path": "include/ida/dyld_cache.hpp", "sha256": "0065557ac0be24134fd9e0f8aa92b1f461ebf78b8f7bdca4ae0b7de7fe9b2f12"},
-    {"domain": "address", "path": "include/ida/address.hpp", "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"},
-    {"domain": "analysis", "path": "include/ida/analysis.hpp", "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"},
-    {"domain": "bookmark", "path": "include/ida/bookmark.hpp", "sha256": "a9680294bddd24d113bad027ccbb05fa5d2e6beb44a5f0cd89128926980e4117"},
-    {"domain": "comment", "path": "include/ida/comment.hpp", "sha256": "f689153a011297e6622c2a3e732c6e64814cbc9b34b8966916496539a991fbe7"},
-    {"domain": "core", "path": "include/ida/core.hpp", "sha256": "e2e1684e43660d778f6f2c41b4d819d0a77872bc599506b6156027d07a218572"},
-    {"domain": "data", "path": "include/ida/data.hpp", "sha256": "af865ba352625e47b4b22d158990b848da3b47195eed67e20759f3bd8f56a097"},
-    {"domain": "database", "path": "include/ida/database.hpp", "sha256": "9048beda2b2e699c11272369e83ed67f8ecd3d44ef67019c54fc631e7c200498"},
-    {"domain": "debugger", "path": "include/ida/debugger.hpp", "sha256": "23f528e7b08dd21e04b8ceaae9344c68766f39d59a7ef9148aa1a61ebf95f2cc"},
-    {"domain": "decompiler", "path": "include/ida/decompiler.hpp", "sha256": "08154ae0d924831be673c02cecba1a23fe00fcedbe91f743f0297044fb71c3e5"},
-    {"domain": "diagnostics", "path": "include/ida/diagnostics.hpp", "sha256": "0b647d35a7ead6301b9bafcd52248103ddc14421812a62a40e7a79d5e0696c78"},
-    {"domain": "directory", "path": "include/ida/directory.hpp", "sha256": "34ef458d40feca08fbbbbb59cae9bf5888a697ab893a36b8f42f11591f367687"},
-    {"domain": "entry", "path": "include/ida/entry.hpp", "sha256": "67492268b69e4f4464d6426a92cfa6abc96e2119724b0ef25a9890fe9415f1a7"},
-    {"domain": "error", "path": "include/ida/error.hpp", "sha256": "358d0ecccd84e72383f1694033babae8f9273e0851e1f8e6a2ceb07a611bd95f"},
-    {"domain": "event", "path": "include/ida/event.hpp", "sha256": "4d332bca01211d6b718ff0a10e46b3e51d4e07b212d125f35da59765ed5e8185"},
-    {"domain": "exception", "path": "include/ida/exception.hpp", "sha256": "24a7ce6ea990491694e0bfff67e96e843034488c81e7f5790e15de43c817a204"},
-    {"domain": "fixup", "path": "include/ida/fixup.hpp", "sha256": "3417f34bae64f69d1a6f346f5772b542408543cb12ab71816107692581af3e38"},
-    {"domain": "function", "path": "include/ida/function.hpp", "sha256": "bdf7654c0aac632f349299c65d950cc42362df3ca1abce80a4b1ec79972a99cf"},
-    {"domain": "graph", "path": "include/ida/graph.hpp", "sha256": "99039f3a872ba0c74447bbda89e23b5d858b2a1dde91e2766e579bdfedd0c906"},
-    {"domain": "instruction", "path": "include/ida/instruction.hpp", "sha256": "4b862d14332bc729e8aae3468898e971c9e8127d157429a052d78b9c52054b78"},
-    {"domain": "lines", "path": "include/ida/lines.hpp", "sha256": "50bff0c47891e5b2102800f1bbb3aa457a3c55a1542007971b71857e8ce3a752"},
-    {"domain": "loader", "path": "include/ida/loader.hpp", "sha256": "6b46da9a42d69464b1cfcf4a07efbcd2a73ea92fd66600e01a7ad698b10684c0"},
-    {"domain": "lumina", "path": "include/ida/lumina.hpp", "sha256": "df7344f3c43b341e1f5d9fa87ed174cdd187975c02c4c0e73a3cdd3328369e21"},
-    {"domain": "name", "path": "include/ida/name.hpp", "sha256": "1650d32efce2e36eadc99847d5c24e309ed6e5fcbc035bcfd15072b50c86ee43"},
-    {"domain": "navigation", "path": "include/ida/navigation.hpp", "sha256": "182725771726110fd1dc762260af0f9c38f3c9bcdfa47b52c02ec81f0ae4131a"},
-    {"domain": "offset", "path": "include/ida/offset.hpp", "sha256": "912928c285ff06823abcd57d54a5e4dc6d9f53183cb945f64b2b705509fe3dcb"},
-    {"domain": "path", "path": "include/ida/path.hpp", "sha256": "619d6c9a5b18ded419d63f6562ce0744a25470bea2e28d1d764939d441316f03"},
-    {"domain": "parser", "path": "include/ida/parser.hpp", "sha256": "8b491a03749cbbe2b29d24cfac834adb9c51a2439a27d939b95141184c7d4545"},
-    {"domain": "plugin", "path": "include/ida/plugin.hpp", "sha256": "a5d143401bb217bbd8282cead1875f09b396d62c78070ba1ea36586c5daccee2"},
-    {"domain": "processor", "path": "include/ida/processor.hpp", "sha256": "ae6d1fb2f591fa4a7d9dd8292e4efc13bf0991445d77d7a04433665a60b6bc19"},
-    {"domain": "problem", "path": "include/ida/problem.hpp", "sha256": "14cd3c4095b39b2e629ee07d04bff3fd06c4e88bcaa53607b6a4553554ace7d1"},
-    {"domain": "registry", "path": "include/ida/registry.hpp", "sha256": "4c0b58f409fc01bb79b1d60af88be09ed8676c54b4dfd60998f17a67c99721d1"},
-    {"domain": "registers", "path": "include/ida/registers.hpp", "sha256": "871aac3c1bfd63edf72f0b480229ef0cfad759054def6db23d6349d668834b54"},
-    {"domain": "search", "path": "include/ida/search.hpp", "sha256": "6345a30552c3fcc0ca8d502b8487b85831bb350cd0026f1e9ab4b997a35af1f5"},
-    {"domain": "segment", "path": "include/ida/segment.hpp", "sha256": "15a8d1d888404fd80c455fcfd301264df83a68dfc4cdc446729095d8650687ca"},
-    {"domain": "script", "path": "include/ida/script.hpp", "sha256": "6d2e8b7c972c3963bd352ddb4f9e1ca5d68cd3a9a826e2f8a00699bd4f9f6754"},
-    {"domain": "storage", "path": "include/ida/storage.hpp", "sha256": "68900c09cd24d780438988d89354571c9d9014b89df286fab8d402ee89214ae6"},
-    {"domain": "type", "path": "include/ida/type.hpp", "sha256": "cfb8a37b64c66e3848044ea1e7fac594d980443f05f899d94ca7f8b0f8730488"},
-    {"domain": "ui", "path": "include/ida/ui.hpp", "sha256": "faebe647fe39af4cc3d2302f09e8020a8ddfcdf47ef1dcf3c6a7943cf95ff3fa"},
-    {"domain": "undo", "path": "include/ida/undo.hpp", "sha256": "7b70bee7a084da58483a2264ab78c52b72ae0a6c7623a0dfccaf28bef047629c"},
-    {"domain": "xref", "path": "include/ida/xref.hpp", "sha256": "808e4a46b88d7da3e5e8bd52d419bd9b2bde377f144b5d36478bb0722c898588"}
+    {
+      "domain": "dyld_cache",
+      "path": "include/ida/dyld_cache.hpp",
+      "sha256": "0065557ac0be24134fd9e0f8aa92b1f461ebf78b8f7bdca4ae0b7de7fe9b2f12"
+    },
+    {
+      "domain": "address",
+      "path": "include/ida/address.hpp",
+      "sha256": "52d49739d87002cf573c43e2be9ee2a78623f6c042940748211b5c2d611da25d"
+    },
+    {
+      "domain": "analysis",
+      "path": "include/ida/analysis.hpp",
+      "sha256": "9f7fbbb9fb843833d437fe0393cb0b7185814f71aa081f1e80713ea9cf836f9a"
+    },
+    {
+      "domain": "bookmark",
+      "path": "include/ida/bookmark.hpp",
+      "sha256": "a9680294bddd24d113bad027ccbb05fa5d2e6beb44a5f0cd89128926980e4117"
+    },
+    {
+      "domain": "comment",
+      "path": "include/ida/comment.hpp",
+      "sha256": "f689153a011297e6622c2a3e732c6e64814cbc9b34b8966916496539a991fbe7"
+    },
+    {
+      "domain": "core",
+      "path": "include/ida/core.hpp",
+      "sha256": "e2e1684e43660d778f6f2c41b4d819d0a77872bc599506b6156027d07a218572"
+    },
+    {
+      "domain": "data",
+      "path": "include/ida/data.hpp",
+      "sha256": "af865ba352625e47b4b22d158990b848da3b47195eed67e20759f3bd8f56a097"
+    },
+    {
+      "domain": "database",
+      "path": "include/ida/database.hpp",
+      "sha256": "9048beda2b2e699c11272369e83ed67f8ecd3d44ef67019c54fc631e7c200498"
+    },
+    {
+      "domain": "debugger",
+      "path": "include/ida/debugger.hpp",
+      "sha256": "23f528e7b08dd21e04b8ceaae9344c68766f39d59a7ef9148aa1a61ebf95f2cc"
+    },
+    {
+      "domain": "decompiler",
+      "path": "include/ida/decompiler.hpp",
+      "sha256": "2d0b05d7cd0eb6cf56bb4a629fd6921e80223ca8204c0dfda751ddc8f2248793"
+    },
+    {
+      "domain": "diagnostics",
+      "path": "include/ida/diagnostics.hpp",
+      "sha256": "0b647d35a7ead6301b9bafcd52248103ddc14421812a62a40e7a79d5e0696c78"
+    },
+    {
+      "domain": "directory",
+      "path": "include/ida/directory.hpp",
+      "sha256": "34ef458d40feca08fbbbbb59cae9bf5888a697ab893a36b8f42f11591f367687"
+    },
+    {
+      "domain": "entry",
+      "path": "include/ida/entry.hpp",
+      "sha256": "67492268b69e4f4464d6426a92cfa6abc96e2119724b0ef25a9890fe9415f1a7"
+    },
+    {
+      "domain": "error",
+      "path": "include/ida/error.hpp",
+      "sha256": "358d0ecccd84e72383f1694033babae8f9273e0851e1f8e6a2ceb07a611bd95f"
+    },
+    {
+      "domain": "event",
+      "path": "include/ida/event.hpp",
+      "sha256": "4d332bca01211d6b718ff0a10e46b3e51d4e07b212d125f35da59765ed5e8185"
+    },
+    {
+      "domain": "exception",
+      "path": "include/ida/exception.hpp",
+      "sha256": "24a7ce6ea990491694e0bfff67e96e843034488c81e7f5790e15de43c817a204"
+    },
+    {
+      "domain": "fixup",
+      "path": "include/ida/fixup.hpp",
+      "sha256": "3417f34bae64f69d1a6f346f5772b542408543cb12ab71816107692581af3e38"
+    },
+    {
+      "domain": "function",
+      "path": "include/ida/function.hpp",
+      "sha256": "bdf7654c0aac632f349299c65d950cc42362df3ca1abce80a4b1ec79972a99cf"
+    },
+    {
+      "domain": "graph",
+      "path": "include/ida/graph.hpp",
+      "sha256": "ee2553ae7eb7395eb767b6f4e341ab856c7dfa1407f054315ab76bdcb5235b92"
+    },
+    {
+      "domain": "instruction",
+      "path": "include/ida/instruction.hpp",
+      "sha256": "f6f380fa2c38c8cfc5d12ccbd5a2c8ee16be9af3422441b40537e030ae2d027e"
+    },
+    {
+      "domain": "lines",
+      "path": "include/ida/lines.hpp",
+      "sha256": "50bff0c47891e5b2102800f1bbb3aa457a3c55a1542007971b71857e8ce3a752"
+    },
+    {
+      "domain": "loader",
+      "path": "include/ida/loader.hpp",
+      "sha256": "6b46da9a42d69464b1cfcf4a07efbcd2a73ea92fd66600e01a7ad698b10684c0"
+    },
+    {
+      "domain": "lumina",
+      "path": "include/ida/lumina.hpp",
+      "sha256": "df7344f3c43b341e1f5d9fa87ed174cdd187975c02c4c0e73a3cdd3328369e21"
+    },
+    {
+      "domain": "name",
+      "path": "include/ida/name.hpp",
+      "sha256": "1650d32efce2e36eadc99847d5c24e309ed6e5fcbc035bcfd15072b50c86ee43"
+    },
+    {
+      "domain": "navigation",
+      "path": "include/ida/navigation.hpp",
+      "sha256": "182725771726110fd1dc762260af0f9c38f3c9bcdfa47b52c02ec81f0ae4131a"
+    },
+    {
+      "domain": "offset",
+      "path": "include/ida/offset.hpp",
+      "sha256": "912928c285ff06823abcd57d54a5e4dc6d9f53183cb945f64b2b705509fe3dcb"
+    },
+    {
+      "domain": "path",
+      "path": "include/ida/path.hpp",
+      "sha256": "619d6c9a5b18ded419d63f6562ce0744a25470bea2e28d1d764939d441316f03"
+    },
+    {
+      "domain": "parser",
+      "path": "include/ida/parser.hpp",
+      "sha256": "8b491a03749cbbe2b29d24cfac834adb9c51a2439a27d939b95141184c7d4545"
+    },
+    {
+      "domain": "plugin",
+      "path": "include/ida/plugin.hpp",
+      "sha256": "a5d143401bb217bbd8282cead1875f09b396d62c78070ba1ea36586c5daccee2"
+    },
+    {
+      "domain": "processor",
+      "path": "include/ida/processor.hpp",
+      "sha256": "ae6d1fb2f591fa4a7d9dd8292e4efc13bf0991445d77d7a04433665a60b6bc19"
+    },
+    {
+      "domain": "problem",
+      "path": "include/ida/problem.hpp",
+      "sha256": "14cd3c4095b39b2e629ee07d04bff3fd06c4e88bcaa53607b6a4553554ace7d1"
+    },
+    {
+      "domain": "registry",
+      "path": "include/ida/registry.hpp",
+      "sha256": "4c0b58f409fc01bb79b1d60af88be09ed8676c54b4dfd60998f17a67c99721d1"
+    },
+    {
+      "domain": "registers",
+      "path": "include/ida/registers.hpp",
+      "sha256": "871aac3c1bfd63edf72f0b480229ef0cfad759054def6db23d6349d668834b54"
+    },
+    {
+      "domain": "search",
+      "path": "include/ida/search.hpp",
+      "sha256": "6345a30552c3fcc0ca8d502b8487b85831bb350cd0026f1e9ab4b997a35af1f5"
+    },
+    {
+      "domain": "segment",
+      "path": "include/ida/segment.hpp",
+      "sha256": "15a8d1d888404fd80c455fcfd301264df83a68dfc4cdc446729095d8650687ca"
+    },
+    {
+      "domain": "script",
+      "path": "include/ida/script.hpp",
+      "sha256": "6d2e8b7c972c3963bd352ddb4f9e1ca5d68cd3a9a826e2f8a00699bd4f9f6754"
+    },
+    {
+      "domain": "storage",
+      "path": "include/ida/storage.hpp",
+      "sha256": "68900c09cd24d780438988d89354571c9d9014b89df286fab8d402ee89214ae6"
+    },
+    {
+      "domain": "type",
+      "path": "include/ida/type.hpp",
+      "sha256": "cfb8a37b64c66e3848044ea1e7fac594d980443f05f899d94ca7f8b0f8730488"
+    },
+    {
+      "domain": "ui",
+      "path": "include/ida/ui.hpp",
+      "sha256": "faebe647fe39af4cc3d2302f09e8020a8ddfcdf47ef1dcf3c6a7943cf95ff3fa"
+    },
+    {
+      "domain": "undo",
+      "path": "include/ida/undo.hpp",
+      "sha256": "7b70bee7a084da58483a2264ab78c52b72ae0a6c7623a0dfccaf28bef047629c"
+    },
+    {
+      "domain": "xref",
+      "path": "include/ida/xref.hpp",
+      "sha256": "808e4a46b88d7da3e5e8bd52d419bd9b2bde377f144b5d36478bb0722c898588"
+    }
   ]
 }

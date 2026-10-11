@@ -515,6 +515,7 @@
     "idax_data_render_custom.value": "value_size"
   },
   "string_array_frees": {
+    "idax_instruction_mnemonics": "idax_instruction_string_array_free",
     "idax_comment_anterior_lines": "idax_comment_lines_free",
     "idax_comment_posterior_lines": "idax_comment_lines_free",
     "idax_instruction_operand_struct_offset_path": "idax_instruction_string_array_free",
@@ -610,6 +611,8 @@
     "IdaxMicrocodeBlock.successors": "[]",
     "IdaxMicrocodeBlock.instructions": "[]",
     "IdaxMicrocodeBlock.kind": ".unknown",
+    "IdaxMicrocodeBlock.text": "\"\"",
+    "IdaxMicrocodeFunction.text": "\"\"",
     "IdaxMicrocodeFunction.entry_address": "badAddress",
     "IdaxMicrocodeFunction.maturity": ".generated",
     "IdaxMicrocodeFunction.arguments": "[]",

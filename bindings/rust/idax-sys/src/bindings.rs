@@ -2983,6 +2983,12 @@ unsafe extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 unsafe extern "C" {
+    pub fn idax_instruction_mnemonics(
+        out: *mut *mut *mut ::std::os::raw::c_char,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
     pub fn idax_instruction_set_operand_hex(
         ea: u64,
         n: ::std::os::raw::c_int,
@@ -8269,10 +8275,12 @@ pub struct IdaxMicrocodeBlock {
     pub instruction_count: usize,
     #[doc = "< Semantic MicrocodeBlockKind discriminant."]
     pub kind: ::std::os::raw::c_int,
+    #[doc = "< Owned formatted listing; SDK color tags are retained."]
+    pub text: *mut ::std::os::raw::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxMicrocodeBlock"][::std::mem::size_of::<IdaxMicrocodeBlock>() - 80usize];
+    ["Size of IdaxMicrocodeBlock"][::std::mem::size_of::<IdaxMicrocodeBlock>() - 88usize];
     ["Alignment of IdaxMicrocodeBlock"][::std::mem::align_of::<IdaxMicrocodeBlock>() - 8usize];
     ["Offset of field: IdaxMicrocodeBlock::index"]
         [::std::mem::offset_of!(IdaxMicrocodeBlock, index) - 0usize];
@@ -8294,6 +8302,8 @@ const _: () = {
         [::std::mem::offset_of!(IdaxMicrocodeBlock, instruction_count) - 64usize];
     ["Offset of field: IdaxMicrocodeBlock::kind"]
         [::std::mem::offset_of!(IdaxMicrocodeBlock, kind) - 72usize];
+    ["Offset of field: IdaxMicrocodeBlock::text"]
+        [::std::mem::offset_of!(IdaxMicrocodeBlock, text) - 80usize];
 };
 impl Default for IdaxMicrocodeBlock {
     fn default() -> Self {
@@ -8322,10 +8332,12 @@ pub struct IdaxMicrocodeFunction {
     pub return_variable_index: usize,
     pub local_variables: *mut IdaxLocalVariable,
     pub local_variable_count: usize,
+    #[doc = "< Owned formatted listing; SDK color tags are retained."]
+    pub text: *mut ::std::os::raw::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of IdaxMicrocodeFunction"][::std::mem::size_of::<IdaxMicrocodeFunction>() - 168usize];
+    ["Size of IdaxMicrocodeFunction"][::std::mem::size_of::<IdaxMicrocodeFunction>() - 176usize];
     ["Alignment of IdaxMicrocodeFunction"]
         [::std::mem::align_of::<IdaxMicrocodeFunction>() - 8usize];
     ["Offset of field: IdaxMicrocodeFunction::entry_address"]
@@ -8358,6 +8370,8 @@ const _: () = {
         [::std::mem::offset_of!(IdaxMicrocodeFunction, local_variables) - 152usize];
     ["Offset of field: IdaxMicrocodeFunction::local_variable_count"]
         [::std::mem::offset_of!(IdaxMicrocodeFunction, local_variable_count) - 160usize];
+    ["Offset of field: IdaxMicrocodeFunction::text"]
+        [::std::mem::offset_of!(IdaxMicrocodeFunction, text) - 168usize];
 };
 impl Default for IdaxMicrocodeFunction {
     fn default() -> Self {
@@ -8974,6 +8988,43 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn idax_graph_flowchart_free(blocks: *mut IdaxBasicBlock, count: usize);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct IdaxSwitchCase {
+    pub values: *mut i64,
+    pub value_count: usize,
+    pub target: u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of IdaxSwitchCase"][::std::mem::size_of::<IdaxSwitchCase>() - 24usize];
+    ["Alignment of IdaxSwitchCase"][::std::mem::align_of::<IdaxSwitchCase>() - 8usize];
+    ["Offset of field: IdaxSwitchCase::values"]
+        [::std::mem::offset_of!(IdaxSwitchCase, values) - 0usize];
+    ["Offset of field: IdaxSwitchCase::value_count"]
+        [::std::mem::offset_of!(IdaxSwitchCase, value_count) - 8usize];
+    ["Offset of field: IdaxSwitchCase::target"]
+        [::std::mem::offset_of!(IdaxSwitchCase, target) - 16usize];
+};
+impl Default for IdaxSwitchCase {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+unsafe extern "C" {
+    pub fn idax_graph_switch_cases(
+        jump_address: u64,
+        out: *mut *mut IdaxSwitchCase,
+        count: *mut usize,
+    ) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    pub fn idax_graph_switch_cases_free(cases: *mut IdaxSwitchCase, count: usize);
 }
 unsafe extern "C" {
     pub fn idax_ui_message(text: *const ::std::os::raw::c_char);

@@ -269,6 +269,17 @@ struct SwitchTable {
 /// Return switch/jump-table metadata for the indirect jump at \p jump_address.
 Result<SwitchTable> switch_table(Address jump_address);
 
+/// Copied signed case values sharing one native switch target.
+struct SwitchCase {
+    std::vector<std::int64_t> values;
+    Address target{BadAddress};
+};
+
+/// Calculate all case-value groups and destinations for a discovered switch.
+/// Returns NotFound when no switch is recorded and SdkFailure when calculation
+/// fails; the default destination is not synthesized as a numbered case.
+Result<std::vector<SwitchCase>> switch_cases(Address jump_address);
+
 /// Create a flow chart for the function at \p function_address.
 /// Returns a list of basic blocks.
 Result<std::vector<BasicBlock>> flowchart(Address function_address);
