@@ -474,6 +474,21 @@ def host_engine(root, output):
         methods["save_compilation_units"](self)
 
     HostDiff.save_compilation_units = save_complete_compilation_units
+    def clear_with_pending_comments(self):
+        self._pending_pseudo_comments = dict(self.pseudo_comments)
+        methods["clear_pseudo_fields"](self)
+
+    def save_with_pending_comments(self, properties):
+        current = self.pseudo_comments
+        self.pseudo_comments = getattr(self, "_pending_pseudo_comments", current)
+        try:
+            return super(HostDiff, self).save_function(properties)
+        finally:
+            self.pseudo_comments = current
+            self._pending_pseudo_comments = {}
+
+    HostDiff.clear_pseudo_fields = clear_with_pending_comments
+    HostDiff.save_function = save_with_pending_comments
     namespace["hr"] = SimpleNamespace(BLT_STOP=1,
                                         qstring_printer_t=lambda *_args: SimpleNamespace(s=""))
     namespace.update(PRTYPE_MULTI=1, PRTYPE_TYPE=2, PRTYPE_PRAGMA=4, PRTYPE_SEMI=8)

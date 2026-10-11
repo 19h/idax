@@ -29,7 +29,29 @@ def main(argv: list[str] | None = None) -> None:
     export.add_argument("--exclude-auto-names", action="store_true")
     export.add_argument("--project-script")
     export.add_argument("--resume", action="store_true")
+    metadata = commands.add_parser("import", help="Apply selected native results and save a new IDB")
+    metadata.add_argument("input", help="Primary binary or IDB")
+    metadata.add_argument("results", help="Native Diaphora results database")
+    metadata.add_argument("output", help="New IDB destination")
+    metadata.add_argument("--category", action="append", choices=("best", "partial", "unreliable", "multimatch"))
+    metadata.add_argument("--no-definitions", action="store_true")
+    metadata.add_argument("--force-names", action="store_true")
     args = parser.parse_args(argv)
+    if args.command == "import":
+        from pathlib import Path
+        from idax import database
+        from .metadata import import_results
+        output = Path(args.output).resolve()
+        if output.exists():
+            raise FileExistsError(output)
+        database.init()
+        with database.opened(args.input, save_on_exit=False):
+            count = import_results(args.upstream, args.results,
+                categories=tuple(args.category or ("best",)),
+                definitions=not args.no_definitions, force=args.force_names)
+            database.save_to(output)
+        print(json.dumps({"imported": count}, sort_keys=True))
+        return
     if args.command == "export":
         from idax import database
         from .host import export_current_database

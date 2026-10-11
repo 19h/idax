@@ -212,3 +212,25 @@ converts that checkpoint to RVA and reconstructs CU cache keys from absolute
 functions.address. A real three-function checkpoint now resumes to all 23
 functions and equals every fresh table. The retained tests default to original
 nonzero base; base-zero preparation is an additional option.
+
+Actual nonzero-base metadata import now persists across IDB save/reopen: names,
+prototypes, native flags, repeatable function comments, ordinary/repeatable
+instruction comments, forced operand, packed five-byte struct/enum and precise
+pseudocode address/text/semicolon position. The retained
+`diaphora_metadata_import_test.py` also guards against SDK module imports during
+production mutation and compares every operand-offset predicate to native SDK.
+The host deliberately corrects upstream clearing the pseudocode comment map
+before native instruction serialization; one positive row stores preciser 69.
+Render after attachment and before orphan removal to preserve the used comment.
+
+The retained `diaphora_changed_binary_test.py` uses separately compiled changed
+code with independent native/opaque exports at original nonzero base. All eight
+all-heuristic/relaxed/model combinations yield identical complete native result
+rows. Default modes produce 22 best/one partial; relaxed modes produce 23 best.
+Four actual model predictions equal 1, using the audited model and scikit-learn
+1.3.2 with numpy 1.26.4, scipy 1.12.0, pandas 2.2.0 and joblib 1.3.2. Model loading
+and prediction are explicit extra probes when earlier heuristics resolve all
+candidates. All input SQLite hashes remain unchanged. This corpus does not
+produce unreliable/multimatch/unmatched rows or a positive candidate for every
+heuristic; the complete audited engine/state machine remains available. GUI and
+shared-launcher runtime proof remain active.

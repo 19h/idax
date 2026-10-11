@@ -7,7 +7,13 @@
 
 extern "C" int idax_diaphora_a0(int value) {
     std::puts("alpha_unit.c: diagnostic");
-    return value + 13 + IDAX_DIAPHORA_VARIANT;
+#if IDAX_DIAPHORA_VARIANT
+    if (value & 1)
+        return value * 3 - 7;
+    return value + 14;
+#else
+    return value + 13;
+#endif
 }
 extern "C" int idax_diaphora_a1(int value) { return idax_diaphora_a0(value) + 1; }
 extern "C" int idax_diaphora_a2(int value) { return idax_diaphora_a0(value) + 2; }

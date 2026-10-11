@@ -27,3 +27,15 @@ states native table comparisons, corpus/options, checkpoint evidence and remaini
 import, chooser and model limits. Positive compilation-unit links compare equal
 at both zero and the original nonzero image base. Resume restores absolute
 function addresses from persisted rows before compilation-unit generation.
+
+Import selected match categories into a new IDB:
+
+```sh
+python -m examples.diaphora --upstream <upstream-source> import primary.i64 results.diaphora imported.i64 --category best --category partial
+```
+
+Names, prototypes, flags, function/instruction comments, forced operands, complete
+struct/enum definitions and precise pseudocode comments persist after save/reopen.
+Existing instruction comments are preserved. The host repairs upstream clearing
+pseudocode comments before serialization and renders newly attached comments
+before removing orphans. These are documented upstream boundary corrections.
