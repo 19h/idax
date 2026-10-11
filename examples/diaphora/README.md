@@ -21,6 +21,9 @@ Matching supports `--all-heuristics`, `--relaxed-ratio`, and `--trained-model`.
 Model use requires upstream numerical/ML dependencies; the audited model records
 scikit-learn 1.3.2. Inputs are copied read-only before matching and result config
 retains their original paths. An existing results file is rejected.
+The audited native format reverses the stored unmatched side labels. The
+application reader normalizes primary-only and secondary-only categories to
+their actual input sides; the persisted SQLite file remains native-compatible.
 
 The [validation record](../../docs/reviews/diaphora-full-parity-validation.md)
 states native table comparisons, corpus/options, checkpoint and model evidence,
@@ -76,4 +79,7 @@ GUI import records the expected mutation, then repeatedly raises signum=11 on
 the tested macOS host; stable GUI import remains unverified. Use the separately
 validated command-line import workflow for saved/reopened metadata evidence.
 Empty unreliable/multimatch/unmatched tabs do not establish positive operations
-in those categories. The validation record retains these boundaries.
+in those categories. A separate source-built corpus now produces positive native
+matching rows in all six categories and verifies unmatched input membership;
+positive GUI operations still require a stable host. The validation record
+retains these boundaries.

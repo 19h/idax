@@ -632,6 +632,8 @@ Current overall phase status:
       - [x] P73.7.3.2.2 Compiled Rust completes export/diff/import with 23 saved/reopened comments and no instruction errors; native null-name equivalence and forced exception propagation pass.
       - [ ] P73.7.3.2.3 Complete stable GUI import and operation with positive unmatched/multimatch categories on a suitable host.
   - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.
+    - [x] P73.7.4.1 Source-built native/opaque matching produces two genuine ambiguous pairs and positive unmatched rows on both inputs. All export/raw result tables equal independent upstream; corrected reader passes original-input address/name membership checks.
+    - [x] P73.7.4.2 Real externally visible weak functions produce one unreliable match at ratio 0.8876293; all six categories are positive with all heuristics. Native matching algorithms are unchanged and independent raw result tables equal.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3. Fresh all-ref/eight-fork audit and concrete unsent cleanup drafts are recorded in `docs/reviews/github-retention-audit.md`; external purge remains open.
 - [x] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations. Actual 950/runtime and 940-header dual-ABI producers, native consumers and all affected bindings pass exact byte/bit/index/width checks. Parsed renderer layouts and native 940/950 regressions pass; scoped proof and platform/future limits are retained in docs/reviews/sdk95-member-consumer-validation.md.
 

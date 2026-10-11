@@ -1,8 +1,9 @@
 # Broad Diaphora 3.4.0 parity
 
 Status: export, persisted import, changed-binary/model matching and shared
-launchers validated within the recorded corpus. P73.7 remains open for stable
-GUI import and positive remaining-category operations.
+launchers and native matching in all six categories validated within the recorded
+corpora. P73.7 remains open for stable GUI import, positive GUI category operations
+and remaining rendering features.
 
 The complete application workflow uses the independent upstream checkout at
 `84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99`. `examples/diaphora/upstream.json`
@@ -11,6 +12,13 @@ records source/model SHA-256 identities. The adapter reuses the native schema,
 and compilation-unit matching. It preserves upstream defaults and exposes
 explicit all-heuristic, relaxed-ratio and trained-model options. Model use
 requires the upstream numerical/ML dependencies and fails explicitly if absent.
+
+The audited native `find_unmatched` assigns main functions to `unmatched_second`
+and attached functions to `unmatched_primary`; `save_results` persists those
+reversed side labels. The application reader normalizes unmatched categories and
+returned `type` values to their actual input sides. Native SQLite values remain
+unchanged. Independent original-input address/name membership tests prevent
+secondary-only rows from being treated as primary jump targets.
 
 The audited project-script loader references undefined `modname`/`filename`
 despite receiving `name`/`pathname`. A narrow adapter override delegates to the
@@ -352,3 +360,67 @@ The shared launcher/error-boundary implementation is published as signed
 38108394289, Bindings 38108394262 and Integrations 38108394243; their final
 status is separate from this native GUI control and from the prior green
 metadata revision.
+
+Source-built positive category evidence (SDK 940/runtime 9.4, macOS ARM64,
+x86-64 inputs, Apple clang 21.0.0 with `-O1 -fno-inline -g0`):
+
+| Mode | Best | Partial | Unreliable | Multimatch | Primary-only | Secondary-only |
+|---|---:|---:|---:|---:|---:|---:|
+| Default | 23 | 1 | 0 | 0 | 3 | 5 |
+| All heuristics | 23 | 1 | 1 | 2 | 1 | 2 |
+
+The separately compiled primary/secondary inputs contain 27/29 functions;
+both have three compilation units and 21 function links. All 14 native/opaque
+export tables compare equal, excluding only nondeterministic `export_time`.
+Independent upstream matching yields identical raw `results` and `unmatched`
+tables. Every returned matched or unmatched address/name belongs to its original
+input; all input SQLite SHA-256 values remain unchanged. The reader also leaves
+the result file SHA-256 unchanged. Source/binary hashes, full table counts and
+positive rows are retained in [category evidence](diaphora-category-evidence.json).
+
+The ambiguous source at `0x100000720` pairs with two secondary candidates at
+`0x100000730` and `0x100000750`, both ratio `0.6676667`, through the unchanged
+Nodes, edges, complexity and prototype heuristic. The weak source at
+`0x100000770` pairs with secondary `0x100000800` in the unreliable category,
+ratio `0.8876293`, through Nodes, edges and complexity. Category names reflect
+upstream routing; a high numerical ratio can belong to unreliable. Weak
+functions remain actual externally visible compiled code without a matched
+caller. The tested volatile-pointer caller was resolved by native analysis and
+consumed earlier as a partial callee match; removing it exercises the later
+heuristic without modifying matching order, hooks or SQL rows.
+
+Reproduction uses a licensed runtime, built Python extension and audited source
+checkout, with the package available to the selected interpreter:
+
+```sh
+c++ -arch x86_64 -std=c++23 -O1 -fno-inline -g0 tests/fixtures/diaphora_category_host.cpp -o <primary-binary>
+c++ -arch x86_64 -std=c++23 -O1 -fno-inline -g0 -DIDAX_DIAPHORA_VARIANT=1 tests/fixtures/diaphora_category_host.cpp -o <secondary-binary>
+python -m tests.integration.diaphora_category_parity_test <upstream-source> <primary-binary> <secondary-binary> --work-directory <new-evidence-directory>
+```
+
+The optional evidence directory must not already exist. Without that option,
+the test uses a temporary directory. Its positive-category assertions are
+mandatory; there is no empty-category bypass. The compiled corpus demonstrates
+observed native category behavior, not every heuristic or cross-platform
+compiler output. It does not establish positive GUI category operations or
+replace the open stable-GUI/rendering gates.
+
+| ID | Assumption | Stress test/falsification probe | Dependent result/status |
+|---|---|---|---|
+| DP.C1 | Audited unmatched side reversal applies to these result files | Independently compare raw tables and address/name membership against both input function tables | Passes; normalization is specific to the audited 3.4.0 format |
+| DP.C2 | Real source code and unchanged matching produce the positive categories | Independently export/run native upstream; require unreliable and one-to-many multimatch rows | Passes on the recorded compiler/runtime; other hosts remain unverified |
+| DP.C3 | Shared result-reader equality does not conceal a shared labeling error | Compare persisted tables independently, then check semantic membership without using the reader as reference | Passes on every returned row |
+
+Bounded implications: [high] literal native unmatched labels can navigate into
+the wrong input; semantic reader normalization corrects that application defect
+without changing interchange. [medium] positive rows close native category
+evidence, while GUI callbacks and remaining rendering features require their
+own host proof. [low] compiler/analysis changes can alter these counts; mandatory
+positive assertions detect a lost witness. No physical units or dimensional
+calculations are involved; similarity ratios are dimensionless and the retained
+native results preserve seven decimal places.
+
+At exact launcher implementation `1c60b1cef6bbac2a80f9187cbc9d68d288c5ed3f`,
+Validation 38108394289, Bindings 38108394262 and Integrations 38108394243 all
+complete successfully. This is earlier-revision CI; the new category corpus is
+actual local licensed-runtime evidence and is not an automatic CI GUI test.

@@ -1,0 +1,250 @@
+{
+  "scope": "Actual source-built category corpus; native matching and interchange, not GUI stability or every heuristic",
+  "upstream_revision": "84aa7dd83fd45d13ae4e5cbe10b12effb97b9b99",
+  "sdk_version": 940,
+  "runtime_series": "9.4",
+  "host": "macOS ARM64",
+  "input_architecture": "x86_64",
+  "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+  "compile_flags": [
+    "-arch",
+    "x86_64",
+    "-std=c++23",
+    "-O1",
+    "-fno-inline",
+    "-g0"
+  ],
+  "secondary_define": "IDAX_DIAPHORA_VARIANT=1",
+  "source_sha256": {
+    "tests/fixtures/diaphora_category_host.cpp": "fe82a0304bcf505c62c2db4602bdb799b69aeb225185677ea9503ba561106e58",
+    "tests/fixtures/diaphora_full_host.cpp": "3e2db196baf183e0cc7bb5d51d3b427c7648b61f0f3d17ad7381b5f096a6b674"
+  },
+  "binary_sha256": {
+    "primary": "53ad4ec0c5d8b1e80e8360af1c85bb047a29cec24d09f479404c561c6386c2a1",
+    "secondary": "ffdaeb0d6a4faaee0762620db993dbce44fc96d73d9c60485608bf81dd9322d5"
+  },
+  "export_comparison": {
+    "tables": 14,
+    "excluded_columns": [
+      "export_time"
+    ],
+    "positive_compilation_units": true
+  },
+  "result_comparison": {
+    "tables": [
+      "results",
+      "unmatched"
+    ],
+    "raw_rows_equal": true,
+    "returned_address_name_membership": true,
+    "input_sqlite_hashes_unchanged": true
+  },
+  "inputs": {
+    "primary": {
+      "export_table_counts": {
+        "basic_blocks": 109,
+        "bb_instructions": 1111,
+        "bb_relations": 92,
+        "callgraph": 44,
+        "compilation_unit_functions": 21,
+        "compilation_units": 3,
+        "constants": 8,
+        "function_bblocks": 109,
+        "functions": 27,
+        "instructions": 1111,
+        "program": 1,
+        "program_data": 22,
+        "sqlite_stat1": 48,
+        "version": 1
+      }
+    },
+    "secondary": {
+      "export_table_counts": {
+        "basic_blocks": 119,
+        "bb_instructions": 1410,
+        "bb_relations": 100,
+        "callgraph": 46,
+        "compilation_unit_functions": 21,
+        "compilation_units": 3,
+        "constants": 17,
+        "function_bblocks": 119,
+        "functions": 29,
+        "instructions": 1410,
+        "program": 1,
+        "program_data": 22,
+        "sqlite_stat1": 48,
+        "version": 1
+      }
+    }
+  },
+  "modes": {
+    "default": {
+      "category_counts": {
+        "best": 23,
+        "partial": 1,
+        "unreliable": 0,
+        "multimatch": 0,
+        "primary": 3,
+        "secondary": 5
+      },
+      "positive_rows": {
+        "partial": [
+          {
+            "type": "partial",
+            "line": "00000",
+            "address": "100000540",
+            "name": "_idax_diaphora_a0",
+            "address2": "100000540",
+            "name2": "_idax_diaphora_a0",
+            "ratio": "0.8057143",
+            "nodes1": "1",
+            "nodes2": "1",
+            "description": "Perfect match, same name"
+          }
+        ],
+        "unreliable": [],
+        "multimatch": [],
+        "primary": [
+          {
+            "type": "primary",
+            "line": "00000",
+            "address": "100000720",
+            "name": "_idax_ambiguous_source"
+          },
+          {
+            "type": "primary",
+            "line": "00001",
+            "address": "100000740",
+            "name": "_idax_primary_unique"
+          },
+          {
+            "type": "primary",
+            "line": "00002",
+            "address": "100000770",
+            "name": "_idax_weak_primary"
+          }
+        ],
+        "secondary": [
+          {
+            "type": "secondary",
+            "line": "00000",
+            "address": "100000730",
+            "name": "_idax_ambiguous_candidate_one"
+          },
+          {
+            "type": "secondary",
+            "line": "00001",
+            "address": "100000750",
+            "name": "_idax_ambiguous_candidate_two"
+          },
+          {
+            "type": "secondary",
+            "line": "00002",
+            "address": "100000770",
+            "name": "_idax_secondary_unique"
+          },
+          {
+            "type": "secondary",
+            "line": "00003",
+            "address": "1000007b0",
+            "name": "_idax_secondary_extra"
+          },
+          {
+            "type": "secondary",
+            "line": "00004",
+            "address": "100000800",
+            "name": "_idax_weak_secondary"
+          }
+        ]
+      }
+    },
+    "all_heuristics": {
+      "category_counts": {
+        "best": 23,
+        "partial": 1,
+        "unreliable": 1,
+        "multimatch": 2,
+        "primary": 1,
+        "secondary": 2
+      },
+      "positive_rows": {
+        "partial": [
+          {
+            "type": "partial",
+            "line": "00000",
+            "address": "100000540",
+            "name": "_idax_diaphora_a0",
+            "address2": "100000540",
+            "name2": "_idax_diaphora_a0",
+            "ratio": "0.8057143",
+            "nodes1": "1",
+            "nodes2": "1",
+            "description": "Perfect match, same name"
+          }
+        ],
+        "unreliable": [
+          {
+            "type": "unreliable",
+            "line": "00000",
+            "address": "100000770",
+            "name": "_idax_weak_primary",
+            "address2": "100000800",
+            "name2": "_idax_weak_secondary",
+            "ratio": "0.8876293",
+            "nodes1": "9",
+            "nodes2": "9",
+            "description": "Nodes, edges and complexity"
+          }
+        ],
+        "multimatch": [
+          {
+            "type": "multimatch",
+            "line": "00000",
+            "address": "100000720",
+            "name": "_idax_ambiguous_source",
+            "address2": "100000730",
+            "name2": "_idax_ambiguous_candidate_one",
+            "ratio": "0.6676667",
+            "nodes1": "1",
+            "nodes2": "1",
+            "description": "Nodes, edges, complexity and prototype"
+          },
+          {
+            "type": "multimatch",
+            "line": "00001",
+            "address": "100000720",
+            "name": "_idax_ambiguous_source",
+            "address2": "100000750",
+            "name2": "_idax_ambiguous_candidate_two",
+            "ratio": "0.6676667",
+            "nodes1": "1",
+            "nodes2": "1",
+            "description": "Nodes, edges, complexity and prototype"
+          }
+        ],
+        "primary": [
+          {
+            "type": "primary",
+            "line": "00000",
+            "address": "100000740",
+            "name": "_idax_primary_unique"
+          }
+        ],
+        "secondary": [
+          {
+            "type": "secondary",
+            "line": "00000",
+            "address": "100000770",
+            "name": "_idax_secondary_unique"
+          },
+          {
+            "type": "secondary",
+            "line": "00001",
+            "address": "1000007b0",
+            "name": "_idax_secondary_extra"
+          }
+        ]
+      }
+    }
+  }
+}

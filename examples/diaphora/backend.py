@@ -120,7 +120,11 @@ def upstream_definitions(
 
 
 def read_results(path: str | Path) -> dict[str, list[dict[str, Any]]]:
-    """Read all upstream categories, including multimatches and unmatched rows."""
+    """Read all categories, normalizing the audited native unmatched side reversal.
+
+    Pinned 3.4.0 saves unmatched main functions under secondary and vice versa.
+    The SQLite file is unchanged; returned categories/types name the input side.
+    """
     result: dict[str, list[dict[str, Any]]] = {
         "best": [], "partial": [], "unreliable": [], "multimatch": [],
         "primary": [], "secondary": [],
@@ -130,7 +134,8 @@ def read_results(path: str | Path) -> dict[str, list[dict[str, Any]]]:
         for row in db.execute("SELECT * FROM results ORDER BY type, address, address2"):
             result[row["type"]].append(dict(row))
         for row in db.execute("SELECT * FROM unmatched ORDER BY type, address"):
-            result[row["type"]].append(dict(row))
+            category = {"primary": "secondary", "secondary": "primary"}[row["type"]]
+            result[category].append(dict(row, type=category))
     return result
 
 
