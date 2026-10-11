@@ -621,6 +621,10 @@ Current overall phase status:
 - [x] P73.5 Obtain actual debugger/process-backed Appcall evidence. Actual SDK 9.4 GUI plus ARM Linux remote backend passes all four signed-return assertions in a suspended process; see `docs/reviews/appcall-host-validation.md`.
 - [x] P73.6 Execute and retain the complete native Linux/Windows suites on the exact SDK/runtime 9.4 pair. Exact `1e430823` passes 46/46 on both platforms with source-derived configured/executed identity checks; sanitized inventories/JUnit and artifact identities are retained in `docs/reviews/native-sdk94-full-validation.md`.
 - [ ] P73.7 Address the remaining broad Diaphora interchange, matching, similarity, metadata, and chooser parity surfaces against the audited upstream.
+  - [x] P73.7.1 Reuse the byte-verified complete 3.4.0 SQLite/heuristic/ratio/multimatch backend and establish independent interchange checks. Two controlled checks pass with exact upstream result rows; live feature/model/multimatch evidence remains under the later gates.
+  - [ ] P73.7.2 Adapt all exported features and compilation-unit/callgraph relations through opaque IDAX operations; compare actual host records against upstream.
+  - [ ] P73.7.3 Implement definition/library/function/instruction import and result chooser workflows, including maintained C++ and Rust entry points.
+  - [ ] P73.7.4 Retain provenance, actual cross-binary matching/import evidence, and GUI chooser evidence before broad closure.
 - [ ] P73.8 Reverify and remediate historical GitHub cached objects, affected PR refs, and forks under P54.3. Fresh all-ref/eight-fork audit and concrete unsent cleanup drafts are recorded in `docs/reviews/github-retention-audit.md`; external purge remains open.
 - [x] P73.9 Validate actual IDA 9.5 ABI and wide-offset/bitfield behavior and correct the identified limitations. Actual 950/runtime and 940-header dual-ABI producers, native consumers and all affected bindings pass exact byte/bit/index/width checks. Parsed renderer layouts and native 940/950 regressions pass; scoped proof and platform/future limits are retained in docs/reviews/sdk95-member-consumer-validation.md.
 
